@@ -201,7 +201,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 */
 	String openAPIReturnType();
 
-
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
 	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, final boolean fromString);
@@ -366,6 +365,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return property hint
 	 */
 	default String hint() {
+
 		return null;
 	}
 
@@ -375,6 +375,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return property category
 	 */
 	default String category() {
+
 		return null;
 	}
 

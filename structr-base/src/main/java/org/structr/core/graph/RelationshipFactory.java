@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
@@ -32,23 +31,28 @@ import org.structr.core.entity.AbstractRelationship;
 public class RelationshipFactory extends Factory<Relationship, RelationshipInterface> {
 
 	public RelationshipFactory(final SecurityContext securityContext) {
+
 		super(securityContext);
 	}
 
 	public RelationshipFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly) {
+
 		super(securityContext, includeHidden, publicOnly);
 	}
 
 	public RelationshipFactory(final SecurityContext securityContext, final int pageSize, final int page) {
+
 		super(securityContext, pageSize, page);
 	}
 
 	public RelationshipFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
+
 		super(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override
 	public RelationshipInterface instantiateWithType(final Relationship relationship, final Identity pathSegmentId, final boolean isCreation) {
+
 		return new AbstractRelationship(securityContext, relationship, TransactionCommand.getCurrentTransactionId());
 	}
 }

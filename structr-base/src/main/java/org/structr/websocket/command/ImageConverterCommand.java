@@ -42,7 +42,6 @@ public class ImageConverterCommand extends AbstractCommand {
 
 		final String originalImageId          = webSocketData.getId();
 		final Image originalImage             = getNodeAs(originalImageId, Image.class, StructrTraits.IMAGE);
-
 		final String format = webSocketData.getNodeDataStringValue("format");
 		final int width     = webSocketData.getNodeDataIntegerValue("width");
 		final int height    = webSocketData.getNodeDataIntegerValue("height");
@@ -52,11 +51,11 @@ public class ImageConverterCommand extends AbstractCommand {
 		if (originalImage != null) {
 
 			final Thumbnail thumbnailData = ImageHelper.createCroppedImage(originalImage, width, height, offsetX, offsetY, format);
-
 			if (thumbnailData != null) {
 
 				final Integer tnWidth  = thumbnailData.getWidth();
 				final Integer tnHeight = thumbnailData.getHeight();
+
 				byte[] data;
 
 				try {

@@ -54,6 +54,7 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 	public static final String PROVIDER_PROPERTY = "provider";
 
 	public StorageConfigurationTraitDefinition() {
+
 		super(StructrTraits.STORAGE_CONFIGURATION);
 	}
 
@@ -62,14 +63,12 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					boolean valid = true;
-
 					final Traits traits                = obj.getTraits();
 					final PropertyKey nameProperty     = traits.key(NAME_PROPERTY);
 					final PropertyKey providerProperty = traits.key(PROVIDER_PROPERTY);
@@ -82,8 +81,7 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -93,8 +91,7 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -108,11 +105,13 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -121,8 +120,7 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 
 		return Map.of(
 
-			StorageConfiguration.class, (traits, node) -> new StorageConfigurationTraitWrapper(traits, node)
-		);
+			StorageConfiguration.class, (traits, node) -> new StorageConfigurationTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -133,25 +131,18 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 		final Property<String> nameProperty                     = new StringProperty(NAME_PROPERTY).indexed().unique().notNull();
 		final Property<String> providerProperty                 = new StringProperty(PROVIDER_PROPERTY).indexed().notNull();
 
-		return Set.of(
-			entriesProperty,
-			foldersProperty,
-			nameProperty,
-			providerProperty
-		);
+		return Set.of(entriesProperty, foldersProperty, nameProperty, providerProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-				PropertyView.Ui,
-				newSet(NAME_PROPERTY, PROVIDER_PROPERTY, ENTRIES_PROPERTY)
-		);
+		return Map.of(PropertyView.Ui, newSet(NAME_PROPERTY, PROVIDER_PROPERTY, ENTRIES_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

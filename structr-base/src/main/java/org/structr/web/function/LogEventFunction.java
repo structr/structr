@@ -43,11 +43,13 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "logEvent";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("action, message [, subject [, object ]]");
 	}
 
@@ -81,7 +83,6 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 				final String action = sources[0].toString();
 				final String message = sources[1].toString();
-
 				final NodeInterface logEvent = StructrApp.getInstance().create(StructrTraits.LOG_EVENT,
 					new NodeAttribute(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), action),
 					new NodeAttribute(traits.key(LogEventTraitDefinition.MESSAGE_PROPERTY), message),
@@ -106,6 +107,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 			} catch (IllegalArgumentException e) {
 
 				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 				return usage(ctx.isJavaScriptContext());
 			}
 		}
@@ -113,6 +115,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${logEvent(action, message [, subject [, object ]] )}"),
 			Usage.javaScript("Usage: ${{ $.logEvent(action, message [, subject [, object ]] ) }}")
@@ -121,11 +124,13 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Logs an event to the Structr log.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function creates an entity of type `LogEvent` with the current timestamp and the given values. All four parameters (`action`, `message`, `subject` and `object`) can be arbitrary strings.
 	
@@ -147,8 +152,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${logEvent('VIEW', me.id)}", "Log a simple \"VIEW\" event"),
+		return List.of(Example.structrScript("${logEvent('VIEW', me.id)}", "Log a simple \"VIEW\" event"),
 			Example.javaScript("""
 				${{
 					$.logEvent({
@@ -162,11 +166,13 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return super.getNotes();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 

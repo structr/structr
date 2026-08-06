@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-
 import jakarta.servlet.http.HttpSession;
 import org.graalvm.polyglot.Value;
 import org.structr.common.error.ArgumentCountException;
@@ -41,11 +40,13 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "setSessionAttribute";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
@@ -60,8 +61,11 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
+
 				sessionWrapper.putMember(sources[0].toString(), Value.asValue(PolyglotWrapper.wrap(ctx, sources[1])));
+
 			} else {
+
 				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
@@ -71,59 +75,61 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 			// retry
 			if (retryCount < 3) {
+
 				retryCount++;
+
 				return apply(ctx, caller, sources);
 			}
+
 			throw ex;
+
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${setSessionAttribute(key, value)}. Example: "),
-			Usage.javaScript("Usage: ${{$.setSessionAttribute(key, value)}}. Example: ")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${setSessionAttribute(key, value)}. Example: "), Usage.javaScript("Usage: ${{$.setSessionAttribute(key, value)}}. Example: "));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Store a value under the given key in the users session.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${setSessionAttribute('do_no_track', true)}"),
-				Example.javaScript("${{ $.setSessionAttribute('do_not_track', true) }}")
-		);
+
+		return List.of(Example.structrScript("${setSessionAttribute('do_no_track', true)}"), Example.javaScript("${{ $.setSessionAttribute('do_not_track', true) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("key", "given key"),
-				Parameter.mandatory("value", "given value for key")
-				);
+		return List.of(Parameter.mandatory("key", "given key"), Parameter.mandatory("value", "given value for key"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

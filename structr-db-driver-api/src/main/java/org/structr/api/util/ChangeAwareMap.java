@@ -37,10 +37,12 @@ public class ChangeAwareMap {
         }
 
         public ChangeAwareMap(final Map<String, Object> initialData) {
+
                 data.putAll(initialData);
         }
 
         public ChangeAwareMap(final ChangeAwareMap initialData) {
+
                 data.putAll(initialData.data);
         }
 
@@ -56,35 +58,44 @@ public class ChangeAwareMap {
         }
 
         public boolean containsKey(final String key) {
+
                 return data.containsKey(key);
         }
 
         public Object get(final String key) {
+
                 return data.get(key);
         }
 
         public Object put(final String key, final Object value) {
+
                 modifiedKeys.add(key);
+
                 return data.put(key, value);
         }
 
         public Set<String> keySet() {
+
                 return data.keySet();
         }
 
         public Set<String> getModifiedKeys() {
+
                 return modifiedKeys;
         }
 
         public Object remove(final String key) {
+
                 return data.remove(key);
         }
 
         public int size() {
+
                 return data.size();
         }
 
         public Set<Entry<String, Object>> entrySet() {
+
                 return data.entrySet();
         }
 }

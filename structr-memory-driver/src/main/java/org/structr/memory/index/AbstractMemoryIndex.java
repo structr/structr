@@ -52,31 +52,37 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 
 	@Override
 	public Map<T, Double> fulltextQuery(final String indexName, final String searchString) {
+
 		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public MemoryQuery createQuery(final QueryContext context, final int pageSize, final int page) {
+
 		return new MemoryQuery(context);
 	}
 
 	@Override
 	public QueryFactory getFactoryForType(final Class type) {
+
 		return factories.get(type);
 	}
 
 	@Override
 	public TypeConverter getConverterForType(final Class type) {
+
 		return converters.get(type);
 	}
 
 	@Override
 	public DatabaseService getDatabaseService() {
+
 		return db;
 	}
 
 	@Override
 	public boolean supports(final Class type) {
+
 		return converters.containsKey(type);
 	}
 

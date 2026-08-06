@@ -55,22 +55,27 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 	private final Map<String, ConsumerWorker> consumerWorkerMap = new ConcurrentHashMap<>();
 
 	public KafkaClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getGroupId() {
+
 		return getProperty(traits.key(KafkaClientTraitDefinition.GROUP_ID_PROPERTY));
 	}
 
 	public String[] getServers() {
+
 		return getProperty(traits.key(KafkaClientTraitDefinition.SERVERS_PROPERTY));
 	}
 
 	public void setServers(final String[] servers) throws FrameworkException {
+
 		setProperty(traits.key(KafkaClientTraitDefinition.SERVERS_PROPERTY), servers);
 	}
 
 	public Iterable<MessageSubscriber> getSubscribers() {
+
 		return getProperty(traits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY));
 	}
 
@@ -92,6 +97,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 					tx.success();
 
 				} catch (Throwable t) {
+
 					final Logger logger = LoggerFactory.getLogger(KafkaClientTraitWrapper.class);
 					logger.error("Unable to initialize Kafka clients. " + t);
 				}
@@ -100,10 +106,12 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 	}
 
 	public Producer<String, String> getProducer() {
+
 		return producerMap.get(getUuid());
 	}
 
 	public void setProducer(KafkaProducer<String, String> producer) {
+
 		producerMap.put(getUuid(), producer);
 	}
 
@@ -111,6 +119,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 		ConsumerWorker cw = new ConsumerWorker(this);
 		Thread t = new Thread(cw);
+
 		consumerWorkerMap.put(this.getUuid(), cw);
 		t.start();
 	}
@@ -118,29 +127,36 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 	public void close() {
 
 		if (getProducer() != null) {
+
 			getProducer().close();
 		}
 
 		ConsumerWorker cw = consumerWorkerMap.get(this.getUuid());
-
 		if (cw != null) {
+
 			cw.stop();
 		}
 
 	}
 
 	public void refreshConfiguration() {
+
 		try {
+
 			if (this.getServers() != null && this.getServers().length > 0) {
+
 				setProducer(new KafkaProducer<>(getConfiguration(KafkaProducer.class)));
 			}
+
 		} catch (JsonSyntaxException | KafkaException ex) {
+
 			final Logger logger = LoggerFactory.getLogger(KafkaClientTraitWrapper.class);
 			logger.error("Could not refresh Kafka configuration. " + ex);
 		}
 	}
 
 	public void forwardReceivedMessage(final String topic, final String message) throws FrameworkException {
+
 		sendMessage(new ActionContext(getSecurityContext()), topic, message);
 	}
 
@@ -149,14 +165,19 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 		Properties props = new Properties();
 
 		try {
+
 			String[] servers = this.getServers();
 			if (servers != null) {
+
 				props.setProperty("bootstrap.servers", String.join(",", servers));
+
 			} else {
+
 				props.setProperty("bootstrap.servers", "");
 			}
 
 			if (clazz == KafkaProducer.class) {
+
 				props.put("acks", "all");
 				props.put("retries", 0);
 				props.put("batch.size", 16384);
@@ -164,6 +185,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 				props.put("buffer.memory", 33554432);
 				props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 				props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
 			} else if (clazz == KafkaConsumer.class) {
 
 				String gId = null;
@@ -171,21 +193,29 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 				if (this.getGroupId() != null) {
 
 					gId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, this.getGroupId(), false, "groupId");
+
 				} else {
+
 					gId = this.getGroupId();
 				}
 
 				if (gId != null && gId.length() > 0) {
+
 					props.put("group.id", gId);
+
 				} else {
+
 					props.put("group.id", "structr-" + this.getUuid());
 				}
+
 				props.put("enable.auto.commit", "true");
 				props.put("auto.commit.interval.ms", "1000");
 				props.put("session.timeout.ms", "30000");
 				props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 				props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+
 			} else {
+
 				return null;
 			}
 
@@ -208,6 +238,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 		private volatile boolean running;
 
 		public ConsumerWorker(final KafkaClient client) {
+
 			this.currentlySubscribedTopics = null;
 			this.currentGroupId = null;
 			this.client = client;
@@ -217,6 +248,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 		}
 
 		public void stop() {
+
 			this.running = false;
 		}
 
@@ -225,21 +257,29 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 			try {
 
 				if (consumer != null) {
+
 					consumer.close();
 				}
+
 				this.consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
 
 				if (client.getGroupId() != null) {
+
 					this.currentGroupId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false, "groupId");
+
 				} else {
+
 					this.currentGroupId = client.getGroupId();
 				}
 
 			} catch (KafkaException ex) {
 
 				logger.info("Could not setup consumer for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. Check for configuration faults. " + ex);
+
 				try {
+
 					Thread.sleep(1000);
+
 				} catch (InterruptedException iex) {
 				}
 
@@ -250,12 +290,17 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 		}
 
 		public boolean newGroupId() {
+
 			try {
+
 				String cId = null;
 
 				if (client.getGroupId() != null) {
+
 					cId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false, "groupId");
+
 				} else {
+
 					cId = client.getGroupId();
 				}
 
@@ -264,6 +309,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 			} catch (FrameworkException ex) {
 
 				logger.error("Exception while trying to evaluate KafkaClient groupId. " + ex);
+
 				return false;
 			}
 		}
@@ -273,23 +319,31 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 			List<String> newTopics = new ArrayList<>();
 
 			if (this.consumer != null) {
+
 				try {
+
 					client.getSubscribers().forEach((MessageSubscriber sub) -> {
 						String topic = sub.getTopic();
 						if (topic != null) {
+
 							newTopics.add(topic);
 						}
 					});
 
 					if (!forceUpdate && currentlySubscribedTopics != null && !currentlySubscribedTopics.equals(newTopics)) {
+
 						if (this.consumer.subscription().size() > 0) {
+
 							this.consumer.unsubscribe();
 						}
 
 						this.consumer.subscribe(newTopics);
 						this.currentlySubscribedTopics = newTopics;
+
 					} else if (forceUpdate || currentlySubscribedTopics == null) {
+
 						if (this.consumer.subscription().size() > 0) {
+
 							this.consumer.unsubscribe();
 						}
 
@@ -298,10 +352,10 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 					}
 
 				} catch (KafkaException ex) {
+
 					logger.error("Could not update consumer subscriptions for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. " + ex);
 				}
 			}
-
 
 		}
 
@@ -310,14 +364,16 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 			// wait for service layer to be initialized
 			while (!Services.getInstance().isInitialized()) {
+
 				try {
+
 					Thread.sleep(1000);
+
 				} catch (InterruptedException iex) {
 				}
 			}
 
 			final App app = StructrApp.getInstance();
-
 			boolean wasDisabled = true;
 
 			while (running) {
@@ -325,6 +381,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 				try (final Tx tx = app.tx()) {
 
 					if (this.client == null || Thread.currentThread().isInterrupted()) {
+
 						running = false;
 						break;
 					}
@@ -340,38 +397,55 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 						} else {
 
 							if (newGroupId()) {
+
 								this.refreshConsumer();
 								logger.info("New groupId for KafkaClient " + this.client.getUuid() + ", updating ConsumerWorker..");
 								this.updateSubscriptions(true);
+
 							} else {
+
 								this.updateSubscriptions(false);
 							}
 
 							if (this.consumer.subscription().size() > 0) {
+
 								final ConsumerRecords<String, String> records = this.consumer.poll(1000);
 
 								records.forEach(record -> {
 									try {
+
 										forwardReceivedMessage(record.topic(), record.value());
+
 									} catch (FrameworkException e) {
+
 										logger.error("Could not process records in ConsumerWorker: " + e);
 									}
 								});
 
 							} else {
+
 								wasDisabled = true;
+
 								try {
+
 									Thread.sleep(1000);
+
 								} catch (InterruptedException iex) {
 								}
+
 								// Wait for subscriptions
 							}
 
 						}
+
 					} else {
+
 						try {
+
 							Thread.sleep(1000);
+
 						} catch (InterruptedException iex) {
+
 							// Wait for servers to be configured
 						}
 					}
@@ -379,9 +453,12 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 					tx.success();
 
 				} catch (FrameworkException | NotInTransactionException ex) {
+
 					// Terminate thread since client became stale or invalid
 					logger.error("Exception in ConsumerWorker for KafkaClient. " + ex);
+
 				} catch (IllegalStateException ex) {
+
 					// Main thread has shut down driver, since this worker only does reads, we can safely shutdown
 				}
 
@@ -392,6 +469,5 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 		}
 
 	}
-
 
 }

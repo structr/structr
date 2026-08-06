@@ -44,6 +44,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "FETCH";
 	}
 
@@ -58,40 +59,34 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 			final String method  = sources[1].toString();
 			final String body    = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
 			final String charset = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : "UTF-8";
-
 			boolean followRedirects = false;
 			Integer timeout         = null;
 
 			if (sources.length >= 5 && sources[4] != null && sources[4] instanceof Map) {
 
 				final Map<String, Object> config = (Map<String, Object>) sources[4];
-
 				if (Boolean.TRUE.equals(config.get("redirects"))) {
+
 					followRedirects = true;
 				}
 
 				if (config.containsKey("timeout") && config.get("timeout") instanceof Number) {
+
 					timeout = ((Number) config.get("timeout")).intValue() * 1000;
 				}
 			}
 
-			final Map<String, Object> responseData = HttpHelper.fetch(
-				url, method, body, null, null,
-				ctx.getHeaders(), charset, ctx.isValidateCertificates(),
-				followRedirects, timeout
-			);
-
+			final Map<String, Object> responseData = HttpHelper.fetch(url, method, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates(), followRedirects, timeout);
 			final GraphObjectMap response = new GraphObjectMap();
 
 			response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
 
-			final int statusCode = Integer.parseInt(
-				responseData.get(HttpHelper.FIELD_STATUS) != null
-					? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0"
-			);
+			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null
+					? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
 			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
 
 			if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
+
 				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
 			}
 
@@ -100,17 +95,20 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("url, method [, body, charset, configMap ]");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("method", "HTTP method (GET, POST, PUT, DELETE, PATCH, PROPFIND, MKCOL, MOVE, COPY, etc.)"),
@@ -122,14 +120,13 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${FETCH(url, method [, body, charset, configMap])}"),
-			Usage.javaScript("Usage: $.FETCH(url, method [, body, charset, configMap])")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${FETCH(url, method [, body, charset, configMap])}"), Usage.javaScript("Usage: $.FETCH(url, method [, body, charset, configMap])"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 				$.addHeader('Authorization', 'Basic ' + $.base64encode('user:pass', 'basic', 'UTF-8'));
@@ -165,11 +162,13 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends an HTTP request with an arbitrary method to the given URL and returns the response headers, body, and status code.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function sends an HTTP request with any HTTP method to the given URL. Unlike `GET()`, `POST()`, `PUT()` etc., the `FETCH()` function supports arbitrary HTTP methods such as PROPFIND, MKCOL, MOVE, COPY, REPORT, SEARCH and others required by protocols like WebDAV.
 
@@ -189,6 +188,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `FETCH()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. Use `addHeader()` for authentication.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
@@ -199,6 +199,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

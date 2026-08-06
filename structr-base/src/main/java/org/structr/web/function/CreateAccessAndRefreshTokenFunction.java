@@ -38,11 +38,13 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "createAccessAndRefreshToken";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("user, accessTokenTimeout, refreshTokenTimeout");
 	}
 
@@ -50,16 +52,19 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
+
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 			final User user = (User) sources[0];
 			int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
 			int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
 			if (sources.length > 1) {
+
 				accessTokenTimeout = (int) sources[1];
 			}
 
 			if (sources.length > 2) {
+
 				refreshTokenTimeout = (int) sources[2];
 			}
 
@@ -76,6 +81,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		}
@@ -83,6 +89,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${createAccessAndRefreshToken(user [, accessTokenTimeout, refreshTokenTimeout])}"),
 			Usage.javaScript("Usage: ${{ $.createAccessAndRefreshToken(user [, accessTokenTimeout, refreshTokenTimeout]) }}")
@@ -91,11 +98,13 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates both JWT access token and refresh token for the given User entity that can be used for request authentication and authorization.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			The return value of this function is a map with the following structure:
 	
@@ -111,6 +120,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("user", "user entity to create tokens for"),
 			Parameter.optional("accessTokenTimeout", "access token timeout in **minutes**, defaults to 1 hour (60 minutes)"),
@@ -156,6 +166,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

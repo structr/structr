@@ -25,34 +25,41 @@ import org.structr.docs.ontology.Ontology;
 public class UnresolvedToken extends StringToken<Concept> {
 
 	public UnresolvedToken(final Token token) {
+
 		super(token);
 	}
 
 	@Override
 	public Concept resolve(final Ontology ontology) {
+
 		throw new UnsupportedOperationException("Trying to resolve unresolved token " + token);
 	}
 
 	public boolean isInQuotes() {
+
 		return token.getQuote() != null;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Cannot rename unresolved token " + token);
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Cannot update unresolved token " + token);
 	}
 
 	public boolean isBlank() {
+
 		return !token.isNotBlank();
 	}
 }

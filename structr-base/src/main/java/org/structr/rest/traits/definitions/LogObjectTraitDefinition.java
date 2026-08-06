@@ -44,32 +44,33 @@ public class LogObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String LOG_EVENTS_PROPERTY = "logEvents";
 
-
 	public LogObjectTraitDefinition() {
+
 		super(StructrTraits.LOG_OBJECT);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			LogObject.class, (traits, node) -> new LogObjectTraitWrapper(traits, node)
-		);
+		return Map.of(LogObject.class, (traits, node) -> new LogObjectTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -77,13 +78,12 @@ public class LogObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> logEvents = new StartNodes(traitsInstance, LOG_EVENTS_PROPERTY, StructrTraits.OBJECT_EVENT_RELATIONSHIP);
 
-		return newSet(
-			logEvents
-		);
+		return newSet(logEvents);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

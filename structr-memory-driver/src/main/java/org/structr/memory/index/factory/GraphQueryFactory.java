@@ -32,6 +32,7 @@ import java.util.Set;
 public class GraphQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public GraphQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

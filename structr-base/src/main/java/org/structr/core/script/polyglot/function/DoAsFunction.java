@@ -56,7 +56,6 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	public Object execute(Value... arguments) {
 
 		Object[] parameters = Arrays.stream(arguments).map(a -> PolyglotWrapper.unwrap(actionContext, a)).toArray();
-
 		if (parameters.length == 2 && parameters[0] != null && parameters[1] != null) {
 
 			final SecurityContext initialSecurityContext = actionContext.getSecurityContext();
@@ -64,7 +63,6 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 			try {
 
 				final NodeInterface node = (NodeInterface) parameters[0];
-
 				if (node.is(StructrTraits.USER)) {
 
 					final Principal user             = node.as(Principal.class);
@@ -80,9 +78,11 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 					}
 
 					try (final Tx tx = StructrApp.getInstance(userContext).tx()) {
+
 						executable.execute();
 
 						tx.success();
+
 					} catch (FrameworkException e) {
 
 						throw new RuntimeException(e);
@@ -114,26 +114,31 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 
 	@Override
 	public String getName() {
+
 		return "doAs";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Runs the given function in the context of the given user.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(Example.javaScript(
 			"""
 			${{
@@ -151,33 +156,30 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"**Important**: Any node resource that was loaded outside of the function scope must be looked up again **inside** the function scope to prevent access problems."
-		);
+		return List.of("**Important**: Any node resource that was loaded outside of the function scope must be looked up again **inside** the function scope to prevent access problems.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(
-			Signature.of("user, function", Language.JavaScript)
-		);
+		return List.of(Signature.of("user, function", Language.JavaScript));
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.JavaScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.doAs(user, function) }}. Example: ${{ $.doAs(user, () => log($.me))}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.doAs(user, function) }}. Example: ${{ $.doAs(user, () => log($.me))}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

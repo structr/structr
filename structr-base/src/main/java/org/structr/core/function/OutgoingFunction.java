@@ -37,11 +37,13 @@ public class OutgoingFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "outgoing";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("entity [, relType ]");
 	}
 
@@ -58,12 +60,14 @@ public class OutgoingFunction extends CoreFunction {
 			if (source instanceof NodeInterface) {
 
 				final NodeInterface node = (NodeInterface)source;
+
 				if (sources.length > 1) {
 
 					final Object relType = sources[1];
 					if (relType != null && relType instanceof String) {
 
 						final String relTypeName = (String)relType;
+
 						return factory.bulkInstantiate((Iterable)node.getNode().getRelationships(Direction.OUTGOING, RelationshipType.forName(relTypeName)));
 					}
 
@@ -75,6 +79,7 @@ public class OutgoingFunction extends CoreFunction {
 			} else {
 
 				logger.warn("Error: entity is not a node. Parameters: {}", getParametersAsString(sources));
+
 				return "Error: entity is not a node.";
 			}
 
@@ -85,6 +90,7 @@ public class OutgoingFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -93,6 +99,7 @@ public class OutgoingFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}"),
 			Usage.javaScript("Usage: ${{ $.outgoing(entity [, relType]) }}. Example: ${{outgoing($.this, 'PARENT_OF')}}")
@@ -101,25 +108,25 @@ public class OutgoingFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns all outgoing relationships of a node, with an optional qualifying relationship type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can use this function in the Function Query section of a Repeater Element to access the relationships of a node. See also `outgoing()` and `hasRelationship()`.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("entity", "entity to fetch relationships for"),
-			Parameter.optional("relType", "relationship type")
-		);
+		return List.of(Parameter.mandatory("entity", "entity to fetch relationships for"), Parameter.optional("relType", "relationship type"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

@@ -43,15 +43,14 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 	public static final String EXAMPLE_VALUE_PROPERTY  = "exampleValue";
 
 	public SchemaMethodParameterTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_METHOD_PARAMETER);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			SchemaMethodParameter.class, (traits, node) -> new SchemaMethodParameterTraitWrapper(traits, node)
-		);
+		return Map.of(SchemaMethodParameter.class, (traits, node) -> new SchemaMethodParameterTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -63,17 +62,12 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 		final Property<String> description         = new StringProperty(DESCRIPTION_PROPERTY);
 		final Property<String> exampleValue        = new StringProperty(EXAMPLE_VALUE_PROPERTY);
 
-		return newSet(
-			schemaMethod,
-			parameterType,
-			index,
-			description,
-			exampleValue
-		);
+		return newSet(schemaMethod, parameterType, index, description, exampleValue);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -82,15 +76,9 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 
 		return Map.of(
 
-				PropertyView.Public,
-				newSet(
-						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
-				),
+				PropertyView.Public, newSet(SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY),
 
-				PropertyView.Ui,
-				newSet(
-						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
-				),
+				PropertyView.Ui, newSet(SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY),
 
 				PropertyView.Schema,
 				newSet(

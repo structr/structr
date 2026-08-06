@@ -57,11 +57,13 @@ class IdNotionReferenceProperty extends StructrReferenceProperty {
 
 	@Override
 	public URI getId() {
+
 		return null;
 	}
 
 	@Override
 	public String getType() {
+
 		return type;
 	}
 
@@ -99,6 +101,7 @@ class IdNotionReferenceProperty extends StructrReferenceProperty {
 					final Map<String, Object> items = (Map)itemsValue;
 					reference = (String)items.get(JsonSchema.KEY_REFERENCE);
 				}
+
 				break;
 		}
 	}

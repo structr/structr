@@ -37,7 +37,6 @@ public class CoreModule implements StructrModule {
 		final TraitDefinition propertyContainer     = new PropertyContainerTraitDefinition();
 		final TraitDefinition graphObject           = new GraphObjectTraitDefinition();
 		final TraitDefinition accessControllable    = new AccessControllableTraitDefinition();
-
 		final TraitDefinition nodeInterface         = new NodeInterfaceTraitDefinition();
 		final TraitDefinition relationshipInterface = new RelationshipInterfaceTraitDefinition();
 
@@ -282,16 +281,19 @@ public class CoreModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "core";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return null;
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

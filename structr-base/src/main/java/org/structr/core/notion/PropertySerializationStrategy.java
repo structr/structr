@@ -38,6 +38,7 @@ public class PropertySerializationStrategy implements SerializationStrategy {
 		this.propertyKeyName = propertyKeyName;
 
 		if (propertyKeyName == null) {
+
 			throw new IllegalStateException("PropertySerializationStrategy must contain at least one property.");
 		}
 	}

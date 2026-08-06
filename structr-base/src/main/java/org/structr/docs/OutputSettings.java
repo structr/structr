@@ -56,8 +56,8 @@ public class OutputSettings {
 	public Formatter getFormatterForLink(final Link link, final String mode) {
 
 		final Concept concept = link.getTarget();
-
 		final Map<String, Map<ConceptType, Formatter>> formatters = formatterMap.get(outputFormat);
+
 		if (formatters != null) {
 
 			final Map<ConceptType, Formatter> modeMap = formatters.get(mode);
@@ -68,6 +68,7 @@ public class OutputSettings {
 
 					final ConceptType format  = link.getFormatSpecification().getFormat();
 					final Formatter formatter = modeMap.get(format);
+
 					if (formatter != null) {
 
 						return formatter;
@@ -102,20 +103,24 @@ public class OutputSettings {
 		}
 
 		// return a default?
+
 		return null;
 	}
 
 	public String getOutputMode() {
+
 		return outputMode;
 	}
 
 	public Set<Details> getDetails() {
+
 		return details;
 	}
 
 	public boolean hasDetail(final Details detail) {
 
 		if (details.contains(Details.all)) {
+
 			return true;
 		}
 
@@ -123,10 +128,12 @@ public class OutputSettings {
 	}
 
 	public int getStartLevel() {
+
 		return startLevel;
 	}
 
 	public int getMaxLevels() {
+
 		return startLevel + maxLevels;
 	}
 
@@ -148,30 +155,37 @@ public class OutputSettings {
 	}
 
 	public void setStartLevel(final int level) {
+
 		this.startLevel = level;
 	}
 
 	public void setFormatterForOutputFormatModeAndType(final String outputFormat, final String mode, final ConceptType type, final Formatter formatter) {
+
 		formatterMap.computeIfAbsent(outputFormat, k -> new LinkedHashMap<>()).computeIfAbsent(mode, k -> new LinkedHashMap<>()).put(type, formatter);
 	}
 
 	public void setBaseUrl(final String baseUrl) {
+
 		this.baseUrl = baseUrl;
 	}
 
 	public String getBaseUrl() {
+
 		return baseUrl;
 	}
 
 	public void setMaxLevels(final int maxLevels) {
+
 		this.maxLevels = maxLevels;
 	}
 
 	public void setOutputFormat(final String format) {
+
 		this.outputFormat = format;
 	}
 
 	public String getOutputFormat() {
+
 		return outputFormat;
 	}
 
@@ -182,18 +196,22 @@ public class OutputSettings {
 	}
 
 	public boolean renderType(final ConceptType type) {
+
 		return typesToRender.isEmpty() || typesToRender.contains(type);
 	}
 
 	public Ontology getOntology() {
+
 		return ontology;
 	}
 
 	public void setKey(final String key) {
+
 		this.key = key;
 	}
 
 	public String getKey() {
+
 		return this.key;
 	}
 
@@ -204,6 +222,7 @@ public class OutputSettings {
 		settings.getDetails().clear();
 
 		for (final Details detail : details) {
+
 			settings.getDetails().add(detail);
 		}
 
@@ -211,18 +230,22 @@ public class OutputSettings {
 	}
 
 	public boolean renderComments() {
+
 		return renderComments;
 	}
 
 	public void setRenderComments(final boolean value) {
+
 		this.renderComments = value;
 	}
 
 	public void setLevelOffset(final int levelOffset) {
+
 		this.levelOffset = levelOffset;
 	}
 
 	public int getLevelOffset() {
+
 		return levelOffset;
 	}
 }

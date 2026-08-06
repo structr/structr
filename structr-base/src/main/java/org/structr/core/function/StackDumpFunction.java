@@ -36,11 +36,13 @@ public class StackDumpFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "stackDump";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -58,24 +60,25 @@ public class StackDumpFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${stackDump()}. Example ${stackDump()}"),
-			Usage.javaScript("Usage: ${{ $.stackDump(); }}. Example ${{ $.stackDump(); }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${stackDump()}. Example ${stackDump()}"), Usage.javaScript("Usage: ${{ $.stackDump(); }}. Example ${{ $.stackDump(); }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Logs the current execution stack.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

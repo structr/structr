@@ -31,6 +31,7 @@ public class OpenAPISchemaReference extends TreeMap<String, Object> {
 	final String base = "#/components/schemas/";
 
 	public OpenAPISchemaReference(final String reference) {
+
 		this(reference, null);
 	}
 
@@ -54,6 +55,7 @@ public class OpenAPISchemaReference extends TreeMap<String, Object> {
 	public OpenAPISchemaReference(final StructrTypeDefinition type, final String viewName) {
 
 		final String name = type.getName();
+
 		if (!"all".equals(viewName) && (viewName == null || "public".equals(viewName) || !type.getViewNames().contains(viewName))) {
 
 			put("$ref", base + name);
@@ -69,8 +71,8 @@ public class OpenAPISchemaReference extends TreeMap<String, Object> {
 	public OpenAPISchemaReference(final String input, final String viewName) {
 
 		String reference = input;
-
 		if (!StringUtils.startsWith(reference, "#/")) {
+
 			reference = base + reference;
 		}
 

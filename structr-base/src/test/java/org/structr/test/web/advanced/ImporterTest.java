@@ -51,7 +51,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class ImporterTest extends StructrUiTest {
 
-
 	@Test
 	public void testParsingOfTableCellFragments() {
 
@@ -297,8 +296,7 @@ public class ImporterTest extends StructrUiTest {
 			+ "			</table>\n"
 			+ "		</div>\n"
 			+ "	</div>\n"
-			+ "</div>",
-			RenderContext.EditMode.WIDGET);
+			+ "</div>", RenderContext.EditMode.WIDGET);
 
 		//System.out.println(source);
 
@@ -362,12 +360,10 @@ public class ImporterTest extends StructrUiTest {
 			Settings.JsonIndentation.setValue(true);
 			Settings.HtmlIndentation.setValue(true);
 
-			final String actual = testImportWidget(
-					"<div>\n"
+			final String actual = testImportWidget("<div>\n"
 							+ "      <script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.11.1.min.js\"></script>\n"
 							+ "      <script type=\"text/javascript\"></script>\n"
-							+ "</div>",
-					RenderContext.EditMode.WIDGET, "https://widgets.structr.org/structr/rest/widgets");
+							+ "</div>", RenderContext.EditMode.WIDGET, "https://widgets.structr.org/structr/rest/widgets");
 
 			final String expected = "<!DOCTYPE html>\n"
 					+ "<html>\n"
@@ -389,6 +385,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
@@ -422,6 +419,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail(ex.getMessage());
 		}
@@ -444,6 +442,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail(fex.getMessage());
 		}
@@ -499,6 +498,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 		}
 	}
@@ -506,6 +506,7 @@ public class ImporterTest extends StructrUiTest {
 	private void assertFileNotExists(final String expectedPath) {
 
 		final NodeInterface file;
+
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
@@ -516,6 +517,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 		}
 	}
@@ -552,6 +554,7 @@ public class ImporterTest extends StructrUiTest {
 		target.add(current);
 
 		for (final Node child : current.childNodes()) {
+
 			collectNodes(target, child);
 		}
 	}
@@ -633,6 +636,7 @@ public class ImporterTest extends StructrUiTest {
 			//tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail(fex.getMessage());
 		}

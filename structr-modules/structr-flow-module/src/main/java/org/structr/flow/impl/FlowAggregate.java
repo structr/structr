@@ -31,14 +31,17 @@ import org.structr.module.api.DeployableEntity;
 public class FlowAggregate extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
 	public FlowAggregate(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final String getScript() {
+
 		return wrappedObject.getProperty(traits.key(FlowAggregateTraitDefinition.SCRIPT_PROPERTY));
 	}
 
 	public final void setScript(final String script) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowAggregateTraitDefinition.SCRIPT_PROPERTY), script);
 	}
 
@@ -64,6 +67,7 @@ public class FlowAggregate extends FlowDataSource implements DeployableEntity, T
 			if (_script != null && startValue != null && ds != null) {
 
 				if (context.getData(getUuid()) == null) {
+
 					context.setData(getUuid(), startValue.get(context));
 				}
 

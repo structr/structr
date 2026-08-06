@@ -106,11 +106,11 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 			NodeInterface thumbnail   = null;
 
 			if (node == null) {
+
 				return;
 			}
 
 			final Image originalImage = node.as(Image.class);
-
 			if (originalImage.getExistingThumbnail(maxWidth, maxHeight, cropToFit) != null) {
 
 				return;

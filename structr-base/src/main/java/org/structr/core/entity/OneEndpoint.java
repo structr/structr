@@ -55,6 +55,7 @@ public class OneEndpoint extends AbstractEndpoint implements Target<Relationship
 		final Relationship rel        = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
+
 			return nodeFactory.instantiate(rel.getEndNode(), rel.getId());
 		}
 
@@ -78,6 +79,7 @@ public class OneEndpoint extends AbstractEndpoint implements Target<Relationship
 			final Traits type       = actualTargetNode.getTraits();
 
 			if (!SearchCommand.isTypeAssignableFromOtherType(targetType, type)) {
+
 				throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), targetType.getName()));
 			}
 
@@ -90,6 +92,7 @@ public class OneEndpoint extends AbstractEndpoint implements Target<Relationship
 			}
 
 			// create new relationship
+
 			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relationshipType, properties);
 		}
 
@@ -98,11 +101,13 @@ public class OneEndpoint extends AbstractEndpoint implements Target<Relationship
 
 	@Override
 	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override
 	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getRawSource(securityContext, dbNode, predicate) != null;
 	}
 }

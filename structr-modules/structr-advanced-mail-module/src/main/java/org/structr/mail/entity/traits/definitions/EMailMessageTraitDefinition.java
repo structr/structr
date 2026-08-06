@@ -51,6 +51,7 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SENT_DATE_PROPERTY      = "sentDate";
 
 	public EMailMessageTraitDefinition() {
+
 		super(StructrTraits.EMAIL_MESSAGE);
 	}
 
@@ -59,7 +60,6 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(traitsInstance, ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE).description("Files that were attached to this message.");
 		final Property<NodeInterface> mailboxProperty                 = new StartNode(traitsInstance, MAILBOX_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE).description("").description("Mailbox this message belongs to.");
-
 		final Property<String> subjectProperty                        = new StringProperty(SUBJECT_PROPERTY).indexed().description("Subject of this message.");
 		final Property<String> fromProperty                           = new StringProperty(FROM_PROPERTY).indexed().description("Sender name of this message.");
 		final Property<String> fromMailProperty                       = new StringProperty(FROM_MAIL_PROPERTY).indexed().description("Sender address of this message.");
@@ -73,7 +73,6 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> headerProperty                         = new StringProperty(HEADER_PROPERTY);
 		final Property<String> messageIdProperty                      = new StringProperty(MESSAGE_ID_PROPERTY).indexed().description("Message id of this message.");
 		final Property<String> inReplyToProperty                      = new StringProperty(IN_REPLY_TO_PROPERTY).indexed().description("inReplyTo of this message.");
-
 		final Property<Date> receivedDateProperty                     = new DateProperty(RECEIVED_DATE_PROPERTY).indexed().description("Date this message was received.");
 		final Property<Date> sentDateProperty                         = new DateProperty(SENT_DATE_PROPERTY).indexed().description("Date this message was sent.");
 
@@ -114,11 +113,13 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

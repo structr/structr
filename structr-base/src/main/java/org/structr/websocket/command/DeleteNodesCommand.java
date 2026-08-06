@@ -43,7 +43,6 @@ public class DeleteNodesCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
 		final Boolean      recursive = webSocketData.getNodeDataBooleanValue("recursive");
 		final List<String> nodeIds   = webSocketData.getNodeDataStringList("nodeIds");
 
@@ -61,6 +60,7 @@ public class DeleteNodesCommand extends AbstractCommand {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("", ex);
 			}
 		}
@@ -69,6 +69,7 @@ public class DeleteNodesCommand extends AbstractCommand {
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
+
 		return "DELETE_NODES";
 	}
 }

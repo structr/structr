@@ -25,11 +25,13 @@ import org.structr.docs.ontology.Ontology;
 public class BlacklistToken extends ConceptToken {
 
 	public BlacklistToken(final Token originalToken) {
+
 		super(ConceptType.Blacklist, originalToken);
 	}
 
 	@Override
 	public ConceptType resolve(final Ontology ontology) {
+
 		return null;
 	}
 }

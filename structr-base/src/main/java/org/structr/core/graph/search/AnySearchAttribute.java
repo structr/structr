@@ -25,15 +25,18 @@ import org.structr.core.property.RelationProperty;
 public class AnySearchAttribute<T> extends PropertySearchAttribute<T> implements AnyQuery {
 
 	public AnySearchAttribute(final PropertyKey<T> key, final T value, final boolean isExactMatch) {
+
 		super(key, value, isExactMatch);
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return AnyQuery.class;
 	}
 
 	public boolean isRelationProperty() {
+
 		return (getKey() instanceof RelationProperty);
 	}
 }

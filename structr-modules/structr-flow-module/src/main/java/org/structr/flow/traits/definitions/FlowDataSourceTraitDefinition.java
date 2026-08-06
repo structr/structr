@@ -47,8 +47,8 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
 	public static final String QUERY_PROPERTY             = "query";
 
-
 	public FlowDataSourceTraitDefinition() {
+
 		super(StructrTraits.FLOW_DATA_SOURCE);
 	}
 
@@ -57,14 +57,12 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
 
 						final String uuid = dataSource.getUuid();
-
 						if (!context.hasData(uuid)) {
 
 							final FlowDataSource _ds = dataSource.getDataSource();
@@ -100,8 +98,7 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -123,9 +120,7 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowDataSource.class, (traits, node) -> new FlowDataSource(traits, node)
-		);
+		return Map.of(FlowDataSource.class, (traits, node) -> new FlowDataSource(traits, node));
 	}
 
 	@Override
@@ -135,11 +130,7 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> exceptionHandler     = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> query                       = new StringProperty(QUERY_PROPERTY);
 
-		return newSet(
-			dataTarget,
-			exceptionHandler,
-			query
-		);
+		return newSet(dataTarget, exceptionHandler, query);
 	}
 
 	@Override
@@ -159,6 +150,7 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

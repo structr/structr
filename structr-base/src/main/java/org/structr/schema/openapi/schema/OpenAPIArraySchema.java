@@ -28,10 +28,12 @@ public class OpenAPIArraySchema extends TreeMap<String, Object> {
 		put("type",  "array");
 
 		if (description != null) {
+
 			put("description", description);
 		}
 
 		if (properties != null) {
+
 			put("items", properties);
 		}
 	}

@@ -29,6 +29,7 @@ class RecordStringMapper implements Function<Record, String> {
 
 	@Override
 	public String apply(final Record t) {
+
 		return t.get(0).asString();
 	}
 }

@@ -19,12 +19,14 @@
 package org.structr.web.agent;
 
 public class ThumbnailWorkObject {
+
 	private final String originalImageId;
 	private final int maxWidth;
 	private final int maxHeight;
 	private final boolean cropToFit;
 
 	public ThumbnailWorkObject(final String originalImageId, final int maxWidth, final int maxHeight, final boolean cropToFit) {
+
 		this.originalImageId = originalImageId;
 		this.maxWidth = maxWidth;
 		this.maxHeight = maxHeight;
@@ -32,18 +34,22 @@ public class ThumbnailWorkObject {
 	}
 
 	public String getOriginalImageId() {
+
 		return originalImageId;
 	}
 
 	public int getMaxWidth() {
+
 		return maxWidth;
 	}
 
 	public int getMaxHeight() {
+
 		return maxHeight;
 	}
 
 	public boolean isCropToFit() {
+
 		return cropToFit;
 	}
 }

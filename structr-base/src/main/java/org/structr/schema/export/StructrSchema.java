@@ -57,6 +57,7 @@ public class StructrSchema {
 	 * @throws FrameworkException
 	 */
 	public static JsonSchema createFromDatabase(final App app) throws FrameworkException {
+
 		return createFromDatabase(app, null);
 	}
 
@@ -95,6 +96,7 @@ public class StructrSchema {
 	 * @throws InvalidSchemaException
 	 */
 	public static JsonSchema createFromSource(final String source) throws InvalidSchemaException, URISyntaxException, FrameworkException {
+
 		return StructrSchema.createFromSource(new StringReader(source));
 	}
 
@@ -125,6 +127,7 @@ public class StructrSchema {
 	 * @throws InvalidSchemaException
 	 */
 	public static JsonSchema createEmptySchema() throws InvalidSchemaException, URISyntaxException, FrameworkException {
+
 		return StructrSchema.createFromSource(JsonSchema.EMPTY_SCHEMA);
 	}
 
@@ -134,6 +137,7 @@ public class StructrSchema {
 	 * @return
 	 */
 	public static JsonSchema newInstance(final URI id) {
+
 		return new StructrSchemaDefinition(id);
 	}
 
@@ -205,6 +209,7 @@ public class StructrSchema {
 			logger.error(ExceptionUtils.getStackTrace(ex));
 
 			if (ex instanceof FrameworkException) {
+
 				throw (FrameworkException)ex;
 			}
 		}

@@ -32,11 +32,13 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "fromXml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source");
 	}
 
@@ -46,6 +48,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 		if (sources != null && sources.length > 0) {
 
 			if (sources[0] == null) {
+
 				return null;
 			}
 
@@ -80,6 +83,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${fromXml(source)}. Example: ${fromXml('<entry>0</entry>')}"),
 			Usage.javaScript("Usage: ${{ $.fromXml(src) }}. Example: ${{ $.fromXml('<entry>0</entry>') }}")
@@ -88,24 +92,25 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Parses the given XML and returns a JSON string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function parses the given XML and returns a JSON representation of the XML which can be further processed using `fromJson()` or `JSON.parse()`.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("source", "XML source to parse")
-		);
+		return List.of(Parameter.mandatory("source", "XML source to parse"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

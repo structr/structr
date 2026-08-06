@@ -82,6 +82,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -110,8 +111,8 @@ public class FlowServlet extends JsonRestServlet {
 
 						// timing..
 						double queryTimeEnd = System.nanoTime();
-
 						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+
 						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
 						processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
@@ -179,11 +180,13 @@ public class FlowServlet extends JsonRestServlet {
 
 	@Override
 	public String getModuleName() {
+
 		return "flow";
 	}
 
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
 		throw new UnsupportedOperationException("DELETE is not supported by the FlowServlet");
 	}
 
@@ -196,7 +199,6 @@ public class FlowServlet extends JsonRestServlet {
 		setCustomResponseHeaders(response);
 
 		String requestBody = IOUtils.toString(request.getReader());
-
 		Gson gson = getGson();
 		Map<String, Object> flowParameters = gson.fromJson(requestBody, Map.class);
 
@@ -211,6 +213,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -235,8 +238,8 @@ public class FlowServlet extends JsonRestServlet {
 
 					// timing..
 					double queryTimeEnd = System.nanoTime();
-
 					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
 					processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
@@ -264,6 +267,7 @@ public class FlowServlet extends JsonRestServlet {
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			if (t instanceof AssertException) {
+
 				statusCode = ((AssertException)t).getStatus();
 			}
 
@@ -285,10 +289,12 @@ public class FlowServlet extends JsonRestServlet {
 
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
 		throw new UnsupportedOperationException("PUT is not supported by the FlowServlet");
 	}
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
 		throw new UnsupportedOperationException("PATCH is not supported by the FlowServlet");
 	}
 

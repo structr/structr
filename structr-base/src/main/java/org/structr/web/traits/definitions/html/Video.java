@@ -42,6 +42,7 @@ public class Video extends GenericHtmlElementTraitDefinition {
 	public static final String HEIGHT_PROPERTY      = getPrefixedHTMLAttributeName("height");
 
 	public Video() {
+
 		super(StructrTraits.VIDEO);
 	}
 

@@ -47,6 +47,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 	private final LocalFSHelper fsHelper;
 
 	public LocalFSStorageProvider(final AbstractFile file) {
+
 		this(file, null);
 	}
 
@@ -59,9 +60,11 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 
 	@Override
 	public InputStream getInputStream() {
+
 		try {
 
 			ensureFileExists();
+
 			return new FileInputStream(fsHelper.getFileOnDisk(getAbstractFile()));
 
 		} catch (FileNotFoundException ex) {
@@ -72,9 +75,9 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 		return null;
 	}
 
-
 	@Override
 	public OutputStream getOutputStream() {
+
 		return this.getOutputStream(false);
 	}
 
@@ -84,9 +87,11 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 		try {
 
 			ensureFileExists();
+
 			return new FileOutputStream(fsHelper.getFileOnDisk(getAbstractFile()), append);
 
 		} catch (FileNotFoundException ex) {
+
 			logger.error("Could not find file", ex);
 		}
 
@@ -97,7 +102,6 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 	public String getContentType() {
 
 		final AbstractFile file = getAbstractFile();
-
 		if (file.is(StructrTraits.FILE)) {
 
 			return file.as(org.structr.web.entity.File.class).getContentType();
@@ -108,6 +112,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 
 	@Override
 	public String getName() {
+
 		return getAbstractFile().getName();
 	}
 
@@ -130,6 +135,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 			}
 
 			// wrap channel so we can do things after closing
+
 			return new VirtualFileChannel(file, channel);
 
 		} catch (IOException ex) {
@@ -152,7 +158,6 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 		// If provider class is local as well, check if file needs to be moved
 		// Ensure files exist and abstract files are actual files
 		final AbstractFile file = getAbstractFile();
-
 		if (file != null && file.is(StructrTraits.FILE)) {
 
 			final AbstractFile otherFile = newFileStorageProvider.getAbstractFile();
@@ -177,6 +182,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 		if (mountTarget == null) {
 
 			// the UUID-sharded default tree is Structr-owned, nothing external to sync
+
 			return null;
 		}
 
@@ -195,15 +201,16 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 
 	@Override
 	public long size() {
+
 		try {
 
 			ensureFileExists();
 			java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
-
 			if (fileOnDisk.exists()) {
 
 				return Files.size(fileOnDisk.toPath());
 			}
+
 		} catch (IOException ex) {
 
 			logger.error("Could not read size of file.", ex);
@@ -213,13 +220,15 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 	}
 
 	private void ensureFileExists() {
-		try {
-			java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
 
+		try {
+
+			java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
 			if (!fileOnDisk.exists()) {
 
 				fileOnDisk.createNewFile();
 			}
+
 		} catch (IOException ex) {
 
 			logger.error("Could not create physical file for file {}. {}", getAbstractFile(), ex);

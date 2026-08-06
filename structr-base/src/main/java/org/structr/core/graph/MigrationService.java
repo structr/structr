@@ -198,11 +198,14 @@ public class MigrationService {
 				migrateMailTemplates();
 				updateSharedComponentFlag();
 				repairDetachedDOMNodes();
+
 				if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
 					migrateRestQueryRepeaters();
 					migrateActionMappingControlsToProcess();
 					migrateVisibilityMappingForToProcess();
 				}
+
 				warnAboutWrongNotionProperties();
 
 			} catch (FrameworkException fex) {
@@ -234,6 +237,7 @@ public class MigrationService {
 	public static boolean propertyShouldBeRemoved(final SchemaProperty property, final String type, final String name, final String propertyType, final String fqcn) {
 
 		if (MigrationService.SchemaPropertyMigrationBlacklist.contains(type + "." + name)) {
+
 			return true;
 		}
 
@@ -246,28 +250,31 @@ public class MigrationService {
 				if (property != null) {
 
 					final PropertyKey key = traits.key(name);
-
 					if (property.isIndexed() != key.isIndexed()) {
 
 						logger.info("Allowing {} to override {} property to change indexing flag.", type, name);
+
 						return false;
 					}
 
 					if (property.isFulltext() != key.isFulltextIndexed()) {
 
 						logger.info("Allowing {} to override {} property to change fulltext indexing flag.", type, name);
+
 						return false;
 					}
 
 					if (property.isUnique() != key.isUnique()) {
 
 						logger.info("Allowing {} to override {} property to change uniqueness constraint flag.", type, name);
+
 						return false;
 					}
 
 					if (property.getFormat() != null && !property.getFormat().equals(key.format())) {
 
 						logger.info("Allowing {} to override {} property to change format constraint.", type, name);
+
 						return false;
 					}
 				}
@@ -297,12 +304,14 @@ public class MigrationService {
 		}
 
 		// methods with no parent are user-defined functions
+
 		return false;
 	}
 
 	public static boolean methodShouldBeRemoved(final String type, final String name, final String codeType) {
 
 		// we don't support Java methods anymore
+
 		return "java".equals(codeType);
 	}
 
@@ -317,7 +326,6 @@ public class MigrationService {
 			for (final NodeInterface p : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
 
 				final SchemaNode schemaNode = p.as(SchemaNode.class);
-
 				if (Boolean.TRUE.equals(schemaNode.getNode().getProperty("isBuiltinType"))) {
 
 					logger.warn("Found built-in schema node {}", schemaNode.getName());
@@ -362,6 +370,7 @@ public class MigrationService {
 			// check (and fix) principal nodes
 
 			for (final NodeInterface p : app.nodeQuery(StructrTraits.PRINCIPAL).getResultStream()) {
+
 				p.getNode().addLabels(Set.of(StructrTraits.PRINCIPAL));
 			}
 
@@ -410,7 +419,6 @@ public class MigrationService {
 			final PropertyKey<Iterable<NodeInterface>> failureTargetsKey              = actionMappingTraits.key(ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
 			final PropertyKey<Iterable<NodeInterface>> successNotificationElementsKey = actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY);
 			final PropertyKey<Iterable<NodeInterface>> failureNotificationElementsKey = actionMappingTraits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY);
-
 			final Traits parameterMappingTraits              = Traits.of(StructrTraits.PARAMETER_MAPPING);
 			final PropertyKey<NodeInterface> inputElementKey = parameterMappingTraits.key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY);
 
@@ -509,6 +517,7 @@ public class MigrationService {
 			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().key(newActionKey, null).getResultStream()) {
 
 				if (migrateCustomEventAction(action)) {
+
 					eventMappingCount++;
 				}
 			}
@@ -517,6 +526,7 @@ public class MigrationService {
 			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(successBehaviourKey, null).getResultStream()) {
 
 				if (migrateReloadBehaviourAction(action)) {
+
 					eventMappingCount++;
 				}
 			}
@@ -525,6 +535,7 @@ public class MigrationService {
 		}
 
 		if ((directionCount + eventMappingCount + structrAppJsCount) > 0) {
+
 			logger.info("Migrated {} relationships, {} event mappings and {} structr-app.js settings.", directionCount, eventMappingCount, structrAppJsCount);
 		}
 	}
@@ -559,7 +570,6 @@ public class MigrationService {
 			final PropertyKey<NodeInterface> methodNodeKey   = actionMappingTraits.key(ActionMappingTraitDefinition.METHOD_NODE_PROPERTY);
 			final PropertyKey<NodeInterface> flowNodeKey     = actionMappingTraits.key(ActionMappingTraitDefinition.FLOW_NODE_PROPERTY);
 			final PropertyKey<NodeInterface> dataTypeNodeKey = actionMappingTraits.key(ActionMappingTraitDefinition.DATA_TYPE_NODE_PROPERTY);
-
 			final Traits schemaMethodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
 			final PropertyKey<NodeInterface> schemaMethodSchemaNodeKey = schemaMethodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
 
@@ -572,11 +582,16 @@ public class MigrationService {
 				// dataType -> SchemaNode
 				NodeInterface resolvedSchemaNode = eam.getProperty(dataTypeNodeKey);
 				if (resolvedSchemaNode == null && StringUtils.isNotBlank(dataTypeName)) {
+
 					resolvedSchemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(dataTypeName).getFirst();
+
 					if (resolvedSchemaNode != null) {
+
 						eam.setProperty(dataTypeNodeKey, resolvedSchemaNode);
 						resolved++;
+
 					} else {
+
 						logger.warn("MigrationService: ActionMapping {} references dataType '{}' but no SchemaNode with that name exists. Relationship not set; verify the type name and resave or use the UI selector once available.", eam.getUuid(), dataTypeName);
 						unresolved++;
 					}
@@ -584,11 +599,15 @@ public class MigrationService {
 
 				// flow -> FlowContainer
 				if (eam.getProperty(flowNodeKey) == null && StringUtils.isNotBlank(flowName)) {
+
 					final NodeInterface resolvedFlow = app.nodeQuery(StructrTraits.FLOW_CONTAINER).name(flowName).getFirst();
 					if (resolvedFlow != null) {
+
 						eam.setProperty(flowNodeKey, resolvedFlow);
 						resolved++;
+
 					} else {
+
 						logger.warn("MigrationService: ActionMapping {} references flow '{}' but no FlowContainer with that name exists. Relationship not set; verify the flow name and resave or use the UI selector once available.", eam.getUuid(), flowName);
 						unresolved++;
 					}
@@ -598,12 +617,15 @@ public class MigrationService {
 				if (eam.getProperty(methodNodeKey) == null && StringUtils.isNotBlank(methodName)) {
 
 					NodeInterface resolvedMethod = null;
+
 					if (resolvedSchemaNode != null) {
 
 						// Tier 1: explicit dataType, search methods on that type only
 						for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+
 							final NodeInterface parent = candidate.getProperty(schemaMethodSchemaNodeKey);
 							if (parent != null && parent.getUuid().equals(resolvedSchemaNode.getUuid())) {
+
 								resolvedMethod = candidate;
 								break;
 							}
@@ -615,8 +637,10 @@ public class MigrationService {
 						// Methods on specific types are NOT auto-resolved without a declared dataType:
 						// inferring by name uniqueness would weaken the App Graph as a validation surface.
 						for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+
 							final NodeInterface parent = candidate.getProperty(schemaMethodSchemaNodeKey);
 							if (parent == null) {
+
 								resolvedMethod = candidate;
 								break;
 							}
@@ -624,12 +648,17 @@ public class MigrationService {
 					}
 
 					if (resolvedMethod != null) {
+
 						eam.setProperty(methodNodeKey, resolvedMethod);
 						resolved++;
+
 					} else {
+
 						// Diagnostic: collect candidate types to help the user fix the binding.
 						final List<String> candidateTypes = new ArrayList<>();
+
 						for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+
 							final NodeInterface parent = candidate.getProperty(schemaMethodSchemaNodeKey);
 							candidateTypes.add(parent != null ? parent.getName() : "(top-level)");
 						}
@@ -642,17 +671,24 @@ public class MigrationService {
 						final List<String> javaMethodTypes = findTypesWithJavaMethod(methodName);
 
 						if (resolvedSchemaNode != null) {
+
 							logger.warn("MigrationService: ActionMapping {} references method '{}' on type '{}', but no SchemaMethod with that name exists on that type. Candidate types where the method exists: {}. Relationship not set; verify the binding manually.", eam.getUuid(), methodName, dataTypeName, candidateTypes);
 							unresolved++;
+
 						} else if (candidateTypes.isEmpty() && javaMethodTypes.isEmpty()) {
+
 							logger.warn("MigrationService: ActionMapping {} references method '{}' but no SchemaMethod with that name exists anywhere in the schema. Relationship not set; verify the method name and resave.", eam.getUuid(), methodName);
 							unresolved++;
+
 						} else if (candidateTypes.isEmpty() && !javaMethodTypes.isEmpty()) {
+
 							// Built-in Java method (claim / complete / signalEvent / ...). The binding
 							// is valid: runtime resolution via idExpression finds the Java method.
 							// Log INFO so the user knows we deliberately skipped the relationship.
 							logger.info("MigrationService: ActionMapping {} references built-in Java method '{}' on types {}. No SchemaMethod node; relationship intentionally left null. Runtime dispatch via idExpression resolves the call.", eam.getUuid(), methodName, javaMethodTypes);
+
 						} else {
+
 							// dataType not declared, no top-level match, but SchemaMethod nodes exist on
 							// specific types. Don't guess by name uniqueness: the user must pick the target
 							// explicitly via dataType (or, eventually, the UI selector).
@@ -667,9 +703,12 @@ public class MigrationService {
 		}
 
 		if (resolved > 0) {
+
 			logger.info("Migrated {} ActionMapping target string(s) to graph relationships.", resolved);
 		}
+
 		if (unresolved > 0) {
+
 			logger.warn("MigrationService: {} ActionMapping target string(s) could not be resolved automatically. See WARN messages above for details and required fixes.", unresolved);
 		}
 	}
@@ -717,7 +756,6 @@ public class MigrationService {
 		final Set<String> METHOD_RELEVANT    = Set.of("method");
 		final Set<String> FLOW_RELEVANT      = Set.of("flow");
 		final Set<String> DATA_TYPE_RELEVANT = Set.of("create", "method", "control-process");
-
 		final App app   = StructrApp.getInstance();
 		int cleaned     = 0;
 
@@ -738,28 +776,35 @@ public class MigrationService {
 				// Skip nodes whose action is unknown or unset: we cannot safely decide
 				// what is stale for incomplete or legacy data.
 				if (StringUtils.isBlank(action) || !EventActionMappingActions.contains(action)) {
+
 					continue;
 				}
 
 				boolean changed = false;
 
 				if (!METHOD_RELEVANT.contains(action) && StringUtils.isNotBlank(eam.getProperty(methodKey))) {
+
 					logger.info("Cleaning stale 'method' on ActionMapping {} (action='{}'): was '{}'", eam.getUuid(), action, eam.getProperty(methodKey));
 					eam.setProperty(methodKey, null);
 					changed = true;
 				}
+
 				if (!FLOW_RELEVANT.contains(action) && StringUtils.isNotBlank(eam.getProperty(flowKey))) {
+
 					logger.info("Cleaning stale 'flow' on ActionMapping {} (action='{}'): was '{}'", eam.getUuid(), action, eam.getProperty(flowKey));
 					eam.setProperty(flowKey, null);
 					changed = true;
 				}
+
 				if (!DATA_TYPE_RELEVANT.contains(action) && StringUtils.isNotBlank(eam.getProperty(dataTypeKey))) {
+
 					logger.info("Cleaning stale 'dataType' on ActionMapping {} (action='{}'): was '{}'", eam.getUuid(), action, eam.getProperty(dataTypeKey));
 					eam.setProperty(dataTypeKey, null);
 					changed = true;
 				}
 
 				if (changed) {
+
 					cleaned++;
 				}
 			}
@@ -768,6 +813,7 @@ public class MigrationService {
 		}
 
 		if (cleaned > 0) {
+
 			logger.info("Cleaned stale targets on {} ActionMapping node(s). Corresponding relationships were also cleared by the OnModification lifecycle.", cleaned);
 		}
 	}
@@ -786,24 +832,34 @@ public class MigrationService {
 	private static List<String> findTypesWithJavaMethod(final String methodName) {
 
 		final List<String> hits = new ArrayList<>();
+
 		if (methodName == null || methodName.isEmpty()) {
+
 			return hits;
 		}
 
 		try {
+
 			for (final String typeName : Traits.getAllTypes()) {
+
 				try {
+
 					final Traits t = Traits.of(typeName);
 					if (t == null) continue;
 					final org.structr.core.api.AbstractMethod m = org.structr.core.api.Methods.resolveMethod(t, methodName);
 					if (m != null) {
+
 						hits.add(typeName);
 					}
+
 				} catch (Exception inner) {
+
 					// Type-level lookup failures should not break the migration.
 				}
 			}
+
 		} catch (Exception ex) {
+
 			logger.debug("findTypesWithJavaMethod failed for '{}': {}", methodName, ex.getMessage());
 		}
 
@@ -825,18 +881,20 @@ public class MigrationService {
 		try (final Tx tx = app.tx()) {
 
 			for (final String[] renamedKey : renamedKeys) {
+
 				final String oldKey = renamedKey[0];
 				final String newKey = renamedKey[1];
 
 				for (final NodeInterface mailTemplate : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getResultStream()) {
+
 					if (oldKey.equals(mailTemplate.getName())) {
+
 						mailTemplate.setName(newKey);
 
 						logger.info("Updated mail template {} to {} (value: {})", oldKey, newKey, mailTemplate.getProperty(Traits.key("MailTemplate", "text")));
 					}
 				}
 			}
-
 
 			tx.success();
 		}
@@ -863,10 +921,12 @@ public class MigrationService {
 		properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(elem));
 
 		if (idExpression != null) {
+
 			properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), idExpression);
 		}
 
 		if (parts.length > 1) {
+
 			properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), parts[1]);
 		}
 
@@ -887,6 +947,7 @@ public class MigrationService {
 
 			case "create":
 				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+
 				if (reload) {
 
 					if (returnUrl != null) {
@@ -907,11 +968,13 @@ public class MigrationService {
 						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "full-page-reload");
 					}
 				}
+
 				break;
 
 			case "edit":
 				// this is structr-app.js functionality which we cannot migrate :(
 				logger.warn("Edit action in structr-app.js format cannot be migrated on {} {}, ignoring.", elem.getType(), elem.getUuid());
+
 				return;
 
 			case "delete":
@@ -999,14 +1062,12 @@ public class MigrationService {
 		}
 
 		final String action = properties.get(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY));
-
 		final Map<String, String> settings = new LinkedHashMap<>();
 		final Map<String, String> data     = new LinkedHashMap<>();
 
 		for (final PropertyKey<String> key : elem.getDataPropertyKeys()) {
 
 			final String keyName = key.jsonName();
-
 			if (keyName.startsWith("_custom_html_data-")) {
 
 				// map to attributes
@@ -1110,6 +1171,7 @@ public class MigrationService {
 						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
 						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), successTargets);
 					}
+
 					break;
 			}
 		}
@@ -1188,17 +1250,14 @@ public class MigrationService {
 		try (final Tx tx = app.tx()) {
 
 			// prefetch dom nodes with sync rels
-			tx.prefetch(StructrTraits.DOM_NODE, StructrTraits.DOM_NODE,
-				Set.of("all/INCOMING/SYNC",
-					"all/OUTGOING/SYNC")
-			);
+			tx.prefetch(StructrTraits.DOM_NODE, StructrTraits.DOM_NODE, Set.of("all/INCOMING/SYNC", "all/OUTGOING/SYNC"));
 
 			// check (and fix) event action mapping relationships
 			for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_NODE).getResultStream()) {
 
 				final DOMNode elem = node.as(DOMNode.class);
-
 				if (!node.getProperty(key) && elem.getSharedComponent() != null) {
+
 					node.setProperty(key, true);
 					count++;
 				}
@@ -1208,6 +1267,7 @@ public class MigrationService {
 		}
 
 		if (count > 0) {
+
 			logger.info("Updated {} hasSharedComponent flags", count);
 		}
 	}
@@ -1256,12 +1316,14 @@ public class MigrationService {
 					final Element matchElement = DOMElement.getMatchElement(element);
 
 					if (matchElement != null && matchElement.is(cssSelector)) {
+
 						return element;
 					}
 				}
 			}
 
 		} catch (Throwable t) {
+
 			// ignore exception because we cannot do anything about it here
 		}
 
@@ -1278,8 +1340,8 @@ public class MigrationService {
 			if (domNode.is(StructrTraits.DOM_ELEMENT)) {
 
 				final DOMElement element = domNode.as(DOMElement.class);
-
 				if (name.equals(element.getHtmlName())) {
+
 					return element;
 				}
 			}
@@ -1399,13 +1461,11 @@ public class MigrationService {
 
 			tx.disableChangelog();
 
-			final List<GraphObject> staleDefs = Iterables.toList(app.query(
-				"MATCH (:ActionMapping)-[:CONTROLS]->(bd:BpmnDefinitions) RETURN DISTINCT bd",
-				Map.of()
-			));
-
+			final List<GraphObject> staleDefs = Iterables.toList(app.query("MATCH (:ActionMapping)-[:CONTROLS]->(bd:BpmnDefinitions) RETURN DISTINCT bd", Map.of()));
 			if (staleDefs.isEmpty()) {
+
 				tx.success();
+
 				return;
 			}
 
@@ -1423,8 +1483,11 @@ public class MigrationService {
 				final Iterable<NodeInterface> processes = bd.getProperty(bd.getTraits().key("processes"));
 				final List<NodeInterface> all  = new ArrayList<>();
 				final List<NodeInterface> exec = new ArrayList<>();
+
 				if (processes != null) {
+
 					for (final NodeInterface p : processes) {
+
 						all.add(p);
 						final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
 						if (Boolean.TRUE.equals(isExec)) exec.add(p);
@@ -1432,9 +1495,13 @@ public class MigrationService {
 				}
 
 				NodeInterface target = null;
+
 				if (all.size() == 1) {
+
 					target = all.get(0);
+
 				} else if (exec.size() == 1) {
+
 					target = exec.get(0);
 				}
 
@@ -1446,18 +1513,17 @@ public class MigrationService {
 
 				// Drop the legacy edges first (trait change hides them from
 				// the typed API; we delete via Cypher).
-				app.query(
-					"MATCH (:ActionMapping)-[r:CONTROLS]->(:BpmnDefinitions {id:$bdId}) DELETE r",
-					Map.of("bdId", bdId)
-				);
+				app.query("MATCH (:ActionMapping)-[r:CONTROLS]->(:BpmnDefinitions {id:$bdId}) DELETE r", Map.of("bdId", bdId));
 
 				if (target == null) {
+
 					logger.warn("MigrationService: BpmnDefinitions {} has {} BpmnProcess children ({} marked executable); cannot decide which to repoint to. {} ActionMapping(s) left without a controlsProcess -- fix via the EAM editor.", bdId, all.size(), exec.size(), ams.size());
 					skipped += ams.size();
 					continue;
 				}
 
 				for (final GraphObject amObj : ams) {
+
 					if (!(amObj instanceof NodeInterface)) continue;
 					final NodeInterface am = (NodeInterface) amObj;
 					am.setProperty(controlsProcessKey, target);
@@ -1485,13 +1551,11 @@ public class MigrationService {
 
 			tx.disableChangelog();
 
-			final List<GraphObject> staleDefs = Iterables.toList(app.query(
-				"MATCH (:VisibilityMapping)-[:FOR]->(bd:BpmnDefinitions) RETURN DISTINCT bd",
-				Map.of()
-			));
-
+			final List<GraphObject> staleDefs = Iterables.toList(app.query("MATCH (:VisibilityMapping)-[:FOR]->(bd:BpmnDefinitions) RETURN DISTINCT bd", Map.of()));
 			if (staleDefs.isEmpty()) {
+
 				tx.success();
+
 				return;
 			}
 
@@ -1504,12 +1568,14 @@ public class MigrationService {
 				if (!(bdObj instanceof NodeInterface)) continue;
 				final NodeInterface bd = (NodeInterface) bdObj;
 				final String bdId      = bd.getUuid();
-
 				final Iterable<NodeInterface> processes = bd.getProperty(bd.getTraits().key("processes"));
 				final List<NodeInterface> all  = new ArrayList<>();
 				final List<NodeInterface> exec = new ArrayList<>();
+
 				if (processes != null) {
+
 					for (final NodeInterface p : processes) {
+
 						all.add(p);
 						final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
 						if (Boolean.TRUE.equals(isExec)) exec.add(p);
@@ -1517,9 +1583,13 @@ public class MigrationService {
 				}
 
 				NodeInterface target = null;
+
 				if (all.size() == 1) {
+
 					target = all.get(0);
+
 				} else if (exec.size() == 1) {
+
 					target = exec.get(0);
 				}
 
@@ -1528,18 +1598,17 @@ public class MigrationService {
 					Map.of("bdId", bdId)
 				));
 
-				app.query(
-					"MATCH (:VisibilityMapping)-[r:FOR]->(:BpmnDefinitions {id:$bdId}) DELETE r",
-					Map.of("bdId", bdId)
-				);
+				app.query("MATCH (:VisibilityMapping)-[r:FOR]->(:BpmnDefinitions {id:$bdId}) DELETE r", Map.of("bdId", bdId));
 
 				if (target == null) {
+
 					logger.warn("MigrationService: BpmnDefinitions {} has {} BpmnProcess children ({} marked executable); cannot decide which to repoint to. {} VisibilityMapping(s) left without a boundProcess; fix via the VM editor.", bdId, all.size(), exec.size(), vms.size());
 					skipped += vms.size();
 					continue;
 				}
 
 				for (final GraphObject vmObj : vms) {
+
 					if (!(vmObj instanceof NodeInterface)) continue;
 					final NodeInterface vm = (NodeInterface) vmObj;
 					vm.setProperty(boundProcessKey, target);
@@ -1567,13 +1636,13 @@ public class MigrationService {
 				.getAsList();
 
 			if (!mountedFolders.isEmpty()) {
+
 				logger.info("Migrating {} folders with old mountTarget property to respective storage configurations.", mountedFolders.size());
 			}
 
 			for (NodeInterface node : mountedFolders) {
 
 				final Folder folder = node.as(Folder.class);
-
 				final NodeInterface config = app.create(StructrTraits.STORAGE_CONFIGURATION,
 						new NodeAttribute<>(storageConfigurationTraits.key(StorageConfigurationTraitDefinition.NAME_PROPERTY), folder.getFolderPath()),
 						new NodeAttribute<>(storageConfigurationTraits.key(StorageConfigurationTraitDefinition.PROVIDER_PROPERTY), "org.structr.storage.providers.local.LocalFSStorageProvider")

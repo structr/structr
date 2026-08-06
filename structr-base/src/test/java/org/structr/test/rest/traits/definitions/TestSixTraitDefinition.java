@@ -33,6 +33,7 @@ import java.util.Set;
 public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestSixTraitDefinition() {
+
 		super("TestSix");
 	}
 
@@ -47,22 +48,18 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> aString                     = new StringProperty("aString").indexed();
 		final Property<Integer> anInt                      = new IntProperty("anInt").indexed();
 
-		return newSet(
-			testSeven, testSevenName, testEights, testEightInts, testEightStrings, aString, anInt
-		);
+		return newSet(testSeven, testSevenName, testEights, testEightInts, testEightStrings, aString, anInt);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSevenName", "testEightInts", "testEightStrings", "aString", "anInt")
-		);
+		return Map.of(PropertyView.Public, newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSevenName", "testEightInts", "testEightStrings", "aString", "anInt"));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

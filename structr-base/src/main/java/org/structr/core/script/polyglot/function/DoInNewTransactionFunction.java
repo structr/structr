@@ -61,9 +61,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 		if (arguments != null && arguments.length > 0) {
 
 			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
-
 			ContextFactory.LockedContext lockedContext = null;
-
 			boolean shouldRestoreLock = false;
 
 			try {
@@ -72,22 +70,28 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 				// When function is called, lock is already acquired. Unlock for inner context and lock after.
 				lockedContext.getLock().lock();
+
 				try {
+
 					lockedContext.getContext().leave();
+
 				} catch (IllegalStateException e) {
+
 					logger.error("Could not leave locked context", e);
+
 				} finally {
+
 					lockedContext.getLock().unlock();
 				}
 
 				// If lock is held by current thread through previous lock call, unlock it for the worker thread
 				if (lockedContext.getLock().isHeldByCurrentThread()) {
+
 					lockedContext.getLock().unlock();
 					shouldRestoreLock = true;
 				}
 
 				final Map<String, String> contextMap = MDC.getCopyOfContextMap();
-
 				final Thread workerThread = new Thread(() -> {
 
 					MDC.setContextMap(contextMap);
@@ -100,14 +104,20 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 					if (unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
 
 						ContextFactory.LockedContext innerLockedContext = null;
+
 						try {
+
 							innerLockedContext = ContextFactory.getContext("js", actionContext, entity);
+
 						} catch (FrameworkException ex) {
+
 							logger.error("Could not retrieve context in DoInNewTransactionFunction worker.", ex);
+
 							return;
 						}
 
 						innerLockedContext.getLock().lock();
+
 						try {
 
 							final Context innerContext = innerLockedContext.getContext();
@@ -115,6 +125,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 							// Execute batch function until it returns anything but true
 							do {
+
 								ContextHelper.incrementReferenceCount(innerContext);
 								boolean hasError = false;
 
@@ -165,20 +176,26 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 								isInterrupted = Thread.currentThread().isInterrupted();
 
 							} while (!isInterrupted && result != null && result.equals(true));
+
 						} catch (Throwable ex) {
 
 							throw new RuntimeException(new FrameworkException(422, "Could enter context for doInNewTransaction method.", ex));
+
 						} finally {
 
 							try {
+
 								final Context innerContext = innerLockedContext.getContext();
 								innerContext.leave();
+
 								if (ContextHelper.getReferenceCount(innerContext) <= 0) {
 
 									innerContext.close();
 									actionContext.removeScriptingContextByValue(innerLockedContext);
 								}
+
 							} finally {
+
 								innerLockedContext.getLock().unlock();
 							}
 						}
@@ -188,8 +205,11 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 				workerThread.start();
 
 				try {
+
 					workerThread.join();
+
 				} catch (InterruptedException ex) {
+
 					logger.warn("Thread was interrupted - breaking out of doInNewTransaction() worker thread.");
 				}
 
@@ -199,19 +219,23 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 			} finally {
 
-
 				// Lock and enter context again after inner worker thread is done
 				if (lockedContext != null) {
 
 					lockedContext.getLock().lock();
+
 					try {
+
 						lockedContext.getContext().enter();
+
 					} finally {
+
 						lockedContext.getLock().unlock();
 					}
 
 					// Restore lock condition to match the state at the beginning of the function call.
 					if (shouldRestoreLock)	{
+
 						lockedContext.getLock().lock();
 					}
 				}
@@ -223,16 +247,14 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 	@Override
 	public String getName() {
+
 		return "doInNewTransaction";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("function", "lambda function to execute"),
-			Parameter.optional("errorHandler", "error handler that receives the error / exception as an argument")
-		);
+		return List.of(Parameter.mandatory("function", "lambda function to execute"), Parameter.optional("errorHandler", "error handler that receives the error / exception as an argument"));
 	}
 
 	@Override
@@ -319,16 +341,19 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.JavaScript);
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Runs the given function in a new transaction context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function allows you to detach long-running functions from the current transaction context (which is bound to the request), or execute large database operations in batches. Useful in situations where large numbers of nodes are created, modified or deleted.
 
@@ -345,16 +370,13 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(
-			Signature.of("workerFunction [, errorHandlerFunction]", Language.JavaScript)
-		);
+		return List.of(Signature.of("workerFunction [, errorHandlerFunction]", Language.JavaScript));
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.doInNewTransaction(function) }}. Example: ${{ $.doInNewTransaction(() => log($.me))}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.doInNewTransaction(function) }}. Example: ${{ $.doInNewTransaction(() => log($.me))}"));
 	}
 
 	@Override
@@ -364,12 +386,12 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 			"WARNING: This function is a prime candidate for an endless loop - be careful what your return condition is!",
 			"WARNING: You have to be aware of the transaction context. Anything from the outermost transaction is not yet committed to the graph and thus can not be used to connect to in an inner transaction. The outer transaction context is only committed after the method is finished without a rollback. See example (2) for code which will result in an error and example (3) for a solution",
 
-		"See also `schedule()`."
-		);
+		"See also `schedule()`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

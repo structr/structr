@@ -57,55 +57,70 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	public abstract String getRequiredModule();
 
 	public List<String> aliases() {
+
 		return Collections.EMPTY_LIST;
 	}
 
 	public String getNamespaceIdentifier() {
+
 		return null;
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.BuiltInFunction;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		// override this method to modify default behaviour
+
 		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		// override this method to modify default behaviour
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		// override this method to modify default behaviour
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		// override this method to modify default behaviour
+
 		return Language.scriptingLanguages();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		// override this method to modify default behaviour
+
 		return null;
 	}
 
 	public int hashCode() {
+
 		return getName().hashCode();
 	}
 
 	public boolean equals(final Object obj) {
 
 		if (obj instanceof Function) {
+
 			return obj.hashCode() == hashCode();
 		}
 
@@ -120,19 +135,23 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			// store first to return it later
 			if (first == null) {
+
 				first = usage;
 			}
 
 			if (usage.isJavaScript() && inJavaScriptContext) {
+
 				return usage.getUsage();
 			}
 
 			if (usage.isStructrScript() && !inJavaScriptContext) {
+
 				return usage.getUsage();
 			}
 		}
 
 		if (first != null) {
+
 			return first.getUsage();
 		}
 
@@ -148,6 +167,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final boolean inJavaScriptContext) {
+
 		logParameterError(caller, parameters, "Unsupported parameter combination/count in", inJavaScriptContext);
 	}
 
@@ -160,6 +180,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
+
 		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getDisplayName(false), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
@@ -171,6 +192,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
+
 		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getDisplayName(false), caller, getParametersAsString(parameters) });
 	}
 
@@ -182,13 +204,18 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param messageParams The parameters for the message
 	 */
 	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
+
 		logException(logger, t, msg, messageParams);
 	}
 
 	public static void logException (final Logger l, final Throwable t, final String msg, final Object[] messageParams) {
+
 		if (Settings.LogFunctionsStackTrace.getValue()) {
+
 			l.error(msg, ArrayUtils.add(messageParams, t));
+
 		} else {
+
 			l.error(msg + "\n(Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
@@ -214,11 +241,13 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		} else {
 
 			logger.warn(message);
+
 			return null;
 		}
 	}
 
 	protected static String getParametersAsString (final Object[] sources) {
+
 		return Arrays.toString(sources);
 	}
 
@@ -233,6 +262,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		for (final Object element : array) {
 
 			if (element == null) {
+
 				throw new ArgumentNullException();
 			}
 		}
@@ -249,6 +279,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected void assertArrayHasMinLengthAndMaxLength(final Object[] array, final Integer minLength, final Integer maxLength) throws ArgumentCountException {
 
 		if (array.length < minLength || array.length > maxLength) {
+
 			throw ArgumentCountException.notBetween(array.length, minLength, maxLength);
 		}
 	}
@@ -263,6 +294,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected void assertArrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) throws ArgumentCountException, ArgumentNullException  {
 
 		if (array.length < minLength) {
+
 			throw ArgumentCountException.tooFew(array.length, minLength);
 		}
 
@@ -296,12 +328,14 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected void assertArrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length != length) {
+
 			throw ArgumentCountException.notEqual(array.length, length);
 		}
 
 		for (final Object element : array) {
 
 			if (element == null) {
+
 				throw new ArgumentNullException();
 			}
 		}
@@ -310,6 +344,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected void assertArrayHasMinLengthAndTypes(final Object[] array, final int minimum, final Class... types) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length < minimum) {
+
 			throw ArgumentTypeException.wrongTypes(array, minimum, types);
 		}
 
@@ -337,6 +372,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 				} else {
 
 					if (!type.isAssignableFrom(element.getClass())) {
+
 						throw ArgumentTypeException.wrongTypes(array, minimum, types);
 					}
 				}
@@ -351,6 +387,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected void assertArrayHasLengthAndTypes(final Object[] array, final int length, final Class... types) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length != length) {
+
 			throw ArgumentTypeException.wrongTypes(array, length, types);
 		}
 
@@ -378,6 +415,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 				} else {
 
 					if (!type.isAssignableFrom(element.getClass())) {
+
 						throw ArgumentTypeException.wrongTypes(array, length, types);
 					}
 				}
@@ -404,7 +442,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			} else {
 
 				Date date = DatePropertyGenerator.parseISO8601DateString(obj.toString());
-
 				if (date != null) {
 
 					return (double)(date).getTime();
@@ -489,12 +526,14 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected String encodeURL(final String source) {
 
 		try {
+
 			return URLEncoder.encode(source, "UTF-8");
 
 		} catch (UnsupportedEncodingException ex) {
 		}
 
 		// fallback, unencoded
+
 		return source;
 	}
 
@@ -518,6 +557,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		} else {
 
 			try {
+
 				return Double.valueOf(obj.toString());
 
 			} catch (Throwable t) {
@@ -532,10 +572,12 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected boolean gt(final Object o1, final Object o2) {
 
 		if (o1 != null && o2 == null) {
+
 			return true;
 		}
 
 		if ((o1 == null && o2 != null) || (o1 == null && o2 == null)) {
+
 			return false;
 		}
 
@@ -585,10 +627,12 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected boolean lt(final Object o1, final Object o2) {
 
 		if (o1 == null && o2 != null) {
+
 			return true;
 		}
 
 		if ((o1 != null && o2 == null) || (o1 == null && o2 == null)) {
+
 			return false;
 		}
 
@@ -636,10 +680,12 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	}
 
 	protected boolean gte(final Object o1, final Object o2) {
+
 		return eq(o1, o2) || gt(o1, o2);
 	}
 
 	protected boolean lte(final Object o1, final Object o2) {
+
 		return eq(o1, o2) || lt(o1, o2);
 	}
 
@@ -653,6 +699,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			// create exchange directory
 			final File dir = new File(exchangeDir);
 			if (!dir.exists()) {
+
 				dir.mkdirs();
 			}
 
@@ -680,6 +727,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
 
 		if (depth > 20) {
+
 			return;
 		}
 
@@ -692,13 +740,15 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 				final Map<String, Object> map = (Map<String, Object>) value;
 				final GraphObjectMap obj = GraphObjectMap.fromMap(source);
-
 				final Traits traits           = obj.getTraits();
 				final PropertyKey propertyKey = traits.key(key);
 
 				if (propertyKey != null) {
+
 					destination.put(propertyKey, obj);
+
 				} else {
+
 					logger.warn("PropertyKey is null for key '{}' in map {}", key, map);
 				}
 
@@ -738,6 +788,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		final GraphObjectMap listWrapperObject = new GraphObjectMap();
 
 		if (outputDepth <= 20) {
+
 			listWrapperObject.put(new GenericProperty("values"), Function.toGraphObject(list, outputDepth + 1));
 		}
 
@@ -843,6 +894,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		final GraphObjectMap dateWrapperObject = new GraphObjectMap();
 		dateWrapperObject.put(new DateProperty("value"), date);
+
 		return dateWrapperObject;
 	}
 
@@ -850,6 +902,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		final GraphObjectMap stringWrapperObject = new GraphObjectMap();
 		stringWrapperObject.put(new StringProperty("value"), str);
+
 		return stringWrapperObject;
 	}
 
@@ -858,12 +911,19 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		final GraphObjectMap numberWrapperObject = new GraphObjectMap();
 
 		if (num instanceof Integer) {
+
 			numberWrapperObject.put(new IntProperty("value"), num);
+
 		} else if (num instanceof Double) {
+
 			numberWrapperObject.put(new DoubleProperty("value"), num);
+
 		} else if (num instanceof Long) {
+
 			numberWrapperObject.put(new LongProperty("value"), num);
+
 		} else if (num instanceof Float) {
+
 			numberWrapperObject.put(new DoubleProperty("value"), num);
 		}
 
@@ -884,14 +944,17 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		if (value != null) {
 
 			if ("true".equals(value.toLowerCase())) {
+
 				return true;
 			}
 
 			if ("false".equals(value.toLowerCase())) {
+
 				return false;
 			}
 
 			if (NumberUtils.isCreatable(value)) {
+
 				return NumberUtils.createNumber(value);
 			}
 		}
@@ -902,6 +965,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	public static Object intOrString(final Object value) {
 
 		if (value instanceof Number n) {
+
 			return n;
 		}
 
@@ -922,6 +986,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		final List<Documentable> hints = new LinkedList<>();
 
 		if (lastToken == null) {
+
 			return hints;
 		}
 
@@ -978,6 +1043,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		if (index < sources.length && sources[index] != null) {
 
 			if (sources[index] instanceof Number) {
+
 				return ((Number)sources[index]).intValue();
 			}
 		}
@@ -1004,7 +1070,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			for (final String part : source.split(separator)) {
 
 				final String trimmed = part.trim();
-
 				if (StringUtils.isNotBlank(trimmed)) {
 
 					list.add(trimmed);
@@ -1052,10 +1117,12 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	private boolean eq(final Object o1, final Object o2) {
 
 		if (o1 == null && o2 == null) {
+
 			return true;
 		}
 
 		if ((o1 == null && o2 != null) || (o1 != null && o2 == null)) {
+
 			return false;
 		}
 
@@ -1157,30 +1224,36 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	}
 
 	private int compareBooleanString(final Boolean o1, final String o2) {
+
 		return o1.compareTo(Boolean.valueOf(o2));
 	}
 
 	private int compareStringBoolean(final String o1, final Boolean o2) {
+
 		return Boolean.valueOf(o1).compareTo(o2);
 	}
 
 	private boolean compareBooleanStringEqual(final Boolean o1, final String o2) {
+
 		return o2.equals(o1.toString());
 	}
 
 	private boolean compareBooleanStringEqual(final String o1, final Boolean o2) {
+
 		return o1.equals(o2.toString());
 	}
 
 	private int compareNumberString(final Number o1, final String o2) {
 
-
 		final Double value1 = getDoubleForComparison(o1);
 		Double value2;
+
 		try {
+
 			value2 = Double.parseDouble(o2);
 
 		} catch (NumberFormatException nfe) {
+
 			value2 = Double.NEGATIVE_INFINITY;
 		}
 
@@ -1190,11 +1263,16 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	private int compareStringNumber(final String o1, final Number o2) {
 
 		Double value1;
+
 		try {
+
 			value1 = Double.parseDouble(o1);
+
 		} catch (NumberFormatException nfe) {
+
 			value1 = Double.NEGATIVE_INFINITY;
 		}
+
 		final Double value2 = getDoubleForComparison(o2);
 
 		return value1.compareTo(value2);

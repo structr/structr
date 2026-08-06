@@ -56,16 +56,19 @@ public abstract class NodeServiceCommand extends Command {
 	protected NodeServiceCommand() { }
 
 	public Map<String, String> getCustomHeaders () {
+
 		return customHeaders;
 	}
 
 	@Override
 	public Class getServiceClass()	{
+
 		return NodeService.class;
 	}
 
 	@Override
 	public void initialized() {
+
 		this.securityContext = (SecurityContext)getArgument("securityContext");
 	}
 
@@ -83,6 +86,7 @@ public abstract class NodeServiceCommand extends Command {
 		if (query == null) {
 
 			info("{}: {} objects processed", description, 0);
+
 			return 0;
 		}
 
@@ -111,6 +115,7 @@ public abstract class NodeServiceCommand extends Command {
 
 						boolean success = operation.handleGraphObject(securityContext, node);
 						if (success) {
+
 							objectCount++;
 						}
 
@@ -123,6 +128,7 @@ public abstract class NodeServiceCommand extends Command {
 					// iterations, not successes, so the batch stays aligned with the
 					// query page even when individual objects fail
 					if (++batchCount == commitCount) {
+
 						break;
 					}
 				}
@@ -136,6 +142,7 @@ public abstract class NodeServiceCommand extends Command {
 			}
 
 			if (description != null) {
+
 				info("{}: {} objects processed", description, objectCount);
 			}
 		}
@@ -155,7 +162,6 @@ public abstract class NodeServiceCommand extends Command {
 		boolean active                  = true;
 		int page                        = 0;
 
-
 		while (active) {
 
 			active = false;
@@ -173,6 +179,7 @@ public abstract class NodeServiceCommand extends Command {
 
 						boolean success = operation.handleGraphObject(securityContext, node);
 						if (success) {
+
 							objectCount++;
 						}
 
@@ -185,6 +192,7 @@ public abstract class NodeServiceCommand extends Command {
 					// iterations, not successes, so failing objects do not shrink
 					// the batch size
 					if (++batchCount == commitCount) {
+
 						break;
 					}
 				}
@@ -198,6 +206,7 @@ public abstract class NodeServiceCommand extends Command {
 			}
 
 			if (description != null) {
+
 				info("{}: {} objects processed", description, objectCount);
 			}
 		}
@@ -211,6 +220,7 @@ public abstract class NodeServiceCommand extends Command {
 		final AtomicLong objectCount = new AtomicLong(0L);
 
 		if (stopCondition instanceof Filter) {
+
 			((Filter)stopCondition).setSecurityContext(securityContext);
 		}
 
@@ -246,6 +256,7 @@ public abstract class NodeServiceCommand extends Command {
 
 	// ----- public methods -----
 	public void setLogBuffer(final Writable writable) {
+
 		this.logWritable = writable;
 	}
 
@@ -276,6 +287,7 @@ public abstract class NodeServiceCommand extends Command {
 			for (final Object obj : data) {
 
 				if (obj != null) {
+
 					logMessage = logMessage.replaceFirst("\\{\\}", obj.toString());
 				}
 			}
@@ -298,12 +310,12 @@ public abstract class NodeServiceCommand extends Command {
 			final Traits traits = Traits.of(nodeType);
 			if (traits != null) {
 
-
 				return StructrApp.getInstance().nodeQuery(nodeType);
 			}
 		}
 
 		if (returnAllNodesQueryIfTypeNotFound) {
+
 			return StructrApp.getInstance().nodeQuery();
 		}
 
@@ -322,6 +334,7 @@ public abstract class NodeServiceCommand extends Command {
 		}
 
 		if (returnAllRelationshipsQueryIfTypeNotFound) {
+
 			return StructrApp.getInstance().relationshipQuery();
 		}
 
@@ -334,7 +347,6 @@ public abstract class NodeServiceCommand extends Command {
 		boolean createCompactUUIDsSettings = Settings.UUIDv4CreateCompact.getValue();
 		final String configuredUUIDFormat  = Settings.UUIDv4AllowedFormats.getValue();
 		boolean replaceDashes              = Settings.POSSIBLE_UUID_V4_FORMATS.without_dashes.toString().equals(configuredUUIDFormat) || (Settings.POSSIBLE_UUID_V4_FORMATS.both.toString().equals(configuredUUIDFormat) && createCompactUUIDsSettings);
-
 		Thread uuidProducer = new Thread(new Runnable() {
 
 			@Override

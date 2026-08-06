@@ -63,6 +63,7 @@ public abstract class RESTCallHandler {
 	protected RESTCall call         = null;
 
 	public RESTCallHandler(final RESTCall call) {
+
 		this.call = call;
 	}
 
@@ -71,14 +72,17 @@ public abstract class RESTCallHandler {
 	public abstract String getTypeName(final SecurityContext securityContext) throws FrameworkException;
 
 	public void setRequestedView(final String view) {
+
 		this.requestedView = view;
 	}
 
 	public String getRequestedView() {
+
 		return requestedView;
 	}
 
 	public String getURL() {
+
 		return call.getURL();
 	}
 
@@ -88,6 +92,7 @@ public abstract class RESTCallHandler {
 
 		// remove leading slash from resource access grant
 		if (signature.startsWith("/")) {
+
 			signature = signature.substring(1);
 		}
 
@@ -112,6 +117,7 @@ public abstract class RESTCallHandler {
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public <T> ResultStream<T> doGet(final SecurityContext securityContext, final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
+
 		throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
@@ -123,6 +129,7 @@ public abstract class RESTCallHandler {
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public RestMethodResult doHead() throws FrameworkException {
+
 		throw new IllegalMethodException("HEAD not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
@@ -136,6 +143,7 @@ public abstract class RESTCallHandler {
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
+
 		throw new IllegalMethodException("PATCH not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
@@ -148,6 +156,7 @@ public abstract class RESTCallHandler {
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+
 		throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
@@ -161,6 +170,7 @@ public abstract class RESTCallHandler {
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
 		throw new IllegalMethodException("PUT not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
@@ -174,10 +184,12 @@ public abstract class RESTCallHandler {
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
 		throw new IllegalMethodException("POST not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
 	public boolean isPrimitiveArray() {
+
 		return false;
 	}
 
@@ -189,6 +201,7 @@ public abstract class RESTCallHandler {
 	 * @return whether to create transaction around the doPost() method
 	 */
 	public boolean createPostTransaction() {
+
 		return true;
 	}
 
@@ -203,6 +216,7 @@ public abstract class RESTCallHandler {
 			}
 
 		} catch (FrameworkException fex) {
+
 			// what do?
 			fex.printStackTrace();
 		}
@@ -231,6 +245,7 @@ public abstract class RESTCallHandler {
 	protected GraphObject getEntity(final SecurityContext securityContext, final String typeName, final String uuid) throws FrameworkException {
 
 		if (cachedEntity != null) {
+
 			return cachedEntity;
 		}
 
@@ -248,7 +263,6 @@ public abstract class RESTCallHandler {
 				throw new FrameworkException(400, "Request specifies no value for type and entity ID");
 			}
 		}
-
 
 		if (traits.isNodeType()) {
 
@@ -313,7 +327,6 @@ public abstract class RESTCallHandler {
 		if (request != null) {
 
 			final String distance = request.getParameter(RequestParameters.Distance.getName());
-
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
 				final String latlon   = request.getParameter(RequestParameters.LatLon.getName());
@@ -323,6 +336,7 @@ public abstract class RESTCallHandler {
 					if (parts.length == 2) {
 
 						try {
+
 							final double dist      = Double.parseDouble(distance);
 							final double latitude  = Double.parseDouble(parts[0]);
 							final double longitude = Double.parseDouble(parts[1]);
@@ -330,6 +344,7 @@ public abstract class RESTCallHandler {
 							query.location(latitude, longitude, dist);
 
 						} catch (NumberFormatException nex) {
+
 							logger.warn("Unable to parse latitude, longitude or distance for search query {}", latlon);
 						}
 					}
@@ -338,7 +353,6 @@ public abstract class RESTCallHandler {
 
 					final double dist     = Double.parseDouble(distance);
 					final String location = request.getParameter(RequestParameters.Location.getName());
-
 					String street     = request.getParameter(RequestParameters.Street.getName());
 					String house      = request.getParameter(RequestParameters.House.getName());
 					String postalCode = request.getParameter(RequestParameters.PostalCode.getName());
@@ -445,6 +459,7 @@ public abstract class RESTCallHandler {
 	protected static int parseInteger(final Object source) {
 
 		try {
+
 			return Integer.parseInt(source.toString());
 
 		} catch (final Throwable t) {}
@@ -453,13 +468,13 @@ public abstract class RESTCallHandler {
 	}
 
 	protected boolean isDefaultView() {
+
 		return PropertyView.Public.equals(requestedView);
 	}
 
 	public RestMethodResult genericPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final List<org.structr.core.GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
-
 		if (results != null && !results.isEmpty()) {
 
 			final Traits traits = results.get(0).getTraits();
@@ -510,7 +525,6 @@ public abstract class RESTCallHandler {
 						if (obj.isNode()) {
 
 							final NodeInterface node = (NodeInterface)obj;
-
 							if (!TransactionCommand.isDeleted(node.getNode())) {
 
 								app.delete(node);
@@ -520,7 +534,6 @@ public abstract class RESTCallHandler {
 						} else {
 
 							final RelationshipInterface relationship = (RelationshipInterface)obj;
-
 							if (!TransactionCommand.isDeleted(relationship.getRelationship())) {
 
 								app.delete(relationship);
@@ -580,6 +593,7 @@ public abstract class RESTCallHandler {
 
 						final String typeString = (String)typeSource;
 						final Traits traits     = Traits.of(typeString);
+
 						if (traits != null) {
 
 							localType = traits.getName();
@@ -593,8 +607,8 @@ public abstract class RESTCallHandler {
 						if (idSource instanceof String) {
 
 							final String id = (String)idSource;
-
 							org.structr.core.GraphObject obj = app.getNodeById(localType, id);
+
 							if (obj == null) {
 
 								obj = app.getRelationshipById(localType, id);
@@ -676,10 +690,12 @@ public abstract class RESTCallHandler {
 			if (value != null) {
 
 				if (parseInteger(value) == 1) {
+
 					return true;
 				}
 
 				if (parseBoolean(value)) {
+
 					return true;
 				}
 			}
@@ -693,6 +709,7 @@ public abstract class RESTCallHandler {
 
 		@Override
 		public int compare(final PropertyKey key1, final PropertyKey key2) {
+
 			return Integer.valueOf(key1.getProcessingOrderPosition()).compareTo(Integer.valueOf(key2.getProcessingOrderPosition()));
 		}
 	}

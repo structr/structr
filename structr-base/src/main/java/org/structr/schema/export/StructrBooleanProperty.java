@@ -38,21 +38,25 @@ import java.util.Map;
 public class StructrBooleanProperty extends StructrPropertyDefinition implements JsonBooleanProperty {
 
 	public StructrBooleanProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "boolean";
 	}
 
 	@Override
 	void deserialize(final Map<String, Object> source) {
+
 		super.deserialize(source);
 	}
 
 	@Override
 	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
+
 		super.deserialize(schemaNodes, property);
 	}
 

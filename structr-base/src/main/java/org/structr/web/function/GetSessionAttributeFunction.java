@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-
 import jakarta.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -34,19 +33,19 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
-
 public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 	private int retryCount = 0;
 
 	@Override
 	public String getName() {
+
 		return "getSessionAttribute";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -61,8 +60,11 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
+
 				return PolyglotWrapper.unwrap(ctx, sessionWrapper.getMember(sources[0].toString()));
+
 			} else {
+
 				logger.warn("{}: No session available to get session attribute from! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
@@ -72,24 +74,31 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 			// retry
 			if (retryCount < 3) {
+
 				retryCount++;
+
 				return apply(ctx, caller, sources);
 			}
+
 			throw ex;
+
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getSessionAttribute(key)}. Example: ${getSessionAttribute('doNoTrack')}"),
 			Usage.javaScript("Usage: ${{ $.getSessionAttribute(key)}}. Example: ${{ $.getSessionAttribute('doNotTrack')}}")
@@ -98,32 +107,31 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Retrieve a value for the given key from the user session.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("key", "stored key of user session")
-				);
+		return List.of(Parameter.mandatory("key", "stored key of user session"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getSessionAttribute('doNotTrack')}"),
-				Example.javaScript("${{ $.getSessionAttribute('doNotTrack') }}")
-		);
+
+		return List.of(Example.structrScript("${getSessionAttribute('doNotTrack')}"), Example.javaScript("${{ $.getSessionAttribute('doNotTrack') }}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

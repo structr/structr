@@ -18,7 +18,6 @@
  */
 package org.structr.rest.maintenance;
 
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +47,7 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 
 	@Override
 	public Class getServiceClass() {
+
 		return null;
 	}
 
@@ -58,10 +58,14 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 		final String newLicenseKey = (String) attributes.get("newLicenseKey");
 
 		try {
+
 			if (StringUtils.isNotBlank(newLicenseKey)) {
+
 				writeNewLicenseKeyFile(newLicenseKey);
 			}
+
 		} catch (final IOException ioex) {
+
 			final String errorMessage = "Unable to write license key file";
 			logger.error(errorMessage, ioex.getMessage());
 			throw new FrameworkException(422, errorMessage);
@@ -69,8 +73,8 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 
 		// If true, the system will immediately restart with the new key
 		final Boolean restart = Boolean.TRUE.equals(attributes.get("restartImmediately"));
-
 		if (restart) {
+
 			logger.info("Refreshing license manager now...");
 			Services.getInstance().getLicenseManager().refresh();
 			logger.info("License manager refreshed.");
@@ -80,16 +84,19 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	@Override
 	public Map<String, String> getCustomHeaders() {
+
 		return Collections.EMPTY_MAP;
 	}
 
@@ -108,51 +115,61 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getName() {
+
 		return "";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.structr</groupId>
+		<artifactId>structr</artifactId>
+		<version>6.4-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>structr-build-extension</artifactId>
+	<name>Structr Build Extension</name>
+	<description>
+		Maven core lifecycle extension. Its only job is to print the review-need summary
+		(config/style/ReviewNeed.java) at the very end of the reactor -- after every module and the
+		Playwright container, on success and on failure alike -- so developers always see the report.
+		Registered in .mvn/extensions.xml; loaded at Maven startup, so it must be installed once
+		(mvn -o -pl structr-build-extension install) before a full build can resolve it.
+	</description>
+
+	<properties>
+		<!-- Internal build tooling. The .java source carries the AGPL header, but the Sisu component
+		     index (META-INF/sisu/javax.inject.Named) is a plain class list with no comment syntax to
+		     hold a header, so skip the header CHECK for this module. -->
+		<license.skip>true</license.skip>
+	</properties>
+
+	<build>
+		<!-- unversioned name so the committed copy at .mvn/lib/structr-build-extension.jar is a
+		     one-to-one refresh target (see the refresh command in CODE_STYLE.md). -->
+		<finalName>structr-build-extension</finalName>
+		<plugins>
+			<plugin>
+				<!-- This tiny module compiles against the Maven API only; it must NOT drag in the
+				     project's annotation processor (which the parent adds for the real modules). -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<proc>none</proc>
+					<annotationProcessorPaths combine.self="override"/>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-core</artifactId>
+			<version>3.8.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>

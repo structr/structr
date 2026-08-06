@@ -58,7 +58,6 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 				private void fixProperty(NodeInterface node, Property propertyToFix) {
 
 					Node databaseNode = node.getNode();
-
 					if (databaseNode.hasProperty(propertyToFix.dbName())) {
 
 						// check value with property converter
@@ -66,6 +65,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 						if (converter != null) {
 
 							try {
+
 								Object value = databaseNode.getProperty(propertyToFix.dbName());
 								converter.revert(value);
 
@@ -79,6 +79,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 								if (databaseValue != null && correctedValue != null) {
 
 									try {
+
 										// try to set database value to corrected value
 										databaseNode.setProperty(databaseName, correctedValue);
 
@@ -114,6 +115,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 							// needs type cast to Property to use fixDatabaseProperty method
 							if (key instanceof Property) {
+
 								fixProperty(node, (Property)key);
 							}
 						}
@@ -124,6 +126,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 							// needs type cast to Property to use fixDatabaseProperty method
 							if (key instanceof Property) {
+
 								fixProperty(node, (Property)key);
 							}
 						}
@@ -143,32 +146,38 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "fixNodeProperties";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts property values that were stored with an incorrect type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         Use this command after changing a property's type in the schema, for example from String to Integer.
         """;
@@ -176,39 +185,43 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("type", "Node type to fix"),
-			Parameter.optional("name", "Specific property to fix (default: all properties)")
-		);
+
+		return List.of(Parameter.mandatory("type", "Node type to fix"), Parameter.optional("name", "Specific property to fix (default: all properties)"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

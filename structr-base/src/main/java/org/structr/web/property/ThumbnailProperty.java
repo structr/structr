@@ -41,7 +41,6 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 	private int height   = 0;
 	private boolean crop = false;
 
-
 	public ThumbnailProperty(final String name) {
 
 		super(name);
@@ -52,6 +51,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 
 	@Override
 	public NodeInterface getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -59,6 +59,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 	public NodeInterface getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj == null) {
+
 			return null;
 		}
 
@@ -72,31 +73,37 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 		}
 
 		final Image tn = obj.as(Image.class).getScaledImage(width, height, crop);
+
 		return tn;
 	}
 
 	@Override
 	public String relatedType() {
+
 		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return null;
 	}
 
@@ -106,7 +113,6 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 		if (StringUtils.isNotBlank(format) && format.contains(",")) {
 
 			final String[] parts = format.split("[, ]+");
-
 			if (parts.length >= 1) {
 
 				width    = Integer.parseInt(parts[0].trim());
@@ -123,35 +129,42 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 	}
 
 	public int getWidth() {
+
 		return width;
 	}
 
 	public int getHeight() {
+
 		return height;
 	}
 
 	public boolean getCrop() {
+
 		return crop;
 	}
 
 	@Override
 	public boolean isIndexed() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isPassivelyIndexed() {
+
 		return false;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

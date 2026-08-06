@@ -35,6 +35,7 @@ public class FlowContainerPackage extends FlowBaseNode implements DeployableEnti
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainerPackage.class);
 
 	public FlowContainerPackage(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -53,10 +54,12 @@ public class FlowContainerPackage extends FlowBaseNode implements DeployableEnti
 	}
 
 	public String getEffectiveName() {
+
 		return getProperty(traits.key(FlowContainerPackageTraitDefinition.EFFECTIVE_NAME_PROPERTY));
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowContainerPackageTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), b);
 	}
 
@@ -69,10 +72,12 @@ public class FlowContainerPackage extends FlowBaseNode implements DeployableEnti
 		try (Tx tx = app.tx()) {
 
 			for (FlowContainerPackage pack : p) {
+
 				pack.setScheduledForIndexing(true);
 			}
 
 			for (FlowContainer cont : c) {
+
 				cont.setScheduledForIndexing(true);
 			}
 
@@ -93,10 +98,12 @@ public class FlowContainerPackage extends FlowBaseNode implements DeployableEnti
 		try (Tx tx = app.tx()) {
 
 			for (FlowContainerPackage pack : p) {
+
 				app.delete(pack);
 			}
 
 			for (FlowContainer cont : c) {
+
 				app.delete(cont);
 			}
 

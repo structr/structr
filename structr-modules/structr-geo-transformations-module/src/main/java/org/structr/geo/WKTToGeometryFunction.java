@@ -38,11 +38,13 @@ public class WKTToGeometryFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "wktToGeometry";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("wktString");
 	}
 
@@ -65,6 +67,7 @@ public class WKTToGeometryFunction extends GeoFunction {
 						return reader.read(wkt);
 
 					} catch (Throwable t) {
+
 						logger.error(ExceptionUtils.getStackTrace(t));
 					}
 				}
@@ -79,28 +82,32 @@ public class WKTToGeometryFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts a WKT string into a geometry object.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

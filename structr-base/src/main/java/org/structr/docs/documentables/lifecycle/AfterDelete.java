@@ -23,25 +23,25 @@ import java.util.List;
 public class AfterDelete extends LifecycleBase {
 
 	public AfterDelete() {
+
 		super("afterDelete");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called after an object of this type was deleted.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `afterDelete()` lifecycle method is called after an object of this type is deleted. This method runs after the deleting transaction is committed, so you can be sure that the object was deleted from the database.";
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onDelete()`."
-		);
+		return List.of("This lifecycle method can be defined on any node type.", "See also: `onDelete()`.");
 	}
 }

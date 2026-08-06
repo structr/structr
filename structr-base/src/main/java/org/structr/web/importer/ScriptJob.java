@@ -58,12 +58,15 @@ public class ScriptJob extends ScheduledJob {
 
 	@Override
 	public boolean runInitialChecks() throws FrameworkException {
+
 		return true;
 	}
 
 	@Override
 	public boolean canRunMultiThreaded() {
+
 		// only those jobs that are actual string-based scripts can be run in parallel
+
 		return script instanceof String;
 	}
 
@@ -80,6 +83,7 @@ public class ScriptJob extends ScheduledJob {
 
 			// avoid NPEs in re-used request objects that dont have an internal request reference
 			if (securityContext != null) {
+
 				securityContext.setRequest(null);
 			}
 
@@ -93,9 +97,11 @@ public class ScriptJob extends ScheduledJob {
 				if (script instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
 
 					functionWrapper.execute();
+
 				} else if (script instanceof String) {
 
 					Scripting.evaluate(actionContext, null, (String)script, jobName, null);
+
 				} else if (script != null) {
 
 					logger.warn("Unable to schedule script of type {}, ignoring", script.getClass().getName());
@@ -118,16 +124,19 @@ public class ScriptJob extends ScheduledJob {
 
 	@Override
 	public String getJobType() {
+
 		return "SCRIPT";
 	}
 
 	@Override
 	public String getJobStatusType() {
+
 		return "SCRIPT_JOB_STATUS";
 	}
 
 	@Override
 	public String getJobExceptionMessageType() {
+
 		return "SCRIPT_JOB_EXCEPTION";
 	}
 

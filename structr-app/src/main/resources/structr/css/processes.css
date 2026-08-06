@@ -440,11 +440,58 @@
 .pd-panel-intro { color: #666; font-size: 11px; margin-bottom: 10px; }
 .pd-panel-note  { color: #666; font-size: 11px; margin-top: 6px; }
 
+/* Panel help lives behind an info icon rather than in permanently visible
+   paragraphs: the side panel is narrow, and four blocks of static prose pushed
+   the actual controls off screen. `.pd-info` is the empty anchor the icon is
+   attached to at wire time (_Helpers.appendInfoTextToElement). */
+.pd-heading-row,
+.pd-label-row,
+.pd-inline-row {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.pd-heading-row    { margin: 0 0 10px 0; }
+.pd-heading-row h4 { margin: 0; }
+.pd-label-row      { color: #666; font-size: 11px; margin-bottom: 4px; }
+
+.pd-button-row { align-items: center; }
+
+.pd-info {
+	display: inline-flex;
+	align-items: center;
+	line-height: 1;
+	cursor: help;
+}
+
+/* Transient state, not static help -- kept visible because it changes what the
+   button next to it will do. */
+.pd-state-note {
+	display: block;
+	color: #8a6d3b;
+	font-size: 10px;
+	line-height: 1.4;
+	margin-top: 4px;
+}
+
+.pd-mb-0 { margin-bottom: 0; }
+
+/* Inline call to action inside a state note -- sized down so it reads as part of the
+   sentence rather than as a second primary button next to the real one. */
+.pd-state-note button {
+	padding: 1px 6px;
+	font-size: 10px;
+	line-height: 1.4;
+	vertical-align: baseline;
+}
+
 /* Inputs share width/padding; the mono group adds a monospace face. */
 .input-process-name,
 .input-element-name,
 .input-instructions,
 .select-instance-page,
+.select-page-template,
 .select-performer-candidate-principals,
 .input-performer-assignee,
 .input-performer-candidates,
@@ -458,10 +505,7 @@
 }
 
 .input-performer-assignee,
-.input-performer-candidates,
-.input-subject-type,
-.input-subject-form-view,
-.input-subject-writable-view {
+.input-performer-candidates {
 	font-family: monospace;
 }
 

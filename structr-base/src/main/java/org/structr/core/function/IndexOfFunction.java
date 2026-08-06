@@ -31,11 +31,13 @@ public class IndexOfFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "indexOf";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string, word");
 	}
 
@@ -54,51 +56,50 @@ public class IndexOfFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${indexOf(string, word)}"),
-				Usage.javaScript("Usage: ${{ $.indexOf(string, word) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${indexOf(string, word)}"), Usage.javaScript("Usage: ${{ $.indexOf(string, word) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the position of the first occurrence of the given word in the given string, or -1 if the string doesn't contain the word.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("string", "input string"),
-			Parameter.mandatory("word", "word to search")
-		);
+		return List.of(Parameter.mandatory("string", "input string"), Parameter.mandatory("word", "word to search"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${indexOf(this.name, 'the')}")
-		);
+
+		return List.of(Example.structrScript("${indexOf(this.name, 'the')}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

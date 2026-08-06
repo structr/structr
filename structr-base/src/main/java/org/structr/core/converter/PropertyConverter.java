@@ -37,10 +37,12 @@ public abstract class PropertyConverter<S, T> {
 	protected Object context                  = null;
 
 	public PropertyConverter(SecurityContext securityContext) {
+
 		this(securityContext, null);
 	}
 
 	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject) {
+
 		this.securityContext = securityContext;
 		this.currentObject = currentObject;
 	}
@@ -84,6 +86,7 @@ public abstract class PropertyConverter<S, T> {
 			}
 
 			// fallback
+
 			return source.toString();
 		}
 
@@ -91,14 +94,17 @@ public abstract class PropertyConverter<S, T> {
 	}
 
 	public void setRawMode(boolean rawMode) {
+
 		this.rawMode = rawMode;
 	}
 
 	public boolean getRawMode() {
+
 		return rawMode;
 	}
 
 	public void setContext(final Object context) {
+
 		this.context = context;
 	}
 }

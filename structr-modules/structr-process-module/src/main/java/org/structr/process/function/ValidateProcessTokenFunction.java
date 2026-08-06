@@ -52,11 +52,13 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "validate_process_token";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -71,6 +73,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 			final Map<String, Claim> claims = ProcessJWTHelper.validateProcessToken(token);
 
 			if (claims == null) {
+
 				return null;
 			}
 
@@ -86,6 +89,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -94,24 +98,25 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("token");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${validate_process_token(token)}"),
-			Usage.javaScript("Usage: ${{$.validate_process_token(token)}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${validate_process_token(token)}"), Usage.javaScript("Usage: ${{$.validate_process_token(token)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Validates a process access JWT and returns its claims.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Validates a process access JWT by checking its cryptographic signature, expiry, "
 			+ "and scope claim. If valid, returns a map with the token's claims (processInstanceId, "
 			+ "taskId, action, scope). If invalid, expired, or tampered with, returns null. "
@@ -121,6 +126,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"Returns null for any invalid, expired, or tampered token -- never throws an exception for bad tokens.",
 			"Should be called inside doPrivileged on the process page since it needs access to the JWT secret.",
@@ -131,13 +137,13 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("token", "the JWT string from the URL parameter")
-		);
+
+		return List.of(Parameter.mandatory("token", "the JWT string from the URL parameter"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript(
 				"${{let claims = $.doPrivileged(() => $.validate_process_token($.request.token)); if (claims && claims.processInstanceId === $.current.id) { /* valid */ }}}",
@@ -152,6 +158,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

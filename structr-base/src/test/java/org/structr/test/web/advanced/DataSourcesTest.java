@@ -50,7 +50,6 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class DataSourcesTest extends WidgetsTest {
 
-
 	/*********
 	 * data sources to test:
 	 *  node:Project (schema type)
@@ -166,7 +165,6 @@ public class DataSourcesTest extends WidgetsTest {
 			assertEquals("Expected HTTP 422 for incompatible data source on edit form", 422, fex.getStatus());
 		}
 	}
-
 
 	@Test
 	public void testTypeResolution3() {

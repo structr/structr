@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 
-
 /**
  *
  */
@@ -47,8 +46,7 @@ public class ClusterManager {
 		System.setProperty("jgroups.external_addr", "match-interface:eth1");
 
 		final Protocol[] prot_stack = {
-			new TCP().setBindPort(7800),
-			new KUBE_PING()
+			new TCP().setBindPort(7800), new KUBE_PING()
 				.setValue("namespace",  System.getenv("NAMESPACE"))
 				.setValue("masterHost", System.getenv("KUBERNETES_SERVICE_HOST"))
 				.setValue("masterPort", 443),
@@ -81,6 +79,7 @@ public class ClusterManager {
 	}
 
 	public boolean isConnected() {
+
 		return channel.isConnected();
 	}
 
@@ -89,6 +88,7 @@ public class ClusterManager {
 		final View view = channel.getView();
 
 		// are we the coordinator of this cluster?
+
 		return channel.getAddress().equals(view.getCoord());
 	}
 
@@ -101,6 +101,7 @@ public class ClusterManager {
 	}
 
 	public void broadcast(final String msg, final Object payload) throws Exception {
+
 		this.broadcast(msg, payload, false);
 	}
 
@@ -115,9 +116,11 @@ public class ClusterManager {
 		}
 
 		if (loggingEnabled) {
+
 			logger.info("[{}] sending {}", name, msg);
 
 			if (payload != null) {
+
 				logger.info("[{}] payload {}", name, payload.toString());
 			}
 		}
@@ -125,6 +128,7 @@ public class ClusterManager {
 		channel.send(message);
 
 		if (loggingEnabled) {
+
 			logger.info("[{}] {} sent.", name, msg);
 		}
 	}
@@ -134,6 +138,7 @@ public class ClusterManager {
 		private final BroadcastReceiver receiver;
 
 		protected InternalReceiver(final BroadcastReceiver receiver) {
+
 			this.receiver = receiver;
 		}
 
@@ -143,6 +148,7 @@ public class ClusterManager {
 			try {
 
 				if (loggingEnabled) {
+
 					logger.info("[{}] msg from {}", name, msg.src());
 				}
 
@@ -159,6 +165,7 @@ public class ClusterManager {
 				}
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 		}
@@ -168,10 +175,12 @@ public class ClusterManager {
 			try {
 
 				if (loggingEnabled) {
+
 					logger.info("[{}] new view: {}", name, v);
 				}
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 		}

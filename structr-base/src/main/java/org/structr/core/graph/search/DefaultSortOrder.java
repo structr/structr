@@ -60,15 +60,18 @@ public class DefaultSortOrder implements SortOrder {
 	}
 
 	public DefaultSortOrder(final PropertyKey key, final boolean descending) {
+
 		specs.add(new PropertySortSpec(key, descending));
 	}
 
 	public void addElement(final PropertyKey key, final boolean descending) {
+
 		specs.add(new PropertySortSpec(key, descending));
 	}
 
 	@Override
 	public List<SortSpec> getSortElements() {
+
 		return (List)specs;
 	}
 
@@ -76,6 +79,7 @@ public class DefaultSortOrder implements SortOrder {
 	public int compare(final Object o1, final Object o2) {
 
 		if (o1 == null || o2 == null) {
+
 			throw new NullPointerException("Cannot compare null objects.");
 		}
 
@@ -113,11 +117,13 @@ public class DefaultSortOrder implements SortOrder {
 				if (result != 0) {
 
 					// return result if values are different, stay in loop if values are equal
+
 					return result;
 				}
 			}
 
 			// if we arrive here, the values for all the keys are equal
+
 			return 0;
 		}
 
@@ -125,9 +131,9 @@ public class DefaultSortOrder implements SortOrder {
 	}
 
 	public boolean isEmpty() {
+
 		return specs.isEmpty();
 	}
-
 
 	// ----- nested classes -----
 	private class PropertySortSpec implements SortSpec {
@@ -143,25 +149,30 @@ public class DefaultSortOrder implements SortOrder {
 
 		@Override
 		public String toString() {
+
 			return "PropertySortSpec(" + key.jsonName() + ", " + descending + ")";
 		}
 
 		public PropertyKey getSortProperty() {
+
 			return key;
 		}
 
 		@Override
 		public SortType getSortType() {
+
 			return key.getSortType();
 		}
 
 		@Override
 		public String getSortKey() {
+
 			return key.jsonName();
 		}
 
 		@Override
 		public boolean sortDescending() {
+
 			return descending;
 		}
 	}

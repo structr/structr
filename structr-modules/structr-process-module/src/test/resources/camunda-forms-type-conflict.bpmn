@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  targetNamespace="http://structr.org/test">
+  <bpmn:process id="conflict_proc" name="ConflictForm" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- First task declares 'amount' as a long; its type wins the union. -->
+    <bpmn:userTask id="Task_First" name="Erste Aufgabe">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="amount" label="Betrag" type="long"/>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <!-- Second task declares the SAME key 'amount' as a string; must be ignored (first wins). -->
+    <bpmn:userTask id="Task_Second" name="Zweite Aufgabe">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="amount" label="Betrag" type="string"/>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" name="End">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"     targetRef="Task_First"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_First"  targetRef="Task_Second"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Second" targetRef="End_1"/>
+
+  </bpmn:process>
+</bpmn:definitions>

@@ -32,21 +32,20 @@ public class PropertyNotion extends Notion {
 	private String propertyKeyName = null;
 	
 	public PropertyNotion(final String propertyKeyName) {
+
 		this(propertyKeyName, false);
 	}
 	
 	public PropertyNotion(final String propertyKeyName, final boolean createIfNotExisting) {
 
-		super(
-			new PropertySerializationStrategy(propertyKeyName),
-			new TypeAndValueDeserializationStrategy(propertyKeyName, createIfNotExisting)
-		);
+		super(new PropertySerializationStrategy(propertyKeyName), new TypeAndValueDeserializationStrategy(propertyKeyName, createIfNotExisting));
 		
 		this.propertyKeyName = propertyKeyName;
 	}
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
+
 		return Traits.of(type).key(propertyKeyName);
 	}
 }

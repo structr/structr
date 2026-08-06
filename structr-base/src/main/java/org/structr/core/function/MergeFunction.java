@@ -32,11 +32,13 @@ public class MergeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "merge";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("objects...");
 	}
 
@@ -44,6 +46,7 @@ public class MergeFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List list = new ArrayList();
+
 		for (final Object source : sources) {
 
 			if (source instanceof Iterable) {
@@ -68,6 +71,7 @@ public class MergeFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.merge(objects...)}}. Example: ${{$.merge($.this.children, $.this.siblings)}}"),
 			Usage.structrScript("Usage: ${merge(objects...)}. Example: ${merge(this.children, this.siblings)}")
@@ -76,32 +80,31 @@ public class MergeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Merges collections and objects into a single collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can use this function to create collections of objects, add objects to a collection, or to merge multiple collections into a single one. All objects that are passed to this function will be added to the resulting collection. If an argument is a collection, all objects in that collection are added to the resulting collection as well.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("objects...", "collections or objects to merge into a single collection")
-		);
+		return List.of(Parameter.mandatory("objects...", "collections or objects to merge into a single collection"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This function will not remove duplicate entries. Use `mergeUnique()` for that."
-		);
+		return List.of("This function will not remove duplicate entries. Use `mergeUnique()` for that.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

@@ -27,6 +27,7 @@ import java.util.Map;
 public class Area extends GenericHtmlElementTraitDefinition {
 
 	public Area() {
+
 		super(StructrTraits.AREA);
 	}
 
@@ -37,11 +38,11 @@ public class Area extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}

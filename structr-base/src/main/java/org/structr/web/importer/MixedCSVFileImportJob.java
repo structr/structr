@@ -52,6 +52,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 	private static final Logger logger = LoggerFactory.getLogger(MixedCSVFileImportJob.class.getName());
 
 	public MixedCSVFileImportJob(File file, Principal user, Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
+
 		super(file, user, configuration, ctxStore);
 	}
 
@@ -68,7 +69,6 @@ public class MixedCSVFileImportJob extends FileImportJob {
 		} else {
 
 			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
-
 			if (module == null || !(module instanceof APIBuilder) ) {
 
 				throw new FrameworkException(400, "Cannot import CSV, API builder module is not available.");
@@ -81,7 +81,9 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 	@Override
 	public boolean canRunMultiThreaded() {
+
 		// think about this, maybe we can add parallelism here?
+
 		return false;
 	}
 
@@ -115,6 +117,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 			try (final InputStream is = getFileInputStream(threadContext)) {
 
 				if (is == null) {
+
 					return;
 				}
 
@@ -158,6 +161,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 								// select only mapped propertiers
 								for (final String keyName : properties.values()) {
+
 									inputData.put(keyName, row.get(keyName));
 								}
 
@@ -175,6 +179,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 								// search for object before creating it again
 								if (!searchAttributes.isEmpty()) {
+
 									newObject = app.nodeQuery(typeName).key(searchAttributes).getFirst();
 								}
 
@@ -202,6 +207,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 								if (relKey == null) {
 
 									relKey = findRelationshipKey(tuple.left, tuple.right);
+
 									if (relKey != null) {
 
 										relKeyCache.put(tuple.name(), relKey);
@@ -236,7 +242,9 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 					// do this outside of the transaction!
 					shouldPause();
+
 					if (shouldAbort()) {
+
 						return;
 					}
 				}
@@ -257,16 +265,19 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 	@Override
 	public String getJobType() {
+
 		return "CSV";
 	}
 
 	@Override
 	public String getJobStatusType() {
+
 		return "FILE_IMPORT_STATUS";
 	}
 
 	@Override
 	public String getJobExceptionMessageType() {
+
 		return "FILE_IMPORT_EXCEPTION";
 	}
 
@@ -311,11 +322,13 @@ public class MixedCSVFileImportJob extends FileImportJob {
 		public String right = null;
 
 		public StringTuple(final String left, final String right) {
+
 			this.right = right;
 			this.left  = left;
 		}
 
 		public String name() {
+
 			return left + "-" + right;
 		}
 	}

@@ -28,16 +28,19 @@ public class NotPredicate<T extends PropertyContainer, V> implements Predicate<T
 	private Predicate<T> predicate = null;
 
 	public NotPredicate(final Predicate<T> predicate) {
+
 		this.predicate = predicate;
 	}
 
 	@Override
 	public String toString() {
+
 		return "Not(" + predicate + ")";
 	}
 
 	@Override
 	public boolean accept(final T entity) {
+
 		return !predicate.accept(entity);
 	}
 }

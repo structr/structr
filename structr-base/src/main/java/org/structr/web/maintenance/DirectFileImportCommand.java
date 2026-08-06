@@ -79,21 +79,23 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		final boolean doIndex       = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
 
 		if (StringUtils.isBlank(sourcePath)) {
+
 			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
 		}
 
 		if (!EnumUtils.isValidEnum(Mode.class, modeString)) {
+
 			throw new FrameworkException(422, "Unknown value for 'mode' attribute. Valid values are: copy, move");
 		}
 
 		if (!EnumUtils.isValidEnum(Existing.class, existingString)) {
+
 			throw new FrameworkException(422, "Unknown value for 'existing' attribute. Valid values are: skip, overwrite, rename");
 		}
 
 		// use actual enums
 		final Existing existing = Existing.valueOf(existingString);
 		final Mode mode         = Mode.valueOf(modeString);
-
 		final List<Path> paths = new ArrayList<>();
 
 		if (sourcePath.contains(PathHelper.PATH_SEP)) {
@@ -119,18 +121,20 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 					try (final DirectoryStream<Path> stream = Files.newDirectoryStream(source, namePart)) {
 
 						for (final Path entry: stream) {
+
 							paths.add(entry);
 						}
 
 					} catch (final DirectoryIteratorException ex) {
+
 						throw ex.getCause();
 					}
 
 				} catch (final IOException ioex) {
+
 					throw new FrameworkException(422, "Unable to parse source path " + sourcePath + ".");
 				}
 			}
-
 
 		} else {
 
@@ -157,6 +161,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 			try (final Tx tx = app.tx()) {
 
 				targetFolder = app.nodeQuery(StructrTraits.FOLDER).key(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY), targetPath).getFirst();
+
 				if (targetFolder == null) {
 
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
@@ -181,6 +186,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 					Path parentPath = path.getParent();
 					if (parentPath == null) {
+
 						parentPath = path;
 					}
 
@@ -197,26 +203,31 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 					@Override
 					public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+
 						return FileVisitResult.CONTINUE;
 					}
 
 					@Override
 					public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+
 						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, mode, existing, doIndex);
 					}
 
 					@Override
 					public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+
 						return FileVisitResult.CONTINUE;
 					}
 
 					@Override
 					public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+
 						return FileVisitResult.CONTINUE;
 					}
 				});
 
 			} catch (final IOException ex) {
+
 				logger.debug("Mode: " + modeString + ", path: " + sourcePath, ex);
 			}
 		});
@@ -241,6 +252,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			// fix broken path concatenation
 			if (parentPath.startsWith("//")) {
+
 				parentPath = parentPath.substring(1);
 			}
 
@@ -264,6 +276,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 						case SKIP:
 							logger.info("Skipping import of {}, file exists and mode is SKIP.", parentPath + name);
+
 							return FileVisitResult.CONTINUE;
 
 						case OVERWRITE:
@@ -280,10 +293,8 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				}
 
 				final String contentType = FileHelper.getContentMimeType(file.toFile(), file.getFileName().toString());
-
 				boolean isImage = (contentType != null && contentType.startsWith("image"));
 				boolean isVideo = (contentType != null && contentType.startsWith("video"));
-
 				Traits traits = null;
 
 				if (isImage) {
@@ -293,6 +304,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				} else if (isVideo) {
 
 					traits = Traits.of(StructrTraits.VIDEO_FILE);
+
 					if (traits == null) {
 
 						logger.warn("Unable to create entity of type VideoFile, class is not defined.");
@@ -310,6 +322,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				);
 
 				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile.as(File.class)).getOutputStream()) {
+
 					IOUtils.copy(is, os);
 				}
 
@@ -321,6 +334,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				FileHelper.updateMetadata(newFile.as(File.class));
 
 				if (doIndex) {
+
 					indexer.addToFulltextIndex(newFile);
 				}
 
@@ -330,6 +344,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.debug("File: " + name + ", path: " + sourcePath, ex);
 		}
 
@@ -338,18 +353,19 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	private String getParameterValueAsString(final Map<String, Object> attributes, final String key, final String defaultValue) {
 
 		Object value = attributes.get(key);
-
 		if (value != null) {
 
 			return value.toString();
@@ -384,26 +400,31 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "directFileImport";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Imports files from a server filesystem directory into Structr's virtual filesystem.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("source", "Source directory path on the server"),
 			Parameter.mandatory("mode", "`copy` (keep originals) or `move` (delete after import)"),
@@ -414,28 +435,31 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"When using Docker, copy files into the container first or use a mounted volume."
-		);
+
+		return List.of("When using Docker, copy files into the container first or use a mounted volume.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 }

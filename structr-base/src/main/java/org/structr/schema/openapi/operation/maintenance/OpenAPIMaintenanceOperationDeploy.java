@@ -66,10 +66,6 @@ public class OpenAPIMaintenanceOperationDeploy extends LinkedHashMap<String, Obj
 			),
 
 			// responses
-			Map.of(
-					"200", new OpenAPISchemaReference("#/components/responses/ok"),
-					"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-			)
-        ));
+			Map.of("200", new OpenAPISchemaReference("#/components/responses/ok"), "401", new OpenAPISchemaReference("#/components/responses/unauthorized"))));
     }
 }

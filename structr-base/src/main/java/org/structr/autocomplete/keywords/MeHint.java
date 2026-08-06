@@ -27,21 +27,25 @@ public class MeHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "me";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the current user.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `me` keyword allows you to access the user in the current request. It is often used to show/hide individual parts of a page depending on the permissions / status of a user etc.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.html("""
 			<!doctype html>
@@ -51,14 +55,12 @@ public class MeHint extends GeneralKeywordHint {
 				</body>
 			</html>
 			"""),
-			Example.structrScript("${me.isAdmin}", "Check the `isAdmin` flag of the current user")
-		);
+			Example.structrScript("${me.isAdmin}", "Check the `isAdmin` flag of the current user"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"The `me` keyword can be undefined in anonymous requests."
-		);
+
+		return List.of("The `me` keyword can be undefined in anonymous requests.");
 	}
 }

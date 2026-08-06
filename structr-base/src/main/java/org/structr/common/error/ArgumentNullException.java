@@ -18,10 +18,10 @@
  */
 package org.structr.common.error;
 
-
 public class ArgumentNullException extends IllegalArgumentException {
 
 	public ArgumentNullException() {
+
 		super("Expected all parameters to be non-null");
 	}
 }

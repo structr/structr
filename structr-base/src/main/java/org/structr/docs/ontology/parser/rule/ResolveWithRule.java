@@ -27,6 +27,7 @@ import java.util.LinkedList;
 public class ResolveWithRule extends Rule {
 
 	public ResolveWithRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -38,16 +39,13 @@ public class ResolveWithRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.pop();
-
 			if (token1 instanceof NamedConceptToken concept1 && !tokens.isEmpty()) {
 
 				// unresolved => check if next is existing concept
 				final AbstractToken token2 = tokens.pop();
-
 				if (token2 instanceof WithToken preposition && !tokens.isEmpty()) {
 
 					final AbstractToken token3 = tokens.pop();
-
 					if (token3 instanceof NamedConceptToken concept2) {
 
 						concept1.addAdditionalNamedConcept(concept2);

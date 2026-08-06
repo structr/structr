@@ -46,6 +46,7 @@ public class ScriptTestHelper {
 			}
 
 		} catch (IOException ioex) {
+
 			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 

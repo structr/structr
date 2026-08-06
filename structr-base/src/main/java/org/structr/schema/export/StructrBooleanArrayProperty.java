@@ -39,11 +39,13 @@ import java.util.TreeMap;
 public class StructrBooleanArrayProperty extends StructrPropertyDefinition implements JsonBooleanArrayProperty {
 
 	public StructrBooleanArrayProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "array";
 	}
 

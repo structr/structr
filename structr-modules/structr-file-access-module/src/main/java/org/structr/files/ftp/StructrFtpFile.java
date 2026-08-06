@@ -42,16 +42,19 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 	private static final Logger logger = LoggerFactory.getLogger(StructrFtpFile.class.getName());
 
 	public StructrFtpFile(final SecurityContext securityContext, final File file) {
+
 		super(securityContext, file);
 	}
 
 	@Override
 	public boolean isDirectory() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isFile() {
+
 		return true;
 	}
 
@@ -73,6 +76,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public boolean mkdir() {
+
 		logger.info("mkdir()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
@@ -89,6 +93,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 			return outputStream;
 
 		} catch (FrameworkException fex) {
+
 			logger.error(null, fex);
 		}
 
@@ -107,6 +112,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 			return inputStream;
 
 		} catch (FrameworkException fex) {
+
 			logger.error(null, fex);
 		}
 
@@ -115,12 +121,15 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public List<FtpFile> listFiles() {
+
 		logger.info("listFiles()");
+
 		return null;
 	}
 
 	@Override
 	public Object getPhysicalFile() {
+
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

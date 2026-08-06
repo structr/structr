@@ -44,21 +44,25 @@ import java.util.Set;
 public class EnvResource extends ExactMatchEndpoint {
 
 	public enum UriPart {
+
 		_env
 	}
 
 	public EnvResource() {
+
 		super(RESTParameter.forStaticString(UriPart._env.name(), true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new EnvResourceHandler(call);
 	}
 
 	private class EnvResourceHandler extends RESTCallHandler {
 
 		public EnvResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
@@ -74,16 +78,19 @@ public class EnvResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS");
 		}
 	}

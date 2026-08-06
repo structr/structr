@@ -31,16 +31,19 @@ import java.util.List;
 public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	public MailSendFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailSend";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -77,19 +80,19 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailSend()}"),
-			Usage.javaScript("Usage: ${{ $.mailSend() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailSend()}"), Usage.javaScript("Usage: ${{ $.mailSend() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends the currently configured mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				The message-id of the created mail is being returned.
 
@@ -103,9 +106,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"Will result in an error if no `To:`, `Cc:` or `Bcc:` addresses are configured.",
-				"Will result in an error if `mailBegin()` was not called"
-		);
+
+		return List.of("Will result in an error if no `To:`, `Cc:` or `Bcc:` addresses are configured.", "Will result in an error if `mailBegin()` was not called");
 	}
 }

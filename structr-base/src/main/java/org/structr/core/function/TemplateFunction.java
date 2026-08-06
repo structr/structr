@@ -42,11 +42,13 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "template";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name, locale, entity");
 	}
 
@@ -54,7 +56,9 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources != null && sources.length != 3) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -79,6 +83,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 					if (text != null) {
 
 						// recursive replacement call, be careful here
+
 						return Scripting.replaceVariables(ctx, templateInstance, text, "template()");
 					}
 
@@ -97,6 +102,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -105,25 +111,25 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${template(name, locale, source)}."),
-			Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${template(name, locale, source)}."), Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a MailTemplate object with the given name, replaces the placeholders with values from the given entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Loads a node of type `MailTemplate` with the given name and locale values and uses the given source entity to resolve template expressions in the content field of the loaded node, returning the resulting text.";
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${template('TEXT_TEMPLATE_1', 'en', this)}", "Passing the Structr me object, representing the current user"),
 				Example.javaScript("${{ return $.template('TEXT_TEMPLATE_1', 'en', $.this)}}"),
@@ -147,6 +153,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Short example for mail-template: `Welcome, ${this.name}!`",
 				"This function is quite similar to the `replace()` function which serves a similar purpose but works on any string rather than on a mail template.",
@@ -156,6 +163,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

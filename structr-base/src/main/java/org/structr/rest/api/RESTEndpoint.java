@@ -37,6 +37,7 @@ public abstract class RESTEndpoint {
 	private Pattern pattern                       = null;
 
 	public RESTEndpoint(RESTParameter... parameters) {
+
 		initialize(parameters);
 	}
 
@@ -64,20 +65,24 @@ public abstract class RESTEndpoint {
 
 	@Override
 	public String toString() {
+
 		return this.getClass().getSimpleName() + "(" + uniquePath + ")";
 	}
 
 	@Override
 	public int hashCode() {
+
 		return uniquePath.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object obj) {
+
 		return obj != null && this.hashCode() == obj.hashCode();
 	}
 
 	public Matcher matcher(final String path) {
+
 		return pattern.matcher(path);
 	}
 

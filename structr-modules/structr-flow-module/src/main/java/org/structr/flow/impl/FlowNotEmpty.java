@@ -28,6 +28,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowNotEmpty extends FlowCondition implements DeployableEntity {
 
 	public FlowNotEmpty(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -39,6 +40,7 @@ public class FlowNotEmpty extends FlowCondition implements DeployableEntity {
 	}
 
 	public void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowNotEmptyTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
 	}
 }

@@ -24,7 +24,6 @@ import org.structr.flow.impl.FlowStore;
 
 public class StoreHandler implements FlowHandler {
 
-
 	@Override
 	public FlowNode handle(final Context context, final FlowNode flowElement) throws FlowException {
 

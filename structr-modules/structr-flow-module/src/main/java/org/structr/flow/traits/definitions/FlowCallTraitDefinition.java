@@ -52,10 +52,10 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PARAMETERS_PROPERTY  = "parameters";
 	public static final String FLOW_PROPERTY        = "flow";
 
-
 	private static final Logger logger = LoggerFactory.getLogger(FlowCallTraitDefinition.class);
 
 	public FlowCallTraitDefinition() {
+
 		super(StructrTraits.FLOW_CALL);
 	}
 
@@ -64,8 +64,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -74,6 +73,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 						final String uuid = node.getUuid();
 
 						if (!context.hasData(uuid)) {
+
 							call.execute(context);
 						}
 
@@ -81,8 +81,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				ActionOperations.class,
-				new ActionOperations() {
+				ActionOperations.class, new ActionOperations() {
 
 					@Override
 					public void execute(final Context context, final FlowAction action) throws FlowException {
@@ -104,11 +103,13 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 								if (params != null) {
 
 									for (FlowParameterInput p : params) {
+
 										p.process(context, functionContext);
 									}
 								}
 
 								try {
+
 									final FlowResult result = engine.execute(functionContext, startNode);
 
 									// Save result
@@ -118,6 +119,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 
 										throw new FrameworkException(422, "FlowCall encountered an unexpected exception during execution." + result.getError().getMessage());
 									}
+
 								} catch (FrameworkException ex) {
 
 									throw new FlowException(ex, action);
@@ -137,8 +139,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -159,9 +160,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowCall.class, (traits, node) -> new FlowCall(traits, node)
-		);
+		return Map.of(FlowCall.class, (traits, node) -> new FlowCall(traits, node));
 	}
 
 	@Override
@@ -171,11 +170,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> parameters = new StartNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
 		final Property<NodeInterface> flow                 = new EndNode(traitsInstance, FLOW_PROPERTY, StructrTraits.FLOW_CALL_CONTAINER);
 
-		return newSet(
-			dataTarget,
-			parameters,
-			flow
-		);
+		return newSet(dataTarget, parameters, flow);
 	}
 
 	@Override
@@ -195,6 +190,7 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

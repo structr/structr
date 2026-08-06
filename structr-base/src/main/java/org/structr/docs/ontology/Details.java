@@ -20,10 +20,5 @@ package org.structr.docs.ontology;
 
 public enum Details {
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	children,
-	all
+	name, source, shortDescription, longDescription, children, all
 }

@@ -48,27 +48,33 @@ public record ExternalChangeEvent(Type type, ExternalEntry entry, String previou
 	public ExternalChangeEvent {
 
 		if (type == null || entry == null) {
+
 			throw new IllegalArgumentException("ExternalChangeEvent needs a type and an entry");
 		}
 
 		if (Type.MOVED.equals(type) && previousRelativePath == null) {
+
 			throw new IllegalArgumentException("MOVED events need a previousRelativePath");
 		}
 	}
 
 	public static ExternalChangeEvent created(final ExternalEntry entry) {
+
 		return new ExternalChangeEvent(Type.CREATED, entry, null);
 	}
 
 	public static ExternalChangeEvent modified(final ExternalEntry entry) {
+
 		return new ExternalChangeEvent(Type.MODIFIED, entry, null);
 	}
 
 	public static ExternalChangeEvent deleted(final ExternalEntry entryReference) {
+
 		return new ExternalChangeEvent(Type.DELETED, entryReference, null);
 	}
 
 	public static ExternalChangeEvent moved(final String fromRelativePath, final ExternalEntry to) {
+
 		return new ExternalChangeEvent(Type.MOVED, to, fromRelativePath);
 	}
 }

@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
@@ -30,18 +29,22 @@ import org.structr.core.entity.AbstractNode;
 public class NodeFactory extends Factory<Node, NodeInterface> {
 
 	public NodeFactory(final SecurityContext securityContext) {
+
 		super(securityContext);
 	}
 
 	public NodeFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly) {
+
 		super(securityContext, includeHidden, publicOnly);
 	}
 
 	public NodeFactory(final SecurityContext securityContext, final int pageSize, final int page) {
+
 		super(securityContext, pageSize, page);
 	}
 
 	public NodeFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
+
 		super(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
@@ -50,6 +53,7 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 
 		// check deletion first
 		if (TransactionCommand.isDeleted(node)) {
+
 			return null;
 		}
 

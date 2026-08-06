@@ -24,16 +24,19 @@ public class StorageSyncServiceDocumentable extends AbstractServiceDocumentable 
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Service;
 	}
 
 	@Override
 	public String getName() {
+
 		return "StorageSyncService";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 }

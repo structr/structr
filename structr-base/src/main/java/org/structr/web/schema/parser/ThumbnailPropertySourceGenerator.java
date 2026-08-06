@@ -40,26 +40,31 @@ public class ThumbnailPropertySourceGenerator extends PropertyGenerator {
 	}
 
 	public ThumbnailPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Image.class.getName();
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new ThumbnailProperty(source.getPropertyName()).format(source.getFormat());
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Thumbnail;
 	}
 }

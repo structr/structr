@@ -62,20 +62,24 @@ public enum EventAction implements Documentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.EventAction;
 	}
 
 	public String getName() {
+
 		return identifier;
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return displayName;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 
@@ -90,6 +94,7 @@ public enum EventAction implements Documentable {
 		for (final EventAction type : EventAction.values()) {
 
 			if (type.getName().equals(identifier)) {
+
 				return type;
 			}
 		}

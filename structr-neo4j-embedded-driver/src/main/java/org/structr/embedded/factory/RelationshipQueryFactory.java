@@ -26,11 +26,13 @@ import org.structr.embedded.AdvancedCypherQuery;
 public class RelationshipQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public RelationshipQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+
 		return true;
 	}
 }

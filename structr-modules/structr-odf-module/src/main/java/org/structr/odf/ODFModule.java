@@ -71,16 +71,19 @@ public class ODFModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "odf";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

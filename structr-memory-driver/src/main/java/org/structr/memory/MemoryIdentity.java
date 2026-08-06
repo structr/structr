@@ -46,21 +46,25 @@ public class MemoryIdentity implements Identity<Long> {
 
 	@Override
 	public String toString() {
+
 		return Long.toString(id);
 	}
 
 	@Override
 	public int hashCode() {
+
 		return Long.valueOf(id).hashCode();
 	}
 
 	@Override
 	public long hash() {
+
 		return id;
 	}
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return id == ((MemoryIdentity)other).getId();
 	}
 
@@ -68,12 +72,13 @@ public class MemoryIdentity implements Identity<Long> {
 	public int compareTo(final Object o) {
 
 		final long other = ((MemoryIdentity)o).getId();
-
 		if (id > other) {
+
 			return 1;
 		}
 
 		if (id < other) {
+
 			return -1;
 		}
 
@@ -81,17 +86,19 @@ public class MemoryIdentity implements Identity<Long> {
 	}
 
 	public Long getId() {
+
 		return id;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 
 	public boolean isNode() {
+
 		return isNode;
 	}
-
 
 	// ----- package-private methods -----
 	static MemoryIdentity loadFromStorage(final ObjectInputStream in) throws IOException {

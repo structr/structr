@@ -26,15 +26,18 @@ import java.util.Set;
 public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 
 	public AbstractNodeTraitDefinition(final String name) {
+
 		super(name);
 	}
 
 	public AbstractNodeTraitDefinition(final String name, final String label) {
+
 		super(name, label);
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return false;
 	}
 
@@ -45,6 +48,7 @@ public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinitio
 
 		// keep order (Set.of(..) doesn't)
 		for (final T entry : entries) {
+
 			set.add(entry);
 		}
 
@@ -57,6 +61,7 @@ public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinitio
 
 		// keep order (Set.of(..) doesn't)
 		for (final PropertyKey entry : entries) {
+
 			set.add(entry.jsonName());
 		}
 
@@ -68,6 +73,7 @@ public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinitio
 		final Set<String> set = new LinkedHashSet<>();
 
 		for (final PropertyKey entry : keySet) {
+
 			set.add(entry.jsonName());
 		}
 

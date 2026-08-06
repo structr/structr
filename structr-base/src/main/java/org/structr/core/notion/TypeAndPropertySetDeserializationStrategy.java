@@ -56,6 +56,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	protected final boolean createIfNotExisting;
 
 	public TypeAndPropertySetDeserializationStrategy(final Set<String> propertyKeys) {
+
 		this(false, propertyKeys);
 	}
 
@@ -65,12 +66,14 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		this.propertyKeys        = propertyKeys;
 
 		if (propertyKeys == null || propertyKeys.isEmpty()) {
+
 			throw new IllegalStateException("TypeAndPropertySetDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
 	public void setRelationProperty(final RelationProperty relationProperty) {
+
 		this.relationProperty = relationProperty;
 	}
 
@@ -80,10 +83,12 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		if (source instanceof Map) {
 
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)source);
+
 			return deserialize(securityContext, type, attributes);
 		}
 
 		if (source instanceof NodeInterface) {
+
 			return (T) source;
 		}
 
@@ -111,17 +116,18 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 			} else {
 
-
 				boolean attributesComplete = true;
 
 				// Check if all property keys of the PropertySetNotion are present
 				for (String key : propertyKeys) {
+
 					attributesComplete &= attributes.containsKey(Traits.of(type).key(key));
 				}
 
 				if (attributesComplete) {
 
 					final PropertyMap searchAttributes = new PropertyMap();
+
 					for (final PropertyKey key : attributes.keySet()) {
 
 						// only use attribute for searching if it is NOT
@@ -133,6 +139,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 					}
 
 					for (final NodeInterface n : app.nodeQuery(type).key(searchAttributes).getResultStream()) {
+
 						result.add((T)n);
 					}
 
@@ -142,6 +149,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			// just check for existance
 			String errorMessage = null;
 			final int size = result.size();
+
 			switch (size) {
 
 				case 0:
@@ -163,6 +171,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 				case 1:
 
 					final T relatedNode = getTypedResult(result.get(0), type, null);
+
 					if (!attributes.isEmpty()) {
 
 						// set properties on related node?
@@ -194,11 +203,11 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		}
 
 		if (obj != null && !obj.getTraits().contains(type)) {
+
 			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 		}
 
 		return obj;
 	}
-
 
 }

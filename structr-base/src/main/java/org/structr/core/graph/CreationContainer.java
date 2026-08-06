@@ -46,32 +46,38 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 	private final boolean isNode;
 
 	public CreationContainer(final Traits traits, final boolean isNode) {
+
 		this.traits = traits;
 		this.isNode = isNode;
 	}
 
 	public CreationContainer(final Traits traits, final GraphObject obj) {
+
 		this.wrappedObj = obj;
 		this.traits     = traits;
 		this.isNode     = obj.isNode();
 	}
 
 	public GraphObject getWrappedObject() {
+
 		return wrappedObj;
 	}
 
 	public Map<String, Object> getData() {
+
 		return data;
 	}
 
 	// ----- interface GraphObject -----
 	@Override
 	public Identity<IDType> getId() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public String getUuid() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -81,55 +87,68 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public Traits getTraits() {
+
 		return traits;
 	}
 
 	@Override
 	public <T> T as(final Class<T> type) {
+
 		return null;
 	}
 
 	@Override
 	public boolean is(final String type) {
+
 		return false;
 	}
 
 	@Override
 	public String getType() {
+
 		if (wrappedObj == null) {
+
 			return null;
+
 		} else {
+
 			return wrappedObj.getType();
 		}
 	}
 
 	@Override
 	public void setSecurityContext(SecurityContext securityContext) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public SecurityContext getSecurityContext() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public PropertyContainer getPropertyContainer() {
+
 		return this;
 	}
 
 	@Override
 	public Set<PropertyKey> getFullPropertySet() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(String propertyView) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+
 		return setProperty(key, value, false);
 	}
 
@@ -143,36 +162,43 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void removeProperty(PropertyKey key) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean systemPropertiesUnlocked() {
+
 		return false;
 	}
 
 	@Override
 	public void unlockSystemPropertiesOnce() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -183,11 +209,13 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public boolean readOnlyPropertiesUnlocked() {
+
 		return false;
 	}
 
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -198,86 +226,103 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+
 		return true;
 	}
 
 	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+
 		return true;
 	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void ownerModified(SecurityContext securityContext) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void securityModified(SecurityContext securityContext) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void locationModified(SecurityContext securityContext) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void addToIndex() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean isVisibleToPublicUsers() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return false;
 	}
 
@@ -287,11 +332,13 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public Date getCreatedDate() {
+
 		return null;
 	}
 
 	@Override
 	public Date getLastModifiedDate() {
+
 		return null;
 	}
 
@@ -301,11 +348,13 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public void indexPassiveProperties() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -323,37 +372,44 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean isNode() {
+
 		return isNode;
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return !isNode;
 	}
 
 	@Override
 	public NodeInterface getSyncNode() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	// ----- interface PropertyContainer -----
 	@Override
 	public boolean hasProperty(String name) {
+
 		return data.containsKey(name);
 	}
 
 	@Override
 	public Object getProperty(String name) {
+
 		return data.get(name);
 	}
 
@@ -371,31 +427,37 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 
 	@Override
 	public void setProperty(String name, Object value) {
+
 		data.put(name, value);
 	}
 
 	@Override
 	public void setProperties(Map<String, Object> values) {
+
 		data.putAll(values);
 	}
 
 	@Override
 	public void removeProperty(String name) {
+
 		data.remove(name);
 	}
 
 	@Override
 	public Iterable<String> getPropertyKeys() {
+
 		return data.keySet();
 	}
 
 	@Override
 	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean isDeleted() {
+
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -403,6 +465,7 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 	public long getSourceTransactionId() {
 
 		if (wrappedObj != null) {
+
 			return wrappedObj.getSourceTransactionId();
 		}
 
@@ -413,6 +476,7 @@ public class CreationContainer<T extends Comparable, IDType> implements GraphObj
 	public boolean changelogEnabled() {
 
 		if (wrappedObj != null) {
+
 			return wrappedObj.changelogEnabled();
 		}
 

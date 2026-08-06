@@ -34,11 +34,13 @@ public class TimerFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "timer";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name, action");
 	}
 
@@ -55,15 +57,19 @@ public class TimerFunction extends CoreFunction {
 			switch (action) {
 				case "start":
 					ctx.startTimer(name);
+
 					return null;
 
 				case "pause":
+
 					return ctx.pauseTimer(name);
 
 				case "clear":
+
 					return ctx.clearTimer(name);
 
 				case "get":
+
 					return ctx.getTimerElapsedMs(name);
 
 				default:
@@ -81,19 +87,18 @@ public class TimerFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.structrScript("Usage: ${timer(name, action)}."),
-			Usage.javaScript("Usage: ${{$.timer(name, action)}}.")
-		);
+		return List.of(Usage.structrScript("Usage: ${timer(name, action)}."), Usage.javaScript("Usage: ${{$.timer(name, action)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Controls a named timer by starting, pausing, clearing, or returning its current elapsed time in milliseconds.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function measures the execution time of sections of code.
 
@@ -117,8 +122,7 @@ public class TimerFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${timer('benchmark1', 'start')}"),
+		return List.of(Example.structrScript("${timer('benchmark1', 'start')}"),
 			Example.javaScript("""
 				${{
 					$.timer('whole_function', 'start');
@@ -166,23 +170,18 @@ public class TimerFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("name", "name of timer"),
-			Parameter.mandatory("action", "action (`start`, `pause`, `get` or `clear`)")
-		);
+		return List.of(Parameter.mandatory("name", "name of timer"), Parameter.mandatory("action", "action (`start`, `pause`, `get` or `clear`)"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-				"Calling `start` on a running timer has no effect.",
-				"Before the first `start` of a timer, using `get`, `pause` or `clear` will return 0."
-		);
+		return List.of("Calling `start` on a running timer has no effect.", "Before the first `start` of a timer, using `get`, `pause` or `clear` will return 0.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

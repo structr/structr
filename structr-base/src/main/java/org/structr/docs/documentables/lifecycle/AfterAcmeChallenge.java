@@ -27,16 +27,19 @@ import java.util.List;
 public class AfterAcmeChallenge extends LifecycleBase {
 
 	public AfterAcmeChallenge() {
+
 		super("afterAcmeChallenge");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called after the ACME challenge authorization flow has completed.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `afterAcmeChallenge()` lifecycle method is called after the entire ACME challenge authorization flow has finished, regardless of whether the certificate was successfully obtained or the process failed.
 
@@ -50,6 +53,7 @@ public class AfterAcmeChallenge extends LifecycleBase {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("success", "`true` if the certificate was successfully obtained, `false` otherwise."),
 			Parameter.mandatory("errors", "A list of error messages that occurred during the process. Empty if successful.")
@@ -58,6 +62,7 @@ public class AfterAcmeChallenge extends LifecycleBase {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			{
@@ -87,6 +92,7 @@ public class AfterAcmeChallenge extends LifecycleBase {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"This method is called regardless of whether the certificate retrieval succeeded or failed.",
 			"The method runs in the context of the superuser.",

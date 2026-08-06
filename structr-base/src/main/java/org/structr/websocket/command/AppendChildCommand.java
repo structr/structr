@@ -42,6 +42,7 @@ public class AppendChildCommand extends AbstractCommand {
 		if (id == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node, no id is given").build(), true);
+
 			return;
 		}
 
@@ -49,6 +50,7 @@ public class AppendChildCommand extends AbstractCommand {
 		if (parentId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
+
 			return;
 		}
 
@@ -57,6 +59,7 @@ public class AppendChildCommand extends AbstractCommand {
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
 			return;
 		}
 
@@ -66,6 +69,7 @@ public class AppendChildCommand extends AbstractCommand {
 			if (parentDOMNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
+
 				return;
 			}
 
@@ -84,6 +88,7 @@ public class AppendChildCommand extends AbstractCommand {
 						if (isShadowPage && isTemplate && parentDOMNode.getParent() == null) {
 
 							getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
+
 							return;
 						}
 					}
@@ -118,6 +123,7 @@ public class AppendChildCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "APPEND_CHILD";
 	}
 }

@@ -34,7 +34,6 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-
 public class AppendWidgetCommand extends AbstractCommand {
 
 	private static final Logger logger     = LoggerFactory.getLogger(AppendWidgetCommand.class.getName());
@@ -63,6 +62,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
 			return;
 		}
 
@@ -93,10 +93,14 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 					// move children
 					DOMNode firstAppendedRoot = null;
+
 					for (final DOMNode newNode : tmpParent.getChildren()) {
+
 						if (firstAppendedRoot == null) {
+
 							firstAppendedRoot = newNode;
 						}
+
 						parentDOMNode.appendChild(newNode);
 					}
 
@@ -135,6 +139,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "APPEND_WIDGET";
 	}
 }

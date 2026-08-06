@@ -29,16 +29,19 @@ import java.util.List;
 public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	public MailResetManualConfigFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailResetManualConfig";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -54,25 +57,26 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${ mailResetManualConfig() }"),
-			Usage.javaScript("Usage: ${{ $.mailResetManualConfig() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${ mailResetManualConfig() }"), Usage.javaScript("Usage: ${{ $.mailResetManualConfig() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Resets a manual SMTP configuration for the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function removes the configuration change made by using the `mailSetManualConfig(...)`.";
 	}
 }

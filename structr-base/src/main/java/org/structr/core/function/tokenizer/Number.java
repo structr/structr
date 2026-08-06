@@ -37,22 +37,26 @@ public class Number extends Tokenizer {
 
 	@Override
 	public void add(final char character) {
+
 		super.add(character);
 		index++;
 	}
 
 	@Override
 	public String getType() {
+
 		return "number";
 	}
 
 	@Override
 	public String getQuoteChar() {
+
 		return null;
 	}
 
 	@Override
 	Tokenizer newInstance() {
+
 		return new Number();
 	}
 }

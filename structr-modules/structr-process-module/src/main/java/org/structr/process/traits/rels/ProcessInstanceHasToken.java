@@ -28,20 +28,92 @@ import org.structr.process.ProcessTraits;
 /** ProcessInstance -[HAS_TOKEN]-> ProcessToken */
 public class ProcessInstanceHasToken extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessInstanceHasToken() { super(ProcessTraits.PROCESS_INSTANCE_HAS_TOKEN); }
+	public ProcessInstanceHasToken() {
 
-	@Override public String getSourceType() { return ProcessTraits.PROCESS_INSTANCE; }
-	@Override public String getTargetType() { return ProcessTraits.PROCESS_TOKEN; }
-	@Override public String getRelationshipType() { return "HAS_TOKEN"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }
-	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+		super(ProcessTraits.PROCESS_INSTANCE_HAS_TOKEN);
+	}
+
+	@Override
+	public String getSourceType() {
+
+		return ProcessTraits.PROCESS_INSTANCE;
+	}
+
+	@Override
+	public String getTargetType() {
+
+		return ProcessTraits.PROCESS_TOKEN;
+	}
+
+	@Override
+	public String getRelationshipType() {
+
+		return "HAS_TOKEN";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+
+		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+
+		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+
+		return PropagationDirection.None;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+
+		return null;
+	}
 }

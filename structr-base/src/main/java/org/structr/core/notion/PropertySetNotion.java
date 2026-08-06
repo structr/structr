@@ -34,23 +34,24 @@ import java.util.Set;
 public class PropertySetNotion<S extends NodeInterface> extends Notion<S, Map<String, Object>> {
 
 	public PropertySetNotion(final Set<String> propertyKeys) {
+
 		this(false, propertyKeys);
 	}
 	
 	public PropertySetNotion(final boolean createIfNotExisting, final Set<String> propertyKeys) {
-		this(
-			new PropertySetSerializationStrategy(propertyKeys),
-			new TypeAndPropertySetDeserializationStrategy(createIfNotExisting, propertyKeys)
-		);
+
+		this(new PropertySetSerializationStrategy(propertyKeys), new TypeAndPropertySetDeserializationStrategy(createIfNotExisting, propertyKeys));
 
 	}
 
 	public PropertySetNotion(final SerializationStrategy serializationStrategy, final DeserializationStrategy deserializationStrategy) {
+
 		super(serializationStrategy, deserializationStrategy);
 	}
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
+
 		return null; // this notion cannot deserialize objects from a single key
 	}
 }

@@ -27,21 +27,25 @@ import org.structr.web.traits.definitions.ApplicationConfigurationDataNodeTraitD
 public class ApplicationConfigurationDataNodeTraitWrapper extends AbstractNodeTraitWrapper implements ApplicationConfigurationDataNode {
 
 	public ApplicationConfigurationDataNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
 	@Override
 	public String getConfigType() {
+
 		return wrappedObject.getProperty(traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getContent() {
+
 		return wrappedObject.getProperty(traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONTENT_PROPERTY));
 	}
 }

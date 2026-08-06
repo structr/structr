@@ -70,13 +70,12 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 					if (schemaObject != null) {
 
 						String typeName = schemaObject.getName();
-
 						if (typeName == null && schemaObject.is(StructrTraits.SCHEMA_RELATIONSHIP_NODE)) {
+
 							typeName = schemaObject.getType();
 						}
 
 						Traits type = Traits.of(typeName);
-
 						if (type != null) {
 
 							final Set<PropertyKey> allProperties  = type.getAllPropertyKeys();
@@ -93,6 +92,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 								boolean _isDisabled           = false;
 
 								if (valueType != null) {
+
 									valueTypeName = valueType.getSimpleName();
 								}
 
@@ -159,6 +159,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 			getWebSocket().send(webSocketData, true);
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 

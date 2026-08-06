@@ -57,25 +57,28 @@ public abstract class AbstractCommand {
 	public abstract String getCommand();
 
 	public Session getSession() {
+
 		return session;
 	}
 
 	public StructrWebSocket getWebSocket() {
+
 		return webSocket;
 	}
 
 	public Page getPage(final String id) {
+
 		return getNodeAs(id, Page.class, StructrTraits.PAGE);
 	}
 
 	public DOMNode getDOMNode(final String id) {
+
 		return getNodeAs(id, DOMNode.class, StructrTraits.DOM_NODE);
 	}
 
 	public <T> T getNodeAs(final String id, final Class<T> type, final String traitName) {
 
 		final NodeInterface node = getNode(id);
-
 		if (node != null && node.is(traitName)) {
 
 			return node.as(type);
@@ -91,6 +94,7 @@ public abstract class AbstractCommand {
 	 * @return the graph object
 	 */
 	public GraphObject getGraphObject(final String id) {
+
 		return getGraphObject(id, null);
 	}
 
@@ -120,6 +124,7 @@ public abstract class AbstractCommand {
 				if (rel != null) {
 
 					if (nodeId == null) {
+
 						logger.warn("Relationship {} accessed by UUID without a nodeId can take a very long time. Pass nodeId to use the fast path, or examine the stack trace and amend.", id);
 					}
 
@@ -161,6 +166,7 @@ public abstract class AbstractCommand {
 			return node;
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to get node", fex);
 		}
 
@@ -180,10 +186,12 @@ public abstract class AbstractCommand {
 	public RelationshipInterface getRelationship(final String id, final String nodeId) {
 
 		if (id == null) {
+
 			return null;
 		}
 
 		if (nodeId == null) {
+
 			return getRelationship(id);
 		}
 
@@ -197,6 +205,7 @@ public abstract class AbstractCommand {
 			for (final RelationshipInterface rel : node.getRelationships()) {
 
 				if (rel.getUuid().equals(id)) {
+
 					return rel;
 				}
 			}
@@ -204,6 +213,7 @@ public abstract class AbstractCommand {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to get relationship", fex);
 		}
 
@@ -221,6 +231,7 @@ public abstract class AbstractCommand {
 	public RelationshipInterface getRelationship(final String id) {
 
 		if (id == null) {
+
 			return null;
 		}
 
@@ -236,6 +247,7 @@ public abstract class AbstractCommand {
 			return rel;
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to get relationship", fex);
 		}
 
@@ -249,6 +261,7 @@ public abstract class AbstractCommand {
 	 * @return a boolean
 	 */
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
@@ -301,6 +314,7 @@ public abstract class AbstractCommand {
 			return doc.as(ShadowDocument.class);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to create container for shared components: {}", fex.getMessage());
 		}
 
@@ -308,22 +322,25 @@ public abstract class AbstractCommand {
 	}
 
 	public void setSession(final Session session) {
+
 		this.session = session;
 	}
 
 	public void setWebSocket(final StructrWebSocket webSocket) {
+
 		this.webSocket = webSocket;
 	}
 
 	public void setCallback(final String callback) {
+
 		this.callback = callback;
 	}
 
 	public void setDoTransactionNotifications(final boolean notify) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
 		if (securityContext != null) {
+
 			securityContext.setDoTransactionNotifications(notify);
 		}
 

@@ -52,11 +52,13 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "process_token";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -70,14 +72,16 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 			final String processInstanceId = sources[0].toString();
 			final String taskId            = sources[1].toString();
 			final String action            = sources[2].toString();
-
 			int expiryMinutes = ProcessJWTHelper.DEFAULT_EXPIRY_MINUTES;
 
 			if (sources.length >= 4) {
 
 				try {
+
 					expiryMinutes = Integer.parseInt(sources[3].toString());
+
 				} catch (NumberFormatException nfe) {
+
 					logger.warn("Invalid expiry value '{}', using default ({} minutes)", sources[3], ProcessJWTHelper.DEFAULT_EXPIRY_MINUTES);
 				}
 			}
@@ -87,6 +91,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -95,11 +100,13 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("processInstanceId, taskId, action [, expiryMinutes]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${process_token(processInstanceId, taskId, action [, expiryMinutes])}"),
 			Usage.javaScript("Usage: ${{$.process_token(processInstanceId, taskId, action [, expiryMinutes])}}")
@@ -108,11 +115,13 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates a signed JWT for process-scoped, sessionless access.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Creates a signed JWT (JSON Web Token) for use in process notification links. "
 			+ "The token carries the process instance ID, task ID, and allowed action as signed claims. "
 			+ "It is tamper-proof (cryptographically signed), has a configurable expiry (default: 48 hours), "
@@ -122,6 +131,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"Requires JWT to be configured in structr.conf (security.jwt.secret must be at least 32 characters).",
 			"The token is signed with HMAC256 using the configured JWT secret.",
@@ -133,6 +143,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("processInstanceId", "UUID of the ProcessInstance"),
 			Parameter.mandatory("taskId", "UUID of the TaskInstance (or 'view' for read-only access)"),
@@ -143,6 +154,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript(
 				"${process_token(inst.id, task.id, 'review')}",
@@ -161,6 +173,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

@@ -31,11 +31,13 @@ public class MaxFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "max";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
@@ -51,56 +53,56 @@ public class MaxFunction extends CoreFunction {
 		} catch (NumberFormatException nfe) {
 
 			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${max(value1, value2)}"),
-				Usage.javaScript("Usage: ${{ $.max(value1, value2) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${max(value1, value2)}"), Usage.javaScript("Usage: ${{ $.max(value1, value2) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the greater of the given values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments. See also `min()`.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("value1", "first value to compare"),
-			Parameter.mandatory("value2", "second value to compare")
-		);
+		return List.of(Parameter.mandatory("value1", "first value to compare"), Parameter.mandatory("value2", "second value to compare"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${max(this.children, 10)}")
-		);
+
+		return List.of(Example.structrScript("${max(this.children, 10)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

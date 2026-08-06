@@ -56,6 +56,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitDefinition.class);
 
 	public PropertyContainerTraitDefinition() {
+
 		super(StructrTraits.PROPERTY_CONTAINER);
 	}
 
@@ -64,17 +65,16 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 		return Map.of(
 
-			GetPropertyContainer.class,
-			new GetPropertyContainer() {
+			GetPropertyContainer.class, new GetPropertyContainer() {
 
 				@Override
 				public PropertyContainer getPropertyContainer(final GraphObject graphObject) {
+
 					return graphObject.getPropertyContainer();
 				}
 			},
 
-			GetPropertySet.class,
-			new GetPropertySet() {
+			GetPropertySet.class, new GetPropertySet() {
 
 				@Override
 				public Set<PropertyKey> getAllPropertyKeys(final GraphObject graphObject) {
@@ -91,8 +91,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 				}
 			},
 
-			GetPropertyKeys.class,
-			new GetPropertyKeys() {
+			GetPropertyKeys.class, new GetPropertyKeys() {
 
 				@Override
 				public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
@@ -119,18 +118,19 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 					}
 
 					// this is the default if no application/json; properties=[...] content-type header is present on the request
+
 					return traits.getPropertyKeysForView(propertyView);
 				}
 			},
 
-			GetProperty.class,
-			new GetProperty() {
+			GetProperty.class, new GetProperty() {
 
 				@Override
 				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> key, final Predicate<GraphObject> filter) {
 
 					// early null check, this should not happen...
 					if (key == null) {
+
 						return null;
 					}
 					
@@ -138,8 +138,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 				}
 			},
 
-			SetProperty.class,
-			new SetProperty() {
+			SetProperty.class, new SetProperty() {
 
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
@@ -148,6 +147,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 					// clear function property cache in security context since we are about to invalidate past results
 					if (securityContext != null) {
+
 						securityContext.getContextStore().clearFunctionPropertyCache();
 					}
 
@@ -184,8 +184,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 				}
 			},
 
-			SetProperties.class,
-			new SetProperties() {
+			SetProperties.class, new SetProperties() {
 
 				@Override
 				public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
@@ -229,14 +228,12 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 				}
 			},
 
-			RemoveProperty.class,
-			new RemoveProperty() {
+			RemoveProperty.class, new RemoveProperty() {
 
 				@Override
 				public <T> void removeProperty(final GraphObject graphObject, final PropertyKey<T> key) throws FrameworkException {
 
 					final SecurityContext securityContext = graphObject.getSecurityContext();
-
 					if (!graphObject.isGranted(Permission.write, securityContext, false)) {
 
 						throw new FrameworkException(403, getModificationNotPermittedExceptionString(graphObject, securityContext));
@@ -295,16 +292,19 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -351,7 +351,6 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 		final CreationContainer container = new CreationContainer(graphObject.getTraits(), graphObject);
 		final Traits traits               = graphObject.getTraits();
-
 		boolean atLeastOnePropertyChanged = false;
 
 		for (final Map.Entry<PropertyKey, Object> attr : properties.entrySet()) {
@@ -380,7 +379,6 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 							if (graphObject instanceof NodeInterface node) {
 
-
 								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), node, traits, true);
 							}
 						}
@@ -398,6 +396,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 				// bulk set NOT possible, set on entity
 				if (propertyKey.isSystemInternal()) {
+
 					graphObject.unlockSystemPropertiesOnce();
 				}
 
@@ -428,8 +427,11 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 		String userString = "";
 
 		if (currentUser == null) {
+
 			userString = (ctx.isSuperUser() ? "superuser" : "anonymous");
+
 		} else {
+
 			userString = currentUser.getType() + "(" + currentUser.getUuid() + ")";
 		}
 

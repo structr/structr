@@ -41,9 +41,11 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 	public IJsonInput createInstance(final Type type) {
 
 		try {
+
 			return (IJsonInput)type.getClass().getDeclaredConstructor().newInstance();
 
 		} catch (Throwable e) {
+
 			logger.warn("", e);
 		}
 
@@ -52,6 +54,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 	@Override
 	public JsonElement serialize(final IJsonInput src, final Type typeOfSrc, final JsonSerializationContext context) {
+
 		return null;
 	}
 
@@ -72,6 +75,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 			jsonInput = new JsonSingleInput();
 
 			JsonArray array = json.getAsJsonArray();
+
 			for (final JsonElement elem : array) {
 
 				wrapper = deserialize(elem, context);
@@ -88,10 +92,10 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 		return jsonInput;
 	}
 
-
 	public static JsonInput deserialize(final JsonElement json, final JsonDeserializationContext context) throws JsonParseException {
 
 		final JsonInput wrapper = new JsonInput();
+
 		if (json.isJsonObject()) {
 
 			final JsonObject obj = json.getAsJsonObject();
@@ -124,6 +128,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 							// create map of values
 							list.add(deserialize(element, context));
+
 						} else if (element.isJsonNull()) {
 
 							list.add(null);
@@ -143,6 +148,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 		} else if (json.isJsonArray()) {
 
 			final JsonArray array = json.getAsJsonArray();
+
 			for (final JsonElement elem : array) {
 
 				if (elem.isJsonPrimitive()) {

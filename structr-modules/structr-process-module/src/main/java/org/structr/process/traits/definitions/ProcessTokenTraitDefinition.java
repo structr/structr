@@ -27,6 +27,9 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.ProcessToken;
+import org.structr.process.traits.wrappers.ProcessTokenTraitWrapper;
 import java.util.Set;
 
 /**
@@ -46,13 +49,23 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String AT_ELEMENT_PROPERTY            = "atElement";
 	public static final String ACCESS_TOKEN_PROPERTY          = "accessToken";
 	public static final String ACCESS_TOKEN_PRINCIPAL_PROPERTY = "accessTokenPrincipal";
+	// bpmnId of the element this token last moved FROM; lets a parallel join
+	// verify one token per distinct incoming edge (not just a total count).
+	public static final String ARRIVED_FROM_BPMN_ID_PROPERTY  = "arrivedFromBpmnId";
 
 	// Status constants
 	public static final String STATUS_ACTIVE    = "active";
 	public static final String STATUS_COMPLETED = "completed";
 	public static final String STATUS_WAITING   = "waiting";
 
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(ProcessToken.class, (traits, node) -> new ProcessTokenTraitWrapper(traits, node));
+	}
+
 	public ProcessTokenTraitDefinition() {
+
 		super(ProcessTraits.PROCESS_TOKEN);
 	}
 
@@ -64,8 +77,9 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> atElement             = new EndNode(traitsInstance, AT_ELEMENT_PROPERTY, ProcessTraits.PROCESS_TOKEN_AT_ELEMENT);
 		final Property<String> accessToken                  = new StringProperty(ACCESS_TOKEN_PROPERTY).unique().indexed();
 		final Property<NodeInterface> accessTokenPrincipal  = new EndNode(traitsInstance, ACCESS_TOKEN_PRINCIPAL_PROPERTY, ProcessTraits.PROCESS_TOKEN_ACCESS_TOKEN_PRINCIPAL);
+		final Property<String> arrivedFromBpmnId            = new StringProperty(ARRIVED_FROM_BPMN_ID_PROPERTY);
 
-		return newSet(status, processInst, atElement, accessToken, accessTokenPrincipal);
+		return newSet(status, processInst, atElement, accessToken, accessTokenPrincipal, arrivedFromBpmnId);
 	}
 
 	@Override
@@ -79,6 +93,7 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

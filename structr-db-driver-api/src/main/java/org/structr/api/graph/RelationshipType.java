@@ -33,16 +33,19 @@ public interface RelationshipType {
 
 			@Override
 			public String name() {
+
 				return name;
 			}
 
 			@Override
 			public String getSourceType() {
+
 				return null;
 			}
 
 			@Override
 			public String getTargetType() {
+
 				return null;
 			}
 		};

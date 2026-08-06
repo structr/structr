@@ -21,6 +21,7 @@ package org.structr.core.auth.exception;
 public class TwoFactorAuthenticationTokenInvalidException extends UnauthorizedReasonException {
 
 	public TwoFactorAuthenticationTokenInvalidException() {
+
 		super("Two factor authentication token not valid anymore", "invalidTwoFactorToken");
 	}
 

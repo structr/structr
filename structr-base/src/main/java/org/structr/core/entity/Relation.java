@@ -78,13 +78,8 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 	 */
 	@Documentation(type=ConceptType.Constant, shortDescription="Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. not-null constraint).", parent="Cascading Delete Options")
 	int CONSTRAINT_BASED  = 4;
-
 	String[] CASCADING_DESCRIPTIONS = {
-		"NONE",
-		"SOURCE_TO_TARGET",
-		"TARGET_TO_SOURCE",
-		"ALWAYS",
-		"CONSTRAINT_BASED"
+		"NONE", "SOURCE_TO_TARGET", "TARGET_TO_SOURCE", "ALWAYS", "CONSTRAINT_BASED"
 	};
 
 	enum Multiplicity { One, Many }

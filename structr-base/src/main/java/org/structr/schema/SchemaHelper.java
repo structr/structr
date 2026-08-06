@@ -105,24 +105,28 @@ public class SchemaHelper {
 	}
 
 	public enum Type {
+
 		String, StringArray, DateArray, ByteArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, EnumArray, Date, ZonedDateTime, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
 	}
 
 	public enum Multiplicity {
-		ONE("1"),
-		MANY("*");
+
+		ONE("1"), MANY("*");
 
 		private String dbValue = null;
 
 		Multiplicity(final String dbValue) {
+
 			this.dbValue = dbValue;
 		}
 
 		public String getDbValue() {
+
 			return dbValue;
 		}
 
 		public static Set<String> getDbValuesSet() {
+
 			return Arrays.stream(Multiplicity.class.getEnumConstants()).map(Multiplicity::getDbValue).collect(Collectors.toSet());
 		}
 	}
@@ -160,7 +164,6 @@ public class SchemaHelper {
 				// contains all normalized mappings for every possible
 				// property key / entity name that is ever called.
 				String normalizedType = normalizedEntityNameCache.get(possibleEntityName);
-
 				if (normalizedType == null) {
 
 					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityName)));
@@ -179,7 +182,6 @@ public class SchemaHelper {
 			// contains all normalized mappings for every possible
 			// property key / entity name that is ever called.
 			String normalizedType = normalizedEntityNameCache.get(possibleEntityString);
-
 			if (normalizedType == null) {
 
 				normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityString)));
@@ -212,6 +214,7 @@ public class SchemaHelper {
 	public static String cleanPropertyName(final String propertyName) {
 
 		if (propertyName != null) {
+
 			return propertyName.replaceAll("[^\\w]+", "");
 		}
 
@@ -307,6 +310,7 @@ public class SchemaHelper {
 		map.put("defaultValue", property.defaultValue());
 
 		if (property instanceof StringProperty) {
+
 			map.put("contentType", ((StringProperty) property).contentType());
 		}
 
@@ -366,11 +370,13 @@ public class SchemaHelper {
 
 		@Override
 		public int compare(final Type o1, final Type o2) {
+
 			return o2.name().compareTo(o1.name());
 		}
 	}
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload, final boolean notifyCluster) {
+
 		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
 	}
 

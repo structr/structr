@@ -42,11 +42,13 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "serverlog";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) [, filter ] ] ] ]");
 	}
 
@@ -83,6 +85,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}"),
 			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}")
@@ -91,16 +94,19 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the last n lines.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The last n lines are taken from the selected log file and each line can be truncated to a certain length. Optionally, a filter can be applied to only return lines that contain a certain string (case-sensitive).";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.optional("lines", "number of lines to return"),
 				Parameter.optional("truncateLinesAfter", "number of characters after which each log line is truncated with \"[...]\""),
@@ -111,13 +117,13 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"The `getAvailableServerlogs()` function can be used for the `logFile` parameter"
-		);
+
+		return List.of("The `getAvailableServerlogs()` function can be used for the `logFile` parameter");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 
@@ -135,10 +141,10 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 		final boolean filterEmpty = StringUtils.isBlank(filter);
 		int linesToGet = numberOfLines;
-
 		final List<String> logFileNames = GetAvailableServerLogsFunction.getListOfServerlogFileNames();
 
 		final File logFile;
+
 		if (requestedLogfileName != null && logFileNames.contains(requestedLogfileName)) {
 
 			logFile = new File(requestedLogfileName);
@@ -161,7 +167,6 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 				while (linesToGet > 0) {
 
 					String line = reader.readLine();
-
 					if (line == null) {
 
 						linesToGet = 0;

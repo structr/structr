@@ -56,42 +56,49 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 		// workaround of appending "T00:00:00+0000" client-side and avoids
 		// the surprise of midnight-in-default-JVM-zone shifting the date
 		// by a day on systems running outside UTC.
-		datetimeLocalUtc(),
-		dateOnlyUtc()
+		datetimeLocalUtc(), dateOnlyUtc()
 	};
 
 	private static SimpleDateFormat dateOnlyUtc() {
+
 		final SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
 		f.setTimeZone(TimeZone.getTimeZone("UTC"));
 		f.setLenient(false);
+
 		return f;
 	}
 
 	private static SimpleDateFormat datetimeLocalUtc() {
+
 		final SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
 		f.setTimeZone(TimeZone.getTimeZone("UTC"));
 		f.setLenient(false);
+
 		return f;
 	}
 
 	private String pattern = null;
 
 	public DatePropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Date.class.getName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Date;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new DateProperty(source.getPropertyName());
 	}
 
@@ -121,6 +128,7 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 			String source = input;
 
 			try {
+
 				// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
 				if (StringUtils.contains(source, "Z")) {
 
@@ -132,6 +140,7 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 			} catch (ParseException ignore) { }
 
 			// try to parse as ISO8601 date (supports multiple formats)
+
 			return parseISO8601DateString(source);
 
 		}
@@ -161,12 +170,14 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 			try {
 
 				synchronized (format) {
+
 					parsedDate = format.parse(source);
 				}
 
 			} catch (ParseException pe) {}
 
 			if (parsedDate != null) {
+
 				return parsedDate;
 			}
 		}

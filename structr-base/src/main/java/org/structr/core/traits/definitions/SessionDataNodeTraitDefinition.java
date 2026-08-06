@@ -53,14 +53,14 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String VERSION_PROPERTY       = "version";
 
 	public SessionDataNodeTraitDefinition() {
+
 		super(StructrTraits.SESSION_DATA_NODE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
-		return Map.of(
-			OnCreation.class, new OnCreation() {
+		return Map.of(OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -89,9 +89,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			SessionDataNode.class, (traits, node) -> new SessionDataNodeTraitWrapper(traits, node)
-		);
+		return Map.of(SessionDataNode.class, (traits, node) -> new SessionDataNodeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -103,13 +101,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<Date>    lastAccessedProperty = new DateProperty(LAST_ACCESSED_PROPERTY).indexed();
 		final Property<Long>    versionProperty      = new LongProperty(VERSION_PROPERTY);
 
-		return newSet(
-			sessionIdProperty,
-			contextPathProperty,
-			vhostProperty,
-			lastAccessedProperty,
-			versionProperty
-		);
+		return newSet(sessionIdProperty, contextPathProperty, vhostProperty, lastAccessedProperty, versionProperty);
 	}
 
 	@Override
@@ -129,6 +121,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

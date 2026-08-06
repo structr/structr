@@ -56,7 +56,6 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 		if (graphDb != null) {
 
 			final String typeName = "type";
-
 			if (properties.containsKey(typeName)) {
 
 				properties.remove(typeName);
@@ -98,11 +97,13 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+
 					logger.warn("Unable to set properties of relationship {}: {}", rel.getUuid(), t.getMessage());
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
 					logger.warn("Unable to set relationship properties: {}", t.getMessage() );
 				}
 			});
@@ -113,32 +114,38 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "setRelationshipProperties";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets property values on all relationships of a given type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         All parameters except `type` are treated as property key-value pairs to set on matching relationships.
         """;
@@ -146,40 +153,43 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("type", "Relationship type to modify")
-		);
+
+		return List.of(Parameter.mandatory("type", "Relationship type to modify"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"You cannot change a relationship's type with this command. To change the type, delete and recreate the relationship."
-		);
+
+		return List.of("You cannot change a relationship's type with this command. To change the type, delete and recreate the relationship.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

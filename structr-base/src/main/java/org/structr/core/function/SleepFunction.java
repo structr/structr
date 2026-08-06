@@ -38,11 +38,13 @@ public class SleepFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "sleep";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("milliseconds");
 	}
 
@@ -55,7 +57,6 @@ public class SleepFunction extends CoreFunction {
 
 			// parseInt should be safe here, we probably don't want to wait for more than 49 days..
 			final long milliseconds = parseInt(sources[0]);
-
 			if (milliseconds == 0 || milliseconds > 3_600_000) {
 
 				logger.warn("Unusual wait time in sleep() function, do you really want to wait for {} milliseconds?", milliseconds);
@@ -76,51 +77,50 @@ public class SleepFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${sleep(milliseconds)}."),
-				Usage.javaScript("Usage: ${{$.sleep(milliseconds)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${sleep(milliseconds)}."), Usage.javaScript("Usage: ${{$.sleep(milliseconds)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Pauses the execution of the current thread for the given number of milliseconds.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${sleep(1000)}"),
-				Example.javaScript("${{$.sleep(1000)}}")
-		);
+
+		return List.of(Example.structrScript("${sleep(1000)}"), Example.javaScript("${{$.sleep(1000)}}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("milliseconds", "milliseconds to sleep")
-		);
+		return List.of(Parameter.mandatory("milliseconds", "milliseconds to sleep"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

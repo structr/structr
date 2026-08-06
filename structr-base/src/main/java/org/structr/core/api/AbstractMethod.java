@@ -43,7 +43,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
 /**
  *
  */
@@ -77,14 +76,17 @@ public abstract class AbstractMethod {
 	public abstract Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException;
 
 	public String getName() {
+
 		return name;
 	}
 
 	public String getSummary() {
+
 		return summary;
 	}
 
 	public String getDescription() {
+
 		return description;
 	}
 
@@ -93,12 +95,11 @@ public abstract class AbstractMethod {
 		return (arguments) -> {
 
 			try {
-				final Snippet snippet = getSnippet();
 
+				final Snippet snippet = getSnippet();
 				if (snippet != null && !snippet.getSource().isEmpty()) {
 
 					final String engineName = snippet.getEngineName();
-
 					if (!engineName.isEmpty()) {
 
 						// Important: getContext is called with allowEntityOverride=false to prevent entity automatically being overridden in the case of an existent context
@@ -111,7 +112,6 @@ public abstract class AbstractMethod {
 						final ActionContext previousContext              = binding.getActionContext();
 						final Value previousMethodParameters             = binding.getMethodParameters();
 						final Map<String, Object> tmp                    = securityContext.getContextStore().getTemporaryParameters();
-
 						Locale effectiveLocale = actionContext.getLocale();
 						ActionContext inner    = null;
 
@@ -119,12 +119,14 @@ public abstract class AbstractMethod {
 
 							final Arguments args = NamedArguments.fromValues(actionContext, arguments);
 							final Arguments converted = checkAndConvertArguments(actionContext, args, true);
+
 							inner = new ActionContext(securityContext, converted.toMap());
 							inner.setLocale(effectiveLocale);
 
 							inner.setScriptingContexts(actionContext.getScriptingContexts());
 
 							if (arguments.length == 1) {
+
 								binding.setMethodParameters(arguments[0]);
 							}
 
@@ -162,7 +164,9 @@ public abstract class AbstractMethod {
 
 							// pass on error tokens
 							if (inner != null && inner.hasError()) {
+
 								for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
+
 									actionContext.getErrorBuffer().add(token);
 								}
 							}
@@ -180,9 +184,11 @@ public abstract class AbstractMethod {
 
 				// fallback => normal scripting
 				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, this, arguments);
+
 				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext, entity, converted));
 
 			} catch (FrameworkException ex) {
+
 				throw new RuntimeException(ex);
 			}
 		};
@@ -202,6 +208,7 @@ public abstract class AbstractMethod {
 		if (parameters.isEmpty()) {
 
 			// don't convert anything if the method defines no formal parameters
+
 			return arguments;
 		}
 
@@ -217,6 +224,7 @@ public abstract class AbstractMethod {
 			final Object parameterValue = arg.getValue();
 
 			if (parameterName == null) {
+
 				parameterName = parameters.getNameByIndex(index);
 			}
 
@@ -238,8 +246,8 @@ public abstract class AbstractMethod {
 
 				final String parameterName = entry.getKey();
 				final String parameterType = entry.getValue();
-
 				final Object argument = converted.get(pos++);
+
 				if (argument == null) {
 
 					switch (parameterType) {
@@ -274,7 +282,6 @@ public abstract class AbstractMethod {
 
 			}
 		}
-
 
 		return converted;
 	}
@@ -396,7 +403,6 @@ public abstract class AbstractMethod {
 
 			if (input instanceof String string) {
 
-
 				try {
 
 					return Integer.valueOf(string);
@@ -416,7 +422,6 @@ public abstract class AbstractMethod {
 			}
 
 			if (input instanceof String string) {
-
 
 				try {
 
@@ -438,7 +443,6 @@ public abstract class AbstractMethod {
 
 			if (input instanceof String string) {
 
-
 				try {
 
 					return Float.valueOf(string);
@@ -454,10 +458,12 @@ public abstract class AbstractMethod {
 	}
 
 	protected void throwIllegalArgumentExceptionForMapBasedArguments() throws FrameworkException {
+
 		throw new FrameworkException(422, "Tried to call " + getFullMethodName() + " with illegal arguments. To fix this error, you can either specify method parameters, or call the method with a single argument of type object, e.g. { \"name\": \"example\" }.");
 	}
 
 	protected void throwIllegalArgumentExceptionForUnnamedArguments(final Parameters parameters, final Arguments arguments) throws FrameworkException {
+
 		throw new FrameworkException(422, "Tried to call " + getFullMethodName() + " with illegal arguments. Expected: " + parameters.formatForErrorMessage() + ", actual: " + arguments.formatForErrorMessage());
 	}
 }

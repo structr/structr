@@ -58,15 +58,14 @@ import java.util.Map.Entry;
 public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public ODSExporterTraitDefinition() {
+
 		super(StructrTraits.ODS_EXPORTER);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ODSExporter.class, (traits, node) -> new ODSExporterTraitWrapper(traits, node)
-		);
+		return Map.of(ODSExporter.class, (traits, node) -> new ODSExporterTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -83,6 +82,7 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 					final String uuid              = (String)data.get("uuid");
 
 					exportAttributes(actionContext, entity.as(ODSExporter.class), uuid);
+
 					return null;
 				}
 			}
@@ -99,16 +99,13 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			final App app = StructrApp.getInstance();
 			final ResultStream result = app.nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(actionContext, StructrTraits.NODE_INTERFACE, result);
-
 			Map<String, Object> nodeProperties = new HashMap<>();
 			GraphObjectMap node = (GraphObjectMap) Iterables.first(transformedResult);
-			node.getPropertyKeys(null).forEach(
-				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
-			);
+
+			node.getPropertyKeys(null).forEach(p -> nodeProperties.put(p.dbName(), node.getProperty(p)));
 
 			OdfSpreadsheetDocument spreadsheet = OdfSpreadsheetDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 			OdfTable sheet = spreadsheet.getTableList().get(0);
-
 			Iterator<Entry<String, Object>> it = nodeProperties.entrySet().iterator();
 
 			while (it.hasNext()) {
@@ -126,9 +123,11 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 					String[] arr = (String[]) val;
 					List<String> list = new ArrayList<>(Arrays.asList(arr));
+
 					writeCollectionToCells(sheet, sheet.getCellByPosition(address), list);
 
 				} else {
+
 					writeObjectToCell(sheet.getCellByPosition(address), val);
 				}
 
@@ -138,11 +137,11 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			spreadsheet.close();
 
 		} catch (Exception e) {
+
 			final Logger logger = LoggerFactory.getLogger(ODSExporterTraitDefinition.class);
 			logger.error("Error while exporting to ODS", e);
 		}
 	}
-
 
 	public static void writeCollectionToCells(final OdfTable sheet, final OdfTableCell startCell, final Collection col) {
 
@@ -154,24 +153,23 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		Iterator<Collection> colIt = col.iterator();
 
 		while (colIt.hasNext()) {
+
 			Object obj = colIt.next();
 			if (obj instanceof String[]) {
 
 				String[] arr = (String[]) obj;
 				List<String> list = new ArrayList<>(Arrays.asList(arr));
 				StringJoiner sj = new StringJoiner(",");
-				list.forEach(
-					s -> sj.add(s)
-				);
+
+				list.forEach(s -> sj.add(s));
 				writeObjectToCell(sheet.getCellByPosition(colIndex, rowIndex), sj.toString());
 
 			} else if (obj instanceof Collection) {
 
 				Collection nestedCol = (Collection) obj;
 				StringJoiner sj = new StringJoiner(",");
-				nestedCol.forEach(
-					s -> sj.add(s.toString())
-				);
+
+				nestedCol.forEach(s -> sj.add(s.toString()));
 				writeObjectToCell(sheet.getCellByPosition(colIndex, rowIndex), sj.toString());
 
 			} else {
@@ -207,9 +205,7 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		} else if (val instanceof AbstractNode) {
 
 			AbstractNode node = (AbstractNode) val;
-			cell.setStringValue(
-				node.getProperty(new StringProperty("id"))
-			);
+			cell.setStringValue(node.getProperty(new StringProperty("id")));
 
 		} else if (val != null) {
 
@@ -220,6 +216,7 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

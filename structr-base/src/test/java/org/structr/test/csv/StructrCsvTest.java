@@ -18,7 +18,6 @@
  */
 package org.structr.test.csv;
 
-
 import io.restassured.RestAssured;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
@@ -77,6 +76,7 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 		// wait for service layer to be initialized
 		do {
+
 			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());

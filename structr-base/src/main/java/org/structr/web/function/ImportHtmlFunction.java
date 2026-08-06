@@ -34,11 +34,13 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "importHtml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("parent, html");
 	}
 
@@ -77,6 +79,7 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${importHtml(parent, html)}. Example: ${importHtml(this, '<div></div>')}"),
 			Usage.javaScript("Usage: ${{ $.importHtml(parent, html) }}. Example: ${{ $.importHtml(this, '<div></div>') }}")
@@ -85,16 +88,19 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Imports HTML source code into an element.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

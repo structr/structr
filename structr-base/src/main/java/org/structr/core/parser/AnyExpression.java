@@ -41,6 +41,7 @@ public class AnyExpression extends Expression {
 	private Expression anyExpression  = null;
 
 	public AnyExpression(final int row, final int column) {
+
 		super("any", row, column);
 	}
 
@@ -52,8 +53,10 @@ public class AnyExpression extends Expression {
 		buf.append("any(");
 
 		for (final Expression expr : expressions) {
+
 			buf.append(expr.toString());
 		}
+
 		buf.append(")");
 
 		return buf.toString();
@@ -84,11 +87,11 @@ public class AnyExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null) {
+
 			return ERROR_MESSAGE_ANY;
 		}
 
 		final Object listSource = listExpression.evaluate(ctx, entity);
-
 		if (listSource != null && listSource instanceof Iterable) {
 
 			final List source         = Iterables.toList((Iterable)listSource);
@@ -104,12 +107,14 @@ public class AnyExpression extends Expression {
 					if (resultObject instanceof Boolean) {
 
 						if ((Boolean)resultObject) {
+
 							return true;
 						}
 
 					} else {
 
 						if (Boolean.valueOf(resultObject.toString())) {
+
 							return true;
 						}
 					}
@@ -124,34 +129,37 @@ public class AnyExpression extends Expression {
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	@Override
 	public String getName() {
+
 		return "any";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Evaluates a StructrScript expression for every element of a collection and returns `true` if the expression evaluates to `true` for **any** of the elements.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Inside the expression function, the keyword `data` refers to the current element. See also: `all()` and `none()`.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("list", "list of elements to loop over"),
-			Parameter.mandatory("expression", "expression to evaluate for each element")
-		);
+
+		return List.of(Parameter.mandatory("list", "list of elements to loop over"), Parameter.mandatory("expression", "expression to evaluate for each element"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${any(user.groups, is_allowed(data, current, 'read'))}", "Check if any of a user's groups have read permissions on the `current` object."),
 			Example.structrScript("${any(merge(6, 7, 8, 12, 15), gt(data, 10))}", "Check if any element of a list is greater than a given number")
@@ -160,32 +168,31 @@ public class AnyExpression extends Expression {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.reduce()`)."
-		);
+
+		return List.of("This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.reduce()`).");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return List.of(
-			Signature.structrScript("list, expression")
-		);
+
+		return List.of(Signature.structrScript("list, expression"));
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.StructrScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${any(list, expression)}. Example: ${any(user.groups, is_allowed(data, current, 'read'))}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${any(list, expression)}. Example: ${any(user.groups, is_allowed(data, current, 'read'))}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

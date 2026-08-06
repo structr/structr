@@ -28,11 +28,13 @@ public class NotEmptyPredicate<T extends PropertyContainer, V> implements Predic
 	private String key = null;
 
 	public NotEmptyPredicate(final String key) {
+
 		this.key = key;
 	}
 
 	@Override
 	public boolean accept(final T entity) {
+
 		return entity.getProperty(key) != null;
 	}
 }

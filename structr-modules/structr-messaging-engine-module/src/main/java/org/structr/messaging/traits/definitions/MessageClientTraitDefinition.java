@@ -53,6 +53,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SUBSCRIBERS_PROPERTY = "subscribers";
 
 	public MessageClientTraitDefinition() {
+
 		super(StructrTraits.MESSAGE_CLIENT);
 	}
 
@@ -74,6 +75,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Sends a message to the specified topic.";
 				}
 
@@ -91,6 +93,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Subscribes the client to the specified topic to receive messages.";
 				}
 
@@ -108,6 +111,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Unsubscribes the client from the specified topic.";
 				}
 
@@ -120,12 +124,12 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			MessageClientOperations.class,
-			new MessageClientOperations() {
+			MessageClientOperations.class, new MessageClientOperations() {
 
 				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
 
 					final App app = StructrApp.getInstance();
+
 					try (final Tx tx = app.tx()) {
 
 						final Iterable<MessageSubscriber> subscribers = client.getSubscribers();
@@ -134,7 +138,6 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 							subscribers.forEach(sub -> {
 
 								String subTopic = sub.getTopic();
-
 								if (subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
 
 									try {
@@ -171,11 +174,13 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
+
 					return new RestMethodResult(200);
 				}
 
 				@Override
 				public RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
+
 					return new RestMethodResult(200);
 				}
 			}
@@ -187,8 +192,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			MessageClient.class, (traits, node) -> new MessageClientTraitWrapper(traits, node)
-		);
+			MessageClient.class, (traits, node) -> new MessageClientTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -196,33 +200,24 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> subscribersProperty = new EndNodes(traitsInstance, SUBSCRIBERS_PROPERTY, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 
-		return newSet(
-			subscribersProperty
-		);
+		return newSet(subscribersProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-					SUBSCRIBERS_PROPERTY
-			),
-			PropertyView.Ui,
-			newSet(
-					SUBSCRIBERS_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Public, newSet(SUBSCRIBERS_PROPERTY), PropertyView.Ui, newSet(SUBSCRIBERS_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

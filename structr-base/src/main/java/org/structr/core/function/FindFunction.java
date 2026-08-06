@@ -36,6 +36,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getNamespaceIdentifier() {
+
 		return "find";
 	}
 
@@ -47,13 +48,11 @@ public class FindFunction extends AbstractQueryFunction {
 		try {
 
 			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
-
 			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-
 				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
 
 					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted(getName(), getName()));
@@ -89,16 +88,19 @@ public class FindFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getName() {
+
 		return "find";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a collection of entities of the given type from the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function is one of the most important and frequently used built-in functions. It returns a collection of entities, which can be empty if none of the existing nodes or relationships matches the given search parameters. `find()` accepts several different predicates (key, value pairs) and other query options like sort order or pagination controls. See the examples below for an overview of the possible parameter combinations for an advanced find() query.
 		
@@ -142,16 +144,12 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(
-			Signature.javaScript( "type, map"),
-			Signature.structrScript( "type, key, value"),
-			Signature.javaScript( "type, uuid"),
-			Signature.structrScript( "type, uuid")
-		);
+		return List.of(Signature.javaScript( "type, map"), Signature.structrScript( "type, key, value"), Signature.javaScript( "type, uuid"), Signature.structrScript( "type, uuid"));
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.find(type, key, value); }}. Example: ${{ $.find(\"User\", { eMail: 'tester@test.com' }); }}"),
 			Usage.structrScript("Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\")}")
@@ -160,6 +158,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("type", "type to return (includes inherited types)"),
 			Parameter.optional("predicates", "list of predicates"),
@@ -169,6 +168,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 
 			Example.structrScript("${find('User', 'b3175257898440ff99e78ca8fedfd832')}", "Return the User entity with the UUID `b3175257898440ff99e78ca8fedfd832`"),

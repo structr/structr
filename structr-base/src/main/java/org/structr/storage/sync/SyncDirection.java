@@ -52,8 +52,8 @@ public enum SyncDirection {
 	public static SyncDirection fromConfiguration(final Map<String, String> configuration) {
 
 		final String value = configuration != null ? configuration.get(DIRECTION_KEY) : null;
-
 		if (value == null) {
+
 			return IN;
 		}
 
@@ -66,16 +66,19 @@ public enum SyncDirection {
 			default: {
 
 				logger.warn("Unrecognized value '{}' for configuration entry {}, falling back to '{}'", value, DIRECTION_KEY, "in");
+
 				return IN;
 			}
 		}
 	}
 
 	public boolean isInbound() {
+
 		return this != OUT;
 	}
 
 	public boolean isOutbound() {
+
 		return this != IN;
 	}
 }

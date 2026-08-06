@@ -27,21 +27,25 @@ public class MailServiceDocumentable extends AbstractServiceDocumentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Service;
 	}
 
 	@Override
 	public String getName() {
+
 		return "MailService";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "A service that queries mailboxes and stores the emails in the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		### Types
 		`Mailbox`, `EMailMessage`

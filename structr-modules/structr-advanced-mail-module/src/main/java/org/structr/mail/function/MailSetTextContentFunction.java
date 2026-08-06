@@ -30,16 +30,19 @@ import java.util.List;
 public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 
 	public MailSetTextContentFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailSetTextContent";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("text");
 	}
 
@@ -57,32 +60,32 @@ public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailSetTextContent(textContent)}"),
-			Usage.javaScript("Usage: ${{ $.mailSetTextContent(textContent) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailSetTextContent(textContent)}"), Usage.javaScript("Usage: ${{ $.mailSetTextContent(textContent) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets/Overwrites the text content of the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("text", "text content of the mail")
-		);
+
+		return List.of(Parameter.mandatory("text", "text content of the mail"));
 	}
 }

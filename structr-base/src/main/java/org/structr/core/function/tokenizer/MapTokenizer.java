@@ -32,10 +32,12 @@ public class MapTokenizer extends Tokenizer {
 	public boolean accept(final char character) {
 
 		if (level == 0) {
+
 			return character == '{';
 		}
 
 		// accept everything
+
 		return true;
 	}
 
@@ -53,15 +55,21 @@ public class MapTokenizer extends Tokenizer {
 				break;
 
 			case '{':
+
 				if (!inSingleQuotes && !inDoubleQuotes) {
+
 					level++;
 				}
+
 				break;
 
 			case '}':
+
 				if (!inSingleQuotes && !inDoubleQuotes) {
+
 					level--;
 				}
+
 				break;
 
 		}
@@ -71,16 +79,19 @@ public class MapTokenizer extends Tokenizer {
 
 	@Override
 	Tokenizer newInstance() {
+
 		return new MapTokenizer();
 	}
 
 	@Override
 	String getQuoteChar() {
+
 		return "";
 	}
 
 	@Override
 	String getType() {
+
 		return "map";
 	}
 }

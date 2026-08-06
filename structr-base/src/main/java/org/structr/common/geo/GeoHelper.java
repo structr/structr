@@ -18,7 +18,6 @@
  */
 package org.structr.common.geo;
 
-
 import org.apache.commons.collections.map.LRUMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,6 +109,7 @@ public class GeoHelper {
 				try {
 
 					result = provider.geocode(street, house, postalCode, city, state, country, language);
+
 					if (result != null) {
 
 						// store in cache
@@ -133,30 +133,37 @@ public class GeoHelper {
 		StringBuilder keyBuffer = new StringBuilder();
 
 		if (street != null) {
+
 			keyBuffer.append(street);
 		}
 
 		if (house != null) {
+
 			keyBuffer.append(house);
 		}
 
 		if (postalCode != null) {
+
 			keyBuffer.append(postalCode);
 		}
 
 		if (city != null) {
+
 			keyBuffer.append(city);
 		}
 
 		if (state != null) {
+
 			keyBuffer.append(state);
 		}
 
 		if (country != null) {
+
 			keyBuffer.append(country);
 		}
 
 		if (language !=  null) {
+
 			keyBuffer.append(language);
 		}
 

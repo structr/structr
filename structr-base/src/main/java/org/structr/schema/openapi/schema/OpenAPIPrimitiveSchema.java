@@ -29,14 +29,17 @@ public class OpenAPIPrimitiveSchema extends LinkedHashMap<String, Object> {
 	private Map selectedMap = schema;
 
 	public OpenAPIPrimitiveSchema(final String description, final String name, final String type) {
+
 		this(description, name, type, null, null, null, false);
 	}
 
 	public OpenAPIPrimitiveSchema(final String description, final String name, final String type, final Object defaultValue) {
+
 		this(description, name, type, defaultValue, null, null, false);
 	}
 
 	public OpenAPIPrimitiveSchema(final String description, final String name, final String type, final Object defaultValue, final Object exampleValue, final boolean wrapInExtraMap) {
+
 		this(description, name, type, defaultValue, exampleValue, null, wrapInExtraMap);
 	}
 
@@ -45,38 +48,48 @@ public class OpenAPIPrimitiveSchema extends LinkedHashMap<String, Object> {
 		put(name, schema);
 
 		if (wrapInExtraMap) {
+
 			schema.put("schema", schemaContent);
 			selectedMap = schemaContent;
 		}
 
 		if (type != null) {
+
 			selectedMap.put("type", type);
 		}
 
 		if (description != null) {
+
 			selectedMap.put("description", description);
 		}
 
 		if (defaultValue != null) {
+
 			selectedMap.put("default", defaultValue);
 		}
 
 		if (exampleValue != null) {
+
 			selectedMap.put("example", exampleValue);
 		}
 
 		if (enumValues != null) {
+
 			selectedMap.put("enum", enumValues);
 		}
 	}
 
 	public OpenAPIPrimitiveSchema required() {
+
 		selectedMap.put("required", true);
+
 		return this;
 	}
 
 	public OpenAPIPrimitiveSchema add(final String key, final Object value) {
+
 		selectedMap.put(key, value);
+
 		return this;
 	}
 }

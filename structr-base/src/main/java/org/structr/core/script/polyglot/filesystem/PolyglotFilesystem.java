@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class PolyglotFilesystem implements FileSystem {
+
 	private static final Logger logger = LoggerFactory.getLogger(PolyglotFilesystem.class);
 
 	@Override
@@ -56,6 +57,7 @@ public class PolyglotFilesystem implements FileSystem {
 		if (uri != null) {
 
 			return parsePath(uri.getPath());
+
 		} else {
 
 			return null;
@@ -69,6 +71,7 @@ public class PolyglotFilesystem implements FileSystem {
 
 			return Path.of(path);
 		}
+
 		return null;
 	}
 
@@ -85,6 +88,7 @@ public class PolyglotFilesystem implements FileSystem {
 			tx.success();
 
 			if (abstractFile == null) {
+
 				throw new NoSuchFileException("No file or folder found for path: " + path.toString());
 			}
 
@@ -96,6 +100,7 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
+
         App app = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -106,12 +111,14 @@ public class PolyglotFilesystem implements FileSystem {
 			if (folder == null) {
 
 				FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
+
 			} else {
 
 				throw new FileAlreadyExistsException("Folder already exists for path: " + dir.toString());
 			}
 
 			tx.success();
+
         } catch (FrameworkException ex) {
 
 			logger.error("Unexpected exception while trying to create folder", ex);
@@ -122,6 +129,7 @@ public class PolyglotFilesystem implements FileSystem {
 	public void delete(Path path) throws IOException {
 
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
@@ -154,7 +162,6 @@ public class PolyglotFilesystem implements FileSystem {
 			final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
 			final PropertyKey<String> pathKey          = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
 			final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
-
 			NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(pathKey, path.toString()).getFirst();
 
 			if (file == null && (options.contains(StandardOpenOption.CREATE) || options.contains(StandardOpenOption.CREATE_NEW))) {
@@ -172,6 +179,7 @@ public class PolyglotFilesystem implements FileSystem {
 
 					file = app.create(StructrTraits.FILE, new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString()));
 				}
+
 			} else if (file != null && options.contains(StandardOpenOption.CREATE_NEW)) {
 
 				throw new FileAlreadyExistsException("Cannot open file with CREATE_NEW option. File already exists at path: " + path.toString());
@@ -183,11 +191,13 @@ public class PolyglotFilesystem implements FileSystem {
 			}
 
 			tx.success();
+
 			return StorageProviderFactory.getStorageProvider(file.as(File.class)).getSeekableByteChannel(options);
 
 		} catch (FrameworkException ex) {
 
 			logger.error("Unexpected exception while trying to open new bytechannel", ex);
+
 			return null;
 		}
 	}
@@ -205,7 +215,9 @@ public class PolyglotFilesystem implements FileSystem {
 			if (folder != null) {
 
 				tx.success();
+
 				return new VirtualDirectoryStream(dir, filter);
+
 			} else {
 
 				throw new NotDirectoryException("No directory found for path: " + dir.toString());
@@ -221,11 +233,13 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public Path toAbsolutePath(Path path) {
+
 		return path;
 	}
 
 	@Override
 	public Path toRealPath(Path path, LinkOption... linkOptions) throws IOException {
+
 		return path;
 	}
 
@@ -233,8 +247,8 @@ public class PolyglotFilesystem implements FileSystem {
 	public Map<String, Object> readAttributes(Path path, String rawattributes, LinkOption... options) throws IOException {
 
 		final NodeInterface file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path.toString());
-
 		if (file == null && rawattributes.equals("isDirectory")) {
+
 			return Map.of("isDirectory", false);
 		}
 
@@ -243,25 +257,30 @@ public class PolyglotFilesystem implements FileSystem {
 		String attributes = rawattributes;
 
 		if (viewIndex != -1) {
+
 			view = rawattributes.substring(0, viewIndex);
 			attributes = rawattributes.substring(viewIndex + 1, rawattributes.length());
 		}
 
 		if (!view.equals("basic")) {
+
 			throw new UnsupportedOperationException("View \"%s\" is not supported by PolyglotFilesystem.".formatted(view));
 		}
 
 		Map<String, Object> attributeMap = new HashMap<>();
+
 		if (attributes.isEmpty()) {
+
 			return attributeMap;
 		}
 
 		if (file == null) {
+
 			throw new IOException("File or folder does not exist for requested path: " + path.toString());
 		}
 
-
 		for (String attr : attributes.split(",")) {
+
 			switch (attr) {
 				case "isDirectory" -> attributeMap.put("isDirectory", (file.is(StructrTraits.FOLDER)));
 				case "creationTime" -> attributeMap.put("creationTime", FileTime.fromMillis(file.getCreatedDate().getTime()));

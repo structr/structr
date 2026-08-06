@@ -27,6 +27,9 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnGlobalDefinition;
+import org.structr.process.traits.wrappers.BpmnGlobalDefinitionTraitWrapper;
 
 /**
  * Trait definition for BpmnGlobalDefinition -- a top-level definition element
@@ -44,7 +47,14 @@ public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefini
 	public static final String DEFINITION_PROPERTY       = "definition";
 
 	public BpmnGlobalDefinitionTraitDefinition() {
+
 		super(ProcessTraits.BPMN_GLOBAL_DEFINITION);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(BpmnGlobalDefinition.class, (traits, node) -> new BpmnGlobalDefinitionTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -70,6 +80,7 @@ public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefini
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

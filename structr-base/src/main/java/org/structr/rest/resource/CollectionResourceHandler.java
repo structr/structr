@@ -77,6 +77,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		if (typeName != null) {
 
 			if (Traits.of(typeName) == null) {
+
 				throw new NotFoundException("Type " + typeName + " does not exist");
 			}
 
@@ -115,6 +116,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 			}
 
 			// finally: return 201 Created
+
 			return result;
 
 		} else {
@@ -132,14 +134,17 @@ public class CollectionResourceHandler extends RESTCallHandler {
 				RelationshipInterface newRelationship = null;
 
 				if (sourceNode == null) {
+
 					errorBuffer.add(new EmptyPropertyToken(typeName, template.getSourceIdProperty().jsonName()));
 				}
 
 				if (targetNode == null) {
+
 					errorBuffer.add(new EmptyPropertyToken(typeName, template.getTargetIdProperty().jsonName()));
 				}
 
 				if (errorBuffer.hasError()) {
+
 					throw new FrameworkException(422, "Source node ID and target node ID of relationship must be set", errorBuffer);
 				}
 
@@ -148,6 +153,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 				newRelationship = app.create(sourceNode, targetNode, typeName, properties);
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+
 				if (newRelationship != null) {
 
 					result.addHeader(StructrTraits.LOCATION, buildLocationHeader(securityContext, newRelationship));
@@ -155,6 +161,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 				}
 
 				// finally: return 201 Created
+
 				return result;
 			}
 
@@ -165,32 +172,38 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	@Override
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
+
 		return genericPatch(securityContext, propertySets, typeName);
 	}
 
 	@Override
 	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
 		// override super method to provide more specific error message
 		throw new IllegalMethodException("PUT not allowed on ‛" + typeName + "‛ collection resource", getAllowedHttpMethodsForOptionsCall());
 	}
 
 	@Override
 	public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+
 		return genericDelete(securityContext);
 	}
 
 	@Override
 	public String getTypeName(final SecurityContext securityContext) {
+
 		return typeName;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of("DELETE", "GET", "OPTIONS", "PATCH", "POST");
 	}
 
@@ -204,7 +217,6 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		notion.setType(sourceType);
 
 		PropertyKey startNodeIdentifier = notion.getPrimaryPropertyKey();
-
 		if (startNodeIdentifier != null) {
 
 			Object identifierValue = properties.get(startNodeIdentifier.dbName());

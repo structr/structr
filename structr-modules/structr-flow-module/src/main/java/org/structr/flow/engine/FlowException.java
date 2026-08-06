@@ -27,16 +27,19 @@ public class FlowException extends FrameworkException {
 	private final ThrowingElement causeElement;
 
 	public FlowException(final Exception rootCause, ThrowingElement causeElement) {
+
 		super(422, rootCause.getMessage());
 		this.rootCause = rootCause;
 		this.causeElement = causeElement;
 	}
 
 	public Exception getRootCause() {
+
 		return this.rootCause;
 	}
 
 	public ThrowingElement getThrowingElement() {
+
 		return this.causeElement;
 	}
 }

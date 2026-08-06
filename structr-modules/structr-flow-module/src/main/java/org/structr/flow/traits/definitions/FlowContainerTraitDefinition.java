@@ -67,15 +67,14 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String API_SPECIFICATION_PROPERTY      = "apiSpecification";
 
 	public FlowContainerTraitDefinition() {
+
 		super(StructrTraits.FLOW_CONTAINER);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowContainer.class, (traits, node) -> new FlowContainer(traits, node)
-		);
+		return Map.of(FlowContainer.class, (traits, node) -> new FlowContainer(traits, node));
 	}
 
 	@Override
@@ -87,7 +86,9 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(FlowContainer.class).evaluate(securityContext, arguments.toMap());
 				}
 			},
@@ -96,7 +97,9 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(FlowContainer.class).getFlowNodes(securityContext);
 				}
 			},
@@ -105,7 +108,9 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(FlowContainer.class).getFlowRelationships(securityContext);
 				}
 			}
@@ -117,8 +122,7 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -134,29 +138,29 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					graphObject.setVisibility(true, true);
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 					graphObject.as(FlowContainer.class).setScheduledForIndexing(false);
 				}
 			},
 
-			OnNodeDeletion.class,
-			new OnNodeDeletion() {
+			OnNodeDeletion.class, new OnNodeDeletion() {
 
 				@Override
 				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+
 					nodeInterface.as(FlowContainer.class).deleteChildren();
 				}
 			}
@@ -168,8 +172,7 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -202,18 +205,7 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> repeaterNodes      = new StartNodes(traitsInstance, REPEATER_NODES_PROPERTY, StructrTraits.DOM_NODE_FLOW_FLOW_CONTAINER);
 		final Property<String> apiSpecification                    = new StringProperty(API_SPECIFICATION_PROPERTY);
 
-		return newSet(
-			flowPackage,
-			flowNodes,
-			flowConfigurations,
-			activeFlowConfiguration,
-			startNode,
-			name,
-			effectiveName,
-			scheduledForIndexing,
-			repeaterNodes,
-			apiSpecification
-		);
+		return newSet(flowPackage, flowNodes, flowConfigurations, activeFlowConfiguration, startNode, name, effectiveName, scheduledForIndexing, repeaterNodes, apiSpecification);
 	}
 
 	@Override
@@ -230,15 +222,12 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 					NAME_PROPERTY, FLOW_NODES_PROPERTY, START_NODE_PROPERTY, FLOW_PACKAGE_PROPERTY, EFFECTIVE_NAME_PROPERTY, SCHEDULED_FOR_INDEXING_PROPERTY, REPEATER_NODES_PROPERTY, ACTIVE_CONFIGURATION_PROPERTY, API_SPECIFICATION_PROPERTY
 			),
 
-			"effectiveNameView",
-			newSet(
-					GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.ID_PROPERTY, EFFECTIVE_NAME_PROPERTY
-			)
-		);
+			"effectiveNameView", newSet(GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.ID_PROPERTY, EFFECTIVE_NAME_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

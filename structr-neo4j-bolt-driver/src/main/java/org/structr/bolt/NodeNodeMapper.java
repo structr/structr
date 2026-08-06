@@ -30,11 +30,13 @@ class NodeNodeMapper implements Function<org.neo4j.driver.types.Node, Node> {
 	private BoltDatabaseService db = null;
 
 	public NodeNodeMapper(final BoltDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Node apply(final org.neo4j.driver.types.Node t) {
+
 		return db.getCurrentTransaction().getNodeWrapper(t);
 	}
 }

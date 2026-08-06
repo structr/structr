@@ -159,7 +159,6 @@ public class UiAuthenticator implements Authenticator {
 		SecurityContext securityContext;
 
 		String authorizationToken = getAuthorizationToken(request);
-
 		if (user == null && StringUtils.isBlank(authorizationToken) && !response.isCommitted()) {
 
 			user = SessionHelper.checkSessionAuthentication(request);
@@ -182,7 +181,6 @@ public class UiAuthenticator implements Authenticator {
 			securityContext = SecurityContext.getInstance(user, request, AccessMode.Frontend);
 
 		} else {
-
 
 			if (user instanceof SuperUser) {
 
@@ -224,6 +222,7 @@ public class UiAuthenticator implements Authenticator {
 
 	@Override
 	public boolean hasExaminedRequest() {
+
 		return examined;
 	}
 
@@ -236,7 +235,6 @@ public class UiAuthenticator implements Authenticator {
 		final String requestedHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getName());
 		final String requestedMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getName());
 		final String requestUri       = request.getRequestURI();
-
 		String acceptedOriginsString  = Settings.AccessControlAcceptedOrigins.getValue();
 		Integer maxAge                = Settings.AccessControlMaxAge.getValue();
 		String allowMethods           = Settings.AccessControlAllowMethods.getValue();
@@ -269,6 +267,7 @@ public class UiAuthenticator implements Authenticator {
 
 		// Warn about dangerous CORS misconfiguration
 		if (wildcardAllowed && StringUtils.equalsIgnoreCase(allowCredentials, "true")) {
+
 			logger.warn("Potentially dangerous CORS configuration: Access-Control-Allow-Credentials is 'true' while accepted origins contain '*'. " +
 				"This allows any origin to make credentialed cross-origin requests. Consider restricting the origin list.");
 		}
@@ -277,13 +276,17 @@ public class UiAuthenticator implements Authenticator {
 
 			// Respond with wildcard "*" only for non-credentialed requests (user == null)
 			if (wildcardAllowed && securityContext.getUser(false) == null && !StringUtils.equalsIgnoreCase(allowCredentials, "true")) {
+
 				response.setHeader("Access-Control-Allow-Origin",  "*");
+
 			} else {
+
 				response.setHeader("Access-Control-Allow-Origin",  origin);
 				response.addHeader("Vary", "Origin");
 			}
 
 			if (maxAge != null) {
+
 				response.setHeader("Access-Control-Max-Age", maxAge.toString());
 			}
 
@@ -292,25 +295,28 @@ public class UiAuthenticator implements Authenticator {
 				// CORS-preflight request, see https://fetch.spec.whatwg.org/#cors-preflight-request
 
 				if (StringUtils.isNotBlank(allowMethods)) {
+
 					response.setHeader("Access-Control-Allow-Methods", allowMethods);
 				}
 
 				if (StringUtils.isNotBlank(allowHeaders)) {
+
 					response.setHeader("Access-Control-Allow-Headers", allowHeaders);
 				}
 			}
 
 			if (StringUtils.isNotBlank(allowCredentials)) {
+
 				response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
 			}
 
 			if (StringUtils.isNotBlank(exposeHeaders)) {
+
 				response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
 			}
 
 		}
 	}
-
 
 	@Override
 	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView) throws FrameworkException {
@@ -320,6 +326,7 @@ public class UiAuthenticator implements Authenticator {
 
 		// super user is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
+
 			return;
 		}
 
@@ -348,15 +355,17 @@ public class UiAuthenticator implements Authenticator {
 		if (permissionsFound == 0) {
 
 			final boolean isServicePrincipal = validUser && (user instanceof ServicePrincipal);
-
 			final String userInfo     = (validUser ? (isServicePrincipal ? "service principal '" + user.getName() + "'" : "user '" + user.getName() + "'") : "anonymous users");
 			final String errorMessage = "Found no resource access permission for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
 			final Map eventLogMap     = new HashMap(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal));
+
 			if (validUser) {
+
 				eventLogMap.put("userName", user.getName());
 			}
 
 			if (deniedAccessLog.allow(rawResourceSignature + " " + method)) {
+
 				logger.info(errorMessage);
 			}
 
@@ -383,10 +392,12 @@ public class UiAuthenticator implements Authenticator {
 				case GET :
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_GET, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_GET, combinedFlags)) {
+
 						return;
 					}
 
@@ -395,10 +406,12 @@ public class UiAuthenticator implements Authenticator {
 				case PUT :
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PUT, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PUT, combinedFlags)) {
+
 						return;
 					}
 
@@ -407,10 +420,12 @@ public class UiAuthenticator implements Authenticator {
 				case POST :
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_POST, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_POST, combinedFlags)) {
+
 						return;
 					}
 
@@ -419,10 +434,12 @@ public class UiAuthenticator implements Authenticator {
 				case DELETE :
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_DELETE, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_DELETE, combinedFlags)) {
+
 						return;
 					}
 
@@ -431,10 +448,12 @@ public class UiAuthenticator implements Authenticator {
 				case OPTIONS :
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_OPTIONS, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_OPTIONS, combinedFlags)) {
+
 						return;
 					}
 
@@ -443,10 +462,12 @@ public class UiAuthenticator implements Authenticator {
 				case HEAD :
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_HEAD, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_HEAD, combinedFlags)) {
+
 						return;
 					}
 
@@ -455,10 +476,12 @@ public class UiAuthenticator implements Authenticator {
 				case PATCH :
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PATCH, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PATCH, combinedFlags)) {
+
 						return;
 					}
 
@@ -475,6 +498,7 @@ public class UiAuthenticator implements Authenticator {
 		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
 
 		if (deniedAccessLog.allow(rawResourceSignature + " " + method)) {
+
 			logger.info(errorMessage);
 		}
 
@@ -499,12 +523,11 @@ public class UiAuthenticator implements Authenticator {
 
 		// Default is eMail
 		final PropertyKey<String> defaultAuthenticationPropertyKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
-
 		final Set<PropertyKey<String>> authenticationPropertyKeySet = new HashSet<>();
+
 		authenticationPropertyKeySet.add(defaultAuthenticationPropertyKey);
 
 		final String authenticationPropertyKeysSetting = Settings.AuthenticationPropertyKeys.getValue();
-
 		if (StringUtils.isNotBlank(authenticationPropertyKeysSetting)) {
 
 			final List<String> authenticationPropertyKeys = Arrays.asList(StringUtils.split(authenticationPropertyKeysSetting, " "));
@@ -512,7 +535,6 @@ public class UiAuthenticator implements Authenticator {
 			for (final String key : authenticationPropertyKeys) {
 
 				final String[] typeAndKey = StringUtils.split(key, ".");
-
 				if (typeAndKey.length == 2 && Traits.exists(typeAndKey[0])) {
 
 					final PropertyKey<String> authenticationPropertyKey = Traits.of(typeAndKey[0]).key(typeAndKey[1]);
@@ -522,7 +544,6 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		final Principal user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userProvidedValueForAuthenticationKey, password);
-
 		if  (user != null) {
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
@@ -541,6 +562,7 @@ public class UiAuthenticator implements Authenticator {
 	public void doLogout(final HttpServletRequest request) {
 
 		try {
+
 			final Principal user = getUser(request, false);
 			if (user != null) {
 
@@ -578,8 +600,8 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		final String authorizationHeader = request.getHeader(RequestHeaders.Authorization.getName());
-
 		if (authorizationHeader == null) {
+
 			return null;
 		}
 
@@ -607,6 +629,7 @@ public class UiAuthenticator implements Authenticator {
 			if (corsSettingValueFromDatabase != null) {
 
 				// Overwrite config setting
+
 				return corsSettingValueFromDatabase;
 			}
 		}
@@ -631,6 +654,7 @@ public class UiAuthenticator implements Authenticator {
 		if (uriParts == null || uriParts.length != 3 || !("oauth".equals(uriParts[0]))) {
 
 			logger.debug("No OAuth keywords in URI, ignoring. (needs /oauth/<name>/<action>)");
+
 			return null;
 		}
 
@@ -688,8 +712,8 @@ public class UiAuthenticator implements Authenticator {
 			final String[] codes = request.getParameterMap().get("code");
 			final String code = codes != null && codes.length == 1 ? codes[0] : null;
 			final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-
 			final OAuth2AccessToken accessToken = oAuth2Client.getAccessToken(code);
+
 			if (accessToken != null) {
 
 				logger.debug("Got access token {}", accessToken);
@@ -742,11 +766,12 @@ public class UiAuthenticator implements Authenticator {
 							// get the original request state and add the parameters to the redirect page
 							final String originalRequestState = request.getParameter("state");
 							Map<String, String[]> originalRequestParameters = stateParameters.getIfPresent(originalRequestState);
+
 							stateParameters.invalidate(originalRequestState);
 
 							Boolean isTokenLogin = false;
-
 							URIBuilder uriBuilder = new URIBuilder();
+
 							if (originalRequestParameters != null) {
 
 								for (final Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
@@ -754,7 +779,6 @@ public class UiAuthenticator implements Authenticator {
 									for (final String parameterEntry : entry.getValue()) {
 
 										final String entryKey = entry.getKey();
-
 										if (StringUtils.equals(entryKey, "createTokens") && StringUtils.equals(parameterEntry, "true")) {
 
 											isTokenLogin = true;
@@ -836,7 +860,6 @@ public class UiAuthenticator implements Authenticator {
 			logger.error("Could not redirect to {}: {}", oAuth2Client.getErrorURI(), ex);
 		}
 
-
 		return null;
 	}
 
@@ -847,21 +870,30 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	public static void writeNotFound(final HttpServletResponse response) throws IOException {
+
 		response.sendError(HttpServletResponse.SC_NOT_FOUND);
 	}
 
 	public static void writeInternalServerError(final HttpServletResponse response) {
+
 		try {
+
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to send error response: {}", ioex.getMessage());
 		}
 	}
 
 	public static void writeFrameworkException(final HttpServletResponse response, final FrameworkException fex) {
+
 		try {
+
 			response.sendError(fex.getStatus());
+
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to send error response: {}", ioex.getMessage());
 		}
 	}
@@ -871,7 +903,6 @@ public class UiAuthenticator implements Authenticator {
 
 		Traits userTraits = Traits.of(StructrTraits.USER);
 		Principal user    = null;
-
 		String authorizationToken = getAuthorizationToken(request);
 
 		if ((authorizationToken == null || StringUtils.equals(authorizationToken, "")) && request.getAttribute(SessionHelper.SESSION_IS_NEW) == null) {

@@ -163,6 +163,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// allow users to prevent notifications (for widget import etc.)
 			final String quiet = (String) parameters.get("quiet");
 			if ("true".equalsIgnoreCase(quiet)) {
+
 				this.isQuiet = true;
 			}
 
@@ -197,16 +198,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isQuietMode() {
+
 		return isQuiet;
 	}
 
@@ -219,6 +223,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				return new HashMap<>(getGson().fromJson(reader, Map.class));
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 		}
@@ -231,10 +236,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 //	}
 
 	public Gson getGson() {
+
 		return new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).serializeNulls().create();
 	}
 
 	public static boolean isUuid(final String name) {
+
 		return Settings.isValidUuid(name);
 	}
 
@@ -245,13 +252,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public static String getUuidOrNullFromEndOfString(final String name) {
 
 		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
-
 		if (configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.with_dashes.toString()) || configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.both.toString())) {
 
 			if (name.length() > 36) {
 
 				final String last36Characters = name.substring(name.length() - 36);
-
 				if (DeployCommand.isUuid(last36Characters)) {
 
 					return last36Characters;
@@ -264,7 +269,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (name.length() > 32) {
 
 				final String last32Characters = name.substring(name.length() - 32);
-
 				if (DeployCommand.isUuid(last32Characters)) {
 
 					return last32Characters;
@@ -276,6 +280,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public static boolean isDeploymentActive() {
+
 		return deploymentActive.get();
 	}
 
@@ -440,8 +445,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "\tBecause of these missing permissions/ownerships, the functionality is not identical to the export you just imported.\n\n"
 						+ "\t" + transformCountedMapToHumanReadableList(missingPrincipals, "\n\t")
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
-						+ "###############################################################################"
-				);
+						+ "###############################################################################");
 				publishWarningMessage(title, text);
 			}
 
@@ -459,8 +463,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
 						+ "\t" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "\n\t")
 						+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
-						+ "###############################################################################"
-				);
+						+ "###############################################################################");
 				publishWarningMessage(title, text);
 			}
 
@@ -478,8 +481,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "\tBecause those files are missing, the functionality will not be available after importing.\n"
 						+ "\tThe most common cause is that someone forgot to add these files to the repository.\n\n"
 						+ "\t" + missingSchemaFile.stream().sorted().collect(Collectors.joining("\n\t"))
-						+ "\n###############################################################################"
-				);
+						+ "\n###############################################################################");
 				publishWarningMessage(title, text);
 			}
 
@@ -490,8 +492,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ fileImportProblems.getProblemsText()
-						+ "\n###############################################################################"
-				);
+						+ "\n###############################################################################");
 				publishWarningMessage(title, fileImportProblems.getProblemsHtml());
 			}
 
@@ -544,6 +545,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// log collected warnings at the end, so they do not get lost
 			for (final String logText : deferredLogTexts) {
+
 				logger.info(logText);
 			}
 
@@ -605,7 +607,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected void doExport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final String path = (String) attributes.get("target");
-
 		if (StringUtils.isBlank(path)) {
 
 			publishWarningMessage("Export not started", "Please provide target path for deployment export.");
@@ -614,7 +615,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final Path target  = Paths.get(path);
-
 		if (!target.isAbsolute()) {
 
 			publishWarningMessage("Export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
@@ -646,7 +646,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path modules             = Files.createDirectories(target.resolve(MODULES_FOLDER_PATH));
 			final Path mailTemplatesFolder = Files.createDirectories(target.resolve(MAIL_TEMPLATES_FOLDER_PATH));
 			final Path scratchpadsFolder   = Files.createDirectories(target.resolve(SCRATCHPADS_FOLDER_PATH));
-
 			final Path schemaGrantsConf                    = target.resolve(SCHEMA_GRANTS_FILE_PATH);
 			final Path grantsConf                          = target.resolve(GRANTS_FILE_PATH);
 			final Path corsSettingsConf                    = target.resolve(CORS_SETTINGS_FILE_PATH);
@@ -666,7 +665,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path componentConfigurationsConf         = target.resolve(COMPONENT_CONFIGURATIONS_FILE_PATH);
 			final Path dataAdaptersConf                    = target.resolve(DATA_ADAPTERS_FILE_PATH);
 			final Path scratchpadsConf                     = target.resolve(SCRATCHPADS_FILE_PATH);
-
 			final Path preDeployConf            = target.resolve(PRE_DEPLOY_CONF_FILE_PATH);
 			final Path postDeployConf           = target.resolve(POST_DEPLOY_CONF_FILE_PATH);
 
@@ -763,6 +761,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 
 				if (module.hasDeploymentData()) {
+
 					logger.info("Exporting deployment data for module {}", module.getName());
 
 					publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting deployment data for module " + module.getName());
@@ -776,6 +775,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// set group grants for created files
 			final String groupName = Settings.DeploymentFileGroupName.getValue("");
 			if (StringUtils.isNotBlank(groupName)) {
+
 				setFileGroupRecursively(groupName, target);
 			}
 
@@ -796,7 +796,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
-
 
 		} catch (FileAlreadyExistsException faee) {
 
@@ -865,6 +864,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// fetch toplevel folders and recurse
 			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).key(parentKey, null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).and().key(inclKey, true).getAsList()) {
+
 				exportFilesAndFolders(target, folder, config);
 			}
 
@@ -905,7 +905,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void exportFilesAndFolders(final Path target, final NodeInterface node, final Map<String, Object> config) throws IOException {
 
 		final Folder folder = node.as(Folder.class);
-
 		final Traits traits                  = Traits.of(StructrTraits.FOLDER);
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
@@ -916,6 +915,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(node, properties);
 
 		if (!properties.isEmpty()) {
+
 			String folderPath = folder.getPath();
 			config.put(folderPath, properties);
 		}
@@ -926,6 +926,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// exported above so the mount point - and its storage-configuration
 		// linkage, restored by the ui module deployment data - is preserved.
 		if (folder.isMounted()) {
+
 			return;
 		}
 
@@ -1003,6 +1004,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
+
 				sites.add(entry);
 
 				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             site.getUuid());
@@ -1015,6 +1017,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<String> pageNames = new LinkedList<>();
 
 				for (final NodeInterface page : site.getPages()) {
+
 					pageNames.add(page.getName());
 				}
 
@@ -1096,8 +1099,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting pages");
 
 		try {
+
 			deleteDirectoryContentsRecursively(targetFolder);
+
 		} catch (IOException ioe) {
+
 			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
 		}
 
@@ -1137,8 +1143,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting components");
 
 		try {
+
 			deleteDirectoryContentsRecursively(targetFolder);
+
 		} catch (IOException ioe) {
+
 			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
 		}
 
@@ -1157,6 +1166,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					// skip nodes in trash and non-toplevel nodes
 					if (inTrash || hasParent) {
+
 						continue;
 					}
 
@@ -1177,8 +1187,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting templates");
 
 		try {
+
 			deleteDirectoryContentsRecursively(targetFolder);
+
 		} catch (IOException ioe) {
+
 			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
 		}
 
@@ -1195,6 +1208,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final boolean inTrash   = template.inTrash();
 
 				if (inTrash || isShared) {
+
 					continue;
 				}
 
@@ -1251,6 +1265,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final Map<String, Object> grant = new TreeMap<>();
 				final SchemaGrant schemaGrant   = node.as(SchemaGrant.class);
+
 				grants.add(grant);
 
 				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          schemaGrant.getUuid());
@@ -1284,7 +1299,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final PropertyKey<String> signatureKey = traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
 		final PropertyKey<Long> flagsKey       = traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY);
 		final App app                          = StructrApp.getInstance();
-
 		final List<String> unreachableGrants = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
@@ -1303,8 +1317,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				exportSecurity(res, grant);
 
 				final List grantees = (List)grant.get(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY);
-
 				if (res.getProperty(flagsKey) > 0 && !res.isVisibleToPublicUsers() && !res.isVisibleToAuthenticatedUsers() && grantees.isEmpty()) {
+
 					unreachableGrants.add(res.getProperty(signatureKey));
 				}
 			}
@@ -1375,7 +1389,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				// move user-defined functions to files
 				final List<Map<String, Object>> userDefinedFunctions = schema.getUserDefinedFunctions();
-
 				if (!userDefinedFunctions.isEmpty()) {
 
 					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER));
@@ -1383,19 +1396,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					for (Map<String, Object> schemaMethod : userDefinedFunctions) {
 
 						final String methodName            = (String) schemaMethod.get("name");
-
 						final String methodSource          = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
 						final Path globalMethodSourceFile  = globalMethodsFolder.resolve(methodName);
-
 						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile);
 
 						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeSourceFilePath);
 
 						if (Files.exists(globalMethodSourceFile)) {
+
 							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeSourceFilePath);
 						}
 
 						if (methodSource != null) {
+
 							writeStringToFile(globalMethodSourceFile, methodSource);
 						}
 					}
@@ -1405,11 +1418,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
 
 					final String typeName = typeDef.getName();
-
 					final List<StructrFunctionProperty> functionProperties = new LinkedList();
+
 					for (final Object propDef : typeDef.getProperties()) {
 
 						if (propDef instanceof StructrFunctionProperty) {
+
 							functionProperties.add((StructrFunctionProperty)propDef);
 						}
 					}
@@ -1431,6 +1445,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								final String readFunction    = fp.getReadFunction();
 
 								if (readFunction != null) {
+
 									writeStringToFile(readFunctionFile, readFunction);
 									fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile));
 								}
@@ -1439,6 +1454,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								final String writeFunction   = fp.getWriteFunction();
 
 								if (writeFunction != null) {
+
 									writeStringToFile(writeFunctionFile, writeFunction);
 									fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile));
 								}
@@ -1452,7 +1468,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							for (final Object m : typeDef.getMethods()) {
 
 								final StructrMethodDefinition method = (StructrMethodDefinition)m;
-
 								final String uniqueMethodName = method.getUniqueName();
 								final String methodSource     = method.getSource();
 								final Path methodSourceFile   = methodsFolder.resolve(uniqueMethodName);
@@ -1473,6 +1488,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			writeStringToFile(schemaJson, schema.toString(true));
 
 		} catch (Throwable t) {
+
 			logger.error("", t);
 		}
 	}
@@ -1500,6 +1516,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		if (node.is(StructrTraits.CONTENT)) {
+
 			putData(config, ContentTraitDefinition.CONTENT_TYPE_PROPERTY, node.as(Content.class).getContentType());
 		}
 
@@ -1566,8 +1583,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (abstractFile.is(StructrTraits.FOLDER)) {
 
 			final Folder folder = abstractFile.as(Folder.class);
-
 			final boolean isExcludeSubtreeFromExport = folder.isExcludeSubtreeFromExport();
+
 			if (isExcludeSubtreeFromExport) {
 
 				putData(config, FolderTraitDefinition.EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, true);
@@ -1631,6 +1648,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export security grants
 		final List<Map<String, Object>> grantees = new LinkedList<>();
+
 		for (final Security security : node.as(AccessControllable.class).getSecurityRelationships()) {
 
 			if (security != null) {
@@ -1642,6 +1660,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				grant.put(SecurityRelationshipDefinition.ALLOWED_PROPERTY, allowedActions);
 
 				if (!allowedActions.isEmpty()) {
+
 					grantees.add(grant);
 				}
 			}
@@ -1652,6 +1671,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public static void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
+
 		checkOwnerAndSecurity(entry, true);
 	}
 
@@ -1770,8 +1790,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					// generate filename for output file
 					String filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + ".html";
-
 					if (Files.exists(targetFolder.resolve(filename))) {
+
 						filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + "_-_" + mailTemplate.getUuid() + ".html";
 					}
 
@@ -1793,6 +1813,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 		} catch (Throwable t) {
+
 			logger.error("", t);
 		}
 
@@ -1802,6 +1823,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			public String getKey (final Map<String, Object> map) {
 
 				// null values are auto-casted to "null" string
+
 				return "" + map.get("name") + map.get("locale");
 			}
 		});
@@ -1859,7 +1881,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final List<Map<String, Object>> applicationConfigurationDataNodes = new LinkedList<>();
 		final Traits traits                                               = Traits.of(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 		final App app                                                     = StructrApp.getInstance();
-
 		final PropertyKey<String> configTypeKey = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
@@ -1935,6 +1956,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Object id     = map.get(GraphObjectTraitDefinition.ID_PROPERTY);
 
 				// null domain is replaced by a string so that those localizations are shown first
+
 				return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
 			}
 		});
@@ -1967,10 +1989,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				// the related DOM node and data adapter may be missing (e.g. after the linked
 				// node was deleted); only export them if present so the export does not fail
 				if (component != null) {
+
 					entry.put(ComponentConfigurationTraitDefinition.DOM_NODE_PROPERTY,           component.getUuid());
 				}
 
 				if (dataAdapter != null) {
+
 					entry.put(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY,       dataAdapter.getUuid());
 				}
 
@@ -2063,10 +2087,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCRATCHPAD).sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY)).getAsList()) {
 
 					final Scratchpad scratchpad = node.as(Scratchpad.class);
-
 					final String name = scratchpad.getName();
 					final String uuid = scratchpad.getUuid();
-
 					String filename = "";
 
 					if (name == null) {
@@ -2079,12 +2101,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						filename = name.replaceAll("[^a-zA-Z0-9\\-]", "_");
 
 						if (filename.length() > 100) {
+
 							filename = filename.substring(0, 100);
 						}
 
 						if (Files.exists(targetFolder.resolve(filename))) {
+
 							filename = filename + "_" + uuid;
+
 						} else {
+
 							filename = filename;
 						}
 					}
@@ -2113,6 +2139,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 		} catch (Throwable t) {
+
 			logger.error("", t);
 		}
 
@@ -2277,6 +2304,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			return getGson().fromJson(reader, List.class);
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 
@@ -2294,7 +2322,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				tx.disableChangelog();
 
 				String confSource = new String(Files.readAllBytes(confFile), StandardCharsets.UTF_8).trim();
-
 				if (confSource.length() > 0) {
 
 					if (confSource.startsWith("$")) {
@@ -2343,6 +2370,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.disableChangelog();
 
 			for (final NodeInterface toDelete : app.nodeQuery(type).getAsList()) {
+
 				app.delete(toDelete);
 			}
 
@@ -2356,6 +2384,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				// allow caller to insert additional data for better creation performance
 				for (final PropertyMap add : additionalData) {
+
 					map.putAll(add);
 				}
 
@@ -2398,6 +2427,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.disableChangelog();
 
 			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.SCHEMA_GRANT).getAsList()) {
+
 				app.delete(toDelete);
 			}
 
@@ -2426,7 +2456,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing scratchpads");
 
 			final List<Map<String, Object>> scratchpadsConf = readConfigList(scratchpadsMetadataFile);
-
 			final Path scratchpadsFolder = source.resolve(SCRATCHPADS_FOLDER_PATH);
 
 			if (Files.exists(scratchpadsFolder)) {
@@ -2437,8 +2466,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final Path scratchpadFile = scratchpadsFolder.resolve(filename);
 
 					try {
+
 						scratchpad.put(ScratchpadTraitDefinition.SOURCE_PROPERTY, (Files.exists(scratchpadFile)) ? new String(Files.readAllBytes(scratchpadFile)) : "");
+
 					} catch (IOException ioe) {
+
 						logger.warn("Failed reading scratchpad file '{}'", filename);
 					}
 				}
@@ -2464,8 +2496,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		boolean isOldExport = false;
 		final StringBuilder grantMessagesHtml = new StringBuilder();
 		final StringBuilder grantMessagesText = new StringBuilder();
-
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
+
 		context.setDoTransactionNotifications(false);
 		final App app                 = StructrApp.getInstance(context);
 
@@ -2474,6 +2506,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.disableChangelog();
 
 			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
+
 				app.delete(toDelete);
 			}
 
@@ -2487,7 +2520,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					if (flags != 0) {
 
 						final String signature = (String)entry.get(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
-
 						final boolean hasAnyNonAuthFlags = ((flags & UiAuthenticator.NON_AUTH_USER_GET) == UiAuthenticator.NON_AUTH_USER_GET) ||
 							((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||
 							((flags & UiAuthenticator.NON_AUTH_USER_POST) == UiAuthenticator.NON_AUTH_USER_POST) ||
@@ -2505,16 +2537,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							((flags & UiAuthenticator.AUTH_USER_PATCH) == UiAuthenticator.AUTH_USER_PATCH);
 
 						if (hasAnyNonAuthFlags) {
+
 							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> was set to <code>visibleToPublicUsers: true</code><br>");
 							grantMessagesText.append("    Signature '").append(signature).append("' was set to 'visibleToPublicUsers: true'\n");
 						}
 
 						if (hasAnyAuthFlags) {
+
 							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> was set to <code>visibleToAuthenticatedUsers: true</code><br>");
 							grantMessagesText.append("    Signature '").append(signature).append("' was set to 'visibleToAuthenticatedUsers: true'\n");
 						}
 
 						if (hasAnyNonAuthFlags && hasAnyAuthFlags) {
+
 							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two permissions</u></b>.<br>");
 							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two permissions**.\n");
 						}
@@ -2524,6 +2559,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					}
 
 				} else {
+
 					checkOwnerAndSecurity(entry);
 				}
 
@@ -2580,7 +2616,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
 
 			final List<Map<String, Object>> mailTemplatesConf = readConfigList(mailTemplatesMetadataFile);
-
 			final Path mailTemplatesFolder = source.resolve("mail-templates");
 
 			if (Files.exists(mailTemplatesFolder)) {
@@ -2591,8 +2626,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final Path tplFile    = mailTemplatesFolder.resolve(filename);
 
 					try {
+
 						mailTpl.put("text", (Files.exists(tplFile)) ? new String(Files.readAllBytes(tplFile)) : null);
+
 					} catch (IOException ioe) {
+
 						logger.warn("Failed reading mail-tempalte file '{}'", filename);
 					}
 				}
@@ -2672,8 +2710,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			logger.info("Reading {}", filesMetadataFile);
 			final Map<String, Object> filesMetadata = new HashMap<>(readMetadataFileIntoMap(filesMetadataFile));
-
 			final Path files = source.resolve("files");
+
 			if (Files.exists(files)) {
 
 				final FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
@@ -2702,7 +2740,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void importModuleData(final Path source) throws FrameworkException {
 
 		final Path modulesFolder = source.resolve(MODULES_FOLDER_PATH);
-
 		if (Files.exists(modulesFolder)) {
 
 			for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
@@ -2710,7 +2747,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (module.hasDeploymentData()) {
 
 					final Path folderForModule = modulesFolder.resolve(module.getName());
-
 					if (Files.exists(folderForModule)) {
 
 						logger.info("Importing deployment data for module {}", module.getName());
@@ -2821,6 +2857,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					visitor.processFolderContentsSorted(templates);
 
 				} catch (IOException ioex) {
+
 					logger.warn("Exception while importing templates", ioex);
 				}
 			}
@@ -2848,6 +2885,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					visitor.processFolderContentsSorted(components);
 
 				} catch (IOException ioex) {
+
 					logger.warn("Exception while importing shared components", ioex);
 				}
 			}
@@ -2866,6 +2904,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					visitor.processFolderContentsSorted(pages);
 
 				} catch (IOException ioex) {
+
 					logger.warn("Exception while importing pages", ioex);
 				}
 			}
@@ -2892,6 +2931,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				// remove existing paths
 				for (final NodeInterface path : app.nodeQuery(StructrTraits.PAGE_PATH).getResultStream()) {
+
 					app.delete(path);
 				}
 
@@ -2943,7 +2983,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				for (final PropertyKey propertyKey : properties.keySet()) {
 
 					final PropertyConverter inputConverter = propertyKey.inputConverter(context, true);
-
 					if (inputConverter != null) {
 
 						node.setProperty(propertyKey, inputConverter.convert(properties.get(propertyKey)));
@@ -2979,6 +3018,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<NodeInterface> pages = new LinkedList();
 
 				for (final String pageName : (List<String>)entry.get(SiteTraitDefinition.PAGES_PROPERTY)) {
+
 					pages.add(app.nodeQuery(StructrTraits.PAGE).name(pageName).getFirst());
 				}
 
@@ -3105,7 +3145,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
 				final Path schemaJsonFile = schemaFolder.resolve("schema.json");
-
 				if (!Files.exists(schemaJsonFile)) {
 
 					logger.info("Deployment does not contain schema/schema.json - continuing without schema import");
@@ -3128,14 +3167,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						if (shouldLoadSourceFromFile) {
 
 							final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
-
 							if (Files.exists(globalMethodsFolder)) {
 
 								for (Map<String, Object> schemaMethod : schema.getUserDefinedFunctions()) {
 
 									final String methodName = (String) schemaMethod.get("name");
-
 									final Path globalMethodSourceFile = globalMethodsFolder.resolve(methodName);
+
 									schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodSourceFile)) ? new String(Files.readAllBytes(globalMethodSourceFile)) : null);
 								}
 							}
@@ -3143,11 +3181,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
 
 								final Path typeFolder = schemaFolder.resolve(typeDef.getName());
-
 								if (Files.exists(typeFolder)) {
 
 									final Path functionsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER);
-
 									if (Files.exists(functionsFolder)) {
 
 										for (final Object propDef : typeDef.getProperties()) {
@@ -3157,10 +3193,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 												if (fp.getReadFunction() != null) {
 
 													final Path readFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
-
 													if (Files.exists(readFunctionSourceFile)) {
+
 														fp.setReadFunction(new String(Files.readAllBytes(readFunctionSourceFile)));
+
 													} else {
+
 														fp.setReadFunction(null);
 														DeployCommand.addMissingSchemaFile(schemaFolder.relativize(readFunctionSourceFile).toString());
 													}
@@ -3169,10 +3207,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 												if (fp.getWriteFunction() != null) {
 
 													final Path writeFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
-
 													if (Files.exists(writeFunctionSourceFile)) {
+
 														fp.setWriteFunction(new String(Files.readAllBytes(writeFunctionSourceFile)));
+
 													} else {
+
 														fp.setWriteFunction(null);
 														DeployCommand.addMissingSchemaFile(schemaFolder.relativize(writeFunctionSourceFile).toString());
 													}
@@ -3182,7 +3222,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 									}
 
 									final Path methodsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_METHODS_FOLDER);
-
 									if (Files.exists(methodsFolder)) {
 
 										for (final Object m : typeDef.getMethods()) {
@@ -3243,18 +3282,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (ImportFailureException fex) {
 
 				logger.warn("Unable to import schema: {}", fex.getMessage());
+
 				if (fex.getCause() instanceof FrameworkException) {
+
 					logger.warn("Caused by: {}", fex.getCause().toString());
 				}
+
 				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
 
 			} catch (Throwable t) {
+
 				logger.warn("Unable to import schema: {}", t.getMessage());
 			}
 		}
 	}
 
 	private boolean isDOMNodeVisibilityRelativeToParent(final Map<String, String> deploymentConf) {
+
 		return DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE.equals(deploymentConf.get(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY));
 	}
 
@@ -3271,11 +3315,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								.setFile(confFile.toFile())
 								.setThrowExceptionOnMissing(true)
 								.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-								.setIncludesAllowed(false)
-						);
+								.setIncludesAllowed(false));
 
 				final PropertiesConfiguration config = builder.getConfiguration();
-
 				final Iterator<String> keys          = config.getKeys();
 
 				while (keys.hasNext()) {
@@ -3310,9 +3352,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							.setFile(confFile.toFile())
 							.setThrowExceptionOnMissing(true)
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-							.setIncludesAllowed(false)
-					);
-
+							.setIncludesAllowed(false));
 
 			// Touch file, if it doesn't exist
 			confFile.toFile().createNewFile();
@@ -3341,6 +3381,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
 
 				for (Path entry : entries) {
+
 					deleteRecursively(entry);
 				}
 			}
@@ -3354,6 +3395,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
 
 				for (Path entry : entries) {
+
 					deleteRecursively(entry);
 				}
 			}
@@ -3367,12 +3409,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer writer = new FileWriter(path.toFile())) {
 
 			if (string != null) {
+
 				writer.write(string);
 			}
+
 			writer.flush();
 			writer.close();
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}
@@ -3384,6 +3429,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			getGson().toJson(data, fos);
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}
@@ -3393,20 +3439,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
 			if (sortComparator != null) {
+
 				objects.sort(sortComparator);
 			}
 
 			final Gson gson = new GsonBuilder().serializeNulls().create();
-
 			final StringBuilder sb = new StringBuilder("[");
-
 			List<String> jsonStrings = new LinkedList();
 
 			for (Map<String, Object> obj : objects) {
+
 				jsonStrings.add("\t" + gson.toJson(obj));
 			}
 
 			if (!jsonStrings.isEmpty()) {
+
 				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
 			}
 
@@ -3415,6 +3462,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			fos.write(sb.toString());
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}
@@ -3436,7 +3484,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final String currentVersion = VersionHelper.getFullVersionInfo();
 			final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
-
 			final String title = "Incompatible Deployment Import";
 			final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
 					+ "which is not supported because of incompatible changes in the deployment format.\n"
@@ -3528,15 +3575,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		// no version info present => return 0
+
 		return 0;
 	}
 
 	@Override
 	public int getCommandStatusCode() {
+
 		return statusCode;
 	}
 
 	public void setCommandStatusCode(final int status) {
+
 		statusCode = status;
 	}
 
@@ -3544,6 +3594,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public Object getCommandResult() {
 
 		if (customResult != null) {
+
 			return customResult;
 		}
 
@@ -3551,6 +3602,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public void setCustomCommandResult(final Object result) {
+
 		customResult = result;
 	}
 
@@ -3572,12 +3624,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
+
 		deferredPageLinks.put(linkableUUID, pagePath);
 	}
 
 	public static void updateDeferredPagelink (String initialUUID, String correctUUID) {
 
 		if (deferredPageLinks.containsKey(initialUUID) && !initialUUID.equals(correctUUID)) {
+
 			deferredPageLinks.put(correctUUID, deferredPageLinks.get(initialUUID));
 			deferredPageLinks.remove(initialUUID);
 		}
@@ -3610,27 +3664,32 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public static void addMissingSchemaFile (final String fileName) {
+
 		missingSchemaFile.add(fileName);
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "deploy";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Exports or imports a Structr application without data.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         Exports or imports the schema, pages, files, and security configuration. The export creates a text-based format suitable for version control.
         
@@ -3640,6 +3699,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("mode", "`import` or `export`"),
 			Parameter.optional("source", "Source folder path (required for import)"),
@@ -3650,26 +3710,31 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
@@ -3678,15 +3743,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		@Override
 		public int compare(String o1, String o2) {
+
 			if (o1 != null && o1.equals(o2)) {
+
 				return 0;
 			}
+
 			if ("id".equals(o1)) {
+
 				return -1;
 			}
+
 			if ("id".equals(o2)) {
+
 				return 1;
 			}
+
 			return o1.compareTo(o2);
 		}
 	}
@@ -3697,6 +3769,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		GroupPrincipal group;
 
 		GroupAddFileVisitor(GroupPrincipal group) {
+
 			super();
 			this.group = group;
 		}
@@ -3707,7 +3780,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				final PosixFileAttributeView view = Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-
 				if (view != null) {
 
 					view.setGroup(this.group);
@@ -3733,7 +3805,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				final PosixFileAttributeView view = Files.getFileAttributeView(dir, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-
 				if (view != null) {
 
 					view.setGroup(this.group);

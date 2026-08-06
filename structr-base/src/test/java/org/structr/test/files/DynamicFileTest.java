@@ -35,7 +35,6 @@ import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-
 /**
  */
 public class DynamicFileTest extends StructrUiTest {
@@ -62,6 +61,7 @@ public class DynamicFileTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

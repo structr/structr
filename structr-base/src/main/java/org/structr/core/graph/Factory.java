@@ -42,10 +42,12 @@ public abstract class Factory<S extends PropertyContainer, T extends GraphObject
 	protected final int page;
 
 	public Factory(final SecurityContext securityContext) {
+
 		this(securityContext, true, false, DEFAULT_PAGE_SIZE, DEFAULT_PAGE);
 	}
 
 	public Factory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly) {
+
 		this(securityContext, includeHidden, publicOnly, DEFAULT_PAGE_SIZE, DEFAULT_PAGE);
 	}
 
@@ -66,12 +68,14 @@ public abstract class Factory<S extends PropertyContainer, T extends GraphObject
 	public abstract T instantiateWithType(final S obj, final Identity pathSegmentId, boolean isCreation);
 
 	public T instantiate(final S node) {
+
 		return instantiate(node, null);
 	}
 
 	public T instantiate(final S node, final Identity pathSegmentId) {
 
 		if (node == null || TransactionCommand.isDeleted(node) || node.isDeleted()) {
+
 			return null;
 		}
 
@@ -95,20 +99,24 @@ public abstract class Factory<S extends PropertyContainer, T extends GraphObject
 	 * @throws org.structr.common.error.FrameworkException
 	 */
 	public Iterable<T> bulkInstantiate(final Iterable<S> input) throws FrameworkException {
+
 		return Iterables.map(this, input);
 	}
 
 	@Override
 	public T adapt(S s) {
+
 		return instantiate(s);
 	}
 
 	@Override
 	public T apply(final S from) {
+
 		return adapt(from);
 	}
 
 	public void disablePaging() {
+
 		this.disablePaging = true;
 	}
 }

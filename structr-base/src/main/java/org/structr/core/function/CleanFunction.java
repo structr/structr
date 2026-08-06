@@ -38,6 +38,7 @@ public class CleanFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "clean";
 	}
 
@@ -68,6 +69,7 @@ public class CleanFunction extends CoreFunction {
 			}
 
 			if (StringUtils.isBlank(sources[0].toString())) {
+
 				return null;
 			}
 
@@ -76,22 +78,26 @@ public class CleanFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.clean(string)}}. Example: ${{$.clean($.this.stringWithNonWordChars)}}"),
 			Usage.structrScript("Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}")
@@ -100,11 +106,13 @@ public class CleanFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Cleans the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function can be used to convert complex strings or collections of strings (e.g. user names, article titles, etc.) into simple strings that can be used in URLs etc.
 		
@@ -119,17 +127,14 @@ public class CleanFunction extends CoreFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("stringOrList", "string or list of strings to clean")
-		);
+
+		return List.of(Parameter.mandatory("stringOrList", "string or list of strings to clean"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${clean('This   is Än   example')}", "Results in \"this-is-an-example\""),
-			Example.structrScript(
+		return List.of(Example.structrScript("${clean('This   is Än   example')}", "Results in \"this-is-an-example\""), Example.structrScript(
 			"""
 			${clean(merge('This   is Än   example', 'This   is   Änother   example'))}
 			=> ['this-is-an-example', 'this-is-another-example']
@@ -144,13 +149,13 @@ public class CleanFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Strings are normalized in the NFD form (see. http://www.unicode.org/reports/tr15/tr15-23.html) before the replacements are applied."
-		);
+
+		return List.of("Strings are normalized in the NFD form (see. http://www.unicode.org/reports/tr15/tr15-23.html) before the replacements are applied.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

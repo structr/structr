@@ -33,11 +33,13 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "setDetailsObject";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("obj");
 	}
 
@@ -74,40 +76,37 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${setDetailsObject(obj)}."),
-			Usage.javaScript("Usage: ${{$.setDetailsObject(obj)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${setDetailsObject(obj)}."), Usage.javaScript("Usage: ${{$.setDetailsObject(obj)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Allows overriding the `current` keyword with a given entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${setDetailsObject(first(find('User')))}"),
-			Example.javaScript("${{ $.setDetailsObject($.first($.find('User')))}")
-		);
+
+		return List.of(Example.structrScript("${setDetailsObject(first(find('User')))}"), Example.javaScript("${{ $.setDetailsObject($.first($.find('User')))}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("entity", "entity to be linked to `current`")
-		);
+		return List.of(Parameter.mandatory("entity", "entity to be linked to `current`"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

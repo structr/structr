@@ -31,11 +31,13 @@ public class LowerFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "lower";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
@@ -51,50 +53,50 @@ public class LowerFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${lower(string)}"),
-				Usage.javaScript("Usage: ${{ $.lower(string) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${lower(string)}"), Usage.javaScript("Usage: ${{ $.lower(string) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the lowercase version of the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("string", "string to lowercase")
-		);
+		return List.of(Parameter.mandatory("string", "string to lowercase"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${lower(this.email)}")
-		);
+
+		return List.of(Example.structrScript("${lower(this.email)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

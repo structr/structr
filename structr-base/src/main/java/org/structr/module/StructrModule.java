@@ -77,6 +77,7 @@ public interface StructrModule {
 	 * @param <T> the type of the desired feature result
 	 */
 	default <T> T getModuleSpecificFeature(final String name, final Class<T> type, final Object... arguments) throws FrameworkException {
+
 		return null;
 	}
 
@@ -88,11 +89,13 @@ public interface StructrModule {
 	 * structr/&lt;path&gt; so the existing static ResourceHandler can serve them.
 	 */
 	default List<String> getUIExtensionScripts() {
+
 		return List.of();
 	}
 
 	// ---- Deployment-specific methods
 	default public boolean hasDeploymentData () {
+
 		return false;
 	}
 

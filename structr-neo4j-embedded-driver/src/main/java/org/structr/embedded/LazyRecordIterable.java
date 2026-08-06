@@ -27,6 +27,7 @@ public class LazyRecordIterable implements Iterable<Map<String, Object>> {
 	private final EmbeddedDatabaseService db;
 
 	public LazyRecordIterable(final EmbeddedDatabaseService db, final CypherQuery query) {
+
 		this.query = query;
 		this.db    = db;
 	}

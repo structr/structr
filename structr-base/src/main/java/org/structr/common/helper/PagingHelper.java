@@ -47,30 +47,28 @@ public class PagingHelper {
 		}
 
 		int size        = list.size();
-
 		int fromIndex   = page > 0
 		     ? (page - 1) * pageSize
 		     : size + (page * pageSize);
 
 		int toIndex = fromIndex + pageSize;
-
 		int finalFromIndex = Math.max(0, fromIndex);
 		int finalToIndex   =  Math.min(size, Math.max(0, toIndex));
 
 		// prevent fromIndex to be greater than toIndex
 		if (finalFromIndex > finalToIndex) {
+
 			finalFromIndex = finalToIndex;
 		}
 
 		try {
+
 			return list.subList(finalFromIndex, finalToIndex);
 
 		} catch (Throwable t) {
 
 			logger.warn("Invalid range for sublist in paging, pageSize {}, page {}: {}", new Object[] {
-				pageSize,
-				page,
-				t.getMessage()
+				pageSize, page, t.getMessage()
 			});
 		}
 

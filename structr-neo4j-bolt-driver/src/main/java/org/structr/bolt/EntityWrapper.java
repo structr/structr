@@ -27,7 +27,6 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.Map.Entry;
 
-
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long> {
 
 	private Map<String, Object> dataCache = new HashMap<>();
@@ -50,25 +49,30 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 
 	@Override
 	public int hashCode() {
+
 		return getId().hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return other.hashCode() == this.hashCode();
 	}
 
 	@Override
 	public Identity<Long> getId() {
+
 		return identity;
 	}
 
 	public long getDatabaseId() {
+
 		return id;
 	}
 
 	@Override
 	public boolean hasProperty(final String name) {
+
 		return entity.containsKey(name);
 	}
 
@@ -87,13 +91,16 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 					final Object[] arr        = (Object[])Array.newInstance(firstElement.getClass(), 0);
 
 					// convert list to array
+
 					return ((List)value).toArray(arr);
 				}
 
 				// empty array => return null?
+
 				return null;
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 		}
@@ -124,14 +131,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 		if (needsUpdate(key, value)) {
 
 			final String query = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";
-
 			final Map<String, Object> properties = new HashMap<>();
+
 			properties.put(key, value);
 
-			final Map<String, Object> map = Map.of(
-					"id", id,
-					"properties", properties
-			);
+			final Map<String, Object> map = Map.of("id", id, "properties", properties);
 
 			updateEntity(tx, query, map);
 		}
@@ -148,11 +152,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";
-
-			final Map<String, Object> map = Map.of(
-					"id", id,
-					"properties", values
-			);
+			final Map<String, Object> map = Map.of("id", id, "properties", values);
 
 			tx.queryResultCache.clear();
 
@@ -165,14 +165,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";
-
 		final Map<String, Object> properties = new HashMap<>();
+
 		properties.put(key, null);
 
-		final Map<String, Object> map = Map.of(
-				"id", id,
-				"properties", properties
-		);
+		final Map<String, Object> map = Map.of("id", id, "properties", properties);
 
 		tx.queryResultCache.clear();
 
@@ -181,6 +178,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 
 	@Override
 	public Iterable<String> getPropertyKeys() {
+
 		return entity.keys();
 	}
 
@@ -210,15 +208,18 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 
 	@Override
 	public boolean isDeleted() {
+
 		return deleted;
 	}
 
 	public Map<String, Object> getCache() {
+
 		return dataCache;
 	}
 
 	// ----- protected methods -----
 	protected void updateEntity(final T entity) {
+
 		this.entity = entity;
 	}
 
@@ -255,20 +256,23 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 	private boolean needsUpdate(final String key, final Object newValue) {
 
 		final Object existingValue = getProperty(key);
-
 		if (existingValue == null && newValue == null) {
+
 			return false;
 		}
 
 		if (existingValue == null && newValue != null) {
+
 			return true;
 		}
 
 		if (existingValue != null && newValue == null) {
+
 			return true;
 		}
 
 		if (existingValue != null && newValue != null) {
+
 			return !equal(existingValue, newValue);
 		}
 

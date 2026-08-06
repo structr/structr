@@ -42,36 +42,44 @@ public class ConceptToken extends StringToken<ConceptType> {
 
 	@Override
 	public ConceptType resolve(final Ontology ontology) {
+
 		return type;
 	}
 
 	public Token getOriginalToken() {
+
 		return originalToken;
 	}
 
 	public ConceptType getType() {
+
 		return type;
 	}
 
 	public IdentifierToken asIdentifierToken() {
+
 		return new IdentifierToken(originalToken);
 	}
 
 	public void setAllowReuse(final boolean allowReuse) {
+
 		this.allowReuse = allowReuse;
 	}
 
 	public boolean allowReuse() {
+
 		return allowReuse;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		originalToken.setContent(newName);
 	}
 
@@ -85,6 +93,7 @@ public class ConceptToken extends StringToken<ConceptType> {
 
 				this.type = newType;
 				originalToken.setContent(value);
+
 			} else {
 
 				throw new UnsupportedOperationException("ConceptType " + value + " doesn't exist.");

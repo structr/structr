@@ -31,11 +31,13 @@ public class RetrieveFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "retrieve";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -58,6 +60,7 @@ public class RetrieveFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -66,19 +69,19 @@ public class RetrieveFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${retrieve(key)}."),
-			Usage.javaScript("Usage: ${{ $.retrieve(key) }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${retrieve(key)}."), Usage.javaScript("Usage: ${{ $.retrieve(key) }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the value associated with the given key from the temporary store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Retrieves the value previously stored under the given key in the current request context. 
 		This function can be used to obtain the results of a previous computation step etc. and is often used to provide 
@@ -89,18 +92,14 @@ public class RetrieveFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript(" ${retrieve('tmpUser')}"),
-				Example.javaScript("${{ $.retrieve('tmpUser') }}")
-		);
+
+		return List.of(Example.structrScript(" ${retrieve('tmpUser')}"), Example.javaScript("${{ $.retrieve('tmpUser') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("url", "key to retrieve")
-				);
+		return List.of(Parameter.mandatory("url", "key to retrieve"));
 	}
 
 	@Override
@@ -108,11 +107,13 @@ public class RetrieveFunction extends CoreFunction {
 
 		// this might be the place where information about the execution context
 		// of a function etc. can be used, but not yet.
+
 		return null;
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

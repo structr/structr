@@ -37,6 +37,7 @@ public class OpenAPIResultSchema extends TreeMap<String, Object> {
 		properties.put("result", result);
 
 		if (includeQueryTime) {
+
 			properties.put("query_time", Map.of("type", "string", "example", "0.003547842"));
 		}
 
@@ -56,6 +57,7 @@ public class OpenAPIResultSchema extends TreeMap<String, Object> {
 		properties.put("result", result);
 
 		if (includeQueryTime) {
+
 			properties.put("query_time", Map.of("type", "string", "example", "0.003547842"));
 		}
 
@@ -75,6 +77,7 @@ public class OpenAPIResultSchema extends TreeMap<String, Object> {
 		properties.put("result", schemaReference);
 
 		if (includeQueryTime) {
+
 			properties.put("query_time", Map.of("type", "string", "example", "0.003547842"));
 		}
 

@@ -45,16 +45,19 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	@Override
 	public String getProviderName() {
+
 		return name;
 	}
 
 	@Override
 	public AbstractFile getAbstractFile() {
+
 		return file;
 	}
 
 	@Override
 	public StorageConfiguration getConfig() {
+
 		return this.config;
 	}
 

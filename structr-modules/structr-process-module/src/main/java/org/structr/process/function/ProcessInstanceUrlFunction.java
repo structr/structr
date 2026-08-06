@@ -65,11 +65,13 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "processInstanceUrl";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -81,27 +83,37 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			if (!(sources[0] instanceof NodeInterface instance)) {
+
 				logger.warn("processInstanceUrl(): first argument must be a ProcessInstance node");
+
 				return null;
 			}
 
 			final Traits instTraits      = instance.getTraits();
 			final NodeInterface process  = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
+
 			if (process == null) {
+
 				logger.warn("processInstanceUrl(): instance {} has no process", instance.getUuid());
+
 				return null;
 			}
 
 			final NodeInterface page = process.getProperty(process.getTraits().key(BpmnProcessTraitDefinition.INSTANCE_PAGE_PROPERTY));
 			if (page == null) {
+
 				logger.warn("processInstanceUrl(): process for instance {} has no instancePage", instance.getUuid());
+
 				return null;
 			}
 
 			final Traits pageTraits = page.getTraits();
 			final String pageName   = page.getProperty(pageTraits.key("name"));
+
 			if (pageName == null || pageName.isEmpty()) {
+
 				logger.warn("processInstanceUrl(): instancePage for instance {} has no name", instance.getUuid());
+
 				return null;
 			}
 
@@ -109,6 +121,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 			// configured override, then the request/Settings-derived base.
 			String base = baseUrlFromSite(page, pageTraits);
 			if (base == null) {
+
 				final String override = Settings.BaseUrlOverride.getValue();
 				base = (override != null && !override.isEmpty())
 					? override
@@ -119,6 +132,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 				.append("/").append(pageName).append("/").append(instance.getUuid());
 
 			if (sources.length > 1 && sources[1] != null) {
+
 				url.append("?token=").append(sources[1].toString());
 			}
 
@@ -127,6 +141,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -140,6 +155,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 		final Iterable<NodeInterface> sites = page.getProperty(pageTraits.key("sites"));
 		if (sites == null) {
+
 			return null;
 		}
 
@@ -147,7 +163,9 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 			final Traits siteTraits = site.getTraits();
 			final String hostname   = site.getProperty(siteTraits.key("hostname"));
+
 			if (hostname == null || hostname.isEmpty()) {
+
 				continue;
 			}
 
@@ -155,9 +173,10 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 			// Site stores only hostname + port, not scheme; use the server's
 			// https setting, treating port 443 as https as well.
 			final boolean https  = Boolean.TRUE.equals(Settings.HttpsEnabled.getValue()) || (port != null && port == 443);
-
 			final StringBuilder sb = new StringBuilder(https ? "https" : "http").append("://").append(hostname);
+
 			if (port != null && ((https && port != 443) || (!https && port != 80))) {
+
 				sb.append(":").append(port);
 			}
 
@@ -168,6 +187,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 	}
 
 	private static String stripTrailingSlash(final String s) {
+
 		return (s != null && s.endsWith("/")) ? s.substring(0, s.length() - 1) : s;
 	}
 
@@ -175,24 +195,25 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("instance [, token]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${processInstanceUrl(instance [, token])}"),
-			Usage.javaScript("Usage: ${{$.processInstanceUrl(instance [, token])}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${processInstanceUrl(instance [, token])}"), Usage.javaScript("Usage: ${{$.processInstanceUrl(instance [, token])}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Builds an absolute URL to a process instance's page.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Resolves the process instance's process.instancePage and prefixes it with an absolute base URL, "
 			+ "appending the instance id as the trailing path segment. The base URL is resolved request-free where "
 			+ "possible: first from the Site that serves the instance page (its hostname and port), then from the "
@@ -203,6 +224,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The Site lookup uses the first Site assigned to the instance page; assign the page to a Site for deterministic, host-qualified links.",
 			"When no Site is found, set application.baseurl.override for correct email links; otherwise the URL is assembled from the request or server settings.",
@@ -213,14 +235,13 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("instance", "the ProcessInstance node"),
-			Parameter.optional("token", "access token to append as ?token=<token> (e.g. from processToken)")
-		);
+
+		return List.of(Parameter.mandatory("instance", "the ProcessInstance node"), Parameter.optional("token", "access token to append as ?token=<token> (e.g. from processToken)"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript(
 				"${{ $.processInstanceUrl($.this.processInstance) }}",
@@ -235,6 +256,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

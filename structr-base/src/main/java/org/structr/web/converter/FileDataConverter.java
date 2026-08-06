@@ -54,6 +54,7 @@ public class FileDataConverter extends PropertyConverter {
 	private static final Logger logger = LoggerFactory.getLogger(FileDataConverter.class.getName());
 
 	public FileDataConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		super(securityContext, entity);
 	}
 
@@ -61,6 +62,7 @@ public class FileDataConverter extends PropertyConverter {
 	public Object convert(final Object source) throws FrameworkException {
 
 		if (source == null) {
+
 			return false;
 		}
 
@@ -69,11 +71,13 @@ public class FileDataConverter extends PropertyConverter {
 		if (source instanceof byte[]) {
 
 			try {
+
 				byte[] data      = (byte[]) source;
 				MagicMatch match = Magic.getMagicMatch(data);
 				String mimeType  = match.getMimeType();
 
 				try {
+
 					FileHelper.setFileData(currentFile, data, mimeType);
 
 				} catch (IOException ioex) {
@@ -112,6 +116,7 @@ public class FileDataConverter extends PropertyConverter {
 		if (currentObject != null && currentObject.is(StructrTraits.FILE)) {
 
 			final File currentFile = currentObject.as(File.class);
+
 			return ImageHelper.getBase64String(currentFile);
 
 		} else {
@@ -129,6 +134,7 @@ public class FileDataConverter extends PropertyConverter {
 		}
 
 		if (currentObject != null && currentObject.is(StructrTraits.FILE)) {
+
 			return currentObject.as(File.class);
 		}
 

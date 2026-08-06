@@ -28,6 +28,7 @@ public class Notification<T> {
 	private String key = null;
 
 	public Notification(final String key) {
+
 		this(key, null);
 	}
 
@@ -38,10 +39,12 @@ public class Notification<T> {
 	}
 
 	public String getKey() {
+
 		return key;
 	}
 
 	public T getPayload() {
+
 		return payload;
 	}
 }

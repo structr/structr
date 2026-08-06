@@ -56,10 +56,12 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 	private static final Map<String, String> cache = new ConcurrentHashMap<>();
 
 	public FunctionProperty(final String name) {
+
 		super(name);
 	}
 
 	public FunctionProperty(final String name, final String dbName) {
+
 		super(name, dbName);
 	}
 
@@ -74,17 +76,21 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	@Override
 	public Property<T> setSourceUuid(final String sourceUuid) {
+
 		this.sourceUuid = sourceUuid;
+
 		return this;
 	}
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -94,6 +100,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 		try {
 
 			if (!securityContext.doInnerCallbacks()) {
+
 				return null;
 			}
 
@@ -108,8 +115,8 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 					if (cachingEnabled) {
 
 						Object cachedValue = securityContext.getContextStore().retrieveFunctionPropertyResult(obj.getUuid(), jsonName);
-
 						if (cachedValue != null) {
+
 							return (T) cachedValue;
 						}
 					}
@@ -124,7 +131,6 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 							.build();
 
 					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid, scriptConfig);
-
 					PropertyConverter converter = null;
 
 					if (typeHint != null) {
@@ -136,13 +142,17 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 						}
 
 						if (converter != null) {
+
 							{
 								try {
 
 									Object convertedResult = converter.convert(result);
 									if (convertedResult != null) {
+
 										result = convertedResult;
+
 									} else if ("".equals(result)) {
+
 										result = null;
 									}
 
@@ -186,16 +196,19 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
@@ -220,22 +233,23 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return value;
 	}
 
 	@Override
 	public String typeName() {
+
 		return valueType().getSimpleName();
 	}
-
 
 	private PropertyConverter getDatabaseConverter(final SecurityContext securityContext) {
 
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;
-
 			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+
 			if (tmp != null) {
 
 				converter = tmp.databaseConverter(securityContext);
@@ -252,8 +266,8 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;
-
 			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+
 			if (tmp != null) {
 
 				converter = tmp.inputConverter(securityContext, fromString);
@@ -267,16 +281,19 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+
 		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return getDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return getInputConverter(securityContext, fromString);
 	}
 
@@ -293,6 +310,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 			try {
 
 				if (!securityContext.doInnerCallbacks()) {
+
 					return null;
 				}
 
@@ -329,7 +347,9 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	@Override
 	public Property<T> format(final String format) {
+
 		this.readFunction = format;
+
 		return this;
 	}
 
@@ -339,8 +359,8 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;
-
 			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+
 			if (tmp != null) {
 
 				converter = tmp.inputConverter(securityContext, false);
@@ -353,19 +373,23 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 		}
 
 		// fallback
+
 		return super.convertSearchValue(securityContext, requestParameter);
 	}
 
 	// ----- private methods -----
 	private String getReadFunction() throws FrameworkException {
+
 		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), this.readFunction);
 	}
 
 	private String getWriteFunction() throws FrameworkException {
+
 		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY), this.writeFunction);
 	}
 
 	private String getOpenAPIReturnType() throws FrameworkException {
+
 		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY), this.openAPIReturnType);
 	}
 
@@ -397,10 +421,12 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 	}
 
 	public static void clearCache() {
+
 		cache.clear();
 	}
 
 	public NodeInterface getCodeSource() throws FrameworkException {
+
 		return StructrApp.getInstance().getNodeById(StructrTraits.SCHEMA_PROPERTY, sourceUuid);
 	}
 
@@ -423,11 +449,14 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 	// ----- OpenAPI -----
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName) {
+
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final Map<String, Object> schemaFromJsonString = new LinkedHashMap<>();
 			final String returnType = getOpenAPIReturnType();
+
 			if (returnType != null) {
+
 				schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(returnType, Map.class));
 			}
 
@@ -442,7 +471,6 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 		return Collections.EMPTY_MAP;
 	}
-
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level)  {
@@ -482,16 +510,19 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Property;
 	}
 
 	@Override
 	public String getName() {
+
 		return "FunctionProperty";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "A property type that runs a script to create the return value at runtime.";
 	}
 
@@ -543,6 +574,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 		}
 
 		if (tmp != null) {
+
 			tmp.setDeclaringTrait(this.getDeclaringTrait());
 		}
 

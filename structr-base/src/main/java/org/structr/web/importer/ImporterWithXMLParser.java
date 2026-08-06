@@ -147,6 +147,7 @@ public class ImporterWithXMLParser {
 		this.relativeVisibility = relativeVisibility;
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
+
 			this.address = this.address.concat("/");
 		}
 
@@ -154,19 +155,23 @@ public class ImporterWithXMLParser {
 		if (this.address != null) {
 
 			try {
+
 				originalUrl = new URL(this.address);
 
 			} catch (MalformedURLException ex) {
+
 				logger.info("Cannot convert '{}' to URL - is the protocol ok? Trying to resume anyway...", this.address);
 			}
 		}
 	}
 
 	private void init() {
+
 		app = StructrApp.getInstance(securityContext);
 	}
 
 	public void setCommentHandler(final CommentHandler handler) {
+
 		this.commentHandler = handler;
 	}
 
@@ -177,6 +182,7 @@ public class ImporterWithXMLParser {
 	 * @throws FrameworkException
 	 */
 	public boolean parse() throws FrameworkException {
+
 		return parse(false);
 	}
 
@@ -201,11 +207,13 @@ public class ImporterWithXMLParser {
 		} else {
 
 			if (!isDeployment) {
+
 				logger.info("##### Start fetching {} for page {} #####", address, name);
 			}
 
 			final Map<String, Object> responseData = HttpHelper.get(address);
 			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
+
 			if (code != null) {
 
 				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
@@ -223,6 +231,7 @@ public class ImporterWithXMLParser {
 	}
 
 	public Page readPage() throws FrameworkException {
+
 		return readPage(null);
 	}
 
@@ -251,6 +260,7 @@ public class ImporterWithXMLParser {
 			createChildNodes(parsedDocument, parent, page);
 
 			if (!isDeployment) {
+
 				logger.info("##### Finished fetching {} for page {} #####", address, name);
 			}
 		}
@@ -259,6 +269,7 @@ public class ImporterWithXMLParser {
 	}
 
 	public DOMNode createComponentChildNodes(final Page page) throws FrameworkException {
+
 		return createComponentChildNodes(null, page);
 	}
 
@@ -327,6 +338,7 @@ public class ImporterWithXMLParser {
 		*/
 
 		// fallback, no head no body => document is parent
+
 		return createChildNodes(parsedDocument, parent, page);
 	}
 
@@ -346,18 +358,22 @@ public class ImporterWithXMLParser {
 	}
 
 	public void setIsDeployment(final boolean isDeployment) {
+
 		this.isDeployment = isDeployment;
 	}
 
 	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> props) {
+
 		this.deferredNodesAndTheirProperties = props;
 	}
 
 	public Map<DOMNode, PropertyMap> getDeferredNodesAndTheirProperties() {
+
 		return this.deferredNodesAndTheirProperties;
 	}
 
 	public String getTableChildElement() {
+
 		return tableChildElement;
 	}
 
@@ -368,11 +384,13 @@ public class ImporterWithXMLParser {
 		for (final Node node : parsedDocument) {
 
 			for (final Node child : node.childNodes()) {
+
 				nodeList.add(child);
 			}
 		}
 
 		for (final Node deleteNode : nodeList) {
+
 			deleteNode.remove();
 		}
 	}
@@ -390,6 +408,7 @@ public class ImporterWithXMLParser {
 			}
 
 			if (!type.equals("#comment")) {
+
 				return createChildNodes(node.childNodes(), parent, page, false, 1, parent);
 			}
 		}
@@ -427,7 +446,9 @@ public class ImporterWithXMLParser {
 			return node.as(Page.class);
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to parse source:\n\n" + source);
+
 			return null;
 		}
 
@@ -435,10 +456,12 @@ public class ImporterWithXMLParser {
 
 	// ----- private methods -----
 	private DOMNode createChildNodes(final List<Node> nodes, final DOMNode parent, final Page page) throws FrameworkException {
+
 		return createChildNodes(nodes, parent, page, false, 0);
 	}
 
 	private DOMNode createChildNodes(final List<Node> nodes, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
+
 		return createChildNodes(nodes, parent, page, removeHashAttribute, depth, null);
 	}
 
@@ -454,6 +477,7 @@ public class ImporterWithXMLParser {
 
 			// clean tag, remove non-word characters except : and #
 			if (tag != null) {
+
 				tag = tag.replaceAll("[^a-zA-Z0-9#:.\\-_]+", "");
 			}
 
@@ -492,7 +516,9 @@ public class ImporterWithXMLParser {
 
 						String downloadAddress = node.attr(downloadAddressAttr);
 						linkable = downloadFile(downloadAddress, originalUrl);
+
 					} else {
+
 						linkable = null;
 					}
 				}
@@ -554,6 +580,7 @@ public class ImporterWithXMLParser {
 						content = trimTrailingNewline(((TextNode) node).getWholeText());
 
 						if (content == null || content.length() == 0) {
+
 							continue;
 						}
 
@@ -562,6 +589,7 @@ public class ImporterWithXMLParser {
 						content = trimTrailingNewline(((TextNode) node).text());
 
 						if (StringUtils.isBlank(content)) {
+
 							continue;
 						}
 					}
@@ -591,8 +619,8 @@ public class ImporterWithXMLParser {
 						newNode = page.createTextNode(content);
 
 						final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
-
 						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
+
 							newNode.setProperty(contentTypeKey, "text/css");
 						}
 					}
@@ -640,6 +668,7 @@ public class ImporterWithXMLParser {
 						} else {
 
 							template = ImporterWithXMLParser.findSharedComponentByName(src);
+
 							if (template == null) {
 
 								template = ImporterWithXMLParser.findTemplateByName(src);
@@ -726,6 +755,7 @@ public class ImporterWithXMLParser {
 
 							// move children
 							for (final DOMNode newChild : tmpParent.getChildren()) {
+
 								domParent.appendChild(newChild);
 
 								// which one is the new parent for nested children?
@@ -748,6 +778,7 @@ public class ImporterWithXMLParser {
 				if (src != null) {
 
 					DOMNode component = null;
+
 					if (DeployCommand.isUuid(src)) {
 
 						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
@@ -759,7 +790,6 @@ public class ImporterWithXMLParser {
 					} else {
 
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
-
 						if (uuidAtEnd != null) {
 
 							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
@@ -791,8 +821,11 @@ public class ImporterWithXMLParser {
 
 						final String _html_src = newNode.getProperty(new StringProperty("_html_src"));
 						if (!StringUtils.isEmpty(_html_src)) {
+
 							node.attr("src", _html_src);
+
 						} else {
+
 							node.removeAttr("src");
 						}
 
@@ -822,11 +855,13 @@ public class ImporterWithXMLParser {
 
 				// save root element for later use
 				if (rootElement == null && !(newNode.is(StructrTraits.COMMENT))) {
+
 					rootElement = newNode;
 				}
 
 				// set linkable
 				if (linkable != null && newNode.is(StructrTraits.LINK_SOURCE)) {
+
 					newNode.as(LinkSource.class).setLinkable(linkable);
 				}
 
@@ -872,7 +907,6 @@ public class ImporterWithXMLParser {
 							if (key.startsWith(DATA_META_PREFIX)) { // convert data-structr-meta-* attributes to local camel case properties on the node,
 
 								int l = DATA_META_PREFIX.length();
-
 								String upperCaseKey = WordUtils.capitalize(key.substring(l), '-').replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
 
@@ -901,7 +935,6 @@ public class ImporterWithXMLParser {
 											if (converter != null) {
 
 												final Object convertedValue = converter.convert(actualValue);
-
 												if (actualValue != null && convertedValue == null) {
 
 													// DOMNode to be linked is not yet imported, so we store it to handle it later
@@ -918,6 +951,7 @@ public class ImporterWithXMLParser {
 											}
 
 										} catch (Throwable t) {
+
 											t.printStackTrace();
 											System.out.println(actualKey);
 											System.out.println(value);
@@ -1023,6 +1057,7 @@ public class ImporterWithXMLParser {
 								Actions.execute(securityContext, null, source, null, null);
 
 							} catch (UnlicensedScriptException ex) {
+
 								ex.log(logger);
 							}
 						}
@@ -1040,6 +1075,7 @@ public class ImporterWithXMLParser {
 								Actions.execute(securityContext, null, source, null, null);
 
 							} catch (UnlicensedScriptException ex) {
+
 								ex.log(logger);
 							}
 						}
@@ -1067,10 +1103,12 @@ public class ImporterWithXMLParser {
 							final String source = styleContentNode.toString();
 
 							try {
+
 								// Import referenced resources
 								processCss(source, originalUrl);
 
 							} catch (IOException ex) {
+
 								logger.warn("Couldn't process CSS source", ex);
 							}
 						}
@@ -1145,6 +1183,7 @@ public class ImporterWithXMLParser {
 		}
 
 		if (rootElement != null) {
+
 			return rootElement.as(DOMNode.class);
 		}
 
@@ -1158,8 +1197,8 @@ public class ImporterWithXMLParser {
 
 		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
 		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-
 		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).key(pathKey, path).key(checksumKey, checksum).getFirst();
+
 		if (node != null) {
 
 			return node.as(File.class);
@@ -1179,6 +1218,7 @@ public class ImporterWithXMLParser {
 		} catch (MalformedURLException ex) {
 
 			logger.error("Could not resolve address {}", address != null ? address.concat("/") : "");
+
 			return null;
 		}
 
@@ -1186,6 +1226,7 @@ public class ImporterWithXMLParser {
 
 		// Don't download the same file twice
 		if (alreadyDownloaded.containsKey(alreadyDownloadedKey)) {
+
 			return alreadyDownloaded.get(alreadyDownloadedKey);
 		}
 
@@ -1195,6 +1236,7 @@ public class ImporterWithXMLParser {
 		java.io.File tmpFile;
 
 		try {
+
 			// create temporary file on disk
 			final Path tmpFilePath = Files.createTempFile("structr", "download");
 			tmpFile                = tmpFilePath.toFile();
@@ -1202,6 +1244,7 @@ public class ImporterWithXMLParser {
 		} catch (IOException ioex) {
 
 			logger.error("Unable to create temporary file for download, aborting.");
+
 			return null;
 		}
 
@@ -1216,6 +1259,7 @@ public class ImporterWithXMLParser {
 			if (originalUrl == null || address == null) {
 
 				logger.info("Cannot download from {} without base address", downloadAddress);
+
 				return null;
 
 			}
@@ -1223,6 +1267,7 @@ public class ImporterWithXMLParser {
 			logger.warn("Unable to download from {} {}", originalUrl, downloadAddress);
 
 			try {
+
 				// Try alternative baseUrl with trailing "/"
 				if (address.endsWith("/")) {
 
@@ -1240,10 +1285,15 @@ public class ImporterWithXMLParser {
 				copyURLToFile(downloadUrl.toString(), tmpFile);
 
 			} catch (MalformedURLException ex) {
+
 				logger.error("Could not resolve address {}", address.concat("/"));
+
 				return null;
+
 			} catch (IOException ex) {
+
 				logger.warn("Unable to download from {}", address.concat("/"));
+
 				return null;
 			}
 
@@ -1273,12 +1323,11 @@ public class ImporterWithXMLParser {
 		} catch (IOException ioe) {
 
 			logger.warn("Unable to determine MIME type, size or checksum of {}", tmpFile);
+
 			return null;
 		}
 
-
-		logger.info("Download URL: {}, address: {}, cleaned address: {}, filename: {}",
-			downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName);
+		logger.info("Download URL: {}, address: {}, cleaned address: {}, filename: {}", downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName);
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
@@ -1308,7 +1357,6 @@ public class ImporterWithXMLParser {
 			path = StringUtils.substringBeforeLast(relativePath, "/");
 		}
 
-
 		logger.info("Relative path: {}, final path: {}", relativePath, path);
 
 		if (contentType.equals("text/plain")) {
@@ -1319,9 +1367,8 @@ public class ImporterWithXMLParser {
 		try {
 
 			final String fullPath = path + "/" + fileName;
-
-
 			File fileNode = fileExists(PathHelper.removeRelativeParts(fullPath), checksum);
+
 			if (fileNode == null) {
 
 				if (ImageHelper.isImageType(fileName)) {
@@ -1334,6 +1381,7 @@ public class ImporterWithXMLParser {
 				}
 
 				try (final FileInputStream is = new FileInputStream(tmpFile); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
+
 					// Copy contents of tmpFile to file in structr fs
 					IOUtils.copy(is, os);
 
@@ -1368,6 +1416,7 @@ public class ImporterWithXMLParser {
 	}
 
 	private File createFileNode(final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
+
 		return createFileNode(path, contentType, size, checksum, null);
 	}
 
@@ -1401,6 +1450,7 @@ public class ImporterWithXMLParser {
 	}
 
 	private Image createImageNode(final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
+
 		return createFileNode(path, contentType, size, checksum, StructrTraits.IMAGE).as(Image.class);
 	}
 
@@ -1409,6 +1459,7 @@ public class ImporterWithXMLParser {
 		final StringWriter sw = new StringWriter();
 
 		try (final InputStream is = fileNode.getInputStream()) {
+
 			IOUtils.copy(is, sw, "UTF-8");
 		}
 
@@ -1461,6 +1512,7 @@ public class ImporterWithXMLParser {
 	public static NodeInterface findSharedComponentByName(final String name) throws FrameworkException {
 
 		if (StringUtils.isEmpty(name)) {
+
 			return null;
 		}
 
@@ -1472,6 +1524,7 @@ public class ImporterWithXMLParser {
 
 			// only return toplevel nodes in shared components
 			if (n.getProperty(parentKey) == null) {
+
 				return n;
 			}
 		}
@@ -1482,6 +1535,7 @@ public class ImporterWithXMLParser {
 	public static NodeInterface findTemplateByName(final String name) throws FrameworkException {
 
 		if (StringUtils.isEmpty(name)) {
+
 			return null;
 		}
 
@@ -1507,10 +1561,12 @@ public class ImporterWithXMLParser {
 
 		// Leading and trailing whitespace may be replaced by a single space in HTML
 		while (workString.startsWith("\n") || workString.startsWith("\r") || workString.startsWith("\t")) {
+
 			workString = workString.substring(1);
 		}
 
 		while (workString.endsWith("\n") || workString.endsWith("\r") || workString.endsWith("\t")) {
+
 			workString = workString.substring(0, workString.length() - 1);
 		}
 
@@ -1554,6 +1610,7 @@ public class ImporterWithXMLParser {
 		final StringBuilder stringBuilder = new StringBuilder();
 
 		for (final Node c : children) {
+
 			stringBuilder.append(nodeToString(c));
 		}
 
@@ -1586,6 +1643,7 @@ public class ImporterWithXMLParser {
 		final NodeInterface newTemplate = StructrApp.getInstance(securityContext).create(StructrTraits.TEMPLATE, map);
 
 		if (parent != null) {
+
 			parent.as(DOMNode.class).appendChild(newTemplate.as(Template.class));
 		}
 
@@ -1594,6 +1652,7 @@ public class ImporterWithXMLParser {
 	}
 
 	private DOMNode createSharedComponent(final Node node) throws FrameworkException {
+
 		return createChildNodes(node.childNodes(), null, CreateComponentCommand.getOrCreateHiddenDocument());
 	}
 
@@ -1656,6 +1715,7 @@ public class ImporterWithXMLParser {
 				}
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -1676,6 +1736,7 @@ public class ImporterWithXMLParser {
 				}
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 		}

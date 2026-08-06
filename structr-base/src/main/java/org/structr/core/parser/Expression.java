@@ -44,6 +44,7 @@ public abstract class Expression implements Documentable {
 	protected int column                   = 1;
 
 	public Expression(final int row, final int column) {
+
 		this(null, row, column);
 	}
 
@@ -57,6 +58,7 @@ public abstract class Expression implements Documentable {
 	public abstract FunctionCategory getCategory();
 
 	public String getName() {
+
 		return name;
 	}
 
@@ -71,17 +73,20 @@ public abstract class Expression implements Documentable {
 	public void replacePrevious(final Expression newExpression) throws FrameworkException {
 
 		if (hasPrevious()) {
+
 			expressions.remove(expressions.size() - 1);
 			this.add(newExpression);
 		}
 	}
 
 	public List<Expression> getChildren() {
+
 		return expressions;
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.BuiltInFunction;
 	}
 
@@ -89,8 +94,8 @@ public abstract class Expression implements Documentable {
 	public List<ConceptReference> getParentConcepts() {
 
 		final List<ConceptReference> concepts = new LinkedList<>();
-
 		final FunctionCategory category = getCategory();
+
 		if (category != null) {
 
 			concepts.add(ConceptReference.of(ConceptType.Topic, category + " functions"));
@@ -100,12 +105,14 @@ public abstract class Expression implements Documentable {
 	}
 
 	public Expression getParent() {
+
 		return parent;
 	}
 
 	public Expression getPrevious() {
 
 		if (!expressions.isEmpty()) {
+
 			return expressions.get(expressions.size() - 1);
 		}
 
@@ -113,16 +120,19 @@ public abstract class Expression implements Documentable {
 	}
 
 	public boolean hasPrevious() {
+
 		return !expressions.isEmpty();
 	}
 
 	public boolean isBatched() {
+
 		return parent != null && parent.isBatched();
 	}
 
 	public int getBatchSize() {
 
 		if (parent != null) {
+
 			return parent.getBatchSize();
 		}
 

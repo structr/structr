@@ -49,7 +49,6 @@ public class NotPredicate extends AbstractPredicate {
 
 				} else {
 
-
 					if (p.isEmptyPredicate()) {
 
 						notGroup.blank(key);
@@ -69,6 +68,7 @@ public class NotPredicate extends AbstractPredicate {
 
 		// only add group if it is not empty!
 		if (!notGroup.isEmpty()) {
+
 			query.add(notGroup);
 		}
 	}

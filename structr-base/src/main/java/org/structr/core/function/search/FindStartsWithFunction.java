@@ -32,16 +32,19 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.startsWith";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.startsWith";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.startsWith";
 	}
 
@@ -79,6 +82,7 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.startsWith(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.startsWith('name', 'Test'))) }}"),
 			Usage.structrScript("Usage: ${startsWith(key, value). Example: ${find('Group', and(startsWith('name', 'Test')))}")
@@ -87,16 +91,19 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -107,11 +114,13 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

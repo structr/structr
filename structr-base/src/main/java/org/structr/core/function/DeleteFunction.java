@@ -45,11 +45,13 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	@Override
 	public String getName() {
+
 		return "delete";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("objectOrList");
 	}
 
@@ -59,6 +61,7 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 		if (sources != null) {
 
 			final App app = StructrApp.getInstance(ctx.getSecurityContext());
+
 			for (final Object obj : sources) {
 
 				deleteObject(app, obj);
@@ -70,50 +73,50 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.delete(objectOrList)}}. Example: ${{$.delete(this)}}"),
-			Usage.structrScript("Usage: ${delete(objectOrList)}. Example: ${delete(this)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{$.delete(objectOrList)}}. Example: ${{$.delete(this)}}"), Usage.structrScript("Usage: ${delete(objectOrList)}. Example: ${delete(this)}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Deletes the one or more nodes or relationships from the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("objectOrList", "object(s) to delete, can also be a list")
-		);
+
+		return List.of(Parameter.mandatory("objectOrList", "object(s) to delete, can also be a list"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${delete(first(find('Project')))}", "Delete the first project"),
-			Example.structrScript("${delete(find('Project'))}", "Delete all projects")
-		);
+
+		return List.of(Example.structrScript("${delete(first(find('Project')))}", "Delete the first project"), Example.structrScript("${delete(find('Project'))}", "Delete all projects"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 
 	// ----- interface BatchableFunction -----
 	@Override
 	public void setBatched(boolean isBatched) {
+
 		this.batched = isBatched;
 	}
 
 	@Override
 	public void setBatchSize(int batchSize) {
+
 		this.batchSize = batchSize;
 	}
 
@@ -147,6 +150,7 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 							deleteObject(app, iterator.next());
 
 							if ((++count % batchSize) == 0) {
+
 								break;
 							}
 						}
@@ -159,7 +163,6 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 					// reset count
 					count = 0;
 				}
-
 
 			} else {
 

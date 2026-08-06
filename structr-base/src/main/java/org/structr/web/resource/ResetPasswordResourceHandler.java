@@ -58,6 +58,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	private static final Logger logger = LoggerFactory.getLogger(ResetPasswordResourceHandler.class.getName());
 
 	private enum TemplateKey {
+
 		RESET_PASSWORD_SENDER_NAME,
 		RESET_PASSWORD_SENDER_ADDRESS,
 		RESET_PASSWORD_SUBJECT,
@@ -73,6 +74,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	}
 
 	public ResetPasswordResourceHandler(final RESTCall call) {
+
 		super(call);
 	}
 
@@ -82,8 +84,8 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		if (propertySet.containsKey(PrincipalTraitDefinition.EMAIL_PROPERTY)) {
 
 			String emailString  = (String) propertySet.get(PrincipalTraitDefinition.EMAIL_PROPERTY);
-
 			if (StringUtils.isEmpty(emailString)) {
+
 				throw new FrameworkException(422, "No e-mail address given.");
 			}
 
@@ -95,7 +97,9 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			// client cannot distinguish "blocked" from "unknown address".
 			final String remoteIp = securityContext.getRequest() != null ? securityContext.getRequest().getRemoteAddr() : "unknown";
 			if (!EmailRateLimiter.allow("reset-password", remoteIp, 20, emailString, 3)) {
+
 				logger.warn("Password reset rate limit hit (ip={}, email={})", remoteIp, emailString);
+
 				return new RestMethodResult(HttpServletResponse.SC_OK);
 			}
 
@@ -117,12 +121,14 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 				}
 
 				// return 200 OK
+
 				return new RestMethodResult(HttpServletResponse.SC_OK);
 
 			} else {
 
 				// We only handle existing users but we don't want to disclose if this e-mail address exists,
 				// so we're failing silently here
+
 				return new RestMethodResult(HttpServletResponse.SC_OK);
 			}
 
@@ -145,8 +151,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			.forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
 		ctx.setConstant(PrincipalTraitDefinition.EMAIL_PROPERTY, userEmail);
-		ctx.setConstant("link",
-				getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+		ctx.setConstant("link", getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString)
 				+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
 				+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, AbstractDataServlet.prefixLocation(HtmlServlet.RESET_PASSWORD_PAGE), localeString)
@@ -171,6 +176,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		} catch (Exception e) {
 
 			logger.error("Unable to send reset password e-mail", e);
+
 			return false;
 		}
 
@@ -185,6 +191,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).name(key.name());
 
 			if (localeString != null) {
+
 				query.key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
 			}
 
@@ -192,6 +199,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			if (template != null) {
 
 				final String text = template.as(MailTemplate.class).getText();
+
 				return text != null ? text : defaultValue;
 
 			} else {
@@ -225,16 +233,19 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 	@Override
 	public String getTypeName(final SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of("OPTIONS", "POST");
 	}
 }

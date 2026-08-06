@@ -29,6 +29,7 @@ import java.util.LinkedList;
 public class IdentifyNamesRule extends Rule {
 
 	public IdentifyNamesRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -40,7 +41,6 @@ public class IdentifyNamesRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken abstractToken = tokens.pop();
-
 			if (abstractToken instanceof UnresolvedToken unresolved) {
 
 				result.add(new IdentifierToken(unresolved.getToken()));

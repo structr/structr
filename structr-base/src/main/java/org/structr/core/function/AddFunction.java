@@ -29,6 +29,7 @@ public class AddFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "add";
 	}
 
@@ -62,44 +63,43 @@ public class AddFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("values...");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("values", "list of values to add")
-		);
+		return List.of(Parameter.mandatory("values", "list of values to add"));
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${add(values...)}"),
-				Usage.javaScript("Usage: ${{ $.add(values...) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${add(values...)}"), Usage.javaScript("Usage: ${{ $.add(values...) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the sum of the given arguments.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${add(1, 2, 3, this.children.size)}")
-		);
+
+		return List.of(Example.structrScript("${add(1, 2, 3, this.children.size)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,6 +50,7 @@ public class LogoutServlet extends AbstractDataServlet implements HttpServiceSer
 
 	@Override
 	public String getModuleName() {
+
 		return "ui";
 	}
 
@@ -64,6 +64,7 @@ public class LogoutServlet extends AbstractDataServlet implements HttpServiceSer
 		} catch (FrameworkException fex) {
 
 			try {
+
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
@@ -100,10 +101,12 @@ public class LogoutServlet extends AbstractDataServlet implements HttpServiceSer
 
 			// redirect to requested target page or /
 			final String redirectLocation = HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY));
-
 			if (StringUtils.isBlank(redirectLocation)) {
+
 				sendRedirectHeader(response, "/", true);
+
 			} else {
+
 				sendRedirectHeader(response, redirectLocation, false);	// user-provided, should be already prefixed
 			}
 

@@ -81,11 +81,13 @@ public class ImportGPXFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "importGpx";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("gpxString");
 	}
 
@@ -124,6 +126,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 										result.put(metadataProperty, metadata);
 									}
+
 									break;
 
 								case "rte":
@@ -141,14 +144,17 @@ public class ImportGPXFunction extends GeoFunction {
 						}
 
 						if (!waypoints.isEmpty()) {
+
 							result.put(waypointsProperty, waypoints);
 						}
 
 						if (!routes.isEmpty()) {
+
 							result.put(routesProperty, routes);
 						}
 
 						if (!tracks.isEmpty()) {
+
 							result.put(tracksProperty, tracks);
 						}
 					}
@@ -167,17 +173,20 @@ public class ImportGPXFunction extends GeoFunction {
 
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, e.getMessage(), isJs);
+
 			return usage(isJs);
 		}
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Parses a given GPX string and returns its contents as an object with.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The object returned by this function has the following format. Please note that there can be additional keys in the object such as "tracks" and "segments".
 		
@@ -230,9 +239,7 @@ public class ImportGPXFunction extends GeoFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("source", "GPX source to parse")
-		);
+		return List.of(Parameter.mandatory("source", "GPX source to parse"));
 	}
 
 	@Override
@@ -253,6 +260,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 
@@ -281,6 +289,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 						points.add(item);
 					}
+
 					break;
 			}
 
@@ -288,6 +297,7 @@ public class ImportGPXFunction extends GeoFunction {
 		}
 
 		if (!points.isEmpty()) {
+
 			result.put(pointsProperty, points);
 		}
 
@@ -312,6 +322,7 @@ public class ImportGPXFunction extends GeoFunction {
 		}
 
 		if (!segments.isEmpty()) {
+
 			result.put(segmentsProperty, segments);
 		}
 
@@ -333,6 +344,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 						points.add(item);
 					}
+
 					break;
 			}
 
@@ -340,6 +352,7 @@ public class ImportGPXFunction extends GeoFunction {
 		}
 
 		if (!points.isEmpty()) {
+
 			result.put(pointsProperty, points);
 		}
 

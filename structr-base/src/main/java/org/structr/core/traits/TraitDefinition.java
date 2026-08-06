@@ -49,14 +49,17 @@ public interface TraitDefinition extends Comparable<TraitDefinition> {
 	Relation getRelation();
 
 	default boolean isAbstract() {
+
 		return false;
 	}
 
 	default boolean isInterface() {
+
 		return false;
 	}
 
 	default boolean includeInDocumentation() {
+
 		return false;
 	}
 }

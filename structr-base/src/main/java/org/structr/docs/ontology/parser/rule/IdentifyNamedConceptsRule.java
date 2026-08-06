@@ -40,6 +40,7 @@ public class IdentifyNamedConceptsRule extends Rule {
 	);
 
 	public IdentifyNamedConceptsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -51,16 +52,13 @@ public class IdentifyNamedConceptsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.pop();
-
 			if (token1 instanceof IdentifierToken identifierToken && !tokens.isEmpty()) {
 
 				// unresolved => check if next is existing concept
 				final AbstractToken token2 = tokens.pop();
-
 				if (token2 instanceof ConceptToken conceptToken) {
 
 					final ConceptType type = conceptToken.getType();
-
 					if (SpecializedTokens.containsKey(type)) {
 
 						result.add(SpecializedTokens.get(type).apply(conceptToken, identifierToken));
@@ -81,11 +79,9 @@ public class IdentifyNamedConceptsRule extends Rule {
 
 				// concept => check if next is unresolved
 				final AbstractToken token2 = tokens.pop();
-
 				if (token2 instanceof IdentifierToken identifierToken) {
 
 					final ConceptType type = conceptToken.getType();
-
 					if (SpecializedTokens.containsKey(type)) {
 
 						result.add(SpecializedTokens.get(type).apply(conceptToken, identifierToken));
@@ -102,7 +98,6 @@ public class IdentifyNamedConceptsRule extends Rule {
 					for (final IdentifierToken identifierToken : listToken.getTokens()) {
 
 						final ConceptType type = conceptToken.getType();
-
 						if (SpecializedTokens.containsKey(type)) {
 
 							final AbstractToken newToken = SpecializedTokens.get(type).apply(conceptToken, identifierToken);

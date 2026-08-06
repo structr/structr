@@ -68,7 +68,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR  = "A node cannot accept its own ancestor as child.";
 	String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT   = "A document may only accept an html element as its document element.";
 	String NOT_FOUND_ERR_MESSAGE                   = "Node is not a child.";
-
 	Set<String> cloneBlacklist = Set.of(
 		GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
 		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
@@ -268,6 +267,16 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	Template getClosestTemplate(final Page page);
 	DOMNode getClosestComponent();
+
+	/**
+	 * The VisibilityMapping bound to this node or, failing that, to the closest ancestor that
+	 * has one -- the render-time counterpart of {@link #getClosestComponent()}. Null when no
+	 * node in the chain is bound, or when no module provides VisibilityMappings.
+	 *
+	 * <p>Read as superuser, like the render gate itself: mappings are configuration data, so a
+	 * frontend user is not expected to hold read access on them.</p>
+	 */
+	VisibilityMapping getClosestVisibilityMapping();
 	boolean isEditable();
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
@@ -301,24 +310,29 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	// ----- static methods -----
 	static String escapeForHtml(final String raw) {
+
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 	}
 
 	static String unescapeForHtml(final String raw) {
+
 		return StringUtils.replaceEach(raw, new String[]{"&amp;", "&lt;", "&gt;"}, new String[]{"&", "<", ">"});
 	}
 
 	static String escapeForHtmlAttributes(final String raw) {
+
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
 	}
 
 	static String unescapeForHtmlAttributes(final String raw) {
+
 		return StringUtils.replaceEach(raw, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"}, new String[]{"&", "<", ">", "\""});
 	}
 
 	static String objectToString(final Object source) {
 
 		if (source != null) {
+
 			return source.toString();
 		}
 
@@ -328,6 +342,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	static String indent(final int depth, final RenderContext renderContext) {
 
 		if (!renderContext.shouldIndentHtml()) {
+
 			return "";
 		}
 
@@ -399,8 +414,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 				"all/INCOMING/TRIGGERED_BY"
 			),
 
-			uuid
-		);
+			uuid);
 	}
 
 	static void logScriptingError (final Logger logger, final Throwable t, String message, Object... arguments) {
@@ -432,6 +446,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		public boolean accept(final DOMNode obj) {
 
 			if (obj.is(StructrTraits.CONTENT)) {
+
 				textBuffer.append(obj.as(Content.class).getContent());
 			}
 
@@ -439,6 +454,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		}
 
 		public String getText() {
+
 			return textBuffer.toString();
 		}
 	}

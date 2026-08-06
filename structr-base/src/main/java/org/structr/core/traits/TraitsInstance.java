@@ -33,11 +33,13 @@ public class TraitsInstance {
 	private final String name;
 
 	public TraitsInstance(final String name) {
+
 		this.name = name;
 	}
 
 	@Override
 	public String toString() {
+
 		return "TraitsInstance(" + name + ", " + globalTypeMap.size() + ", " + globalTraitMap.size() + ")";
 	}
 
@@ -46,10 +48,12 @@ public class TraitsInstance {
 		final TraitsInstance newInstance = new TraitsInstance(name);
 
 		for (final Trait trait : globalTraitMap.values()) {
+
 			newInstance.globalTraitMap.put(trait.getName(), trait.createCopy(newInstance));
 		}
 
 		for (final Traits traits : globalTypeMap.values()) {
+
 			newInstance.globalTypeMap.put(traits.getName(), traits.createCopy(newInstance));
 		}
 
@@ -57,10 +61,12 @@ public class TraitsInstance {
 	}
 
 	void registerType(final String name, final Traits traits) {
+
 		globalTypeMap.put(name, traits);
 	}
 
 	Traits getType(final String name) {
+
 		return globalTypeMap.get(name);
 	}
 
@@ -71,8 +77,11 @@ public class TraitsInstance {
 	 * to a method's source don't propagate -- stale code keeps running.
 	 */
 	public void clearAllDynamicMethodCaches() {
+
 		for (final Traits traits : globalTypeMap.values()) {
+
 			if (traits instanceof TraitsImplementation impl) {
+
 				impl.clearDynamicMethodCache();
 			}
 		}
@@ -111,6 +120,7 @@ public class TraitsInstance {
 	}
 
 	public Collection<Trait> getAllTraitDefinitions() {
+
 		return globalTraitMap.values();
 	}
 
@@ -210,7 +220,6 @@ public class TraitsInstance {
 		if (traits != null) {
 
 			final PropertyKey<T> key = traits.key(name);
-
 			if (key != null) {
 
 				return key;
@@ -220,6 +229,7 @@ public class TraitsInstance {
 		}
 
 		// fixme
+
 		return null;
 	}
 
@@ -326,6 +336,7 @@ public class TraitsInstance {
 
 		// add implementation (allow extension of existing types)
 		for (final String trait : traits) {
+
 			impl.addTrait(trait);
 		}
 
@@ -336,6 +347,7 @@ public class TraitsInstance {
 
 		// do not overwrite types
 		if (getAllTypes(null).contains(typeName)) {
+
 			return;
 		}
 
@@ -346,6 +358,7 @@ public class TraitsInstance {
 		impl.addTrait(StructrTraits.RELATIONSHIP_INTERFACE);
 
 		for (final String trait : traits) {
+
 			impl.addTrait(trait);
 		}
 
@@ -355,6 +368,7 @@ public class TraitsInstance {
 	}
 
 	public boolean isSameAs(final TraitsInstance traitsInstance) {
+
 		return toString().equals(traitsInstance.toString());
 	}
 }

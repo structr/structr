@@ -65,11 +65,7 @@ public class OpenAPITokenOperation extends LinkedHashMap<String, Object> {
 			),
 
 			// responses
-			Map.of(
-				"200", new OpenAPISchemaReference("#/components/responses/tokenResponse"),
-				"401", new OpenAPISchemaReference("#/components/responses/tokenError")
-			)
-		);
+			Map.of("200", new OpenAPISchemaReference("#/components/responses/tokenResponse"), "401", new OpenAPISchemaReference("#/components/responses/tokenError")));
 
 		// override global security object to indicate that this request does not need authentication
 		post.put("security", Set.of());

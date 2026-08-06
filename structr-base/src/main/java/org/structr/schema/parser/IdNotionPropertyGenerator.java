@@ -46,21 +46,25 @@ public class IdNotionPropertyGenerator extends PropertyGenerator {
 	private String multiplicity    = null;
 
 	public IdNotionPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return String.class.getSimpleName();
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.IdNotion;
 	}
 
@@ -92,6 +96,7 @@ public class IdNotionPropertyGenerator extends PropertyGenerator {
 			if (multiplicity != null) {
 
 				if (parts.length == 3 && "true".equals(parts[2].toLowerCase())) {
+
 					isAutocreate = true;
 				}
 
@@ -123,22 +128,27 @@ public class IdNotionPropertyGenerator extends PropertyGenerator {
 	}
 
 	public boolean isPropertySet() {
+
 		return isPropertySet;
 	}
 
 	public Set<String> getProperties() {
+
 		return properties;
 	}
 
 	public boolean isAutocreate() {
+
 		return isAutocreate;
 	}
 
 	public String getBaseProperty() {
+
 		return baseProperty;
 	}
 
 	public String getMultiplicity() {
+
 		return multiplicity;
 	}
 }

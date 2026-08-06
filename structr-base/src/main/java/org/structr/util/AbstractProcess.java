@@ -44,6 +44,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	private Settings.SCRIPT_PROCESS_LOG_STYLE logBehaviour = Settings.SCRIPT_PROCESS_LOG_STYLE.get(Settings.LogScriptProcessCommandLine.getValue());
 
 	public AbstractProcess(final SecurityContext securityContext) {
+
 		this.securityContext = securityContext;
 	}
 
@@ -52,10 +53,12 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	public abstract void preprocess();
 
 	public StringBuilder getLogLine() {
+
 		return getCommandLine();
 	}
 
 	private boolean shouldLogCommandWhenExecuting() {
+
 		return (getLogBehaviour() != Settings.SCRIPT_PROCESS_LOG_STYLE.NOTHING);
 	}
 
@@ -105,26 +108,32 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	}
 
 	protected String outputStream() {
+
 		return stdOut.getBuffer();
 	}
 
 	protected String errorStream() {
+
 		return stdErr.getBuffer();
 	}
 
 	private int exitCode() {
+
 		return exitCode;
 	}
 
 	private void setExitCode(final int exitCode) {
+
 		this.exitCode = exitCode;
 	}
 
 	public void setLogBehaviour(final int logBehaviour) {
+
 		this.logBehaviour = Settings.SCRIPT_PROCESS_LOG_STYLE.get(logBehaviour);
 	}
 
 	public Settings.SCRIPT_PROCESS_LOG_STYLE getLogBehaviour() {
+
 		return this.logBehaviour;
 	}
 }

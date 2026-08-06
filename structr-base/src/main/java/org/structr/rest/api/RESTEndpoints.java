@@ -74,6 +74,7 @@ public class RESTEndpoints {
 
 	// ----- public static methods -----
 	public static void register(final RESTEndpoint endpoint) {
+
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
 	}
 
@@ -132,6 +133,7 @@ public class RESTEndpoints {
 				propertyView.add(lastPathElement);
 
 				// ... and return path without it
+
 				return path.substring(0, positionOfLastSlash);
 			}
 		}
@@ -163,39 +165,48 @@ public class RESTEndpoints {
 		private long usageCount      = 0;
 
 		public SortedByUsageCount(final RESTEndpoint item) {
+
 			this.endpoint = item;
 		}
 
 		@Override
 		public String toString() {
+
 			return usageCount + ": " + endpoint.toString();
 		}
 
 		@Override
 		public int hashCode() {
+
 			// make sure we can identify endpoints uniquely
+
 			return endpoint.hashCode();
 		}
 
 		@Override
 		public boolean equals(final Object other) {
+
 			return endpoint.equals(other);
 		}
 
 		@Override
 		public int compareTo(final SortedByUsageCount other) {
+
 			return Long.compare(other.usageCount, this.usageCount);
 		}
 
 		public void incrementUsageCount() {
+
 			this.usageCount++;
 		}
 
 		public RESTEndpoint getItem() {
+
 			return endpoint;
 		}
 
 		public Matcher matcher(final String path) {
+
 			return endpoint.matcher(path);
 		}
 	}

@@ -28,76 +28,91 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FlowDecisionFalse extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowDecisionFalse() {
+
 		super(StructrTraits.FLOW_DECISION_FALSE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.FLOW_DECISION;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.FLOW_NODE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "FALSE_RESULT";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.ALWAYS;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.Both;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public String getDeltaProperties() {
+
 		return null;
 	}
 }

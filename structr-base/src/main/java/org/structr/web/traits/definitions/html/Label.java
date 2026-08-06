@@ -33,6 +33,7 @@ public class Label extends GenericHtmlElementTraitDefinition {
 	public static final String FORM_PROPERTY = getPrefixedHTMLAttributeName("form");
 
 	public Label() {
+
 		super(StructrTraits.LABEL);
 	}
 
@@ -42,19 +43,12 @@ public class Label extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> forProperty  = new StringProperty(FOR_PROPERTY);
 		final PropertyKey<String> formProperty = new StringProperty(FORM_PROPERTY);
 
-		return newSet(
-			forProperty, formProperty
-		);
+		return newSet(forProperty, formProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					FOR_PROPERTY, FORM_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(FOR_PROPERTY, FORM_PROPERTY));
 	}
 }

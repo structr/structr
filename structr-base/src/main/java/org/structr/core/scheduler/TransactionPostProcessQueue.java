@@ -22,6 +22,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TransactionPostProcessQueue {
+
 	private final Queue<Runnable> processQueue;
 
 	public TransactionPostProcessQueue() {
@@ -45,6 +46,7 @@ public class TransactionPostProcessQueue {
 
 			func.run();
 		}
+
 		processQueue.clear();
 	}
 

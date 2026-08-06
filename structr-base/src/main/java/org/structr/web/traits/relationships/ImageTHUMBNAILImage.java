@@ -38,46 +38,55 @@ public class ImageTHUMBNAILImage extends AbstractRelationshipTraitDefinition imp
 	public static final String CROP_TO_FIT_PROPERTY = "cropToFit";
 
 	public ImageTHUMBNAILImage() {
+
 		super(StructrTraits.IMAGE_THUMBNAIL_IMAGE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "THUMBNAIL";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
@@ -89,8 +98,6 @@ public class ImageTHUMBNAILImage extends AbstractRelationshipTraitDefinition imp
 		final PropertyKey<Integer> maxHeight = new IntProperty(MAX_HEIGHT_PROPERTY);
 		final PropertyKey<Boolean> cropToFit = new BooleanProperty(CROP_TO_FIT_PROPERTY);
 
-		return Set.of(
-			checksum, maxWidth, maxHeight, cropToFit
-		);
+		return Set.of(checksum, maxWidth, maxHeight, cropToFit);
 	}
 }

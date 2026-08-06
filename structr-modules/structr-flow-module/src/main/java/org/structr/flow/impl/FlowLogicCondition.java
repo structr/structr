@@ -28,10 +28,12 @@ import org.structr.module.api.DeployableEntity;
 public class FlowLogicCondition extends FlowCondition implements DeployableEntity {
 
 	public FlowLogicCondition(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final Boolean combine(final Boolean result, final Boolean value) {
+
 		return traits.getMethod(LogicConditionOperations.class).combine(this, result, value);
 	}
 

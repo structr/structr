@@ -42,6 +42,7 @@ public class ReduceExpression extends Expression {
 	private Expression reduceExpression       = null;
 
 	public ReduceExpression(final int row, final int column) {
+
 		super("reduce", row, column);
 	}
 
@@ -74,6 +75,7 @@ public class ReduceExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null || initialValueExpression == null || reduceExpression == null) {
+
 			return ERROR_MESSAGE_MAP;
 		}
 
@@ -81,6 +83,7 @@ public class ReduceExpression extends Expression {
 		Object listSource = listExpression.evaluate(ctx, entity);
 
 		if (listSource != null && listSource.getClass().isArray()) {
+
 			listSource = Arrays.asList((Object[]) listSource);
 		}
 
@@ -107,26 +110,31 @@ public class ReduceExpression extends Expression {
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	@Override
 	public String getName() {
+
 		return "map";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a single result from all elements of a list by applying a reduction function.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function evaluates the reductionExpression for each element of the list and returns a single value. Inside the reduction expression, the keyword `accumulator` refers to the result of the previous reduction, and `data` refers to the current element. See also: `map()`, `each()` and `filter()`.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("list", "list of elements to loop over"),
 			Parameter.mandatory("initialValue", "expression that creates the initial value, e.g. 0"),
@@ -136,13 +144,13 @@ public class ReduceExpression extends Expression {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${reduce(merge(1, 2, 3, 4), 0, add(accumulator, data))}", "Add")
-		);
+
+		return List.of(Example.structrScript("${reduce(merge(1, 2, 3, 4), 0, add(accumulator, data))}", "Add"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.reduce()`).",
 			"The collection can also be a list of strings or numbers (see example 2)."
@@ -151,25 +159,25 @@ public class ReduceExpression extends Expression {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return List.of(
-			Signature.structrScript("list, initialValue, reductionExpression")
-		);
+
+		return List.of(Signature.structrScript("list, initialValue, reductionExpression"));
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.StructrScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${reduce(list, initialValue, reduceExpression)}. Example: ${reduce(this.children, 0, sum(accumulator, data.value)))}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${reduce(list, initialValue, reduceExpression)}. Example: ${reduce(this.children, 0, sum(accumulator, data.value)))}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

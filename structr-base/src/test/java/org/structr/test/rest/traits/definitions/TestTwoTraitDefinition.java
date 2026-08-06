@@ -33,6 +33,7 @@ import java.util.Set;
 public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestTwoTraitDefinition() {
+
 		super("TestTwo");
 	}
 
@@ -42,34 +43,23 @@ public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer>       anInt    = new IntProperty("anInt").indexed().indexedWhenEmpty();
 		final Property<Long>          aLong    = new LongProperty("aLong").indexed().indexedWhenEmpty();
 		final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
-
 		final Property<Iterable<NodeInterface>> testOnes    = new EndNodes(traitsInstance, "test_ones", "TwoOneOneToMany");
 		final Property<Iterable<NodeInterface>> testOnesAlt = new EndNodes(traitsInstance, "testOnes", "TwoOneOneToMany");
 		final Property<NodeInterface> testEleven            = new StartNode(traitsInstance, "testEleven", "ElevenTwoOneToMany");
 		final Property<NodeInterface> testElevenAlt         = new StartNode(traitsInstance, "test_eleven", "ElevenTwoOneToMany");
 
-		return newSet(
-			anInt,
-			aLong,
-			aDate,
-			testOnes,
-			testOnesAlt,
-			testEleven,
-			testElevenAlt
-		);
+		return newSet(anInt, aLong, aDate, testOnes, testOnesAlt, testEleven, testElevenAlt);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aLong", "aDate", "test_ones", "testOnes")
-		);
+		return Map.of(PropertyView.Public, newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aLong", "aDate", "test_ones", "testOnes"));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

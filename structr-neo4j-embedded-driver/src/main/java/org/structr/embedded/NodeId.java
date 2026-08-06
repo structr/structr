@@ -38,6 +38,7 @@ class NodeId {
 	}
 
 	public String getNode() {
+
 		return this.nodeId;
 	}
 }

@@ -23,6 +23,7 @@ package org.structr.api.util.html;
 public class InputField extends Empty {
 
 	public InputField(final Tag parent, final String type, final String name, final String value) {
+
 		this(parent, type, name, value, null);
 	}
 

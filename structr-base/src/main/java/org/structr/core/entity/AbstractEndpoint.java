@@ -47,10 +47,12 @@ public abstract class AbstractEndpoint {
 	private final String propertyName;
 
 	public AbstractEndpoint(final String propertyName) {
+
 		this.propertyName = propertyName;
 	}
 
 	public String getPropertyName() {
+
 		return propertyName;
 	}
 
@@ -61,6 +63,7 @@ public abstract class AbstractEndpoint {
 
 		// FIXME: this returns only the first relationship that matches, i.e. there is NO check for multiple relationships
 		if (iterator.hasNext()) {
+
 			return iterator.next();
 		}
 
@@ -111,6 +114,7 @@ public abstract class AbstractEndpoint {
 	}
 
 	protected NodeInterface unwrap(final NodeInterface node) throws FrameworkException {
+
 		return unwrap(null, null, node, null);
 	}
 

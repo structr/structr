@@ -31,11 +31,13 @@ public class FloorFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "floor";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
@@ -51,50 +53,50 @@ public class FloorFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${floor(value)}"),
-				Usage.javaScript("Usage: ${{ $.floor(value) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${floor(value)}"), Usage.javaScript("Usage: ${{ $.floor(value) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the given value, rounded down to the nearest integer.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("value", "value to round down")
-		);
+		return List.of(Parameter.mandatory("value", "value to round down"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${floor(32.4)}")
-		);
+
+		return List.of(Example.structrScript("${floor(32.4)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

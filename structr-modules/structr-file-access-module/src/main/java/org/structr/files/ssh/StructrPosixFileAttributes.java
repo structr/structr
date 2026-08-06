@@ -45,6 +45,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 	final AbstractFile file;
 
 	StructrPosixFileAttributes(final StructrSSHFile path) {
+
 		file = path.getActualFile();
 	}
 
@@ -54,9 +55,12 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		UserPrincipal owner = null;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			owner = file.as(AccessControllable.class).getOwnerNode()::getName;
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -65,7 +69,9 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 
 	@Override
 	public GroupPrincipal group() {
+
 		final List<Group> groups = Iterables.toList(file.as(AccessControllable.class).getOwnerNode().getParents());
+
 		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
 	}
 
@@ -84,9 +90,12 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		FileTime time = null;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			time = FileTime.fromMillis(file.getLastModifiedDate().getTime());
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -100,10 +109,13 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		FileTime time = null;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			// Same as lastModifiedTime() as we don't store last access time in Structr yet
 			time = FileTime.fromMillis(file.getLastModifiedDate().getTime());
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -116,9 +128,12 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		FileTime time = null;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			time = FileTime.fromMillis(file.getCreatedDate().getTime());
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -131,9 +146,12 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			isRegularFile = file.is(StructrTraits.FILE);
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -146,9 +164,12 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			isDirectory = file.is(StructrTraits.FOLDER);
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -157,12 +178,15 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 
 	@Override
 	public boolean isSymbolicLink() {
+
 		// Structr doesn't support symbolic links yet
+
 		return false;
 	}
 
 	@Override
 	public boolean isOther() {
+
 		return false;
 	}
 
@@ -172,9 +196,12 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		long size = 0;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			size = StorageProviderFactory.getStorageProvider(file).size();
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -185,10 +212,14 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 	public Object fileKey() {
 
 		String uuid = null;
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
+
 			uuid = file.getUuid();
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 

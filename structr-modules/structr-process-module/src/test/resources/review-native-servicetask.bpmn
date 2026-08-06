@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_NativeServiceTask"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <!--
+    A Structr-native service task with an inline structr-javascript body that sets a
+    process variable via $.process.x = y. The write must persist (via the
+    ProcessContext write sink) so the following exclusive gateway routes on it.
+  -->
+  <bpmn:process id="Process_NativeServiceTask" name="Native service task sets a variable" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:serviceTask id="Svc_SetAmount" name="Score" scriptFormat="structr-javascript">
+      <bpmn:script>$.process.amount = 25000;</bpmn:script>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gate_Amount" name="Amount?" default="Flow_Small" />
+
+    <bpmn:userTask id="Task_Small"  name="Auto approve" />
+    <bpmn:userTask id="Task_Medium" name="Manager approve" />
+
+    <bpmn:endEvent id="End_Small"  name="Small done" />
+    <bpmn:endEvent id="End_Medium" name="Medium done" />
+
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="Start_1"      targetRef="Svc_SetAmount" />
+    <bpmn:sequenceFlow id="Flow_gate"  sourceRef="Svc_SetAmount" targetRef="Gate_Amount" />
+
+    <bpmn:sequenceFlow id="Flow_Medium" name="1.000 - 50.000" sourceRef="Gate_Amount" targetRef="Task_Medium">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${amount &gt;= 1000 &amp;&amp; amount &lt; 50000}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Small" name="&lt; 1.000" sourceRef="Gate_Amount" targetRef="Task_Small" />
+
+    <bpmn:sequenceFlow id="Flow_small_end"  sourceRef="Task_Small"  targetRef="End_Small" />
+    <bpmn:sequenceFlow id="Flow_medium_end" sourceRef="Task_Medium" targetRef="End_Medium" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

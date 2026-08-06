@@ -30,16 +30,19 @@ import java.util.List;
 public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 	public MailSetSubjectFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailSetSubject";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("subject");
 	}
 
@@ -57,32 +60,32 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailSetSubject(subject)}"),
-			Usage.javaScript("Usage: ${{ $.mailSetSubject(subject) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailSetSubject(subject)}"), Usage.javaScript("Usage: ${{ $.mailSetSubject(subject) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Overwrites/Sets the subject of the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("subject", "subject of the mail")
-		);
+
+		return List.of(Parameter.mandatory("subject", "subject of the mail"));
 	}
 }

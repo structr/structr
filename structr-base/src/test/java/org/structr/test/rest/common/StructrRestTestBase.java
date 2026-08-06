@@ -114,6 +114,7 @@ public abstract class StructrRestTestBase {
 
 		// wait for service layer to be initialized
 		while (!services.isInitialized()) {
+
 			try { Thread.sleep(100); } catch (Throwable t) {}
 		}
 
@@ -261,15 +262,18 @@ public abstract class StructrRestTestBase {
 
 	@BeforeMethod
 	public void starting(Method method) {
+
 		System.out.println("##### Starting " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@AfterMethod
 	public void finished(Method method) {
+
 		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	protected String getRandomTenantIdentifier() {
+
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
@@ -279,11 +283,16 @@ public abstract class StructrRestTestBase {
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin123");
+
 		if (StringUtils.isBlank(testDatabaseConnection)) {
+
 			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
 		} else {
+
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
+
 		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
@@ -317,11 +326,11 @@ public abstract class StructrRestTestBase {
 		StringBuilder buf = new StringBuilder();
 
 		for (String part : body) {
+
 			buf.append(part);
 		}
 
-		return getUuidFromLocation(
-			RestAssured
+		return getUuidFromLocation(RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(buf.toString())
@@ -333,6 +342,7 @@ public abstract class StructrRestTestBase {
 		StringBuilder buf = new StringBuilder();
 
 		for (String part : parts) {
+
 			buf.append(part);
 		}
 
@@ -340,18 +350,22 @@ public abstract class StructrRestTestBase {
 	}
 
 	protected String getUuidFromLocation(final String location) {
+
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
 
 	protected Matcher isEntity(final String type) {
+
 		return new EntityMatcher(type);
 	}
 
 	protected Map<String, Object> toMap(final String key1, final Object value1) {
+
 		return toMap(key1, value1, null, null);
 	}
 
 	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2) {
+
 		return toMap(key1, value1, key2, value2, null, null);
 	}
 
@@ -360,14 +374,17 @@ public abstract class StructrRestTestBase {
 		final Map<String, Object> map = new LinkedHashMap<>();
 
 		if (key1 != null && value1 != null) {
+
 			map.put(key1, value1);
 		}
 
 		if (key2 != null && value2 != null) {
+
 			map.put(key2, value2);
 		}
 
 		if (key3 != null && value3 != null) {
+
 			map.put(key3, value3);
 		}
 
@@ -389,6 +406,7 @@ public abstract class StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

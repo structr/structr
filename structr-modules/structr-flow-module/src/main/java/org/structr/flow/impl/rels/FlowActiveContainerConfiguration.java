@@ -28,76 +28,91 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FlowActiveContainerConfiguration extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowActiveContainerConfiguration() {
+
 		super(StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.FLOW_CONTAINER_CONFIGURATION;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.FLOW_CONTAINER;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "ACTIVE_CONFIGURATION_FOR";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.TARGET_TO_SOURCE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.ALWAYS;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.Both;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public String getDeltaProperties() {
+
 		return null;
 	}
 }

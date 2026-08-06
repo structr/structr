@@ -31,6 +31,7 @@ public class FlowKeyValue extends FlowDataSource implements DeployableEntity {
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
 	public FlowKeyValue(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

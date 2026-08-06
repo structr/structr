@@ -35,6 +35,7 @@ public class TypePredicate implements Predicate<Node> {
 	private String type = null;
 
 	public TypePredicate(String type) {
+
 		this.type = type;
 	}
 

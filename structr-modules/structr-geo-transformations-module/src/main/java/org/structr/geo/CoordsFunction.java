@@ -41,11 +41,13 @@ public class CoordsFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "getCoordinates";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("geometry");
 	}
 
@@ -111,28 +113,32 @@ public class CoordsFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the coordinates of a geometry.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

@@ -52,26 +52,31 @@ public class ClearErrorFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "clearError";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Clears the given error token from the current context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function only supports error tokens returned by the `getErrors()` function as arguments.";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("errorToken");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.clearError(errorToken)}}. Example: ${{$.clearError(errorToken)}}"),
 			Usage.structrScript("Usage: ${clearError(errorToken)}. Example: ${clearError(errorToken)}")
@@ -81,21 +86,18 @@ public class ClearErrorFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("errorToken", "error token as returned by `getErrors()`")
-		);
+		return List.of(Parameter.mandatory("errorToken", "error token as returned by `getErrors()`"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also `getErrors()`, `clearErrors()`, `error()` and `assert()`."
-		);
+		return List.of("See also `getErrors()`, `clearErrors()`, `error()` and `assert()`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 }

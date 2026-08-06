@@ -45,7 +45,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class RenderDataTest extends DOMTest {
 
-
 	@Test
 	public void testRenderListFromRestQuery() {
 
@@ -89,8 +88,8 @@ public class RenderDataTest extends DOMTest {
 			DOMElement body = doc.createElement("body");
 			DOMElement b = doc.createElement("b");
 			final DOMElement p1 = doc.createElement("p");
-
 			final PropertyMap p1Properties = new PropertyMap();
+
 			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('User', sort('name'))");
 			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "user");
 			p1.setProperties(p1.getSecurityContext(), p1Properties);
@@ -101,8 +100,8 @@ public class RenderDataTest extends DOMTest {
 
 			DOMElement div = doc.createElement("div");
 			final DOMElement p2 = doc.createElement("p");
-
 			final PropertyMap p2Properties = new PropertyMap();
+
 			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('File', sort('name'))");
 			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "file");
 			p2.setProperties(p2.getSecurityContext(), p2Properties);
@@ -148,6 +147,7 @@ public class RenderDataTest extends DOMTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("unexpected exception");
 		}

@@ -35,6 +35,7 @@ public class RawMarkdownFileFormatter extends Formatter {
 	private final Resource baseResource;
 
 	public RawMarkdownFileFormatter(final Resource baseResource) {
+
 		this.baseResource = baseResource;
 	}
 
@@ -52,6 +53,7 @@ public class RawMarkdownFileFormatter extends Formatter {
 			lines.addAll(Files.readAllLines(resource.resolve(fileName).getPath()));
 
 		} catch (IOException e) {
+
 			e.printStackTrace();
 		}
 

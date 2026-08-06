@@ -34,11 +34,13 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "requestStoreGet";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -54,51 +56,50 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${requestStoreGet(key)}."),
-			Usage.javaScript("Usage: ${{ $.requestStoreGet(key); }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${requestStoreGet(key)}."), Usage.javaScript("Usage: ${{ $.requestStoreGet(key); }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Retrieves a stored value from the request level store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${requestStoreGet('do_no_track')}"),
-				Example.javaScript("${{ $.requestStoreGet('do_not_track'); }}")
-		);
+
+		return List.of(Example.structrScript("${requestStoreGet('do_no_track')}"), Example.javaScript("${{ $.requestStoreGet('do_not_track'); }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("key", "stored key")
-		);
+		return List.of(Parameter.mandatory("key", "stored key"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

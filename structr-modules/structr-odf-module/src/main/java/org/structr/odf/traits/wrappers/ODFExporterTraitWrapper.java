@@ -33,6 +33,7 @@ import org.structr.web.entity.File;
 public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements ODFExporter {
 
 	public ODFExporterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -59,6 +60,7 @@ public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	public void setResultDocument(final File resultDocument) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ODFExporterTraitDefinition.RESULT_DOCUMENT_PROPERTY), resultDocument);
 	}
 

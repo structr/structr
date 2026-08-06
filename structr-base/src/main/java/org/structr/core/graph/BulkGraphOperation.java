@@ -37,28 +37,34 @@ public abstract class BulkGraphOperation<T> {
 	public abstract boolean handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
 
 	public void handleThrowable(final SecurityContext securityContext, final Throwable t, final T currentObject) {
+
 		logger.warn("Exception in bulk graph operation.", t);
 		logger.warn(ExceptionUtils.getStackTrace(t));
 	}
 
 	public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
+
 		logger.warn("Transaction failure in bulk graph operation.", t);
 		logger.warn(ExceptionUtils.getStackTrace(t));
 	}
 
 	public Predicate<Long> getCondition() {
+
 		return null;
 	}
 
 	public boolean doValidation() {
+
 		return true;
 	}
 
 	public boolean doCallbacks() {
+
 		return false;
 	}
 
 	public boolean doNotifications() {
+
 		return false;
 	}
 }

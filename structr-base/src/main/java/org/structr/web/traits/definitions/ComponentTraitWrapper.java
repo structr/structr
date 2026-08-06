@@ -29,6 +29,7 @@ import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 public class ComponentTraitWrapper extends DOMElementTraitWrapper implements Component {
 
 	public ComponentTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 }

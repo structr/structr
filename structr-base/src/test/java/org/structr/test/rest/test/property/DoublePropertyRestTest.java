@@ -40,8 +40,6 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 			.post("/TestThree")
 			.getHeader("Location");
 
-
-
 		Response response = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 		.expect()
@@ -84,7 +82,6 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 			.body("result[0].doubleProperty", equalTo(2.3f))
 		.when()
 			.get("/TestThree?doubleProperty=2.3");
-
 
 		// test range query
 		RestAssured.given()

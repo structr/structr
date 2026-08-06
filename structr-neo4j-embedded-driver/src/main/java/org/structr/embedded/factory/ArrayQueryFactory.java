@@ -25,6 +25,7 @@ import org.structr.embedded.AdvancedCypherQuery;
 public class ArrayQueryFactory extends KeywordQueryFactory {
 
 	public ArrayQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -40,6 +41,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 		// to select the correct index
 		final String label = predicate.getLabel();
 		if (label != null) {
+
 			query.indexLabel(label);
 		}
 

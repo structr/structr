@@ -40,11 +40,13 @@ public class LineStringsToPolygonsFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "lineStringsToPolygons";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list");
 	}
 
@@ -90,28 +92,32 @@ public class LineStringsToPolygonsFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Merges line strings to polygons.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

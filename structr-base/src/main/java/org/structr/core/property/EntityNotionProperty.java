@@ -68,46 +68,55 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	@Override
 	public Property<T> indexed() {
+
 		return this;
 	}
 
 	@Override
 	public Property<T> passivelyIndexed() {
+
 		return this;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public String typeName() {
+
 		return "";
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -145,21 +154,25 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	@Override
 	public String relatedType() {
+
 		return relatedType;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return null;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
@@ -173,37 +186,44 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	@Override
 	public boolean isIndexed() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isPassivelyIndexed() {
+
 		return false;
 	}
 
 	@Override
 	public int getProcessingOrderPosition() {
+
 		return 1000;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 }

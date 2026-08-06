@@ -35,11 +35,13 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "stopWords";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("language");
 	}
 
@@ -61,17 +63,20 @@ public class StopWordsFunction extends Function<Object, Object> {
 		} catch (ArgumentNullException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${stopWords(language)}. Example: ${stopWords(\"de\")}"),
 			Usage.javaScript("Usage: ${{ $.stopWords(language) }}. Example: ${{ $.stopWords(\"de\") }}")
@@ -80,21 +85,25 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a list of words (for the given language) which can be ignored for NLP purposes.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return "text-search";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

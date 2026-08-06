@@ -55,11 +55,11 @@ public class Deployment6Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test60");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test05");
 
 			final DOMElement body = createElement(page, html, "body");
 			final DOMElement div1  = createElement(page, body, "div");
-
 			final Template template1 = createTemplate(page, div1, "template1");
 			final Template template2 = createTemplate(page, template1, "template2");
 			final Template template3 = createTemplate(page, template2, "template3");
@@ -74,6 +74,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -95,6 +96,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -107,6 +109,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test42");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test42");
 
 			final DOMElement body = createElement(page, html, "body");
@@ -121,6 +124,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -156,6 +160,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -164,6 +169,7 @@ public class Deployment6Test extends DeploymentTestBase {
 	public void test62CypherPropertyRoundtrip() {
 
 		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage)) {
+
 			return;
 		}
 
@@ -179,6 +185,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -194,6 +201,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -215,6 +223,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -234,6 +243,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -249,6 +259,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -270,6 +281,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}

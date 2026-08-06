@@ -57,22 +57,27 @@ public class Parameters extends LinkedHashMap<String, String> {
 	}
 
 	public boolean requiresSecurityContextAsFirstArgument() {
+
 		return requiredSecurityContextFirst;
 	}
 
 	public void setRequiresSecurityContextAsFirstArgument(final boolean value) {
+
 		requiredSecurityContextFirst = value;
 	}
 
 	public boolean hasSecurityContextAndMapParameters() {
+
 		return hasSecurityContextAndMapParameters;
 	}
 
 	public void setHasExportedMethodDefaultSignature(final boolean value) {
+
 		hasSecurityContextAndMapParameters = value;
 	}
 
 	public String getNameByIndex(final int index) {
+
 		return Iterables.nth(this.keySet(), index);
 	}
 
@@ -81,6 +86,7 @@ public class Parameters extends LinkedHashMap<String, String> {
 		if (name != null) {
 
 			final String value = this.get(name);
+
 			return value;
 
 		} else {
@@ -100,13 +106,14 @@ public class Parameters extends LinkedHashMap<String, String> {
 		for (final java.lang.reflect.Parameter p : method.getParameters()) {
 
 			final Class nonPrimitiveType = ClassUtils.primitiveToWrapper(p.getType());
-
 			if (nonPrimitiveType.isAssignableFrom(SecurityContext.class) && index == 0) {
+
 				parameters.setRequiresSecurityContextAsFirstArgument(true);
 			}
 
 			// default export method signature detected, store this info for later use
 			if (parameters.requiresSecurityContextAsFirstArgument() && nonPrimitiveType.isAssignableFrom(Map.class) && index == 1) {
+
 				parameters.setHasExportedMethodDefaultSignature(true);
 			}
 

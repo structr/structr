@@ -35,6 +35,7 @@ import java.util.Set;
 public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestOneTraitDefinition() {
+
 		super("TestOne");
 	}
 
@@ -116,20 +117,18 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 					NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aDouble", "aLong", "aDate", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, "aString", "anotherString", "aBoolean", "anEnum", "stringWithDefault", "aStringArray"
 			),
 
-			PropertyView.Protected,
-			newSet(
-				NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aString"
-			)
-		);
+			PropertyView.Protected, newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aString"));
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

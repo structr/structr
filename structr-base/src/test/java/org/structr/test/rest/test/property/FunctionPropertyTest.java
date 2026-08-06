@@ -111,6 +111,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			assertEquals(firstNum, secondNum);
 
 		} catch (FrameworkException ex) {
+
 			fail("Exception during test: " + ex.getMessage());
 		}
 	}
@@ -141,6 +142,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -157,6 +159,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -169,6 +172,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -189,7 +193,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 	@Test
 	public void testFunctionPropertyCacheInvalidation() {
 
-
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
@@ -205,6 +208,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -219,6 +223,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -246,7 +251,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			.body()
 			.jsonPath()
 			.getString("result[0].id");
-
 
 		// change read function
 		RestAssured.given()
@@ -291,6 +295,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -304,15 +309,13 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 
 				calendar.set(2000 + i, 0, 1);
 
-				app.create("FunctionPropertyTest",
-					new Name("test" + i),
-					new NodeAttribute<>(dateKey, calendar.getTime())
-				);
+				app.create("FunctionPropertyTest", new Name("test" + i), new NodeAttribute<>(dateKey, calendar.getTime()));
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -432,14 +435,13 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
 		String resource = "/FunctionPropertyTest";
-
-		final String uuidForNodeWithNulls = getUuidFromLocation(
-				RestAssured
+		final String uuidForNodeWithNulls = getUuidFromLocation(RestAssured
 						.given()
 							.contentType("application/json; charset=UTF-8")
 							.header("Accept", "application/json; charset=UTF-8")
@@ -449,11 +451,9 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 							.statusCode(201)
 
 						.when()
-							.post(resource).getHeader("Location")
-		);
+							.post(resource).getHeader("Location"));
 
-		final String uuidForNodeWithoutNulls = getUuidFromLocation(
-				RestAssured
+		final String uuidForNodeWithoutNulls = getUuidFromLocation(RestAssured
 						.given()
 							.contentType("application/json; charset=UTF-8")
 							.header("Accept", "application/json; charset=UTF-8")
@@ -463,8 +463,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 							.statusCode(201)
 
 						.when()
-							.post(resource).getHeader("Location")
-		);
+							.post(resource).getHeader("Location"));
 
 		RestAssured
 				.given()

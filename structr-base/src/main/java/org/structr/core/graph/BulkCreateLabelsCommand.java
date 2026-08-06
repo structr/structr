@@ -69,21 +69,25 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 			@Override
 			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
+
 				warn("Unable to create labels for node {}: {}", node, t.getMessage());
 			}
 
 			@Override
 			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
 				warn("Unable to create labels for node: {}", t.getMessage());
 			}
 		});
 
 		info("Done with creating labels on {} nodes", count);
+
 		return count;
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
@@ -98,27 +102,32 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return true;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "createLabels";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Updates Neo4j type labels on nodes to match their Structr type hierarchy.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         Use this command after changing type inheritance or when labels are out of sync.
         
@@ -128,41 +137,43 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.optional("type", "Limit to nodes of this type"),
-			Parameter.optional("removeUnused", "Remove labels without corresponding types (default: true)")
-		);
+
+		return List.of(Parameter.optional("type", "Limit to nodes of this type"), Parameter.optional("removeUnused", "Remove labels without corresponding types (default: true)"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Only works for nodes that have a value in their `type` property."
-		);
+
+		return List.of("Only works for nodes that have a value in their `type` property.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

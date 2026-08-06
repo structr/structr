@@ -125,6 +125,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// resolving properties
 		final String resolvePropertiesSource = Settings.HtmlResolveProperties.getValue();
+
 		for (final String src : resolvePropertiesSource.split("[, ]+")) {
 
 			final String name = src.trim();
@@ -139,11 +140,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
+
 		return config;
 	}
 
 	@Override
 	public String getModuleName() {
+
 		return "ui";
 	}
 
@@ -189,6 +192,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			} catch (AuthenticationException aex) {
 
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
 				return;
 
 			} catch (final OAuthException oae) {
@@ -225,6 +229,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (response.getStatus() == 302) {
 
 					tx.success();
+
 					return;
 				}
 
@@ -253,6 +258,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						// did not find error page and the status was already set -> send the error response
 						tx.success();
+
 						return;
 					}
 				}
@@ -260,6 +266,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (rootElement == null && file == null) {
 
 					if (uriParts == null) {
+
 						logger.error("URI parts array is null, shouldn't happen.");
 						throw new FrameworkException(500, "URI parts array is null, shouldn't happen.");
 					}
@@ -303,6 +310,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							// special case where path is defined as "/custom/path" and request URI is "/custom/path/"
 							if (rootElement == null && path.endsWith("/")) {
+
 								rootElement = findPage(securityContext, path.substring(0, path.length() - 1), edit);
 							}
 
@@ -312,7 +320,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						}
 					}
 				}
-
 
 				if (rootElement == null && file == null) { // No page found
 
@@ -357,8 +364,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							} else {
 
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
-
 								if (possibleRootNode != null && possibleRootNode.is(StructrTraits.DOM_NODE)) {
+
 									rootElement = possibleRootNode.as(DOMNode.class);
 								}
 							}
@@ -388,6 +395,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								dataNode = findNodeByUuid(securityContext, uuid);
 
 								if (dataNode == null) {
+
 									dataNode = findFirstNodeByName(securityContext, path);
 								}
 
@@ -432,9 +440,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								streamFile(new ActionContext(authResult.getSecurityContext()), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
+
 								return;
 
 							}
+
 							break;
 
 						// Page with Basic Auth found but not yet authenticated
@@ -455,6 +465,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 
 								tx.success();
+
 								return;
 							}
 
@@ -476,11 +487,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// Still nothing found, do error handling
 				if (rootElement == null) {
+
 					rootElement = notFound(response, securityContext);
 				}
 
 				if (rootElement == null) {
+
 					tx.success();
+
 					return;
 				}
 
@@ -497,9 +511,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (!securityContext.isVisible(rootElement)) {
 
 					rootElement = notFound(response, securityContext);
+
 					if (rootElement == null) {
 
 						tx.success();
+
 						return;
 					}
 
@@ -547,6 +563,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								writeOutputStream(response, buffer);
 
 							} catch (IOException ioex) {
+
 								logger.warn("", ioex);
 							}
 
@@ -558,6 +575,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				logger.error("Exception while processing request: {}", fex.getMessage());
 			}
 
@@ -632,6 +650,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (response.getStatus() == 302) {
 
 					tx.success();
+
 					return;
 				}
 
@@ -645,11 +664,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 				final EditMode edit               = renderContext.getEditMode(user);
-
 				DOMNode rootElement    = null;
 				NodeInterface dataNode = null;
-
 				String[] uriParts = PathHelper.getParts(path);
+
 				if ((uriParts == null) || (uriParts.length == 0)) {
 
 					// find a visible page
@@ -670,6 +688,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						streamFile(renderContext, file, request, response, edit, false);
 						tx.success();
+
 						return;
 
 					}
@@ -734,14 +753,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								streamFile(new ActionContext(authResult.getSecurityContext()), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
+
 								return;
 
 							}
+
 							break;
 
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
 							tx.success();
+
 							return;
 
 						// no Basic Auth for given path, go on
@@ -774,6 +796,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (rootElement == null) {
 
 					tx.success();
+
 					return;
 				}
 
@@ -790,9 +813,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (!securityContext.isVisible(rootElement)) {
 
 					rootElement = notFound(response, securityContext);
+
 					if (rootElement == null) {
 
 						tx.success();
+
 						return;
 					}
 
@@ -821,6 +846,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				tx.success();
 
 			} catch (Throwable fex) {
+
 				logger.error("Exception while processing request", fex);
 			}
 
@@ -844,6 +870,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -897,6 +924,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						finished.set(true);
 
 					} catch (IOException ex) {
+
 						logger.warn(ExceptionUtils.getStackTrace(ex));
 					}
 				}
@@ -916,11 +944,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				try {
 
 					final Queue<String> queue = renderContext.getBuffer().getQueue();
+
 					while (out.isReady()) {
 
 						String buffer = null;
 
 						synchronized (queue) {
+
 							buffer = queue.poll();
 						}
 
@@ -943,9 +973,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 				} catch (EofException ee) {
+
 					// ignore EofException which (by jettys standards) should be handled less verbosely
 
 				} catch (IOException | InterruptedException t) {
+
 					//logger.warn("Unexpected exception", t);
 				}
 			}
@@ -958,7 +990,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				finished.set(true);
 
 				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
+
 				} else {
 
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
@@ -995,10 +1029,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final NodeInterface node : errorPages) {
 
 			final Page errorPage = node.as(Page.class);
-
 			if (isVisibleForSite(securityContext.getRequest(), errorPage)) {
 
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
 				return errorPage;
 			}
 
@@ -1017,7 +1051,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final NodeInterface node : errorPages) {
 
 			final Page errorPage = node.as(Page.class);
-
 			if (isVisibleForSite(securityContext.getRequest(), errorPage)) {
 
 				return errorPage;
@@ -1040,7 +1073,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private NodeInterface findFirstNodeByName(final SecurityContext securityContext, final String path) throws FrameworkException {
 
 		final String name = PathHelper.getName(path);
-
 		if (!name.isEmpty()) {
 
 			logger.debug("Requested name: {}", name);
@@ -1090,10 +1122,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// If no results were found, try to replace whitespace by '+' or '%20'
 		if (entryPoints.isEmpty()) {
+
 			entryPoints = findFiles(securityContext, request, PathHelper.replaceWhitespaceByPlus(path));
 		}
 
 		if (entryPoints.isEmpty()) {
+
 			entryPoints = findFiles(securityContext, request, PathHelper.replaceWhitespaceByPercentTwenty(path));
 		}
 
@@ -1103,6 +1137,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			FileHelper.prefetchFileData(node.getUuid());
 
 			if (node.is(StructrTraits.FILE) && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
+
 				return node.as(File.class);
 			}
 		}
@@ -1123,8 +1158,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).name(name).not().key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.PAGE).getAsList()) {
 
 			final DOMNode potentialPartial = node.as(DOMNode.class);
-
 			if (potentialPartial.getOwnerDocumentAsSuperUser() != null) {
+
 				return potentialPartial;
 			}
 		}
@@ -1158,7 +1193,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final NodeInterface node : possiblePages) {
 
 			final Page page = node.as(Page.class);
-
 			if (!hasMultiplePathParts && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
 
 				return page;
@@ -1167,11 +1201,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// Check direct access by UUID
 		final int nameLength = name.length();
-
 		if (nameLength == 32 || nameLength == 36) {
 
 			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, name);
-
 			if (possiblePage != null && possiblePage.is(StructrTraits.PAGE) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), possiblePage.as(Page.class)))) {
 
 				return possiblePage.as(Page.class);
@@ -1194,13 +1226,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final Traits traits                    = Traits.of(StructrTraits.PAGE);
 		final PropertyKey<Integer> positionKey = traits.key(PageTraitDefinition.POSITION_PROPERTY);
-
 		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).notBlank(positionKey).sort(positionKey).getAsList();
 
 		for (final NodeInterface node : possiblePages) {
 
 			final Page page = node.as(Page.class);
-
 			if (securityContext.isVisible(page) && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.as(Linkable.class).getEnableBasicAuth() && node.isVisibleToAuthenticatedUsers()))) {
 
 				return page;
@@ -1228,8 +1258,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		logger.debug("Checking registration ...");
 
 		final String key = request.getParameter(CONFIRMATION_KEY_KEY);
-
 		if (StringUtils.isEmpty(key)) {
+
 			return false;
 		}
 
@@ -1240,6 +1270,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			final App app = StructrApp.getInstance();
 
 			List<NodeInterface> results;
+
 			try (final Tx tx = app.tx()) {
 
 				results = app.nodeQuery(StructrTraits.PRINCIPAL).key(confirmationKey, key).getAsList();
@@ -1283,8 +1314,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// Redirect to target path
 				final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
-
 				if (StringUtils.isNotBlank(targetPath)) {
+
 					sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 				}
 
@@ -1294,8 +1325,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// Redirect to error path
 				final String errorPath = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
-
 				if (StringUtils.isNotBlank(errorPath)) {
+
 					sendRedirectHeader(response, errorPath, false);	// user-provided, should be already prefixed
 				}
 
@@ -1322,8 +1353,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		logger.debug("Checking reset password ...");
 
 		final String key = request.getParameter(CONFIRMATION_KEY_KEY);
-
 		if (StringUtils.isEmpty(key)) {
+
 			return false;
 		}
 
@@ -1334,6 +1365,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			final App app = StructrApp.getInstance();
 
 			List<NodeInterface> results;
+
 			try (final Tx tx = app.tx()) {
 
 				results = app.nodeQuery(StructrTraits.PRINCIPAL).key(confirmationKeyKey, key).getAsList();
@@ -1382,8 +1414,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			// Redirect to target path
 			final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
-
 			if (StringUtils.isNotBlank(targetPath)) {
+
 				sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 			}
 
@@ -1429,14 +1461,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private List<Linkable> findFiles(final SecurityContext securityContext, final HttpServletRequest request, final String path) throws FrameworkException {
 
 		final int numberOfParts = PathHelper.getParts(path).length;
-
 		if (numberOfParts > 0) {
 
 			logger.debug("Requested name {}", path);
 
 			List<Linkable> possibleEntryPoints = findFilesByPath(securityContext, request, path);
-
 			if (possibleEntryPoints.isEmpty() && numberOfParts == 1) {
+
 				possibleEntryPoints = findPossibleEntryPointsByUuid(securityContext, request, PathHelper.getName(path));
 			}
 
@@ -1456,7 +1487,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {
 
 		final long t0 = System.currentTimeMillis();
-
 		boolean notModified = false;
 		final Date lastModified = node.getLastModifiedDate();
 
@@ -1479,8 +1509,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		} else {
 
 			if (!dontCache) {
+
 				response.setHeader(RequestHeaders.CacheControl.getName(), "no-cache, must-revalidate, proxy-revalidate");
+
 			} else {
+
 				response.setHeader(RequestHeaders.CacheControl.getName(), "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
 			}
 
@@ -1492,7 +1525,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			response.setHeader(RequestHeaders.LastModified.getName(), httpDateFormat.format(roundedLastModified));
 
 			final String ifModifiedSince = request.getHeader(RequestHeaders.IfModifiedSince.getName());
-
 			if (StringUtils.isNotBlank(ifModifiedSince)) {
 
 				try {
@@ -1510,6 +1542,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 				} catch (ParseException ex) {
+
 					// silently ignore invalid date as per RFC 7232 section 3.3
 				}
 			}
@@ -1524,11 +1557,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (!securityContext.isVisible(file)) {
 
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+
 			return;
 		}
 
 		final long t0 = System.currentTimeMillis();
-
 		final ServletOutputStream out         = response.getOutputStream();
 		final String downloadAsFilename       = request.getParameter(RequestParameters.DownloadAsFilename.getName());
 		final Map<String, Object> callbackMap = new HashMap<>();
@@ -1537,6 +1570,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		callbackMap.put("editMode", edit);
 
 		if (downloadAsFilename != null) {
+
 			// remove any CR LF characters from the filename to prevent Header Splitting attacks
 			final String cleanedFilename = FilenameCleanerPattern.matcher(downloadAsFilename).replaceAll("");
 
@@ -1552,7 +1586,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		boolean dontCache = file.dontCache();
-
 		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, dontCache)) {
 
 			out.flush();
@@ -1571,6 +1604,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				response.setContentType("text/plain");
 
 				if (sendContent) {
+
 					IOUtils.write(encoded, out, "utf-8");
 				}
 
@@ -1610,10 +1644,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						final long len = StorageProviderFactory.getStorageProvider(file).size();
 						long start     = 0;
 						long end       = len - 1;
-
 						final Matcher matcher = Pattern.compile("bytes=(?<start>\\d*)-(?<end>\\d*)").matcher(range);
 
 						if (matcher.matches()) {
+
 							String startGroup = matcher.group("start");
 							start = startGroup.isEmpty() ? start : Long.valueOf(startGroup);
 							start = Math.max(0, start);
@@ -1634,16 +1668,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						callbackMap.put("statusCode", HttpServletResponse.SC_PARTIAL_CONTENT);
 
 						if (sendContent) {
+
 							IOUtils.copyLarge(in, out, start, contentLength);
 						}
 
 					} else {
 
 						if (!file.isTemplate()) {
+
 							response.addHeader("Content-Length", Long.toString(StorageProviderFactory.getStorageProvider(file).size()));
 						}
 
 						if (sendContent) {
+
 							IOUtils.copyLarge(in, out);
 						}
 
@@ -1661,6 +1698,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					if (out != null) {
 
 						try {
+
 							// 3: output content
 							out.flush();
 							out.close();
@@ -1670,6 +1708,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 					if (in != null) {
+
 						in.close();
 					}
 
@@ -1691,6 +1730,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 			} catch (FrameworkException fex) {
+
 				logger.warn("", fex);
 			}
 		}
@@ -1707,7 +1747,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) throws FrameworkException {
 
 		final List<NodeInterface> sites = StructrApp.getInstance().nodeQuery(StructrTraits.SITE).getAsList();
-
 		if (sites == null || sites.isEmpty()) {
 
 			return true;
@@ -1715,18 +1754,18 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final String serverName = request.getServerName();
 		final int serverPort    = request.getServerPort();
-
 		boolean isVisible = false;
 
 		for (final Site site : Iterables.toList(page.getSites())) {
 
 				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
+
 					isVisible = true;
 				}
 
 				final Integer sitePort = site.getPort();
-
 				if (isVisible && (sitePort == null || serverPort == sitePort)) {
+
 					isVisible = true;
 				}
 		}
@@ -1817,14 +1856,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// try the different methods...
 		if (possiblePage == null) {
+
 			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).key(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
+
 			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).key(filePathKey, path).key(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage == null) {
+
 			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).key(basicAuthKey, true).getFirst();
 		}
 
@@ -1867,10 +1909,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
 			// no Authorization header sent by client
+
 			return HttpBasicAuthResult.MUST_AUTHENTICATE;
 		}
 
 		// no Http Basic Auth enabled for any page
+
 		return HttpBasicAuthResult.NO_BASIC_AUTH;
 	}
 
@@ -1901,9 +1945,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (StringUtils.isNoneBlank(username, password)) {
 
 					try {
+
 						return AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username, password);
 
 					} catch (Throwable t) {
+
 						// ignore
 					}
 				}
@@ -1925,6 +1971,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				contentType = possibleContentType;
 
 				if (contentType.equals("text/html")) {
+
 					contentType = contentType.concat(";charset=UTF-8");
 				}
 			}
@@ -1939,6 +1986,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			// Block protocol-relative URLs (e.g. //evil.com/path)
 			if (source.startsWith("//")) {
+
 				return null;
 			}
 
@@ -1951,6 +1999,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					final URI rel = uri.relativize(uri);
 
 					// concatenate path and query part
+
 					return URI.create(uri.getPath() + rel).toString();
 
 				} else {
@@ -1959,6 +2008,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 			} catch (Throwable ex) {
+
 				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 		}
@@ -1968,6 +2018,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	// ----- nested classes -----
 	private enum AuthState {
+
 		NoBasicAuth, MustAuthenticate, Authenticated
 	}
 
@@ -1982,6 +2033,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		private AuthState authState             = null;
 
 		public HttpBasicAuthResult(final AuthState authState) {
+
 			this(authState, null, null);
 		}
 
@@ -1993,14 +2045,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		public SecurityContext getSecurityContext() {
+
 			return securityContext;
 		}
 
 		public AuthState authState() {
+
 			return authState;
 		}
 
 		public Linkable getRootElement() {
+
 			return rootElement;
 		}
 	}

@@ -69,11 +69,13 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		// notify nodes of pending deletion
 		for (final NodeInterface deleteMe : nodesToDelete) {
+
 			deleteMe.onNodeDeletion(securityContext);
 		}
 
 		// delete all rels
 		for (final RelationshipInterface deleteMe : relsToDelete) {
+
 			drc.execute(deleteMe);
 		}
 
@@ -97,7 +99,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		for (final NodeInterface checkMe : nodesToCheck) {
 
 			ErrorBuffer errorBuffer = new ErrorBuffer();
-
 			if (!checkMe.isValid(errorBuffer)) {
 
 				invalidNodes.add(checkMe);
@@ -114,6 +115,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	private void collectNodesForCascadingDelete(final Set<NodeInterface> nodesToDelete, final Set<RelationshipInterface> relsToDelete, final Set<NodeInterface> nodesToCheck, final NodeInterface node) {
 
 		if (node == null) {
+
 			return;
 		}
 
@@ -125,7 +127,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		while (!queue.isEmpty()) {
 
 			final NodeInterface current = queue.remove();
-
 			if (current != null && !nodesToDelete.contains(current) && !current.isDeleted()) {
 
 				nodesToDelete.add(current);
@@ -184,16 +185,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			}
 		}
 	}
-
-
-
-
-
-
-
-
-
-
 
 	/*
 

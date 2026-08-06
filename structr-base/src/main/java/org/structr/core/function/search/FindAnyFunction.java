@@ -34,16 +34,19 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.any";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.any";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.any";
 	}
 
@@ -55,10 +58,12 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final Object value = sources[0];
-
 			if (value instanceof Collection collection) {
+
 				return new AnyPredicate(collection);
+
 			} else {
+
 				throw new FrameworkException(422, "find.any: first parameter must be a collection");
 			}
 
@@ -72,6 +77,7 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.any(collection). Example: ${{ $.find('Group', $.predicate.equals('name', $.predicate.any(['Group 1', 'Group 2']))) }}"),
 			Usage.structrScript("Usage: ${any(collection). Example: ${find('Group', equals('name', any(merge('Group 1', 'Group 2'))))}")
@@ -80,11 +86,13 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			The function takes a collection as a parameter. The query returns all nodes that match any of the given values.
 
@@ -153,6 +161,7 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -173,11 +182,13 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

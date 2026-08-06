@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Base class for all relationship entities in Structr.
  */
@@ -55,40 +54,50 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 	private PropertyKey targetProperty         = null;
 
 	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel, final long transactionId) {
+
 		super(securityContext, dbRel, transactionId);
 	}
 
 	@Override
 	public PropertyContainer getPropertyContainer() {
+
 		return TransactionCommand.getCurrentTransaction().getRelationship(id);
 	}
 
 	@Override
 	public boolean isVisibleToPublicUsers() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return false;
 	}
 
 	@Override
 	public boolean equals(final Object o) {
+
 		return (o != null && Integer.valueOf(this.hashCode()).equals(o.hashCode()));
 	}
 
 	@Override
 	public int hashCode() {
+
 		final String uuid = getUuid();
 		if (uuid != null) {
+
 			return uuid.hashCode();
+
 		} else {
+
 			return getRelationship().getId().hashCode();
 		}
 	}
@@ -116,6 +125,7 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 		}
 
 		// convert the database properties back to their java types
+
 		return PropertyMap.databaseTypeToJavaType(securityContext, this, properties);
 
 	}
@@ -127,46 +137,60 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 	 */
 	@Override
 	public Relationship<IDType> getRelationship() {
+
 		return TransactionCommand.getCurrentTransaction().getRelationship(id);
 	}
 
 	@Override
 	public boolean isDeleted() {
+
 		return TransactionCommand.getCurrentTransaction().isRelationshipDeleted(id.getId());
 	}
 
 	@Override
 	public NodeInterface getTargetNode() {
+
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
+
 		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
 	public NodeInterface getTargetNodeAsSuperUser() {
+
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+
 		return nodeFactory.instantiate(getRelationship().getEndNode());
 	}
 
 	@Override
 	public NodeInterface getSourceNode() {
+
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
+
 		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
 	@Override
 	public NodeInterface getSourceNodeAsSuperUser() {
+
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+
 		return nodeFactory.instantiate(getRelationship().getStartNode());
 	}
 
 	@Override
 	public NodeInterface getOtherNode(final NodeInterface node) {
+
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
+
 		return nodeFactory.instantiate(getRelationship().getOtherNode((Node)node.getNode()));
 	}
 
 	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
+
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+
 		return nodeFactory.instantiate(getRelationship().getOtherNode((Node)node.getNode()));
 	}
 
@@ -184,11 +208,13 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 
 	@Override
 	public Relation getRelation() {
+
 		return typeHandler.getRelation();
 	}
 
 	@Override
 	public String getType() {
+
 		return getProperty(typeHandler.key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 	}
 
@@ -199,6 +225,7 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 
 			final NodeInterface source = getSourceNode();
 			if (source != null) {
+
 				cachedStartNodeId = source.getUuid();
 			}
 		}
@@ -213,6 +240,7 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 
 			final NodeInterface target = getTargetNode();
 			if (target != null) {
+
 				cachedEndNodeId = target.getUuid();
 			}
 		}
@@ -221,6 +249,7 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 	}
 
 	public String getOtherNodeId(final NodeInterface node) {
+
 		return getOtherNode(node).getUuid();
 	}
 
@@ -229,17 +258,18 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 
 		// Do nothing if new id equals old
 		if (getSourceNodeId().equals(sourceNodeId)) {
+
 			return;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
-
 		final NodeInterface newStartNode = app.getNodeById(sourceNodeId);
 		final NodeInterface endNode      = getTargetNode();
 		final String type                = typeHandler.getName();
 		final PropertyMap _props         = getProperties();
 
 		if (newStartNode == null) {
+
 			throw new FrameworkException(404, "Node with ID " + sourceNodeId + " not found", new IdNotFoundToken(type, sourceNodeId));
 		}
 
@@ -255,17 +285,18 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 
 		// Do nothing if new id equals old
 		if (getTargetNodeId().equals(targetNodeId)) {
+
 			return;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
-
 		final NodeInterface newTargetNode = app.getNodeById(targetNodeId);
 		final NodeInterface startNode     = getSourceNode();
 		final String type                 = typeHandler.getName();
 		final PropertyMap _props          = getProperties();
 
 		if (newTargetNode == null) {
+
 			throw new FrameworkException(404, "Node with ID " + targetNodeId + " not found", new IdNotFoundToken(type, targetNodeId));
 		}
 
@@ -282,9 +313,11 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 		switch (key) {
 
 			case "_source":
+
 				return getSourceNode();
 
 			case "_target":
+
 				return getTargetNode();
 
 			default:
@@ -295,44 +328,53 @@ public final class AbstractRelationship<IDType> extends AbstractGraphObject<Rela
 
 					return Function.numberOrString(defaultValue);
 				}
+
 				return value;
 		}
 	}
 
 	public void setSourceProperty(final PropertyKey source) {
+
 		this.sourceProperty = source;
 	}
 
 	public void setTargetProperty(final PropertyKey target) {
+
 		this.targetProperty = target;
 	}
 
 	public PropertyKey getSourceProperty() {
+
 		return sourceProperty;
 	}
 
 	public PropertyKey getTargetProperty() {
+
 		return targetProperty;
 	}
 
 	@Override
 	public boolean changelogEnabled() {
+
 		return true;
 	}
 
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() {
+
 		return new ArrayList<>(); // provide a basis for super.getSyncData() calls
 	}
 
 	@Override
 	public NodeInterface getSyncNode() {
+
 		throw new ClassCastException(this.getClass() + " cannot be cast to org.structr.core.graph.NodeInterface");
 	}
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
+
 		return this;
 	}
 }

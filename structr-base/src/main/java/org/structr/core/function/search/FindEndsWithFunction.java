@@ -32,16 +32,19 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.endsWith";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.endsWith";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.endsWith";
 	}
 
@@ -79,6 +82,7 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.endsWith(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.endsWith('name', 'Test'))) }}"),
 			Usage.structrScript("Usage: ${endsWith(key, value). Example: ${find('Group', and(endsWith('name', 'Test')))}")
@@ -87,16 +91,19 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -107,11 +114,13 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

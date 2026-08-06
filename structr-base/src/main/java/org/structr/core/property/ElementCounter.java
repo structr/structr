@@ -41,6 +41,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	private final String collectionPropertyName;
 
 	public ElementCounter(final String name, final String baseType, final String propertyName) {
+
 		super(name);
 
 		this.collectionPropertyBaseType = baseType;
@@ -49,6 +50,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public Integer getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -69,6 +71,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 				} else if (toCount instanceof Iterable) {
 
 					for(Object o : ((Iterable)toCount)) {
+
 						count++;
 					}
 
@@ -85,53 +88,63 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Integer.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Integer;
 	}
 
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Integer> {
 
 		public InputConverter(SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
 		@Override
 		public Object revert(Integer source) throws FrameworkException {
+
 			return source;
 		}
 

@@ -86,14 +86,17 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	private boolean requiresSynchronization     = false;
 
 	protected Property(final String name) {
+
 		this(name, name);
 	}
 
 	protected Property(final String jsonName, final String dbName) {
+
 		this(jsonName, dbName, null);
 	}
 
 	protected Property(final String jsonName, final String dbName, final T defaultValue) {
+
 		this.defaultValue = defaultValue;
 		this.jsonName = jsonName;
 		this.dbName = dbName;
@@ -110,7 +113,9 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return  the Property to satisfy the builder pattern
 	 */
 	public Property<T> unvalidated() {
+
 		this.unvalidated = true;
+
 		return this;
 	}
 
@@ -120,7 +125,9 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> readOnly() {
+
 		this.readOnly = true;
+
 		return this;
 	}
 
@@ -130,7 +137,9 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> systemInternal() {
+
 		this.systemInternal = true;
+
 		return this;
 	}
 
@@ -140,7 +149,9 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> writeOnce() {
+
 		this.writeOnce = true;
+
 		return this;
 	}
 
@@ -153,8 +164,10 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> unique() {
+
 		this.unique                  = true;
 		this.requiresSynchronization = true;
+
 		return this;
 	}
 
@@ -167,8 +180,10 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> compound() {
+
 		this.compound                = true;
 		this.requiresSynchronization = true;
+
 		return this;
 	}
 
@@ -180,7 +195,9 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> notNull() {
+
 		this.notNull = true;
+
 		return this;
 	}
 
@@ -222,42 +239,53 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	public Property<T> fulltextIndexed() {
 
 		this.fulltextIndexed = true;
+
 		return this;
 
 	}
 
 	public Property<T> hint(final String hint) {
+
 		this.hint = hint;
+
 		return this;
 	}
 
 	@Override
 	public String hint() {
+
 		return hint;
 	}
 
 	public Property<T> category(final String category) {
+
 		this.category = category;
+
 		return this;
 	}
 
 	@Override
 	public String category() {
+
 		return category;
 	}
 
 	public Property<T> setSourceUuid(final String sourceUuid) {
+
 		this.sourceUuid = sourceUuid;
+
 		return this;
 	}
 
 	@Override
 	public boolean isAbstract() {
+
 		return isAbstract;
 	}
 
 	@Override
 	public boolean requiresSynchronization() {
+
 		return requiresSynchronization;
 	}
 
@@ -274,68 +302,83 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 	@Override
 	public void setDeclaringTrait(final Trait declaringTrait) {
+
 		this.declaringTrait = declaringTrait;
 	}
 
 	@Override
 	public void registrationCallback(final Trait trait) {
+
 		this.declaringTrait = trait;
 	}
 
 	@Override
 	public Trait getDeclaringTrait() {
+
 		return declaringTrait;
 	}
 
 	@Override
 	public String getSourceUuid() {
+
 		return sourceUuid;
 	}
 
 	@Override
 	public String toString() {
+
 		return this.jsonName();
 	}
 
 	@Override
 	public String dbName() {
+
 		return dbName;
 	}
 
 	@Override
 	public String jsonName() {
+
 		return jsonName;
 	}
 
 	@Override
 	public void dbName(final String dbName) {
+
 		this.dbName = dbName;
 	}
 
 	@Override
 	public void jsonName(final String jsonName) {
+
 		this.jsonName = jsonName;
 	}
 
 	@Override
 	public Property<T> defaultValue(final T defaultValue) {
+
 		this.defaultValue = defaultValue;
+
 		return this;
 	}
 
 	@Override
 	public T defaultValue() {
+
 		return defaultValue;
 	}
 
 	@Override
 	public String format() {
+
 		return format;
 	}
 
 	@Override
 	public Property<T> format(final String format) {
+
 		this.format = format;
+
 		return this;
 	}
 
@@ -345,6 +388,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 		this.unique = unique;
 
 		if (unique) {
+
 			this.requiresSynchronization = true;
 		}
 
@@ -361,96 +405,124 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 	@Override
 	public Property<T> notNull(final boolean notNull) {
+
 		this.notNull = notNull;
+
 		return this;
 	}
 
 	@Override
 	public Property<T> dynamic() {
+
 		this.dynamic = true;
+
 		return this;
 	}
 
 	@Override
 	public String readFunction() {
+
 		return readFunction;
 	}
 
 	@Override
 	public Property<T> readFunction(final String readFunction) {
+
 		this.readFunction = readFunction;
+
 		return this;
 	}
 
 	@Override
 	public String writeFunction() {
+
 		return writeFunction;
 	}
 
 	@Override
 	public Property<T> writeFunction(final String writeFunction) {
+
 		this.writeFunction = writeFunction;
+
 		return this;
 	}
 
 	@Override
 	public Boolean readFunctionWrapJS() {
+
 		return this.readFunctionWrapJS;
 	}
 
 	@Override
 	public Boolean writeFunctionWrapJS() {
+
 		return this.writeFunctionWrapJS;
 	}
 
 	@Override
 	public Property<T> readFunctionWrapJS(final boolean wrap) {
+
 		this.readFunctionWrapJS = wrap;
+
 		return this;
 	}
 
 	@Override
 	public Property<T> writeFunctionWrapJS(final boolean wrap) {
+
 		this.writeFunctionWrapJS = wrap;
+
 		return this;
 	}
 
 	@Override
 	public Property<T> cachingEnabled(final boolean enabled) {
+
 		this.cachingEnabled = enabled;
+
 		return this;
 	}
 
 	public Property<T> disableSerialization(final boolean disableSerialization) {
+
 		this.serializationDisabled = disableSerialization;
+
 		return this;
 	}
 
 	@Override
 	public String openAPIReturnType() {
+
 		return openAPIReturnType;
 	}
 
 	@Override
 	public Property<T> openAPIReturnType(final String openAPIReturnType) {
+
 		this.openAPIReturnType = openAPIReturnType;
+
 		return this;
 	}
 
 	@Override
 	public String typeHint() {
+
 		return typeHint;
 	}
 
 	@Override
 	public Property<T> typeHint(final String typeHint) {
+
 		this.typeHint = typeHint;
+
 		return this;
 	}
 
 	@Override
 	public Property<T> transformators(final String... transformators) {
+
 		this.transformators.addAll(Arrays.asList(transformators));
+
 		return this;
 	}
 
@@ -463,7 +535,9 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	 * @return
 	 */
 	public Property<T> updateCallback(final UpdateCallback<T> callback) {
+
 		this.updateCallback = callback;
+
 		return this;
 	}
 
@@ -472,18 +546,22 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 		// make hashCode function work for subtypes that override jsonName() etc. as well
 		if (dbName() != null && this.jsonName() != null) {
+
 			return (dbName().hashCode() * 31) + this.jsonName().hashCode();
 		}
 
 		if (dbName() != null) {
+
 			return dbName().hashCode();
 		}
 
 		if (this.jsonName() != null) {
+
 			return this.jsonName().hashCode();
 		}
 
 		// TODO: check if it's ok if null key is not unique
+
 		return super.hashCode();
 	}
 
@@ -500,81 +578,97 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 	@Override
 	public boolean isUnvalidated() {
+
 		return unvalidated;
 	}
 
 	@Override
 	public boolean isReadOnly() {
+
 		return readOnly;
 	}
 
 	@Override
 	public boolean isSystemInternal() {
+
 		return systemInternal;
 	}
 
 	@Override
 	public boolean isWriteOnce() {
+
 		return writeOnce;
 	}
 
 	@Override
 	public boolean isIndexed() {
+
 		return indexed;
 	}
 
 	@Override
 	public boolean isNodeIndexOnly() {
+
 		return nodeOnly;
 	}
 
 	@Override
 	public boolean isPassivelyIndexed() {
+
 		return indexedPassively;
 	}
 
 	@Override
 	public boolean isFulltextIndexed() {
+
 		return fulltextIndexed;
 	}
 
 	@Override
 	public boolean isIndexedWhenEmpty() {
+
 		return indexedWhenEmpty;
 	}
 
 	@Override
 	public boolean isCompound() {
+
 		return compound;
 	}
 
 	@Override
 	public boolean isUnique() {
+
 		return unique;
 	}
 
 	@Override
 	public boolean isNotNull() {
+
 		return notNull;
 	}
 
 	@Override
 	public boolean isDynamic() {
+
 		return dynamic;
 	}
 
 	@Override
 	public boolean cachingEnabled() {
+
 		return cachingEnabled;
 	}
 
 	@Override
 	public boolean serializationDisabled() {
+
 		return serializationDisabled;
 	}
 
 	@Override
 	public Object getIndexValue(final Object value) {
+
 		return value;
 	}
 
@@ -585,18 +679,22 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 		if (valueType != null) {
 
 			if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
+
 				return true;
 			}
 
 			if (valueType.equals(Date.class)) {
+
 				return true;
 			}
 
 			if (valueType.isEnum()) {
+
 				return true;
 			}
 
 			if (valueType.isArray()) {
+
 				return true;
 			}
 		}
@@ -614,18 +712,22 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 				// indexable indicated by value type
 				if (Services.getInstance().getDatabaseService().nodeIndex().supports(valueType)) {
+
 					return true;
 				}
 
 				if (valueType.equals(Date.class)) {
+
 					return true;
 				}
 
 				if (valueType.isEnum()) {
+
 					return true;
 				}
 
 				if (valueType.isArray()) {
+
 					return true;
 				}
 			}
@@ -636,11 +738,13 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 		}
 
 		// index empty as well
+
 		return isIndexedWhenEmpty();
 	}
 
 	@Override
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query) {
+
 		return new PropertySearchAttribute(this, searchValue, exactMatch);
 	}
 
@@ -673,60 +777,72 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 	@Override
 	public int getProcessingOrderPosition() {
+
 		return 0;
 	}
 
 	@Override
 	public Comparator<GraphObject> sorted(final boolean descending) {
+
 		return new DefaultSortOrder(this, descending);
 	}
 
 	// ----- documentation -----
 	@Override
 	public Property<T> description(final String description) {
+
 		this.description = description;
+
 		return this;
 	}
 
 	@Override
 	public String getDescription() {
+
 		return description;
 	}
 
 	@Override
 	public FieldDefinition getFieldDefinition() {
+
 		return this;
 	}
 
 	// ----- interface Comparable -----
 	@Override
 	public int compareTo(final PropertyKey other) {
+
 		return dbName().compareTo(other.dbName());
 	}
 
 	// ----- interface FieldDefinition -----
 	@Override
 	public boolean hasOptions() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isRequired() {
+
 		return isNotNull();
 	}
 
 	@Override
 	public List<GraphObject> getOptions(RenderContext renderContext, String filter, String label) throws FrameworkException {
+
 		return null;
 	}
 
 	@Override
 	public String renderTemplate() {
+
 		return null;
 	}
 
 	@Override
 	public String editTemplate() {
+
 		return "textfield";
 	}
 
@@ -744,27 +860,32 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 	@Override
 	public String nodeType() {
+
 		return null;
 	}
 
 	@Override
 	public String fieldName() {
+
 		return jsonName();
 	}
 
 	// ----- protected methods -----
 	protected boolean multiValueSplitAllowed() {
+
 		return true;
 	}
 
 	protected final String removeQuotes(final String searchValue) {
-		String resultStr = searchValue;
 
+		String resultStr = searchValue;
 		if (resultStr.contains("\"")) {
+
 			resultStr = resultStr.replaceAll("[\"]+", "");
 		}
 
 		if (resultStr.contains("'")) {
+
 			resultStr = resultStr.replaceAll("[']+", "");
 		}
 
@@ -783,7 +904,6 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 					final String rangeStart = matcher.group(1);
 					final String rangeEnd   = matcher.group(2);
-
 					final PropertyConverter inputConverter = inputConverter(securityContext, false);
 					Object rangeStartConverted = (rangeStart.equals("")) ? null : rangeStart;
 					Object rangeEndConverted   = (rangeEnd.equals(""))   ? null : rangeEnd;
@@ -791,10 +911,12 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 					if (inputConverter != null) {
 
 						if (rangeStartConverted != null) {
+
 							rangeStartConverted = inputConverter.convert(rangeStartConverted);
 						}
 
 						if (rangeEndConverted != null) {
+
 							rangeEndConverted   = inputConverter.convert(rangeEndConverted);
 						}
 					}
@@ -831,6 +953,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
  		}
 
 		if (requestParameter.contains(",") && requestParameter.contains(";")) {
+
 			throw new FrameworkException(422, "Mixing of AND and OR not allowed in request parameters");
 		}
 
@@ -869,7 +992,9 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	}
 
 	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
+
 		// this is the default implementation
+
 		return Collections.emptySet();
 	}
 }

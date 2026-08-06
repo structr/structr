@@ -43,41 +43,49 @@ public abstract class InstanceMethod extends AbstractMethod {
 
 	@Override
 	public boolean isStatic() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isPrivate() {
+
 		return false;
 	}
 
 	@Override
 	public Snippet getSnippet() {
+
 		return null;
 	}
 
 	@Override
 	public String getHttpVerb() {
+
 		return "POST";
 	}
 
 	@Override
 	public Parameters getParameters() {
+
 		return parameters;
 	}
 
 	@Override
 	public String getFullMethodName() {
+
 		return "method ‛" + declaringTrait + "." + name + "‛";
 	}
 
 	@Override
 	public String getDeclaringTrait() {
+
 		return declaringTrait;
 	}
 
 	@Override
 	public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 		return execute(actionContext, entity, arguments.toMap());
 	}
 }

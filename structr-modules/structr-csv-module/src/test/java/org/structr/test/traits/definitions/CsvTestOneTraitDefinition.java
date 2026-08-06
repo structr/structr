@@ -39,15 +39,14 @@ import java.util.Set;
 public class CsvTestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CsvTestOneTraitDefinition() {
+
 		super("CsvTestOne");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			CsvTestOne.class, (traits, node) -> new CsvTestOneTraitWrapper(traits, node)
-		);
+		return Map.of(CsvTestOne.class, (traits, node) -> new CsvTestOneTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -64,33 +63,18 @@ public class CsvTestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer>       index               = new IntProperty("index");
 		final Property<Integer[]>     intArrayProperty    = new ArrayProperty<>("intArrayProperty", Integer.class).indexed();
 
-		return newSet(
-			stringArrayProperty,
-			booleanProperty,
-			doubleProperty,
-			integerProperty,
-			longProperty,
-			dateProperty,
-			stringProperty,
-			enumProperty,
-			index,
-			intArrayProperty
-		);
+		return newSet(stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, dateProperty, stringProperty, enumProperty, index, intArrayProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			"csv",
-			newSet(
-				"name", "index", "type", "stringArrayProperty", "enumProperty"
-			)
-		);
+		return Map.of("csv", newSet("name", "index", "type", "stringArrayProperty", "enumProperty"));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

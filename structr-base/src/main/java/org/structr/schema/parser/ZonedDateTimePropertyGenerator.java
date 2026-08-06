@@ -35,16 +35,19 @@ public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateT
 	private String pattern = null;
 
 	public ZonedDateTimePropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
+
 		super(errorBuffer, className, propertyDefinition);
 	}
 
 	@Override
 	public SchemaHelper.Type getPropertyType() {
+
 		return SchemaHelper.Type.ZonedDateTime;
 	}
 
 	@Override
 	public String getValueType() {
+
 		return ZonedDateTime.class.getName();
 	}
 
@@ -73,6 +76,7 @@ public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateT
 			return ZonedDateTimePropertyGenerator.parse(defaultValue, (pattern != null ? pattern : null));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -89,7 +93,6 @@ public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateT
 	public static ZonedDateTime parse(final String source, final String pattern) throws FrameworkException {
 
 		ZonedDateTime parsedDate = null;
-
 		DateTimeParseException parseException = null;
 
 		try {
@@ -111,6 +114,7 @@ public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateT
 				parseException = null;
 
 			} catch (DateTimeParseException ex) {
+
 				// ignore exception for fallback parsing so that the user is presented with the exception for the given pattern (property format or override from settings)
 			}
 		}
@@ -124,6 +128,7 @@ public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateT
 	}
 
 	public static ZonedDateTime parse(final String source) throws FrameworkException {
+
 		return parse(source, null);
 	}
 

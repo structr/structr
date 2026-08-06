@@ -34,6 +34,7 @@ import java.util.Set;
 public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestOneTraitDefinition() {
+
 		super("TestOne");
 	}
 
@@ -47,15 +48,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>        aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final Property<String>        htmlString         = new StringProperty("htmlString");
 
-
-		return newSet(
-			anInt,
-			aLong,
-			aDouble,
-			aDate,
-			aString,
-			htmlString
-		);
+		return newSet(anInt, aLong, aDouble, aDate, aString, htmlString);
 	}
 
 	@Override
@@ -77,11 +70,13 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

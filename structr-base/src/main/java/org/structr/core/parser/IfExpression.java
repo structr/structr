@@ -37,6 +37,7 @@ public class IfExpression extends Expression {
 	private static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 
 	public IfExpression(final int row, final int column) {
+
 		super("if", row, column);
 	}
 
@@ -48,8 +49,10 @@ public class IfExpression extends Expression {
 		buf.append("if(");
 
 		for (final Expression expr : expressions) {
+
 			buf.append(expr.toString());
 		}
+
 		buf.append(")");
 
 		return buf.toString();
@@ -59,6 +62,7 @@ public class IfExpression extends Expression {
 	public void add(final Expression expression) throws FrameworkException {
 
 		if (expressions.size() == 3) {
+
 			throw new FrameworkException(422, "Invalid if() expression in builtin function: too many parameters.");
 		}
 
@@ -70,16 +74,17 @@ public class IfExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (expressions.isEmpty()) {
+
 			return ERROR_MESSAGE_IF;
 		}
 
 		final Expression condition = expressions.get(0);
-
 		if (isTrue(condition.evaluate(ctx, entity))) {
 
 			if (expressions.size() > 1) {
 
 				final Expression trueExpression = expressions.get(1);
+
 				return trueExpression.evaluate(ctx, entity);
 
 			} else {
@@ -92,6 +97,7 @@ public class IfExpression extends Expression {
 			if (expressions.size() > 2) {
 
 				final Expression falseExpression = expressions.get(2);
+
 				return falseExpression.evaluate(ctx, entity);
 
 			} else {
@@ -102,31 +108,37 @@ public class IfExpression extends Expression {
 	}
 
 	private boolean isTrue(final Object source) {
+
 		return source != null && (Boolean.TRUE.equals(source) || "true".equals(source));
 	}
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	@Override
 	public String getName() {
+
 		return "if";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Evaluates a condition and executes different expressions depending on the result.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("condition", "condition to evaluate"),
 			Parameter.mandatory("trueExpression", "expression to evaluate if condition is `true`"),
@@ -136,6 +148,7 @@ public class IfExpression extends Expression {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${if(me.isAdmin, 'background-color-red', 'background-color-white')}", "Make the background color of an element red if the current user is an admin user"),
 			Example.structrScript("${if(me.isAdmin, 'You have admin rights.', 'You do not have admin rights.')}", "Display different strings depending on the status of a user")
@@ -144,6 +157,7 @@ public class IfExpression extends Expression {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"This function is only available in StructrScript.",
 			"This function is often used in HTML attributes, for example to conditionally output CSS classes etc.",
@@ -153,25 +167,25 @@ public class IfExpression extends Expression {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return List.of(
-			Signature.structrScript("condition, trueExpression, falseExpression")
-		);
+
+		return List.of(Signature.structrScript("condition, trueExpression, falseExpression"));
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.StructrScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${if(condition, trueExpression, falseExpression)}. Example: ${if(me.isAdmin, 'background-color-red', 'background-color-white')}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${if(condition, trueExpression, falseExpression)}. Example: ${if(me.isAdmin, 'background-color-red', 'background-color-white')}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

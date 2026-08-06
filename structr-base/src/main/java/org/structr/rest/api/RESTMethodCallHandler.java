@@ -62,6 +62,7 @@ public abstract class RESTMethodCallHandler extends RESTCallHandler {
 			return result;
 
 		} catch (UnlicensedScriptException ex) {
+
 			return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 		}
 	}

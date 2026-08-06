@@ -27,16 +27,19 @@ public class LocaleHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "locale";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the current locale.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The locale of a request is determined like this in descending priority:
 
@@ -50,6 +53,7 @@ public class LocaleHint extends GeneralKeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			${{

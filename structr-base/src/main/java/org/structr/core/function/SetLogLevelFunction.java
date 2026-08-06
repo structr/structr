@@ -37,11 +37,13 @@ public class SetLogLevelFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "setLogLevel";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
@@ -65,12 +67,14 @@ public class SetLogLevelFunction extends CoreFunction {
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${setLogLevel(string)}. Example ${setLogLevel('WARN')}"),
 			Usage.javaScript("Usage: ${{ $.setLogLevel(string) }}. Example ${{ $.setLogLevel('WARN')}}")
@@ -79,11 +83,13 @@ public class SetLogLevelFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the application log level to the given level, if supported.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Supported values are: %s. The log level can also be set via the configuration setting "%s". Using this function overrides the base configuration.
 
@@ -93,6 +99,7 @@ public class SetLogLevelFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 

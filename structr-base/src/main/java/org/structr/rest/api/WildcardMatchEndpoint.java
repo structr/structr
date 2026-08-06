@@ -26,11 +26,13 @@ import org.structr.rest.api.parameter.RESTParameter;
 public abstract class WildcardMatchEndpoint extends RESTEndpoint {
 
 	public WildcardMatchEndpoint(final RESTParameter... parameters) {
+
 		super(parameters);
 	}
 
 	@Override
 	public boolean isWildcardMatch() {
+
 		return true;
 	}
 }

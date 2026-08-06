@@ -32,6 +32,7 @@ public class OpenAPIStructrTypeSchemaInput extends TreeMap<String, Object> {
 	public OpenAPIStructrTypeSchemaInput(final StructrTypeDefinition<?> type, final String viewName, final int level) {
 
 		if (level > 3) {
+
 			return;
 		}
 
@@ -55,6 +56,7 @@ public class OpenAPIStructrTypeSchemaInput extends TreeMap<String, Object> {
 	public OpenAPIStructrTypeSchemaInput(final Traits type, final String viewName, final int level) {
 
 		if (level > 3) {
+
 			return;
 		}
 
@@ -66,7 +68,6 @@ public class OpenAPIStructrTypeSchemaInput extends TreeMap<String, Object> {
 		put("properties",  properties);
 
 		final Set<PropertyKey> keys = type.getPropertyKeysForView(viewName);
-
 		if (keys != null && !keys.isEmpty()) {
 
 			for (PropertyKey key : keys) {

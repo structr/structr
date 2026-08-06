@@ -38,7 +38,6 @@ public class StructrScriptTabCompletionProvider extends AbstractTabCompletionPro
 		words.add("this");
 	}
 
-
 	@Override
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 

@@ -25,6 +25,7 @@ package org.structr.common.error;
 public class FutureDateToken extends SemanticErrorToken {
 
 	public FutureDateToken(final String type, final String propertyKey) {
+
 		super(type, propertyKey, "must_lie_in_the_future");
 	}
 }

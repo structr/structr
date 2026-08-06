@@ -47,7 +47,6 @@ public class HashFunction extends CoreFunction {
 
 			final String algorithm = (String) sources[0];
 			final String text = (String) sources[1];
-
 			final byte[] bytes = MessageDigest.getInstance(algorithm).digest(text.getBytes(StandardCharsets.UTF_8));
 			final BigInteger bigInteger = new BigInteger(1, bytes);
 
@@ -60,11 +59,13 @@ public class HashFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -73,19 +74,19 @@ public class HashFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${hash(algorithm, value)}."),
-			Usage.javaScript("Usage: ${{ $.hash(algorithm, value); }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${hash(algorithm, value)}."), Usage.javaScript("Usage: ${{ $.hash(algorithm, value); }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the hash (as a hexadecimal string) of a given string, using the given algorithm (if available via the underlying JVM).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Returns the hash (as a hexadecimal string) of a given string, using the given algorithm (if available via the underlying JVM).
 		Currently, the SUN provider makes the following hashes/digests available: MD2, MD5, SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256, SHA3-224, SHA3-256, SHA3-384, SHA3-512
@@ -95,10 +96,8 @@ public class HashFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${hash('SHA-512', 'Hello World!')}"),
-				Example.javaScript("${{ $.hash('SHA-512', 'Hello World!') }}")
-		);
+
+		return List.of(Example.structrScript("${hash('SHA-512', 'Hello World!')}"), Example.javaScript("${{ $.hash('SHA-512', 'Hello World!') }}"));
 	}
 
 	@Override
@@ -112,16 +111,19 @@ public class HashFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("algorithm, value");
 	}
 
 	@Override
 	public String getName() {
+
 		return "hash";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

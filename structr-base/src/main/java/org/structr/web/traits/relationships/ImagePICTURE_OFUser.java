@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ImagePICTURE_OFUser extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ImagePICTURE_OFUser() {
+
 		super(StructrTraits.IMAGE_PICTURE_OF_USER);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.USER;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "PICTURE_OF";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

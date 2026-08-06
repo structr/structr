@@ -35,11 +35,13 @@ public abstract class ManyToOne extends AbstractRelation implements Relation<Man
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
+
 		return Multiplicity.Many;
 	}
 
 	@Override
 	public Multiplicity getTargetMultiplicity() {
+
 		return Multiplicity.One;
 	}
 
@@ -93,6 +95,7 @@ public abstract class ManyToOne extends AbstractRelation implements Relation<Man
 
 	@Override
 	public Direction getDirectionForType(final String type) {
+
 		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 

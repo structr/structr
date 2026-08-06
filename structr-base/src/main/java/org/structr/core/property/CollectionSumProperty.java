@@ -38,6 +38,7 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	private Predicate<T> predicate          = null;
 
 	public CollectionSumProperty(String name, Property<List<T>> collectionKey, Property<S> valueKey) {
+
 		super(name);
 
 		this.collectionKey = collectionKey;
@@ -52,21 +53,25 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return valueKey.valueType();
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Integer;
 	}
 
 	@Override
 	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -77,17 +82,16 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 		long    longSum   = 0L;
 		double  doubleSum = 0.0d;
 		float   floatSum  = 0.0f;
-
 		Class cls = Integer.class;
 
 		for (T collectionObj : obj.getProperty(collectionKey)) {
 
 			if (this.predicate != null && !this.predicate.accept(collectionObj)) {
+
 				continue;
 			}
 
 			S value = collectionObj.getProperty(valueKey);
-
 			if (value instanceof Integer) {
 
 				intSum += (Integer) value;
@@ -122,22 +126,26 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return 1;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

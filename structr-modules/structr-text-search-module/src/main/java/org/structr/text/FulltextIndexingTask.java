@@ -26,6 +26,7 @@ import org.structr.agent.AbstractTask;
 public class FulltextIndexingTask extends AbstractTask<String> {
 
 	public FulltextIndexingTask(final String indexableId) {
+
 		super(FulltextIndexingAgent.TASK_NAME, null, indexableId);
 	}
 }

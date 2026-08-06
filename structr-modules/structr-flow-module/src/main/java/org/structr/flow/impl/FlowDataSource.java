@@ -32,14 +32,17 @@ import org.structr.module.api.DeployableEntity;
 public class FlowDataSource extends FlowNode implements DeployableEntity, ThrowingElement {
 
 	public FlowDataSource(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getQuery() {
+
 		return wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY));
 	}
 
 	public void setQuery(final String query) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY), query);
 	}
 
@@ -55,20 +58,25 @@ public class FlowDataSource extends FlowNode implements DeployableEntity, Throwi
 	}
 
 	public void setDataTarget(final Iterable<FlowBaseNode> nodes) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowDataSourceTraitDefinition.DATA_TARGET_PROPERTY), nodes);
 	}
 
 	public final Iterable<FlowBaseNode> getDataTarget() {
+
 		final Iterable<NodeInterface> dataTargets = wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.DATA_TARGET_PROPERTY));
+
 		return Iterables.map(n -> n.as(FlowBaseNode.class), dataTargets);
 	}
 
 	public final Object get(final Context context) throws FlowException {
+
 		return traits.getMethod(DataSourceOperations.class).get(context, this);
 	}
 
 	@Override
 	public final FlowExceptionHandler getExceptionHandler(final Context context) {
+
 		return getExceptionHandler();
 	}
 }

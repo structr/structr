@@ -23,6 +23,7 @@ package org.structr.api;
 public class NetworkException extends RuntimeException {
 
 	public NetworkException(final String message, final Throwable cause) {
+
 		super(message, cause);
 	}
 }

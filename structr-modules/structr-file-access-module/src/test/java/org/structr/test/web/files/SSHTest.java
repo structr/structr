@@ -68,12 +68,16 @@ public abstract class SSHTest extends StructrFileTestBase {
 		try (final Tx tx = app.tx()) {
 
 			ftpUser = createFTPUser(username, password);
+
 			if (isAdmin) {
+
 				ftpUser.setIsAdmin(true);
 			}
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Unable to create SFTP user", fex);
 		}
 
@@ -93,6 +97,7 @@ public abstract class SSHTest extends StructrFileTestBase {
 			return (ChannelSftp)channel;
 
 		} catch (JSchException ex) {
+
 			ex.printStackTrace();
 		}
 
@@ -100,9 +105,13 @@ public abstract class SSHTest extends StructrFileTestBase {
 	}
 
 	protected void disconnect(final FTPClient ftp) {
+
 		try {
+
 			ftp.disconnect();
+
 		} catch (IOException ex) {
+
 			logger.error("Error while disconnecting from FTP server", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}

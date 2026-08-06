@@ -45,27 +45,35 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 	private static final Logger logger = LoggerFactory.getLogger(FlowTypeQuery.class);
 
 	public FlowTypeQuery(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getDataType() {
+
 		return wrappedObject.getProperty(traits.key(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY));
 	}
 
 	public String getQuery() {
+
 		return wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY));
 	}
 
 	public Query resolveQueryObject(final Context context, final JSONObject object, final Query query) {
+
 		final String type = object.getString("type");
 		switch(type) {
 			case "group":
+
 				return resolveGroup(context, object, query);
 			case "operation":
+
 				return resolveOperation(context, object, query);
 			case "sort":
+
 				return resolveSortOperation(object, query);
 		}
+
 		return query;
 	}
 
@@ -87,6 +95,7 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 	}
 
 	private Query resolveGroup(final Context context, final JSONObject object, final Query query) {
+
 		final String op = object.getString("op");
 		final JSONArray operations = object.getJSONArray("operations");
 
@@ -105,6 +114,7 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
 		// Resolve nested elements
 		for (int i = 0; i < operations.length(); i++) {
+
 			resolveQueryObject(context, operations.getJSONObject(i), query);
 		}
 
@@ -116,10 +126,9 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 		final String key = object.getString("key");
 		final String op = object.getString("op");
 		Object value = object.get("value");
-
 		PropertyKey propKey = null;
-
 		final String queryType = getDataType();
+
 		if (queryType != null && Traits.exists(queryType) && Traits.of(queryType).hasKey(key)) {
 
 			propKey = Traits.of(queryType).key(key);
@@ -140,6 +149,7 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 				value = Scripting.replaceVariables(context.getActionContext(getSecurityContext(), this), null, value.toString(), StructrTraits.FLOW_TYPE_QUERY);
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);
 			}
 		}

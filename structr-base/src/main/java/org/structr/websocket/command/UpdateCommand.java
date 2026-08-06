@@ -69,7 +69,6 @@ public class UpdateCommand extends AbstractCommand {
 			final App app           = StructrApp.getInstance(getWebSocket().getSecurityContext());
 			final String nodeId     = webSocketData.getNodeDataStringValue(NODE_ID_KEY);
 			final GraphObject obj   = getGraphObject(webSocketData.getId(), nodeId);
-
 			final boolean recursive    = webSocketData.getCommandConfigBooleanValue(RECURSIVE_KEY);
 			final String syncMode      = webSocketData.getCommandConfigStringValue(SHARED_COMPONENT_SYNC_MODE_KEY);
 
@@ -92,6 +91,7 @@ public class UpdateCommand extends AbstractCommand {
 						logger.warn("No write permission for {} on {}", getWebSocket().getCurrentUser().toString(), obj);
 
 						tx.success();
+
 						return;
 					}
 				}
@@ -113,29 +113,37 @@ public class UpdateCommand extends AbstractCommand {
 				// default NONE for a websocket update with no explicit mode, preserving the historic
 				// behavior where such an update did not propagate to synced nodes.
 				DOMNode.SHARED_COMPONENT_SYNC_MODE syncModeValue = DOMNode.SHARED_COMPONENT_SYNC_MODE.NONE;
+
 				if (syncMode != null) {
+
 					try {
+
 						syncModeValue = DOMNode.SHARED_COMPONENT_SYNC_MODE.valueOf(syncMode);
+
 					} catch (IllegalArgumentException iae) {
+
 						logger.warn("Unsupported sync mode for shared components supplied: {}. Possible values are: {}", syncMode, java.util.Arrays.toString(DOMNode.SHARED_COMPONENT_SYNC_MODE.values()));
 					}
 				}
+
 				getWebSocket().getSecurityContext().setAttribute(DOMNode.SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE, syncModeValue);
 
 				tx.success();
 			}
 
 			final Iterator<String> iterator = entities.iterator();
+
 			while (iterator.hasNext()) {
 
 				count = 0;
+
 				try (final Tx tx = app.tx()) {
 
 					while (iterator.hasNext() && count++ < 100) {
 
 						final String uuid = iterator.next();
-
 						final NodeInterface nodeObj = app.getNodeById(uuid);
+
 						if (nodeObj != null) {
 
 							nodeObj.setProperties(nodeObj.getSecurityContext(), properties);
@@ -145,7 +153,6 @@ public class UpdateCommand extends AbstractCommand {
 						} else {
 
 							final RelationshipInterface relObj = app.getRelationshipById(uuid);
-
 							if (relObj != null) {
 
 								relObj.setProperties(relObj.getSecurityContext(), properties);
@@ -177,11 +184,13 @@ public class UpdateCommand extends AbstractCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "UPDATE";
 	}
 

@@ -36,6 +36,7 @@ public class JavaScriptTabCompletionProvider extends AbstractTabCompletionProvid
 		final List<TabCompletionResult> results = new LinkedList<>();
 
 		if (line.startsWith("Structr.")) {
+
 			List<TabCompletionResult> intermediateList = getExactResultsForCollection(Functions.getNames(), line.substring(8), "(");
 
 			intermediateList.forEach((tcr) -> {

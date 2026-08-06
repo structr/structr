@@ -18,17 +18,7 @@
  */
 package org.structr.flow.api;
 
-
 public enum FlowType {
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation,
-	Exception,
-	Filter,
-	Fork,
-	Switch
+	Action, Decision, Return, ForEach, Store, Aggregation, Exception, Filter, Fork, Switch
 }

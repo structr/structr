@@ -38,11 +38,13 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "hasCssClass";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("element, css");
 	}
 
@@ -76,6 +78,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -84,6 +87,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${hasCssClass(element, css)}. Example: ${hasCssClass(this, 'active')}"),
 			Usage.javaScript("Usage: ${{ $.hasCssClass(element, css) }}. Example: ${{ $.hasCssClass(this, 'active')}}")
@@ -92,16 +96,19 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns whether the given element has the given CSS class(es).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

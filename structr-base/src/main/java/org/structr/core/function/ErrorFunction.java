@@ -34,11 +34,13 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "error";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("propertyName, errorToken [, errorMessage]");
 	}
 
@@ -87,6 +89,7 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${$.error(propertyName, errorToken[, errorMessage])}. Example: ${$.error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}"),
 			Usage.structrScript("Usage: ${error(propertyName, errorToken[, errorMessage])}. Example: ${error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}")
@@ -95,11 +98,13 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Stores error tokens in the current context causing the transaction to fail at the end of the request.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function allows you to store error tokens in the current context without aborting the execution flow. Errors that have accumulated in the error buffer can be fetched with `getErrors()` and cleared with either `clearError()` or `clearErrors()`.
 
@@ -124,13 +129,12 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also `getErrors()`, `clearError()`, `clearErrors()` and `assert()`."
-		);
+		return List.of("See also `getErrors()`, `clearError()`, `clearErrors()` and `assert()`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 }

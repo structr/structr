@@ -18,7 +18,6 @@
  */
 package org.structr.api.search;
 
-
 public interface UuidQuery extends QueryPredicate {
 
 	String getUuid();

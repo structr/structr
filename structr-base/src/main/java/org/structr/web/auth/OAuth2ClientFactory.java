@@ -40,18 +40,21 @@ public class OAuth2ClientFactory {
 	 * @return OAuth2Client instance or null if provider is not supported
 	 */
 	public static OAuth2Client createClient(final String provider, final HttpServletRequest request) throws IllegalArgumentException {
+
 		if (provider == null) {
+
 			return null;
 		}
 
 		// Look up provider configuration from registry
 		final OAuth2ProviderRegistry.ProviderConfig config = OAuth2ProviderRegistry.get(provider);
-
 		if (config == null) {
+
 			throw new IllegalArgumentException("No OAuth2ProviderRegistry found for provider '" + provider + "'");
 		}
 
 		// Let the config create the appropriate client (standard or custom)
+
 		return config.createClient(request, provider);
 	}
 
@@ -62,6 +65,7 @@ public class OAuth2ClientFactory {
 	 * @return true if the provider is supported
 	 */
 	public static boolean isProviderSupported(final String provider) {
+
 		return OAuth2ProviderRegistry.isSupported(provider);
 	}
 }

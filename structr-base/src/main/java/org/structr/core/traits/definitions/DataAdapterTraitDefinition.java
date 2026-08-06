@@ -50,23 +50,20 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DATA_KEY_PROPERTY      = "dataKey";
 
 	public DataAdapterTraitDefinition() {
+
 		super(StructrTraits.DATA_ADAPTER);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			DataAdapter.class, (traits, node) -> new DataAdapterTraitWrapper(traits, node)
-		);
+		return Map.of(DataAdapter.class, (traits, node) -> new DataAdapterTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance) {
 
-		return Map.of(
-			OnCreation.class,
-			new OnCreation() {
+		return Map.of(OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -75,6 +72,7 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
 					// set some sensible defaults
 					if (adapter.getDataKey() == null) {
+
 						adapter.setProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY), "item");
 					}
 				}
@@ -85,9 +83,7 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Map.of(
-			Evaluate.class,
-			new Evaluate() {
+		return Map.of(Evaluate.class, new Evaluate() {
 				@Override
 				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
@@ -102,6 +98,7 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 							//return dataAdapter.augmentFields(securityContext, );
 
 						case "dataKey":
+
 							return dataAdapter.getDataKey();
 					}
 
@@ -118,28 +115,18 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> fieldsProperty = new EndNodes(traitsInstance, FIELDS_PROPERTY, StructrTraits.DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> dataKeyProperty                 = new StringProperty(DATA_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
-		return newSet(
-			configurationProperty,
-			fieldsProperty,
-			dataKeyProperty
-		);
+		return newSet(configurationProperty, fieldsProperty, dataKeyProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			"adapter", newSet(
-				GraphObjectTraitDefinition.ID_PROPERTY,
-				NodeInterfaceTraitDefinition.NAME_PROPERTY,
-				FIELDS_PROPERTY,
-				DATA_KEY_PROPERTY
-			)
-		);
+		return Map.of("adapter", newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, FIELDS_PROPERTY, DATA_KEY_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

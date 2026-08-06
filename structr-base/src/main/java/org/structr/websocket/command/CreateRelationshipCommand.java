@@ -80,6 +80,7 @@ public class CreateRelationshipCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CREATE_RELATIONSHIP";
 	}
 }

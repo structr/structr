@@ -30,11 +30,13 @@ class IdRelationshipMapper implements Function<Long, Relationship> {
 	private BoltDatabaseService db = null;
 
 	public IdRelationshipMapper(final BoltDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Relationship apply(final Long id) {
+
 		return db.getCurrentTransaction().getRelationshipWrapper(id);
 	}
 }

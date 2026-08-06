@@ -49,6 +49,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 	}
 
 	public boolean isUnknown() {
+
 		return "unknown".equals(conceptToken.getToken());
 	}
 
@@ -76,7 +77,9 @@ public class MarkdownFolderToken extends NamedConceptToken {
 				if (Files.exists(indexFile)) {
 
 					try {
+
 						final List<String> files = Files.readAllLines(indexFile);
+
 						for (final String file : files) {
 
 							final Token token                  = identifierToken.getToken().copy(folderName + "/" + file);
@@ -90,6 +93,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 						}
 
 					} catch (IOException ioex) {
+
 						ioex.printStackTrace();
 					}
 				}

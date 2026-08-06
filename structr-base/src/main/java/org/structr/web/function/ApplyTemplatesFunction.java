@@ -93,6 +93,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 						// show "no item" template or fallback and exit
 						renderTemplate(app, innerCtx, "span-no-item", "<span class=\"empty col-span-6\">No item to display.</span>");
+
 						return;
 					}
 				}
@@ -114,6 +115,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					final DOMNode _syncedNode = domNode.getSharedComponent();
 					// No child relationships, maybe this node is in sync with another node
 					if (_syncedNode != null) {
+
 						rels.addAll(_syncedNode.getChildRelationships());
 					}
 				}
@@ -124,22 +126,28 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					case "*":
 						// render all children
 						for (final RelationshipInterface rel : rels) {
+
 							final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
 							subNode.render(innerCtx, 1);
 						}
+
 						break;
 
 					default:
 						// render specific child at index $n
 						final Integer index = Function.parseInt(part);
 						if (index != null) {
+
 							final int zeroBasedIndex = index - 1;
 							if (zeroBasedIndex >= 0 && zeroBasedIndex < rels.size()) {
+
 								final RelationshipInterface rel = rels.get(zeroBasedIndex);
 								final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
+
 								subNode.render(innerCtx, 1);
 							}
 						}
+
 						break;
 				}
 
@@ -168,6 +176,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 						// make column value available in context, if applicable
 						if (columnValue != null) {
+
 							innerCtx.setConstant(augmentedField.getColumnKey(), columnValue);
 						}
 
@@ -193,6 +202,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 							// make iterables permanent
 							if (value instanceof Iterable) {
+
 								value = Iterables.toList((Iterable) value);
 							}
 
@@ -204,6 +214,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						}
 
 						if (wrapper != null) {
+
 							wrapper.formatStartTag(buffer, Map.of(), cssClasses);
 						}
 
@@ -213,10 +224,12 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 							boolean doShow = showLabels != null && showLabels;
 
 							if (showLabelOverride != null) {
+
 								doShow = showLabelOverride;
 							}
 
 							if (doShow) {
+
 								buffer.append("<label>" + label + "</label>");
 							}
 						}
@@ -241,6 +254,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 								innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
 
 								try {
+
 									templateNode.render(innerCtx, 0);
 
 								} finally {
@@ -253,12 +267,14 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 							} else {
 
 								if (value != null) {
+
 									buffer.append(value.toString());
 								}
 							}
 						}
 
 						if (wrapper != null) {
+
 							wrapper.formatEndTag(buffer);
 						}
 					}
@@ -279,6 +295,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 		// no data source => nothing to do
 		if (sourceChannel == null) {
+
 			return;
 		}
 
@@ -290,6 +307,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final String sortKey                  = sourceChannel.getSortKey();
 
 		if (fieldSet.isEmpty()) {
+
 			logger.warn("{}: {} with ID {} doesn't specify a fieldSet, nothing will be rendered.", getName(), domNode.getType(), domNode.getUuid());
 		}
 
@@ -313,6 +331,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						innerCtx.setConstant("field", dataField);
 
 						if (columnValue != null) {
+
 							innerCtx.setConstant(dataField.getColumnKey(), columnValue);
 						}
 
@@ -323,6 +342,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						data.put("data-structr-target", sortKey);
 
 						final Set<String> classes = new LinkedHashSet<>();
+
 						if (sortInfo != null && !dataField.isCollection()) {
 
 							classes.add("sw-sortable");
@@ -343,14 +363,17 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						}
 
 						if (wrapper != null) {
+
 							wrapper.formatStartTag(buffer, data, classes);
 						}
 
 						if (label != null) {
+
 							buffer.append(label);
 						}
 
 						if (wrapper != null) {
+
 							wrapper.formatEndTag(buffer);
 						}
 					}
@@ -362,6 +385,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 	protected DOMNode getTemplate(final App app, final String templateName) throws FrameworkException {
 
 		if (StringUtils.isBlank(templateName)) {
+
 			return null;
 		}
 
@@ -394,13 +418,13 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 			// try to expand widget
 			final DOMNode imported = Widget.expandWidget(shadowPage, null, "http://localhost", Map.of("source", widget.getSource()), false);
-
 			if (imported != null) {
 
 				imported.setVisibility(true, true);
 
 				// make all children public
 				for (final NodeInterface child : imported.getAllChildNodes()) {
+
 					child.setVisibility(true, true);
 				}
 			}

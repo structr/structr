@@ -40,40 +40,45 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "structrEnv";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
 		return getStructrEnv();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${structrEnv()}. Example ${structrEnv()}"),
-			Usage.javaScript("Usage: ${{ $.structrEnv()}. Example ${{ $.structrEnv()}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${structrEnv()}. Example ${structrEnv()}"), Usage.javaScript("Usage: ${{ $.structrEnv()}. Example ${{ $.structrEnv()}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns Structr runtime env information.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 
@@ -128,7 +133,6 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		final GraphObjectMap dashboardInfo  = new GraphObjectMap();
 		final GraphObjectMap configFileInfo = new GraphObjectMap();
 		final GraphObjectMap runtimeInfo    = new GraphObjectMap();
-
 		final FileBasedConfigurationBuilder<PropertiesConfiguration> conf = Settings.getDefaultPropertiesConfigurationBuilder();
 
 		configFileInfo.setProperty(new StringProperty("actualPermissions"),    Settings.getActualConfigurationFilePermissionsAsString(conf));

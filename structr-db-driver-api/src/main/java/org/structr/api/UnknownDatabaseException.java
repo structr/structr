@@ -32,6 +32,7 @@ public class UnknownDatabaseException extends RuntimeException {
 	}
 
 	public String getErrorCode() {
+
 		return errorCode;
 	}
 }

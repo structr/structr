@@ -48,7 +48,6 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ListLocalizationsCommand.class.getName());
 
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -107,7 +106,6 @@ public class ListLocalizationsCommand extends AbstractCommand {
 				if (detailsObjectId != null) {
 
 					final NodeInterface node = app.getNodeById(detailsObjectId);
-
 					if (node != null) {
 
 						rCtx.setDetailsDataObject(node);

@@ -51,19 +51,23 @@ public class Context {
 	}
 
 	public Context(final GraphObject thisObject) {
+
 		this.thisObject = thisObject;
 	}
 
 	public Context(final GraphObject thisObject, final Map<String,Object> data) {
+
 		this.thisObject = thisObject;
 		this.data = data;
 	}
 
 	public GraphObject getThisObject() {
+
 		return thisObject;
 	}
 
 	public void error(final FlowError error) {
+
 		this.error = error;
 	}
 
@@ -73,34 +77,42 @@ public class Context {
 	}
 
 	public void setResult(final Object result) {
+
 		this.result = result;
 	}
 
 	public Object getResult() {
+
 		return result;
 	}
 
 	public FlowError getError() {
+
 		return error;
 	}
 
 	public boolean hasResult() {
+
 		return result != null;
 	}
 
 	public boolean hasError() {
+
 		return error != null;
 	}
 
 	public void setData(final String key, final Object value) {
+
 		this.data.put(key, value);
 	}
 
 	public Object getData(final String key) {
+
 		return this.data.get(key);
 	}
 
 	public boolean hasData(final String key) {
+
 		return this.data.containsKey(key);
 	}
 
@@ -109,10 +121,12 @@ public class Context {
 	public void setParameters(final Map<String,Object> parameters) { this.parameters = parameters; }
 
 	public Object getParameter(final String key) {
+
 		return this.parameters.get(key);
 	}
 
 	public Object retrieveFromStore(final String key) {
+
 		return store.get(key);
 	}
 
@@ -127,14 +141,17 @@ public class Context {
 	public void putIntoStore(final String key, final Object value) { store.put(key,value); }
 
 	public Set<String> getStoreKeySet() {
+
 		return this.store.keySet();
 	}
 
 	public void queueForkFuture(final Future forkFuture) {
+
 		this.forkPromises.add(forkFuture);
 	}
 
 	public Queue<Future> getForkFutures() {
+
 		return this.forkPromises;
 	}
 
@@ -169,6 +186,7 @@ public class Context {
 	private <Q> Queue<Q> deepCopyQueue(final Queue<Q> q) {
 
 		final Queue<Q> newQ = new ConcurrentLinkedQueue<>();
+
 		for (Q o : q) {
 
 			newQ.add(o);
@@ -184,6 +202,7 @@ public class Context {
 		for(Map.Entry<String, Object> entry : map.entrySet()) {
 
 			if (entry.getValue() instanceof Map) {
+
 				result.put(entry.getKey(), deepCopyMap((Map)entry.getValue()));
 
 			} else if (entry.getValue() instanceof List) {
@@ -205,6 +224,7 @@ public class Context {
 		final List<Object> result = new ArrayList<>();
 
 		for (Object o : list) {
+
 			result.add(o);
 		}
 

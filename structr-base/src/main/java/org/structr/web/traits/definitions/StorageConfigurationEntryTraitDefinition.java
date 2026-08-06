@@ -54,6 +54,7 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 	public static final String VALUE_PROPERTY         = "value";
 
 	public StorageConfigurationEntryTraitDefinition() {
+
 		super(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
 	}
 
@@ -62,8 +63,7 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 
 		return Map.of(
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -73,8 +73,7 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -97,11 +96,13 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -110,8 +111,7 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 
 		return Map.of(
 
-			StorageConfigurationEntry.class, (traits, node) -> new StorageConfigurationEntryTraitWrapper(traits, node)
-		);
+			StorageConfigurationEntry.class, (traits, node) -> new StorageConfigurationEntryTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -121,24 +121,18 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 		final Property<String> nameProperty                 = new StringProperty(NAME_PROPERTY);
 		final Property<String> valueProperty                = new EncryptedStringProperty(VALUE_PROPERTY);
 
-		return Set.of(
-			configurationProperty,
-			nameProperty,
-			valueProperty
-		);
+		return Set.of(configurationProperty, nameProperty, valueProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-				PropertyView.Ui,
-				newSet(NAME_PROPERTY, VALUE_PROPERTY, CONFIGURATION_PROPERTY)
-		);
+		return Map.of(PropertyView.Ui, newSet(NAME_PROPERTY, VALUE_PROPERTY, CONFIGURATION_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -31,51 +31,61 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 public class GroupContainsPrincipalDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public GroupContainsPrincipalDefinition() {
+
 		super(StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.GROUP;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONTAINS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return true;
 	}
 }

@@ -32,6 +32,7 @@ import java.util.Set;
 public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestFourTraitDefinition() {
+
 		super("TestFour");
 	}
 
@@ -49,27 +50,18 @@ public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>        enumProperty        = new EnumProperty("enumProperty", newSet("Status1", "Status2", "Status3", "Status4")).indexed();
 		final Property<Date[]>        dateArrayProperty   = new DateArrayProperty("dateArrayProperty").indexed();
 
-		return newSet(
-			testOne,
-			stringArrayProperty,
-			booleanProperty,
-			doubleProperty,
-			integerProperty,
-			longProperty,
-			dateProperty,
-			stringProperty,
-			enumProperty,
-			dateArrayProperty
-		);
+		return newSet(testOne, stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, dateProperty, stringProperty, enumProperty, dateArrayProperty);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

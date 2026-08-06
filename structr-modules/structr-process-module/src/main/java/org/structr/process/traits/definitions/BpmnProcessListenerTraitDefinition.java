@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnProcessListener;
+import org.structr.process.traits.wrappers.BpmnProcessListenerTraitWrapper;
 
 /**
  * Per-process BPMN process listener declaration. Parsed from the {@code <bpmn:process>}
@@ -78,7 +81,14 @@ public class BpmnProcessListenerTraitDefinition extends AbstractNodeTraitDefinit
 	public static final String PHASE_AFTER = "after";
 
 	public BpmnProcessListenerTraitDefinition() {
+
 		super(ProcessTraits.BPMN_PROCESS_LISTENER);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(BpmnProcessListener.class, (traits, node) -> new BpmnProcessListenerTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -105,6 +115,7 @@ public class BpmnProcessListenerTraitDefinition extends AbstractNodeTraitDefinit
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

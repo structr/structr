@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:structr="http://structr.org/schema/process/1.0"
+                  id="Definitions_TaskEvents"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_TaskEvents" name="Task Events Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:userTask id="Task_Review" name="Review">
+      <bpmn:extensionElements>
+        <structr:taskListener event="created"   method="onTaskCreated"   phase="on" />
+        <structr:taskListener event="available"  method="onTaskAvailable"  phase="on" />
+        <structr:taskListener event="claimed"    method="onTaskClaimed"    phase="on" />
+        <structr:taskListener event="assigned"   method="onTaskAssigned"   phase="on" />
+        <structr:taskListener event="declined"   method="onTaskDeclined"   phase="on" />
+        <structr:taskListener event="cancelled"  method="onTaskCancelled"  phase="on" />
+      </bpmn:extensionElements>
+      <bpmn:potentialOwner id="po_1">
+        <bpmn:resourceAssignmentExpression>
+          <bpmn:formalExpression>group(Reviewers)</bpmn:formalExpression>
+        </bpmn:resourceAssignmentExpression>
+      </bpmn:potentialOwner>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"    targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Review" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

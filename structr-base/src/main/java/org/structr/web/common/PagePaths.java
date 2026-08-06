@@ -49,9 +49,7 @@ public class PagePaths {
 		// we fetch PagePaths privileged so they are always available for users and then the linked page is checked for visibility
 		final App app                         = StructrApp.getInstance();
 		final int requestLength               = requestParts.length;
-
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-
 		final Map<String, Boolean> processPageVariablesMap = new HashMap<>();
 
 		if (requestLength > 0) {
@@ -69,9 +67,13 @@ public class PagePaths {
 					//    - the resolved page is visible for the current user (or public)
 					//    - the resolved page belongs to the site the request belongs to
 					final boolean processPathVariables;
+
 					if (processPageVariablesMap.containsKey(resolvedPage.getUuid())) {
+
 						processPathVariables = processPageVariablesMap.get(resolvedPage.getUuid());
+
 					} else {
+
 						processPathVariables = (securityContext.isReadable(resolvedPage, false, false) && HtmlServlet.isVisibleForSite(securityContext.getRequest(), resolvedPage));
 					}
 
@@ -101,6 +103,7 @@ public class PagePaths {
 	}
 
 	static String decodePathSegment(String segment) {
+
 		return URI.create("/" + segment).getPath().substring(1);
 	}
 }

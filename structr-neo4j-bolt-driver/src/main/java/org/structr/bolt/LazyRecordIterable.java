@@ -28,6 +28,7 @@ public class LazyRecordIterable implements Iterable<Record> {
 	private BoltDatabaseService db    = null;
 
 	public LazyRecordIterable(final BoltDatabaseService db, final CypherQuery query) {
+
 		this.query = query;
 		this.db    = db;
 	}

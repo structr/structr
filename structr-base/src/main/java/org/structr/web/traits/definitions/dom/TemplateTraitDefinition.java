@@ -46,11 +46,13 @@ import java.util.*;
 public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TemplateTraitDefinition() {
+
 		super(StructrTraits.TEMPLATE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
@@ -59,8 +61,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			RenderContent.class,
-			new RenderContent() {
+			RenderContent.class, new RenderContent() {
 
 				@Override
 				public void renderContent(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -75,6 +76,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 						final AsyncBuffer out     = renderContext.getBuffer();
 
 						if (depth > 0) {
+
 							out.append(DOMNode.indent(depth, renderContext));
 						}
 
@@ -109,6 +111,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 							// No child relationships, maybe this node is in sync with another node
 							if (_syncedNode != null) {
+
 								rels.addAll(_syncedNode.getChildRelationships());
 							}
 						}
@@ -155,26 +158,29 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 								final String paginationKey = sourceChannel.getPaginationKey();
 								final String page = renderContext.getRequestParameter(paginationKey);
+
 								if (page != null) {
 
 									data.put("data-" + paginationKey, page);
 								}
 							}
 
-
 							// data-channel for reload selector, collect all relevant channel names
 							final Set<String> channelNames = new LinkedHashSet<>();
+
 							if (sourceChannel != null) {
 
 								channelNames.add(sourceChannel.getChannelName());
 							}
 
 							if (selectionChannel != null) {
+
 								channelNames.add(selectionChannel);
 							}
 
 							// if reload behaviour is "others", we don't want to reload ourselves
 							if (!channelNames.isEmpty() && !"others".equals(node.getReloadBehaviour())) {
+
 								data.put("data-channel", String.join(" ", channelNames));
 							}
 
@@ -182,7 +188,6 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 							if (selectionChannel != null) {
 
 								final String selectedId  = renderContext.getChannelValue(selectionChannel);
-
 								if (selectedId != null) {
 
 									data.put("data-current-object-id", selectedId);
@@ -211,6 +216,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// new code for components
 						if (config != null) {
+
 							componentTag.formatEndTag(buffer);
 						}
 					}
@@ -221,24 +227,25 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Template.class, (traits, node) -> new TemplateTraitWrapper(traits, node)
-		);
+		return Map.of(Template.class, (traits, node) -> new TemplateTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
 		return Set.of();
 	}
 
@@ -260,11 +267,13 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

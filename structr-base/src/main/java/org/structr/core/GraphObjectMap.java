@@ -56,7 +56,9 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
+
 		final Object uuid = getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
+
 		return uuid == null ? null : uuid.toString();
 	}
 
@@ -72,11 +74,13 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 			@Override
 			public Set<String> getLabels() {
+
 				return Set.of("GraphObjectMap");
 			}
 
 			@Override
 			public boolean contains(final String type) {
+
 				return false;
 			}
 
@@ -98,6 +102,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			public <T> PropertyKey<T> keyOrGenericProperty(final String name) {
 
 				if (hasKey(name)) {
+
 					return key(name);
 				}
 
@@ -106,152 +111,182 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 			@Override
 			public boolean hasKey(final String name) {
+
 				return key(name) != null;
 			}
 
 			@Override
 			public boolean isNodeType() {
+
 				return false;
 			}
 
 			@Override
 			public boolean isRelationshipType() {
+
 				return false;
 			}
 
 			@Override
 			public Set<PropertyKey> getAllPropertyKeys() {
+
 				return properties.keySet();
 			}
 
 			@Override
 			public Set<PropertyKey> getPropertyKeysForView(final String propertyView) {
+
 				return Set.of();
 			}
 
 			@Override
 			public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
+
 				return Set.of();
 			}
 
 			@Override
 			public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
+
 				return null;
 			}
 
 			@Override
 			public Map<String, AbstractMethod> getDynamicMethods() {
+
 				return Map.of();
 			}
 
 			@Override
 			public <T> T as(final Class<T> type, final GraphObject obj) {
+
 				return null;
 			}
 
 			@Override
 			public Relation getRelation() {
+
 				return null;
 			}
 
 			@Override
 			public Set<TraitDefinition> getTraitDefinitions() {
+
 				return Set.of();
 			}
 
 			@Override
 			public boolean isInterface() {
+
 				return false;
 			}
 
 			@Override
 			public boolean isAbstract() {
+
 				return false;
 			}
 
 			@Override
 			public boolean isServiceClass() {
+
 				return false;
 			}
 
 			@Override
 			public boolean changelogEnabled() {
+
 				return false;
 			}
 
 			@Override
 			public Set<String> getViewNames() {
+
 				return Set.of();
 			}
 
 			@Override
 			public Set<String> getAllTraits() {
+
 				return Set.of();
 			}
 
 			@Override
 			public boolean isBuiltinType() {
+
 				return false;
 			}
 
 			@Override
 			public Traits createCopy(final TraitsInstance traitsInstance) {
+
 				return this;
 			}
 
 			@Override
 			public Map<String, Map<String, PropertyKey>> getDynamicTypes() {
+
 				return Map.of();
 			}
 
 			// ----- interface Documentable -----
 			@Override
 			public DocumentableType getDocumentableType() {
+
 				return DocumentableType.Hidden;
 			}
 
 			@Override
 			public String getName() {
+
 				return null;
 			}
 
 			@Override
 			public String getShortDescription() {
+
 				return null;
 			}
 
 			@Override
 			public String getLongDescription() {
+
 				return null;
 			}
 
 			@Override
 			public List<Parameter> getParameters() {
+
 				return null;
 			}
 
 			@Override
 			public List<Example> getExamples() {
+
 				return null;
 			}
 
 			@Override
 			public List<String> getNotes() {
+
 				return null;
 			}
 
 			@Override
 			public List<Signature> getSignatures() {
+
 				return null;
 			}
 
 			@Override
 			public List<Language> getLanguages() {
+
 				return null;
 			}
 
 			@Override
 			public List<Usage> getUsages() {
+
 				return null;
 			}
 		};
@@ -259,77 +294,93 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public <T> T as(Class<T> type) {
+
 		return null;
 	}
 
 	@Override
 	public boolean is(String type) {
+
 		return false;
 	}
 
 	@Override
 	public String getType() {
+
 		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
+
 		return properties.keySet();
 	}
 
 	@Override
 	public <T> T getProperty(final PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
+
 		return (T)properties.get(propertyKey);
 	}
 
 	@Override
 	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+
 		return setProperty(key, value, false);
 	}
 
 	@Override
 	public Object setProperty(final PropertyKey key, final Object value, final boolean isCreation) throws FrameworkException {
+
 		properties.put(key, value);
+
 		return null;
 	}
 
 	@Override
 	public <T> T getProperty(final PropertyKey<T> propertyKey) {
+
 		return (T)properties.get(propertyKey);
 	}
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+
 		setProperties(securityContext, properties, false);
 	}
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap newProperties, final boolean isCreation) throws FrameworkException {
+
 		properties.putAll(newProperties.getRawMap());
 	}
 
 	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+
 		return false;
 	}
 
 	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+
 		return false;
 	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
+
 		return false;
 	}
 
 	@Override
 	public void removeProperty(final PropertyKey key) throws FrameworkException {
+
 		properties.remove(key);
 	}
 
 	@Override
 	public boolean systemPropertiesUnlocked() {
+
 		return false;
 	}
 
@@ -353,6 +404,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public boolean readOnlyPropertiesUnlocked() {
+
 		return false;
 	}
 
@@ -364,6 +416,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 			newGraphObjectMap.put(new GenericProperty(prop.getKey()), prop.getValue());
 		}
+
 		return newGraphObjectMap;
 	}
 
@@ -392,46 +445,55 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	// ----- interface Map -----
 	@Override
 	public int size() {
+
 		return properties.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
+
 		return properties.isEmpty();
 	}
 
 	@Override
 	public Object put(final PropertyKey key, final Object value) {
+
 		return properties.put(key, value);
 	}
 
 	@Override
 	public void clear() {
+
 		properties.clear();
 	}
 
 	@Override
 	public Set keySet() {
+
 		return properties.keySet();
 	}
 
 	@Override
 	public Collection values() {
+
 		return properties.values();
 	}
 
 	@Override
 	public Set entrySet() {
+
 		return properties.entrySet();
 	}
 
 	@Override
 	public PropertyContainer getPropertyContainer() {
+
 		return null;
 	}
 
 	@Override
 	public Set<PropertyKey> getFullPropertySet() {
+
 		return properties.keySet();
 	}
 
@@ -441,16 +503,19 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public boolean isVisibleToPublicUsers() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return false;
 	}
 
@@ -460,11 +525,13 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public Date getCreatedDate() {
+
 		return null;
 	}
 
 	@Override
 	public Date getLastModifiedDate() {
+
 		return null;
 	}
 
@@ -522,11 +589,13 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public SecurityContext getSecurityContext() {
+
 		return null;
 	}
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+
 		return Scripting.replaceVariables(renderContext, this, getProperty(key), key.jsonName());
 	}
 
@@ -547,36 +616,43 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() {
+
 		return Collections.EMPTY_LIST;
 	}
 
 	@Override
 	public boolean isNode() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return false;
 	}
 
 	@Override
 	public NodeInterface getSyncNode() {
+
 		return null;
 	}
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
+
 		return null;
 	}
 
 	@Override
 	public long getSourceTransactionId() {
+
 		return TransactionCommand.getCurrentTransactionId();
 	}
 
 	@Override
 	public boolean changelogEnabled() {
+
 		return true;
 	}
 }

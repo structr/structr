@@ -69,6 +69,7 @@ public abstract class IndexingTest extends StructrUiTest {
 
 		// wait for service layer to be initialized
 		do {
+
 			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());

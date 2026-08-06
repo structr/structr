@@ -24,6 +24,7 @@ import org.structr.core.traits.Traits;
 public class FlowFirst extends FlowDataSource {
 
 	public FlowFirst(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

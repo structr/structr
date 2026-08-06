@@ -30,6 +30,7 @@ import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 public class CsvTestTwoTraitWrapper extends AbstractNodeTraitWrapper {
 
 	public CsvTestTwoTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

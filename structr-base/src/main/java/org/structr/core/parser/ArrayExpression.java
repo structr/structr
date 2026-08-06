@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 public class ArrayExpression extends Expression {
 
 	public ArrayExpression(final int row, final int column) {
+
 		super(row, column);
 	}
 
@@ -57,11 +58,11 @@ public class ArrayExpression extends Expression {
 		return buf.toString();
 	}
 
-
 	@Override
 	public void add(final Expression expression) throws FrameworkException {
 
 		if (!expressions.isEmpty()) {
+
 			throw new FrameworkException(422, "Invalid expression: expected ], found another expression.");
 		}
 
@@ -79,6 +80,7 @@ public class ArrayExpression extends Expression {
 			case 1:
 				final Object value  = expressions.get(0).evaluate(ctx, entity);
 				final Object parsed = Function.intOrString(value);
+
 				if (parsed instanceof Number) {
 
 					return ((Number)parsed).intValue();
@@ -96,6 +98,7 @@ public class ArrayExpression extends Expression {
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException, UnlicensedScriptException {
 
 		if (value == null) {
+
 			return null;
 		}
 
@@ -109,6 +112,7 @@ public class ArrayExpression extends Expression {
 					try {
 
 						// silently ignore array index errors
+
 						return CollectionUtils.get(value, n.intValue());
 
 					} catch (Throwable t) {
@@ -147,46 +151,55 @@ public class ArrayExpression extends Expression {
 	// ----- documentation (unused) -----
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return null;
 	}
 }

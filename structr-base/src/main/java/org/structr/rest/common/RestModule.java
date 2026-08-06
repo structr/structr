@@ -57,16 +57,19 @@ public class RestModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "rest";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("core");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

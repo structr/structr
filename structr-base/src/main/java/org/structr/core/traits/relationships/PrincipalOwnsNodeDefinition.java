@@ -29,46 +29,55 @@ import static org.structr.core.entity.Relation.Multiplicity.One;
 public class PrincipalOwnsNodeDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public PrincipalOwnsNodeDefinition() {
+
 		super(StructrTraits.PRINCIPAL_OWNS_NODE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "OWNS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return true;
 	}
 }

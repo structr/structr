@@ -59,6 +59,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 	}
 
 	public boolean isUnknown() {
+
 		return "unknown".equals(conceptToken.getToken());
 	}
 
@@ -118,6 +119,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 				}
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 		}
@@ -140,7 +142,9 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 					writer.write(value);
 					writer.flush();
+
 				} catch (IOException ioex) {
+
 					ioex.printStackTrace();
 				}
 			}
@@ -244,10 +248,10 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 				// new higher level heading
 				TreeItem parent = current.getParent();
-
 				if (parent != null) {
 
 					while (parent != null && parent.getLevel() >= newHeadingLevel) {
+
 						parent = parent.getParent();
 					}
 
@@ -276,6 +280,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 			}
 
 			// current is unchanged
+
 			return current;
 
 		} else if (node instanceof Block paragraph) {
@@ -288,6 +293,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 			}
 
 			// current is unchanged
+
 			return current;
 
 		} else {
@@ -296,9 +302,9 @@ public class MarkdownFileToken extends NamedConceptToken {
 		}
 
 		// no change in hierarchy => return same parent
+
 		return current;
 	}
-
 
 	private class TreeItem extends AbstractToken<Concept> {
 
@@ -340,22 +346,27 @@ public class MarkdownFileToken extends NamedConceptToken {
 		}
 
 		public TreeItem getParent() {
+
 			return parent;
 		}
 
 		public void addChild(final TreeItem child) {
+
 			children.add(child);
 		}
 
 		public int getLevel() {
+
 			return level;
 		}
 
 		public void addParagraph(final String text) {
+
 			paragraphs.add(text);
 		}
 
 		public List<TreeItem> getChildren() {
+
 			return children;
 		}
 
@@ -369,6 +380,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 				concept.setShortDescription(StringUtils.join(paragraphs, "\n"));
 
 				if (title != null) {
+
 					concept.getMetadata().put("title", title);
 				}
 
@@ -387,29 +399,35 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 		@Override
 		public boolean isTerminal() {
+
 			return false;
 		}
 
 		@Override
 		public Token getToken() {
+
 			return null;
 		}
 
 		@Override
 		public void renameTo(final String newName) {
+
 			throw new UnsupportedOperationException("Not supported");
 		}
 
 		@Override
 		public void updateContent(final String key, final String value) {
+
 			throw new UnsupportedOperationException("Not supported");
 		}
 
 		public void setTitle(final String title) {
+
 			this.title = title;
 		}
 
 		public String getTitle() {
+
 			return title;
 		}
 	}

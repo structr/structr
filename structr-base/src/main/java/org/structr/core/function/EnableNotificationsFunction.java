@@ -33,12 +33,15 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "enableNotifications";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,24 +55,25 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${enableNotifications()}"),
-			Usage.javaScript("Usage: ${{ $.enableNotifications() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${enableNotifications()}"), Usage.javaScript("Usage: ${{ $.enableNotifications() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Enables the Websocket broadcast notifications in the Structr Backend Ui for the current transaction.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function can be used to re-enable the Websocket broadcast notifications disabled by the `disableNotifications()` function.";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

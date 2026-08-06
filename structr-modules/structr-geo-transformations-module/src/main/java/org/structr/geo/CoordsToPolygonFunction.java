@@ -40,11 +40,13 @@ public class CoordsToPolygonFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "coordsToPolygon";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list");
 	}
 
@@ -75,6 +77,7 @@ public class CoordsToPolygonFunction extends GeoFunction {
 					return factory.createPolygon(factory.createLinearRing(coordinates.toCoordinateArray()), null);
 
 				} catch (Throwable t) {
+
 					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
@@ -84,28 +87,32 @@ public class CoordsToPolygonFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts a coordinate array into a polygon.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

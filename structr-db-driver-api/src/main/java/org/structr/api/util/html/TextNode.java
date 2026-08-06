@@ -30,6 +30,7 @@ public class TextNode extends Tag {
 	private String textContent = null;
 
 	public TextNode(final Tag parent, final String textContent) {
+
 		super(parent, null, false, false);
 
 		this.textContent = textContent;
@@ -38,6 +39,7 @@ public class TextNode extends Tag {
 	protected void render(final PrintWriter writer, final int level) throws IOException {
 
 		if (textContent != null) {
+
 			writer.print(textContent);
 		}
 	}

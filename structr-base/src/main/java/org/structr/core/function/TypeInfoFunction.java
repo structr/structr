@@ -34,11 +34,13 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "typeInfo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type [, view]");
 	}
 
@@ -51,8 +53,8 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 			final String typeName = sources[0].toString();
 			final String viewName = (sources.length == 2 ? sources[1].toString() : null);
-
 			final Traits type = Traits.of(typeName);
+
 			if (type == null) {
 
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
@@ -75,30 +77,32 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Documentable> getContextHints(String lastToken) {
+
 		return getContextHintsForTypes(lastToken);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${typeInfo(type [, view ])}."),
-			Usage.javaScript("Usage: ${{ $.typeInfo(type [, view ]) }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${typeInfo(type [, view ])}."), Usage.javaScript("Usage: ${{ $.typeInfo(type [, view ]) }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the type information for the specified type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		If called with a view, all properties of that view are returned as a list. The items of the list are in the same
 		format as `property_info()` returns. This is identical to the result one would get from `/structr/rest/_schema/<type>/<view>`.
@@ -110,23 +114,19 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${typeInfo('User', 'public')}"),
-				Example.javaScript("${{ $.typeInfo('User', 'public') }}")
-		);
+
+		return List.of(Example.structrScript("${typeInfo('User', 'public')}"), Example.javaScript("${{ $.typeInfo('User', 'public') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("type", "name of the schema type"),
-				Parameter.optional("view", "name of the view for the given schema type")
-		);
+		return List.of(Parameter.mandatory("type", "name of the schema type"), Parameter.optional("view", "name of the view for the given schema type"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
 				"If the requested view does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned."
@@ -135,6 +135,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Schema;
 	}
 }

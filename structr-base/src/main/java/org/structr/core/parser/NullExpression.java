@@ -33,6 +33,7 @@ import java.util.List;
 public class NullExpression extends Expression {
 
 	public NullExpression(final int row, final int column) {
+
 		super(row, column);
 	}
 
@@ -48,57 +49,68 @@ public class NullExpression extends Expression {
 
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+
 		return null;
 	}
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+
 		return source;
 	}
 
 	// ----- documentation (unused) -----
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return null;
 	}
 }

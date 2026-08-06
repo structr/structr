@@ -28,16 +28,19 @@ public abstract class StringToken<T> extends AbstractToken<T> implements TokenCo
 	protected final Token token;
 
 	public StringToken(final Token token) {
+
 		this.token = token;
 	}
 
 	@Override
 	public String toString() {
+
 		return getClass().getSimpleName() + "(" + token + ")";
 	}
 
 	@Override
 	public Token getToken() {
+
 		return token;
 	}
 
@@ -45,6 +48,7 @@ public abstract class StringToken<T> extends AbstractToken<T> implements TokenCo
 	public List<Token> getAllSourceTokens() {
 
 		if (token != null) {
+
 			return List.of(token);
 		}
 

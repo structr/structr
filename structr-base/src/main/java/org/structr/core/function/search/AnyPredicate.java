@@ -31,11 +31,13 @@ public class AnyPredicate extends AbstractPredicate {
 	private Collection<Object> value = null;
 
 	public AnyPredicate(final Collection<Object> value) {
+
 		this.value = value;
 	}
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
+
 		query.any(propertyKey, value, exact);
 	}
 }

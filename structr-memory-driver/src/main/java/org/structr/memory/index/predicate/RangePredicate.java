@@ -43,12 +43,16 @@ public class RangePredicate<T extends PropertyContainer, V extends Comparable> i
 	}
 
 	public RangePredicate<T, V> setStartInclusive(final boolean startInclusive) {
+
 		this.startInclusive = startInclusive;
+
 		return this;
 	}
 
 	public RangePredicate<T, V> setEndInclusive(final boolean endInclusive) {
+
 		this.endInclusive = endInclusive;
+
 		return this;
 	}
 
@@ -72,12 +76,14 @@ public class RangePredicate<T extends PropertyContainer, V extends Comparable> i
 				if (start == null && end != null) {
 
 					// all values <= rangeEnd
+
 					return lessThan(actual, end);
 				}
 
 				if (start != null && end == null) {
 
 					// all values >= rangeStart
+
 					return greaterThan(actual, start);
 				}
 
@@ -114,6 +120,7 @@ public class RangePredicate<T extends PropertyContainer, V extends Comparable> i
 		if (value != null && typeHint != null) {
 
 			if (value.getClass().isAssignableFrom(typeHint)) {
+
 				return (Comparable)value;
 			}
 
@@ -122,18 +129,22 @@ public class RangePredicate<T extends PropertyContainer, V extends Comparable> i
 				final Number number = (Number)value;
 
 				if (Long.class.equals(typeHint)) {
+
 					return number.longValue();
 				}
 
 				if (Integer.class.equals(typeHint)) {
+
 					return number.intValue();
 				}
 
 				if (Double.class.equals(typeHint)) {
+
 					return number.doubleValue();
 				}
 
 				if (Date.class.equals(typeHint)) {
+
 					return number.longValue();
 				}
 			}

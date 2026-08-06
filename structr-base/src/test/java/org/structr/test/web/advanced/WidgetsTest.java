@@ -59,6 +59,7 @@ import java.util.*;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 public class WidgetsTest extends DeploymentTestBase {
@@ -147,7 +148,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			expandWidget(page, "Main Content", "Grid");
 			expandWidget(page, "Main Content", "Accordion");
 
-
 			// check suggestions for inserting into "Main Content" (componentType "canvas")
 			{
 				final WebSocketMessage message = fetchSuggestionsFor(page, "Main Content", "insert");
@@ -168,8 +168,6 @@ public class WidgetsTest extends DeploymentTestBase {
 
 				assertWidgetResult(message, true, "Accordion", "Card", "Card with heading", "Centered Card", "Create Form", "Edit Form", "Gallery", "List", "Table", "Grid", "Page Heading");
 			}
-
-
 
 			tx.success();
 
@@ -206,7 +204,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			expandWidget(page, "Main Content", "Grid");
 			expandWidget(page, "Main Content", "Accordion");
 
-
 			// check suggestions for wrapping the "Card" widget (can only be put in "canvas" elements)
 			{
 				final WebSocketMessage message = fetchSuggestionsFor(page, "Card", "wrap");
@@ -227,7 +224,6 @@ public class WidgetsTest extends DeploymentTestBase {
 
 				assertWidgetResult(message, true, "Grid");
 			}
-
 
 			tx.success();
 
@@ -263,7 +259,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			expandWidget(page, "Main Content", "Card");
 			expandWidget(page, "Main Content", "Grid");
 			expandWidget(page, "Main Content", "Accordion");
-
 
 			// check suggestions for wrapping the "Card" widget (can only be put in "canvas" elements)
 			{
@@ -372,7 +367,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			final Page page                     = app.nodeQuery(StructrTraits.PAGE).name("test01").getFirst().as(Page.class);
@@ -396,6 +390,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 			// create some projects
 			for (int i=1; i<10; i++) {
+
 				app.create("Project", "Project #0" + i);
 			}
 
@@ -407,12 +402,10 @@ public class WidgetsTest extends DeploymentTestBase {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			final Page page = app.nodeQuery(StructrTraits.PAGE).name("test01").getFirst().as(Page.class);
 			final DOMNode listComponent = getDOMNode(page, "List");
-
 
 			// test1: check list component attributes and content with a single page
 			{
@@ -437,6 +430,7 @@ public class WidgetsTest extends DeploymentTestBase {
 				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
 
 				for (final Element li : listElement.children()) {
+
 					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
@@ -448,7 +442,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			// test2: check sort order descending
 			{
 				final List<Node> parsedOutput = fetchAndParseHTML("test01", "List", Map.of("project.sort", "name>"));
-
 				final Element componentElement = (Element) parsedOutput.getFirst();
 				final Element divElement       = componentElement.children().getFirst();
 				final Element listElement      = divElement.children().getFirst();
@@ -460,6 +453,7 @@ public class WidgetsTest extends DeploymentTestBase {
 				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
 
 				for (final Element li : listElement.children()) {
+
 					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
@@ -471,7 +465,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			// test3: check sort order ascending
 			{
 				final List<Node> parsedOutput = fetchAndParseHTML("test01", "List", Map.of("project.sort", "name<"));
-
 				final Element componentElement = (Element) parsedOutput.getFirst();
 				final Element divElement       = componentElement.children().getFirst();
 				final Element listElement      = divElement.children().getFirst();
@@ -483,6 +476,7 @@ public class WidgetsTest extends DeploymentTestBase {
 				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
 
 				for (final Element li : listElement.children()) {
+
 					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
@@ -494,7 +488,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			// test4: check filtering
 			{
 				final List<Node> parsedOutput = fetchAndParseHTML("test01", "List", Map.of("project.filter", "07"));
-
 				final Element componentElement = (Element) parsedOutput.getFirst();
 				final Element divElement       = componentElement.children().getFirst();
 				final Element listElement      = divElement.children().getFirst();
@@ -506,6 +499,7 @@ public class WidgetsTest extends DeploymentTestBase {
 				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
 
 				for (final Element li : listElement.children()) {
+
 					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
@@ -516,13 +510,13 @@ public class WidgetsTest extends DeploymentTestBase {
 
 			// create some more projects to test pagination
 			for (int i=10; i<100; i++) {
+
 				app.create("Project", "Project #" + i);
 			}
 
 			// test5: check pagination with 10 pages
 			{
 				final List<Node> parsedOutput = fetchAndParseHTML("test01", "List", Map.of("project.sort", "name<"));
-
 				final Element componentElement = (Element) parsedOutput.getFirst();
 				final Element divElement       = componentElement.children().getFirst();
 				final Element listElement      = divElement.children().getFirst();
@@ -534,6 +528,7 @@ public class WidgetsTest extends DeploymentTestBase {
 				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
 
 				for (final Element li : listElement.children()) {
+
 					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
@@ -553,18 +548,17 @@ public class WidgetsTest extends DeploymentTestBase {
 		// check deployment roundtrip
 		compare(calculateHash(), true);
 
-
 		try (final Tx tx = app.tx()) {
 
 			// create some projects
 			for (int i=1; i<10; i++) {
+
 				app.create("Project", "Project #0" + i);
 			}
 
 			// check pagination again after deployment roundtrip
 			{
 				final List<Node> parsedOutput = fetchAndParseHTML("test01", "List", Map.of("project.sort", "name<"));
-
 				final Element componentElement = (Element) parsedOutput.getFirst();
 				final Element divElement       = componentElement.children().getFirst();
 				final Element listElement      = divElement.children().getFirst();
@@ -576,6 +570,7 @@ public class WidgetsTest extends DeploymentTestBase {
 				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
 
 				for (final Element li : listElement.children()) {
+
 					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
@@ -705,7 +700,6 @@ public class WidgetsTest extends DeploymentTestBase {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			final Page page = app.nodeQuery(StructrTraits.PAGE).name("test01").getFirst().as(Page.class);
@@ -723,11 +717,11 @@ public class WidgetsTest extends DeploymentTestBase {
 			// check HTML of ul element
 			final Element tableElement = divElement.children().get(1);
 			final Element trhead        = tableElement.children().getFirst().children().getFirst();
-
 			final List<String> expectedItems = List.of("Name", "Description", "Due Date", "Done");
 			int index = 0;
 
 			for (final Element th : trhead.children()) {
+
 				assertEquals("Table header cell text has wrong value", expectedItems.get(index++), th.text());
 			}
 
@@ -793,14 +787,12 @@ public class WidgetsTest extends DeploymentTestBase {
 				"dataSourceType2", "Date"
 			));
 
-			expandWidget(page, "Main Content", "List", Map.of(
-				"dataSource", "create:datasource",
-				"dataSourceName", "my-new-data-source"
-			));
+			expandWidget(page, "Main Content", "List", Map.of("dataSource", "create:datasource", "dataSourceName", "my-new-data-source"));
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -821,6 +813,7 @@ public class WidgetsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -846,7 +839,6 @@ public class WidgetsTest extends DeploymentTestBase {
 		}
 	}
 
-
 	protected void createPageWithWidgets(final String pageName, final String... widgetNames) {
 
 		try (final Tx tx = app.tx()) {
@@ -855,6 +847,7 @@ public class WidgetsTest extends DeploymentTestBase {
 			expandWidget(page, page, "Default Page");
 
 			for (final String widgetName : widgetNames) {
+
 				expandWidget(page, "Main Content", widgetName);
 			}
 
@@ -878,15 +871,112 @@ public class WidgetsTest extends DeploymentTestBase {
 		ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, null, data, false);
 	}
 
+	/**
+	 * Two tables on two pages must be configurable independently.
+	 *
+	 * <p>The Table widget's source is a {@code <structr:shared-template name="Table">}, so every
+	 * insert becomes an instance of ONE shared component. This test asks whether the
+	 * ComponentConfiguration -- which carries the fieldSet, the data source and, through the
+	 * DataAdapter's fields, each field's render-template config (detailPage, dateFormat, the
+	 * Value Expression) -- is per instance or shared along with it.</p>
+	 *
+	 * <p>If it is shared, configuring the columns of one table silently rewrites every other
+	 * table in the application, which is the behaviour this pins as wrong.</p>
+	 */
+	@Test
+	public void testComponentConfigurationIsPerInstanceNotPerSharedComponent() {
+
+		setupUserAndWidgets();
+
+		final String firstRootId;
+		final String secondRootId;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page first  = Page.createNewPage(securityContext, "table-page-one");
+			final Page second = Page.createNewPage(securityContext, "table-page-two");
+
+			for (final Page page : List.of(first, second)) {
+
+				expandWidget(page, page, "Default Page");
+				expandWidget(page, "Main Content", "Table");
+			}
+
+			final DOMNode firstTable  = getDOMNode(first,  "Table");
+			final DOMNode secondTable = getDOMNode(second, "Table");
+
+			assertNotNull(firstTable,  "Table widget should have been inserted into the first page");
+			assertNotNull(secondTable, "Table widget should have been inserted into the second page");
+
+			firstRootId  = firstTable.getUuid();
+			secondRootId = secondTable.getUuid();
+
+			// document the mechanism: both inserts are instances of the same shared component
+			final DOMNode firstShared  = firstTable.getSharedComponent();
+			final DOMNode secondShared = secondTable.getSharedComponent();
+
+			if (firstShared != null && secondShared != null) {
+
+				assertEquals("both tables should be instances of the same shared component", firstShared.getUuid(), secondShared.getUuid());
+			}
+
+			// configure the FIRST table only
+			final ComponentConfiguration config = firstTable.getOrCreateComponentConfiguration();
+			assertNotNull(config, "the first table should have a component configuration");
+
+			config.setFieldSet("name,status");
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final DOMNode firstTable  = app.getNodeById(firstRootId).as(DOMNode.class);
+			final DOMNode secondTable = app.getNodeById(secondRootId).as(DOMNode.class);
+
+			assertEquals("the configured table should keep its own field set", "name,status", firstTable.getFieldSetForComponent());
+
+			// the second table must be untouched: either no field set of its own, or the
+			// widget's default -- but never the one configured on the first page
+			final String secondFieldSet = secondTable.getFieldSetForComponent();
+
+			assertFalse("configuring one table must not change a table on another page (was: " + secondFieldSet + ")", "name,status".equals(secondFieldSet));
+
+			// and the two configurations must be distinct nodes
+			final ComponentConfiguration firstConfig  = firstTable.getComponentConfiguration();
+			final ComponentConfiguration secondConfig = secondTable.getComponentConfiguration();
+
+			if (firstConfig != null && secondConfig != null) {
+
+				assertFalse("each table instance needs its own ComponentConfiguration", firstConfig.getUuid().equals(secondConfig.getUuid()));
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
 	protected void expandWidget(final Page page, final String targetElement, final String widgetName) throws FrameworkException {
+
 		expandWidget(page, targetElement, widgetName, Map.of());
 	}
 
 	protected void expandWidget(final Page page, final String targetElement, final String widgetName, final Map<String, Object> additionalData) throws FrameworkException {
+
 		expandWidget(page, getDOMNode(page, targetElement), widgetName, additionalData);
 	}
 
 	protected void expandWidget(final Page page, final DOMNode targetElement, final String widgetName) throws FrameworkException {
+
 		expandWidget(page, targetElement, widgetName, Map.of());
 	}
 
@@ -897,6 +987,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 		// add additional data to the data map
 		if (additionalData != null) {
+
 			data.putAll(additionalData);
 		}
 
@@ -907,6 +998,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 		// move children
 		for (final DOMNode newNode : tmpParent.getChildren()) {
+
 			targetElement.appendChild(newNode);
 		}
 
@@ -926,10 +1018,12 @@ public class WidgetsTest extends DeploymentTestBase {
 		parameters.put("config", singleInput);
 
 		if (widget.getComponentType() != null) {
+
 			input.put("componentType", widget.getComponentType());
 		}
 
 		if (widget.getDimensions() != null) {
+
 			input.put("dimensions", widget.getDimensions());
 		}
 
@@ -956,6 +1050,7 @@ public class WidgetsTest extends DeploymentTestBase {
 			if (node.is(StructrTraits.CONTENT)) {
 
 				if (node.as(Content.class).getContent().equals(content)) {
+
 					return node.as(DOMNode.class);
 				}
 			}
@@ -978,6 +1073,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		buf.add(StringUtils.repeat("+", level) + ReplaceWidgetCommand.nameOrTag(node));
 
 		for (final DOMNode child : node.getChildren()) {
+
 			getCheckString(buf, child, level + 1);
 		}
 	}
@@ -1034,6 +1130,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 			@Override
 			public SecurityContext getSecurityContext() {
+
 				return securityContext;
 			}
 
@@ -1067,6 +1164,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 		// verify that there are no more results
 		if (exact) {
+
 			Assert.assertFalse(iterator.hasNext());
 		}
 	}
@@ -1100,7 +1198,6 @@ public class WidgetsTest extends DeploymentTestBase {
 		final Element prevButton    = paginationDiv.children().get(0);
 		final Element windowButtons = paginationDiv.children().get(1);
 		final Element nextButton    = paginationDiv.children().get(2);
-
 		final Element firstPageButton    = windowButtons.children().get(0);
 		final Element lowEllipsisButton  = windowButtons.children().get(1);
 		final Element windowButton1      = windowButtons.children().get(2);
@@ -1139,7 +1236,6 @@ public class WidgetsTest extends DeploymentTestBase {
 		final Element prevButton    = paginationDiv.children().get(0);
 		final Element windowButtons = paginationDiv.children().get(1);
 		final Element nextButton    = paginationDiv.children().get(2);
-
 		final Element firstPageButton    = windowButtons.children().get(0);
 		final Element lowEllipsisButton  = windowButtons.children().get(1);
 		final Element windowButton1      = windowButtons.children().get(2);
@@ -1201,14 +1297,15 @@ public class WidgetsTest extends DeploymentTestBase {
 
 		final Page page               = app.nodeQuery(StructrTraits.PAGE).name(pageName).getFirst().as(Page.class);
 		final DOMNode listComponent   = getDOMNode(page, componentName);
-
 		final HttpServletRequest mockRequest = new MockServletRequest() {
 			@Override
 			public String getParameter(final String name) {
+
 				return parameters.get(name);
 			}
 			@Override
 			public String[] getParameterValues(final String name) {
+
 				return new String[] { parameters.get(name) };
 			}
 		};

@@ -57,8 +57,8 @@ public class StructrFileSystemView implements FileSystemView {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
 			org.structr.web.entity.User structrUser = null;
-
 			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getName());
+
 			if (principal != null) {
 
 				structrUser = principal.as(org.structr.web.entity.User.class);
@@ -71,6 +71,7 @@ public class StructrFileSystemView implements FileSystemView {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Error while initializing file system view", fex);
 		}
 	}
@@ -81,8 +82,8 @@ public class StructrFileSystemView implements FileSystemView {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			org.structr.web.entity.User structrUser = null;
-
 			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getName());
+
 			if (principal != null) {
 
 				structrUser = principal.as(org.structr.web.entity.User.class);
@@ -95,6 +96,7 @@ public class StructrFileSystemView implements FileSystemView {
 			return new StructrFtpFolder(securityContext, homeDir);
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Error while getting home directory", fex);
 		}
 
@@ -111,12 +113,14 @@ public class StructrFileSystemView implements FileSystemView {
 			tx.success();
 
 			if (structrWorkingDir == null || structrWorkingDir.is(StructrTraits.FILE)) {
+
 				return new StructrFtpFolder(securityContext, null);
 			}
 
 			return new StructrFtpFolder(securityContext, structrWorkingDir.as(Folder.class));
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Error in changeWorkingDirectory()", fex);
 		}
 
@@ -137,6 +141,7 @@ public class StructrFileSystemView implements FileSystemView {
 			return true;
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Error in changeWorkingDirectory()", fex);
 		}
 
@@ -150,6 +155,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 		// remove trailing slash
 		if (requestedPath.endsWith("/")) {
+
 			requestedPath = requestedPath.substring(0, requestedPath.length() - 1);
 		}
 
@@ -158,16 +164,19 @@ public class StructrFileSystemView implements FileSystemView {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			if (StringUtils.isBlank(requestedPath) || "/".equals(requestedPath)) {
+
 				return getHomeDirectory();
 			}
 
 			StructrFtpFolder cur = (StructrFtpFolder) getWorkingDirectory();
 
 			if (".".equals(requestedPath) || "./".equals(requestedPath)) {
+
 				return cur;
 			}
 
 			if ("..".equals(requestedPath) || "../".equals(requestedPath)) {
+
 				return new StructrFtpFolder(securityContext, cur.getStructrFile().getParent().as(Folder.class));
 			}
 
@@ -179,6 +188,7 @@ public class StructrFileSystemView implements FileSystemView {
 				logger.info("Base path: {}", basePath);
 
 				while (requestedPath.startsWith("..")) {
+
 					requestedPath = StringUtils.stripStart(StringUtils.stripStart(requestedPath, ".."), "/");
 					basePath = StringUtils.substringBeforeLast(basePath, "/");
 				}
@@ -195,11 +205,13 @@ public class StructrFileSystemView implements FileSystemView {
 				if (file.is(StructrTraits.FOLDER)) {
 
 					tx.success();
+
 					return new StructrFtpFolder(securityContext, file.as(Folder.class));
 
 				} else {
 
 					tx.success();
+
 					return new StructrFtpFile(securityContext, file.as(File.class));
 				}
 			}
@@ -207,9 +219,11 @@ public class StructrFileSystemView implements FileSystemView {
 			logger.warn("No existing file found: {}", requestedPath);
 
 			tx.success();
+
 			return new FileOrFolder(requestedPath, user);
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Error in getFile()", fex);
 		}
 
@@ -219,12 +233,15 @@ public class StructrFileSystemView implements FileSystemView {
 
 	@Override
 	public boolean isRandomAccessible() throws FtpException {
+
 		logger.info("isRandomAccessible(), returning true");
+
 		return true;
 	}
 
 	@Override
 	public void dispose() {
+
 		logger.info("dispose() does nothing");
 	}
 

@@ -74,6 +74,7 @@ class ScanJob implements Runnable {
 		// bail if the service layer is shutting down - touching the graph now
 		// would re-initialize it (System.exit under the embedded driver)
 		if (!service.isReady()) {
+
 			return;
 		}
 
@@ -82,6 +83,7 @@ class ScanJob implements Runnable {
 		if (!waitForSyncRoot()) {
 
 			logger.warn("Unable to scan {}, sync root node was not created", target.syncRootPath());
+
 			return;
 		}
 
@@ -92,6 +94,7 @@ class ScanJob implements Runnable {
 		if (!discover(handler, scanStart)) {
 
 			// never prune after a partial scan
+
 			return;
 		}
 
@@ -114,6 +117,7 @@ class ScanJob implements Runnable {
 		for (int i = 0; i < 3; i++) {
 
 			if (!service.isReady()) {
+
 				return false;
 			}
 
@@ -127,6 +131,7 @@ class ScanJob implements Runnable {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				logger.error(ExceptionUtils.getStackTrace(fex));
 			}
 
@@ -157,6 +162,7 @@ class ScanJob implements Runnable {
 			while (it.hasNext()) {
 
 				if (!service.isReady()) {
+
 					return false;
 				}
 
@@ -207,6 +213,7 @@ class ScanJob implements Runnable {
 	private long prune(final long scanStart) {
 
 		if (!service.isReady()) {
+
 			return 0;
 		}
 
@@ -225,6 +232,7 @@ class ScanJob implements Runnable {
 		} catch (FrameworkException fex) {
 
 			logger.warn("Unable to determine stale nodes of {}: {}", target.syncRootPath(), fex.getMessage());
+
 			return 0;
 		}
 
@@ -234,6 +242,7 @@ class ScanJob implements Runnable {
 		while (it.hasNext()) {
 
 			if (!service.isReady()) {
+
 				break;
 			}
 
@@ -254,6 +263,7 @@ class ScanJob implements Runnable {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				logger.warn("Unable to prune stale nodes of {}: {}", target.syncRootPath(), fex.getMessage());
 			}
 		}
@@ -278,6 +288,7 @@ class ScanJob implements Runnable {
 		if (!isSyncRoot && node.as(AbstractFile.class).getStorageConfiguration() != null) {
 
 			// nested sync root: governed by its own synchronizer, keep the whole subtree
+
 			return true;
 		}
 
@@ -292,6 +303,7 @@ class ScanJob implements Runnable {
 		}
 
 		if (isSyncRoot) {
+
 			return true;
 		}
 
@@ -301,6 +313,7 @@ class ScanJob implements Runnable {
 		if (stale && !kept) {
 
 			out.add(node.getUuid());
+
 			return false;
 		}
 
@@ -310,6 +323,7 @@ class ScanJob implements Runnable {
 	private void updateLastScanned(final long scanStart) {
 
 		if (!target.syncRootIsFolder() || !service.isReady()) {
+
 			return;
 		}
 
@@ -324,6 +338,7 @@ class ScanJob implements Runnable {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.error(ExceptionUtils.getStackTrace(fex));
 		}
 	}

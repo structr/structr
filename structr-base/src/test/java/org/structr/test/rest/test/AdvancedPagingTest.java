@@ -48,7 +48,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		// create a root object
 		String resource = "/TestTwo";
-
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
@@ -100,7 +99,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 	}
 
-
 	/**
 	 * Paging of subresources
 	 */
@@ -110,7 +108,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		// create a root object
 
 		String resource = "/TestTwo";
-
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
@@ -165,7 +162,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		final List<String> testOneIDs = new LinkedList<>();
 		String resource               = "/TestTwo";
-
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
@@ -203,7 +199,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			.when()
 				.get("/TestTwo");
 
-
 		RestAssured
 
 			.given()
@@ -222,7 +217,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 			.when()
 				.get("/TestTwo");
-
 
 		RestAssured
 
@@ -249,7 +243,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 			.when()
 				.get("/TestTwo");
-
 
 	}
 
@@ -281,6 +274,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -322,7 +316,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			.when()
 				.get("/TestThree?oneToOneTestFive=");
 
-
 		/* Test 4: Test that we can correctly search for objects **without** a connection to another node WHILE also reducing pagesize to 1	*/
 		RestAssured
 			.given()
@@ -356,6 +349,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -391,6 +385,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -404,7 +399,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result_count",   equalTo(num))
 			.when()
 				.get("/Nested?_pageSize=100");
-
 
 		RestAssured
 			.given()

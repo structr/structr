@@ -69,10 +69,10 @@ public class ImportCommand extends AbstractCommand {
 			}
 
 			final boolean parseOk       = pageImporter.parse();
-
 			if (parseOk) {
 
 				if (address != null) {
+
 					logger.info("Successfully parsed {}", address);
 					getWebSocket().send(MessageBuilder.status().code(200).message("Successfully parsed address " + address).build(), true);
 				}
@@ -97,6 +97,7 @@ public class ImportCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		} catch (Throwable t) {
+
 			logger.error(t.getMessage());
 		}
 
@@ -104,6 +105,7 @@ public class ImportCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "IMPORT";
 	}
 }

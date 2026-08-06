@@ -48,6 +48,7 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 
 		// render
 		for (final Documentable documentable : documentables) {
+
 			lines.addAll(documentable.createMarkdownDocumentation(settings.getDetails(), level));
 		}
 

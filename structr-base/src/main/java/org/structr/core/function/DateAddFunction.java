@@ -39,11 +39,13 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "dateAdd";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("date, years[, months[, days[, hours[, minutes[, seconds]]]]]");
 	}
 
@@ -71,12 +73,14 @@ public class DateAddFunction extends CoreFunction {
 				if (date == null) {
 
 					try {
+
 						// parse with format from IS
 						date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
 
 					} catch (ParseException ex) {
 
 						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getDisplayName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
+
 						return null;
 					}
 				}
@@ -97,11 +101,13 @@ public class DateAddFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -109,9 +115,13 @@ public class DateAddFunction extends CoreFunction {
 	private int getIntParameter(final Object[] sources, final int index, final String name) {
 
 		if (sources.length > index) {
+
 			if (sources[index] instanceof Number) {
+
 				return ((Number)sources[index]).intValue();
+
 			} else {
+
 				logger.warn("{}: Parameter \"{}\" must be integer! Provided: {} - using 0 as value. (Parameters: {})", getDisplayName(), name, sources[index], getParametersAsString(sources));
 			}
 		}
@@ -121,6 +131,7 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${dateAdd(this.createdDate, 1, -1, 0, 0, 0, 0)}"),
 			Usage.javaScript("Usage: ${{ $.dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]]); }}. Example: ${{ $.dateAdd($.this.createdDate, 1, -1, 0, 0, 0, 0); }}")
@@ -129,16 +140,19 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds the given values to a date.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The result is returned as new date object, leaving the original date untouched.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("date", "date to manipulate"),
 				Parameter.mandatory("years", "number of years to add"),
@@ -152,6 +166,7 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"The `date` parameter accepts actual date objects, numbers (interpreted as ms after 1970) and strings (formatted as `yyyy-MM-dd'T'HH:mm:ssZ`)",
 				"All other parameters must be provided as numbers"
@@ -160,6 +175,7 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${dateAdd(now, 1)}", "Adds one year to the current date"),
 				Example.structrScript("${dateAdd(now, 0, 0, 7)}", "Adds one week to the current date"),
@@ -169,6 +185,7 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Miscellaneous;
 	}
 }

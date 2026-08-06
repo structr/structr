@@ -68,6 +68,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	 * @param type
 	 */
 	public StartNodes(final TraitsInstance traitsInstance, final String name, final String type) {
+
 		this(traitsInstance, name, type, new ObjectNotion());
 	}
 
@@ -95,36 +96,43 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String typeName() {
+
 		return sourceType;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Iterable<NodeInterface>> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
 	public Iterable<NodeInterface> getProperty(final SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -149,6 +157,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 		final ManyStartpoint startpoint = relation.getSource();
 
 		if (updateCallback != null) {
+
 			updateCallback.notifyUpdated(obj, collection);
 		}
 
@@ -157,47 +166,56 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String relatedType() {
+
 		return sourceType;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return true;
 	}
 
 	@Override
 	public Property<Iterable<NodeInterface>> indexed() {
+
 		return this;
 	}
 
 	@Override
 	public Property<Iterable<NodeInterface>> passivelyIndexed() {
+
 		return this;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isIndexed() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isPassivelyIndexed() {
+
 		return false;
 	}
 
 	// ----- interface RelationProperty -----
 	@Override
 	public Notion getNotion() {
+
 		return notion;
 	}
 
@@ -212,11 +230,13 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String getSourceType() {
+
 		return sourceType;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return destType;
 	}
 
@@ -227,9 +247,11 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 		if (inputConverter != null) {
 
 			final List<String> sources = new LinkedList<>();
+
 			if (requestParameter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {
+
 					sources.add(part);
 				}
 			}
@@ -242,16 +264,19 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public FieldDefinition getFieldDefinition() {
+
 		return this;
 	}
 
 	@Override
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
+
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return relation;
 	}
 
@@ -264,6 +289,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 				case Relation.ALWAYS:
 				case Relation.TARGET_TO_SOURCE:
+
 					return true;
 			}
 		}
@@ -275,6 +301,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	public String getAutocreateFlagName() {
 
 		if (relation != null) {
+
 			return Relation.CASCADING_DESCRIPTIONS[relation.getAutocreationFlag()];
 		}
 
@@ -283,17 +310,20 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String getDirectionKey() {
+
 		return "in";
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -320,6 +350,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		if (level > 4) {
+
 			return Collections.EMPTY_MAP;
 		}
 
@@ -345,6 +376,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	// ----- interface FieldDefinition -----
 	@Override
 	public boolean hasOptions() {
+
 		return true;
 	}
 
@@ -359,21 +391,25 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String renderTemplate() {
+
 		return null;
 	}
 
 	@Override
 	public String editTemplate() {
+
 		return null;
 	}
 
 	@Override
 	public String dataType() {
+
 		return "node";
 	}
 
 	@Override
 	public String nodeType() {
+
 		return relatedType();
 	}
 }

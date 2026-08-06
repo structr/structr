@@ -32,11 +32,13 @@ public class JoinFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "join";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("collection, separator");
 	}
 
@@ -61,52 +63,50 @@ public class JoinFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${join(collection, separator)}"),
-				Usage.javaScript("Usage: ${{ $.join(collection, separator) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${join(collection, separator)}"), Usage.javaScript("Usage: ${{ $.join(collection, separator) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Joins the given collection of strings into a single string, separated by the given separator.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function is often used in conjunction with `find()` and `extract()` to create comma-separated lists of property values.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("collection", "collection of values to join"),
-			Parameter.mandatory("separator", "separator string")
-		);
+		return List.of(Parameter.mandatory("collection", "collection of values to join"), Parameter.mandatory("separator", "separator string"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${join(extract(find('User'), 'name'), ', ')}", "Create a comma-separated list of all the user names in the database")
-		);
+		return List.of(Example.structrScript("${join(extract(find('User'), 'name'), ', ')}", "Create a comma-separated list of all the user names in the database"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

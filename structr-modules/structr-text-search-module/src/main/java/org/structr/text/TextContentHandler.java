@@ -73,8 +73,10 @@ public class TextContentHandler implements ContentHandler {
 			case "/html/body/div":
 
 				if ("page".equals(atts.getValue("class"))) {
+
 					nextPage();
 				}
+
 				break;
 
 			case "/html/head/meta":
@@ -110,6 +112,7 @@ public class TextContentHandler implements ContentHandler {
 
 	@Override
 	public void endElement(final String uri, final String localName, final String qName) throws SAXException {
+
 		nextLine();
 
 		path.removeLast();
@@ -125,18 +128,24 @@ public class TextContentHandler implements ContentHandler {
 			switch (ch[i]) {
 
 				case '\n':
+
 					if (newline == 0) {
+
 						lineBuffer.append(" ");
 					}
+
 					newline++;
 					break;
 
 				default:
 					lineBuffer.append(ch[i]);
+
 					if (newline > 1) {
+
 						nextLine();
 						newline = 0;
 					}
+
 					break;
 			}
 		}
@@ -144,6 +153,7 @@ public class TextContentHandler implements ContentHandler {
 
 	@Override
 	public void ignorableWhitespace(final char[] ch, final int start, final int length) throws SAXException {
+
 		characters(ch, start, length);
 	}
 
@@ -156,6 +166,7 @@ public class TextContentHandler implements ContentHandler {
 	}
 
 	public List<AnnotatedPage> getPages() {
+
 		return pages;
 	}
 
@@ -166,11 +177,11 @@ public class TextContentHandler implements ContentHandler {
 		final Pattern wordPattern     = Pattern.compile("[\\wöäüÖÄÜß-]+");
 
 		for (final AnnotatedPage page : pages) {
+
 			// iterate lines and try to obtain structural information
 			for (final AnnotatedLine line : page.getLines()) {
 
 				double headingProbability = 0.0;
-
 				final String content = line.getContent();
 
 				// line is probably a title if it is a single word
@@ -210,16 +221,19 @@ public class TextContentHandler implements ContentHandler {
 					}
 
 					if (wordPattern.matcher(word).matches()) {
+
 						wordCount++;
 					}
 				}
 
 				if (uppercaseWordCount >= wordCount / 1.5) {
+
 					headingProbability += 0.2;
 				}
 
 				// very simple heuristic approach
 				if (headingProbability > 0.5) {
+
 					line.setType("heading");
 				}
 			}
@@ -227,9 +241,9 @@ public class TextContentHandler implements ContentHandler {
 	}
 
 	public Map<String, String> getMetadata() {
+
 		return meta;
 	}
-
 
 	// ----- private methods -----
 	private void nextPage() {
@@ -264,6 +278,7 @@ public class TextContentHandler implements ContentHandler {
 	}
 
 	private String getPath() {
+
 		return "/" + StringUtils.join(path, "/");
 	}
 }

@@ -55,7 +55,6 @@ import static org.testng.AssertJUnit.*;
 
 public class AdvancedSearchTest extends StructrRestTestBase {
 
-
 	@Test
 	public void testGraphBasedIndexingSearchOnNotionProperties() {
 
@@ -67,12 +66,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
 		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
 		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
-
 		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
 		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
 		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
 		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
-
 		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
 		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
 		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
@@ -81,10 +78,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test18 = createEntity("/TestEight", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
 		String test19 = createEntity("/TestEight", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
 		String test20 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
-
 		String test21 = createEntity("/TestSix", "{ name: test21, aString: string21, anInt: 21 }");
 		String test22 = createEntity("/TestSix", "{ name: test22, aString: string22, anInt: 22 }");
-
 		String test23 = createEntity("/TestEight", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
 
 		// test simple related search with one object,
@@ -128,7 +123,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.when()
 				.get(concat("/TestSix?_sort=name&testSevenName=0&_loose=1"));
-
 
 		// test simple related search with two objects, AND,
 		// expected result is empty
@@ -221,7 +215,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.when()
 				.get(concat("/TestSix?_sort=name&testSevenName=test09&testEightStrings=string20&_inexact=1"));
-
 
 		// test related search with a single related property and two
 		// indexed properties that should filter the result set.
@@ -341,7 +334,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/TestSix?_sort=name&testSevenName="));
 
-
 		// test related search with one related property and one
 		// empty related property.
 		// expected result is a list of two objects:
@@ -393,12 +385,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
 		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
 		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
-
 		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
 		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
 		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
 		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
-
 		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
 		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
 		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
@@ -407,10 +397,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test18 = createEntity("/TestEight", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
 		String test19 = createEntity("/TestEight", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
 		String test20 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
-
 		String test21 = createEntity("/TestSix", "{ name: test21, aString: string21, anInt: 21 }");
 		String test22 = createEntity("/TestSix", "{ name: test22, aString: string22, anInt: 22 }");
-
 		String test23 = createEntity("/TestEight", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
 
 		// test simple related search with two objects, AND,
@@ -551,7 +539,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/TestSix?_sort=aString&aString=string02;string04;string06"));
 
-
 	}
 
 	@Test
@@ -616,9 +603,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				tx.success();
 			}
 
-
-
-
 		} catch (FrameworkException ex) {
 
 			ex.printStackTrace();
@@ -670,6 +654,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				for (final NodeInterface user : users) {
 
 					for (final NodeInterface test : app.nodeQuery("TestThree").key(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user).key(traits.key("enumProperty"), "Status1").getAsList()) {
+
 						assertEquals("Invalid enum query result", "Status1", test.getProperty(traits.key("enumProperty")));
 					}
 				}
@@ -688,8 +673,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.when()
 					.get(concat("/TestThree?_sort=createdDate&owner=" + uuid  + "&enumProperty=" + TestEnum.Status1));
-
-
 
 		} catch (FrameworkException ex) {
 
@@ -712,7 +695,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			final String user1 = createEntity("/TestUser", "{ name: user1 }");
 			final String user2 = createEntity("/TestUser", "{ name: user2 }");
 			final String user3 = createEntity("/TestUser", "{ name: user3 }");
-
 			NodeInterface node = null;
 
 			// setup schema
@@ -766,8 +748,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.when()
 					.get("/TestType/ui?_sort=name");
 
-
-
 			// check entities of user1 are there
 			RestAssured
 
@@ -784,8 +764,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.when()
 					.get("/TestType/ui?_sort=createdDate&owner=" + user1);
-
-
 
 			// check entities of user2 are there
 			RestAssured
@@ -804,8 +782,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.when()
 					.get("/TestType/ui?_sort=createdDate&owner=" + user2);
 
-
-
 			// check entities of user3 are there
 			RestAssured
 
@@ -823,7 +799,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.when()
 					.get("/TestType/ui?_sort=createdDate&owner=" + user3);
 
-
 			// check entities of user1 with a given enum are there
 			RestAssured
 
@@ -838,7 +813,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.when()
 					.get("/TestType/ui?_sort=createdDate&owner=" + user1 + "&status=one");
-
 
 			// check entities of user1 with a given enum are there
 			RestAssured
@@ -856,7 +830,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.when()
 					.get("/TestType/ui?_sort=createdDate&owner=" + user1 + "&status=two");
 
-
 			// check entities of user1 with a given enum are there
 			RestAssured
 
@@ -872,10 +845,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.when()
 					.get("/TestType/ui?_sort=createdDate&owner=" + user2 + "&status=three");
-
-
-
-
 
 		} catch (FrameworkException ex) {
 
@@ -898,12 +867,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
 		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
 		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
-
 		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
 		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
 		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
 		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
-
 		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
 		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
 		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
@@ -1019,8 +986,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.statusCode(201)
 
 			.when()
-				.post(resource).getHeader("Location")
-		);
+				.post(resource).getHeader("Location"));
 
 		// test default view with properties in it
 		RestAssured
@@ -1096,12 +1062,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test06 = createEntity("/TestOne", "{ name: test06, anInt: 6 }");
 		String test07 = createEntity("/TestOne", "{ name: test07, anInt: 7 }");
 		String test08 = createEntity("/TestOne", "{ name: test08, anInt: 8 }");
-
 		String test09 = createEntity("/TestTwo", "{ name: test09, testOnes: [", test01, ",", test02, "], anInt: 9 }");
 		String test10 = createEntity("/TestTwo", "{ name: test10, testOnes: [", test03, ",", test04, "], anInt: 10 }");
 		String test11 = createEntity("/TestTwo", "{ name: test11, testOnes: [", test05, ",", test06, "], anInt: 11 }");
 		String test12 = createEntity("/TestTwo", "{ name: test12, testOnes: [", test07, ",", test08, "], anInt: 12 }");
-
 		String test13 = createEntity("/TestEleven", "{ name: test13, testTwos: [", test09, ",", test10, "]}");
 		String test14 = createEntity("/TestEleven", "{ name: test14, testTwos: [", test11, ",", test12, "]}");
 
@@ -1173,7 +1137,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.when()
 				.get(url);
-
 
 	}
 
@@ -1269,12 +1232,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
 		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
 		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
-
 		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
 		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
 		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
 		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
-
 		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
 		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
 		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
@@ -1283,10 +1244,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test18 = createEntity("/TestEight", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
 		String test19 = createEntity("/TestEight", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
 		String test20 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
-
 		String test21 = createEntity("/TestSix", "{ name: test21, aString: string21, anInt: 21 }");
 		String test22 = createEntity("/TestSix", "{ name: test22, aString: string22, anInt: 22 }");
-
 		String test23 = createEntity("/TestEight", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
 
 		// test simple related search with one object,
@@ -1313,6 +1272,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	public void testGlobalSearch() {
 
 		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage)) {
+
 			return;
 		}
 
@@ -1347,6 +1307,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1355,7 +1316,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final String expectedKeysForDOMResults = "id,isDOMElement,keys,labels,name,type,values";
-
 			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", List.of(SearchNodesCommand.SEARCH_CONTEXT_DOM));
 
 			assertEquals(2, results.size());
@@ -1372,6 +1332,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1391,6 +1352,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}

@@ -53,7 +53,6 @@ public class XmlImportTest extends StructrUiTest {
 		// test setup
 		try (final Tx tx = app.tx()) {
 
-
 			final String xmlData =
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
 				"<items>\n"
@@ -97,6 +96,7 @@ public class XmlImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -189,6 +189,7 @@ public class XmlImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

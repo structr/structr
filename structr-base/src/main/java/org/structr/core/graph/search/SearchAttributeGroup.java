@@ -77,6 +77,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 			buf.append(item.toString());
 
 			if (it.hasNext()) {
+
 				buf.append(", ");
 			}
 		}
@@ -87,10 +88,12 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	}
 
 	public List<SearchAttribute> getSearchAttributes() {
+
 		return searchItems;
 	}
 
 	public void add(final SearchAttribute searchAttribute) {
+
 		searchItems.add(searchAttribute);
 	}
 
@@ -130,6 +133,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 						// we're in or mode, return
 						// immediately
+
 						return true;
 
 					} else {
@@ -138,6 +142,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 						// and evaluate next search predicate
 						includeInResult = false;
 					}
+
 					break;
 			}
 		}
@@ -176,6 +181,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 	@Override
 	public Class getQueryType() {
+
 		return GroupQuery.class;
 	}
 
@@ -183,6 +189,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public List<QueryPredicate> getQueryPredicates() {
 
 		final List<QueryPredicate> predicates = new LinkedList<>();
+
 		for (final SearchAttribute attr : searchItems) {
 
 			predicates.add(attr);
@@ -194,11 +201,13 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	// ----- interface QueryGroup<T> -----
 	@Override
 	public Operation getOperation() {
+
 		return operation;
 	}
 
 	@Override
 	public Query<T> getParent() {
+
 		return query;
 	}
 
@@ -209,11 +218,13 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 		// add all search items
 		for (final SearchAttribute attr : searchItems) {
+
 			group.add(attr);
 		}
 
 		// add new attributes
 		for (final SearchAttribute attr : attributes) {
+
 			group.add(attr);
 		}
 
@@ -245,33 +256,41 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public QueryGroup<T> type(final String type) {
 
 		searchItems.add(new TypeSearchAttribute(type, true));
+
 		return this;
 	}
 
 	@Override
 	public QueryGroup<T> name(final String name) {
+
 		return key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	@Override
 	public QueryGroup<T> location(final double latitude, final double longitude, final double distance) {
+
 		searchItems.add(new DistanceSearchAttribute(latitude, longitude, distance));
+
 		return this;
 	}
 
 	@Override
 	public QueryGroup<T> location(final String street, final String postalCode, final String city, final String country, final double distance) {
+
 		return location(street, null, postalCode, city, null, country, distance);
 	}
 
 	@Override
 	public QueryGroup<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance) {
+
 		return location(street, null, postalCode, city, state, country, distance);
 	}
 
 	@Override
 	public QueryGroup<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance) {
+
 		searchItems.add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance));
+
 		return this;
 	}
 
@@ -279,6 +298,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public <P> QueryGroup<T> key(final PropertyKey<P> key, final P value) {
 
 		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
+
 			query.doNotSort(false);
 		}
 
@@ -405,81 +425,97 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	// ----- interface Query<T> -----
 	@Override
 	public QueryContext getQueryContext() {
+
 		return query.getQueryContext();
 	}
 
 	@Override
 	public Query<T> isPing(boolean isPing) {
+
 		return query.isPing(isPing);
 	}
 
 	@Override
 	public ResultStream<T> getResultStream() throws FrameworkException {
+
 		return query.getResultStream();
 	}
 
 	@Override
 	public List<T> getAsList() throws FrameworkException {
+
 		return query.getAsList();
 	}
 
 	@Override
 	public T getFirst() throws FrameworkException {
+
 		return query.getFirst();
 	}
 
 	@Override
 	public Traits getTraits() {
+
 		return query.getTraits();
 	}
 
 	@Override
 	public Query<T> disableSorting() {
+
 		return query.disableSorting();
 	}
 
 	@Override
 	public Query<T> sort(final SortOrder sortOrder) {
+
 		return query.sort(sortOrder);
 	}
 
 	@Override
 	public Query<T> sort(final PropertyKey key, final boolean descending) {
+
 		return query.sort(key, descending);
 	}
 
 	@Override
 	public Query<T> comparator(final Comparator<T> comparator) {
+
 		return query.comparator(comparator);
 	}
 
 	@Override
 	public Query<T> pageSize(final int pageSize) {
+
 		return query.pageSize(pageSize);
 	}
 
 	@Override
 	public Query<T> page(final int page) {
+
 		return query.page(page);
 	}
 
 	@Override
 	public Query<T> publicOnly() {
+
 		return query.publicOnly();
 	}
 
 	@Override
 	public Query<T> includeHidden() {
+
 		return query.includeHidden();
 	}
 
 	@Override
 	public Query<T> publicOnly(final boolean publicOnly) {
+
 		return query.publicOnly(publicOnly);
 	}
 
 	@Override
 	public Query<T> includeHidden(final boolean includeHidden) {
+
 		return query.includeHidden(includeHidden);
 	}
 
@@ -515,16 +551,19 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 	@Override
 	public Predicate<GraphObject> toPredicate() {
+
 		return query.toPredicate();
 	}
 
 	@Override
 	public void doNotSort(final boolean doNotSort) {
+
 		query.doNotSort(doNotSort);
 	}
 
 	@Override
 	public void setTraits(final Traits traits) {
+
 		query.setTraits(traits);
 	}
 }

@@ -27,28 +27,31 @@ public class HostHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "host";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the host name **of the server that Structr runs on**.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
-		);
+
+		return List.of("Only available in a context where Structr is responding to an HTTP request from the outside.");
 	}
 }

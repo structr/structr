@@ -26,32 +26,40 @@ import java.util.TreeMap;
 public class OpenAPIRequestResponse extends TreeMap<String, Object> {
 
 	public OpenAPIRequestResponse(final String description, final Map<String, Object> schema) {
+
 		this(description, schema, null);
 	}
 
 	public OpenAPIRequestResponse(final String description, final Map<String, Object> schema, final Map<String, Object> example) {
+
 		this(description, schema, example, null, false);
 	}
 
 	public OpenAPIRequestResponse(final String description, final Map<String, Object> schema, final Map<String, Object> example, final Map<String, Object> headers, final boolean addItemsToSchema, final String type) {
+
 		final Map<String, Object> content = new LinkedHashMap<>();
 
 		put("description", description);
 		put("content",     Map.of("application/json", content));
 
 		if (headers != null) {
+
 			put("headers", headers);
 		}
 
 		if (schema != null) {
+
 			Map<String, Object> mapOrSchema = schema;
+
 			if (addItemsToSchema) {
+
 				Map<String, Object> map = new HashMap<>();
 				map.put("items", schema);
 				mapOrSchema = map;
 			}
 
 			if (type != null) {
+
 				mapOrSchema.put("type", type);
 			}
 
@@ -59,14 +67,14 @@ public class OpenAPIRequestResponse extends TreeMap<String, Object> {
 		}
 
 		if (example != null) {
+
 			content.put("example", example);
 		}
-
-
 
 	}
 
 	public OpenAPIRequestResponse(final String description, final Map<String, Object> schema, final Map<String, Object> example, final Map<String, Object> headers, final boolean addItemsToSchema) {
+
 		this(description, schema, example, headers, addItemsToSchema, null);
 	}
 }

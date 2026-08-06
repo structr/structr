@@ -54,6 +54,7 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	public static final String CONFIG_JSON_PROPERTY      = "configJson";
 
 	public FlowContainerConfigurationTraitDefinition() {
+
 		super(StructrTraits.FLOW_CONTAINER_CONFIGURATION);
 	}
 
@@ -62,11 +63,11 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					graphObject.setVisibility(true, true);
 				}
 			}
@@ -78,14 +79,12 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 
 		return Map.of(
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
 
 						final FlowContainerConfiguration flowContainerConfiguration = flowBaseNode.as(FlowContainerConfiguration.class);
-
 						final Map<String, Object> result = new TreeMap<>();
 
 						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                              flowContainerConfiguration.getUuid());
@@ -105,9 +104,7 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowContainerConfiguration.class, (traits, node) -> new FlowContainerConfiguration(traits, node)
-		);
+		return Map.of(FlowContainerConfiguration.class, (traits, node) -> new FlowContainerConfiguration(traits, node));
 	}
 
 	@Override
@@ -118,12 +115,7 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 		final Property<String> validForEditor       = new StringProperty(VALID_FOR_EDITOR_PROPERTY).indexed();
 		final Property<String> configJson           = new StringProperty(CONFIG_JSON_PROPERTY);
 
-		return newSet(
-			flow,
-			activeForFlow,
-			validForEditor,
-			configJson
-		);
+		return newSet(flow, activeForFlow, validForEditor, configJson);
 	}
 
 	@Override
@@ -143,6 +135,7 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

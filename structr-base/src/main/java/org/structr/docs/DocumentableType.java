@@ -81,27 +81,33 @@ public enum DocumentableType {
 	}
 
 	public ConceptType getConcept() {
+
 		return type;
 	}
 
 	public boolean supportsLanguages() {
+
 		return supportsLanguages;
 	}
 
 	public boolean supportsExamples() {
+
 		return supportsExamples;
 	}
 
 	// ----- interface GlossaryTerm -----
 	public String getDisplayName() {
+
 		return displayName;
 	}
 
 	public String getName() {
+
 		return type.getIdentifier();
 	}
 
 	public String getShortDescription() {
+
 		return "Documentable type \"" + displayName + "\"";
 	}
 

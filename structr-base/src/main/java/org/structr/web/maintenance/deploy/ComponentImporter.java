@@ -80,11 +80,13 @@ public class ComponentImporter extends HtmlFileImporter {
 			createComponentChildren(file, fileName);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Exception while importing shared component {}: {}", fileName, fex.toString());
 		}
 	}
 
 	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> data) {
+
 		this.deferredNodesAndTheirProperties = data;
 	}
 
@@ -108,6 +110,7 @@ public class ComponentImporter extends HtmlFileImporter {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to determine if component {} already exists, ignoring.", name);
 		}
 
@@ -117,6 +120,7 @@ public class ComponentImporter extends HtmlFileImporter {
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
 		for (DOMNode child : node.getChildren()) {
+
 			deleteRecursively(app, child);
 		}
 
@@ -147,6 +151,7 @@ public class ComponentImporter extends HtmlFileImporter {
 				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.TEMPLATE, dataMap);
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("Unable to resolve properties for shared component: {}", ex.getMessage());
 			}
 		}
@@ -200,7 +205,6 @@ public class ComponentImporter extends HtmlFileImporter {
 			}
 
 			final PropertyMap properties = getPropertiesForComponent(componentName);
-
 			if (properties == null) {
 
 				logger.info("Ignoring {} (not in components.json)", fileName);
@@ -306,10 +310,12 @@ public class ComponentImporter extends HtmlFileImporter {
 	}
 
 	public boolean isHullMode() {
+
 		return isHullMode;
 	}
 
 	public void setHullMode(boolean hullMode) {
+
 		isHullMode = hullMode;
 	}
 }

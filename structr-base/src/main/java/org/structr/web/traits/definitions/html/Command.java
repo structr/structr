@@ -27,6 +27,7 @@ import java.util.Map;
 public class Command extends GenericHtmlElementTraitDefinition {
 
 	public Command() {
+
 		super(StructrTraits.COMMAND);
 	}
 
@@ -37,11 +38,11 @@ public class Command extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}

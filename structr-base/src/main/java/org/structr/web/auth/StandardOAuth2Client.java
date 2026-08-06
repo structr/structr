@@ -41,6 +41,7 @@ public class StandardOAuth2Client extends AbstractOAuth2Client {
 	 * @param providerConfig The provider configuration with defaults
 	 */
 	public StandardOAuth2Client(final HttpServletRequest request, final String provider, final OAuth2ProviderRegistry.ProviderConfig providerConfig) {
+
 		super(request, provider, providerConfig.getApi(), providerConfig);
 	}
 }

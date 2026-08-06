@@ -66,11 +66,13 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 	@Override
 	public String toString() {
+
 		return "StructrGrantDefinition(" + principalName + ", " + allowRead + ", " + allowWrite + ", " + allowDelete + ", " + allowAccessControl + ")";
 	}
 
 	@Override
 	public int hashCode() {
+
 		return principalName.hashCode();
 	}
 
@@ -92,10 +94,13 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		if (parentId != null) {
 
 			try {
+
 				final URI containerURI = new URI(parentId.toString() + "/");
+
 				return containerURI.resolve("grants/" + getPrincipalName());
 
 			} catch (URISyntaxException urex) {
+
 				logger.warn("", urex);
 			}
 		}
@@ -105,46 +110,55 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 	@Override
 	public JsonType getParent() {
+
 		return parent;
 	}
 
 	@Override
 	public String getPrincipalName() {
+
 		return principalName;
 	}
 
 	@Override
 	public boolean getAllowRead() {
+
 		return allowRead;
 	}
 
 	@Override
 	public boolean getAllowWrite() {
+
 		return allowWrite;
 	}
 
 	@Override
 	public boolean getAllowDelete() {
+
 		return allowDelete;
 	}
 
 	@Override
 	public boolean getAllowAccessControl() {
+
 		return allowAccessControl;
 	}
 
 	@Override
 	public int compareTo(final JsonGrant o) {
+
 		return getPrincipalName().compareTo(o.getPrincipalName());
 	}
 
 	@Override
 	public StructrDefinition resolveJsonPointerKey(final String key) {
+
 		return null;
 	}
 
 	// ----- package methods -----
 	SchemaGrant getSchemaGrant() {
+
 		return schemaGrant;
 	}
 
@@ -158,11 +172,13 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		if (principals.isEmpty()) {
 
 			DeployCommand.encounteredMissingPrincipal("Missing principal for schema grant", principalName);
+
 			return null;
 
 		} else if (principals.size() > 1) {
 
 			DeployCommand.encounteredAmbiguousPrincipal("Missing principal for schema grant", principalName, principals.size());
+
 			return null;
 		}
 
@@ -186,7 +202,6 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		return this.schemaGrant;
 	}
-
 
 	void deserialize(final Map<String, Object> source) {
 

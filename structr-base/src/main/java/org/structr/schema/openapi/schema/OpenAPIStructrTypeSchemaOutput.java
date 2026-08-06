@@ -40,8 +40,11 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 		put("type",       type);
 
 		if (type == "object") {
+
 			put("properties",  properties);
+
 		} else {
+
 			put("items",  properties);
 		}
 	}
@@ -49,6 +52,7 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 	public OpenAPIStructrTypeSchemaOutput(final StructrTypeDefinition<?> type, final String viewName, final int level) {
 
 		if (level > 3) {
+
 			return;
 		}
 
@@ -65,7 +69,6 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
 		}, viewName);
 
-
 	}
 
 	public OpenAPIStructrTypeSchemaOutput(final String type, final String viewName, final int level)  {
@@ -76,15 +79,18 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 		if (level > 0 && builtInViews.contains(viewName)) {
 
 			this.putAll(new OpenAPISchemaReference(type, PropertyView.Public));
+
 			return;
 
 		} else if (level > 0) {
 
 			this.putAll(new OpenAPISchemaReference(type, viewName));
+
 			return;
 		}
 
 		if (level > 3) {
+
 			return;
 		}
 

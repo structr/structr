@@ -36,25 +36,106 @@ import org.structr.process.ProcessTraits;
  * to the BpmnDefinitions process-scope tier (cross-step utilities), then to
  * TaskInstance schema methods, then to the convention fallback.</p>
  *
- * <p>Cascading delete is intentionally NOT enabled: methods can be re-attached
- * across re-imports without being collateral-damage of element rebuild.</p>
+ * <p>HAS_METHOD means ownership, so cascading delete is ON: deleting an element
+ * (or the process above it) deletes the handlers attached to it, exactly like
+ * deleting a type deletes its methods (SchemaNodeMethodDefinition). The earlier
+ * rationale for leaving it off -- surviving an element rebuild -- no longer
+ * applies: a re-import builds a NEW version and clones the previous version's
+ * bodies into it (BpmnImporter#cloneElementMethods) rather than rebuilding the
+ * same element, so nothing is collateral damage. With the flag off, every
+ * deleted process left its listener handlers behind as free-floating
+ * user-defined functions. A method that should outlive its element must be
+ * referenced, not owned -- that is what the listener CALLS relationship
+ * (TARGET_TO_SOURCE) is for.</p>
  */
 public class BpmnElementHasMethod extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnElementHasMethod() { super(ProcessTraits.BPMN_ELEMENT_HAS_METHOD); }
+	public BpmnElementHasMethod() {
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_ELEMENT; }
-	@Override public String getTargetType() { return StructrTraits.SCHEMA_METHOD; }
-	@Override public String getRelationshipType() { return "HAS_METHOD"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
-	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+		super(ProcessTraits.BPMN_ELEMENT_HAS_METHOD);
+	}
+
+	@Override
+	public String getSourceType() {
+
+		return ProcessTraits.BPMN_ELEMENT;
+	}
+
+	@Override
+	public String getTargetType() {
+
+		return StructrTraits.SCHEMA_METHOD;
+	}
+
+	@Override
+	public String getRelationshipType() {
+
+		return "HAS_METHOD";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+
+		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+
+		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+
+		return null;
+	}
 }

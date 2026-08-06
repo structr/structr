@@ -101,16 +101,16 @@ public class WebsocketController implements StructrTransactionListener {
 
 			String clientPagePath = socket.getPagePath();
 			if (clientPagePath != null && !clientPagePath.equals(encodedPath)) {
+
 				continue;
 			}
 
 			Session session = socket.getSession();
-
 			if (session != null && socket.isAuthenticated()) {
 
 				final SecurityContext securityContext = socket.getSecurityContext();
-
 				if (receiverSessionPredicate != null && !receiverSessionPredicate.accept(securityContext.getSessionId())) {
+
 					continue;
 				}
 
@@ -136,8 +136,8 @@ public class WebsocketController implements StructrTransactionListener {
 					if (t instanceof WebSocketException) {
 
 						WebSocketException wse = (WebSocketException) t;
-
 						if ("RemoteEndpoint unavailable, current state [CLOSED], expecting [OPEN or CONNECTED]".equals(wse.getMessage())) {
+
 							clientsToRemove.add(socket);
 						}
 					}
@@ -160,6 +160,7 @@ public class WebsocketController implements StructrTransactionListener {
 	}
 
 	private <T extends GraphObject> Iterable<T> filter(final SecurityContext securityContext, final Iterable<T> all) {
+
 		return Iterables.filter(e -> securityContext.isVisible(e), all);
 	}
 
@@ -174,6 +175,7 @@ public class WebsocketController implements StructrTransactionListener {
 		for (final ModificationEvent event : modificationEvents) {
 
 			try {
+
 				final WebSocketMessage message = getMessageForEvent(securityContext, event);
 				if (message != null) {
 
@@ -187,6 +189,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 	@Override
 	public void simpleBroadcast(final String commandName, final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+
 		broadcast(MessageBuilder.forName(commandName).data(data).build(), sessionIdPredicate);
 	}
 
@@ -211,9 +214,12 @@ public class WebsocketController implements StructrTransactionListener {
 			}
 
 			if (BroadcastBlacklistForNodeTypes.contains(node.getType())) {
+
 				return null;
 			}
+
 			if (modificationEvent.getModifiedProperties().keySet().stream().anyMatch((property) -> { return BroadcastBlacklistForNodeProperties.contains(property.jsonName()); })) {
+
 				return null;
 			}
 
@@ -260,6 +266,7 @@ public class WebsocketController implements StructrTransactionListener {
 					}
 
 					if (propertySet.size() > 2) {
+
 						securityContext.setCustomView(propertySet);
 					}
 				}
@@ -273,6 +280,7 @@ public class WebsocketController implements StructrTransactionListener {
 				message.setCode(200);
 
 				if (securityContext != null) {
+
 					// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
 					securityContext.clearCustomView();
 				}
@@ -287,6 +295,7 @@ public class WebsocketController implements StructrTransactionListener {
 			final RelationshipType relType           = modificationEvent.getRelationshipType();
 
 			if (BroadcastBlacklistForRelTypes.contains(relType.name())) {
+
 				return null;
 			}
 
@@ -313,6 +322,7 @@ public class WebsocketController implements StructrTransactionListener {
 					// If either start or end node are not visible for the user to be notified,
 					// don't send a notification
 					if (startNode == null || endNode == null) {
+
 						return null;
 					}
 
@@ -392,7 +402,9 @@ public class WebsocketController implements StructrTransactionListener {
 		final WebSocketMessage newMessage = new WebSocketMessage();
 
 		newMessage.setCommand(command);
+
 		if (callbackId != null) {
+
 			newMessage.setCallback(callbackId);
 		}
 

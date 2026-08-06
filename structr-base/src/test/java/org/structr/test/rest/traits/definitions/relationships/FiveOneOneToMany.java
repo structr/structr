@@ -29,46 +29,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FiveOneOneToMany extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FiveOneOneToMany() {
+
 		super("FiveOneOneToMany");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestFive";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestOne";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "ONE_TO_MANY";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

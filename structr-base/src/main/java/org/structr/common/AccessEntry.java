@@ -49,11 +49,5 @@ import java.util.Set;
  * @param permissions  union of permissions from all contributing paths
  * @param via          composite provenance string, see class javadoc for format
  */
-public record AccessEntry(
-	String grantee,
-	String granteeName,
-	String granteeType,
-	Set<Permission> permissions,
-	String via
-) {
+public record AccessEntry(String grantee, String granteeName, String granteeType, Set<Permission> permissions, String via) {
 }

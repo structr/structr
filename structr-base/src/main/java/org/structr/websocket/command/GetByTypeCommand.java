@@ -60,11 +60,14 @@ public class GetByTypeCommand extends AbstractCommand {
 			final Traits traits                    = Traits.of(rawType);
 
 			if (traits == null) {
+
 				getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
+
 				return;
 			}
 
 			if (properties != null) {
+
 				securityContext.setCustomView(StringUtils.split(properties, ","));
 			}
 
@@ -72,8 +75,6 @@ public class GetByTypeCommand extends AbstractCommand {
 			final String sortKey     = webSocketData.getSortKey();
 			final int pageSize       = webSocketData.getPageSize();
 			final int page           = webSocketData.getPage();
-
-
 			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery()
 				.includeHidden(includeHidden)
 				.page(page)
@@ -91,6 +92,7 @@ public class GetByTypeCommand extends AbstractCommand {
 
 			// for image lists, suppress thumbnails
 			if (traits.contains(StructrTraits.IMAGE)) {
+
 				query.key(traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
 			}
 
@@ -109,6 +111,7 @@ public class GetByTypeCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "GET_BY_TYPE";
 	}
 }

@@ -37,21 +37,25 @@ public class StaticParameter implements RESTParameter {
 
 	@Override
 	public String key() {
+
 		return part;
 	}
 
 	@Override
 	public String urlPattern() {
+
 		return part;
 	}
 
 	@Override
 	public boolean includeInSignature() {
+
 		return includeInSignature;
 	}
 
 	@Override
 	public String staticResourceSignaturePart() {
+
 		return staticSignaturePart;
 	}
 }

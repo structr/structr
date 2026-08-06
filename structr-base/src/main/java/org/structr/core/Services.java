@@ -109,6 +109,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	 * database, fail fatally with "Database ... does not exist" and abort the JVM via System.exit).
 	 */
 	public static Services peekInstance() {
+
 		return singletonInstance;
 	}
 
@@ -122,6 +123,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			// thread, breaking transaction state and (on migration failure) aborting
 			// the JVM via System.exit. Legitimate first-time boot has the flag false.
 			if (shutdownComplete) {
+
 				throw new IllegalStateException("Service layer has been shut down; refusing to re-initialize it from thread '" + Thread.currentThread().getName() + "'");
 			}
 
@@ -146,7 +148,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		final int expectedMajorVersion = 25;
 		final int expectedMinorVersion = 0;
-
 		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
 		final Version foundVersion     = org.graalvm.home.Version.getCurrent();
 		boolean allowedVersion         = foundVersion.toString().startsWith(expectedVersion.toString());
@@ -297,6 +298,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 						Settings.DatabaseDriverMode.setValue(Settings.DatabaseDriverMode.getDefaultValue());
 
 					} catch (FrameworkException fex) {
+
 						logger.warn("Unable to migrate configuration: {}", fex.getMessage());
 					}
 				}
@@ -314,6 +316,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 				Settings.storeConfiguration(Settings.ConfigFileName, false);
 
 			} catch (IOException ioex) {
+
 				logger.warn("Unable to store migrated config: {}", ioex.getMessage());
 			}
 		}
@@ -383,6 +386,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 		runInitializationCallbacks();
 
 		if (licenseManager != null && !Settings.DisableSendSystemInfo.getValue(false)) {
+
 			new SystemInfoSender().start();
 		}
 
@@ -419,7 +423,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 		Settings.DefaultUploadFolder.setChangeHandler((setting, oldValue, newValue) -> {
 
 			final String cleanedNewValue = PathHelper.removeRelativeParts(newValue.toString());
-
 			if (cleanedNewValue.equals("")) {
 
 				logger.info("{}: Unable to save value '{}'. Default upload folder path requires a folder or folder path. Uploading to the root folder is not allowed. Resetting to default.", setting.getKey(), newValue);
@@ -481,6 +484,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 					startService(serviceClass, activeServiceName, false);
 
 				} catch (FrameworkException ex) {
+
 					logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
 				}
 
@@ -509,7 +513,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			// reduce fetch size
 			final int maxFetchSize = (max < 1) ? 1_000 : 10_000;
-
 			if (Settings.FetchSize.getValue() > maxFetchSize) {
 
 				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
@@ -534,6 +537,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				// wait for a connection
 				while (!clusterManager.isConnected()) {
+
 					try { Thread.sleep(100); } catch (Throwable t) {}
 				}
 
@@ -587,6 +591,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// only run initialization callbacks if Structr was started with
 		// a configuration file, i.e. when this is NOT this first start.
 		try {
+
 			final ExecutorService service = Executors.newSingleThreadExecutor();
 			service.submit(new Runnable() {
 
@@ -597,6 +602,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 					// call initialization callbacks from a different thread
 					for (final InitializationCallback callback : singletonInstance.callbacks) {
+
 						callback.initializationDone();
 					}
 				}
@@ -604,6 +610,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			}).get();
 
 		} catch (Throwable t) {
+
 			logger.warn("Exception while executing post-initialization tasks", t);
 		}
 	}
@@ -624,26 +631,32 @@ public class Services implements StructrServices, BroadcastReceiver {
 	}
 
 	public boolean isShutdownDone() {
+
 		return shutdownDone;
 	}
 
 	public boolean isShuttingDown() {
+
 		return shuttingDown;
 	}
 
 	public boolean isInitialized() {
+
 		return initializationDone;
 	}
 
 	public String getUnavailableMessage() {
+
 		return "Services is not initialized yet.";
 	}
 
 	public boolean isOverridingSchemaTypesAllowed() {
+
 		return overridingSchemaTypesAllowed;
 	}
 
 	public void setOverridingSchemaTypesAllowed(final boolean allow) {
+
 		overridingSchemaTypesAllowed = allow;
 	}
 
@@ -662,9 +675,11 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			final List<Class> configuredServiceClasses = getConfiguredServiceClasses();
 			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+
 			Collections.reverse(reverseServiceClassNames);
 
 			for (final Class serviceClass : reverseServiceClassNames) {
+
 				shutdownServices(serviceClass);
 			}
 
@@ -712,6 +727,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 						final List<Class> configuredServiceClasses = getConfiguredServiceClasses();
 						final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+
 						Collections.reverse(reverseServiceClassNames);
 
 						for (final Class serviceClass : reverseServiceClassNames) {
@@ -729,7 +745,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 							if (stopAnnotation != null) {
 
 								final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
-
 								if (!maintenanceEnabled || startAnnotation != null) {
 
 									try {
@@ -738,6 +753,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 										startService(serviceClass, activeServiceName, false);
 
 									} catch (FrameworkException ex) {
+
 										logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
 									}
 								}
@@ -821,7 +837,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 	 * @param value
 	 */
 	public void cacheValue(final String name, final Object value) {
+
 		synchronized (cachedValues) {
+
 			cachedValues.put(name, value);
 		}
 	}
@@ -833,6 +851,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	 * @return attribute
 	 */
 	public Object getCachedValue(final String name) {
+
 		return cachedValues.get(name);
 	}
 
@@ -842,6 +861,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	 * @param name
 	 */
 	public void invalidateCachedValue(final String name) {
+
 		cachedValues.remove(name);
 	}
 
@@ -861,6 +881,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	}
 
 	public boolean isConfigured(final Class serviceClass) {
+
 		return getConfiguredServiceClasses().contains(serviceClass);
 	}
 
@@ -877,6 +898,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			if (!getConfiguredServiceClasses().contains(serviceClass)) {
 
 				logger.warn("Service {} is not listed in {}, will not be started.", serviceClass.getName(), "configured.services");
+
 				return new ServiceResult("Service is not listed in configured.services", false);
 			}
 
@@ -889,6 +911,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
 			final int retryDelay  = service.getRetryDelay();
 			int retryCount        = service.getRetryCount();
+
 			isVital               = service.isVital();
 
 			while (waitAndRetry && retryCount-- > 0) {
@@ -923,6 +946,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 					waitAndRetry = false;
 
 					// success
+
 					return new ServiceResult(true);
 
 				} else if (!disableRetry && isVital && !waitAndRetry) {
@@ -944,6 +968,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 					} else {
 
 						if (isVital) {
+
 							checkVitalService(serviceClass, null);
 						}
 					}
@@ -1000,6 +1025,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			if (service instanceof RunnableService runnableService) {
 
 				if (runnableService.isRunning()) {
+
 					logger.info("Stopping {}..", service.getName());
 					runnableService.stopService();
 				}
@@ -1022,6 +1048,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	 * @return list of services
 	 */
 	public List<Class> getRegisteredServiceClasses() {
+
 		return new LinkedList<>(registeredServiceClasses.values());
 	}
 
@@ -1032,6 +1059,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			for (final Service service : serviceList.values()) {
 
 				if (type.isAssignableFrom(service.getClass())) {
+
 					return (T)service;
 				}
 			}
@@ -1049,6 +1077,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			final String name             = getNameOfActiveService(NodeService.class);
 			final NodeService nodeService = getService(NodeService.class, name);
+
 			if (nodeService != null) {
 
 				return nodeService.getDatabaseService();
@@ -1073,6 +1102,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	public boolean isReady(final Class serviceClass, final String name) {
 
 		final Service service = (Service)getServices(serviceClass).get(name);
+
 		return (service != null && service.isRunning());
 	}
 
@@ -1180,6 +1210,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 				startService(type, name, false);
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("Service {} failed to start: {}", type.getSimpleName(), ex.getMessage());
 			}
 		}
@@ -1202,21 +1233,25 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	@Override
 	public LicenseManager getLicenseManager() {
+
 		return licenseManager;
 	}
 
 	@Override
 	public String getInstanceName() {
+
 		return VersionHelper.getInstanceName();
 	}
 
 	@Override
 	public String getVersion() {
+
 		return VersionHelper.getVersion();
 	}
 
 	@Override
 	public boolean hasExclusiveDatabaseAccess() {
+
 		return clusterManager == null || clusterManager.isCoordinator();
 	}
 
@@ -1232,10 +1267,12 @@ public class Services implements StructrServices, BroadcastReceiver {
 	public static int parseInt(String value, int defaultValue) {
 
 		if (StringUtils.isBlank(value)) {
+
 			return defaultValue;
 		}
 
 		try {
+
 			return Integer.parseInt(value);
 		} catch (NumberFormatException ignore) {}
 
@@ -1245,10 +1282,12 @@ public class Services implements StructrServices, BroadcastReceiver {
 	public static boolean parseBoolean(String value, boolean defaultValue) {
 
 		if (StringUtils.isBlank(value)) {
+
 			return defaultValue;
 		}
 
 		try {
+
 			return Boolean.parseBoolean(value);
 		} catch(Throwable ignore) {}
 
@@ -1263,6 +1302,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	public String getEdition() {
 
 		if (licenseManager != null) {
+
 			return licenseManager.getEdition();
 		}
 
@@ -1308,38 +1348,46 @@ public class Services implements StructrServices, BroadcastReceiver {
 	}
 
 	public <T extends Service> String getNameOfActiveService(final Class<T> type) {
+
 		return Settings.getOrCreateStringSetting(type.getSimpleName(), "active").getValue("default");
 	}
 
 	public static void enableIndexConfiguration() {
+
 		overrideIndexManagement = true;
 		skipIndexConfiguration = false;
 	}
 
 	public static void disableIndexConfiguration() {
+
 		overrideIndexManagement = true;
 		skipIndexConfiguration = true;
 	}
 
 	public static void disableTestingMode() {
+
 		testingModeDisabled = true;
 	}
 
 	public static boolean skipIndexConfiguration() {
+
 		return skipIndexConfiguration;
 	}
 
 	public static boolean overrideIndexManagement() {
+
 		return overrideIndexManagement;
 	}
 
 	public static boolean isTesting() {
 
 		if (testingModeDisabled) {
+
 			return false;
 		}
 
 		if (cachedTestingFlag != null) {
+
 			return cachedTestingFlag;
 		}
 
@@ -1348,26 +1396,33 @@ public class Services implements StructrServices, BroadcastReceiver {
 			for (final StackTraceElement elem : stackTraces) {
 
 				if (elem.getClassName().startsWith("org.junit.")) {
+
 					cachedTestingFlag = true;
+
 					return true;
 				}
 
 				if (elem.getClassName().startsWith("org.testng.")) {
+
 					cachedTestingFlag = true;
+
 					return true;
 				}
 			}
 		}
 
 		cachedTestingFlag = false;
+
 		return false;
 	}
 
 	public static String getJVMIdentifier() {
+
 		return jvmIdentifier;
 	}
 
 	public Map<String, Object> getApplicationStore() {
+
 		return applicationStore;
 	}
 
@@ -1392,6 +1447,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		// stop at level 20
 		if (depth > 20) {
+
 			return 20;
 		}
 
@@ -1403,26 +1459,31 @@ public class Services implements StructrServices, BroadcastReceiver {
 		} else  {
 
 			// recurse upwards
+
 			return recursiveGetHierarchyLevel(dependencyMap, alreadyCalculated, dependency, depth + 1) + 1;
 		}
 	}
 
 	private void removeService(final Class type, final String name) {
+
 		getServices(type).remove(name);
 	}
 
 	private void addService(final Class type, final Service service, final String name) {
+
 		getServices(type).put(name, service);
 	}
 
 	private void checkLicense() {
 
 		if (licenseManager != null) {
+
 			licenseManager.refresh();
 		}
 	}
 
 	private void broadcastMessageToCluster(final String type, final Object payload) {
+
 		this.broadcastMessageToCluster(type, payload, false);
 	}
 
@@ -1450,37 +1511,54 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	// ----- interface BroadcastReceiver -----
 	public void broadcastDataChange(final List<Object> ids) {
+
 		Services.getInstance().broadcastMessageToCluster("data-changed", ids);
 	}
 
 	public void broadcastLogin(final long userId) {
+
 		try {
+
 			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
+
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
 
 	public void broadcastLogout(final long userId) {
+
 		try {
+
 			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
+
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
 
 	public void broadcastSchemaChange() {
+
 		try {
+
 			Services.getInstance().broadcastMessageToCluster("schema-changed", null);
+
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
 
 	public void broadcastStartupComplete() {
+
 		try {
+
 			Services.getInstance().broadcastMessageToCluster("startup-complete", null);
+
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -1495,8 +1573,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				// only react to these changes if the cluster is started
 				if (this.isClusterStarted) {
+
 					SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
 				}
+
 				break;
 
 			case "data-changed":
@@ -1511,6 +1591,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				// send status update so other
 				if (clusterManager != null && clusterManager.isCoordinator() && this.initializationDone) {
+
 					this.broadcastMessageToCluster("startup-complete", null);
 				}
 
@@ -1520,6 +1601,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	@Override
 	public String getNodeName() {
+
 		return "cluster-node-" + System.getenv("REPLICA");
 	}
 

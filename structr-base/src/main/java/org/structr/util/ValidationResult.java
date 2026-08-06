@@ -27,22 +27,27 @@ public class ValidationResult {
 	}
 
 	public void setValid(final boolean isValid) {
+
 		this.isValid = isValid;
 	}
 
 	public boolean isValid() {
+
 		return this.isValid;
 	}
 
 	public String getEndDate() {
+
 		return this.endDate;
 	}
 
 	public void setEndDate(final String endDate) {
+
 		this.endDate = endDate;
 	}
 
 	public boolean hasEndDate() {
+
 		return this.endDate != null;
 	}
 }

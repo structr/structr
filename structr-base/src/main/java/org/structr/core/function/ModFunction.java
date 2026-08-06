@@ -31,11 +31,13 @@ public class ModFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "mod";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
@@ -51,56 +53,56 @@ public class ModFunction extends CoreFunction {
 		} catch (NumberFormatException nfe) {
 
 			logException(caller, nfe, sources);
+
 			return nfe.getMessage();
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${mod(value1, value2)}"),
-				Usage.javaScript("Usage: ${{ $.mod(value1, value2) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mod(value1, value2)}"), Usage.javaScript("Usage: ${{ $.mod(value1, value2) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Implements the modulo operation on two integer values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns the remainder of the quotient of val1 and val2. Both values are first converted to a number.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("value1", "first value of the quotient"),
-			Parameter.mandatory("value1", "second value of the quotient")
-		);
+		return List.of(Parameter.mandatory("value1", "first value of the quotient"), Parameter.mandatory("value1", "second value of the quotient"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${mod(17, 5)}")
-		);
+
+		return List.of(Example.structrScript("${mod(17, 5)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

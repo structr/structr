@@ -36,6 +36,7 @@ public class ConstantExpression extends Expression {
 	private Object value     = null;
 
 	public ConstantExpression(final Object value, final int row, final int column) {
+
 		super(null, row, column);
 
 		this.value = value;
@@ -45,6 +46,7 @@ public class ConstantExpression extends Expression {
 	public String toString() {
 
 		if (value != null) {
+
 			return value.toString();
 		}
 
@@ -52,71 +54,84 @@ public class ConstantExpression extends Expression {
 	}
 
 	public Object getValue() {
+
 		return value;
 	}
 
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+
 		return value;
 	}
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+
 		return source;
 	}
 
 	public void setQuoteChar(final String quoteChar) {
+
 		this.quoteChar = quoteChar;
 	}
 
 	public String getQuoteChar() {
+
 		return quoteChar;
 	}
-
 
 	// ----- documentation (unused) -----
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

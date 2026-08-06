@@ -37,11 +37,13 @@ public class ParseDateFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "parseDate";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str, pattern");
 	}
 
@@ -49,7 +51,9 @@ public class ParseDateFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length != 2) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -58,15 +62,17 @@ public class ParseDateFunction extends CoreFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final String dateString = sources[0].toString();
-
 			if (StringUtils.isBlank(dateString)) {
+
 				return null;
 			}
 
 			final String pattern = sources[1].toString();
 
 			try {
+
 				// parse with format from IS
+
 				return new SimpleDateFormat(pattern).parse(dateString);
 
 			} catch (ParseException ex) {
@@ -78,11 +84,13 @@ public class ParseDateFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -91,41 +99,37 @@ public class ParseDateFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${parseDate(value, pattern)}."),
-				Usage.javaScript("Usage: ${{ $.parseDate(value, pattern) }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${parseDate(value, pattern)}."), Usage.javaScript("Usage: ${{ $.parseDate(value, pattern) }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Parses the given date string using the given format string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Parses the given string according to the given pattern and returns a date object. This method is the inverse of <a href='#date_format'>date_format()</a>.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${parseDate('2015-12-12', 'yyyy-MM-dd')}"),
-				Example.javaScript("${{ $.parseDate('2015-12-12', 'yyyy-MM-dd') }}")
-		);
+
+		return List.of(Example.structrScript("${parseDate('2015-12-12', 'yyyy-MM-dd')}"), Example.javaScript("${{ $.parseDate('2015-12-12', 'yyyy-MM-dd') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("string", "date string"),
-				Parameter.mandatory("pattern", "date pattern")
-		);
+		return List.of(Parameter.mandatory("string", "date string"), Parameter.mandatory("pattern", "date pattern"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

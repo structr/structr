@@ -37,15 +37,14 @@ public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String CONTENT_TYPE_PROPERTY = "contentType";
 
 	public AbstractFeedItemTraitDefinition() {
+
 		super(StructrTraits.ABSTRACT_FEED_ITEM);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			AbstractFeedItem.class, (traits, node) -> new AbstractFeedItemTraitWrapper(traits, node)
-		);
+		return Map.of(AbstractFeedItem.class, (traits, node) -> new AbstractFeedItemTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -53,25 +52,20 @@ public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition
 
 		final PropertyKey<String> contentType = new StringProperty(CONTENT_TYPE_PROPERTY);
 
-		return newSet(
-			contentType
-		);
+		return newSet(contentType);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(CONTENT_TYPE_PROPERTY),
+		return Map.of(PropertyView.Public, newSet(CONTENT_TYPE_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(CONTENT_TYPE_PROPERTY)
-		);
+			PropertyView.Ui, newSet(CONTENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

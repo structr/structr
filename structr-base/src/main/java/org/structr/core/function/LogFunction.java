@@ -38,11 +38,13 @@ public class LogFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "log";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("objects...");
 	}
 
@@ -54,28 +56,33 @@ public class LogFunction extends CoreFunction {
 			final StringBuilder buf = new StringBuilder();
 
 			if (caller != null) {
+
 				buf.append("Caller: ").append(Scripting.formatForLogging(caller)).append(" - ");
 			}
 
 			for (final Object obj : sources) {
 
 				if (obj != null) {
+
 					buf.append(Scripting.formatForLogging(obj));
 				}
 			}
 
 			logger.info(buf.toString());
+
 			return null;
 
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${log(objects...)}. Example ${log('Hello World!', 'test', 123)}"),
 			Usage.javaScript("Usage: ${{ $.log(objects...); }}. Example ${{ $.log('Hello World!', 'test', 123)); }}")
@@ -84,28 +91,26 @@ public class LogFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Logs the given objects to the logfile.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function takes one or more arguments and logs the string representation of all of them to the Structr logfile. Please note that the individual objects are logged in a single line, one after another, without a separator.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("objects...", "object or list of objects to log")
-		);
+		return List.of(Parameter.mandatory("objects...", "object or list of objects to log"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${log('user is ', $.me)}", "Logs a string with the current user ID")
-		);
+		return List.of(Example.structrScript("${log('user is ', $.me)}", "Logs a string with the current user ID"));
 	}
 
 	@Override
@@ -120,6 +125,7 @@ public class LogFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 

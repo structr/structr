@@ -29,16 +29,19 @@ import java.util.List;
 public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 
 	public MailClearHeadersFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailClearHeaders";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,19 +55,19 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailClearHeaders()}"),
-			Usage.javaScript("Usage: ${{ $.mailClearHeaders() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailClearHeaders()}"), Usage.javaScript("Usage: ${{ $.mailClearHeaders() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Clears any configured custom headers for the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

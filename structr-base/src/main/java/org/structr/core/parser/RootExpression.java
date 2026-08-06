@@ -34,6 +34,7 @@ import java.util.List;
 public class RootExpression extends Expression {
 
 	public RootExpression() {
+
 		super(1, 1);
 	}
 
@@ -45,8 +46,10 @@ public class RootExpression extends Expression {
 		buf.append("ROOT(");
 
 		for (final Expression expr : expressions) {
+
 			buf.append(expr.toString());
 		}
+
 		buf.append(")");
 
 		return buf.toString();
@@ -73,52 +76,62 @@ public class RootExpression extends Expression {
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	// ----- documentation (unused) -----
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return null;
 	}
 }

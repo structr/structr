@@ -64,6 +64,7 @@ public class CronService extends Thread implements RunnableService {
 	private boolean doRun = false;
 
 	public CronService() {
+
 		super("CronService");
 		this.setDaemon(true);
 	}
@@ -75,6 +76,7 @@ public class CronService extends Thread implements RunnableService {
 
 		// wait for service layer to be initialized
 		while (!servicesInstance.isInitialized()) {
+
 			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
 		}
 
@@ -94,7 +96,9 @@ public class CronService extends Thread implements RunnableService {
 					final Class taskClass      = instantiate(taskClassName);
 
 					if (entry.isRunning() && Settings.CronAllowParallelExecution.getValue() == false) {
+
 						logger.warn("Prevented parallel execution of '{}' - if this happens regularly you should consider adjusting the cronExpression!", taskClassName);
+
 					} else {
 
 						new Thread(new Runnable() {
@@ -125,7 +129,6 @@ public class CronService extends Thread implements RunnableService {
 
 												// check for user-defined function with the given name
 												final AbstractMethod method = Methods.resolveMethod(null, taskClassName);
-
 												if (method != null) {
 
 													method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
@@ -138,7 +141,6 @@ public class CronService extends Thread implements RunnableService {
 											} else {
 
 												final String[] parts = taskClassName.split("\\.");
-
 												if (parts.length == 2) {
 
 													final String typeName   = parts[0];
@@ -147,7 +149,6 @@ public class CronService extends Thread implements RunnableService {
 													if (Traits.exists(typeName)) {
 
 														final AbstractMethod method = Methods.resolveMethod(Traits.of(typeName), methodName);
-
 														if (method != null) {
 
 															method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
@@ -195,22 +196,26 @@ public class CronService extends Thread implements RunnableService {
 	// ----- interface RunnableService -----
 	@Override
 	public void startService() throws Exception {
+
 		this.doRun = true;
 		this.start();
 	}
 
 	@Override
 	public void stopService() {
+
 		this.doRun = false;
 	}
 
 	@Override
 	public boolean runOnStartup() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isRunning() {
+
 		return doRun;
 	}
 
@@ -259,16 +264,19 @@ public class CronService extends Thread implements RunnableService {
 
 	@Override
 	public void shutdown() {
+
 		this.doRun = false;
 	}
 
 	@Override
 	public boolean isVital() {
+
 		return false;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return false;
 	}
 
@@ -287,6 +295,7 @@ public class CronService extends Thread implements RunnableService {
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "cron";
 	}
 }

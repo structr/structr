@@ -62,11 +62,13 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 
 	@Override
 	public String toString() {
+
 		return key.jsonName() + "." + notionKey.jsonName() + "=" + value;
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return GraphQuery.class;
 	}
 
@@ -96,6 +98,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 			//System.out.println("Comparing entity values " + entityValues + " to search values " + searchValues + " , exactly");
 
 			if (searchValues.isEmpty() && entityValues.isEmpty()) {
+
 				return true;
 			}
 
@@ -162,9 +165,11 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 		switch (p.getDirectionKey()) {
 
 			case "in":
+
 				return Direction.INCOMING;
 
 			case "out":
+
 				return Direction.OUTGOING;
 		}
 
@@ -186,7 +191,6 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 
 			values = new LinkedHashSet<>();
 			final Object value = getValue();
-
 			if (!(value instanceof String s) || StringUtils.isNotBlank(s)) {
 
 				collect(values, value);
@@ -198,6 +202,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 
 	@Override
 	public String getNotionPropertyName() {
+
 		return notionKey.dbName();
 	}
 
@@ -205,7 +210,6 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	public Identity getIdentity() {
 
 		final Object value = getValue();
-
 		if (value instanceof NodeInterface) {
 
 			final NodeInterface g = (NodeInterface)value;

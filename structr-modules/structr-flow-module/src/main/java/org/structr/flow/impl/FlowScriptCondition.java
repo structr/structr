@@ -28,14 +28,17 @@ import org.structr.module.api.DeployableEntity;
 public class FlowScriptCondition extends FlowCondition implements DeployableEntity, ThrowingElement {
 
 	public FlowScriptCondition(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final String getScript() {
+
 		return wrappedObject.getProperty(traits.key(FlowScriptConditionTraitDefinition.SCRIPT_PROPERTY));
 	}
 
 	public final void setScript(final String script) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowScriptConditionTraitDefinition.SCRIPT_PROPERTY), script);
 	}
 
@@ -51,6 +54,7 @@ public class FlowScriptCondition extends FlowCondition implements DeployableEnti
 	}
 
 	public void setScriptSource(final String scriptSource) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowScriptConditionTraitDefinition.SCRIPT_SOURCE_PROPERTY), scriptSource);
 	}
 }

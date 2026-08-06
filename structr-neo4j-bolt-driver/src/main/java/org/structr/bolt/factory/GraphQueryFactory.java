@@ -35,6 +35,7 @@ import java.util.Set;
 public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public GraphQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -42,7 +43,6 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		final GraphQuery graphQuery = (GraphQuery)predicate;
-
 		if (graphQuery.isAny()) {
 
 			return createAnyQuery(predicate, query, isFirst);
@@ -106,7 +106,6 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 		query.addGraphQueryPart(part);
 
 		final boolean exactMatch = (predicate.isExactMatch() || !isString);
-
 		if (exactMatch) {
 
 			final ArrayList<Long> boltIds   = new ArrayList<>();

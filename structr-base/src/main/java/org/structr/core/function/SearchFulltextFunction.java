@@ -37,16 +37,19 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 	@Override
 	public String getName() {
+
 		return "searchFulltext";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("indexName, searchString");
 	}
 
 	@Override
 	public String getNamespaceIdentifier() {
+
 		return "searchFulltext";
 	}
 
@@ -63,10 +66,12 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 			final String searchString               = sources[1].toString();
 
 			if (StringUtils.isBlank(indexName)) {
+
 				throw new FrameworkException(422, "Argument indexName must not be empty.");
 			}
 
 			if (StringUtils.isBlank(searchString)) {
+
 				throw new FrameworkException(422, "Argument searchString must not be empty.");
 			}
 
@@ -83,12 +88,14 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${searchFulltext(indexName, searchString)}. Example: ${searchFulltext(\"index_name\", \"abc\")}"),
 			Usage.javaScript("Usage: ${{$.searchFulltext(indexName, searchString)}}. Example: ${{$.searchFulltext(\"index_name\", \"abc\")}}")
@@ -97,11 +104,13 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a map of entities and search scores matching the given search string from the given fulltext index.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Searches are **case-insensitive**. A query term matches only if the **complete token** exists in the fulltext index; partial substrings inside a longer token won't match unless that exact token is indexed.
 
@@ -124,6 +133,7 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				${{
@@ -140,6 +150,7 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

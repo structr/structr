@@ -55,6 +55,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	protected Class targetType                         = null;
 
 	public SchemaDeserializationStrategy(final boolean createIfNotExisting, final Class targetType, final Set<PropertyKey> identifyingPropertyKeys, final Set<PropertyKey> foreignPropertyKeys) {
+
 		this.createIfNotExisting     = createIfNotExisting;
 		this.identifyingPropertyKeys = identifyingPropertyKeys;
 		this.foreignPropertyKeys     = foreignPropertyKeys;
@@ -63,6 +64,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 	@Override
 	public void setRelationProperty(final RelationProperty relationProperty) {
+
 		this.relationProperty = relationProperty;
 	}
 
@@ -72,6 +74,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 		if (source instanceof Map) {
 
 			PropertyMap attributes = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)source);
+
 			return deserialize(securityContext, type, attributes, context);
 		}
 
@@ -111,11 +114,11 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 			} else {
 
-
 				boolean attributesComplete = true;
 
 				// Check if all property keys of the PropertySetNotion are present
 				for (PropertyKey key : identifyingPropertyKeys) {
+
 					attributesComplete &= attributes.containsKey(key);
 				}
 
@@ -125,6 +128,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 					// identify the correct schema node (do not use related
 					// attributes to search for nodes)
 					final PropertyMap identifyingKeyValues = new PropertyMap();
+
 					for (final PropertyKey key : identifyingPropertyKeys) {
 
 						identifyingKeyValues.put(key, attributes.get(key));
@@ -146,6 +150,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 			// just check for existance
 			String errorMessage = null;
 			final int size = result.size();
+
 			switch (size) {
 
 				case 0:
@@ -173,6 +178,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 					// set properties on existing node (relationships)
 					for (final Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+
 						typedResult.setProperty(entry.getKey(), entry.getValue());
 					}
 
@@ -196,6 +202,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	private T getTypedResult(final T obj, final String type) throws FrameworkException {
 
 		if (!obj.getTraits().contains(type)) {
+
 			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 		}
 
@@ -207,9 +214,11 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 		switch (relationProperty.getDirectionKey()) {
 
 			case "in":
+
 				return newNode.getName() + relationProperty.getRelation().name() + sourceTypeName;
 
 			case "out":
+
 				return sourceTypeName + relationProperty.getRelation().name() + newNode.getName();
 		}
 

@@ -23,10 +23,12 @@ import org.structr.common.error.AssertException;
 public class AlreadyLoggedAssertException extends AssertException {
 
 	public AlreadyLoggedAssertException(final String message, final int statusCode) {
+
 		super(message, statusCode);
 	}
 
 	public AlreadyLoggedAssertException(final AssertException ex) {
+
 		super(ex.getMessage(), ex.getStatus());
 	}
 }

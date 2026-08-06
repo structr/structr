@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -29,7 +28,6 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
-
 
 /**
  * Create a shared component as a clone of the source node.
@@ -67,12 +65,14 @@ public class CreateComponentCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CREATE_COMPONENT";
 	}
 
 	public DOMNode create(final DOMNode node) throws FrameworkException {
 
 		if (node == null) {
+
 			throw new FrameworkException(422, "No node to clone");
 		}
 		

@@ -55,8 +55,7 @@ public class S3ErrorsTest {
 	@Test
 	public void testUnknownHostIsConcise() {
 
-		final Throwable error = new ExecutionException(
-			SdkClientException.create("Unable to execute HTTP request", new UnknownHostException("s3.example.invalid")));
+		final Throwable error = new ExecutionException(SdkClientException.create("Unable to execute HTTP request", new UnknownHostException("s3.example.invalid")));
 
 		assertEquals("unknown host: s3.example.invalid", S3Errors.describe(error));
 	}
@@ -94,6 +93,7 @@ public class S3ErrorsTest {
 
 	@Test
 	public void testNullIsHandled() {
+
 		assertEquals("unknown error", S3Errors.describe(null));
 	}
 }

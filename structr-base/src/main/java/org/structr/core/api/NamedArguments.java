@@ -35,18 +35,22 @@ public class NamedArguments extends Arguments {
 
 	@Override
 	public String toString() {
+
 		return this.arguments.toString();
 	}
 
 	public void add(final Entry<String, Object> entry) {
+
 		arguments.add(new Argument(entry.getKey(), entry.getValue()));
 	}
 
 	public void add(final String name, final Object value) {
+
 		arguments.add(new Argument(name, value));
 	}
 
 	public void prepend(final String name, final Object value) {
+
 		arguments.add(0, new Argument(name, value));
 	}
 
@@ -85,6 +89,7 @@ public class NamedArguments extends Arguments {
 			if (unwrapped instanceof Map) {
 
 				final Map<String, Object> map = (Map<String, Object>) unwrapped;
+
 				for (final Entry<String, Object> entry : map.entrySet()) {
 
 					arguments.add(entry);

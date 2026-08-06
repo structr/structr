@@ -100,17 +100,16 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 			try {
 
-				driver = GraphDatabase.driver(databaseDriverUrl,
-						AuthTokens.basic(username, password),
-						config
-				);
+				driver = GraphDatabase.driver(databaseDriverUrl, AuthTokens.basic(username, password), config);
 
 				sessionConfig = SessionConfig.forDatabase(databaseName);
 
 				// probe connection to database:
 				//   by creating a session, transaction and committing the transaction
 				try (final Session session = driver.session() ) {
+
 					try (final org.neo4j.driver.Transaction transaction = session.beginTransaction()) {
+
 						transaction.commit();
 					}
 				}
@@ -122,6 +121,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 					logger.info("Login with credentials from config file failed, trying default credentials...");
 
 					try {
+
 						driver = GraphDatabase.driver(databaseDriverUrl,
 								AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue()),
 								config
@@ -133,14 +133,12 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 						logger.info("Initial database password set to value from config file.");
 
-						driver = GraphDatabase.driver(databaseDriverUrl,
-								AuthTokens.basic(username, password),
-								config
-						);
+						driver = GraphDatabase.driver(databaseDriverUrl, AuthTokens.basic(username, password), config);
 
 						logger.info("Successfully logged in with configured credentials.");
 
 					} catch (final AuthenticationException auex2) {
+
 						logger.info("Login with default credentials failed.");
 					}
 
@@ -157,20 +155,26 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			}
 
 			// signal success
+
 			return true;
 
 		} catch (AuthenticationException auex) {
+
 			errorMessage = auex.getMessage() + " If you are connecting to this Neo4j instance for the first time, you might need to change the default password in the Neo4j Browser.";
+
 		} catch (ServiceUnavailableException ex) {
+
 			errorMessage = ex.getMessage();
 		}
 
 		// service failed to initialize
+
 		return false;
 	}
 
 	@Override
 	public void shutdown() {
+
 		driver.close();
 	}
 
@@ -184,6 +188,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 		} else {
 
 			try {
+
 				if (neo4jMajorVersion >= 4) {
 
 					return new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
@@ -193,12 +198,14 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 					return new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
 				}
 
-
 			} catch (ServiceUnavailableException ex) {
 
 				logger.warn("ServiceUnavailableException in BoltDataBaseService.beginTx(). Retrying with timeout.");
+
 				return beginTx(1);
+
 			} catch (ClientException cex) {
+
 				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
 			}
 		}
@@ -228,8 +235,11 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			} catch (ServiceUnavailableException ex) {
 
 				logger.warn("ServiceUnavailableException in BoltDataBaseService.beginTx(). Retrying with timeout.");
+
 				return beginTx(1);
+
 			} catch (ClientException cex) {
+
 				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
 			}
 		}
@@ -257,8 +267,11 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
+
 				throw new NetworkException(ex.getMessage(), ex);
+
 			} catch (ClientException cex) {
+
 				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
 			}
 		}
@@ -359,8 +372,11 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			}
 
 		} catch (ClientException dex) {
+
 			throw AsyncSessionTransaction.translateClientException(dex);
+
 		} catch (DatabaseException dex) {
+
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		}
 
@@ -369,11 +385,13 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public Node<Long> getNodeById(final Identity<Long> id) {
+
 		return getNodeById(unwrap(id));
 	}
 
 	@Override
 	public Relationship<Long> getRelationshipById(final Identity<Long> id) {
+
 		return getRelationshipById(unwrap(id));
 	}
 
@@ -391,6 +409,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	public Iterable<Node<Long>> getNodesByLabel(final String type) {
 
 		if (type == null) {
+
 			return getAllNodes();
 		}
 
@@ -405,6 +424,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	public Iterable<Node<Long>> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
+
 			return getAllNodes();
 		}
 
@@ -429,6 +449,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	public Iterable<Relationship<Long>> getRelationshipsByType(final String type) {
 
 		if (type == null) {
+
 			return getAllRelationships();
 		}
 
@@ -443,6 +464,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	public Index<Node<Long>> nodeIndex() {
 
 		if (nodeIndex == null) {
+
 			nodeIndex = new CypherNodeIndex(this);
 		}
 
@@ -453,6 +475,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	public Index<Relationship<Long>> relationshipIndex() {
 
 		if (relationshipIndex == null) {
+
 			relationshipIndex = new CypherRelationshipIndex(this);
 		}
 
@@ -497,6 +520,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 				break;
 
 			case 4:
+
 				if (supportsIdempotentIndexCreation) {
 
 					// idempotent index update, no need to check for existance first
@@ -506,6 +530,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 					logger.warn("This driver does not support index creation on Neo4j 4.0.x databases. Performance will be impacted.");
 				}
+
 				break;
 
 			case 3:
@@ -531,10 +556,12 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	public boolean isIndexUpdateFinished() {
 
 		if (indexUpdater != null) {
+
 			return indexUpdater.isFinished();
 		}
 
 		// no updater, no update in progress
+
 		return true;
 	}
 
@@ -564,6 +591,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
 
 		if (!(query instanceof String)) {
+
 			throw new IllegalArgumentException("Unsupported query type " + query.getClass().getName() + ", expected String.");
 		}
 
@@ -585,6 +613,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	}
 
 	public SessionTransaction getCurrentTransaction() {
+
 		return getCurrentTransaction(true);
 	}
 
@@ -600,10 +629,12 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	}
 
 	boolean logQueries() {
+
 		return Settings.CypherDebugLogging.getValue();
 	}
 
 	boolean logPingQueries() {
+
 		return Settings.CypherDebugLoggingPing.getValue();
 	}
 
@@ -618,26 +649,32 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	}
 
 	Node<Long> getNodeById(final long id) {
+
 		return getCurrentTransaction().getNodeWrapper(id);
 	}
 
 	Relationship<Long> getRelationshipById(final long id) {
+
 		return getCurrentTransaction().getRelationshipWrapper(id);
 	}
 
 	void consume(final String nativeQuery) {
+
 		consume(nativeQuery, Collections.EMPTY_MAP);
 	}
 
 	void consume(final String nativeQuery, final Map<String, Object> parameters) {
+
 		getCurrentTransaction().set(nativeQuery, parameters);
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery) {
+
 		return execute(nativeQuery, Collections.EMPTY_MAP);
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
+
 		return getCurrentTransaction().run(new SimpleCypherQuery(nativeQuery, parameters));
 	}
 
@@ -692,6 +729,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 		final Long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
 
 		if (nodeCount == null || relCount == null || userCount == null) {
+
 			throw new RuntimeException("Unable to fetch database counts.");
 		}
 
@@ -803,9 +841,11 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 		switch (feature) {
 
 			case LargeStringIndexing:
+
 				return false;
 
 			case FulltextIndexing:
+
 				return true;
 
 			case QueryLanguage:
@@ -817,30 +857,38 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 				}
 
 			case SpatialQueries:
+
 				return true;
 
 			case NewDistanceFunction:
+
 				return neo4jMajorVersion >= 5;
 
 			case AuthenticationRequired:
+
 				return true;
 
 			case RelationshipIndexes:
+
 				return supportsRelationshipIndexes;
 
 			case NewDBIndexesFormat:
 				// New db.indexes() format can be used for Neo4j versions >= 4,
 				// which is identical to the version for the reactive flag.
+
 				return neo4jMajorVersion >= 4;
 
 			case ShowIndexesQuery:
+
 				return neo4jMajorVersion >= 5;
 
 			case TypePredicateExpressions:
 				// see https://development.neo4j.dev/blog/developer/data-quality-type-constraints-functions/
+
 				return neo4jMajorVersion >= 2025 || (neo4jMajorVersion >= 5 && neo4jMinorVersion >= 9);
 
 			case RangeIndexes:
+
 				return neo4jMajorVersion >= 5;
 		}
 
@@ -849,16 +897,19 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public String getErrorMessage() {
+
 		return errorMessage;
 	}
 
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
+
 		return Map.of();
 	}
 
 	@Override
 	public void flushCaches() {
+
 		SessionTransaction.flushCaches();
 	}
 
@@ -939,6 +990,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	private String stringOrDefault(final String[] source, final int index, final String defaultValue) {
 
 		if (index >= source.length) {
+
 			return defaultValue;
 		}
 
@@ -955,51 +1007,61 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 		}
 
 		public TypePredicate(final String mainType) {
+
 			this.mainType = mainType;
 		}
 
 		@Override
 		public String getSourceType() {
+
 			return null;
 		}
 
 		@Override
 		public String getTargetType() {
+
 			return null;
 		}
 
 		@Override
 		public Class getQueryType() {
+
 			return TypeQuery.class;
 		}
 
 		@Override
 		public String getName() {
+
 			return "type";
 		}
 
 		@Override
 		public Class getType() {
+
 			return String.class;
 		}
 
 		@Override
 		public Object getValue() {
+
 			return mainType;
 		}
 
 		@Override
 		public String getLabel() {
+
 			return null;
 		}
 
 		@Override
 		public boolean isExactMatch() {
+
 			return true;
 		}
 
 		@Override
 		public SortOrder getSortOrder() {
+
 			return null;
 		}
 	}
@@ -1009,41 +1071,49 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 		protected String type = null;
 
 		public TypePropertyPredicate(final String type) {
+
 			this.type = type;
 		}
 
 		@Override
 		public Class getQueryType() {
+
 			return ExactQuery.class;
 		}
 
 		@Override
 		public String getName() {
+
 			return "type";
 		}
 
 		@Override
 		public Class getType() {
+
 			return String.class;
 		}
 
 		@Override
 		public Object getValue() {
+
 			return type;
 		}
 
 		@Override
 		public String getLabel() {
+
 			return null;
 		}
 
 		@Override
 		public boolean isExactMatch() {
+
 			return true;
 		}
 
 		@Override
 		public SortOrder getSortOrder() {
+
 			return null;
 		}
 
@@ -1052,14 +1122,17 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 	private <T> NativeQuery<T> createQuery(final String query, final Class<T> type) {
 
 		if (Iterable.class.equals(type)) {
+
 			return (NativeQuery<T>)new IterableQuery(query);
 		}
 
 		if (Boolean.class.equals(type)) {
+
 			return (NativeQuery<T>)new BooleanQuery(query);
 		}
 
 		if (Long.class.equals(type)) {
+
 			return (NativeQuery<T>)new LongQuery(query);
 		}
 
@@ -1103,6 +1176,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			}
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to change password properties file", t);
 		}
 	}

@@ -32,6 +32,7 @@ class MixedResultWrapper<S, T> implements Function<S, T> {
 	protected EmbeddedDatabaseService db = null;
 
 	public MixedResultWrapper(final EmbeddedDatabaseService db) {
+
 		this.db = db;
 	}
 

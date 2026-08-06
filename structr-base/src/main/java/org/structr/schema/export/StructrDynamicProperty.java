@@ -49,11 +49,13 @@ public abstract class StructrDynamicProperty extends StructrStringProperty imple
 	public JsonDynamicProperty setTypeHint(String typeHint) {
 
 		this.typeHint = typeHint;
+
 		return this;
 	}
 
 	@Override
 	public String getTypeHint() {
+
 		return typeHint;
 	}
 
@@ -63,6 +65,7 @@ public abstract class StructrDynamicProperty extends StructrStringProperty imple
 		final Map<String, Object> map = super.serialize();
 
 		if (typeHint != null) {
+
 			map.put(JsonSchema.KEY_TYPE_HINT, typeHint);
 		}
 

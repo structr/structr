@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.*;
@@ -61,7 +60,6 @@ public class TransactionCommand {
 	private ErrorBuffer errorBuffer                      = null;
 	private TransactionPostProcessQueue postProcessQueue = null;
 
-
 	private static TransactionCommand getInstance() {
 
 		TransactionCommand cmd = commands.get();
@@ -84,10 +82,12 @@ public class TransactionCommand {
 			if (cmd.transaction == null) {
 
 				try {
+
 					// start new transaction
 					cmd.transaction = new TransactionReference(graphDb.beginTx());
 
 				} catch (NetworkException nex) {
+
 					throw new DatabaseServiceNetworkException(503, nex.getMessage());
 				}
 
@@ -111,7 +111,6 @@ public class TransactionCommand {
 	public static void commitTx(final SecurityContext securityContext, final boolean doValidation) throws FrameworkException {
 
 		final TransactionCommand cmd  = TransactionCommand.getInstance();
-
 		if (cmd.transaction != null && cmd.transaction.isToplevel()) {
 
 			final ModificationQueue modificationQueue = cmd.queue;
@@ -119,6 +118,7 @@ public class TransactionCommand {
 
 			// 0.5: let transaction listeners examine (and prevent?) commit
 			for (final StructrTransactionListener listener : listeners) {
+
 				listener.beforeCommit(securityContext, modificationQueue.getModificationEvents());
 			}
 
@@ -128,6 +128,7 @@ public class TransactionCommand {
 				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
 					if (modificationQueue != null && modificationQueue.getSize() > 0) {
+
 						RuntimeEventLog.transaction("Failed", modificationQueue.getTransactionStats());
 					}
 
@@ -158,6 +159,7 @@ public class TransactionCommand {
 				cmd.transaction.failure();
 
 				if (modificationQueue != null && modificationQueue.getSize() > 0) {
+
 					RuntimeEventLog.transaction("Failed", modificationQueue.getTransactionStats());
 				}
 
@@ -171,6 +173,7 @@ public class TransactionCommand {
 				cmd.transaction.failure();
 
 				if (modificationQueue != null && modificationQueue.getSize() > 0) {
+
 					RuntimeEventLog.transaction("Failed", modificationQueue.getTransactionStats());
 				}
 
@@ -178,13 +181,16 @@ public class TransactionCommand {
 			}
 
 			try {
+
 				cmd.transaction.success();
 
 			} catch (Throwable t) {
+
 				logger.error("Unable to commit transaction", t);
 			}
 
 			if (modificationQueue != null && modificationQueue.getSize() > 0) {
+
 				RuntimeEventLog.transaction("Success", modificationQueue.getTransactionStats());
 			}
 		}
@@ -209,6 +215,7 @@ public class TransactionCommand {
 				boolean committed = false;
 
 				try {
+
 					cmd.transaction.close();
 					committed = cmd.transaction.isSuccessful();
 
@@ -427,14 +434,17 @@ public class TransactionCommand {
 	}
 
 	public static void registerTransactionListener(final StructrTransactionListener listener) {
+
 		listeners.add(listener);
 	}
 
 	public static void removeTransactionListener(final StructrTransactionListener listener) {
+
 		listeners.remove(listener);
 	}
 
 	public static Set<StructrTransactionListener> getTransactionListeners() {
+
 		return listeners;
 	}
 
@@ -450,14 +460,17 @@ public class TransactionCommand {
 	}
 
 	public static void simpleBroadcastGenericMessage(final Map<String, Object> data) {
+
 		simpleBroadcastGenericMessage(data, null);
 	}
 
 	public static void simpleBroadcastGenericMessage(final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+
 		simpleBroadcast("GENERIC_MESSAGE", data, sessionIdPredicate);
 	}
 
 	public static void simpleBroadcastDeprecationWarning(final String deprecationSubType, final String title, final String text) {
+
 		simpleBroadcastDeprecationWarning(deprecationSubType, title, text, null);
 	}
 
@@ -471,6 +484,7 @@ public class TransactionCommand {
 		messageData.put(MaintenanceCommand.COMMAND_MESSAGE_KEY, text);
 
 		if (uuid != null) {
+
 			messageData.put("nodeId", uuid);
 		}
 
@@ -483,6 +497,7 @@ public class TransactionCommand {
 		data.put("stringvalue", ex.toString());
 
 		if (printStackTrace) {
+
 			logger.warn("", ex);
 		}
 
@@ -490,6 +505,7 @@ public class TransactionCommand {
 	}
 
 	public static void simpleBroadcast (final String messageName, final Map<String, Object> data) {
+
 		simpleBroadcast(messageName, data, null);
 	}
 
@@ -498,17 +514,20 @@ public class TransactionCommand {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
 				listener.simpleBroadcast(messageName, data, sessionIdPredicate);
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Exception during simple broadcast", fex);
 		}
 	}
 
 	public static boolean inTransaction() {
+
 		return commands.get() != null;
 	}
 
@@ -539,6 +558,7 @@ public class TransactionCommand {
 	public static boolean isDeleted(final PropertyContainer propertyContainer) {
 
 		if (propertyContainer.isNode()) {
+
 			return isDeleted((Node)propertyContainer);
 		}
 
@@ -558,7 +578,6 @@ public class TransactionCommand {
 	}
 
 	public static boolean isDeleted(final Relationship rel) {
-
 
 		TransactionCommand cmd = commands.get();
 		if (cmd != null) {
@@ -626,6 +645,7 @@ public class TransactionCommand {
 	}
 
 	public static void flushCaches() {
+
 		final DatabaseService graphDb = Services.getInstance().getDatabaseService();
 		graphDb.flushCaches();
 	}
@@ -642,10 +662,12 @@ public class TransactionCommand {
 
 	// ----- private methods -----
 	private ModificationQueue getModificationQueue() {
+
 		return queue;
 	}
 
 	private long getTransactionId() {
+
 		return transaction.getTransactionId();
 	}
 }

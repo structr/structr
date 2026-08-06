@@ -85,6 +85,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
+
 			logger.warn("", fex);
 		}
 	}
@@ -115,6 +116,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 			}
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 
@@ -133,6 +135,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 				// move converted file into place
 				final java.io.File diskFile = new java.io.File(outputFileName + fileExtension);
 				final java.io.File dstFile  = new java.io.File(outputFileName);
+
 				if (diskFile.exists()) {
 
 					Files.move(diskFile.toPath(), dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -145,6 +148,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 				tx.success();
 
 			} catch (FrameworkException | IOException fex) {
+
 				logger.warn("", fex);
 			}
 
@@ -157,6 +161,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				logger.warn("", fex);
 			}
 

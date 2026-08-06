@@ -31,11 +31,13 @@ public class QuotFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "quot";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
@@ -53,6 +55,7 @@ public class QuotFunction extends CoreFunction {
 			} catch (NumberFormatException nfe) {
 
 				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+
 				return nfe.getMessage();
 			}
 
@@ -67,6 +70,7 @@ public class QuotFunction extends CoreFunction {
 				} catch (NumberFormatException nfe) {
 
 					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+
 					return nfe.getMessage();
 				}
 			}
@@ -74,6 +78,7 @@ public class QuotFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -82,42 +87,39 @@ public class QuotFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${quot(value1, value2)}."),
-				Usage.javaScript("Usage: ${{ $.quot(value1, value2) }}.")
+
+		return List.of(Usage.structrScript("Usage: ${quot(value1, value2)}."), Usage.javaScript("Usage: ${{ $.quot(value1, value2) }}.")
 
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Divides the first argument by the second argument.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns the quotient of value1 and value2. This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${quot(10, 2)}"),
-				Example.javaScript("${{ $.quot(10, 2) }}")
-		);
+
+		return List.of(Example.structrScript("${quot(10, 2)}"), Example.javaScript("${{ $.quot(10, 2) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("value1", "Numerical value. Can be also given as string"),
-				Parameter.mandatory("value2", "Numerical value. Can be also given as string")
-		);
+		return List.of(Parameter.mandatory("value1", "Numerical value. Can be also given as string"), Parameter.mandatory("value2", "Numerical value. Can be also given as string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

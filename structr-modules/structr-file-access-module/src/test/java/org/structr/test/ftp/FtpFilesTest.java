@@ -71,6 +71,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -91,6 +92,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -109,6 +111,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -134,6 +137,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -154,6 +158,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -172,6 +177,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -197,6 +203,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -208,6 +215,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -225,6 +233,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -250,6 +259,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -261,6 +271,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -272,6 +283,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -291,6 +303,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -300,7 +313,6 @@ public class FtpFilesTest extends FtpTest {
 	public void test04MoveFileToRoot() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
-
 		final String name1 = "file1";
 		final String name2 = "dir1";
 
@@ -316,6 +328,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -327,6 +340,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -338,11 +352,13 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
 		String[] fileNames = null;
+
 		try (final Tx tx = app.tx()) {
 
 			ftp.changeWorkingDirectory("/" + name2);
@@ -358,6 +374,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -368,6 +385,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -386,6 +404,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -417,6 +436,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -435,6 +455,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -465,6 +486,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -480,6 +502,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -505,6 +528,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -537,6 +561,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -554,6 +579,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -566,6 +592,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -583,6 +610,7 @@ public class FtpFilesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}

@@ -46,6 +46,7 @@ public abstract class Rule {
 	protected final Ontology ontology;
 
 	public Rule(final Ontology ontology) {
+
 		this.ontology = ontology;
 	}
 

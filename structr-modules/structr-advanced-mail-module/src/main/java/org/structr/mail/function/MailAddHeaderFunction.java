@@ -31,16 +31,19 @@ import java.util.List;
 public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
 	public MailAddHeaderFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailAddHeader";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name, value");
 	}
 
@@ -61,25 +64,26 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailAddHeader(name, value)}"),
-			Usage.javaScript("Usage: ${{ $.mailAddHeader(name, value) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailAddHeader(name, value)}"), Usage.javaScript("Usage: ${{ $.mailAddHeader(name, value) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds a custom header to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Email headers (according to RFC 822) must contain only US-ASCII characters. A header that contains non US-ASCII characters must be encoded as per the rules of RFC 2047 (see `mailEncodeText()`).
 
@@ -89,21 +93,19 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("name", "header name"),
-				Parameter.mandatory("value", "header value")
-		);
+
+		return List.of(Parameter.mandatory("name", "header name"), Parameter.mandatory("value", "header value"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"can be called multiple times to add more headers."
-		);
+
+		return List.of("can be called multiple times to add more headers.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${mailAddHeader('X-Mailer', 'Structr')}", "US-ASCII only header"),
 				Example.structrScript("${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")

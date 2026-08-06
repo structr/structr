@@ -27,36 +27,43 @@ import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 public class LocalizationTraitWrapper extends AbstractNodeTraitWrapper implements Localization {
 
 	public LocalizationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getLocalizedName() {
+
 		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getLocale() {
+
 		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY));
 	}
 
 	@Override
 	public String getDomain() {
+
 		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY));
 	}
 
 	@Override
 	public void setLocalizedName(final String localizedName) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY), localizedName);
 	}
 
 	@Override
 	public void setLocale(final String locale) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY), locale);
 	}
 
 	@Override
 	public void setDomain(final String domain) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY), domain);
 	}
 }

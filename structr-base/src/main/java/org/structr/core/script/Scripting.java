@@ -64,10 +64,12 @@ public class Scripting {
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
+
 		return replaceVariables(actionContext, entity, rawValue, false, "script source");
 	}
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final String methodName) throws FrameworkException {
+
 		return replaceVariables(actionContext, entity, rawValue, false, methodName);
 	}
 
@@ -117,11 +119,13 @@ public class Scripting {
 						} else {
 
 							if (!value.equals(expression)) {
+
 								replacements.add(new Tuple(expression, ""));
 							}
 						}
 
 					} catch (UnlicensedScriptException ex) {
+
 						ex.log(logger);
 					}
 				}
@@ -144,6 +148,7 @@ public class Scripting {
 		}
 
 		if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
+
 			return null;
 		}
 
@@ -151,6 +156,7 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
+
 		final ScriptConfig scriptConfig = ScriptConfig.builder()
 				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 				.build();
@@ -168,14 +174,15 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
+
 		return evaluate(actionContext, entity, input, methodName, 0, codeSource, scriptConfig);
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = StringUtils.strip(input);
-
 		if (expression.isEmpty()) {
+
 			return null;
 		}
 
@@ -200,8 +207,8 @@ public class Scripting {
 		// temporarily disable notifications for scripted actions
 
 		boolean enableTransactionNotifications = false;
-
 		final SecurityContext securityContext = actionContext.getSecurityContext();
+
 		if (securityContext != null) {
 
 			enableTransactionNotifications = securityContext.doTransactionNotifications();
@@ -224,6 +231,7 @@ public class Scripting {
 			final Object result = evaluateScript(actionContext, entity, "js", snippet, scriptConfig);
 
 			if (enableTransactionNotifications && securityContext != null) {
+
 				securityContext.setDoTransactionNotifications(true);
 			}
 
@@ -238,10 +246,12 @@ public class Scripting {
 				final String output         = actionContext.getOutput();
 
 				if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
+
 					extractedValue = output;
 				}
 
 				if (enableTransactionNotifications && securityContext != null) {
+
 					securityContext.setDoTransactionNotifications(true);
 				}
 
@@ -267,6 +277,7 @@ public class Scripting {
 	}
 
 	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
+
 		return evaluateScript(actionContext, entity, engineName, snippet, ScriptConfig.builder().build());
 	}
 
@@ -278,7 +289,9 @@ public class Scripting {
 		final ContextFactory.LockedContext lockedContext = ContextFactory.getContext(engineName, actionContext, entity);
 
 		lockedContext.getLock().lock();
+
 		try {
+
 			final Context context = lockedContext.getContext();
 
 			ContextHelper.incrementReferenceCount(context);
@@ -322,7 +335,6 @@ public class Scripting {
 		return result;
 	}
 
-
 	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
 		try {
@@ -338,6 +350,7 @@ public class Scripting {
 			source = Source.newBuilder(engineName, code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 			try {
+
 				if (source != null) {
 
 					final Value result = context.eval(source);
@@ -350,6 +363,7 @@ public class Scripting {
 					}
 
 					return result;
+
 				} else {
 
 					return null;
@@ -361,20 +375,26 @@ public class Scripting {
 
 					// Only report error, if exception is not an already logged AssertException
 					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+
 						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
 					}
 
 					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
 					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
+
 						throw new AlreadyLoggedAssertException(ae);
 					}
 
 					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
 					if (ex.asHostException().getCause() instanceof FrameworkException) {
+
 						throw ex.asHostException().getCause();
+
 					} else {
+
 						throw ex.asHostException();
 					}
+
 				} else {
 
 					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
@@ -387,9 +407,11 @@ public class Scripting {
 			if (ex.getCause() instanceof FrameworkException) {
 
 				throw (FrameworkException) ex.getCause();
+
 			} else if (ex instanceof AssertException) {
 
 				throw ex;
+
 			} else {
 
 				throw ex;
@@ -409,7 +431,6 @@ public class Scripting {
 
 		final boolean isAutoScriptingEnv = !(snippet.startsWith("${") && snippet.endsWith("}"));
 		final boolean isJavascript       = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
-
 		String engine = "";
 		String script = "";
 
@@ -429,6 +450,7 @@ public class Scripting {
 		}
 
 		logger.debug("Scripting engine {} requested.", engine);
+
 		return new String[] { engine, script };
 	}
 
@@ -469,9 +491,12 @@ public class Scripting {
 					break;
 
 				case '\'':
+
 					if (inTemplate && !inDoubleQuotes && !inTemplateLiteral && !hasBackslash && !inLineComment && !inBlockComment) {
+
 						inSingleQuotes = !inSingleQuotes;
 					}
+
 					hasDollar    = false;
 					hasBackslash = false;
 					hasSlash     = false;
@@ -479,9 +504,12 @@ public class Scripting {
 					break;
 
 				case '\"':
+
 					if (inTemplate && !inSingleQuotes && !inTemplateLiteral && !hasBackslash && !inLineComment && !inBlockComment) {
+
 						inDoubleQuotes = !inDoubleQuotes;
 					}
+
 					hasDollar    = false;
 					hasBackslash = false;
 					hasSlash     = false;
@@ -489,9 +517,12 @@ public class Scripting {
 					break;
 
 				case '`':
+
 					if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !hasBackslash && !inLineComment && !inBlockComment) {
+
 						inTemplateLiteral = !inTemplateLiteral;
 					}
+
 					hasDollar    = false;
 					hasBackslash = false;
 					hasSlash     = false;
@@ -499,21 +530,26 @@ public class Scripting {
 					break;
 
 				case '$':
+
 					if (!inLineComment && !inBlockComment) {
+
 						hasDollar = true;
 					}
+
 					hasBackslash = false;
 					hasSlash     = false;
 					hasStar      = false;
 					break;
 
 				case '{':
+
 					if (!inTemplate && hasDollar && !inLineComment && !inBlockComment) {
 
 						inTemplate = true;
 						start = i-1;
 
 					} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && !inLineComment && !inBlockComment) {
+
 						level++;
 					}
 
@@ -538,6 +574,7 @@ public class Scripting {
 
 						buffer.setLength(0);
 					}
+
 					hasDollar    = false;
 					hasBackslash = false;
 					hasSlash     = false;
@@ -546,17 +583,26 @@ public class Scripting {
 
 				case '*': {
 					if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && !inLineComment) {
+
 						if (!inBlockComment && hasSlash) {
+
 							inBlockComment = true;
 							hasStar = false;
+
 						} else if (inBlockComment) {
+
 							hasStar = true;
+
 						} else {
+
 							hasStar = false;
 						}
+
 					} else {
+
 						hasStar = false;
 					}
+
 					hasSlash     = false;
 					hasDollar    = false;
 					hasBackslash = false;
@@ -565,17 +611,26 @@ public class Scripting {
 
 				case '/': {
 					boolean keepSlash = false;
+
 					if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral) {
+
 						if (inBlockComment && hasStar) {
+
 							inBlockComment = false;
+
 						} else if (!inLineComment && !inBlockComment) {
+
 							if (hasSlash) {
+
 								inLineComment = true;
+
 							} else {
+
 								keepSlash = true;
 							}
 						}
 					}
+
 					hasSlash     = keepSlash;
 					hasStar      = false;
 					hasDollar    = false;
@@ -647,6 +702,7 @@ public class Scripting {
 				buf.append(Scripting.formatToDefaultDateOrString(it.next()));
 
 				if (it.hasNext()) {
+
 					buf.append(", ");
 				}
 			}
@@ -679,21 +735,14 @@ public class Scripting {
 
 			final String mdcString        = MDC.get(ScratchpadTraitWrapper.MDC_SCRATCHPAD_TAG);
 			final String scratchLogString = (mdcString == null) ? "" : mdcString + " ";
-
-			Stream<String> lines = Stream.concat(
-				Stream.of(throwable.toString()),
-				Arrays.stream(throwable.getStackTrace())
+			Stream<String> lines = Stream.concat(Stream.of(throwable.toString()), Arrays.stream(throwable.getStackTrace())
 						.takeWhile(ste -> !ste.getClassName().startsWith("org.graalvm"))
-						.map(ste -> scratchLogString + "\tat " + ste.toString())
-			);
+						.map(ste -> scratchLogString + "\tat " + ste.toString()));
 
 			// attach causes recursively
 			if (throwable.getCause() != null) {
 
-				lines = Stream.concat(
-						lines,
-						Stream.of(scratchLogString + " Caused by: " + formatForLogging(throwable.getCause()))
-				);
+				lines = Stream.concat(lines, Stream.of(scratchLogString + " Caused by: " + formatForLogging(throwable.getCause())));
 			}
 
 			return lines.collect(Collectors.joining(System.lineSeparator()));
@@ -712,8 +761,8 @@ public class Scripting {
 		int columnNumber     = 1;
 		int endLineNumber    = 1;
 		int endColumnNumber  = 1;
-
 		final SourceSection location = ex.getSourceLocation();
+
 		if (location != null) {
 
 			lineNumber      = location.getStartLine();
@@ -805,6 +854,7 @@ public class Scripting {
 				} else {
 
 					if (entity == null) {
+
 						// Only generate generic exception prefix, if none has been written for entity
 						exceptionPrefix.append(nodeType).append("[").append(nodeId).append("]:");
 					}
@@ -819,6 +869,7 @@ public class Scripting {
 		}
 
 		if (snippet.getName() != null) {
+
 			eventData.put("name", snippet.getName());
 			messageData.put("name", snippet.getName());
 		}
@@ -851,6 +902,7 @@ public class Scripting {
 		public String value = null;
 
 		public Tuple(final String key, final String value) {
+
 			this.key = key;
 			this.value = value;
 		}

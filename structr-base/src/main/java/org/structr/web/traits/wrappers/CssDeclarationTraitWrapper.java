@@ -26,6 +26,7 @@ import org.structr.web.entity.css.CssDeclaration;
 public class CssDeclarationTraitWrapper extends AbstractNodeTraitWrapper implements CssDeclaration {
 
 	public CssDeclarationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

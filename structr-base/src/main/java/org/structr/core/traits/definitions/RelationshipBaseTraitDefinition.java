@@ -45,10 +45,12 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 		//   1 MO MM
 
 		if (Relation.Multiplicity.Many.equals(getSourceMultiplicity())) {
+
 			which += 1;
 		}
 
 		if (Relation.Multiplicity.Many.equals(getTargetMultiplicity())) {
+
 			which += 2;
 		}
 
@@ -60,66 +62,79 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String name() {
+
 						return RelationshipBaseTraitDefinition.this.getRelationshipType();
 					}
 
 					@Override
 					public String getType() {
+
 						return getLabel();
 					}
 
 					@Override
 					public String getSourceType() {
+
 						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
+
 						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
+
 						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
+
 						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
+
 						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
@@ -131,66 +146,79 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String name() {
+
 						return RelationshipBaseTraitDefinition.this.getRelationshipType();
 					}
 
 					@Override
 					public String getType() {
+
 						return getLabel();
 					}
 
 					@Override
 					public String getSourceType() {
+
 						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
+
 						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
+
 						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
+
 						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
+
 						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
@@ -202,66 +230,79 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String name() {
+
 						return RelationshipBaseTraitDefinition.this.getRelationshipType();
 					}
 
 					@Override
 					public String getType() {
+
 						return getLabel();
 					}
 
 					@Override
 					public String getSourceType() {
+
 						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
+
 						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
+
 						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
+
 						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
+
 						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
@@ -273,66 +314,79 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String name() {
+
 						return RelationshipBaseTraitDefinition.this.getRelationshipType();
 					}
 
 					@Override
 					public String getType() {
+
 						return getLabel();
 					}
 
 					@Override
 					public String getSourceType() {
+
 						return RelationshipBaseTraitDefinition.this.getSourceType();
 					}
 
 					@Override
 					public String getTargetType() {
+
 						return RelationshipBaseTraitDefinition.this.getTargetType();
 					}
 
 					@Override
 					public int getCascadingDeleteFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getCascadingDeleteFlag();
 					}
 
 					@Override
 					public int getAutocreationFlag() {
+
 						return RelationshipBaseTraitDefinition.this.getAutocreationFlag();
 					}
 
 					@Override
 					public PropagationDirection getPropagationDirection() {
+
 						return RelationshipBaseTraitDefinition.this.getPropagationDirection();
 					}
 
 					@Override
 					public PropagationMode getReadPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getReadPropagation();
 					}
 
 					@Override
 					public PropagationMode getWritePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getWritePropagation();
 					}
 
 					@Override
 					public PropagationMode getDeletePropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getDeletePropagation();
 					}
 
 					@Override
 					public PropagationMode getAccessControlPropagation() {
+
 						return RelationshipBaseTraitDefinition.this.getAccessControlPropagation();
 					}
 
 					@Override
 					public String getDeltaProperties() {
+
 						return RelationshipBaseTraitDefinition.this.getDeltaProperties();
 					}
 
 					@Override
 					public boolean isInternal() {
+
 						return RelationshipBaseTraitDefinition.this.isInternal();
 					}
 				};
@@ -343,30 +397,37 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 	}
 
 	default PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.None;
 	}
 
 	default PropagationMode getReadPropagation() {
+
 		return null;
 	}
 
 	default PropagationMode getWritePropagation() {
+
 		return null;
 	}
 
 	default PropagationMode getDeletePropagation() {
+
 		return null;
 	}
 
 	default PropagationMode getAccessControlPropagation() {
+
 		return null;
 	}
 
 	default String getDeltaProperties() {
+
 		return null;
 	}
 
 	default boolean isRelationship() {
+
 		return true;
 	}
 }

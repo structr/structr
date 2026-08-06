@@ -28,6 +28,7 @@ import org.structr.core.traits.Traits;
 public class ODTExporterTraitWrapper extends ODFExporterTraitWrapper {
 
 	public ODTExporterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

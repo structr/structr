@@ -26,11 +26,13 @@ package org.structr.core.traits.definitions;
 public abstract class AbstractRelationshipTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public AbstractRelationshipTraitDefinition(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return true;
 	}
 }

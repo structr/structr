@@ -62,16 +62,19 @@ public class GeoTransformationsModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "geo-transformations";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

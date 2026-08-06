@@ -46,6 +46,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	private String type   = null;
 
 	public NodeRelationshipProperty(final String name, final String type) {
+
 		this(name, type, null);
 	}
 
@@ -59,21 +60,25 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Relationship";
 	}
 
 	@Override
 	public String relatedType() {
+
 		return StructrTraits.RELATIONSHIP_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return RelationshipInterface.class;
 	}
 
@@ -81,6 +86,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext, boolean fromString) {
 
 		if (notion != null) {
+
 			return notion.getCollectionConverter(securityContext);
 		}
 
@@ -89,38 +95,46 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 
 	@Override
 	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
 	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+
 		NodeInterface node = (NodeInterface)obj;
+
 		return (Iterable)node.getRelationships(type);
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

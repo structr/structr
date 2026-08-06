@@ -43,30 +43,32 @@ import java.util.Set;
 public class LogSubjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public LogSubjectTraitDefinition() {
+
 		super(StructrTraits.LOG_SUBJECT);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			LogSubject.class, (traits, node) -> new LogSubjectTraitWrapper(traits, node)
-		);
+		return Map.of(LogSubject.class, (traits, node) -> new LogSubjectTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -74,13 +76,12 @@ public class LogSubjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> logEvents = new EndNodes(traitsInstance, LogObjectTraitDefinition.LOG_EVENTS_PROPERTY, StructrTraits.SUBJECT_EVENT_RELATIONSHIP);
 
-		return newSet(
-			logEvents
-		);
+		return newSet(logEvents);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

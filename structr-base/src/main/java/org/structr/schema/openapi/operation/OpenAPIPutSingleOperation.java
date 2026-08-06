@@ -47,9 +47,7 @@ public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 			type.getTagsForOpenAPI(),
 
 			// parameters
-			List.of(
-				new OpenAPIPathParameter("uuid", "The UUID of the existing object", Map.of("type", "string"), true)
-			),
+			List.of(new OpenAPIPathParameter("uuid", "The UUID of the existing object", Map.of("type", "string"), true)),
 
 			// request body
 			new OpenAPIRequestResponse("Properties to update.",

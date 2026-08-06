@@ -40,6 +40,7 @@ public class LogoutCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		if (Settings.CallbacksOnLogout.getValue() == false) {
+
 			getWebSocket().getSecurityContext().disableInnerCallbacks();
 		}
 
@@ -48,7 +49,6 @@ public class LogoutCommand extends AbstractCommand {
 		try (final Tx tx = app.tx(true, true, true)) {
 
 			final Principal user = getWebSocket().getCurrentUser();
-
 			if (user != null) {
 
 				final String sessionId = SessionHelper.getShortSessionId(webSocketData.getSessionId());
@@ -73,11 +73,13 @@ public class LogoutCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "LOGOUT";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction () {
+
 		return false;
 	}
 }

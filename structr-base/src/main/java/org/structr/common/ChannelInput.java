@@ -37,6 +37,7 @@ public class ChannelInput implements Predicate<GraphObject> {
 	private final int page;
 
 	public ChannelInput() {
+
 		this(null, null, Integer.MAX_VALUE, 1);
 	}
 
@@ -60,31 +61,38 @@ public class ChannelInput implements Predicate<GraphObject> {
 
 	@Override
 	public int hashCode() {
+
 		return Objects.hash(sortInfos, searchableFields, filter, pageSize, page);
 	}
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return hashCode() == other.hashCode();
 	}
 
 	public List<SortInfo> sortKeys() {
+
 		return sortInfos;
 	}
 
 	public String filter() {
+
 		return filter;
 	}
 
 	public int pageSize() {
+
 		return pageSize;
 	}
 
 	public int page() {
+
 		return page;
 	}
 
 	public List<DataField> searchableFields() {
+
 		return searchableFields;
 	}
 
@@ -103,6 +111,7 @@ public class ChannelInput implements Predicate<GraphObject> {
 				if (value != null) {
 
 					if (value.toString().toLowerCase().contains(filter)) {
+
 						return true;
 					}
 				}
@@ -115,6 +124,7 @@ public class ChannelInput implements Predicate<GraphObject> {
 	}
 
 	public static ChannelInput firstElement() {
+
 		return new ChannelInput(null, null, 1, 1);
 	}
 }

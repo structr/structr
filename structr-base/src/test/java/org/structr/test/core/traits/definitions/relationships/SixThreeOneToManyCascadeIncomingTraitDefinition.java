@@ -25,46 +25,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class SixThreeOneToManyCascadeIncomingTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SixThreeOneToManyCascadeIncomingTraitDefinition() {
+
 		super("SixThreeOneToManyCascadeIncoming");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestSix";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestThree";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "ONE_TO_MANY";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.TARGET_TO_SOURCE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

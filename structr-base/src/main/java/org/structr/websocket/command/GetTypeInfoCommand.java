@@ -47,8 +47,8 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final String type = webSocketData.getNodeDataStringValue("type");
-
 		if (type == null) {
+
 			logger.warn("Node type given not found");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 		}
@@ -57,9 +57,11 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		final App app = StructrApp.getInstance(securityContext);
 
 		final NodeInterface typeNode;
+
 		try {
 
 			typeNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(type).getFirst();
+
 			if (typeNode != null) {
 
 				webSocketData.setResult(Arrays.asList(typeNode));
@@ -68,7 +70,9 @@ public class GetTypeInfoCommand extends AbstractCommand {
 				getWebSocket().send(webSocketData, true);
 
 			}
+
 		} catch (FrameworkException ex) {
+
 			logger.error("", ex);
 			getWebSocket().send(MessageBuilder.status().code(500).build(), true);
 		}
@@ -76,6 +80,7 @@ public class GetTypeInfoCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "GET_TYPE_INFO";
 	}
 }

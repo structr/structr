@@ -20,8 +20,5 @@ package org.structr.test.entity;
 
 public enum CsvTestEnum {
 
-	EnumValue1,
-	EnumValue2,
-	EnumValue3,
-	EnumValue4
+	EnumValue1, EnumValue2, EnumValue3, EnumValue4
 }

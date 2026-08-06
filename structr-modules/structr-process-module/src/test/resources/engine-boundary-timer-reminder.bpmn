@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_BoundaryReminder"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_BoundaryReminder" name="Boundary Reminder Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:userTask id="Task_Work" name="Do the work" />
+
+    <!-- Non-interrupting: the task keeps running, a reminder branch is spawned in parallel. -->
+    <bpmn:boundaryEvent id="Boundary_Reminder" name="Reminder" cancelActivity="false" attachedToRef="Task_Work">
+      <bpmn:timerEventDefinition id="timerdef_r1">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+
+    <bpmn:serviceTask id="Service_Remind" name="Send reminder" />
+
+    <bpmn:endEvent id="End_Normal"   name="Completed normally" />
+    <bpmn:endEvent id="End_Reminded" name="Reminder sent" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"           targetRef="Task_Work" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Work"         targetRef="End_Normal" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Boundary_Reminder" targetRef="Service_Remind" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Service_Remind"    targetRef="End_Reminded" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

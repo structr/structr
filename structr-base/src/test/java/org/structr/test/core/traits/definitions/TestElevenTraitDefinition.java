@@ -27,16 +27,19 @@ import java.util.Map;
 public class TestElevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestElevenTraitDefinition() {
+
 		super("TestEleven");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

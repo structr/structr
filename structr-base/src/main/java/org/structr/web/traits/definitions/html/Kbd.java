@@ -27,6 +27,7 @@ import java.util.Map;
 public class Kbd extends GenericHtmlElementTraitDefinition {
 
 	public Kbd() {
+
 		super(StructrTraits.KBD);
 	}
 
@@ -37,11 +38,11 @@ public class Kbd extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

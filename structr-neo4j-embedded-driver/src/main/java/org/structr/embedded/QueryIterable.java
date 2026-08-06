@@ -29,6 +29,7 @@ public class QueryIterable implements Iterable<Map<String, Object>> {
 	private CypherQuery             query = null;
 
 	public QueryIterable(final EmbeddedDatabaseService db, final CypherQuery query) {
+
 		this.query = query;
 		this.db    = db;
 	}

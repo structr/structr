@@ -21,6 +21,7 @@ package org.structr.core.auth.exception;
 public class TooManyFailedLoginAttemptsException extends UnauthorizedReasonException {
 
 	public TooManyFailedLoginAttemptsException() {
+
 		super("Too many failed login attempts", "loginAttempts");
 	}
 

@@ -23,7 +23,6 @@ import org.structr.core.graph.NodeInterface;
 
 import java.util.Date;
 
-
 public interface DataFeed extends NodeInterface {
 
 	String getUrl();

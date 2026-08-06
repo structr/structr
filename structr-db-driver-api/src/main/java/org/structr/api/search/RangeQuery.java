@@ -18,7 +18,6 @@
  */
 package org.structr.api.search;
 
-
 public interface RangeQuery<T> extends QueryPredicate {
 
 	T getRangeStart();

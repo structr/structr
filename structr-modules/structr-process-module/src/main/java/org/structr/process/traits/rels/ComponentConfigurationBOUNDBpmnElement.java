@@ -30,8 +30,9 @@ import org.structr.process.ProcessTraits;
  * <p>Set when a ComponentConfiguration's {@code bindingMode} is
  * {@code processBound}: identifies the BPMN UserTask that owns the contract
  * for the component's dataSource. The render path walks this rel at render
- * time and derives the dataSource type from the target's {@code subjectType}
- * property, so that process-side changes to the subject type propagate
+ * time and derives the dataSource type from the target task's owning process's
+ * {@code subjectType} property (the subject type is process-level -- one subject
+ * per instance), so that process-side changes to the subject type propagate
  * automatically into the rendered widget.</p>
  *
  * <p>Many ComponentConfigurations may bind to the same UserTask (a process
@@ -46,46 +47,55 @@ import org.structr.process.ProcessTraits;
 public class ComponentConfigurationBOUNDBpmnElement extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ComponentConfigurationBOUNDBpmnElement() {
+
 		super(StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.COMPONENT_CONFIGURATION;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return ProcessTraits.BPMN_ELEMENT;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "BOUND";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

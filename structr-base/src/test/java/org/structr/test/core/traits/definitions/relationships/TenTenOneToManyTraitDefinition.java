@@ -25,46 +25,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class TenTenOneToManyTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public TenTenOneToManyTraitDefinition() {
+
 		super("TenTenOneToMany");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestTen";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestTen";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "TEN";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

@@ -41,7 +41,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
 
-
 public class WrappedRestCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(WrappedRestCommand.class.getName());
@@ -52,7 +51,6 @@ public class WrappedRestCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final String method = webSocketData.getNodeDataStringValue("method");
-
 		if (method == null || ! (method.equals("POST") || method.equals("PUT")) ) {
 
 			logger.warn("Method not supported: {}", method);
@@ -80,6 +78,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 			logger.warn("Illegal path for REST query");
 			getWebSocket().send(MessageBuilder.wrappedRest().code(422).message("Illegal path for REST query").build(), true);
+
 			return;
 
 		}
@@ -87,7 +86,6 @@ public class WrappedRestCommand extends AbstractCommand {
 		final String data                     = webSocketData.getNodeDataStringValue("data");
 		final Gson gson                       = new GsonBuilder().create();
 		final Map<String, Object> jsonData    = gson.fromJson(data, Map.class);
-
 		RestMethodResult result = null;
 
 		switch (method) {
@@ -101,12 +99,12 @@ public class WrappedRestCommand extends AbstractCommand {
 				// we either want to create data or call a method on an object
 				result = handler.doPost(securityContext, jsonData);
 
-
 				break;
 		}
 
 		// right now we do not send messages
 		if (result != null) {
+
 //			getWebSocket().send(MessageBuilder.wrappedRest().code(result.getResponseCode()).message(result.jsonMessage()).build(), true);
 		}
 
@@ -114,6 +112,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "WRAPPED_REST";
 	}
 

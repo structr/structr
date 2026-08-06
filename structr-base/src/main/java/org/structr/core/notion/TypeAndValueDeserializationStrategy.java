@@ -59,12 +59,14 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 		this.propertyKeyName     = propertyKeyName;
 
 		if (propertyKeyName == null) {
+
 			throw new IllegalStateException("TypeAndValueDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
 	public void setRelationProperty(final RelationProperty relationProperty) {
+
 		this.relationProperty = relationProperty;
 	}
 
@@ -76,6 +78,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 		// default to UUID
 		if (propertyKeyName == null) {
+
 			propertyKeyName = "id";
 		}
 
@@ -117,13 +120,15 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 		switch (resultCount) {
 
 			case 0 :
+
 				if ((convertedSource != null) && createIfNotExisting) {
 
 					// create node and return it
 					NodeInterface newNode = app.create(type);
-
 					if (newNode != null) {
+
 						newNode.setProperty(propertyKey, convertedSource);
+
 						return (T)newNode;
 					}
 
@@ -137,8 +142,8 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 			case 1 :
 
 				T obj = result.get(0);
-
 				if (!obj.getTraits().contains(type)) {
+
 					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKeyName, type));
 				}
 

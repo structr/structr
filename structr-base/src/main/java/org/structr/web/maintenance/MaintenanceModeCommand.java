@@ -72,33 +72,38 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
-
 	@Override
 	public String getName() {
+
 		return "maintenanceMode";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Enables or disables the maintenance mode.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         When the maintenance mode is started, the following services are shut down:
 
@@ -121,18 +126,19 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("action", "`enable` or `disable`")
-		);
+
+		return List.of(Parameter.mandatory("action", "`enable` or `disable`"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"Active processes will keep running until they are finished. If for example a cron job is running, it will not be halted. Only the services are stopped so no new processes are started."
 		);
@@ -140,16 +146,19 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 

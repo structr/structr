@@ -27,16 +27,19 @@ public class BooleanTypeConverter implements TypeConverter {
 
 	@Override
 	public Object getReadValue(final Object value) {
+
 		return value;
 	}
 
 	@Override
 	public Object getWriteValue(final Object value) {
+
 		return getReadValue(value);
 	}
 
 	@Override
 	public Object getInexactValue(final Object value) {
+
 		return getReadValue(value);
 	}
 }

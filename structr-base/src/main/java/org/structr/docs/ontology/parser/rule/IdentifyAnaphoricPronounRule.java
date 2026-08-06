@@ -30,6 +30,7 @@ import java.util.List;
 public class IdentifyAnaphoricPronounRule extends Rule {
 
 	public IdentifyAnaphoricPronounRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -41,7 +42,6 @@ public class IdentifyAnaphoricPronounRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token = tokens.pop();
-
 			if (token instanceof UnresolvedToken unresolved && "it".equals(unresolved.getToken().toLowerCase())) {
 
 				result.add(new AnaphoricPronounToken(unresolved.getToken()));

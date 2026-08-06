@@ -41,71 +41,85 @@ import java.util.Map;
 public class DataAdapterFieldTraitWrapper extends AbstractNodeTraitWrapper implements DataAdapterField {
 
 	public DataAdapterFieldTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 
 	@Override
 	public String getRenderTemplate() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY));
 	}
 
 	@Override
 	public String getEditTemplate() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY));
 	}
 
 	@Override
 	public String getValue() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.VALUE_PROPERTY));
 	}
 
 	@Override
 	public String getDataType() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.DATA_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getLabel() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.LABEL_PROPERTY));
 	}
 
 	@Override
 	public String getSortKey() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.SORT_KEY_PROPERTY));
 	}
 
 	@Override
 	public String getEditModeCondition() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.EDIT_MODE_CONDITION_PROPERTY));
 	}
 
 	@Override
 	public Boolean isSearchable() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.IS_SEARCHABLE_PROPERTY));
 	}
 
 	@Override
 	public Integer getRows() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.ROWS_PROPERTY));
 	}
 
 	@Override
 	public Integer getColumns() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.COLUMNS_PROPERTY));
 	}
 
 	@Override
 	public String getColumnDataSource() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.COLUMN_DATA_SOURCE_PROPERTY));
 	}
 
 	@Override
 	public String getColumnKey() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.COLUMN_KEY_PROPERTY));
 	}
 
 	@Override
 	public void setIsSearchable(final boolean isSearchable) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DataAdapterFieldTraitDefinition.IS_SEARCHABLE_PROPERTY), isSearchable);
 	}
 
@@ -127,6 +141,7 @@ public class DataAdapterFieldTraitWrapper extends AbstractNodeTraitWrapper imple
 
 	@Override
 	public void setConfig(final Map<String, Object> detailConfig) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DataAdapterFieldTraitDefinition.CONFIG_PROPERTY), new GsonBuilder().create().toJson(detailConfig));
 	}
 
@@ -185,6 +200,7 @@ public class DataAdapterFieldTraitWrapper extends AbstractNodeTraitWrapper imple
 						}
 
 					} catch (Throwable t) {
+
 						t.printStackTrace();
 					}
 

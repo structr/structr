@@ -104,6 +104,7 @@ public abstract class CsvTestBase {
 
 		// wait for service layer to be initialized
 		while (!services.isInitialized()) {
+
 			try { Thread.sleep(100); } catch (Throwable t) {}
 		}
 
@@ -149,11 +150,13 @@ public abstract class CsvTestBase {
 
 	@BeforeMethod
 	public void starting(Method method) {
+
 		System.out.println("##### Starting " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@AfterMethod
 	public void finished(Method method) {
+
 		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
@@ -208,7 +211,9 @@ public abstract class CsvTestBase {
 			}
 
 			try {
+
 				Thread.sleep(500);
+
 			} catch (Throwable t) {
 			}
 		}
@@ -259,6 +264,7 @@ public abstract class CsvTestBase {
 		final PropertyMap props = new PropertyMap();
 
 		for (final NodeAttribute attr : attrs) {
+
 			props.put(attr.getKey(), attr.getValue());
 		}
 
@@ -270,6 +276,7 @@ public abstract class CsvTestBase {
 		final List<NodeInterface> nodes = new LinkedList<>();
 
 		for (int i = 0; i < number; i++) {
+
 			nodes.add(app.create(type, type + i));
 		}
 
@@ -281,6 +288,7 @@ public abstract class CsvTestBase {
 		final List<NodeInterface> nodes = new LinkedList<>();
 
 		for (int i = 0; i < number; i++) {
+
 			nodes.add(app.create(type, props));
 		}
 
@@ -308,6 +316,7 @@ public abstract class CsvTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			logger.warn("", t);
 		}
 
@@ -319,10 +328,10 @@ public abstract class CsvTestBase {
 		List<NodeInterface> nodes = createTestNodes("AbstractNode", 2);
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
-
 		List<RelationshipInterface> rels = new LinkedList<>();
 
 		for (int i = 0; i < number; i++) {
+
 			rels.add(app.create(startNode, endNode, relType));
 		}
 
@@ -368,6 +377,7 @@ public abstract class CsvTestBase {
 	}
 
 	protected String getUuidFromLocation(String location) {
+
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
 
@@ -545,6 +555,7 @@ public abstract class CsvTestBase {
 	}
 
 	protected <T> List<T> toList(final T... elements) {
+
 		return Arrays.asList(elements);
 	}
 
@@ -553,6 +564,7 @@ public abstract class CsvTestBase {
 		final Map<String, byte[]> map = new LinkedHashMap<>();
 
 		for (final Pair pair : pairs) {
+
 			map.put(pair.key, pair.value);
 		}
 
@@ -576,11 +588,11 @@ public abstract class CsvTestBase {
 		final StringBuilder buf = new StringBuilder();
 
 		for (String part : body) {
+
 			buf.append(part);
 		}
 
-		return getUuidFromLocation(
-			RestAssured
+		return getUuidFromLocation(RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
 				.body(buf.toString())
@@ -592,11 +604,11 @@ public abstract class CsvTestBase {
 		StringBuilder buf = new StringBuilder();
 
 		for (String part : body) {
+
 			buf.append(part);
 		}
 
-		return getUuidFromLocation(
-			RestAssured
+		return getUuidFromLocation(RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
 				.header(X_USER_HEADER, name)
@@ -612,13 +624,13 @@ public abstract class CsvTestBase {
 		final StringBuilder buf = new StringBuilder();
 
 		for (String part : body) {
+
 			buf.append(part);
 		}
 
 		RestAssured.basePath = "/structr/rest";
 
-		return getUuidFromLocation(
-			RestAssured
+		return getUuidFromLocation(RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
 				.header(X_USER_HEADER, Settings.SuperUserName.getValue())
@@ -630,6 +642,7 @@ public abstract class CsvTestBase {
 	}
 
 	protected String getRandomTenantIdentifier() {
+
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
@@ -639,11 +652,16 @@ public abstract class CsvTestBase {
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin123");
+
 		if (StringUtils.isBlank(testDatabaseConnection)) {
+
 			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
 		} else {
+
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
+
 		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}

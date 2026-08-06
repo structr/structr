@@ -34,7 +34,6 @@ public class AdminTabCompletionProvider extends AbstractTabCompletionProvider {
 
 	public AdminTabCompletionProvider() {
 
-
 	}
 
 	@Override

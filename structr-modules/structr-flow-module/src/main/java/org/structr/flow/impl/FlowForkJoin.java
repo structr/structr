@@ -26,6 +26,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowForkJoin extends FlowAction implements DeployableEntity, ThrowingElement {
 
 	public FlowForkJoin(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

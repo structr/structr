@@ -28,6 +28,7 @@ import org.structr.memory.index.predicate.LabelPredicate;
 public class TypeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public TypeQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

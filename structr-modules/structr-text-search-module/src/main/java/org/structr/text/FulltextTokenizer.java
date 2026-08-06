@@ -71,6 +71,7 @@ public class FulltextTokenizer extends Writer {
 			if (c == lastCharacter) {
 
 				if (consecutiveCharCount++ >= 10) {
+
 					continue;
 				}
 
@@ -103,6 +104,7 @@ public class FulltextTokenizer extends Writer {
 	}
 
 	public String getRawText() {
+
 		return rawText.toString().trim();
 	}
 
@@ -110,7 +112,6 @@ public class FulltextTokenizer extends Writer {
 	public void flush() throws IOException {
 
 		String word = wordBuffer.toString().trim();
-
 		if (accept(word)) {
 
 			final String[] parts = word.split("[\\.,]+");
@@ -134,12 +135,14 @@ public class FulltextTokenizer extends Writer {
 
 	@Override
 	public void close() throws IOException {
+
 		flush();
 	}
 
 	private boolean accept(final String word) {
 
 		if (word == null) {
+
 			return false;
 		}
 
@@ -148,11 +151,13 @@ public class FulltextTokenizer extends Writer {
 		for (final char c : word.toCharArray()) {
 
 			if (Character.isDigit(c)) {
+
 				return false;
 			}
 
 			// might not be suited to handle non-latin characters..
 			if (Character.isLetter(c)) {
+
 				letters++;
 			}
 		}

@@ -39,6 +39,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 	private File file            = null;
 
 	public LazyFileBasedLongCollection(final String path) {
+
 		this(path, true);
 	}
 
@@ -50,6 +51,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 		// remove file if it exists
 		if (clearOnOpen && file.exists()) {
+
 			file.delete();
 		}
 
@@ -58,11 +60,13 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public int hashCode() {
+
 		return file.hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object o) {
+
 		return o instanceof LazyFileBasedLongCollection && o.hashCode() == this.hashCode();
 	}
 
@@ -74,6 +78,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 		if (file.exists()) {
 
 			for (Iterator<Long> it = iterator(); it.hasNext(); it.next()) {
+
 				count++;
 			}
 		}
@@ -83,6 +88,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public boolean isEmpty() {
+
 		return !iterator().hasNext();
 	}
 
@@ -102,6 +108,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public Iterator<Long> iterator() {
+
 		return new FileIterator(file);
 	}
 
@@ -109,7 +116,9 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 	public Object[] toArray() {
 
 		final ArrayList<Long> list = new ArrayList<>();
+
 		for (final Long val : this) {
+
 			list.add(val);
 		}
 
@@ -120,7 +129,9 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 	public <T> T[] toArray(T[] a) {
 
 		final ArrayList<Long> list = new ArrayList<>();
+
 		for (final Long val : this) {
+
 			list.add(val);
 		}
 
@@ -135,6 +146,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			SyncCommand.serialize(dos, e);
 
 		} catch (IOException ex) {
+
 			logger.error("", ex);
 		}
 
@@ -143,11 +155,13 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public boolean remove(Object o) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public boolean containsAll(Collection<?> c) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -155,16 +169,19 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 	public boolean addAll(Collection<? extends Long> toAdd) {
 
 		if (toAdd.hashCode() == this.hashCode()) {
+
 			return true;
 		}
 
 		try{
 
 			for (final Long t : toAdd) {
+
 				SyncCommand.serialize(dos, t);
 			}
 
 		} catch (IOException ex) {
+
 			logger.error("", ex);
 		}
 
@@ -173,16 +190,19 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public boolean retainAll(Collection<?> c) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public void clear() {
+
 		open(false);
 	}
 
@@ -198,10 +218,12 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 		try {
 
 			if (dos != null) {
+
 				dos.close();
 			}
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 
@@ -210,6 +232,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 			dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, append)));
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}
@@ -235,7 +258,9 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 		public boolean hasNext() {
 
 			try {
+
 				currentObject = (Long)SyncCommand.deserialize(dis);
+
 				if (currentObject != null) {
 
 					return true;
@@ -250,11 +275,13 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 
 		@Override
 		public Long next() {
+
 			return currentObject;
 		}
 
 		@Override
 		public void remove() {
+
 			throw new UnsupportedOperationException("Not supported.");
 		}
 
@@ -266,6 +293,7 @@ public class LazyFileBasedLongCollection implements Collection<Long>, Closeable 
 				dis.close();
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 		}

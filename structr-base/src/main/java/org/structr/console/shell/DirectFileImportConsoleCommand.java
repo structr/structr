@@ -58,11 +58,13 @@ public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
+
 		writable.println("Imports files directly from a directory on the server.");
 	}
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
+
 		writable.println("file-import <source> <target> <mode> <existing> <index>  -  Import files directly from a server directoy.");
 		writable.println("");
 		writable.println("  <source>   - Path to a directory on the server.");
@@ -74,6 +76,7 @@ public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 }

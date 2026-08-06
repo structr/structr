@@ -46,7 +46,6 @@ public class FtpDirectoriesTest extends FtpTest {
 
 		final String name1 = "FTPdir1";
 		final String name2 = "FTPdir2";
-
 		FTPClient ftp = setupFTPClient("ftpuser1");
 		FTPFile[] dirs = null;
 
@@ -63,6 +62,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -81,6 +81,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -99,6 +100,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -108,9 +110,7 @@ public class FtpDirectoriesTest extends FtpTest {
 	public void test02MkDir() {
 
 		FTPClient ftp = setupFTPClient("ftpuser1");
-
 		FTPFile[] dirs = null;
-
 		final String name1 = "FTPdir1";
 		final String name2 = "FTPdir2";
 		boolean success = false;
@@ -126,6 +126,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -145,6 +146,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -163,6 +165,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -187,6 +190,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -205,6 +209,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -248,6 +253,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -286,6 +292,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.error("Error", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -332,6 +339,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.error("Error", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -371,6 +379,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.error("Error while changing FTP directories", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -410,6 +419,7 @@ public class FtpDirectoriesTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.error("Error while changing FTP directories", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}

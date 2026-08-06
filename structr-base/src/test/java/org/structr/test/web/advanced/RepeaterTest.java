@@ -50,7 +50,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class RepeaterTest extends StructrUiTest {
 
-
 	@Test
 	public void testManagedSelectedAttributeInOptionElementWithNodes() {
 
@@ -83,7 +82,6 @@ public class RepeaterTest extends StructrUiTest {
 			final String project  = "Project";
 			final String task     = "Task";
 			final PropertyKey key = Traits.of(task).key("project");
-
 			final NodeInterface project1 = app.create(project, "Project 1");
 
 			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 1"), new NodeAttribute<>(key, project1)).getUuid());
@@ -97,7 +95,6 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
 			final DOMNode select = createElement(page1, div,    "select");
 			final DOMNode option = createElement(page1, select, "option", "${task.name}");
-
 
 			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Project')");
 			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "project");
@@ -218,7 +215,6 @@ public class RepeaterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String project   = "Project";
-
 			final NodeInterface project1  = app.create(project, "Project 1");
 			final PropertyKey<String> key = Traits.of(project).key("test");
 
@@ -230,7 +226,6 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
 			final DOMNode select = createElement(page1, div,    "select");
 			final DOMNode option = createElement(page1, select, "option", "${test.value}");
-
 
 			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Project')");
 			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "project");
@@ -323,6 +318,7 @@ public class RepeaterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -459,6 +455,7 @@ public class RepeaterTest extends StructrUiTest {
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
 			final Content content = div.getFirstChild().as(Content.class);
+
 			content.setContent("${test.name}");
 
 			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "me");
@@ -493,8 +490,8 @@ public class RepeaterTest extends StructrUiTest {
 	public void testFunctionRepeaterIsExecutedBeforeShowHideConditionsAreEvaluated() {
 
 		final String expectedOutput = "function-query-status == \"was-run\"  --> all is good. A function query needs to run BEFORE evaluating show conditions because those can and often will depend on the result of that query!";
-
 		final boolean indent = Settings.HtmlIndentation.getValue();
+
 		Settings.HtmlIndentation.setValue(false);
 
 		try (final Tx tx = app.tx()) {
@@ -502,6 +499,7 @@ public class RepeaterTest extends StructrUiTest {
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
 			final Content content = div.getFirstChild().as(Content.class);
+
 			div.removeChild(content);
 
 			final DOMNode innerDiv = page1.createElement("div");
@@ -556,8 +554,8 @@ public class RepeaterTest extends StructrUiTest {
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
-
 			final Content content = div.getFirstChild().as(Content.class);
+
 			div.removeChild(content);
 
 			final DOMNode innerSpan = page1.createElement("span");

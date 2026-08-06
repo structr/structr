@@ -49,7 +49,6 @@ public class AndPredicate extends AbstractPredicate {
 
 				} else {
 
-
 					if (parameter.isEmptyPredicate()) {
 
 						andGroup.blank(key);
@@ -69,6 +68,7 @@ public class AndPredicate extends AbstractPredicate {
 
 		// only add group if it is not empty!
 		if (!andGroup.isEmpty()) {
+
 			query.add(andGroup);
 		}
 	}

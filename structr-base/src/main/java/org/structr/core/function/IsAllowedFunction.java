@@ -42,11 +42,13 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "isAllowed";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("user, node, permissions");
 	}
 
@@ -93,6 +95,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 						} else {
 
 							logParameterError(caller, sources, "Unknown permission \"" + trimmedPart + "\"!", ctx.isJavaScriptContext());
+
 							return false;
 						}
 					}
@@ -115,6 +118,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${isAllowed(principal, node, permissions)}. Example: ${isAllowed(me, this, 'write, delete'))}"),
 			Usage.javaScript("Usage: ${{ $.isAllowed(principal, node, permissions)}}. Example: ${{ $.isAllowed($.me, $.this, 'write, delete'))}}")
@@ -123,11 +127,13 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given principal has the given permissions on the given node.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. The permissions are passed in as a comma-separated list (see example). See also `grant()` and `revoke()`.";
 	}
 
@@ -144,13 +150,12 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${isAllowed(me, group1, 'read, write')}", "Check if the current user has `read` and `write` permissions on a group")
-		);
+		return List.of(Example.structrScript("${isAllowed(me, group1, 'read, write')}", "Check if the current user has `read` and `write` permissions on a group"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

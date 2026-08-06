@@ -49,15 +49,14 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String ENCLOSURE_TYPE_PROPERTY   = "enclosureType";
 
 	public FeedItemEnclosureTraitDefinition() {
+
 		super(StructrTraits.FEED_ITEM_ENCLOSURE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
-		return Map.of(
-			AfterCreation.class,
-			new AfterCreation() {
+		return Map.of(AfterCreation.class, new AfterCreation() {
 
 				@Override
 				public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
@@ -76,12 +75,7 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<Long> enclosureLengthProperty = new LongProperty(ENCLOSURE_LENGTH_PROPERTY);
 		final Property<String> enclosureTypeProperty = new StringProperty(ENCLOSURE_TYPE_PROPERTY);
 
-		return newSet(
-			itemProperty,
-			urlProperty,
-			enclosureLengthProperty,
-			enclosureTypeProperty
-		);
+		return newSet(itemProperty, urlProperty, enclosureLengthProperty, enclosureTypeProperty);
 	}
 
 	@Override
@@ -102,13 +96,12 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FeedItemEnclosure.class, (traits, node) -> new FeedItemEnclosureTraitWrapper(traits, node)
-		);
+		return Map.of(FeedItemEnclosure.class, (traits, node) -> new FeedItemEnclosureTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

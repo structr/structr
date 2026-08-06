@@ -71,7 +71,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.when()
 			.post(concat("/TestOne/", id, "/test01"));
 
-
 		// execute test method, expect sane result (not 500)
 		RestAssured
 			.given()
@@ -81,7 +80,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.when()
 			.post(concat("/TestOne/", id, "/test02"));
 
-
 		// execute test method, expect sane result (not 500)
 		RestAssured
 			.given()
@@ -90,7 +88,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.statusCode(200)
 			.when()
 			.post(concat("/TestOne/", id, "/test03"));
-
 
 		// execute test method, expect sane result (not 500)
 		RestAssured
@@ -271,13 +268,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 	@Test
 	public void test040PutWithExistingUuidAndKeyNotInSchema() {
 
-		final List<String> keysNotInSchema = Arrays.asList(
-				"doesNotExist",
-				"malicious looking \" quote, right?",
-				"malicious looking ` quote, right?",
-				"malicious looking ' quote, right?"
-		);
-
+		final List<String> keysNotInSchema = Arrays.asList("doesNotExist", "malicious looking \" quote, right?", "malicious looking ` quote, right?", "malicious looking ' quote, right?");
 		final String locationHeader = RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
@@ -289,7 +280,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 				.getHeader("Location");
 
 		final String uuid = getUuidFromLocation(locationHeader);
-
 		final Gson gson = new GsonBuilder().serializeNulls().create();
 
 		for (final String keyNotInSchema : keysNotInSchema) {
@@ -320,6 +310,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 					tx.success();
 
 				} catch (Throwable t) {
+
 					logger.warn("Unexpected exception: ", t);
 					fail("Unexpected exception");
 				}
@@ -348,6 +339,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 					tx.success();
 
 				} catch (Throwable t) {
+
 					logger.warn("Unexpected exception: ", t);
 					fail("Unexpected exception");
 				}
@@ -380,6 +372,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 					tx.success();
 
 				} catch (Throwable t) {
+
 					logger.warn("Unexpected exception: ", t);
 					fail("Unexpected exception");
 				}
@@ -408,6 +401,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 					tx.success();
 
 				} catch (Throwable t) {
+
 					logger.warn("Unexpected exception: ", t);
 					fail("Unexpected exception");
 				}

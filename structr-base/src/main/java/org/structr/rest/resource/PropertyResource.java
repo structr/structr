@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +71,6 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		return null;
 	}
 
-
 	private class PropertyResourceHandler extends RESTCallHandler {
 
 		private static final Logger logger = LoggerFactory.getLogger(PropertyResourceHandler.class);
@@ -101,7 +99,6 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 			collectSearchAttributes(securityContext, typeName, query.and());
 
 			final Predicate<GraphObject> predicate = query.toPredicate();
-
 			final GraphObject sourceEntity = getEntity(securityContext, typeName, uuid);
 			final Object value             = sourceEntity.getProperty(propertyKey, predicate);
 
@@ -128,7 +125,6 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 					}
 
 					int rawResultCount = propertyResults.size();
-
 					if (rawResultCount > 0 && !iterableContainsGraphObject) {
 
 						GraphObjectMap gObject = new GraphObjectMap();
@@ -140,13 +136,12 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 					final List<GraphObject> finalResult = new LinkedList<>();
 
-					propertyResults.forEach(
-						v -> finalResult.add((GraphObject) v)
-					);
+					propertyResults.forEach(v -> finalResult.add((GraphObject) v));
 
 					applyDefaultSorting(finalResult, sortOrder);
 
 					// return result
+
 					return new PagingIterable<>(getURL(), finalResult, pageSize, page);
 
 				} else if (value instanceof GraphObject) {
@@ -218,6 +213,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 				if (propertyKey.isReadOnly()) {
 
 					logger.info("Read-only property on {}: {}", sourceEntity.getClass(), typeName);
+
 					return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
 				}
@@ -273,6 +269,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 					// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
 					// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
 					newNode = createNode(securityContext, relatedType, propertySet);
+
 					if (newNode != null) {
 
 						relationProperty.addSingleElement(securityContext, (NodeInterface) sourceEntity, newNode);
@@ -289,6 +286,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 			}
 
 			if (result != null) {
+
 				return result;
 			}
 
@@ -297,6 +295,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 		@Override
 		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+
 			return genericDelete(securityContext);
 		}
 
@@ -313,11 +312,13 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 		@Override
 		public boolean isCollection() {
+
 			return propertyKey.isCollection();
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("DELETE", "GET", "OPTIONS", "PUT", "POST");
 		}
 	}

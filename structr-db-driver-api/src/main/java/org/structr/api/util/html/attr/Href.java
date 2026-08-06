@@ -27,6 +27,7 @@ import org.structr.api.util.html.Attr;
 public class Href extends Attr {
 
 	public Href(final String href) {
+
 		super("href", href);
 	}
 }

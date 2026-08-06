@@ -23,6 +23,7 @@ import org.structr.agent.AbstractTask;
 public class ThumbnailTask extends AbstractTask<ThumbnailWorkObject> {
 
 	public ThumbnailTask(final String originalImageId, final int maxWidth, final int maxHeight, final boolean cropToFit) {
+
 		super(ThumbnailAgent.TASK_NAME, null, new ThumbnailWorkObject(originalImageId, maxWidth, maxHeight, cropToFit));
 	}
 }

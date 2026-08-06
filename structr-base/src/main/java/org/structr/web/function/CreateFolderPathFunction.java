@@ -35,11 +35,13 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "createFolderPath";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type [, parameterMap ]");
 	}
 
@@ -77,31 +79,31 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${createFolderPath(path)}"),
-			Usage.javaScript("Usage: ${{ $.createFolderPath({ path: value }) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${createFolderPath(path)}"), Usage.javaScript("Usage: ${{ $.createFolderPath({ path: value }) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates a new folder in the virtual file system including all parent folders if they don't exist already.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${createFolderPath('/img/icons/large')}")
-		);
+
+		return List.of(Example.structrScript("${createFolderPath('/img/icons/large')}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

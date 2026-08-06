@@ -92,6 +92,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	public abstract Iterable<Record> newIterable(final BoltDatabaseService db, final CypherQuery query);
 
 	protected void set(final String statement, final Map<String, Object> map) {
+
 		queryResultCache.clear();
 	}
 
@@ -116,22 +117,26 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	}
 
 	public void setIsPing(final boolean isPing) {
+
 		this.isPing = isPing;
 	}
 
 	@Override
 	public long getTransactionId() {
+
 		return this.transactionId;
 	}
 
 	@Override
 	public boolean isRolledBack() {
+
 		return isRolledBack;
 	}
 
 	public static void flushCaches() {
 
 		synchronized (prefetchInfos) {
+
 			prefetchInfos.clear();
 			prefetchBlacklist.clear();
 		}
@@ -183,8 +188,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		final String rawTenantIdentifier = db.getTenantIdentifier();
 		final String tenantIdentifier = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
-
 		final Node entity = getNode(new SimpleCypherQuery("MATCH (n" + tenantIdentifier + ") WHERE ID(n) = $id RETURN n", Map.of("id", id)));
+
 		if (entity != null) {
 
 			node = new NodeWrapper(db, entity);
@@ -212,6 +217,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		buf.append("MATCH (");
 
 		if (tenantIdentifier != null) {
+
 			buf.append(":");
 			buf.append(tenantIdentifier);
 		}
@@ -219,6 +225,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		buf.append(")-[n]-(");
 
 		if (tenantIdentifier != null) {
+
 			buf.append(":");
 			buf.append(tenantIdentifier);
 		}
@@ -240,31 +247,37 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 	@Override
 	public org.structr.api.graph.Node getNode(final Identity<Long> id) {
+
 		return getNodeWrapper(id.getId());
 	}
 
 	@Override
 	public org.structr.api.graph.Relationship getRelationship(Identity<Long> id) {
+
 		return getRelationshipWrapper(id.getId());
 	}
 
 	@Override
 	public void setNodeIsCreated(final Long id) {
+
 		createdNodes.add(id);
 	}
 
 	@Override
 	public boolean isNodeCreated(final Long id) {
+
 		return createdNodes.contains(id);
 	}
 
 	@Override
 	public boolean isNodeDeleted(final Long id) {
+
 		return deletedNodes.contains(id);
 	}
 
 	@Override
 	public boolean isRelationshipDeleted(final Long id) {
+
 		return deletedRels.contains(id);
 	}
 
@@ -318,6 +331,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	public void prefetchHint(final String hint) {
 
 		if (this.prefetchHint == null) {
+
 			this.prefetchHint = hint;
 		}
 
@@ -336,7 +350,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 						prefetch(pattern, prefetch.getOutgoingSet(), prefetch.getIncomingSet());
 
 						final long dt = System.currentTimeMillis() - t0;
-
 						if (dt > Settings.PrefetchingMaxDuration.getValue(500)) {
 
 							if (logPrefetching || db.logQueries()) {
@@ -558,6 +571,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		long count                     = 0L;
 
 		if (id != null) {
+
 			data.put("id", id);
 		}
 
@@ -588,11 +602,13 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 				// relationship cache would silently return that partial set instead of
 				// falling through to a real query.
 				if (!outgoingKeys.isEmpty()) {
+
 					start.storeRelationship(relWrapper, true);
 					start.storePrefetchInfo(outgoingKeys);
 				}
 
 				if (!incomingKeys.isEmpty()) {
+
 					end.storeRelationship(relWrapper, true);
 					end.storePrefetchInfo(incomingKeys);
 				}
@@ -617,9 +633,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			case "Neo.ClientError.Statement.SyntaxError":
 				throw new SyntaxErrorException(cex, cex.code(), cex.getMessage());
 			case "N/A":
+
 				if (cex.getCause() != null && cex.getCause() instanceof ClientException causeCex) {
+
 					throw translateClientException(causeCex);
 				}
+
 				throw new UnknownClientException(cex, cex.code(), cex.getMessage());
 			default:
 				throw new UnknownClientException(cex, cex.code(), cex.getMessage());
@@ -646,8 +665,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		if (prefetchHint != null && query.getType() != null && query.getRelationshipType() != null) {
 
 			final String statement = query.getStatement();
-
 			final PrefetchInfo info = histogram.get(statement);
+
 			if (info != null) {
 
 				final int count     = info.incrementAndGetCount();
@@ -661,8 +680,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 					if (infos.add(info)) {
 
 						final String pattern = info.getPattern();
-
 						final long prefetchResultCount = getLong(new SimpleCypherQuery("MATCH p = " + pattern + " RETURN count(p)"));
+
 						if (prefetchResultCount < Settings.PrefetchingMaxCount.getValue(100_000)) {
 
 							if (logPrefetching || db.logQueries()) {
@@ -701,8 +720,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 				if (map != null && !map.isEmpty()) {
 
 					if (query.contains("extractedContent")) {
+
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), query);
+
 					} else {
+
 						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, stringify(map));
 					}
 
@@ -719,7 +741,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		if (db.logQueries()) {
 
 			final SummaryCounters counters = summary.counters();
-
 			final int nodesDeleted = counters.nodesDeleted();
 			final int nodesCreated = counters.nodesCreated();
 			final int relsCreated  = counters.relationshipsCreated();
@@ -756,6 +777,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		pattern.append(")");
 
 		if (!outgoing) {
+
 			pattern.append("<");
 		}
 
@@ -764,6 +786,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		pattern.append("]-");
 
 		if (outgoing) {
+
 			pattern.append(">");
 		}
 
@@ -826,7 +849,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 					if (info.isOutgoing()) {
 
 						typesOutgoing.computeIfAbsent(type, k -> new LinkedHashSet<>()).add(info);
-
 
 					} else {
 
@@ -937,8 +959,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 				final String type1 = info1.getType();
 				final String type2 = info2.getType();
-
 				final String commonBaseType = getHighestCommonBaseType(type1, type2);
+
 				if (commonBaseType != null) {
 
 					hasChanges = true;
@@ -975,8 +997,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 				final String type1 = info1.getType();
 				final String type2 = info2.getType();
-
 				final String commonBaseType = getHighestCommonBaseType(type1, type2);
+
 				if (commonBaseType != null) {
 
 					hasChanges = true;
@@ -1039,6 +1061,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		if (cached != null) {
 
 			// fetch nodes from cache (ids are cached and mapped to nodes)
+
 			return Iterables.map(id -> nodes.get(id), cached);
 		}
 
@@ -1048,6 +1071,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		queryResultCache.put(hashCode, ids);
 
 		for (final org.structr.api.graph.Node<Long> node : nodes) {
+
 			ids.add(node.getId().getId());
 		}
 
@@ -1089,48 +1113,59 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		@Override
 		public String toString() {
+
 			return pattern + ", " + outgoingSet + ", " + incomingSet;
 		}
 
 		public Set<String> getOutgoingSet() {
+
 			return outgoingSet;
 		}
 
 		public Set<String> getIncomingSet() {
+
 			return incomingSet;
 		}
 
 		public int incrementAndGetCount() {
+
 			return ++count;
 		}
 
 		public int getCount() {
+
 			return count;
 		}
 
 		public String getType() {
+
 			return type;
 		}
 
 		public String getPattern() {
+
 			return pattern;
 		}
 
 		public boolean isOutgoing() {
+
 			return outgoing;
 		}
 
 		public Set<String> getRelationshipTypes() {
+
 			return relTypes;
 		}
 
 		@Override
 		public int hashCode() {
+
 			return pattern.hashCode();
 		}
 
 		@Override
 		public boolean equals(final Object other) {
+
 			return other.hashCode() == this.hashCode();
 		}
 	}

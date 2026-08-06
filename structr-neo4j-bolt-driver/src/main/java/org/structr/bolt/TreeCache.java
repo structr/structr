@@ -43,6 +43,7 @@ public class TreeCache<T extends Comparable> {
 	}
 
 	public void insert(final String key, final T value) {
+
 		getNode(key, true).add(value);
 	}
 
@@ -64,10 +65,12 @@ public class TreeCache<T extends Comparable> {
 	}
 
 	public boolean contains(final String key) {
+
 		return getNode(key, false) != null;
 	}
 
 	public void clear() {
+
 		root.clear();
 	}
 
@@ -85,6 +88,7 @@ public class TreeCache<T extends Comparable> {
 	}
 
 	private String serialize() {
+
 		return "TreeCache(" + nodeId + "): " + root.serialize();
 	}
 
@@ -120,6 +124,7 @@ public class TreeCache<T extends Comparable> {
 		private final String key;
 
 		public TreeCacheNode(final String key) {
+
 			this.key = key;
 		}
 
@@ -130,6 +135,7 @@ public class TreeCache<T extends Comparable> {
 			allData.addAll(data);
 
 			for (final TreeCacheNode<T> child : children.values()) {
+
 				allData.addAll(child.getDataRecursively());
 			}
 
@@ -138,14 +144,17 @@ public class TreeCache<T extends Comparable> {
 
 		@Override
 		public String toString() {
+
 			return key;
 		}
 
 		public void add(final T value) {
+
 			data.add(value);
 		}
 
 		public void clear() {
+
 			children.clear();
 			data.clear();
 		}
@@ -163,6 +172,7 @@ public class TreeCache<T extends Comparable> {
 		}
 
 		public String serialize() {
+
 			return serialize(0);
 		}
 

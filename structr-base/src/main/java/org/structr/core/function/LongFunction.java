@@ -31,11 +31,13 @@ public class LongFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "long";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("input");
 	}
 
@@ -55,36 +57,39 @@ public class LongFunction extends CoreFunction {
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
+
 				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${long(input)}"),
-				Usage.javaScript("Usage: ${{ $.long(input) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${long(input)}"), Usage.javaScript("Usage: ${{ $.long(input) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Tries to convert the given object into a long integer value.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function is especially helpful when trying to set a date value in the database via the `cypher()` function.
 
@@ -101,9 +106,7 @@ public class LongFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number")
-		);
+		return List.of(Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number"));
 	}
 
 	@Override
@@ -119,13 +122,12 @@ public class LongFunction extends CoreFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also `num()`."
-		);
+		return List.of("See also `num()`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

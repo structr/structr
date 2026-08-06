@@ -144,6 +144,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			}
 
 			if (attributes.containsKey(MODE_PARAM_KEY)) {
+
 				mode = "" + attributes.get(MODE_PARAM_KEY);
 			}
 
@@ -152,16 +153,19 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			keepChallengeFiles = Boolean.TRUE.equals(attributes.get(KEEP_CHALLENGE_FILES_PARAM_KEY));
 
 			if (verbose) {
+
 				logger.info("Debug mode active - logging more verbosely and not removing challenge files.");
 			}
 
 			if (attributes.containsKey(WAIT_MODE_KEY)) {
+
 				// support string and integer values (legacy)
 				waitForSeconds = Integer.parseInt("" + attributes.get(WAIT_PARAM_KEY));
 			}
 
 			final Map<String, Object> broadcastData = new HashMap<>();
 			final Long startTime = System.currentTimeMillis();
+
 			broadcastData.put("start", startTime);
 			broadcastData.put("mode", mode);
 			publishBeginMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
@@ -177,6 +181,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					createChallenges();
 
 					try {
+
 						// Wait the specified amount of milliseconds
 						publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Waiting " + waitForSeconds + " seconds");
 						logger.info("Waiting " + waitForSeconds + " seconds");
@@ -263,8 +268,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		broadcastData.put("end", endTime);
 
 		DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-
 		final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
 		broadcastData.put("duration", duration);
 		publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
 	}
@@ -289,16 +294,19 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	@Override
 	public Class getServiceClass() {
+
 		return null;
 	}
 
@@ -341,13 +349,17 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			for (final Authorization authorization : order.getAuthorizations()) {
 
 				if (verbose) {
+
 					logger.info("Authorization: " + authorization.getJSON());
 				}
 			}
 
 			if (verbose) {
+
 				logger.info("Successfully created new certificate order for {}: {}", domains, order.getJSON());
+
 			} else {
+
 				logger.info("Successfully created new certificate order for {}", domains);
 			}
 
@@ -366,11 +378,13 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		if (orders.isEmpty()) {
 
 			logger.info("No existing orders found, creating new order");
+
 			return createNewOrder();
 
 		} else {
 
 			// At the moment, we support only one order
+
 			return orders.get(0);
 		}
 	}
@@ -378,6 +392,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private void getCertificate() throws FrameworkException {
 
 		Order order = null;
+
 		if (!orders.isEmpty()) {
 
 			order = orders.get(0);
@@ -385,6 +400,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		} else {
 
 			logger.warn("No existing certificate orders found, aborting.");
+
 			return;
 		}
 
@@ -397,6 +413,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			csrb.sign(domainKeyPair);
 
 			try (final Writer out = new FileWriter(Settings.LetsEncryptDomainCSRFileName.getValue())) {
+
 				csrb.write(out);
 			}
 
@@ -405,9 +422,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			try {
 
 				int attempts = MAX_RETRIES;
+
 				while (org.shredzone.acme4j.Status.VALID != order.getStatus() && attempts-- > 0) {
 
 					if (org.shredzone.acme4j.Status.INVALID == order.getStatus()) {
+
 						error("Order failed due to invalid response, aborting. Error: " + order.getError(), false);
 					}
 
@@ -417,6 +436,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				}
 
 				if (order.getStatus() != org.shredzone.acme4j.Status.VALID) {
+
 					error("No valid order received after " + MAX_RETRIES + " attempts, aborting.", false);
 				}
 
@@ -427,13 +447,13 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			}
 
 			final Certificate certificate = order.getCertificate();
-
 			if (certificate != null) {
 
 				logger.info("Certificate for domains {} successfully generated.", domains);
 				logger.info("Certificate URL: {}", certificate.getLocation());
 
 				try (FileWriter fw = new FileWriter(new File(Settings.LetsEncryptDomainChainFilename.getValue()))) {
+
 					certificate.writeCertificate(fw);
 				}
 
@@ -467,7 +487,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		for (final Authorization auth : getOrCreateOrder().getAuthorizations()) {
 
 			Challenge challenge = null;
-
 			String domain = auth.getIdentifier().getDomain();
 
 			if (org.shredzone.acme4j.Status.VALID == auth.getStatus()) {
@@ -497,8 +516,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				}
 
 				if (verbose) {
+
 					logger.info("Created " + challengeType + " challenge authorization for domain {}; {}", domain, auth.getJSON());
+
 				} else {
+
 					logger.info("Created " + challengeType + " challenge authorization for domain {}", domain);
 				}
 
@@ -509,6 +531,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			}
 
 			if (challenge != null) {
+
 				challenges.put(domain, challenge);
 			}
 		}
@@ -521,8 +544,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		for (final Authorization authorization : authorizations) {
 
 			if (verbose) {
+
 				logger.info("Verify challenge authorization for {}", authorization.getJSON());
+
 			} else {
+
 				logger.info("Verify challenge authorization");
 			}
 
@@ -537,9 +563,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 						challenge.trigger();
 
 						int attempts = MAX_RETRIES;
+
 						while (org.shredzone.acme4j.Status.VALID != challenge.getStatus() && attempts-- > 0) {
 
 							if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
+
 								error("Received invalid challenge response, aborting. Error: {}" + challenge.getError(), false);
 							}
 
@@ -549,6 +577,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 						}
 
 						if (challenge.getStatus() != org.shredzone.acme4j.Status.VALID) {
+
 							error("No valid authorization received for challenge " + challenge.getJSON() + ", after " + MAX_RETRIES + " attempts aborting.", false);
 						}
 
@@ -570,6 +599,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private void clear() {
 
 		if ("http".equals(challengeType)) {
+
 			stopServer();
 		}
 
@@ -596,6 +626,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		if (keepChallengeFiles) {
 
 			logger.info("Not removing challenge files /.well-known/acme-challenge/* from internal file system...");
+
 			return;
 		}
 
@@ -603,17 +634,19 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		// put cleanup of folders/file in thread so we can use it in scripting
 		final Thread workerThread = new Thread(() -> {
-
 			final App app = StructrApp.getInstance();
+
 			try (final Tx tx = app.tx()) {
 
 				// Delete challenge response file and all parent folders from internal file system
 
 				final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
 				final Folder wellKnownFolder = (Folder) FileHelper.getFileByAbsolutePath(adminContext, "/.well-known");
+
 				if (wellKnownFolder != null) {
 
 					for (NodeInterface node : wellKnownFolder.getChildren()) {
+
 						app.delete(node);
 					}
 
@@ -631,7 +664,9 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		});
 
 		workerThread.start();
+
 		try { workerThread.join(); } catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 	}
@@ -639,8 +674,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private Challenge httpChallenge(final Authorization auth) throws FrameworkException {
 
 		final Optional<Http01Challenge> challenge = auth.findChallenge(Http01Challenge.class);
-
 		if (challenge.isEmpty()) {
+
 			error("No " + Http01Challenge.TYPE + " challenge found, aborting.");
 		}
 
@@ -686,7 +721,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			// put creation of folders/file in thread so we can use it in scripting
 			final Thread workerThread = new Thread(() -> {
-
 				final App app = StructrApp.getInstance();
 
 				try (final Tx tx = app.tx()) {
@@ -695,8 +729,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/").as(Folder.class);
 					final Traits folderTraits = Traits.of(StructrTraits.FOLDER);
 					final Traits fileTraits   = Traits.of(StructrTraits.FILE);
-
 					PropertyMap props = new PropertyMap();
+
 					props.put(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 					props.put(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
@@ -724,6 +758,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			});
 
 			workerThread.start();
+
 			try {
 
 				workerThread.join();
@@ -752,14 +787,15 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		final Optional<Dns01Challenge> challenge = auth.findChallenge(Dns01Challenge.TYPE);
 		if (challenge.isEmpty()) {
+
 			error("No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 		}
 
 		final String domain = auth.getIdentifier().getDomain();
 		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
 		final String digest = challenge.get().getDigest();
-
 		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ON_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
+
 		if (result == null) {
 
 			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");
@@ -782,7 +818,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private KeyPair getOrCreateUserKey() throws IOException {
 
 		final File userKeyFile = new File(Settings.LetsEncryptUserKeyFilename.getValue());
-
 		if (userKeyFile.exists()) {
 
 			try (final FileReader fileWriter = new FileReader(userKeyFile)) {
@@ -806,7 +841,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private KeyPair getOrCreateDomainKey() throws IOException {
 
 		final File domainKeyFile = new File(Settings.LetsEncryptDomainKeyFilename.getValue());
-
 		if (domainKeyFile.exists()) {
 
 			try (final FileReader fileWriter = new FileReader(domainKeyFile)) {
@@ -830,15 +864,12 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private void writeCertificateToKeyStore(final Collection<String> domains, final Certificate certificate, final KeyPair domainKeyPair) throws FrameworkException {
 
 		final String password = Settings.KeystorePassword.getValue();
-
 		final KeyStore keyStore = getOrCreateKeyStore();
 
 		try {
 
 			final String certificateAlias = StringUtils.join(domains, ", ");
-
 			final List<X509Certificate> certificateChainList = certificate.getCertificateChain();
-
 			KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(domainKeyPair.getPrivate(), certificateChainList.toArray(new X509Certificate[certificateChainList.size()]));
 			KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
 
@@ -861,7 +892,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
-
 		final File keyStoreFile = new File(keyStoreFilename);
 
 		try (FileOutputStream fos = new FileOutputStream(keyStoreFile)) {
@@ -879,7 +909,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		final String keyStoreFilename = getKeyStoreFilename();
 		final String password         = Settings.KeystorePassword.getValue();
 		final File keyStoreFile       = new File(keyStoreFilename);
-
 		KeyStore keyStore = null;
 
 		try {
@@ -917,6 +946,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	@Override
 	public Map<String, String> getCustomHeaders() {
+
 		return Collections.EMPTY_MAP;
 	}
 
@@ -933,26 +963,31 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "letsencrypt";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates or renews an SSL certificate using Let's Encrypt.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("server", "`staging` (test certificates) or `production` (valid certificates)"),
 			Parameter.optional("challenge", "Override the challenge method from structr.conf"),
@@ -963,28 +998,31 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"The `letsencrypt.domains` setting must contain the full domain name for the certificate."
-		);
+
+		return List.of("The `letsencrypt.domains` setting must contain the full domain name for the certificate.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 }

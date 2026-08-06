@@ -45,30 +45,32 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNod
 	public static final String CONTENT_PROPERTY     = "content";
 
 	public ApplicationConfigurationDataNodeTraitDefinition() {
+
 		super(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ApplicationConfigurationDataNode.class, (traits, node) -> new ApplicationConfigurationDataNodeTraitWrapper(traits, node)
-		);
+		return Map.of(ApplicationConfigurationDataNode.class, (traits, node) -> new ApplicationConfigurationDataNodeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -77,23 +79,18 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNod
 		final Property<String> configTypeProperty = new StringProperty(CONFIG_TYPE_PROPERTY).indexed();
 		final Property<String> contentProperty    = new StringProperty(CONTENT_PROPERTY);
 
-		return Set.of(
-			configTypeProperty,
-			contentProperty
-		);
+		return Set.of(configTypeProperty, contentProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-				PropertyView.Ui,
-				newSet(CONFIG_TYPE_PROPERTY, CONTENT_PROPERTY)
-		);
+		return Map.of(PropertyView.Ui, newSet(CONFIG_TYPE_PROPERTY, CONTENT_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

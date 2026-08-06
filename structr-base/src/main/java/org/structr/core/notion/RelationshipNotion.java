@@ -34,16 +34,14 @@ public class RelationshipNotion extends Notion {
 
 	public RelationshipNotion(final String propertyKeyName) {
 
-		super(
-			new PropertySerializationStrategy(propertyKeyName),
-			new IdDeserializationStrategy()
-		);
+		super(new PropertySerializationStrategy(propertyKeyName), new IdDeserializationStrategy());
 
 		this.propertyKeyName = propertyKeyName;
 	}
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
+
 		return Traits.of(StructrTraits.RELATIONSHIP_INTERFACE).key(propertyKeyName);
 	}
 }

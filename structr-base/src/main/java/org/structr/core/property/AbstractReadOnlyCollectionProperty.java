@@ -26,6 +26,7 @@ package org.structr.core.property;
 public abstract class AbstractReadOnlyCollectionProperty<T> extends AbstractReadOnlyProperty<Iterable<T>> {
 
 	public AbstractReadOnlyCollectionProperty(String name) {
+
 		super(name);
 	}
 }

@@ -36,39 +36,43 @@ import java.util.Set;
 public class CssSelectorTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CssSelectorTraitDefinition() {
+
 		super(StructrTraits.CSS_SELECTOR);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			CssSelector.class, (traits, node) -> new CssSelectorTraitWrapper(traits, node)
-		);
+		return Map.of(CssSelector.class, (traits, node) -> new CssSelectorTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
 		return Set.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

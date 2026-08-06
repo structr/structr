@@ -92,11 +92,13 @@ public class LogResource extends ExactMatchEndpoint {
 	private static final Set<String> ReservedRequestParameters  = Set.of("subject", "object", "action", "message", "timestamp", "aggregate", "histogram", "correlate");
 
 	public LogResource() {
+
 		super(RESTParameter.forStaticString("log", true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new LogResourceHandler(call);
 	}
 
@@ -116,11 +118,13 @@ public class LogResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return StructrTraits.GRAPH_OBJECT;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
@@ -144,8 +148,7 @@ public class LogResource extends ExactMatchEndpoint {
 						.key(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), objectId)
 						.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
 						.range(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
-						.getAsList()
-					);
+						.getAsList());
 
 				} else if (StringUtils.isNotEmpty(subjectId) && StringUtils.isEmpty(objectId)) {
 
@@ -154,8 +157,7 @@ public class LogResource extends ExactMatchEndpoint {
 						.key(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY), subjectId)
 						.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
 						.range(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
-						.getAsList()
-					);
+						.getAsList());
 
 				} else if (StringUtils.isEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
@@ -166,8 +168,7 @@ public class LogResource extends ExactMatchEndpoint {
 						.key(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), objectId)
 						.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
 						.range(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
-						.getAsList()
-					);
+						.getAsList());
 
 				} else if (logState.doActionQuery()) {
 
@@ -180,8 +181,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 					processData(logState, StructrApp.getInstance(securityContext)
 						.nodeQuery(StructrTraits.LOG_EVENT)
-						.getAsList()
-					);
+						.getAsList());
 				}
 
 				if (logState.overview()) {
@@ -196,11 +196,13 @@ public class LogResource extends ExactMatchEndpoint {
 				} else if (logState.doHistogram()) {
 
 					// aggregate results
+
 					return histogram(logState);
 
 				} else if (logState.doAggregate()) {
 
 					// aggregate results
+
 					return aggregate(logState);
 
 				} else {
@@ -233,6 +235,7 @@ public class LogResource extends ExactMatchEndpoint {
 						collectFilesAndStore(securityContext, context, new File(filesPath + SUBJECTS).toPath(), 0);
 
 					} catch (FrameworkException fex) {
+
 						logger.warn("", fex);
 					}
 
@@ -276,14 +279,17 @@ public class LogResource extends ExactMatchEndpoint {
 					final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 					if (StringUtils.isEmpty(subjectId)) {
+
 						errorBuffer.add(new EmptyPropertyToken("LogFile", subjectProperty.jsonName()));
 					}
 
 					if (StringUtils.isEmpty(objectId)) {
+
 						errorBuffer.add(new EmptyPropertyToken("LogFile", objectProperty.jsonName()));
 					}
 
 					if (StringUtils.isEmpty(action)) {
+
 						errorBuffer.add(new EmptyPropertyToken("LogFile", actionProperty.jsonName()));
 					}
 
@@ -297,11 +303,13 @@ public class LogResource extends ExactMatchEndpoint {
 
 		@Override
 		public boolean createPostTransaction() {
+
 			return false;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS", "POST");
 		}
 
@@ -309,6 +317,7 @@ public class LogResource extends ExactMatchEndpoint {
 		private void collectFilesAndStore(final SecurityContext securityContext, final Context context, final Path dir, final int level) throws FrameworkException {
 
 			if (level == 1) {
+
 				logger.info("Path {}", dir);
 			}
 
@@ -333,6 +342,7 @@ public class LogResource extends ExactMatchEndpoint {
 				}
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 		}
@@ -366,6 +376,7 @@ public class LogResource extends ExactMatchEndpoint {
 						}
 
 					} else {
+
 						// fallback: subjectId and objectId
 						state.addCorrelationEntry(key(pathSubjectId, pathObjectId), entry);
 					}
@@ -397,11 +408,13 @@ public class LogResource extends ExactMatchEndpoint {
 
 				// determine first timestamp
 				if (timestamp <= state.beginTimestamp()) {
+
 					state.beginTimestamp(timestamp);
 				}
 
 				// determine last timestamp
 				if (timestamp >= state.endTimestamp()) {
+
 					state.endTimestamp(timestamp);
 				}
 
@@ -450,15 +463,12 @@ public class LogResource extends ExactMatchEndpoint {
 				for (final String line : Files.readAllLines(path, Charset.forName("utf-8"))) {
 
 					final int pos1               = line.indexOf(",", 14);
-
 					final String part0           = line.substring(0, 13);
 					final String part1           = line.substring(14, pos1);
 					final String part2           = line.substring(pos1 + 1);
-
 					final long timestamp         = Long.valueOf(part0);
 					final String action          = part1;
 					final String message         = part2;
-
 					final PropertyMap properties = new PropertyMap();
 
 					properties.put(traits.key(LogEventTraitDefinition.MESSAGE_PROPERTY),                     message);
@@ -520,6 +530,7 @@ public class LogResource extends ExactMatchEndpoint {
 				// interval contains all keys regardless of
 				// whether there are actual values or not)
 				for (final String key : countProperties) {
+
 					sum.put(new IntProperty(key), 0);
 				}
 
@@ -530,12 +541,15 @@ public class LogResource extends ExactMatchEndpoint {
 
 						final IntProperty prop = new IntProperty(key);
 						Integer sumValue = sum.get(prop);
+
 						if (sumValue == null) {
+
 							sumValue = 0;
 						}
 
 						Integer entryValue = (Integer) count.get(key);
 						if (entryValue == null) {
+
 							entryValue = 0;
 						}
 
@@ -572,6 +586,7 @@ public class LogResource extends ExactMatchEndpoint {
 				// interval contains all keys regardless of
 				// whether there are actual values or not)
 				for (final String key : countProperties) {
+
 					sum.put(new IntProperty(key), 0);
 				}
 
@@ -582,12 +597,15 @@ public class LogResource extends ExactMatchEndpoint {
 
 						final IntProperty prop = new IntProperty(key);
 						Integer sumValue = sum.get(prop);
+
 						if (sumValue == null) {
+
 							sumValue = 0;
 						}
 
 						Integer entryValue = (Integer) count.get(key);
 						if (entryValue == null) {
+
 							entryValue = 0;
 						}
 
@@ -606,9 +624,11 @@ public class LogResource extends ExactMatchEndpoint {
 			try {
 
 				final SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+
 				return format.parse(format.format(timestamp)).getTime();
 
 			} catch (ParseException pex) {
+
 				logger.warn("", pex);
 			}
 
@@ -632,8 +652,8 @@ public class LogResource extends ExactMatchEndpoint {
 				for (long i = initial; i < max; i += step) {
 
 					final long current = format.parse(format.format(i)).getTime();
-
 					if (initial != current) {
+
 						return i - initial;
 					}
 				}
@@ -641,6 +661,7 @@ public class LogResource extends ExactMatchEndpoint {
 				return max;
 
 			} catch (ParseException pex) {
+
 				logger.warn("", pex);
 			}
 
@@ -658,15 +679,20 @@ public class LogResource extends ExactMatchEndpoint {
 				Map<String, Object> obj = countMap.get(timestamp);
 
 				if (obj == null) {
+
 					obj = new LinkedHashMap<>();
 				}
 
 				Integer count = (Integer) obj.get(totalProperty.jsonName());
 				if (count == null) {
+
 					count = 1;
+
 				} else {
+
 					count = count + 1;
 				}
+
 				obj.put(totalProperty.jsonName(), count);
 
 				// iterate over patterns
@@ -675,13 +701,15 @@ public class LogResource extends ExactMatchEndpoint {
 					if (patternEntry.getValue().matcher(message).matches()) {
 
 						final String key = patternEntry.getKey();
-
 						final int multiplier = getMultiplier(message, state);
-
 						Integer c = (Integer) obj.get(key);
+
 						if (c == null) {
+
 							c = multiplier;
+
 						} else {
+
 							c = c + multiplier;
 						}
 
@@ -708,29 +736,37 @@ public class LogResource extends ExactMatchEndpoint {
 				Map<String, Object> obj = countMap.get(timestamp);
 
 				if (obj == null) {
+
 					obj = new LinkedHashMap<>();
 				}
 
 				Integer count = (Integer) obj.get(totalProperty.jsonName());
 				if (count == null) {
+
 					count = 1;
+
 				} else {
+
 					count = count + 1;
 				}
+
 				obj.put(totalProperty.jsonName(), count);
 
 				// iterate over patterns
 				matcher.reset(message);
+
 				if (matcher.matches()) {
 
 					final String key = matcher.group(1);
-
 					final int multiplier = getMultiplier(message, state);
-
 					Integer c = (Integer) obj.get(key);
+
 					if (c == null) {
+
 						c = multiplier;
+
 					} else {
+
 						c = c + multiplier;
 					}
 
@@ -746,11 +782,9 @@ public class LogResource extends ExactMatchEndpoint {
 		private int getMultiplier(final String message, final LogState state) {
 
 			int multiplier = 1;
-
 			if (state.multiplier != null) {
 
 				final Matcher matcher = Pattern.compile(state.multiplier).matcher(message);
-
 				if (matcher.matches()) {
 
 					final String g = matcher.group(1);
@@ -773,6 +807,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 					// collect the key names of integer values
 					if (entry.getValue() instanceof Integer) {
+
 						result.add(entry.getKey());
 					}
 				}
@@ -788,10 +823,10 @@ public class LogResource extends ExactMatchEndpoint {
 			for (final Map<String, Object> entry : entries) {
 
 				final GraphObjectMap map = new GraphObjectMap();
+
 				for (final Entry<String, Object> e : entry.entrySet()) {
 
 					final String key = e.getKey();
-
 					if (timestampProperty.jsonName().equals(key)) {
 
 						map.put(timestampProperty, new Date((Long) e.getValue()));
@@ -846,16 +881,18 @@ public class LogResource extends ExactMatchEndpoint {
 				if (StringUtils.isNotBlank(correlate)) {
 
 					final String[] parts = correlate.split(CORRELATION_SEPARATOR);
-
 					if (parts.length > 0) {
+
 						correlationAction = parts[0];
 					}
 
 					if (parts.length > 1) {
+
 						correlationOp = parts[1];
 					}
 
 					if (parts.length > 2) {
+
 						correlationPattern = Pattern.compile(parts[2]);
 					}
 
@@ -865,10 +902,12 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 
 			public List<Map<String, Object>> entries() {
+
 				return entries;
 			}
 
 			public void addEntry(final Map<String, Object> entry) {
+
 				entries.add(entry);
 			}
 
@@ -877,8 +916,8 @@ public class LogResource extends ExactMatchEndpoint {
 				logger.debug("No. of correlation entry lists: {}, adding action: {} {}", correlations.keySet().size(), key, event.getMessage());
 
 				LinkedList<LogEvent> existingEventList = correlations.get(key);
-
 				if (existingEventList == null) {
+
 					existingEventList = new LinkedList<>();
 				}
 
@@ -888,14 +927,17 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 
 			public Map<String, LinkedList<LogEvent>> getCorrelations() {
+
 				return correlations;
 			}
 
 			public Map<String, Integer> actions() {
+
 				return actions;
 			}
 
 			public Map<String, Pattern> aggregationPatterns() {
+
 				return aggregationPatterns;
 			}
 
@@ -915,68 +957,84 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 
 			public int actionCount() {
+
 				return actionCount;
 			}
 
 			public boolean isRequestedActionOrNull(final String action) {
+
 				return logAction == null || logAction.equals(action);
 			}
 
 			public void sortEntries() {
+
 				Collections.sort(entries, new TimestampComparator());
 			}
 
 			public int size() {
+
 				return entries.size();
 			}
 
 			public void inverse(final boolean inverse) {
+
 				this.inverse = inverse;
 			}
 
 			public boolean inverse() {
+
 				return inverse;
 			}
 
 			public void overview(final boolean overview) {
+
 				this.overview = overview;
 			}
 
 			public boolean overview() {
+
 				return overview;
 			}
 
 			public long beginTimestamp() {
+
 				return range != null ? range.start : beginTimestamp;
 			}
 
 			public long endTimestamp() {
+
 				return range != null ? range.end : endTimestamp;
 			}
 
 			public void beginTimestamp(final long beginTimestamp) {
+
 				this.beginTimestamp = beginTimestamp;
 			}
 
 			public void endTimestamp(final long endTimestamp) {
+
 				this.endTimestamp = endTimestamp;
 			}
 
 			public boolean isInRangeOrNull(final long timestamp) {
+
 				return range == null || range.contains(timestamp);
 			}
 
 			public String histogram() {
+
 				return histogram;
 			}
 
 			public String aggregate() {
+
 				return aggregate;
 			}
 
 			public boolean passesFilter(final String message) {
 
 				if (filters == null) {
+
 					return true;
 				}
 
@@ -1004,7 +1062,6 @@ public class LogResource extends ExactMatchEndpoint {
 				if (correlationOp != null && correlationPattern != null) {
 
 					final Matcher matcher = correlationPattern.matcher(message);
-
 					if (matcher.matches()) {
 
 						final String value = matcher.group(1);
@@ -1060,6 +1117,7 @@ public class LogResource extends ExactMatchEndpoint {
 								return !correlations.containsKey(value);
 
 							default:
+
 								return false;
 						}
 
@@ -1070,6 +1128,7 @@ public class LogResource extends ExactMatchEndpoint {
 				} else {
 
 					// fallback
+
 					return correlations.containsKey(key(pathSubjectId, pathObjectId));
 
 				}
@@ -1077,6 +1136,7 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 
 			public boolean isCorrelatedAction(final String input) {
+
 				return (correlationAction == null || correlationAction.equals(input));
 			}
 
@@ -1085,6 +1145,7 @@ public class LogResource extends ExactMatchEndpoint {
 				if (StringUtils.isNotBlank(histogram)) {
 
 					if (StringUtils.isBlank(aggregate)) {
+
 						throw new FrameworkException(400, "To use the histogram function, please supply an aggregation pattern.");
 					}
 
@@ -1095,18 +1156,22 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 
 			public boolean doAggregate() {
+
 				return StringUtils.isNotBlank(aggregate);
 			}
 
 			public boolean doCorrelate() {
+
 				return doCorrelate;
 			}
 
 			public boolean doActionQuery() {
+
 				return StringUtils.isNotBlank(logAction);
 			}
 
 			public boolean includeFile(final File file) {
+
 				return range == null || range.contains(file.lastModified());
 			}
 
@@ -1158,6 +1223,7 @@ public class LogResource extends ExactMatchEndpoint {
 					final String[] value = entry.getValue();
 
 					if (value.length > 0 && !ReservedRequestParameters.contains(key)) {
+
 						patterns.put(key, Pattern.compile(value[0]));
 					}
 				}
@@ -1169,6 +1235,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 				final String filterString = request.getParameter("filters");
 				if (StringUtils.isNotBlank(filterString)) {
+
 					return filterString.split(CORRELATION_SEPARATOR);
 				}
 
@@ -1179,6 +1246,7 @@ public class LogResource extends ExactMatchEndpoint {
 		private static String key(final String subjectId, final String objectId) {
 
 			if (subjectId != null && objectId != null) {
+
 				return subjectId.concat(objectId);
 			}
 
@@ -1191,11 +1259,13 @@ public class LogResource extends ExactMatchEndpoint {
 			private long end = 0L;
 
 			public Range(final long start, final long end) {
+
 				this.start = start;
 				this.end = end;
 			}
 
 			public boolean contains(final long timestamp) {
+
 				return timestamp >= start && timestamp <= end;
 			}
 		}
@@ -1245,10 +1315,12 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 
 			public int getTotal() {
+
 				return total;
 			}
 
 			public void update(final int count) {
+
 				this.count += count;
 				this.total += count;
 			}

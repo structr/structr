@@ -70,11 +70,13 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CATEGORY_PROPERTY              = "category";
 
 	public PageTraitDefinition() {
+
 		super(StructrTraits.PAGE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
@@ -83,8 +85,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			Render.class,
-			new Render() {
+			Render.class, new Render() {
 
 				@Override
 				public void render(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -99,6 +100,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// output doctype definition only if first child is not a template
 						if (subNode.is(StructrTraits.HTML)) {
+
 							renderContext.getBuffer().append("<!DOCTYPE html>\n");
 						}
 
@@ -110,8 +112,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			HandleNewChild.class,
-			new HandleNewChild() {
+			HandleNewChild.class, new HandleNewChild() {
 
 				@Override
 				public void handleNewChild(final DOMNode node, final DOMNode newChild) throws FrameworkException {
@@ -128,8 +129,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			CheckHierarchy.class,
-			new CheckHierarchy() {
+			CheckHierarchy.class, new CheckHierarchy() {
 
 				@Override
 				public void checkHierarchy(DOMNode thisNode, DOMNode otherNode) throws FrameworkException {
@@ -148,8 +148,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			GetContextName.class,
-			new GetContextName() {
+			GetContextName.class, new GetContextName() {
 
 				@Override
 				public String getContextName(final NodeInterface node) {
@@ -164,19 +163,19 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Page.class, (traits, node) -> new PageTraitWrapper(traits, node)
-		);
+		return Map.of(Page.class, (traits, node) -> new PageTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
@@ -186,14 +185,11 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes(traitsInstance, ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(PAGE_CATEGORY);
 		final Property<Iterable<NodeInterface>> pathsProperty    = new EndNodes(traitsInstance, PATHS_PROPERTY, StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
 		final Property<Iterable<NodeInterface>> sitesProperty    = new StartNodes(traitsInstance, SITES_PROPERTY, StructrTraits.SITE_CONTAINS_PAGE);
-
 		final Property<Boolean> isPageProperty                   = new ConstantBooleanProperty(IS_PAGE_PROPERTY, true);
 		final Property<Boolean> pageCreatesRawDataProperty       = new BooleanProperty(PAGE_CREATES_RAW_DATA_PROPERTY).defaultValue(false);
-
 		final Property<Integer> versionProperty                  = new IntProperty(VERSION_PROPERTY).indexed().readOnly().defaultValue(0);
 		final Property<Integer> positionProperty                 = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> cacheForSecondsProperty          = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
-
 		final Property<Object> pathProperty                      = new FunctionProperty(PATH_PROPERTY).readFunction("concat('/', this.name)").typeHint("String").indexed();
 		final Property<String> showOnErrorCodesProperty          = new StringProperty(SHOW_ON_ERROR_CODES_PROPERTY).indexed();
 		final Property<String> contentTypeProperty               = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
@@ -235,20 +231,18 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY
 			),
 
-			"category",
-			newSet(
-				CATEGORY_PROPERTY
-			)
-		);
+			"category", newSet(CATEGORY_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

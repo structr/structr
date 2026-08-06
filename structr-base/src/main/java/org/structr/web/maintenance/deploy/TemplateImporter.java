@@ -75,6 +75,7 @@ public class TemplateImporter extends HtmlFileImporter {
 			createTemplate(file, fileName);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Exception while importing shared component {}: {}", fileName, fex.getMessage());
 		}
 	}
@@ -91,6 +92,7 @@ public class TemplateImporter extends HtmlFileImporter {
 			}
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to determine if template {} already exists, ignoring.", name);
 		}
 
@@ -108,6 +110,7 @@ public class TemplateImporter extends HtmlFileImporter {
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
 		for (DOMNode child : node.getChildren()) {
+
 			deleteRecursively(app, child);
 		}
 
@@ -122,7 +125,6 @@ public class TemplateImporter extends HtmlFileImporter {
 			try {
 
 				final Map dataMap = ((Map<String, Object>)data);
-
 				final Object sharedValue = dataMap.remove(internalSharedTemplateKey.jsonName());
 				boolean isShared = ("true".equals(sharedValue));
 
@@ -131,12 +133,14 @@ public class TemplateImporter extends HtmlFileImporter {
 				final PropertyMap propMap = PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.TEMPLATE, dataMap);
 
 				if (isShared) {
+
 					propMap.put(internalSharedTemplateKey, "true");
 				}
 
 				return propMap;
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("Unable to resolve properties for template: {}", ex.getMessage());
 			}
 		}
@@ -217,7 +221,6 @@ public class TemplateImporter extends HtmlFileImporter {
 
 				// insert "shared" templates into ShadowDocument
 				final Object value = properties.remove(internalSharedTemplateKey);
-
 				if ("true".equals(value)) {
 
 					template.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());

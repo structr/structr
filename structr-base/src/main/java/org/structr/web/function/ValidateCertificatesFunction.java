@@ -30,11 +30,13 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "validateCertificates";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("boolean");
 	}
 
@@ -52,6 +54,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${ validateCertificates(boolean) }. Example: ${ validateCertificates(false) }"),
 			Usage.javaScript("Usage: ${{ $.validateCertificates(boolean) }}. Example: ${{ $.validateCertificates(false) }}")
@@ -60,23 +63,25 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"By default, certificate validation is always enabled - only in rare cases would/should it be necessary to change this behaviour"
-		);
+
+		return List.of("By default, certificate validation is always enabled - only in rare cases would/should it be necessary to change this behaviour");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Disables or enables strict certificate checking when performing a request in a scripting context. The setting remains for the whole request.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Disables or enables certificate validation for outgoing requests. All subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` calls in the same request (meaning the request from the client to Structr) will use the setting configured here.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 				${{
@@ -89,6 +94,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

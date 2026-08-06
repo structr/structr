@@ -32,16 +32,19 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 
 	@Override
 	public String getName() {
+
 		return "addLabels";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds the given set of labels to the given node.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
@@ -61,14 +64,12 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.javaScript("addLabels(node, [ 'LABEL1', 'LABEL2' ])"),
-			Usage.structrScript("addLabels(node, merge('LABEL1', 'LABEL2'))")
-		);
+		return List.of(Usage.javaScript("addLabels(node, [ 'LABEL1', 'LABEL2' ])"), Usage.structrScript("addLabels(node, merge('LABEL1', 'LABEL2'))"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

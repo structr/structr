@@ -55,14 +55,15 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String mode                     = webSocketData.getNodeDataStringValueTrimmedOrDefault("mode", "insert");
-
 		final String id = webSocketData.getId();
+
 		if (id != null) {
 
 			final DOMNode domNode = getDOMNode(id);
 			if (domNode != null) {
 
 				try {
+
 					final List<GraphObject> result = new LinkedList<>();
 
 					switch (mode) {
@@ -99,6 +100,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "GET_SUGGESTIONS";
 	}
 
@@ -107,6 +109,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 		// domNode can be null if we use the parent
 		if (domNode == null) {
+
 			return List.of();
 		}
 
@@ -123,6 +126,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 			final Element element = new Element(tag);
 
 			for (final String css : classes) {
+
 				element.addClass(css);
 			}
 
@@ -136,10 +140,12 @@ public class GetSuggestionsCommand extends AbstractCommand {
 			}
 
 			if (name != null) {
+
 				element.attr("name", name);
 			}
 
 			if (htmlId != null) {
+
 				element.attr("id", htmlId);
 			}
 
@@ -158,6 +164,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 								// skip exclusive widgets (only one in each parent allowed)
 								if (widget.isExclusiveInParent() && alreadyPresent(domNode, widget)) {
+
 									continue;
 								}
 
@@ -180,20 +187,18 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 		// domNode and parent must be non-null
 		final DOMNode domNode = nodeToWrap.getParent();
-
 		if (domNode == null) {
+
 			return List.of();
 		}
 
 		final List<Widget> result        = new LinkedList<>();
 		final App app                    = StructrApp.getInstance(securityContext);
 		final Element parentMatchElement = createMatchElementForSelectors(nodeToWrap.getParent());
-
 		final Map<String, Widget> widgets = app.nodeQuery(StructrTraits.WIDGET).getAsList().stream().map(w -> w.as(Widget.class)).collect(java.util.stream.Collectors.toMap(Widget::getName, w -> w));
 
 		// find Widget that was used to create the element that we want to wrap
 		final Widget sourceWidget = widgets.get(nodeToWrap.getName());
-
 		if (sourceWidget != null) {
 
 			final String[] sourceWidgetSelectors = sourceWidget.getSelectors();
@@ -213,6 +218,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 								// parse widget to discover the slots inside
 								final List<Node> nodes = Parser.parseXmlFragment(widgetCandidate.getSource(), "http://localhost");
+
 								for (final Node candidateElement : flatten(nodes)) {
 
 									if (candidateElement instanceof Element element) {
@@ -254,8 +260,8 @@ public class GetSuggestionsCommand extends AbstractCommand {
 			for (final String css : input.split(" ")) {
 
 				final String timmed = css.trim();
-
 				if (StringUtils.isNotBlank(timmed)) {
+
 					classes.add(timmed);
 				}
 			}
@@ -277,6 +283,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 	private String getHtmlId(final DOMNode node) {
 
 		if (node.is("DOMElement")) {
+
 			return node.as(DOMElement.class).getHtmlId();
 		}
 
@@ -309,6 +316,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 	}
 
 	private Integer getDimensions(final DOMNode node) {
+
 		return node.getDimensions(true);
 	}
 
@@ -331,6 +339,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		output.add(input);
 
 		for (final Node child : input.childNodes()) {
+
 			output.addAll(flatten(child));
 		}
 
@@ -347,6 +356,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		final String dataTypeAttribute = getComponentType(domNode);
 
 		for (final String css : classes) {
+
 			element.addClass(css);
 		}
 
@@ -360,10 +370,12 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		}
 
 		if (name != null) {
+
 			element.attr("name", name);
 		}
 
 		if (htmlId != null) {
+
 			element.attr("id", htmlId);
 		}
 

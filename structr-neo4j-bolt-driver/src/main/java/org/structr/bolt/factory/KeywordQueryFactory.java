@@ -51,6 +51,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 	}
 
 	public KeywordQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -67,6 +68,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 		// to select the correct index
 		final String label = predicate.getLabel();
 		if (label != null) {
+
 			query.indexLabel(label);
 		}
 
@@ -123,6 +125,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 			final String prefix = SPECIAL_CHARS.get(c);
 
 			if (prefix != null) {
+
 				output.append(prefix);
 			}
 

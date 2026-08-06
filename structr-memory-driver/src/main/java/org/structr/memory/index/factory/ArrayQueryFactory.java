@@ -26,6 +26,7 @@ import org.structr.memory.index.predicate.ArrayPropertyPredicate;
 public class ArrayQueryFactory extends KeywordQueryFactory {
 
 	public ArrayQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

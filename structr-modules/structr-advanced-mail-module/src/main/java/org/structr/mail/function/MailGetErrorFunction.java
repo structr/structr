@@ -31,16 +31,19 @@ import java.util.List;
 public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 
 	public MailGetErrorFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailGetError";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -54,24 +57,25 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailGetError()}"),
-			Usage.javaScript("Usage: ${{ $.mailGetError() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailGetError()}"), Usage.javaScript("Usage: ${{ $.mailGetError() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the last error message (or null if no error has occurred).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 						${{

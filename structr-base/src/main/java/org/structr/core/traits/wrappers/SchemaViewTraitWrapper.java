@@ -29,6 +29,7 @@ import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 public class SchemaViewTraitWrapper extends AbstractNodeTraitWrapper implements SchemaView {
 
 	public SchemaViewTraitWrapper(Traits traits, NodeInterface node) {
+
 		super(traits, node);
 	}
 
@@ -42,16 +43,19 @@ public class SchemaViewTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 	@Override
 	public String getStaticSchemaNodeName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getNonGraphProperties() {
+
 		return wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY));
 	}
 
 	@Override
 	public String getSortOrder() {
+
 		return wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.SORT_ORDER_PROPERTY));
 	}
 }

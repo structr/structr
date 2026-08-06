@@ -44,10 +44,12 @@ public abstract class Tag {
 	private Tag parent               = null;
 
 	Tag(final Tag parent, final String tagName) {
+
 		this(parent, tagName, false);
 	}
 
 	Tag(final Tag parent, final String tagName, final boolean isEmpty) {
+
 		this(parent, tagName, isEmpty, true);
 	}
 
@@ -86,7 +88,9 @@ public abstract class Tag {
 	public Tag text(Object... content) {
 
 		final StringBuilder buf = new StringBuilder();
+
 		for (Object p : content) {
+
 			buf.append(p);
 		}
 
@@ -104,34 +108,45 @@ public abstract class Tag {
 	}
 
 	public void setIndent(final String indent) {
+
 		this.indent = indent;
 	}
 
 	public List<Tag> getChildren() {
+
 		return children;
 	}
 
 	public Tag add(final Tag tag) {
+
 		children.add(tag);
+
 		return this;
 	}
 
 	public Tag attr(final Attr... attr) {
+
 		attrs.addAll(Arrays.asList(attr));
+
 		return this;
 	}
 
 	public Tag id(String id) {
+
 		attr(new Id(id));
+
 		return this;
 	}
 
 	public Tag css(String css) {
+
 		attr(new Css(css));
+
 		return this;
 	}
 
 	public Tag parent() {
+
 		return parent;
 	}
 
@@ -153,6 +168,7 @@ public abstract class Tag {
 		boolean newLine = false;
 
 		for (Tag child : children) {
+
 			newLine = newLine || (child instanceof Block);
 		}
 
@@ -161,10 +177,12 @@ public abstract class Tag {
 		if (!empty) {
 
 			if (text != null) {
+
 				writer.print(text);
 			}
 
 			for (Tag child : children) {
+
 				child.render(writer, level + 1);
 			}
 
@@ -174,6 +192,7 @@ public abstract class Tag {
 
 	// ----- protected static methods -----
 	protected static void beginTag(final PrintWriter writer, final String tagName, final boolean newline, final List<Attr> attributes, final int level, final String indent) throws IOException {
+
 		beginTag(writer, tagName, newline, false, attributes, level, indent);
 	}
 
@@ -184,6 +203,7 @@ public abstract class Tag {
 		writer.flush();
 
 		for (int i=0; i<level; i++) {
+
 			writer.print(indent);
 		}
 
@@ -230,6 +250,7 @@ public abstract class Tag {
 		if (hasNewline) {
 
 			for (int i=0; i<level; i++) {
+
 				writer.print(indent);
 			}
 		}

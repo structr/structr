@@ -48,6 +48,7 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DATA_SOURCES_PROPERTY    = "dataSources";
 
 	public FlowComparisonTraitDefinition() {
+
 		super(StructrTraits.FLOW_COMPARISON);
 	}
 
@@ -56,8 +57,7 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -84,6 +84,7 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 								if (data != null && data.getClass().isEnum()) {
 
 									data = ((Enum) data).name();
+
 								} else if (data instanceof Number && value instanceof Number) {
 
 									data = ((Number) data).doubleValue();
@@ -120,8 +121,7 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -141,9 +141,7 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowComparison.class, FlowComparison::new
-		);
+		return Map.of(FlowComparison.class, FlowComparison::new);
 	}
 
 	@Override
@@ -154,32 +152,20 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> decisions   = new EndNodes(traitsInstance, DECISIONS_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
 		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(traitsInstance, DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
 
-		return newSet(
-			operation,
-			valueSource,
-			decisions,
-			dataSources
-		);
+		return newSet(operation, valueSource, decisions, dataSources);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				DATA_SOURCES_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(DATA_SOURCES_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				DATA_SOURCES_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(DATA_SOURCES_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

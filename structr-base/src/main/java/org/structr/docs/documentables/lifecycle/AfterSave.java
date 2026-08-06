@@ -23,25 +23,25 @@ import java.util.List;
 public class AfterSave extends LifecycleBase {
 
 	public AfterSave() {
+
 		super("afterSave");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called after an existing object of this type is modified.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `afterSave()` lifecycle method is called after an existing object of this type is modified. This method runs after the modifying transaction is committed, so you can be sure that the validation was successful and the object is stored in the database.";
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onSave()`."
-		);
+		return List.of("This lifecycle method can be defined on any node type.", "See also: `onSave()`.");
 	}
 }

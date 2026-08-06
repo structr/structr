@@ -67,6 +67,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY = "visibleToAuthenticatedUsers";
 
 	public GraphObjectTraitDefinition() {
+
 		super(StructrTraits.GRAPH_OBJECT);
 	}
 
@@ -75,8 +76,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject graphObject, final ErrorBuffer errorBuffer) {
@@ -90,6 +90,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 					valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
 
 					if (securityContext != null && securityContext.uuidWasSetManually() && graphObject.isNode()) {
+
 						valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
 					}
 
@@ -107,8 +108,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-			AddToIndex.class,
-			new AddToIndex() {
+			AddToIndex.class, new AddToIndex() {
 
 				@Override
 				public void addToIndex(final GraphObject graphObject) {
@@ -127,8 +127,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 				}
 			},
 
-			IndexPassiveProperties.class,
-			new IndexPassiveProperties() {
+			IndexPassiveProperties.class, new IndexPassiveProperties() {
 
 				@Override
 				public void indexPassiveProperties(final org.structr.core.GraphObject graphObject) {
@@ -147,8 +146,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 				}
 			},
 
-			GetVisibilityFlags.class,
-			new GetVisibilityFlags() {
+			GetVisibilityFlags.class, new GetVisibilityFlags() {
 
 				@Override
 				public boolean isVisibleToPublicUsers(final GraphObject obj) {
@@ -167,8 +165,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 				}
 			},
 
-			Evaluate.class,
-			new Evaluate() {
+			Evaluate.class, new Evaluate() {
 
 				@Override
 				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
@@ -187,6 +184,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 							return null;
 
 						case "_path":
+
 							return node.getPath(actionContext.getSecurityContext());
 
 						default:
@@ -196,6 +194,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 								final PropertyKey propertyKey = traits.key(key);
 								final Object value = node.getProperty(propertyKey, actionContext.getPredicate());
+
 								if (value != null) {
 
 									return value;
@@ -221,6 +220,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -253,10 +253,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(
-					ID_PROPERTY, TYPE_PROPERTY
-			),
+			PropertyView.Public, newSet(ID_PROPERTY, TYPE_PROPERTY),
 
 			PropertyView.Ui,
 			newSet(
@@ -269,6 +266,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -280,7 +278,6 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		for (PropertyKey key : indexKeys) {
 
 			final PropertyConverter converter = key.databaseConverter(obj.getSecurityContext(), obj);
-
 			if (converter != null) {
 
 				try {
@@ -297,7 +294,6 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 					logger.warn("Unable to convert property {} of type {}: {}", key, getClass().getSimpleName(), ex.getMessage());
 					logger.warn("Exception", ex);
 				}
-
 
 			} else {
 

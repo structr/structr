@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_TX" targetNamespace="http://test/tx">
+  <bpmn:process id="Process_TX" name="Transaction" isExecutable="true">
+    <bpmn:startEvent id="Start_1">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:transaction id="Txn_1" name="Payment">
+      <bpmn:startEvent id="Inner_Start">
+        <bpmn:outgoing>IFlow_1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:task id="Inner_Task" name="Charge Card">
+        <bpmn:incoming>IFlow_1</bpmn:incoming>
+        <bpmn:outgoing>IFlow_2</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:endEvent id="Inner_End">
+        <bpmn:incoming>IFlow_2</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="IFlow_1" sourceRef="Inner_Start" targetRef="Inner_Task"/>
+      <bpmn:sequenceFlow id="IFlow_2" sourceRef="Inner_Task" targetRef="Inner_End"/>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:transaction>
+    <bpmn:endEvent id="End_1">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Txn_1"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Txn_1" targetRef="End_1"/>
+  </bpmn:process>
+</bpmn:definitions>

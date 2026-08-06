@@ -38,11 +38,13 @@ public class GetEffectiveAccessEntriesFunction extends AdvancedScriptingFunction
 
 	@Override
 	public String getName() {
+
 		return "getEffectiveAccessEntries";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("node");
 	}
 
@@ -56,6 +58,7 @@ public class GetEffectiveAccessEntriesFunction extends AdvancedScriptingFunction
 			if (!(sources[0] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as first argument!", ctx.isJavaScriptContext());
+
 				return Collections.emptyList();
 			}
 
@@ -78,6 +81,7 @@ public class GetEffectiveAccessEntriesFunction extends AdvancedScriptingFunction
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getEffectiveAccessEntries(node)}. Example: ${getEffectiveAccessEntries(this)}"),
 			Usage.javaScript("Usage: ${{ $.getEffectiveAccessEntries(node) }}. Example: ${{ $.getEffectiveAccessEntries($.this) }}")
@@ -86,11 +90,13 @@ public class GetEffectiveAccessEntriesFunction extends AdvancedScriptingFunction
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the effective access entries on the given node, including transitive group members and schema grants.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Returns a list of access entries covering tiers 1-4 of the permission model: the owner,
 		principals connected via direct SECURITY relationships, principals reached transitively
@@ -106,22 +112,19 @@ public class GetEffectiveAccessEntriesFunction extends AdvancedScriptingFunction
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${getEffectiveAccessEntries(this)}"),
-			Example.javaScript("${{ $.getEffectiveAccessEntries($.this) }}")
-		);
+
+		return List.of(Example.structrScript("${getEffectiveAccessEntries(this)}"), Example.javaScript("${{ $.getEffectiveAccessEntries($.this) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("node", "node to inspect")
-		);
+		return List.of(Parameter.mandatory("node", "node to inspect"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

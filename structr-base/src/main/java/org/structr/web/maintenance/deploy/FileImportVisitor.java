@@ -107,11 +107,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
 		logger.warn("Exception while importing file {}: {}", file.toString(), exc.getMessage());
+
 		return FileVisitResult.CONTINUE;
 	}
 
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -134,6 +136,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				final boolean isFolder = !map.containsKey(isTemplate);
 
 				if (isFolder) {
+
 					createFolderFromMetadata(pathString);
 				}
 
@@ -301,7 +304,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				if (traits.hasKey(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY)) {
 
 					final PropertyKey<Boolean> isThumbnailKey = traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY);
-
 					if (fileProperties.containsKey(isThumbnailKey) && fileProperties.get(isThumbnailKey)) {
 
 						logger.info("Thumbnail image found: {}, ignoring. Please delete file in files directory and entry in files.json.", fullPath);
@@ -349,6 +351,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						newFileUuid = fileProperties.get(idProperty);
 
 						if (newFileUuid != null) {
+
 							props.put(traits.key(GraphObjectTraitDefinition.ID_PROPERTY), newFileUuid);
 						}
 
@@ -375,7 +378,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						 */
 
 						file = FileHelper.createFile(securityContext, fis, fileType, props);
-
 
 						newFileUuid = file.getUuid();
 					}
@@ -505,6 +507,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		final StringBuilder buf = new StringBuilder();
 
 		for (final String src : sources) {
+
 			buf.append(src);
 		}
 
@@ -545,16 +548,14 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				problems.add(
 						"The following entries were configured in files.json, but the <b>expected files/folders were not found</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
-						+ "<ul><li>" + configuredButNotEncountered.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
-				);
+						+ "<ul><li>" + configuredButNotEncountered.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>");
 			}
 
 			if (!encounteredButNotConfigured.isEmpty()) {
 
 				problems.add(
 						"The following files/folders were ignored because they <b>are missing in files.json</b>. For folders the complete subtree is ignored. The most common cause is that files.json was not correctly committed."
-						+ "<ul><li>" + encounteredButNotConfigured.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
-				);
+						+ "<ul><li>" + encounteredButNotConfigured.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>");
 			}
 
 			if (!forceRenamedFilesAndFolders.isEmpty()) {

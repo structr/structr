@@ -115,7 +115,6 @@ public class Trait implements TypeInfo {
 			set.addAll(views.getValue());
 		}
 
-
 		// trait implementations
 		this.nodeTraitFactories.putAll(traitDefinition.getNodeTraitFactories());
 		this.relationshipTraitFactories.putAll(traitDefinition.getRelationshipTraitFactories());
@@ -123,62 +122,77 @@ public class Trait implements TypeInfo {
 
 	@Override
 	public String toString() {
+
 		return "Trait(" + name + ")";
 	}
 
 	public String getName() {
+
 		return name;
 	}
 
 	public String getLabel() {
+
 		return label;
 	}
 
 	public TraitDefinition getDefinition() {
+
 		return definition;
 	}
 
 	public Set<String> getPropertyKeysForView(final String viewName) {
+
 		return views.get(viewName);
 	}
 
 	public <T extends LifecycleMethod> T getLifecycleMethod(final Class<T> type) {
+
 		return (T) lifecycleMethods.get(type);
 	}
 
 	public <T extends FrameworkMethod> T getFrameworkMethod(final Class<T> type) {
+
 		return (T) frameworkMethods.get(type);
 	}
 
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return relationshipTraitFactories;
 	}
 
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return nodeTraitFactories;
 	}
 
 	public Map<String, AbstractMethod> getDynamicMethods() {
+
 		return dynamicMethods;
 	}
 
 	public Set<String> getViewNames() {
+
 		return views.keySet();
 	}
 
 	public Map<String, Set<String>> getViews() {
+
 		return views;
 	}
 
 	public Map<String, PropertyKey> getPropertyKeys() {
+
 		return propertyKeys;
 	}
 
 	public Relation getRelation() {
+
 		return relation;
 	}
 
 	public boolean isRelationship() {
+
 		return isRelationship;
 	}
 
@@ -203,6 +217,7 @@ public class Trait implements TypeInfo {
 	}
 
 	public boolean isDynamic() {
+
 		return isDynamic;
 	}
 
@@ -236,18 +251,22 @@ public class Trait implements TypeInfo {
 		boolean hasGrants                          = false;
 
 		if (grant.allowRead()) {
+
 			readPermissions.add(principalId);
 		}
 
 		if (grant.allowWrite()) {
+
 			writePermissions.add(principalId);
 		}
 
 		if (grant.allowDelete()) {
+
 			deletePermissions.add(principalId);
 		}
 
 		if (grant.allowAccessControl()) {
+
 			accessControlPermissions.add(principalId);
 		}
 
@@ -291,6 +310,7 @@ public class Trait implements TypeInfo {
 
 		// add dynamic keys to "custom" view
 		if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {
+
 			this.views.computeIfAbsent("custom", k -> new LinkedHashSet<>()).add(name);
 		}
 	}
@@ -298,6 +318,7 @@ public class Trait implements TypeInfo {
 	// ----- interface TypeInfo -----
 	@Override
 	public String getTypeName() {
+
 		return getName();
 	}
 

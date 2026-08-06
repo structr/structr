@@ -29,11 +29,13 @@ public class MultFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "mult";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("values...");
 	}
 
@@ -67,6 +69,7 @@ public class MultFunction extends CoreFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -75,46 +78,43 @@ public class MultFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${mult(value1, value2, ...)}"),
-				Usage.javaScript("Usage: ${{ $.mult(value1, value2, ...) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mult(value1, value2, ...)}"), Usage.javaScript("Usage: ${{ $.mult(value1, value2, ...) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the product of all given arguments.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("values...", "one or more values to multiply")
-		);
+		return List.of(Parameter.mandatory("values...", "one or more values to multiply"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments."
-		);
+
+		return List.of("This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${mult(5, 2)}")
-		);
+
+		return List.of(Example.structrScript("${mult(5, 2)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

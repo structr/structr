@@ -56,42 +56,50 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements DataFeed {
 
 	public DataFeedTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getUrl() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.URL_PROPERTY));
 	}
 
 	public String getFeedType() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.FEED_TYPE_PROPERTY));
 	}
 
 	public String getDescription() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	public Long getUpdateInterval() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.UPDATE_INTERVAL_PROPERTY));
 	}
 
 	public Date getLastUpdated() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.LAST_UPDATED_PROPERTY));
 	}
 
 	public Long getMaxAge() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.MAX_AGE_PROPERTY));
 	}
 
 	public Integer getMaxItems() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.MAX_ITEMS_PROPERTY));
 	}
 
 	public Iterable<NodeInterface> getItems() {
+
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.ITEMS_PROPERTY));
 	}
 
@@ -100,7 +108,6 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 
 		final Integer maxItemsToRetain = this.getMaxItems();
 		final Long    maxItemAge       = this.getMaxAge();
-
 		int i = 0;
 
 		// Don't do anything if maxItems and maxAge are not set
@@ -118,7 +125,6 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 				i++;
 
 				final Date itemDate = item.getProperty(dateKey);
-
 				if ((maxItemsToRetain != null && i > maxItemsToRetain) || (maxItemAge != null && itemDate.before(new Date(new Date().getTime() - maxItemAge)))) {
 
 					try {
@@ -126,6 +132,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 						StructrApp.getInstance(ctx).delete(item);
 
 					} catch (FrameworkException ex) {
+
 						final Logger logger = LoggerFactory.getLogger(DataFeedTraitDefinition.class);
 						logger.error("Error while deleting old/surplus feed item " + item, ex);
 					}
@@ -150,6 +157,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 
 	@Override
 	public void updateFeed(final SecurityContext ctx) {
+
 		updateFeed(ctx, true);
 	}
 
@@ -167,15 +175,16 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 				HttpHelper.validateUrl(remoteUrl);
 
 				final SyndFeedInput input = new SyndFeedInput();
-
 				InputStream inputStream = null;
 				final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
+
 				if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
 
 					inputStream =  (InputStream) responseData.get(HttpHelper.FIELD_BODY);
 				}
 
 				if (inputStream == null) {
+
 					throw new FrameworkException(422, "Could not get input stream for feed " + this.getUuid());
 				}
 
@@ -186,7 +195,6 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 					final Traits enclosureTraits   = Traits.of(StructrTraits.FEED_ITEM_ENCLOSURE);
 					final Traits contentTraits     = Traits.of(StructrTraits.FEED_ITEM_CONTENT);
 					final Traits itemTraits        = Traits.of(StructrTraits.FEED_ITEM);
-
 					final PropertyKey feedItemUrlKey             = itemTraits.key(FeedItemTraitDefinition.URL_PROPERTY);
 					final PropertyKey feedItemPubDateKey         = itemTraits.key(FeedItemTraitDefinition.PUB_DATE_PROPERTY);
 					final PropertyKey feedItemUpdatedDateKey     = itemTraits.key(FeedItemTraitDefinition.UPDATED_DATE_PROPERTY);
@@ -202,7 +210,6 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 					final PropertyKey feedItemEnclosureUrlKey    = enclosureTraits.key(FeedItemEnclosureTraitDefinition.URL_PROPERTY);
 					final PropertyKey feedItemEnclosureLengthKey = enclosureTraits.key(FeedItemEnclosureTraitDefinition.ENCLOSURE_LENGTH_PROPERTY);
 					final PropertyKey feedItemEnclosureTypeKey   = enclosureTraits.key(FeedItemEnclosureTraitDefinition.ENCLOSURE_TYPE_PROPERTY);
-
 					final List<NodeInterface> newItems = Iterables.toList(this.getItems());
 
 					for (final SyndEntry entry : entries) {
@@ -222,6 +229,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 							props.put(feedItemUpdatedDateKey, entry.getUpdatedDate());
 
 							if (entry.getDescription() != null) {
+
 								props.put(feedItemDescriptionKey, entry.getDescription().getValue());
 							}
 
@@ -230,6 +238,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 
 							// Get and add all contents
 							final List<SyndContent> contents = entry.getContents();
+
 							for (final SyndContent content : contents) {
 
 								final NodeInterface itemContent = app.create(StructrTraits.FEED_ITEM_CONTENT,
@@ -243,6 +252,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 
 							// Get and add all enclosures
 							final List<SyndEnclosure> enclosures = entry.getEnclosures();
+
 							for (final SyndEnclosure enclosure : enclosures) {
 
 								final NodeInterface itemEnclosure = app.create(StructrTraits.FEED_ITEM_ENCLOSURE,
@@ -271,6 +281,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 					final PropertyKey<String> nameKey = feedTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 					if (StringUtils.isEmpty(this.getProperty(nameKey))) {
+
 						feedProps.put(nameKey, syndFeed.getTitle());
 					}
 
@@ -295,6 +306,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 		}
 
 		if (cleanUp) {
+
 			cleanUp(ctx);
 		}
 	}

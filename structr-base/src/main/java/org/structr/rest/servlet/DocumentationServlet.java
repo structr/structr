@@ -123,18 +123,22 @@ public class DocumentationServlet extends HttpServlet {
 				}
 
 				if ("html".equals(settings.getOutputFormat())) {
+
 					renderHtml(response, lines, settings);
 				}
 
 				if ("text".equals(settings.getOutputFormat())) {
+
 					renderPlaintext(response, lines);
 				}
 
 				if ("raw".equals(settings.getOutputFormat())) {
+
 					renderRawContent(response, lines);
 				}
 
 				if ("json".equals(settings.getOutputFormat()) || "toc".equals(settings.getOutputFormat())) {
+
 					renderJson(response, lines);
 				}
 			}
@@ -199,7 +203,6 @@ public class DocumentationServlet extends HttpServlet {
 				}
 
 			} else {
-
 
 				response.setStatus(404);
 				response.getWriter().print("Concept " + conceptId + " does not exist.");
@@ -327,6 +330,7 @@ public class DocumentationServlet extends HttpServlet {
 			} else {
 
 				final List<Concept> parents = ontology.getConceptsByName(parts[0]);
+
 				for (final Concept parent : parents) {
 
 					links.add(new Link(null, null, parent));
@@ -342,6 +346,7 @@ public class DocumentationServlet extends HttpServlet {
 			if (StringUtils.isNotBlank(types)) {
 
 				final Set<ConceptType> typeSet = new LinkedHashSet<>();
+
 				for (final String type : types.split(",")) {
 
 					final String trimmed = type.trim();
@@ -469,6 +474,7 @@ public class DocumentationServlet extends HttpServlet {
 			settings.getDetails().clear();
 
 			final String[] parts = details.split(",");
+
 			for (final String part : parts) {
 
 				settings.getDetails().add(Details.valueOf(part.trim()));
@@ -544,6 +550,7 @@ public class DocumentationServlet extends HttpServlet {
 	}
 
 	private boolean isSearch(final HttpServletRequest request) {
+
 		return request.getParameter("search") != null;
 	}
 
@@ -551,8 +558,6 @@ public class DocumentationServlet extends HttpServlet {
 
 		final Pattern pattern = Pattern.compile("\\{\\{(.*?)\\}\\}");
 		int row = 0;
-
-
 		String content        = StringUtils.join(lines, "\n");
 		final Matcher matcher = pattern.matcher(content);
 		int replacements      = 0;
@@ -594,6 +599,7 @@ public class DocumentationServlet extends HttpServlet {
 				if (data.containsKey("+6")) { levelOffset = 6; }
 
 				if (data.containsKey("shortDescription")) {
+
 					list.addAll(split(concept.getShortDescription()));
 				}
 
@@ -659,6 +665,7 @@ public class DocumentationServlet extends HttpServlet {
 
 			// remove empty tokens and commas
 			if (StringUtils.isBlank(tokenContent) || tokenContent.trim().equals(","	)) {
+
 				continue;
 			}
 
@@ -666,7 +673,6 @@ public class DocumentationServlet extends HttpServlet {
 			if (!result.containsKey("concept")) {
 
 				final String content = token.getContent();
-
 				if (content.contains(":")) {
 
 					final String[] parts = content.split(":");

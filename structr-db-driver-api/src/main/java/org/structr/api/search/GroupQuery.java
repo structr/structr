@@ -20,7 +20,6 @@ package org.structr.api.search;
 
 import java.util.List;
 
-
 public interface GroupQuery extends QueryPredicate {
 
 	// nesting

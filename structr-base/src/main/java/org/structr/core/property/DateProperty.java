@@ -44,52 +44,72 @@ import java.util.*;
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	public DateProperty(final String name) {
+
 		super(name);
 		this.format = getDefaultFormat();
 	}
 
 	public DateProperty(final String jsonName, final String dbName) {
+
 		super(jsonName, dbName);
 		this.format = getDefaultFormat();
 	}
 
 	public DateProperty(final String jsonName, final String dbName, final String format) {
+
 		super(jsonName);
 
 		if (StringUtils.isNotBlank(format)) {
+
 			this.format = format;
+
 		} else {
+
 			this.format = getDefaultFormat();
 		}
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Date";
 	}
 
 	@Override
+	public String editTemplate() {
+
+		// a date edits with the date picker, not the generic textfield (Property's default)
+
+		return "datepicker";
+	}
+
+	@Override
 	public Class valueType() {
+
 		return Date.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Long;
 	}
 
 	@Override
 	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, Date> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
@@ -99,10 +119,12 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		if (value != null) {
 
 			if (value instanceof Long) {
+
 				return value;
 			}
 
 			if (value instanceof Number) {
+
 				return ((Number)value).longValue();
 			}
 
@@ -126,12 +148,14 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	private class DatabaseConverter extends PropertyConverter<Date, Long> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 			super(securityContext, entity);
 		}
 
@@ -162,6 +186,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	private class InputConverter extends PropertyConverter<Object, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
@@ -171,20 +196,21 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			if (source != null) {
 
 				final Date convertedDate = TemporalDateConverter.convert(source);
-
 				if (convertedDate != null) {
 
 					return convertedDate;
+
 				} else if (source instanceof Long l) {
 
 					return Date.from(Instant.ofEpochMilli(l));
+
 				} else if (source instanceof String) {
 
 					if (StringUtils.isNotBlank((String)source)) {
 
 						Date result = DatePropertyGenerator.parse((String)source, format);
-
 						if (result != null) {
+
 							return result;
 						}
 
@@ -238,17 +264,20 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for date values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can configure this property with an additional date format pattern that will be used to format the value of the property in JSON REST output.";
 	}
 
@@ -272,6 +301,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		map.put("format", "date-time");
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -287,6 +317,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		map.put("format", "date-time");
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -295,6 +326,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	// ----- static methods -----
 	public static String getDefaultFormat() {
+
 		return Settings.DefaultDateFormat.getValue();
 	}
 }

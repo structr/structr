@@ -40,6 +40,7 @@ import org.structr.web.traits.definitions.FolderTraitDefinition;
 public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 	public UserTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 
@@ -62,6 +63,7 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 		Folder homeDir  = user.getHomeDirectory();
 
 		if (homeDir != null) {
+
 			return homeDir;
 		}
 
@@ -85,7 +87,6 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 			}
 
 			NodeInterface userHomeDir = app.nodeQuery(StructrTraits.FOLDER).key(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()).key(parentKey, homeFolder).getFirst();
-
 			if (userHomeDir == null) {
 
 				userHomeDir = app.create(StructrTraits.FOLDER,
@@ -114,6 +115,7 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 	@Override
 	public void setWorkingDirectory(final Folder workDir) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(UserTraitDefinition.WORKING_DIRECTORY_PROPERTY), workDir);
 	}
 
@@ -131,16 +133,19 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 	@Override
 	public void setLocalStorage(final String localStorage) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(UserTraitDefinition.LOCAL_STORAGE_PROPERTY), localStorage);
 	}
 
 	@Override
 	public String getLocalStorage() {
+
 		return wrappedObject.getProperty(traits.key(UserTraitDefinition.LOCAL_STORAGE_PROPERTY));
 	}
 
 	@Override
 	public String getConfirmationKey() {
+
 		return wrappedObject.getProperty(traits.key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY));
 	}
 }

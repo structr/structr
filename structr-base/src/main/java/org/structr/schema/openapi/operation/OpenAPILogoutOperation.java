@@ -27,6 +27,7 @@ import java.util.Set;
 public class OpenAPILogoutOperation extends LinkedHashMap<String, Object> {
 
 	public OpenAPILogoutOperation() {
+
 		final Map<String, Object> operations = new LinkedHashMap<>();
 		final Map<String, Object> post	   = new OpenAPIOperation(
 
@@ -49,11 +50,8 @@ public class OpenAPILogoutOperation extends LinkedHashMap<String, Object> {
 				null,
 
 				// responses
-				Map.of(
-						"200", new OpenAPISchemaReference("#/components/responses/ok"),
-						"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-				)
-		);
+				Map.of("200", new OpenAPISchemaReference("#/components/responses/ok"), "401", new OpenAPISchemaReference("#/components/responses/unauthorized")));
+
 		post.put("security", Set.of());
 
 		operations.put("post", post);

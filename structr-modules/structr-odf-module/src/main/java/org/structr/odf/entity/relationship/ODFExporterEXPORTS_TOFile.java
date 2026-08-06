@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ODFExporterEXPORTS_TOFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ODFExporterEXPORTS_TOFile() {
+
 		super(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.ODF_EXPORTER;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.FILE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "EXPORTS_TO";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

@@ -38,11 +38,13 @@ import java.util.List;
 public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerator<Double> {
 
 	public DoubleArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Double[].class.getSimpleName();
 	}
 
@@ -50,6 +52,7 @@ public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerato
 	public Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which) {
 
 		try {
+
 			return Double.parseDouble(source);
 
 		} catch (Throwable t) {
@@ -68,11 +71,13 @@ public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerato
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.DoubleArray;
 	}
 
 	@Override
 	public Double[] getDefaultValue() {
+
 		return null;
 	}
 

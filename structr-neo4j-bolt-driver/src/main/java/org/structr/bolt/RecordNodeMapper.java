@@ -37,6 +37,7 @@ class RecordNodeMapper implements Function<Record, Node> {
 	public Node apply(final Record t) {
 
 		try {
+
 			return t.get(0).asNode();
 
 		} catch (Uncoercible ex) {

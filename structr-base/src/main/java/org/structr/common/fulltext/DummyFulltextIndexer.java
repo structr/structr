@@ -33,6 +33,7 @@ public class DummyFulltextIndexer implements FulltextIndexer {
 
 	@Override
 	public void addToFulltextIndex(final NodeInterface indexable) throws FrameworkException {
+
 		logger.warn("No fulltext indexer installed, this is a dummy implementation that does nothing.");
 	}
 

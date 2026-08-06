@@ -33,16 +33,17 @@ public abstract class FlowDeploymentHandler {
 	private static final Logger logger = LoggerFactory.getLogger(FlowDeploymentHandler.class.getName());
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
+
 		new FlowTreeDeploymentHandler().doExport(target, gson);
 	}
 
 	public static void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
 
 		final File flowDir = new File(source.resolve(FlowTreeDeploymentHandler.FLOW_DEPLOYMENT_TREE_BASE_FOLDER).toAbsolutePath().toString());
-
 		if (flowDir.isDirectory()) {
 
 			new FlowTreeDeploymentHandler().doImport(source, gson);
+
 		} else {
 
 			new FlowLegacyDeploymentHandler().doImport(source, gson);

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:structr="http://structr.org/schema/process/1.0"
+                  id="Definitions_ListenerVeto"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_ListenerVeto" name="Listener Veto Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:userTask id="Task_1" name="Vetoed task">
+      <bpmn:extensionElements>
+        <!-- An 'on' (pre-commit) listener that throws must roll back the completion. -->
+        <structr:taskListener event="completed" method="vetoComplete" phase="on" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1"  targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

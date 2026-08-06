@@ -32,21 +32,25 @@ import java.util.Map;
 public class DOMNodeSortedChildrenProperty extends AbstractReadOnlyCollectionProperty<DOMNode> {
 
 	public DOMNodeSortedChildrenProperty(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<DOMNode> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -63,26 +67,31 @@ public class DOMNodeSortedChildrenProperty extends AbstractReadOnlyCollectionPro
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return true;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return Map.of();
 	}
 }

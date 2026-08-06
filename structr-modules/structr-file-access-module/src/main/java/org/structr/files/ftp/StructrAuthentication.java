@@ -28,7 +28,6 @@ public class StructrAuthentication implements Authentication {
 	private final String username;
 	private final String password;
 
-
 	/**
 	 * Constructor with the minimal data for an authentication
 	 *
@@ -36,6 +35,7 @@ public class StructrAuthentication implements Authentication {
 	 * @param password
 	 */
 	public StructrAuthentication(final String username, final String password) {
+
 		this.username = username;
 		this.password = password;
 	}
@@ -44,6 +44,7 @@ public class StructrAuthentication implements Authentication {
 	 * @return password
 	 */
 	public String getPassword() {
+
 		return password;
 	}
 
@@ -51,6 +52,7 @@ public class StructrAuthentication implements Authentication {
 	 * @return username
 	 */
 	public String getUsername() {
+
 		return username;
 	}
 

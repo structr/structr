@@ -76,18 +76,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public String getCallbackId() {
+
 		return this.callbackId;
 	}
 
 	public void setCallbackId(final String callbackId) {
+
 		this.callbackId = callbackId;
 	}
 
 	public enum Verb {
+
 		create, change, delete, link, unlink
 	}
 
 	public enum Direction {
+
 		in, out
 	}
 
@@ -97,6 +101,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		this.isNode = (object instanceof NodeInterface);
 
 		if (!isNode) {
+
 			this.relType = ((RelationshipInterface)object).getRelType();
 		}
 
@@ -119,6 +124,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public String toString() {
+
 		return object.getClass().getSimpleName() + "(" + object + "); " + status;
 	}
 
@@ -126,6 +132,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public String getChangeLog() {
 
 		if (changeLog != null) {
+
 			return changeLog.toString();
 		}
 
@@ -146,6 +153,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		status |= STATE_SECURITY_MODIFIED;
 
 		if (status != statusBefore) {
+
 			modified = true;
 		}
 	}
@@ -157,6 +165,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		status |= STATE_OWNER_MODIFIED;
 
 		if (status != statusBefore) {
+
 			modified = true;
 		}
 	}
@@ -168,6 +177,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		status |= STATE_CREATED;
 
 		if (status != statusBefore) {
+
 			modified = true;
 		}
 
@@ -182,6 +192,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		// store previous value
 		if (key != null) {
+
 			removedProperties.put(key, previousValue);
 		}
 
@@ -198,6 +209,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		} else {
 
 			if (key != null) {
+
 				newProperties.put(key, newValue);
 				updateChangeLog(user, Verb.change, key, previousValue, newValue);
 			}
@@ -206,15 +218,18 @@ public class GraphObjectModificationState implements ModificationEvent {
 		// only update cache if key, prev and new values are null
 		// because that's when a relationship has been created / removed
 		if (key == null && previousValue == null && newValue == null) {
+
 			updateCache();
 		}
 	}
 
 	public void add(final PropertyKey key, final Object value) {
+
 		addToCollection(addedRemoteProperties, key, value);
 	}
 
 	public void remove(final PropertyKey key, final Object value) {
+
 		addToCollection(removedRemoteProperties, key, value);
 	}
 
@@ -223,6 +238,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		int statusBefore = status;
 
 		if (passive) {
+
 			status |= STATE_DELETED_PASSIVELY;
 		}
 
@@ -232,6 +248,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			// copy all properties on deletion
 			for (final PropertyKey key : object.getPropertyKeys(PropertyView.Public)) {
+
 				removedProperties.put(key, object.getProperty(key));
 			}
 
@@ -242,6 +259,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	public boolean isPassivelyDeleted() {
+
 		return (status & STATE_DELETED_PASSIVELY) == STATE_DELETED_PASSIVELY;
 	}
 
@@ -338,6 +356,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				long t0 = System.currentTimeMillis();
 
 				if (doValidation) {
+
 					valid &= object.isValid(errorBuffer);
 				}
 
@@ -360,10 +379,12 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	public long getValidationTime() {
+
 		return validationTime;
 	}
 
 	public long getIndexingTime() {
+
 		return indexingTime;
 	}
 
@@ -428,6 +449,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	public boolean wasModified() {
+
 		return modified;
 	}
 
@@ -437,7 +459,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) && key != null) {
 
 			final String name = key.jsonName();
-
 			if (!hiddenPropertiesInAuditLog.contains(name) && !(key.isUnvalidated() || key.isReadOnly()) || key instanceof TypeProperty) {
 
 				final JsonObject obj = new JsonObject();
@@ -451,6 +472,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				obj.add("val",      toElement(newValue));
 
 				if (Settings.ChangelogEnabled.getValue()) {
+
 					changeLog.append(obj);
 					changeLog.append("\n");
 				}
@@ -508,6 +530,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("target",   toElement(targetUuid));
 
 			if (Settings.ChangelogEnabled.getValue()) {
+
 				changeLog.append(obj);
 				changeLog.append("\n");
 			}
@@ -540,10 +563,13 @@ public class GraphObjectModificationState implements ModificationEvent {
 			if (Settings.ChangelogEnabled.getValue()) {
 
 				if (changeLog.length() > 0 && verb.equals(Verb.create)) {
+
 					// ensure that node creation appears first in the log
 					changeLog.insert(0, "\n");
 					changeLog.insert(0, obj);
+
 				} else {
+
 					changeLog.append(obj);
 					changeLog.append("\n");
 				}
@@ -561,6 +587,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	public long getTimestamp() {
+
 		return timestamp;
 	}
 
@@ -587,6 +614,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				final Object[] values = (Object[])value;
 
 				for (final Object v : values) {
+
 					arr.add(toElement(v));
 				}
 
@@ -606,6 +634,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		if (Settings.UserChangelogEnabled.getValue()) {
 
 			if (!userChangeLogs.containsKey(uuid)) {
+
 				userChangeLogs.put(uuid, new StringBuilder());
 			}
 
@@ -618,6 +647,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private void appendUserChangelog(final String userUUID, final String changelog) {
 
 		if (Settings.UserChangelogEnabled.getValue()) {
+
 			// write user-centric changelog
 			getUserChangelogForUserId(userUUID).append(changelog).append("\n");
 		}
@@ -626,10 +656,12 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private void updateCache() {
 
 		if (uuid != null) {
+
 			AccessPathCache.invalidateForId(uuid);
 		}
 
 		if (relType != null) {
+
 			AccessPathCache.invalidateForRelType(relType.name());
 		}
 	}
@@ -656,6 +688,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private Object unwrap(final Object src) {
 
 		if (src instanceof GraphObject) {
+
 			return ((GraphObject)src).getUuid();
 		}
 
@@ -666,69 +699,83 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public int getStatus() {
+
 		return status;
 	}
 
 	@Override
 	public boolean isCreated() {
+
 		return (status & STATE_CREATED) == STATE_CREATED;
 	}
 
 	@Override
 	public boolean isModified() {
+
 		return (status & STATE_MODIFIED) == STATE_MODIFIED;
 	}
 
 	@Override
 	public boolean isDeleted() {
+
 		return (status & STATE_DELETED) == STATE_DELETED;
 	}
 
 	@Override
 	public GraphObject getGraphObject() {
+
 		return object;
 	}
 
 	@Override
 	public String getUuid() {
+
 		return uuid;
 	}
 
 	@Override
 	public PropertyMap getNewProperties() {
+
 		return newProperties;
 	}
 
 	@Override
 	public PropertyMap getModifiedProperties() {
+
 		return modifiedProperties;
 	}
 
 	@Override
 	public PropertyMap getRemovedProperties() {
+
 		return removedProperties;
 	}
 
 	public Map<String, Object> getRemovedRemoteProperties() {
+
 		return removedRemoteProperties;
 	}
 
 	public Map<String, Object> getAddedRemoteProperties() {
+
 		return addedRemoteProperties;
 	}
 
 	@Override
 	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException {
+
 		return PropertyMap.javaTypeToInputType(securityContext, object.getType(), modifiedProperties);
 	}
 
 	@Override
 	public boolean isNode() {
+
 		return isNode;
 	}
 
 	@Override
 	public RelationshipType getRelationshipType() {
+
 		return relType;
 	}
 }

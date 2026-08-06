@@ -31,16 +31,19 @@ import java.util.List;
 public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	public MailAddBccFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailAddBcc";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("address [, name ]");
 	}
 
@@ -59,6 +62,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -67,39 +71,37 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailAddBcc(address [, name])}"),
-			Usage.javaScript("Usage: ${{ $.mailAddBcc(address [, name]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailAddBcc(address [, name])}"), Usage.javaScript("Usage: ${{ $.mailAddBcc(address [, name]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds a `Bcc:` recipient to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("address", "address of the recipient"),
-				Parameter.optional("name", "name of the recipient")
-		);
+
+		return List.of(Parameter.mandatory("address", "address of the recipient"), Parameter.optional("name", "name of the recipient"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"can be called multiple times to add more recipients."
-		);
+
+		return List.of("can be called multiple times to add more recipients.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 						${{

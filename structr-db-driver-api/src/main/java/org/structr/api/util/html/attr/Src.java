@@ -27,6 +27,7 @@ import org.structr.api.util.html.Attr;
 public class Src extends Attr {
 
 	public Src(final String src) {
+
 		super("src", src);
 	}
 }

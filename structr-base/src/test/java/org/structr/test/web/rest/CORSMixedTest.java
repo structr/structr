@@ -31,7 +31,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class CORSMixedTest extends StructrUiTest {
 
-
     @Parameters("testDatabaseConnection")
     @BeforeClass(alwaysRun = true)
     @Override
@@ -113,6 +112,7 @@ public class CORSMixedTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -157,6 +157,7 @@ public class CORSMixedTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -203,6 +204,7 @@ public class CORSMixedTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -231,7 +233,6 @@ public class CORSMixedTest extends StructrUiTest {
                 .options("/_env");
     }
 
-
     @Test
     public void test06PreflightCORSRequestWithSettingsObjects() {
 
@@ -250,6 +251,7 @@ public class CORSMixedTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -297,6 +299,7 @@ public class CORSMixedTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -325,7 +328,6 @@ public class CORSMixedTest extends StructrUiTest {
             .when()
                 .options("/_env");
     }
-
 
     @Test
     public void test08NonCORSRequestWithConfig() {
@@ -410,9 +412,11 @@ public class CORSMixedTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
+
         RestAssured
 
             .given()
@@ -436,7 +440,6 @@ public class CORSMixedTest extends StructrUiTest {
             .when()
                 .options("/_env");
     }
-
 
     @Test
     public void test11PreflightCORSRequestWithConfig() {
@@ -462,6 +465,7 @@ public class CORSMixedTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }

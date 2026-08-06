@@ -27,21 +27,25 @@ public class ParentHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "parent";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the parent element of the current in a page rendering context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `parent` keyword allows you to access the parent of the HTML element that is currently rendering.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.html("""
 			<!DOCTYPE html>

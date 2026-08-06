@@ -68,10 +68,12 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 	}
 
 	protected TabCompletionResult getCompletion(final String command, final String token) {
+
 		return getCompletion(command, token, " ");
 	}
 
 	protected TabCompletionResult getCompletion(final String command, final String token, final String suffix) {
+
 		return new TabCompletionResult(command, command.substring(token.length()), suffix);
 	}
 
@@ -87,6 +89,7 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 	}
 
 	protected Map<String, Object> toMap(final String key, final Object value) {
+
 		return toMap(new HashMap<>(), key, value);
 	}
 
@@ -99,6 +102,7 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 		}
 
 		if (key != null && value != null) {
+
 			thisMap.put(key, value);
 		}
 
@@ -106,6 +110,7 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 	}
 
 	protected Set<String> getNodeTypes() {
+
 		return Traits.getAllTypes(t -> t.isNodeType());
 	}
 }

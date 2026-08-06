@@ -93,7 +93,9 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 	};
 
 	protected static void cleanupFlows() throws FrameworkException {
+
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx()) {
 
 			// Cleanup old flow data

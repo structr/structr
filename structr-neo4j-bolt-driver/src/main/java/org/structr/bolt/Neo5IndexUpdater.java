@@ -32,6 +32,7 @@ public class Neo5IndexUpdater extends IndexUpdater {
 
 	@Override
 	protected String getIndexInfoQuery() {
+
 		return "SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE (type = 'RANGE' OR type = 'TEXT' OR type = 'FULLTEXT') RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}";
 	}
 
@@ -50,6 +51,7 @@ public class Neo5IndexUpdater extends IndexUpdater {
 
 	@Override
 	protected String getIndexIdentifier(final ExistingIndexInfo config) {
+
 		return config.getIdentifier();
 	}
 

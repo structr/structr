@@ -111,6 +111,7 @@ public class CsvFunctionsTest extends StructrUiTest {
 				csvTestOne.setProperty(testOneTraits.key("index"), index+1);
 
 				if (index == 0) {
+
 					// set string array on test four
 					csvTestOne.setProperty(testOneTraits.key("stringArrayProperty"), new String[] { "one", "two", "three", "four" } );
 				}
@@ -118,6 +119,7 @@ public class CsvFunctionsTest extends StructrUiTest {
 				csvTestOne.setProperty(testOneTraits.key("intArrayProperty"), new Integer[] { index, index+1, index+2, index+3 } );
 
 				if (index == 2) {
+
 					// set string array on test four
 					csvTestOne.setProperty(testOneTraits.key("enumProperty"), "EnumValue2");
 				}

@@ -52,11 +52,13 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 
 	@Override
 	public String getChannelName() {
+
 		return Functions.cleanString(name);
 	}
 
 	@Override
 	public int getDimension() {
+
 		return 1;
 	}
 
@@ -86,6 +88,7 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 
 	@Override
 	public String getDataType(final ActionContext actionContext) throws FrameworkException {
+
 		return StructrTraits.FOLDER;
 	}
 
@@ -96,12 +99,15 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 		switch (key) {
 
 			case "name":
+
 				return name;
 
 			case "values":
+
 				return getResult(renderContext);
 
 			case "dataType":
+
 				return getDataType(renderContext);
 
 			case "selectedValue":

@@ -24,11 +24,13 @@ package org.structr.embedded;
 public class StringQuery extends AbstractNativeQuery<Boolean> {
 
 	public StringQuery(final String query) {
+
 		super(query);
 	}
 
 	@Override
 	Boolean execute(final EmbeddedTransaction tx) {
+
 		return tx.getBoolean(new SimpleCypherQuery(query, parameters));
 	}
 }

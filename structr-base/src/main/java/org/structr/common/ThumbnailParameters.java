@@ -35,14 +35,17 @@ public class ThumbnailParameters {
 	}
 
 	public int getMaxWidth() {
+
 		return maxWidth;
 	}
 
 	public int getMaxHeight() {
+
 		return maxHeight;
 	}
 
 	public boolean getCropToFit() {
+
 		return cropToFit;
 	}
 }

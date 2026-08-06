@@ -58,68 +58,82 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	@Override
 	public URI getId() {
+
 		return id;
 	}
 
 	public StructrTypeDefinitions getTypeDefinitionsObject() {
+
 		return typeDefinitions;
 	}
 
 	public Set<StructrTypeDefinition> getTypeDefinitions() {
+
 		return typeDefinitions.getTypes();
 	}
 
 	public List<Map<String, Object>> getUserDefinedFunctions() {
+
 		return userDefinedFunctions.serialize();
 	}
 
 	@Override
 	public JsonType getType(final String name) {
+
 		return typeDefinitions.getType(name, true);
 	}
 
 	@Override
 	public JsonType getType(final String name, final boolean create) {
+
 		return typeDefinitions.getType(name, create);
 	}
 
 	@Override
 	public String getTitle() {
+
 		return title;
 	}
 
 	@Override
 	public void setTitle(final String title) {
+
 		this.title = title;
 	}
 
 	@Override
 	public String getDescription() {
+
 		return description;
 	}
 
 	@Override
 	public void setDescription(final String description) {
+
 		this.description = description;
 	}
 
 	@Override
 	public JsonObjectType addType(final String name) {
+
 		return typeDefinitions.addType(name);
 	}
 
 	@Override
 	public Iterable<JsonType> getTypes() {
+
 		return (Iterable)typeDefinitions.getTypes();
 	}
 
 	@Override
 	public void removeType(final String name) {
+
 		typeDefinitions.removeType(name);
 	}
 
 	@Override
 	public String toString() {
+
 		return toString(false);
 	}
 
@@ -144,6 +158,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	public StructrDefinition resolveJsonPointerKey(final String key) {
 
 		if ("definitions".equals(key)) {
+
 			return typeDefinitions;
 		}
 
@@ -160,6 +175,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			if (!rel.isAbsolute()) {
 
 				final String relString = "#/" + rel.toString();
+
 				return resolveJsonPointer(relString);
 			}
 		}
@@ -221,10 +237,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		for (final Map<String, Object> method : methods) {
 
 			final Object source = method.get(JsonSchema.KEY_SOURCE);
-
 			if (source instanceof String sourceString) {
 
 				if (sourceString.startsWith("./")) {
+
 					return true;
 				}
 			}
@@ -251,6 +267,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 					final String writeFn = functionProperty.getWriteFunction();
 
 					if (readFn != null && readFn.startsWith("./") || writeFn != null && writeFn.startsWith("./")) {
+
 						return true;
 					}
 				}
@@ -293,8 +310,8 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 			final String title = "Deprecation warning";
 			final String text = "This schema snapshot was created with an older version of Structr. More recent versions support global schema methods. Please re-create the snapshot with the latest version to avoid compatibility issues.";
-
 			final Map<String, Object> deprecationBroadcastData = new TreeMap();
+
 			deprecationBroadcastData.put("type", "WARNING");
 			deprecationBroadcastData.put("title", title);
 			deprecationBroadcastData.put("text", text);
@@ -311,11 +328,13 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	void deserialize(final App app) throws FrameworkException {
+
 		typeDefinitions.deserialize(app);
 		userDefinedFunctions.deserialize(app);
 	}
 
 	void clearGlobalMethods() {
+
 		userDefinedFunctions.clear();
 	}
 
@@ -329,7 +348,6 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			for (int i = 0; i < parts.length; i++) {
 
 				final String key = parts[i].trim();
-
 				if (StringUtils.isNotBlank(key)) {
 
 					if (StringUtils.isNumeric(key)) {
@@ -374,10 +392,12 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		}
 
 		// invalid JSON pointers return null
+
 		return null;
 	}
 
 	void addType(final StructrTypeDefinition type) {
+
 		typeDefinitions.addType(type);
 	}
 
@@ -388,10 +408,12 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	Set<StructrRelationshipTypeDefinition> getRelationships() {
+
 		return typeDefinitions.getRelationships();
 	}
 
 	Set<String> getExistingPropertyNames() {
+
 		return existingPropertyNames;
 	}
 
@@ -408,6 +430,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 				id = new URI(idValue.toString());
 
 			} catch (URISyntaxException ex) {
+
 				logger.warn("", ex);
 			}
 
@@ -432,6 +455,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			id = new URI("https://structr.org/schema/" + app.getInstanceId() + "/#");
 
 		} catch (URISyntaxException ex) {
+
 			logger.warn("", ex);
 		}
 
@@ -439,6 +463,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	static JsonSchema initializeFromDatabase(final App app) throws FrameworkException {
+
 		return initializeFromDatabase(app, null);
 	}
 
@@ -462,7 +487,6 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			// when user selected types for export he can not have selected global schema methods ==> delete them
 			schema.clearGlobalMethods();
 		}
-
 
 		return schema;
 

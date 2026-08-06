@@ -33,12 +33,15 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "disableNotifications";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,24 +55,25 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${disableNotifications()}"),
-			Usage.javaScript("Usage: ${{ $.disableNotifications() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${disableNotifications()}"), Usage.javaScript("Usage: ${{ $.disableNotifications() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Disables the Websocket broadcast notifications in the Structr Backend UI for the current transaction.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function can be used to temporarily disable the broadcasting of large modification operations, which greatly reduces the processing time. If you experience very slow (i.e. more than 10 seconds) object creation, modification or deletion, try to disable notifications before executing the operation. See also `enableNotifications()`.";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

@@ -55,6 +55,7 @@ public class ContentScriptOutputTest extends StructrUiTest {
 
 	/** puts the body into the single Content node of a simple page and returns the rendered html */
 	private String render(final String content, final String contentType) {
+
 		return render("page1", content, contentType);
 	}
 
@@ -68,6 +69,7 @@ public class ContentScriptOutputTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			if (app.nodeQuery(StructrTraits.USER).name(ADMIN_USERNAME).getFirst() == null) {
+
 				createAdminUser();
 			}
 
@@ -138,8 +140,7 @@ public class ContentScriptOutputTest extends StructrUiTest {
 		   live HTML, while the identical $.this.name as the script's value is escaped. */
 		final String html = render("${{ $.print('<b>x</b>&y'); }}", "text/plain");
 
-		assertTrue("printed output must be escaped in a text/plain node: " + snippet(html),
-			html.contains("&lt;b&gt;x&lt;/b&gt;&amp;y"));
+		assertTrue("printed output must be escaped in a text/plain node: " + snippet(html), html.contains("&lt;b&gt;x&lt;/b&gt;&amp;y"));
 		assertTrue("printed markup must not reach the page as markup: " + snippet(html), !html.contains("<b>x</b>"));
 	}
 
@@ -149,8 +150,7 @@ public class ContentScriptOutputTest extends StructrUiTest {
 		// FAILS today: the tag arrives verbatim, so printed user data is an injection point
 		final String html = render("${{ $.print('<script>window.__probe=1</script>'); }}", "text/plain");
 
-		assertTrue("a printed script tag must not survive into the page: " + snippet(html),
-			!html.contains("<script>window.__probe=1</script>"));
+		assertTrue("a printed script tag must not survive into the page: " + snippet(html), !html.contains("<script>window.__probe=1</script>"));
 		assertTrue("it must be escaped instead: " + snippet(html), html.contains("&lt;script&gt;"));
 	}
 
@@ -171,7 +171,6 @@ public class ContentScriptOutputTest extends StructrUiTest {
 		   way round - still fails something. */
 		final String printed  = render("printed-page",  "${{ $.print('<i>a</i>\\nb'); }}", "text/plain");
 		final String returned = render("returned-page", "${{ '<i>a</i>\\nb'; }}", "text/plain");
-
 		final String printedBody  = between(printed);
 		final String returnedBody = between(returned);
 
@@ -205,6 +204,7 @@ public class ContentScriptOutputTest extends StructrUiTest {
 	}
 
 	private static String snippet(final String html) {
+
 		return "\n---\n" + between(html) + "\n---";
 	}
 }

@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	public static final String UNSUPPORTED_TYPE_PARAMETER_NODE       = "%s(): Parameter 'node' is not a node. Input: %s";
@@ -48,11 +47,13 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "getRelationshipTypes";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("node, [ lookupType = 'existing' [, direction = 'both' ]]");
 	}
 
@@ -77,39 +78,48 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 						final PropertyKey<String> relatedTypeKey      = new StringProperty("relatedType");
 						final PropertyKey<String> classNameKey        = new StringProperty("className");
 						final PropertyKey<String> relationshipTypeKey = new StringProperty("relationshipType");
-
 						final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), PropertyView.All);
 
 						switch (direction) {
 
 							case "incoming":
+
 								for (final GraphObjectMap gom : propertyList) {
 
 									if (gom.containsKey(relatedTypeKey) && gom.get(classNameKey).startsWith("org.structr.core.property.StartNode")) {
+
 										resultSet.add(gom.get(relationshipTypeKey));
 									}
 								}
+
 								break;
 
 							case "outgoing":
+
 								for (final GraphObjectMap gom : propertyList) {
 
 									if (gom.containsKey(relatedTypeKey) && gom.get(classNameKey).startsWith("org.structr.core.property.EndNode")) {
+
 										resultSet.add(gom.get(relationshipTypeKey));
 									}
 								}
+
 								break;
 
 							case "both":
+
 								for (final GraphObjectMap gom : propertyList) {
 
 									if (gom.containsKey(relatedTypeKey) && (gom.get(classNameKey).startsWith("org.structr.core.property.StartNode") || gom.get(classNameKey).startsWith("org.structr.core.property.EndNode"))) {
+
 										resultSet.add(gom.get(relationshipTypeKey));
 									}
 								}
+
 								break;
 
 							default:
+
 								return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_DIRECTION.formatted(getName(), direction));
 						}
 
@@ -120,27 +130,34 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 						switch (direction) {
 							case "incoming":
+
 								for (final RelationshipInterface rel : node.getIncomingRelationships()) {
 
 									resultSet.add(rel.getRelType().name());
 								}
+
 								break;
 
 							case "outgoing":
+
 								for (final RelationshipInterface rel : node.getOutgoingRelationships()) {
 
 									resultSet.add(rel.getRelType().name());
 								}
+
 								break;
 
 							case "both":
+
 								for (final RelationshipInterface rel : node.getRelationships()) {
 
 									resultSet.add(rel.getRelType().name());
 								}
+
 								break;
 
 							default:
+
 								return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_DIRECTION.formatted(getName(), direction));
 						}
 
@@ -148,6 +165,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 					}
 
 					default:
+
 						return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_LOOKUPTYPE.formatted(getName(), lookupType));
 				}
 
@@ -163,6 +181,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -171,6 +190,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getRelationshipTypes(node, [ lookupType [, direction ]])}. Example: ${getRelationshipTypes(me, 'existing', 'both')}"),
 			Usage.javaScript("Usage: ${{$.getRelationshipTypes(node, [ lookupType [, direction ]])}}. Example: ${{$.getRelationshipTypes(me, 'existing', 'both')}}")
@@ -179,16 +199,19 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the list of available relationship types form and/or to this node. Either potentially available (schema) or actually available (database).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${getRelationshipTypes(me, 'schema')}
@@ -221,6 +244,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the first parameter is not a node, a catchable error is produced (where applicable) and/or null will be returned.",
 				"If invalid values are provided for the parameters `lookupType` or `direction`, a catchable error is produced (where applicable) and/or null will be returned."
@@ -229,6 +253,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Schema;
 	}
 }

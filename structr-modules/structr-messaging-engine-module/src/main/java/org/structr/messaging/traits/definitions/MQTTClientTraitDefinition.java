@@ -62,6 +62,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PASSWORD_PROPERTY             = "password";
 
 	public MQTTClientTraitDefinition() {
+
 		super(StructrTraits.MQTT_CLIENT);
 	}
 
@@ -70,8 +71,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -80,8 +80,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -104,8 +103,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -122,6 +120,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 						MQTTClientConnection connection = MQTTContext.getClientForId(client.getUuid());
 						boolean enabled = client.getIsEnabled();
+
 						if (!enabled) {
 
 							if (connection != null && connection.isConnected()) {
@@ -140,6 +139,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 							}
 
 							connection = MQTTContext.getClientForId(client.getUuid());
+
 							if (connection != null) {
 
 								if (connection.isConnected()) {
@@ -156,8 +156,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -183,9 +182,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			MessageClientOperations.class,
-			new MessageClientOperations() {
-
+			MessageClientOperations.class, new MessageClientOperations() {
 
 				@Override
 				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
@@ -244,9 +241,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			MQTTClient.class, (traits, node) -> new MQTTClientTraitWrapper(traits, node)
-		);
+		return Map.of(MQTTClient.class, (traits, node) -> new MQTTClientTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -260,15 +255,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> usernameProperty             = new StringProperty(USERNAME_PROPERTY);
 		final Property<String> passwordProperty             = new StringProperty(PASSWORD_PROPERTY);
 
-		return newSet(
-			mainBrokerURLProperty,
-			fallbackBrokerURLsProperty,
-			qosProperty,
-			isEnabledProperty,
-			isConnectedProperty,
-			usernameProperty,
-			passwordProperty
-		);
+		return newSet(mainBrokerURLProperty, fallbackBrokerURLsProperty, qosProperty, isEnabledProperty, isConnectedProperty, usernameProperty, passwordProperty);
 	}
 
 	@Override
@@ -288,6 +275,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

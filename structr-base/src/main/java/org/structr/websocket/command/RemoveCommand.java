@@ -57,7 +57,6 @@ public class RemoveCommand extends AbstractCommand {
 		if (id != null) {
 
 			final NodeInterface node = getNode(id);
-
 			if (node != null) {
 
 				if (node.is(StructrTraits.DOM_NODE)) {

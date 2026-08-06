@@ -27,11 +27,13 @@ import org.structr.core.property.PropertyKey;
 public class ArraySearchAttribute<T> extends PropertySearchAttribute<T> {
 
 	public ArraySearchAttribute(final PropertyKey<T> key, final T value, final boolean isExactMatch) {
+
 		super(key, value, isExactMatch);
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return ArrayQuery.class;
 	}
 }

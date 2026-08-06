@@ -30,46 +30,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class XMPPClientRequest extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public XMPPClientRequest() {
+
 		super(StructrTraits.XMPP_CLIENT_REQUEST);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.XMPP_CLIENT;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.XMPP_REQUEST;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "PENDING_REQUEST";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return true;
 	}
 }

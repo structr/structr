@@ -50,35 +50,42 @@ public class MemoryTransaction implements Transaction<Long> {
 	private boolean success                                                    = false;
 
 	public MemoryTransaction(final MemoryDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public void failure() {
+
 		failureOverride = true;
 	}
 
 	@Override
 	public void success() {
+
 		success = true;
 	}
 
 	@Override
 	public long getTransactionId() {
+
 		return transactionId;
 	}
 
 	@Override
 	public boolean isSuccessful() {
+
 		return success;
 	}
 	@Override
 	public boolean isRolledBack() {
+
 		return false;
 	}
 
 	@Override
 	public void setIsPing(final boolean isPing) {
+
 		this.isPing = isPing;
 	}
 
@@ -110,45 +117,54 @@ public class MemoryTransaction implements Transaction<Long> {
 
 	@Override
 	public Node<Long> getNode(final Identity<Long> id) {
+
 		return getNodeById((MemoryIdentity) id);
 	}
 
 	@Override
 	public Relationship<Long> getRelationship(final Identity<Long> id) {
+
 		return getRelationshipById((MemoryIdentity)id);
 	}
 
 	@Override
 	public boolean isRelationshipDeleted(final Long id) {
+
 		return deletedRelationships.containsKey(id);
 	}
 
 	@Override
 	public void setNodeIsCreated(final Long id) {
+
 		nodesCreated.add(id);
 	}
 
 	@Override
 	public boolean isNodeCreated(final Long id) {
+
 		return nodesCreated.contains(id);
 	}
 
 	@Override
 	public boolean isNodeDeleted(final Long id) {
+
 		return deletedNodes.contains(id);
 	}
 
 	public void create(final MemoryNode newNode) {
+
 		createdNodes.add(newNode);
 
 		setNodeIsCreated(newNode.getIdentity().getId());
 	}
 
 	public void create(final MemoryRelationship newRelationship) {
+
 		createdRelationships.add(newRelationship);
 	}
 
 	public void modify(final MemoryEntity entity) {
+
 		modifiedEntities.add(entity);
 	}
 
@@ -175,6 +191,7 @@ public class MemoryTransaction implements Transaction<Long> {
 		sources.add(db.getNodes(filter));
 
 		// return union of new and existing nodes, filtered for deleted nodes
+
 		return Iterables.filter(n -> exists(n.getIdentity()) && !deletedNodes.contains(n.getIdentity()), Iterables.flatten(sources));
 	}
 
@@ -186,6 +203,7 @@ public class MemoryTransaction implements Transaction<Long> {
 		sources.add(db.getRelationships(filter));
 
 		// return union of new and existing nodes
+
 		return Iterables.filter(r -> exists(r.getIdentity()) && !deletedRelationships.containsKey(r.getIdentity()), Iterables.flatten(sources));
 	}
 
@@ -198,6 +216,7 @@ public class MemoryTransaction implements Transaction<Long> {
 		}
 
 		candidate = db.getNodeFromRepository(id);
+
 		if (candidate != null) {
 
 			return candidate;
@@ -215,6 +234,7 @@ public class MemoryTransaction implements Transaction<Long> {
 		}
 
 		candidate = db.getRelationshipFromRepository(id);
+
 		if (candidate != null) {
 
 			return candidate;
@@ -254,6 +274,7 @@ public class MemoryTransaction implements Transaction<Long> {
 	}
 
 	public boolean isPing() {
+
 		return isPing;
 	}
 }

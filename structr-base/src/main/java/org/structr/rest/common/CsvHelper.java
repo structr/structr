@@ -42,6 +42,7 @@ public class CsvHelper {
 	private static final Logger logger = LoggerFactory.getLogger(CsvHelper.class);
 
 	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final String type, final Character fieldSeparator, final Character quoteCharacter, final String range) throws FrameworkException, IOException {
+
 		return cleanAndParseCSV(securityContext, input, type, fieldSeparator, quoteCharacter, range, null, false, true);
 	}
 
@@ -60,16 +61,15 @@ public class CsvHelper {
 		} else {
 
 			reader = new CSVReaderBuilder(input)
-				.withCSVParser(
-					new CSVParserBuilder()
+				.withCSVParser(new CSVParserBuilder()
 					.withSeparator(fieldSeparator)
 						.withQuoteChar(quoteCharacter)
 						.withStrictQuotes(strictQuotes)
-					.build()
-				).build();
+					.build()).build();
 		}
 
 		final String[] propertyNames;
+
 		try {
 
 			propertyNames = reader.readNext();
@@ -111,13 +111,11 @@ public class CsvHelper {
 		} else {
 
 			reader = new CSVReaderBuilder(input)
-				.withCSVParser(
-					new CSVParserBuilder()
+				.withCSVParser(new CSVParserBuilder()
 						.withSeparator(fieldSeparator)
 						.withQuoteChar(quoteCharacter)
 						.withStrictQuotes(strictQuotes)
-						.build()
-				).build();
+						.build()).build();
 		}
 
 		final String[] propertyNames;
@@ -159,7 +157,6 @@ public class CsvHelper {
 		for (int i=0; i<len; i++) {
 
 			final String key = propertyNames[i];
-
 			if (StringUtils.isBlank(key)) {
 
 				final String message = "Property name in header is empty  - maybe a problem with the field quoting?";
@@ -194,6 +191,7 @@ public class CsvHelper {
 			if (value.charAt(0) != '[' || value.charAt(value.length() - 1) != ']') {
 
 				logger.warn("Missing opening/closing brackets for array {}: {} ", propertyName, value);
+
 				return value;
 
 			} else {
@@ -203,6 +201,7 @@ public class CsvHelper {
 			}
 
 		} else {
+
 			return "";
 		}
 	}
@@ -233,6 +232,7 @@ public class CsvHelper {
 			// (calling hasNext() more than once may not alter the
 			// result of the next next() call!)
 			if (fields != null) {
+
 				return true;
 			}
 
@@ -243,6 +243,7 @@ public class CsvHelper {
 				return fields != null && fields.length > 0;
 
 			} catch (Throwable t) {
+
 				logger.warn("Error reading CSV data", t);
 			}
 
@@ -253,11 +254,13 @@ public class CsvHelper {
 		public JsonInput next() {
 
 			try {
+
 				final Traits traits       = Traits.of(type);
 				final JsonInput jsonInput = new JsonInput();
 				final int len             = fields.length;
 
 				if (fields.length > propertyNames.length) {
+
 					throw new FrameworkException(422, "Line contains more fields than columns - maybe a problem with the field quoting?");
 				}
 
@@ -268,6 +271,7 @@ public class CsvHelper {
 
 					// map key name to its transformed name
 					if (propertyMapping != null && propertyMapping.containsKey(key)) {
+
 						targetKey = propertyMapping.get(key);
 					}
 
@@ -288,6 +292,7 @@ public class CsvHelper {
 
 				final String lineInfo                 = Arrays.toString(fields);
 				final String atMostFirst100Characters = lineInfo.substring(0, Math.min(100, lineInfo.length()));
+
 				logger.warn("Exception in CSV line: {}", atMostFirst100Characters);
 				logger.warn("", t);
 
@@ -311,6 +316,7 @@ public class CsvHelper {
 
 		@Override
 		public void remove() {
+
 			throw new UnsupportedOperationException("Removal not supported.");
 		}
 	}
@@ -338,6 +344,7 @@ public class CsvHelper {
 			// (calling hasNext() more than once may not alter the
 			// result of the next next() call!)
 			if (fields != null) {
+
 				return true;
 			}
 
@@ -348,6 +355,7 @@ public class CsvHelper {
 				return fields != null && fields.length > 0;
 
 			} catch (Throwable t) {
+
 				logger.warn("Error reading CSV data", t);
 			}
 
@@ -358,6 +366,7 @@ public class CsvHelper {
 		public JsonInput next() {
 
 			try {
+
 				final JsonInput jsonInput = new JsonInput();
 				final int len             = fields.length;
 
@@ -368,6 +377,7 @@ public class CsvHelper {
 
 					// map key name to its transformed name
 					if (propertyMapping != null && propertyMapping.containsKey(key)) {
+
 						targetKey = propertyMapping.get(key);
 					}
 
@@ -401,6 +411,7 @@ public class CsvHelper {
 
 		@Override
 		public void remove() {
+
 			throw new UnsupportedOperationException("Removal not supported.");
 		}
 	}

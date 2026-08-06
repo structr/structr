@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_NestedLanes" targetNamespace="http://test/lanes">
+  <bpmn:process id="Process_NestedLanes" name="Nested lane sets" isExecutable="true">
+
+    <bpmn:laneSet id="LaneSet_Top">
+      <bpmn:lane id="Lane_Top" name="Top Lane">
+        <bpmn:flowNodeRef>Task_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_1">
+      <bpmn:outgoing>F1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:task id="Task_1" name="Prepare">
+      <bpmn:incoming>F1</bpmn:incoming>
+      <bpmn:outgoing>F2</bpmn:outgoing>
+    </bpmn:task>
+
+    <bpmn:subProcess id="Sub_1" name="Sub">
+      <bpmn:laneSet id="LaneSet_Sub">
+        <bpmn:lane id="Lane_Sub" name="Sub Lane">
+          <bpmn:flowNodeRef>Inner_Task</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+
+      <bpmn:startEvent id="Inner_Start">
+        <bpmn:outgoing>IF1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:task id="Inner_Task" name="Charge">
+        <bpmn:incoming>IF1</bpmn:incoming>
+        <bpmn:outgoing>IF2</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:endEvent id="Inner_End">
+        <bpmn:incoming>IF2</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="IF1" sourceRef="Inner_Start" targetRef="Inner_Task"/>
+      <bpmn:sequenceFlow id="IF2" sourceRef="Inner_Task" targetRef="Inner_End"/>
+
+      <bpmn:incoming>F2</bpmn:incoming>
+      <bpmn:outgoing>F3</bpmn:outgoing>
+    </bpmn:subProcess>
+
+    <bpmn:endEvent id="End_1">
+      <bpmn:incoming>F3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F1" sourceRef="Start_1" targetRef="Task_1"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="Task_1" targetRef="Sub_1"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="Sub_1" targetRef="End_1"/>
+
+  </bpmn:process>
+</bpmn:definitions>

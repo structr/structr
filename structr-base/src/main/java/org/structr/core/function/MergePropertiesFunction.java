@@ -35,11 +35,13 @@ public class MergePropertiesFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "mergeProperties";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source, target, keys");
 	}
 
@@ -86,6 +88,7 @@ public class MergePropertiesFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -94,19 +97,19 @@ public class MergePropertiesFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${mergeProperties(source, target , mergeKeys...)}"),
-				Usage.javaScript("Usage: ${{ $.mergeProperties(source, target , mergeKeys...) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mergeProperties(source, target , mergeKeys...)}"), Usage.javaScript("Usage: ${{ $.mergeProperties(source, target , mergeKeys...) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Copies the values for the given list of property keys from the source entity to the target entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
@@ -123,16 +126,15 @@ public class MergePropertiesFunction extends CoreFunction {
 		);
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${mergeProperties(this, parent, \"eMail\")}")
-		);
+
+		return List.of(Example.structrScript("${mergeProperties(this, parent, \"eMail\")}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

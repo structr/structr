@@ -23,7 +23,6 @@ import org.structr.api.graph.Identity;
 
 import java.util.Set;
 
-
 public interface GraphQuery extends QueryPredicate {
 
 	Set<Object> getValues();
@@ -34,6 +33,7 @@ public interface GraphQuery extends QueryPredicate {
 	Identity getIdentity();
 
 	default boolean isAny() {
+
 		return false;
 	}
 }

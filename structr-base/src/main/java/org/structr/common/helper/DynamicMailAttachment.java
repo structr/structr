@@ -27,10 +27,12 @@ public class DynamicMailAttachment extends EmailAttachment {
 	private DataSource ds;
 
 	public void setDataSource(DataSource ds) {
+
 		this.ds = ds;
 	}
 
 	public DataSource getDataSource() {
+
 		return this.ds;
 	}
 }

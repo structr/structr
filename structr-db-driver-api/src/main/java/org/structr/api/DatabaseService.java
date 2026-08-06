@@ -70,6 +70,7 @@ public interface DatabaseService<IDType> {
 		}
 
 		// transition fallback: driver without a service provider declaration
+
 		return (DatabaseService) Class.forName(driverClassName).getDeclaredConstructor().newInstance();
 	}
 

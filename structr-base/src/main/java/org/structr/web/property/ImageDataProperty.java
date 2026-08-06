@@ -42,11 +42,13 @@ public class ImageDataProperty<T> extends StringProperty {
 	private KeyAndClass keyAndClass = null;
 
 	public ImageDataProperty(String name) {
+
 		super(name);
 		this.unvalidated = true;
 	}
 
 	public ImageDataProperty(String name, KeyAndClass keyAndClass) {
+
 		super(name);
 		this.unvalidated = true;
 		this.keyAndClass = keyAndClass;
@@ -54,21 +56,25 @@ public class ImageDataProperty<T> extends StringProperty {
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return new ImageConverter(securityContext, entity, keyAndClass);
 	}
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 }

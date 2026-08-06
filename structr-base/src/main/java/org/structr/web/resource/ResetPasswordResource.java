@@ -33,11 +33,13 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class ResetPasswordResource extends ExactMatchEndpoint {
 
 	public ResetPasswordResource() {
+
 		super(RESTParameter.forStaticString("reset-password", true, "_resetPassword"));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new ResetPasswordResourceHandler(call);
 	}
 }

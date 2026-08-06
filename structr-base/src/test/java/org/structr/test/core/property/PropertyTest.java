@@ -93,6 +93,7 @@ public class PropertyTest extends StructrTest {
 	public void testSimpleStringArraySearchOnNode() {
 
 		try {
+
 			final PropertyMap properties    = new PropertyMap();
 			final PropertyKey<String[]> key = Traits.of("TestFour").key("stringArrayProperty");
 
@@ -104,7 +105,9 @@ public class PropertyTest extends StructrTest {
 			properties.put(key, arr1);
 
 			NodeInterface testEntity = null;
+
 			try (final Tx tx = app.tx()) {
+
 				testEntity = createTestNode("TestFour", properties);
 				tx.success();
 			}
@@ -201,7 +204,6 @@ public class PropertyTest extends StructrTest {
 	public void testBooleanProperty() {
 
 		try {
-
 
 			final PropertyKey<Boolean> key = Traits.of("TestFour").key("booleanProperty");
 			final NodeInterface testEntity = createTestNode("TestFour");
@@ -342,7 +344,6 @@ public class PropertyTest extends StructrTest {
 		Iterable<NodeInterface> testSixs        = null;
 		Iterable<NodeInterface> testSixs2       = null;
 		int index                         = 0;
-
 		List<Integer> index1              = new LinkedList<>();
 		List<Integer> index2              = new LinkedList<>();
 
@@ -352,6 +353,7 @@ public class PropertyTest extends StructrTest {
 			testSixs       = createTestNodes("TestSix", 20);
 
 			for (final NodeInterface testSix : testSixs) {
+
 				int i = index++;
 				testSix.setProperty(Traits.of("TestSix").key("index"), i);
 				System.out.print(i + ", ");
@@ -371,6 +373,7 @@ public class PropertyTest extends StructrTest {
 			testSixs2 = testOne.getProperty(Traits.of("TestOne").key("manyToManyTestSixs"));
 
 			for (final NodeInterface testSix : testSixs2) {
+
 				int i = testSix.getProperty(Traits.of("TestSix").key("index"));
 				index2.add(i);
 			}
@@ -691,8 +694,8 @@ public class PropertyTest extends StructrTest {
 			// store double in the test entitiy
 			final Double value = 3.141592653589793238;
 
-
 			try (final Tx tx = app.tx()) {
+
 				instance.setProperty(securityContext, testEntity, value);
 				tx.success();
 			}
@@ -937,7 +940,6 @@ public class PropertyTest extends StructrTest {
 
 				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, 123455.1, 123457.6).getAsList();
 
-
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 
@@ -1148,6 +1150,7 @@ public class PropertyTest extends StructrTest {
 
 		String expResult = "object";
 		String result = Traits.of("TestSix").key("oneToOneTestThree").typeName();
+
 		assertEquals(expResult, result);
 	}
 
@@ -1159,6 +1162,7 @@ public class PropertyTest extends StructrTest {
 
 		PropertyConverter expResult = null;
 		PropertyConverter result = Traits.of("TestSix").key("oneToOneTestThree").databaseConverter(securityContext, null);
+
 		assertEquals(expResult, result);
 	}
 
@@ -1327,7 +1331,6 @@ public class PropertyTest extends StructrTest {
 	// ----- integer property tests -----
 	@Test
 	public void testIntProperty() {
-
 
 		try {
 
@@ -1978,7 +1981,6 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface testEntity = app.getNodeById("TestFive", id);
@@ -2160,14 +2162,11 @@ public class PropertyTest extends StructrTest {
 
 			final Traits traits = Traits.of("Test");
 
-			assertEquals("FunctionProperty with type hint Int must convert bounds into its value type",
-				Integer.valueOf(0), convertBound(traits.key("countInt"), 0.0));
+			assertEquals("FunctionProperty with type hint Int must convert bounds into its value type", Integer.valueOf(0), convertBound(traits.key("countInt"), 0.0));
 
-			assertEquals("FunctionProperty with type hint Long must convert bounds into its value type",
-				Long.valueOf(0L), convertBound(traits.key("countLong"), 0.0));
+			assertEquals("FunctionProperty with type hint Long must convert bounds into its value type", Long.valueOf(0L), convertBound(traits.key("countLong"), 0.0));
 
-			assertEquals("FunctionProperty with type hint Double must convert bounds into its value type",
-				Double.valueOf(0.0), convertBound(traits.key("countDouble"), 0.0));
+			assertEquals("FunctionProperty with type hint Double must convert bounds into its value type", Double.valueOf(0.0), convertBound(traits.key("countDouble"), 0.0));
 
 			tx.success();
 
@@ -2295,9 +2294,7 @@ public class PropertyTest extends StructrTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			message  = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Message")
-			);
+			message  = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Message"));
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "messageId"),
@@ -2389,7 +2386,6 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
-
 
 	/**
 	 * This test creates a new typeProperty "Message" with different Notion properties.
@@ -2539,12 +2535,14 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface node : app.nodeQuery(projectType).getAsList()) {
+
 				app.delete(node);
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}

@@ -40,16 +40,19 @@ import java.util.List;
 public class StringPropertyGenerator extends PropertyGenerator<String> {
 
 	public StringPropertyGenerator(final ErrorBuffer errorBuffer, final String entity, final PropertyDefinition params) {
+
 		super(errorBuffer, entity, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return String.class.getName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.String;
 	}
 
@@ -60,7 +63,9 @@ public class StringPropertyGenerator extends PropertyGenerator<String> {
 		final String expression = source.getFormat();
 
 		if ("[]".equals(expression)) {
+
 			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), name, expression, "invalid_validation_expression", "Empty validation expression."));
+
 			return null;
 		}
 
@@ -87,6 +92,7 @@ public class StringPropertyGenerator extends PropertyGenerator<String> {
 
 	@Override
 	public String getDefaultValue() {
+
 		return source.getDefaultValue();
 	}
 }

@@ -54,7 +54,6 @@ public class QueryCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
 		final String rawType                  = webSocketData.getNodeDataStringValue("type");
 		final String andProperties            = webSocketData.getNodeDataStringValue("properties");
 		final String notProperties            = webSocketData.getNodeDataStringValue("notProperties");
@@ -63,18 +62,20 @@ public class QueryCommand extends AbstractCommand {
 		final Traits type                     = Traits.of(rawType);
 
 		if (type == null) {
+
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
+
 			return;
 		}
 
 		if (customView != null) {
+
 			securityContext.setCustomView(StringUtils.split(customView, ","));
 		}
 
 		final String sortKey           = webSocketData.getSortKey();
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
-
 		final QueryGroup query = StructrApp.getInstance(securityContext)
 			.nodeQuery()
 			.page(page)
@@ -97,22 +98,21 @@ public class QueryCommand extends AbstractCommand {
 			try {
 
 				final Gson gson                          = new GsonBuilder().create();
-
 				final Map<String, Object> andQuerySource = gson.fromJson(andProperties, new TypeToken<Map<String, Object>>() {}.getType());
 				final PropertyMap andQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, rawType, andQuerySource);
-
 				final Map<String, Object> notQuerySource = gson.fromJson(notProperties, new TypeToken<Map<String, Object>>() {}.getType());
 				final PropertyMap notQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, rawType, notQuerySource);
-
 				final boolean inexactQuery               = exact != null && exact == false;
 
 				// add properties to query
 				for (final Entry<PropertyKey, Object> entry : andQueryMap.entrySet()) {
+
 					query.key(entry.getKey(), entry.getValue(), !inexactQuery);
 				}
 
 				// "not" properties
 				for (final Entry<PropertyKey, Object> entry : notQueryMap.entrySet()) {
+
 					query.not().key(entry.getKey(), entry.getValue(), !inexactQuery);
 				}
 
@@ -142,6 +142,7 @@ public class QueryCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "QUERY";
 	}
 }

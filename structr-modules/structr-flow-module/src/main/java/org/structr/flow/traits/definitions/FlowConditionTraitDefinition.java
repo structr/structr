@@ -38,17 +38,15 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CONDITIONS_PROPERTY = "conditions";
 	public static final String LOGIC_TARGETS_PROPERTY = "logicTargets";
 
-
 	public FlowConditionTraitDefinition() {
+
 		super(StructrTraits.FLOW_CONDITION);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowCondition.class, (traits, node) -> new FlowCondition(traits, node)
-		);
+		return Map.of(FlowCondition.class, (traits, node) -> new FlowCondition(traits, node));
 	}
 
 	@Override
@@ -57,30 +55,20 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<Iterable<NodeInterface>> conditions    = new StartNodes(traitsInstance, CONDITIONS_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
 		final PropertyKey<Iterable<NodeInterface>> logicTargets  = new EndNodes(traitsInstance, LOGIC_TARGETS_PROPERTY, StructrTraits.FLOW_CONDITION_BASE_NODE);
 
-		return newSet(
-			conditions,
-			logicTargets
-		);
+		return newSet(conditions, logicTargets);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				CONDITIONS_PROPERTY, LOGIC_TARGETS_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(CONDITIONS_PROPERTY, LOGIC_TARGETS_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				CONDITIONS_PROPERTY, LOGIC_TARGETS_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(CONDITIONS_PROPERTY, LOGIC_TARGETS_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

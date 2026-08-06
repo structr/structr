@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  *
  */
@@ -72,6 +71,7 @@ class PathWrapper implements Path {
 
 		@Override
 		public boolean hasNext() {
+
 			return it.hasNext();
 		}
 
@@ -79,12 +79,13 @@ class PathWrapper implements Path {
 		public PropertyContainer next() {
 
 			final Entity next = it.next();
-
 			if (next instanceof org.neo4j.graphdb.Node node) {
+
 				return tx.getNodeWrapper(node);
 			}
 
 			if (next instanceof org.neo4j.graphdb.Relationship relationship) {
+
 				return tx.getRelationshipWrapper(relationship);
 			}
 
@@ -93,6 +94,7 @@ class PathWrapper implements Path {
 
 		@Override
 		public void remove() {
+
 			throw new UnsupportedOperationException("Removal not supported.");
 		}
 	}

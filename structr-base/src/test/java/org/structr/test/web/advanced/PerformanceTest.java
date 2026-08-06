@@ -225,8 +225,6 @@ public class PerformanceTest extends StructrUiTest {
 			}
 
 			long t1 = System.nanoTime();
-
-
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			double time                 = (t1 - t0) / 1000000000.0;
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
@@ -275,6 +273,7 @@ public class PerformanceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -287,10 +286,7 @@ public class PerformanceTest extends StructrUiTest {
 
 				try (final Tx tx = app.tx()) {
 
-					tx.prefetch("(n:TestTwo)-[r]->(m:TestFive)", Set.of(
-						"all/INCOMING/TEST",
-						"all/OUTGOING/TEST"
-					));
+					tx.prefetch("(n:TestTwo)-[r]->(m:TestFive)", Set.of("all/INCOMING/TEST", "all/OUTGOING/TEST"));
 
 					for (final NodeInterface t : app.nodeQuery("TestTwo").getAsList()) {
 
@@ -312,8 +308,6 @@ public class PerformanceTest extends StructrUiTest {
 			}
 
 			long t1                   = System.nanoTime();
-
-
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			double time                 = (t1 - t0) / 1000000000.0;
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
@@ -375,7 +369,6 @@ public class PerformanceTest extends StructrUiTest {
 		}
 
 		final long t1 = System.currentTimeMillis();
-
 		DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		Double time                 = (t1 - t0) / 1000.0;
 		Double rate                 = number / ((t1 - t0) / 1000.0);
@@ -398,6 +391,7 @@ public class PerformanceTest extends StructrUiTest {
 			for (int i=0; i<10; i++) {
 
 				logger.info("Creating {} nodes for user admin, count is {}", number, count);
+
 				try (final Tx tx = app.tx()) {
 
 					for (final NodeInterface n : createNodes(app, "TestTwo", number)){
@@ -427,10 +421,10 @@ public class PerformanceTest extends StructrUiTest {
 			for (int i=0; i<loops; i++) {
 
 				logger.info("Fetching some nodes..");
+
 				try (final Tx tx = app.tx()) {
 
 					final long t0 = System.currentTimeMillis();
-
 					final int r               = randm.nextInt(10000);
 					final List<NodeInterface> nodes = app.nodeQuery("TestTwo").name("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
 
@@ -465,10 +459,10 @@ public class PerformanceTest extends StructrUiTest {
 			for (int i=0; i<loops; i++) {
 
 				logger.info("Fetching user node..");
+
 				try (final Tx tx = app.tx()) {
 
 					final long t0 = System.currentTimeMillis();
-
 					final Principal user = app.nodeQuery(StructrTraits.PRINCIPAL).getFirst().as(Principal.class);
 
 					user.getParents();
@@ -500,7 +494,9 @@ public class PerformanceTest extends StructrUiTest {
 	public void testRenderingPerformance() {
 
 		if (System.getProperty("os.name").equals("Mac OS X")) {
+
 			logger.info("Not performing test because it always fails on my Mac :)");
+
 			return;
 		}
 
@@ -519,9 +515,9 @@ public class PerformanceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
-
 
 		final long t0   = System.currentTimeMillis();
 		final int num   = 20;
@@ -578,10 +574,10 @@ public class PerformanceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -590,6 +586,7 @@ public class PerformanceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}

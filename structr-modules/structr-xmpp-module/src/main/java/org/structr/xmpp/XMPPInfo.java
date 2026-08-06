@@ -18,7 +18,6 @@
  */
 package org.structr.xmpp;
 
-
 /**
  *
  *

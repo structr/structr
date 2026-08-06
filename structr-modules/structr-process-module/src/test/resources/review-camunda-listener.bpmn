@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_CamundaListener"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <!--
+    A Camunda execution listener on process start whose expression calls
+    execution.setVariable(...). On import the expression becomes a runnable JS method
+    body; when the listener fires the engine installs $.process, so the transpiled
+    write persists the variable. phase="on" runs it inline (pre-commit) for a
+    deterministic assertion.
+  -->
+  <bpmn:process id="Process_CamundaListener" name="Camunda execution listener" isExecutable="true">
+
+    <bpmn:extensionElements>
+      <camunda:executionListener event="start" phase="on"
+                                 expression="${execution.setVariable('startedFlag', true)}" />
+    </bpmn:extensionElements>
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+    <bpmn:userTask   id="Task_Wait" name="Wait" />
+    <bpmn:endEvent   id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"  targetRef="Task_Wait" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Wait" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

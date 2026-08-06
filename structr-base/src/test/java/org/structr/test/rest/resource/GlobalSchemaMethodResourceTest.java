@@ -72,6 +72,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -99,6 +100,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -116,6 +118,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 
 	@Test
 	public void test003UnwrapArrayOfArrays() {
+
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
@@ -126,6 +129,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 

@@ -46,14 +46,17 @@ import static org.testng.AssertJUnit.fail;
 public class SharedComponentSyncTest extends StructrUiTest {
 
 	private PropertyKey<String> contentKey() {
+
 		return Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY);
 	}
 
 	private PropertyKey<NodeInterface> sharedComponentKey() {
+
 		return Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 	}
 
 	private PropertyKey<Boolean> visibleToPublicKey() {
+
 		return Traits.of(StructrTraits.CONTENT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 	}
 
@@ -92,6 +95,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			if (mode != null) {
+
 				securityContext.setAttribute(DOMNode.SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE, mode);
 			}
 
@@ -107,17 +111,23 @@ public class SharedComponentSyncTest extends StructrUiTest {
 	}
 
 	private String contentOf(final String id) throws FrameworkException {
+
 		try (final Tx tx = app.tx()) {
+
 			final String c = app.getNodeById(StructrTraits.CONTENT, id).getProperty(contentKey());
 			tx.success();
+
 			return c;
 		}
 	}
 
 	private boolean visibleToPublicOf(final String id) throws FrameworkException {
+
 		try (final Tx tx = app.tx()) {
+
 			final Boolean v = app.getNodeById(StructrTraits.CONTENT, id).getProperty(visibleToPublicKey());
 			tx.success();
+
 			return Boolean.TRUE.equals(v);
 		}
 	}
@@ -126,6 +136,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 	public void testDefaultModeIsAll() {
 
 		try {
+
 			final String[] ids = createSyncTriple("V0", "V0", "V0");
 
 			// no mode on the context -> historic default is ALL
@@ -136,6 +147,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 			assertEquals("instance 2 should sync (default ALL)", "EDITED", contentOf(ids[2]));
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -144,6 +156,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 	public void testAllSync() {
 
 		try {
+
 			final String[] ids = createSyncTriple("V0", "V0", "V0");
 
 			edit(ids[0], contentKey(), "EDITED", SHARED_COMPONENT_SYNC_MODE.ALL);
@@ -153,6 +166,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 			assertEquals("instance 2", "EDITED", contentOf(ids[2]));
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -161,6 +175,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 	public void testByValueSync() {
 
 		try {
+
 			// instance 1 still holds the original's previous value, instance 2 diverges
 			final String[] ids = createSyncTriple("V0", "V0", "DIFFERENT");
 
@@ -171,6 +186,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 			assertEquals("instance 2 (different value) is untouched", "DIFFERENT", contentOf(ids[2]));
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -179,6 +195,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 	public void testNoneSync() {
 
 		try {
+
 			final String[] ids = createSyncTriple("V0", "V0", "V0");
 
 			edit(ids[0], contentKey(), "EDITED", SHARED_COMPONENT_SYNC_MODE.NONE);
@@ -188,6 +205,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 			assertEquals("instance 2 is NOT synced",  "V0",     contentOf(ids[2]));
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -196,6 +214,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 	public void testBidirectionalSyncFromInstance() {
 
 		try {
+
 			// editing an INSTANCE must reach the original AND the sibling (up then down,
 			// via the modification-queue fixpoint cascade)
 			final String[] ids = createSyncTriple("V0", "V0", "V0");
@@ -207,6 +226,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 			assertEquals("sibling (synced via cascade)", "EDITED", contentOf(ids[2]));
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -215,6 +235,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 	public void testDenylistedPropertyIsNotSynced() {
 
 		try {
+
 			final String[] ids = createSyncTriple("V0", "V0", "V0");
 
 			// visibility is on the denylist: even with ALL, it must NOT propagate to peers
@@ -225,6 +246,7 @@ public class SharedComponentSyncTest extends StructrUiTest {
 			assertEquals("instance 2 visibility NOT propagated", false, visibleToPublicOf(ids[2]));
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}

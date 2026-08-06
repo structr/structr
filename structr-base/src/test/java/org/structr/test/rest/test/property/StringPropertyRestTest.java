@@ -42,8 +42,6 @@ public class StringPropertyRestTest extends IndexingTest {
 			.post("/TestThree")
 			.getHeader("Location");
 
-
-
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 		.expect()
@@ -80,7 +78,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		.when()
 			.get("/TestThree?stringProperty=test2");
 
-
 		// test loose search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -90,7 +87,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		.when()
 			.get("/TestThree?stringProperty=test&_loose=1");
 
-
 		// test range query
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -99,7 +95,6 @@ public class StringPropertyRestTest extends IndexingTest {
 			.body("result_count", equalTo(2))
 		.when()
 			.get("/TestThree?stringProperty=[test1 TO test2]");
-
 
 		// test empty value
 		RestAssured.given()
@@ -146,6 +141,7 @@ public class StringPropertyRestTest extends IndexingTest {
 		final StringBuilder buf = new StringBuilder();
 
 		for (int i=0; i<length; i++) {
+
 			buf.append("0");
 		}
 

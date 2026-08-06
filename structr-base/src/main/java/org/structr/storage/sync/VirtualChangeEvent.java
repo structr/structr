@@ -55,6 +55,7 @@ public record VirtualChangeEvent(Type type, String nodeUuid, boolean directory, 
 	public VirtualChangeEvent {
 
 		if (type == null || nodeUuid == null) {
+
 			throw new IllegalArgumentException("VirtualChangeEvent needs a type and a nodeUuid");
 		}
 
@@ -62,18 +63,21 @@ public record VirtualChangeEvent(Type type, String nodeUuid, boolean directory, 
 
 			case CREATED -> {
 				if (relativePath == null || previousRelativePath != null) {
+
 					throw new IllegalArgumentException("CREATED events need a relativePath and no previousRelativePath");
 				}
 			}
 
 			case MOVED -> {
 				if (relativePath == null || previousRelativePath == null) {
+
 					throw new IllegalArgumentException("MOVED events need both previousRelativePath and relativePath");
 				}
 			}
 
 			case DELETED -> {
 				if (previousRelativePath == null || relativePath != null) {
+
 					throw new IllegalArgumentException("DELETED events need a previousRelativePath and no relativePath");
 				}
 			}
@@ -81,14 +85,17 @@ public record VirtualChangeEvent(Type type, String nodeUuid, boolean directory, 
 	}
 
 	public static VirtualChangeEvent created(final String nodeUuid, final boolean directory, final String relativePath, final String nativeKey) {
+
 		return new VirtualChangeEvent(Type.CREATED, nodeUuid, directory, null, relativePath, nativeKey);
 	}
 
 	public static VirtualChangeEvent moved(final String nodeUuid, final boolean directory, final String previousRelativePath, final String relativePath, final String nativeKey) {
+
 		return new VirtualChangeEvent(Type.MOVED, nodeUuid, directory, previousRelativePath, relativePath, nativeKey);
 	}
 
 	public static VirtualChangeEvent deleted(final String nodeUuid, final boolean directory, final String previousRelativePath, final String nativeKey) {
+
 		return new VirtualChangeEvent(Type.DELETED, nodeUuid, directory, previousRelativePath, null, nativeKey);
 	}
 }

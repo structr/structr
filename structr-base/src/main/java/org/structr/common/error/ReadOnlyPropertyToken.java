@@ -26,6 +26,7 @@ package org.structr.common.error;
 public class ReadOnlyPropertyToken extends SemanticErrorToken {
 
 	public ReadOnlyPropertyToken(final String type, final String propertyKey) {
+
 		super(type, propertyKey, "is_read_only_property");
 	}
 }

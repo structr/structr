@@ -61,18 +61,22 @@ public class StructrBinding implements ProxyObject {
 	}
 
 	public ActionContext getActionContext() {
+
 		return actionContext;
 	}
 
 	public void setActionContext(final ActionContext actionContext) {
+
 		this.actionContext = actionContext;
 	}
 
 	public GraphObject getEntity() {
+
 		return entity;
 	}
 
 	public void setEntity(final GraphObject entity) {
+
 		this.entity = entity;
 	}
 
@@ -82,54 +86,70 @@ public class StructrBinding implements ProxyObject {
 		switch (name) {
 
 			case "get":
+
 				return getGetFunctionWrapper();
 
 			case "this":
+
 				return wrap(actionContext, entity);
 
 			case "me":
+
 				return wrap(actionContext, actionContext.getSecurityContext().getUser(false));
 
 			case "now":
+
 				return wrap(actionContext, new Date()); //ZonedDateTime.now();
 
 			case "predicate":
+
 				return new PredicateBinding(actionContext, entity);
 
 			case "do_in_new_transaction":
 			case "doInNewTransaction":
+
 				return new DoInNewTransactionFunction(actionContext, entity);
 
 			case "do_privileged":
 			case "doPrivileged":
+
 				return new DoPrivilegedFunction(actionContext);
 
 			case "do_as":
 			case "doAs":
+
 				return new DoAsFunction(actionContext);
 
 			case "request":
+
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 
 			case "session":
+
 				return new HttpSessionWrapper(actionContext, actionContext.getSecurityContext().getSession());
 
 			case "cache":
+
 				return new CacheFunction(actionContext, entity);
 
 			case "vars":
 			case "requestStore":
+
 				return new PolyglotProxyMap(actionContext, actionContext.getRequestStore());
 
 			case "applicationStore":
+
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 
 			case "methodParameters":
 			case "arguments":
 			case "args":
+
 				if (methodParameters != null) {
+
 					return methodParameters;
 				}
+
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 
 			case "_functions":
@@ -140,16 +160,19 @@ public class StructrBinding implements ProxyObject {
 
 				// check if a named constant exists
 				if (actionContext.getConstant(name) != null) {
+
 					return wrap(actionContext, actionContext.getConstant(name));
 				}
 
 				// check request store
 				if (actionContext.getRequestStore().containsKey(name)) {
+
 					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
 				// static type?
 				if (Traits.exists(name)) {
+
 					return new StaticTypeWrapper(actionContext, Traits.of(name));
 				}
 
@@ -183,6 +206,7 @@ public class StructrBinding implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
+
 		Set<String> keys = actionContext.getRequestStore().keySet();
 		keys.add("this");
 		keys.add("me");
@@ -195,11 +219,13 @@ public class StructrBinding implements ProxyObject {
 		keys.add("theme");
 		keys.add("applicationStore");
 		keys.add("methodParameters");
+
 		return keys;
 	}
 
 	@Override
 	public boolean hasMember(String key) {
+
 		return true;
 	}
 
@@ -217,10 +243,12 @@ public class StructrBinding implements ProxyObject {
 	}
 
 	public void setMethodParameters(final Value methodParameters) {
+
 		this.methodParameters = methodParameters;
 	}
 
 	public Value getMethodParameters() {
+
 		return methodParameters;
 	}
 
@@ -229,8 +257,8 @@ public class StructrBinding implements ProxyObject {
 		return arguments -> {
 
 			try {
-				Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
+				Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 				if (args.length == 1) {
 
 					// Special handling for request keyword, as it needs a wrapper

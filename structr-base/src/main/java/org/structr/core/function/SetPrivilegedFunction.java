@@ -36,11 +36,13 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "setPrivileged";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("entity, parameterMap");
 	}
 
@@ -66,33 +68,27 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 		return null;
 	}
 
-
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${setPrivileged(entity, propertyKey, value)}."),
-			Usage.javaScript("Usage: ${{$.setPrivileged(entity, propertyKey, value)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${setPrivileged(entity, propertyKey, value)}."), Usage.javaScript("Usage: ${{$.setPrivileged(entity, propertyKey, value)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the given key/value pair(s) on the given entity with super-user privileges.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
-
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${ setPrivileged(page, 'accessCount', '2')}"),
-				Example.javaScript("${{ $.setPrivileged($.page, 'accessCount', '2')} }}")
-		);
+		return List.of(Example.structrScript("${ setPrivileged(page, 'accessCount', '2')}"), Example.javaScript("${{ $.setPrivileged($.page, 'accessCount', '2')} }}"));
 	}
 
 	@Override
@@ -112,6 +108,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
 				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
@@ -120,6 +117,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

@@ -40,6 +40,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	private static final Map<String, byte[]> dataMap = new ConcurrentHashMap<>();
 
 	public InMemoryStorageProvider(final AbstractFile file, final StorageConfiguration config) {
+
 		super(file, config);
 	}
 
@@ -47,6 +48,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	public InputStream getInputStream() {
 
 		if (dataMap.get(getAbstractFile().getUuid()) != null) {
+
 			return new ByteArrayInputStream(dataMap.get(getAbstractFile().getUuid()), 0, dataMap.get(getAbstractFile().getUuid()).length);
 		}
 
@@ -55,21 +57,25 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public OutputStream getOutputStream() {
+
 		return new InMemoryOutputStream(false);
 	}
 
 	@Override
 	public String getContentType() {
+
 		return getAbstractFile().as(File.class).getContentType();
 	}
 
 	@Override
 	public String getName() {
+
 		return getAbstractFile().getName();
 	}
 
 	@Override
 	public OutputStream getOutputStream(boolean append) {
+
 		return new InMemoryOutputStream(append);
 	}
 
@@ -81,26 +87,32 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public void moveTo(final StorageProvider newFileStorageProvider) throws FrameworkException {
+
 		super.moveTo(newFileStorageProvider);
 	}
 
 	@Override
 	public void delete() {
+
 		dataMap.remove(getAbstractFile().getUuid());
 	}
 
 	@Override
 	public long size() {
+
 		return dataMap.get(getAbstractFile().getUuid()) != null ? dataMap.get(getAbstractFile().getUuid()).length : 0;
 	}
 
 	// ---------------------- Private utility classes ----------------------
 
 	private class SavingInMemorySeekableByteChannel extends SeekableInMemoryByteChannel {
+
 		public SavingInMemorySeekableByteChannel() {
+
 			super(0);
 		}
 		public SavingInMemorySeekableByteChannel(final byte[] data) {
+
 			super(data);
 		}
 		@Override
@@ -110,37 +122,45 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 		}
 	}
 	private class InMemoryOutputStream extends ByteArrayOutputStream {
+
 		private final boolean append;
 
 		public InMemoryOutputStream(final boolean append) {
+
 			super(0);
 			this.append = append;
 		}
 
 		@Override
 		public void flush() {
+
 			saveBuffer();
 		}
 
 		@Override
 		public void close() {
+
 			saveBuffer();
 		}
 
 		private void saveBuffer() {
+
 			final String uuid = getAbstractFile().getUuid();
 
 			if (append) {
 
 				try {
+
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					bos.write(dataMap.get(uuid));
 					bos.write(super.buf);
 					dataMap.put(uuid, bos.toByteArray());
+
 				} catch (IOException ex) {
 
 					LoggerFactory.getLogger(InMemoryStorageProvider.class).error("Could not append byte[] for file data.", ex);
 				}
+
 			} else {
 
 				dataMap.put(uuid, super.buf);

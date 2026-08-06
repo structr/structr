@@ -55,6 +55,7 @@ public interface ComponentConfiguration extends NodeInterface {
 	 * concerns pillar for the design rationale.
 	 */
 	default boolean isProcessBound() {
+
 		return "processBound".equals(getBindingMode());
 	}
 

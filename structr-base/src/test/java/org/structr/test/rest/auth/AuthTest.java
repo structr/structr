@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 
 public class AuthTest  extends StructrRestTestBase {
 
-
     @Test
     public void test01TwoFactorWhitelistTest() {
 
@@ -51,7 +50,6 @@ public class AuthTest  extends StructrRestTestBase {
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.2", "192.168.1.1/0"));
 
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("254.254.254.254", "192.168.1.1/0"));
-
 
         // expect malformed whitelist entries to not affect the result of the checks - only log entries will be generated
         Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("[2a01:598:d826:fe8f:38ab:d115:7644:3223]", "xxx, 2a01:598:d826:fe8f:28ab::/67, xxx"));

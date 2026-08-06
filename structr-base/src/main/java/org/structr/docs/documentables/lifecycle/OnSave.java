@@ -25,16 +25,19 @@ import java.util.List;
 public class OnSave extends LifecycleBase {
 
 	public OnSave() {
+
 		super("onSave");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called when an existing object of this type is modified.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onSave()` lifecycle method is called when an existing object of this type is modified. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
 		
@@ -59,6 +62,7 @@ public class OnSave extends LifecycleBase {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			{

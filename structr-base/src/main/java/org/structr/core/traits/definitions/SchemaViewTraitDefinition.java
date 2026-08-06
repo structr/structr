@@ -56,6 +56,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SORT_ORDER_PROPERTY              = "sortOrder";
 
 	public SchemaViewTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_VIEW);
 	}
 
@@ -64,8 +65,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -86,7 +86,6 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 							for (final NodeInterface otherSchemaViewNode : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_VIEW).key(schemaNodeKey, parent).getResultStream()) {
 
 								final boolean isDifferentView = !(schemaView.getUuid().equals(otherSchemaViewNode.getUuid()));
-
 								if (isDifferentView && thisViewName.equals(otherSchemaViewNode.getName())) {
 
 									errorBuffer.add(new SemanticErrorToken(schemaView.getType(), "name", "already_exists").withValue(thisViewName).withDetail("A view with name '" + thisViewName + "' already exists on this type"));
@@ -109,9 +108,8 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of(
-			SchemaView.class, (traits, node) -> new SchemaViewTraitWrapper(traits, node)
-		);
+
+		return Map.of(SchemaView.class, (traits, node) -> new SchemaViewTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -124,14 +122,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>                  nonGraphProperties   = new StringProperty(NON_GRAPH_PROPERTIES_PROPERTY);
 		final Property<String>                  sortOrder            = new StringProperty(SORT_ORDER_PROPERTY);
 
-		return newSet(
-			schemaNode,
-			schemaProperties,
-			isBuiltinView,
-			staticSchemaNodeName,
-			nonGraphProperties,
-			sortOrder
-		);
+		return newSet(schemaNode, schemaProperties, isBuiltinView, staticSchemaNodeName, nonGraphProperties, sortOrder);
 	}
 
 	@Override
@@ -139,16 +130,9 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				PropertyView.Public,
-				newSet(
-						SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY
-				),
+				PropertyView.Public, newSet(SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY),
 
-				PropertyView.Ui,
-				newSet(
-						SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY,
-						IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
-				),
+				PropertyView.Ui, newSet(SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY),
 
 				PropertyView.Schema,
 				newSet(
@@ -161,6 +145,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 

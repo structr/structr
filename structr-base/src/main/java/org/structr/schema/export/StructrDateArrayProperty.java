@@ -39,11 +39,13 @@ import java.util.TreeMap;
 public class StructrDateArrayProperty extends StructrPropertyDefinition implements JsonDateArrayProperty {
 
 	public StructrDateArrayProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "array";
 	}
 

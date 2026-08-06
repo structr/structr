@@ -38,6 +38,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "DELETE";
 	}
 
@@ -53,13 +54,12 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 			// override default content type
 			if (sources.length >= 2 && sources[1] != null) {
+
 				contentType = sources[1].toString();
 			}
 
 			final Map<String, Object> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders(), ctx.isValidateCertificates());
-
 			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? responseData.get(HttpHelper.FIELD_BODY).toString() : null;
-
 			final GraphObjectMap response = new GraphObjectMap();
 
 			if ("application/json".equals(contentType)) {
@@ -81,32 +81,31 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
 			}
 
-
 			return response;
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("url [, contentType]");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("contentType", "content type")
-		);
+		return List.of(Parameter.mandatory("url", "URL to connect to"), Parameter.optional("contentType", "content type"));
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}"),
 			Usage.javaScript("Usage: ${{ $.DELETE(URL[, contentType])}}. Example: ${{ $.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}")
@@ -115,11 +114,13 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends an HTTP DELETE request with an optional content type to the given URL and returns the response headers and body.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function can be used in a script to make an HTTP DELETE request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
@@ -135,11 +136,13 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(Example.structrScript("${DELETE('http://localhost:8082/structr/rest/User/6aa10d68569d45beb384b42a1fc78c50')}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `DELETE()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
@@ -148,6 +151,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

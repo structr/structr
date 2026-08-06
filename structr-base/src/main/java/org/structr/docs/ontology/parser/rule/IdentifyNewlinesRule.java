@@ -29,6 +29,7 @@ import java.util.LinkedList;
 public class IdentifyNewlinesRule extends Rule {
 
 	public IdentifyNewlinesRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -40,7 +41,6 @@ public class IdentifyNewlinesRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken abstractToken = tokens.poll();
-
 			if (abstractToken instanceof UnresolvedToken unresolved && "\n".equals(unresolved.getToken().getContent())) {
 
 				result.add(new NewlineToken(unresolved.getToken()));

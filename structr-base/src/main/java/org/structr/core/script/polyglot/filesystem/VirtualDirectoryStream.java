@@ -46,6 +46,7 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 	private List<Path> virtualPaths = new LinkedList<>();
 
 	public VirtualDirectoryStream(final Path root, final DirectoryStream.Filter<? super Path> filter) {
+
 		this.root = root;
 		this.filter = filter;
 	}
@@ -54,16 +55,20 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 	public Iterator<Path> iterator() {
 
 		findPaths(this.root);
+
 		return new Iterator<>() {
 			@Override
 			public boolean hasNext() {
+
 				return !virtualPaths.isEmpty();
 			}
 
 			@Override
 			public Path next() {
+
 				Path next = virtualPaths.get(0);
 				virtualPaths.remove(0);
+
 				return next;
 			}
 		};
@@ -74,12 +79,15 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 	}
 
 	private boolean applyFilter(final Path p) {
+
 		try {
 
 			return filter == null || filter.accept(p);
+
 		} catch (IOException ex) {
 
 			logger.error("Error while trying to filter found paths.", ex);
+
 			return false;
 		}
 	}
@@ -119,6 +127,7 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 			}
 
 			tx.success();
+
 		} catch (FrameworkException ex) {
 
 			logger.error("Could not find paths for VirtualDirectoryStream.", ex);

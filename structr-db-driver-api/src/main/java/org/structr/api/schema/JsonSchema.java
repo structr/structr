@@ -27,14 +27,17 @@ import java.net.URI;
 public interface JsonSchema {
 
 	enum Direction {
+
 		in, out
 	}
 
 	enum Cascade {
+
 		sourceToTarget, targetToSource, always, constraintBased
 	}
 
 	enum ImportMode {
+
 		replace, extend
 	}
 
@@ -44,7 +47,6 @@ public interface JsonSchema {
 	String KEY_LINK                     = "$link";
 	String KEY_LINK_SOURCE              = "$source";
 	String KEY_LINK_TARGET              = "$target";
-
 	String KEY_ID                       = "id";
 	String KEY_TYPE                     = "type";
 	String KEY_NAME                     = "name";
@@ -123,21 +125,16 @@ public interface JsonSchema {
 	String KEY_EXAMPLE_VALUE            = "exampleValue";
 	String KEY_TAGS                     = "tags";
 	String KEY_INCLUDE_IN_OPENAPI       = "includeInOpenAPI";
-
 	String KEY_GRANT_READ               = "read";
 	String KEY_GRANT_WRITE              = "write";
 	String KEY_GRANT_DELETE             = "delete";
 	String KEY_GRANT_ACCESS_CONTROL     = "accessControl";
-
-
 	String KEY_MINIMUM                  = "minimum";
 	String KEY_EXCLUSIVE_MINIMUM        = "exclusiveMinimum";
 	String KEY_MAXIMUM                  = "maximum";
 	String KEY_EXCLUSIVE_MAXIMUM        = "exclusiveMaximum";
 	String KEY_MULTIPLE_OF              = "multipleOf";
-
 	String FORMAT_DATE_TIME             = "date-time";
-
 	String EMPTY_SCHEMA                 = "{\"definitions\":{}, \"methods\":[]}";
 
 	URI getId();

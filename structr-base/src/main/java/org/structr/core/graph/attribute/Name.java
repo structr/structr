@@ -29,6 +29,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 public class Name extends NodeAttribute<String> {
 
 	public Name(final String name) {
+
 		super(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 }

@@ -35,11 +35,13 @@ public class HasCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "hasCacheValue";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -53,6 +55,7 @@ public class HasCacheValueFunction extends CoreFunction {
 			final String cacheKey = sources[0].toString();
 
 			logger.warn("hasCacheValue() is deprecated and will be removed in a future version.");
+
 			return CacheExpression.hasCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
@@ -65,14 +68,13 @@ public class HasCacheValueFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${hasCacheValue(cacheKey)}."),
-			Usage.javaScript("Usage: ${{ $.hasCacheValue(cacheKey); }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${hasCacheValue(cacheKey)}."), Usage.javaScript("Usage: ${{ $.hasCacheValue(cacheKey); }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Checks if a cached value exists for the given key.";
 	}
 
@@ -87,8 +89,8 @@ public class HasCacheValueFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${hasCacheValue('externalResult')}"),
+
+		return List.of(Example.structrScript("${hasCacheValue('externalResult')}"),
 				Example.javaScript("""
 						${{
 							let myComplexFunction = function() {
@@ -115,13 +117,12 @@ public class HasCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("key", "cache key")
-		);
+		return List.of(Parameter.mandatory("key", "cache key"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

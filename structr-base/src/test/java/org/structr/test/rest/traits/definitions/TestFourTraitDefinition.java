@@ -29,6 +29,7 @@ import java.util.Set;
 public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestFourTraitDefinition() {
+
 		super("TestFour");
 	}
 
@@ -40,13 +41,12 @@ public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> oneToOneTestThree            = new EndNode(traitsInstance, "oneToOneTestThree",  "FourThreeOneToOne");
 		final Property<NodeInterface> manyToOneTestThree           = new StartNode(traitsInstance, "manyToOneTestThree", "ThreeFourOneToMany");
 
-		return newSet(
-			manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree
-		);
+		return newSet(manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

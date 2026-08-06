@@ -28,6 +28,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowCall extends FlowAction implements DeployableEntity, ThrowingElement {
 
 	public FlowCall(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

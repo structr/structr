@@ -34,7 +34,6 @@ public abstract class UrlUtils {
         }
 
         Map<String, String> queryParams = new HashMap<>();
-
         String[] pairs = query.split("&");
 
         for (String pair : pairs) {

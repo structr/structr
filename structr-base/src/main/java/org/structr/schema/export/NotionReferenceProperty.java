@@ -58,11 +58,13 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 
 	@Override
 	public URI getId() {
+
 		return null;
 	}
 
 	@Override
 	public String getType() {
+
 		return type;
 	}
 
@@ -108,6 +110,7 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 					final Map<String, Object> items = (Map)itemsValue;
 					reference = (String)items.get(JsonSchema.KEY_REFERENCE);
 				}
+
 				break;
 		}
 	}
@@ -132,6 +135,7 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 		}
 
 		if (!this.properties.isEmpty()) {
+
 			map.put(JsonSchema.KEY_PROPERTIES, this.properties);
 		}
 

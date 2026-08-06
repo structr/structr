@@ -18,7 +18,6 @@
  */
 package org.structr.api.search;
 
-
 public interface TypeConverter {
 
 	Object getWriteValue(final Object value);

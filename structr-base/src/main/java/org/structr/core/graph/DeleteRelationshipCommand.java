@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -38,19 +37,20 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 
 		// default is active deletion!
+
 		return execute(relFactory.instantiate(rel), false);
 	}
 
 	public Object execute(final RelationshipInterface rel) {
 
 		// default is active deletion!
+
 		return execute(rel, false);
 	}
 
 	public Object execute(final RelationshipInterface rel, final boolean passiveDeletion) {
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-
 		if (graphDb != null && rel != null && !rel.isDeleted()) {
 
 			if (rel.getUuid() == null) {

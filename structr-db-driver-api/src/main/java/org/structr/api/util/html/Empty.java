@@ -25,6 +25,7 @@ package org.structr.api.util.html;
 public class Empty extends Tag {
 
 	public Empty(final Tag parent, final String tagName) {
+
 		super(parent, tagName, true, true);
 	}
 }

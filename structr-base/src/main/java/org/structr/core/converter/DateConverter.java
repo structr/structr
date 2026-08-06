@@ -31,6 +31,7 @@ import java.util.Date;
 public class DateConverter extends PropertyConverter<Date, Long> {
 
 	public DateConverter(SecurityContext securityContext) {
+
 		super(securityContext, null);
 	}
 

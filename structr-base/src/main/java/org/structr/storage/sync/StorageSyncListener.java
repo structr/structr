@@ -41,6 +41,7 @@ public interface StorageSyncListener {
 	 * Report a batch of observed changes.
 	 */
 	default void onEvents(final List<ExternalChangeEvent> events) {
+
 		events.forEach(this::onEvent);
 	}
 

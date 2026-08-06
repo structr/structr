@@ -24,11 +24,13 @@ package org.structr.bolt;
 public class StringQuery extends AbstractNativeQuery<Boolean> {
 
 	public StringQuery(final String query) {
+
 		super(query);
 	}
 
 	@Override
 	Boolean execute(final SessionTransaction tx) {
+
 		return tx.getBoolean(new SimpleCypherQuery(query, parameters));
 	}
 }

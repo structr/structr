@@ -38,11 +38,13 @@ import java.util.Map;
 public class FeedItemTraitWrapper extends AbstractFeedItemTraitWrapper implements FeedItem {
 
 	public FeedItemTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getUrl() {
+
 		return wrappedObject.getProperty(traits.key(FeedItemTraitDefinition.URL_PROPERTY));
 	}
 
@@ -50,7 +52,6 @@ public class FeedItemTraitWrapper extends AbstractFeedItemTraitWrapper implement
 	public InputStream getInputStream() {
 
 		final boolean indexRemoteDocument = Settings.FeedItemIndexRemoteDocument.getValue();
-
 		if (indexRemoteDocument) {
 
 			final String remoteUrl = getUrl();
@@ -65,16 +66,19 @@ public class FeedItemTraitWrapper extends AbstractFeedItemTraitWrapper implement
 		}
 
 		final String description = wrappedObject.getProperty(traits.key(FeedItemTraitDefinition.DESCRIPTION_PROPERTY));
+
 		return new ByteArrayInputStream(description.getBytes());
 	}
 
 	@Override
 	public String getExtractedContent() {
+
 		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFeedItemTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

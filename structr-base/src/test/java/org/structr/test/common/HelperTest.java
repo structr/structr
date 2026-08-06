@@ -42,14 +42,12 @@ public class HelperTest {
 		cal.set(2013, 07,02);
 
 		final Date endDate = new Date(cal.getTimeInMillis());
-
 		final String weekdays        = "Mo,Di,Mi,Do,Fr,Sa,So";
 		final String startTimeString = "14:00";
 		final String endTimeString   = "17:00";
-
 		int expResult = 0;
-
 		int result1 = RecurringDateHelper.generateAppointments(null, null, null, null, null).size();
+
 		assertEquals("result1: Appointments not empty",expResult, result1);
 
 		int result2 = RecurringDateHelper.generateAppointments(null, null, "", "", "").size();

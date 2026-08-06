@@ -46,7 +46,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class MaintenanceTest extends StructrTest {
 
-
 	private final static String EXPORT_FILENAME = "___structr-test-export___.zip";
 
 	@Test
@@ -83,6 +82,7 @@ public class MaintenanceTest extends StructrTest {
 			}
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -92,6 +92,7 @@ public class MaintenanceTest extends StructrTest {
 	public void testSyncCommandBasicExportImport() {
 
 		try {
+
 			// create test nodes
 			createTestNodes("TestOne", 100);
 
@@ -109,6 +110,7 @@ public class MaintenanceTest extends StructrTest {
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME));
 
 			try (final Tx tx = app.tx()) {
+
 				assertEquals(100, app.nodeQuery("TestOne").getAsList().size());
 				tx.success();
 			}
@@ -117,6 +119,7 @@ public class MaintenanceTest extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -127,6 +130,7 @@ public class MaintenanceTest extends StructrTest {
 	public void testSyncCommandBasicExportImportSmallBatchSize() {
 
 		try {
+
 			// create test nodes
 			createTestNodes("TestOne", 100);
 
@@ -143,6 +147,7 @@ public class MaintenanceTest extends StructrTest {
 			app.command(SyncCommand.class).execute(toMap("mode", "import", "file", EXPORT_FILENAME, "batchSize", 20L));
 
 			try (final Tx tx = app.tx()) {
+
 				assertEquals(100, app.nodeQuery("TestOne").getAsList().size());
 				tx.success();
 			}
@@ -151,6 +156,7 @@ public class MaintenanceTest extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -160,6 +166,7 @@ public class MaintenanceTest extends StructrTest {
 	public void testSyncCommandInheritance() {
 
 		try {
+
 			// create test nodes
 			final List<NodeInterface> testNodes = createTestNodes("TestEleven", 10);
 			final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
@@ -167,6 +174,7 @@ public class MaintenanceTest extends StructrTest {
 
 			// one additional label
 			if (tenantIdentifier != null) {
+
 				labelCount += 1;
 			}
 
@@ -179,8 +187,10 @@ public class MaintenanceTest extends StructrTest {
 					assertEquals(labelCount, Iterables.count(labels));
 
 					for (final String label : labels) {
+
 						System.out.print(label + " ");
 					}
+
 					System.out.println();
 
 					assertEquals("Number of labels must be " + labelCount, labelCount,      labels.size());
@@ -192,13 +202,13 @@ public class MaintenanceTest extends StructrTest {
 					assertTrue("Set of labels must contain TestEleven",         labels.contains("TestEleven"));
 
 					if (tenantIdentifier != null) {
+
 						assertTrue("Set of labels must contain custom tenant identifier if set", labels.contains(tenantIdentifier));
 					}
 				}
 
 				tx.success();
 			}
-
 
 			// test export
 			app.command(SyncCommand.class).execute(toMap("mode", "export", "file", EXPORT_FILENAME));
@@ -233,6 +243,7 @@ public class MaintenanceTest extends StructrTest {
 					assertTrue("Set of labels must contain TestOne",            set.contains("TestOne"));
 
 					if (tenantIdentifier != null) {
+
 						assertTrue("Set of labels must contain custom tenant identifier if set", set.contains(tenantIdentifier));
 					}
 
@@ -267,6 +278,7 @@ public class MaintenanceTest extends StructrTest {
 			expectedLabels.add(StructrTraits.NODE_INTERFACE);
 
 			if (graphDb.getTenantIdentifier() != null) {
+
 				expectedLabels.add(graphDb.getTenantIdentifier());
 			}
 
@@ -327,6 +339,7 @@ public class MaintenanceTest extends StructrTest {
 			expectedLabels.add(StructrTraits.GROUP);
 
 			if (graphDb.getTenantIdentifier() != null) {
+
 				expectedLabels.add(graphDb.getTenantIdentifier());
 			}
 
@@ -503,6 +516,7 @@ public class MaintenanceTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -526,6 +540,7 @@ public class MaintenanceTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -544,7 +559,6 @@ public class MaintenanceTest extends StructrTest {
 				for (final NodeInterface node : app.nodeQuery(type).getResultStream()) {
 
 					final String value = node.getProperty(Traits.of(type).key("newName"));
-
 					if ("existing".equals(value)) {
 
 						// the conflicting node must not be touched at all
@@ -584,6 +598,7 @@ public class MaintenanceTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -602,6 +617,7 @@ public class MaintenanceTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -632,6 +648,7 @@ public class MaintenanceTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -652,6 +669,7 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				for (final NodeInterface node : app.nodeQuery("TestOne").getResultStream()) {
+
 					expected.add(node.getUuid());
 				}
 
@@ -660,7 +678,6 @@ public class MaintenanceTest extends StructrTest {
 
 			final NodeServiceCommand command = new NodeServiceCommand() {};
 			final AtomicLong failureCount    = new AtomicLong();
-
 			final long successCount = command.bulkGraphOperation(securityContext, app.nodeQuery("TestOne"), 25, "Visiting test nodes", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
@@ -680,6 +697,7 @@ public class MaintenanceTest extends StructrTest {
 
 				@Override
 				public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface currentObject) {
+
 					// failures are expected in this test, don't log them
 				}
 			});

@@ -32,16 +32,19 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.contains";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.contains";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.contains";
 	}
 
@@ -79,6 +82,7 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}. Example: ${{ $.find('Group', $.predicate.contains('name', 'Test')); }}"),
 			Usage.structrScript("Usage: ${contains(key, value). Example: ${find('Group', contains('name', 'Test'))}")
@@ -87,11 +91,13 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			The contains predicate, when used on String properties, performs a case-insensitive search.
 			When used on a remote collection, a list of search values is required.
@@ -100,6 +106,7 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -115,11 +122,13 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

@@ -29,6 +29,7 @@ public class RosterPacketTypeHandler implements TypeHandler<RosterPacket> {
 
 	@Override
 	public void handle(final StructrXMPPConnection connection, final RosterPacket roster) {
+
 		// not implemented yet...
 	}
 }

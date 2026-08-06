@@ -47,11 +47,13 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "sendHtmlMail";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]");
 	}
 
@@ -69,7 +71,6 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 			final String subject     = sources[4].toString();
 			final String htmlContent = sources[5].toString();
 			final String textContent = sources[6].toString();
-
 			List<NodeInterface> fileNodes = null;
 			List<DynamicMailAttachment> attachments = new ArrayList<>();
 
@@ -110,12 +111,14 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.sendHtmlMail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]) }}."),
 			Usage.structrScript("Usage: ${sendHtmlMail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files])}.")
@@ -124,16 +127,19 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends an HTML email.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Attachments must be provided as a list, even when only a single file is included.",
 				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
@@ -145,6 +151,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("fromAddress", "sender address"),
 				Parameter.mandatory("fromName", "sender name"),
@@ -159,6 +166,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to <b>Structr</b>!', 'Hi User, welcome to Structr!', find('File', 'name', 'welcome-to-structr.pdf')))}")
 		);
@@ -166,6 +174,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.EMail;
 	}
 }

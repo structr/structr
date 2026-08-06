@@ -52,6 +52,7 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CONDITION_PROPERTY   = "condition";
 
 	public FlowFilterTraitDefinition() {
+
 		super(StructrTraits.FLOW_FILTER);
 	}
 
@@ -60,25 +61,24 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.Filter;
 					}
 				},
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
 						final FlowFilter filter = node.as(FlowFilter.class);
 						final String uuid       = node.getUuid();
-
 						Object data = context.getData(uuid);
+
 						if (data == null) {
 
 							filter.filter(context);
@@ -89,8 +89,7 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -111,9 +110,7 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowFilter.class, (traits, node) -> new FlowFilter(traits, node)
-		);
+		return Map.of(FlowFilter.class, (traits, node) -> new FlowFilter(traits, node));
 	}
 
 	@Override
@@ -122,30 +119,20 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 		final Property<NodeInterface> condition            = new StartNode(traitsInstance, CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_BASE_NODE);
 
-		return newSet(
-			dataTarget,
-			condition
-		);
+		return newSet(dataTarget, condition);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				DATA_TARGET_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(DATA_TARGET_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				DATA_TARGET_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(DATA_TARGET_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

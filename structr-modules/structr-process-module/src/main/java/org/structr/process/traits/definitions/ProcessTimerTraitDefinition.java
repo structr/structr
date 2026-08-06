@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.ProcessTimer;
+import org.structr.process.traits.wrappers.ProcessTimerTraitWrapper;
 import java.util.Set;
 
 /**
@@ -82,7 +85,14 @@ public class ProcessTimerTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STATUS_CANCELLED = "cancelled";
 	public static final String STATUS_ERROR     = "error";
 
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(ProcessTimer.class, (traits, node) -> new ProcessTimerTraitWrapper(traits, node));
+	}
+
 	public ProcessTimerTraitDefinition() {
+
 		super(ProcessTraits.PROCESS_TIMER);
 	}
 
@@ -90,21 +100,17 @@ public class ProcessTimerTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
 		final Property<Date> fireAt              = new DateProperty(FIRE_AT_PROPERTY).indexed();
-		final Property<String> timerType         = new EnumProperty(TIMER_TYPE_PROPERTY,
-			Set.of(TIMER_INTERMEDIATE, TIMER_BOUNDARY, TIMER_START)).indexed();
+		final Property<String> timerType         = new EnumProperty(TIMER_TYPE_PROPERTY, Set.of(TIMER_INTERMEDIATE, TIMER_BOUNDARY, TIMER_START)).indexed();
 		final Property<String> timerExpression   = new StringProperty(TIMER_EXPRESSION_PROPERTY);
-		final Property<String> status            = new EnumProperty(STATUS_PROPERTY,
-			Set.of(STATUS_PENDING, STATUS_FIRED, STATUS_CANCELLED, STATUS_ERROR)).indexed();
+		final Property<String> status            = new EnumProperty(STATUS_PROPERTY, Set.of(STATUS_PENDING, STATUS_FIRED, STATUS_CANCELLED, STATUS_ERROR)).indexed();
 		final Property<Boolean> cancelActivity   = new BooleanProperty(CANCEL_ACTIVITY_PROPERTY).defaultValue(true);
 		final Property<Date> firedAt             = new DateProperty(FIRED_AT_PROPERTY);
 		final Property<String> errorMessage      = new StringProperty(ERROR_MESSAGE_PROPERTY);
-
 		final Property<NodeInterface> instance   = new EndNode(traitsInstance, INSTANCE_PROPERTY, ProcessTraits.PROCESS_TIMER_OF_INSTANCE);
 		final Property<NodeInterface> token      = new EndNode(traitsInstance, TOKEN_PROPERTY, ProcessTraits.PROCESS_TIMER_FOR_TOKEN);
 		final Property<NodeInterface> element    = new EndNode(traitsInstance, ELEMENT_PROPERTY, ProcessTraits.PROCESS_TIMER_AT_ELEMENT);
 
-		return newSet(fireAt, timerType, timerExpression, status, cancelActivity, firedAt, errorMessage,
-			instance, token, element);
+		return newSet(fireAt, timerType, timerExpression, status, cancelActivity, firedAt, errorMessage, instance, token, element);
 	}
 
 	@Override
@@ -120,6 +126,7 @@ public class ProcessTimerTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:structr="http://structr.org/schema/process/1.0"
+                  id="Definitions_ProcessEvents"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_ProcessEvents" name="Process Events Process" isExecutable="true">
+
+    <bpmn:extensionElements>
+      <structr:processListener event="subjectAttached" method="onSubjectAttached" phase="on" />
+      <structr:processListener event="suspended"       method="onSuspended"       phase="on" />
+      <structr:processListener event="resumed"         method="onResumed"         phase="on" />
+      <structr:processListener event="terminated"      method="onTerminated"      phase="on" />
+    </bpmn:extensionElements>
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <!-- Stays running (waiting on a signal) so suspend/resume/terminate apply. -->
+    <bpmn:intermediateCatchEvent id="Catch_1" name="Wait">
+      <bpmn:messageEventDefinition id="msgdef_1" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Catch_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Catch_1" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

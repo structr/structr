@@ -72,11 +72,9 @@ public abstract class IndexUpdater {
 			for (final NewIndexConfig newIndexConfig : indexesToBeCreated) {
 
 				final String identifier = getIndexIdentifier(newIndexConfig);
-
 				if (existingIndexes.containsKey(identifier)) {
 
 					final ExistingIndexInfo existing = existingIndexes.get(identifier);
-
 					if (getExpectedIndexType(newIndexConfig).equals(existing.getType())) {
 
 						// same type: nothing to do, remove from drop candidates
@@ -100,7 +98,6 @@ public abstract class IndexUpdater {
 
 			// 4. create new and re-created indexes
 			final int newIndexCount = createIndexes(toCreate);
-
 			if (newIndexCount > 0 || droppedIndexCount > 0) {
 
 				logger.info("Found {} existing indexes", existingIndexCount);
@@ -115,6 +112,7 @@ public abstract class IndexUpdater {
 	}
 
 	public boolean isFinished() {
+
 		return isFinished.get();
 	}
 

@@ -27,16 +27,19 @@ import java.util.List;
 public class OnOAuthLogin extends LifecycleBase {
 
 	public OnOAuthLogin() {
+
 		super("onOAuthLogin");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called when a user authenticates with oAuth.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onOAuthLogin()` lifecycle method is called when users create login via oAuth.
 		
@@ -56,10 +59,7 @@ public class OnOAuthLogin extends LifecycleBase {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This lifecycle method must be defined on the type `User` or its descendants.",
-			"See also: `onStructrLogin()`, `onStructrLogout()`."
-		);
+		return List.of("This lifecycle method must be defined on the type `User` or its descendants.", "See also: `onStructrLogin()`, `onStructrLogout()`.");
 	}
 
 	@Override

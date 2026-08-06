@@ -46,6 +46,7 @@ import java.util.Set;
 public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestFiveTraitDefinition() {
+
 		super("TestFive");
 	}
 
@@ -54,33 +55,30 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 					final PropertyKey<Integer> modifiedInBeforeCreation = graphObject.getTraits().key("modifiedInBeforeCreation");
-
 					int value = getIncreasedValue(graphObject, modifiedInBeforeCreation);
+
 					graphObject.setProperty(modifiedInBeforeCreation, value);
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					final PropertyKey<Integer> modifiedInBeforeModification = graphObject.getTraits().key("modifiedInBeforeModification");
-
 					int value = getIncreasedValue(graphObject, modifiedInBeforeModification);
+
 					graphObject.setProperty(modifiedInBeforeModification, value);
 				}
 			},
 
-			AfterCreation.class,
-			new AfterCreation() {
+			AfterCreation.class, new AfterCreation() {
 
 				@Override
 				public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
@@ -96,13 +94,13 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 						tx.success();
 
 					} catch (Throwable t) {
+
 						t.printStackTrace();
 					}
 				}
 			},
 
-			AfterModification.class,
-			new AfterModification() {
+			AfterModification.class, new AfterModification() {
 
 				@Override
 				public void afterModification(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
@@ -118,6 +116,7 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 						tx.success();
 
 					} catch (Throwable t) {
+
 						t.printStackTrace();
 					}
 				}
@@ -134,13 +133,7 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation").defaultValue(0).indexed().unvalidated();
 		final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification").defaultValue(0).indexed().unvalidated();
 
-		return newSet(
-			intProperty,
-			modifiedInBeforeCreation,
-			modifiedInBeforeModification,
-			modifiedInAfterCreation,
-			modifiedInAfterModification
-		);
+		return newSet(intProperty, modifiedInBeforeCreation, modifiedInBeforeModification, modifiedInAfterCreation, modifiedInAfterModification);
 	}
 
 	@Override
@@ -148,20 +141,18 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(
-				"integerProperty", "modifiedInBeforeCreation", "modifiedInBeforeModification", "modifiedInAfterCreation", "modifiedInAfterModification"
-			)
-		);
+			PropertyView.Public, newSet("integerProperty", "modifiedInBeforeCreation", "modifiedInBeforeModification", "modifiedInAfterCreation", "modifiedInAfterModification"));
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -169,7 +160,6 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 	private int getIncreasedValue(final GraphObject graphObject, final PropertyKey<Integer> key) {
 
 		Integer value = graphObject.getProperty(key);
-
 		if (value != null) {
 
 			return value.intValue() + 1;

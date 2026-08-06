@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -52,11 +51,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 
 	public DeprecatedGlobalSchemaMethodsResource() {
 
-		super(
-			RESTParameter.forStaticString("maintenance", true),
-			RESTParameter.forStaticString("globalSchemaMethods", true),
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
-		);
+		super(RESTParameter.forStaticString("maintenance", true), RESTParameter.forStaticString("globalSchemaMethods", true), RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true));
 	}
 
 	@Override
@@ -84,6 +79,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 	private class GlobalSchemaMethodResourceHandler extends RESTMethodCallHandler {
 
 		public GlobalSchemaMethodResourceHandler(final RESTCall call, final AbstractMethod method) {
+
 			super(call, method);
 		}
 
@@ -102,22 +98,26 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 				return result;
 
 			} catch (UnlicensedScriptException ex) {
+
 				return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 			}
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("OPTIONS", "POST");
 		}
 	}

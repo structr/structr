@@ -32,10 +32,12 @@ public abstract class AbstractToken<T> {
 	public abstract void updateContent(final String key, final String value);
 
 	public AbstractToken getParent() {
+
 		return parent;
 	}
 
 	public void setParent(final AbstractToken parent) {
+
 		this.parent = parent;
 	}
 }

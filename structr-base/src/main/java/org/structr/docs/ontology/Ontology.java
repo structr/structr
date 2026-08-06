@@ -58,10 +58,12 @@ public final class Ontology {
 	private final Resource baseResource;
 
 	public Set<String> getBlacklist() {
+
 		return blacklist;
 	}
 
 	public Set<String> getConjunctions() {
+
 		return Set.of(",", "and");
 	}
 
@@ -105,6 +107,7 @@ public final class Ontology {
 	}
 
 	public List<Concept> getAllConcepts() {
+
 		return concepts;
 	}
 
@@ -173,6 +176,7 @@ public final class Ontology {
 
 			// do not show "text" results as they are extracted from Javascript files
 			if (SearchBlacklist.contains(concept.type)) {
+
 				continue;
 			}
 
@@ -186,7 +190,6 @@ public final class Ontology {
 			if (documentable != null) {
 
 				final double score = documentable.matches(searchString);
-
 				if (score > 0) {
 
 					result.compute(concept, (k, v) -> add(v, scoreMultiplier * score));
@@ -221,6 +224,7 @@ public final class Ontology {
 	public Concept getOrCreateConcept(final AbstractToken token, final ConceptType type, final String name, final boolean useExisting) {
 
 		if (blacklist.contains(name)) {
+
 			return null;
 		}
 
@@ -230,6 +234,7 @@ public final class Ontology {
 
 				// set correct type
 				if (ConceptType.Unknown.equals(concept.type) && !ConceptType.Unknown.equals(type)) {
+
 					concept.type = type;
 				}
 
@@ -249,10 +254,12 @@ public final class Ontology {
 	public Link createSymmetricLink(final Concept subject, final Verb verb, final Concept object) {
 
 		if (subject.equals(object)) {
+
 			return null;
 		}
 
 		if (subject.hasChild(verb, object)) {
+
 			return subject.getLinkTo(verb, object);
 		}
 
@@ -285,6 +292,7 @@ public final class Ontology {
 		for (final Link link : links) {
 
 			if (link.getSource().equals(source) && link.getVerb().equals(verb)) {
+
 				result.add(link);
 			}
 		}
@@ -314,6 +322,7 @@ public final class Ontology {
 		for (final Link link : links) {
 
 			if (link.getTarget().equals(target) && link.getVerb().equals(verb)) {
+
 				result.add(link);
 			}
 		}
@@ -322,10 +331,12 @@ public final class Ontology {
 	}
 
 	public Concept getCurrentSubject() {
+
 		return currentSubject;
 	}
 
 	public void setCurrentSubject(final Concept subject) {
+
 		this.currentSubject = subject;
 	}
 
@@ -364,10 +375,12 @@ public final class Ontology {
 		for (final Link link : links) {
 
 			if (link.getTarget().equals(concept)) {
+
 				linksToRemove.add(link);
 			}
 
 			if  (link.getSource().equals(concept)) {
+
 				linksToRemove.add(link);
 			}
 		}
@@ -410,6 +423,7 @@ public final class Ontology {
 	}
 
 	public long getNextId() {
+
 		return idGenerator.getAndIncrement();
 	}
 
@@ -422,6 +436,7 @@ public final class Ontology {
 	}
 
 	public Resource getBaseResource() {
+
 		return baseResource;
 	}
 
@@ -460,16 +475,19 @@ public final class Ontology {
 
 			// all terminal
 			if (tokens.stream().allMatch(token -> token.isTerminal())) {
+
 				return tokens;
 			}
 
 			// more than one token left => error
 			if (tokens.stream().noneMatch(token -> token instanceof UnresolvedToken)) {
+
 				break;
 			}
 		}
 
 		final List<AbstractToken> remainingTokens = new LinkedList<>();
+
 		for (final AbstractToken token : tokens) {
 
 			if (!token.isTerminal()) {
@@ -492,8 +510,8 @@ public final class Ontology {
 		final String parent     = documentation.parent();
 		final String[] synonyms = documentation.synonyms();
 		final String[] children = documentation.children();
-
 		final Concept concept = getOrCreateConcept(token, type, name, true);
+
 		if (concept != null) {
 
 			concept.setShortDescription(desc);
@@ -540,6 +558,7 @@ public final class Ontology {
 
 					final Link link = createSymmetricLink(p, Verb.Has, concept);
 					if (link != null && StringUtils.isNotBlank(desc)) {
+
 						link.setShortDescription(desc);
 					}
 				}
@@ -548,6 +567,7 @@ public final class Ontology {
 
 				final Link link = createSymmetricLink(parentConcept, Verb.Has, concept);
 				if (link != null && StringUtils.isNotBlank(desc)) {
+
 					link.setShortDescription(desc);
 				}
 			}
@@ -572,6 +592,7 @@ public final class Ontology {
 									childConcept.setDocumentable(documentable);
 
 									if (documentable.getShortDescription() != null) {
+
 										childConcept.setShortDescription(documentable.getShortDescription());
 									}
 
@@ -631,6 +652,7 @@ public final class Ontology {
 	private Double add(final Double v1, final double v2) {
 
 		if (v1 == null) {
+
 			return v2;
 		}
 

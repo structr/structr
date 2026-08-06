@@ -60,7 +60,6 @@ import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 import java.io.IOException;
 import java.util.*;
 
-
 @Documentation(name="Built-in keywords", shortDescription="Predefined keywords that can be used in scripting contexts to access internal objects and contextual information.")
 public abstract class AbstractHintProvider {
 
@@ -81,6 +80,7 @@ public abstract class AbstractHintProvider {
 
 		// don't interpret invalid strings
 		if (textBefore != null && (textBefore.endsWith("''") || textBefore.endsWith("\"\""))) {
+
 			return Collections.EMPTY_LIST;
 		}
 
@@ -106,6 +106,7 @@ public abstract class AbstractHintProvider {
 					}
 
 				} catch (Throwable t) {
+
 					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
@@ -186,6 +187,7 @@ public abstract class AbstractHintProvider {
 	protected void addAllHints(final ActionContext actionContext, final List<Documentable> hints) {
 
 		for (final Function<Object, Object> func : Functions.getFunctions()) {
+
 			hints.add(func);
 		}
 
@@ -229,6 +231,7 @@ public abstract class AbstractHintProvider {
 	protected void addNonempty(final List<String> list, final String string) {
 
 		if (StringUtils.isNotBlank(string)) {
+
 			list.add(string);
 		}
 	}
@@ -241,6 +244,7 @@ public abstract class AbstractHintProvider {
 
 			// entity properties
 			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type, PropertyView.All);
+
 			for (final GraphObjectMap property : typeInfo) {
 
 				final Map<String, Object> map = property.toMap();
@@ -252,6 +256,7 @@ public abstract class AbstractHintProvider {
 
 				// skip properties defined in NodeInterface class, except for name
 				if (NodeInterface.class.getSimpleName().equals(declaringClass) && !"name".equals(name)) {
+
 					continue;
 				}
 
@@ -266,6 +271,7 @@ public abstract class AbstractHintProvider {
 			// entity methods
 			// go into their own collection, are sorted and the appended to the list
 			final Collection<AbstractMethod> methods = Methods.getAllMethods(Traits.of(type)).values();
+
 			for (final AbstractMethod method : methods) {
 
 				final String name              = method.getName();
@@ -280,6 +286,7 @@ public abstract class AbstractHintProvider {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			JavascriptHintProvider.logger.error(ExceptionUtils.getStackTrace(ex));
 		}
 
@@ -328,7 +335,6 @@ public abstract class AbstractHintProvider {
 					if (currentNode != null && currentNode.isNode()) {
 
 						final NodeInterface node = (NodeInterface)currentNode;
-
 						if (node.is(StructrTraits.SCHEMA_METHOD)) {
 
 							final AbstractSchemaNode schemaNode = node.as(SchemaMethod.class).getSchemaNode();
@@ -339,7 +345,6 @@ public abstract class AbstractHintProvider {
 							}
 
 						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(currentNode.as(SchemaProperty.class).getPropertyType())) {
-
 
 							final AbstractSchemaNode schemaNode = node.as(SchemaProperty.class).getSchemaNode();
 							if (schemaNode != null) {
@@ -354,6 +359,7 @@ public abstract class AbstractHintProvider {
 							type = currentNode.getType();
 						}
 					}
+
 					break;
 
 				default:
@@ -382,6 +388,7 @@ public abstract class AbstractHintProvider {
 							tokenTypes.add(token);
 						}
 					}
+
 					break;
 			}
 		}
@@ -400,17 +407,25 @@ public abstract class AbstractHintProvider {
 					break;
 
 				case "root":
+
 					if (tokenTypes.size() < 3) {
+
 						addAllHints(actionContext, hints);
+
 						return true;
 					}
+
 					break;
 
 				case "keyword":
+
 					if (type != null) {
+
 						addHintsForType(actionContext, type, hints, result);
+
 						return true;
 					}
+
 					break;
 
 				default:
@@ -431,6 +446,7 @@ public abstract class AbstractHintProvider {
 
 						return false;
 					}
+
 					break;
 			}
 		}
@@ -459,10 +475,12 @@ public abstract class AbstractHintProvider {
 
 	public static void addBuiltInKeywordHints(final List<Documentable> hints) {
 
+		hints.add(0, new VisibilityMappingHint());
 		hints.add(0, new ValueHint());
 		hints.add(0, new ThisHint());
 		hints.add(0, new TenantIdentifierHint());
 		hints.add(0, new TemplateHint());
+		hints.add(0, new TaskHint());
 		hints.add(0, new SessionHint());
 		hints.add(0, new RequestHint());
 		hints.add(0, new QueryStringHint());
@@ -500,10 +518,12 @@ public abstract class AbstractHintProvider {
 			final boolean secindIsDynamic = o2.isDynamic();
 
 			if (firstIsDynamic && !secindIsDynamic) {
+
 				return -1;
 			}
 
 			if (!firstIsDynamic && secindIsDynamic) {
+
 				return 1;
 			}
 
@@ -518,6 +538,7 @@ public abstract class AbstractHintProvider {
 
 		@Override
 		public void handleScript(String script, final int row, final int column) throws FrameworkException, IOException {
+
 			inScript = false;
 		}
 
@@ -527,19 +548,23 @@ public abstract class AbstractHintProvider {
 
 		@Override
 		public void handleIncompleteScript(String script) throws FrameworkException, IOException {
+
 			scriptText = script;
 		}
 
 		@Override
 		public void possibleStartOfScript(int row, int column) {
+
 			inScript = true;
 		}
 
 		public boolean inScript() {
+
 			return inScript;
 		}
 
 		public String getScript() {
+
 			return scriptText;
 		}
 	}

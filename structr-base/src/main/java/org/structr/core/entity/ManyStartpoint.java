@@ -77,6 +77,7 @@ public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<
 			} else {
 
 				// sort relationships by id
+
 				return Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), from.getId()), rels);
 			}
 		}
@@ -103,8 +104,8 @@ public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<
 				if (n != null) {
 
 					final Traits type = n.getTraits();
-
 					if (!SearchCommand.isTypeAssignableFromOtherType(sourceType, type)) {
+
 						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), sourceType.getName()));
 					}
 
@@ -188,15 +189,18 @@ public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<
 
 	@Override
 	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getMultiple(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType(), predicate);
 	}
 
 	public Relationship getRawTarget(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override
 	public boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getRawSource(securityContext, dbNode, predicate).iterator().hasNext();
 	}
 }

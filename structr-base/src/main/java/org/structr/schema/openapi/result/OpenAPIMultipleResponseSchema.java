@@ -27,6 +27,7 @@ import java.util.TreeMap;
 public class OpenAPIMultipleResponseSchema  extends TreeMap<String, Object> {
 
     public OpenAPIMultipleResponseSchema(final OpenAPISchemaReference reference) {
+
         Map<String, Object> propertiesMap = new HashMap<>();
         Map<String, Object> resultMap = new HashMap<>();
 

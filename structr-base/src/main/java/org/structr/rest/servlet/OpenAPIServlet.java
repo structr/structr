@@ -80,6 +80,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		// "schema" is the placeholder for "everything", all other values are used as a filter (sorry)
 		if ("schema".equals(tag)) {
+
 			tag = null;
 		}
 
@@ -96,6 +97,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			// isolate request authentication in a transaction
 			// Ensure CORS settings apply by letting the authenticator examine the request.
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = getConfig().getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -103,6 +105,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 			// isolate resource authentication
 			final App app = StructrApp.getInstance(securityContext);
+
 			try (final Tx tx = app.tx()) {
 
 				authenticator.checkResourceAccess(securityContext, request, "_openapi", "");
@@ -121,6 +124,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 				writer.flush();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 			}
 
@@ -133,6 +137,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	@Override
 	public String getModuleName() {
+
 		return "rest";
 	}
 
@@ -156,7 +161,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private Map<String, Object> createInfoObject() {
 
 		final Map<String, Object> info = new LinkedHashMap<>();
-
 		final String serverDescription = Settings.OpenAPIServerTitle.getValue();
 		final String serverVersion = Settings.OpenAPIServerVersion.getValue();
 
@@ -182,7 +186,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private Map<String, Object> createComponentsObject(final StructrSchemaDefinition schema, final String tag) {
 
 		final Map<String, Object> components = new TreeMap<>();
-
 		final Map<String, Object> schemas = createSchemasObject(schema, tag);
 
 		components.put("securitySchemes", createSecuritySchemesObject());
@@ -272,8 +275,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private Map<String, Object> createSchemasObject(final StructrSchemaDefinition schema, final String tag) {
 
 		final Map<String, Object> map = new TreeMap<>();
-
 		final StructrTypeDefinitions definitions = schema.getTypeDefinitionsObject();
+
 		map.putAll(definitions.serializeOpenAPI(map, tag));
 
 		// base classes
@@ -296,30 +299,18 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		writeResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("serialization_time", "serialization_time", "number", null, "0.001270261", false));
 		map.put("WriteBaseResponse", new OpenAPIStructrTypeSchemaOutput("Response schema used by PUT and POST operations.", "object", writeResponseBaseSchema));
 
-		map.put("WriteResponse", new OpenAPIAllOf(
-				new OpenAPISchemaReference("WriteBaseResponse"),
-				new OpenAPIWriteResponseSchema()
-		));
+		map.put("WriteResponse", new OpenAPIAllOf(new OpenAPISchemaReference("WriteBaseResponse"), new OpenAPIWriteResponseSchema()));
 
-		map.put("CreateResponse", new OpenAPIAllOf(
-				new OpenAPISchemaReference("WriteBaseResponse"),
-				new OpenAPICreateResponseSchema()
-		));
+		map.put("CreateResponse", new OpenAPIAllOf(new OpenAPISchemaReference("WriteBaseResponse"), new OpenAPICreateResponseSchema()));
 
-		map.put("LoginResponse", new OpenAPIAllOf(
-				new OpenAPISchemaReference("WriteBaseResponse"),
-				new OpenAPISingleResponseSchema(new OpenAPISchemaReference("#/components/schemas/User"))
-		));
+		map.put("LoginResponse", new OpenAPIAllOf(new OpenAPISchemaReference("WriteBaseResponse"), new OpenAPISingleResponseSchema(new OpenAPISchemaReference("#/components/schemas/User"))));
 
 		map.put("TokenResponse", new OpenAPIAllOf(
 				new OpenAPISchemaReference("WriteBaseResponse"),
 				new OpenAPISingleResponseSchema(new OpenAPISchemaReference("#/components/schemas/TokenResponse"))
 		));
 
-		map.put("ok", new OpenAPIAllOf(
-				new OpenAPISchemaReference("WriteResponse"),
-				new OpenAPIWriteResponseSchema()
-		));
+		map.put("ok", new OpenAPIAllOf(new OpenAPISchemaReference("WriteResponse"), new OpenAPIWriteResponseSchema()));
 
 		map.put("ErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
@@ -416,10 +407,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> responses = new LinkedHashMap<>();
 		// 200 OK
-		responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.",
-			new OpenAPISchemaReference("ok"),
-			new OpenAPIExampleAnyResult(List.of(), false)
-		));
+		responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.", new OpenAPISchemaReference("ok"), new OpenAPIExampleAnyResult(List.of(), false)));
 
 		// 201 Created
 		responses.put("created", new OpenAPIRequestResponse("Created",
@@ -446,20 +434,14 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!")
 		));
 
-		responses.put("loginResponse", new OpenAPIRequestResponse(
-			"Login successful.",
-			new OpenAPISchemaReference("LoginResponse")
-		));
+		responses.put("loginResponse", new OpenAPIRequestResponse("Login successful.", new OpenAPISchemaReference("LoginResponse")));
 
 		responses.put("tokenError", new OpenAPIRequestResponse("The given access token or refresh token is invalid.",
 			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "The given access_token or refresh_token is invalid!")
 		));
 
-		responses.put("tokenResponse", new OpenAPIRequestResponse(
-			"The request was executed successfully.",
-			new OpenAPISchemaReference("TokenResponse")
-		));
+		responses.put("tokenResponse", new OpenAPIRequestResponse("The request was executed successfully.", new OpenAPISchemaReference("TokenResponse")));
 
 		// 403 Forbidden
 		responses.put("forbidden", new OpenAPIRequestResponse("The request was denied due to insufficient access rights to the object.",
@@ -503,7 +485,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private String getTagFromURLPath(final HttpServletRequest request) {
 
 		final String pathInfo = StringUtils.substringAfter(StringUtils.defaultIfBlank(request.getPathInfo(), ""), "/");
-
 		if (StringUtils.isNotBlank(pathInfo) && pathInfo.endsWith(".json")) {
 
 			return StringUtils.substringBeforeLast(pathInfo, ".");

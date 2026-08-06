@@ -72,7 +72,6 @@ public class LoginLogoutTest extends StructrUiTest {
 			.get("/me");
 	}
 
-
 	@Test
 	public void testLoginLogoutMisuse() {
 

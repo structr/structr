@@ -53,7 +53,6 @@ public class ListFilesCommand extends AbstractCommand {
 		final int pageSize                    = webSocketData.getPageSize();
 		final int page                        = webSocketData.getPage();
 		final PropertyKey sortProperty        = type.key(sortKey);
-
 		final QueryGroup<NodeInterface> query = StructrApp.getInstance(securityContext)
 			.nodeQuery(rawType)
 			.includeHidden()
@@ -85,6 +84,7 @@ public class ListFilesCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "LIST_FILES";
 	}
 }

@@ -60,7 +60,6 @@ public class SearchCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String searchString = webSocketData.getNodeDataStringValue(SEARCH_STRING_KEY);
-
 		String typeString = null;
 		Boolean exactSearch = null;
 
@@ -75,8 +74,8 @@ public class SearchCommand extends AbstractCommand {
 		final String paramString  = webSocketData.getNodeDataStringValue(CYPHER_PARAMS_KEY);
 		final int pageSize        = webSocketData.getPageSize();
 		final int page            = webSocketData.getPage();
-
 		Traits type = null;
+
 		if (typeString != null) {
 
 			type = Traits.of(typeString);
@@ -87,6 +86,7 @@ public class SearchCommand extends AbstractCommand {
 			if (cypherQuery != null) {
 
 				try {
+
 					Map<String, Object> obj = null;
 
 					if (StringUtils.isNoneBlank(paramString)) {
@@ -96,13 +96,16 @@ public class SearchCommand extends AbstractCommand {
 					}
 
 					final List<GraphObject> result = flatten(Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj)));
-
 					int resultCountBeforePaging = result.size();
+
 					webSocketData.setRawResultCount(resultCountBeforePaging);
 
 					if (page != 0 && pageSize != 0) {
+
 						webSocketData.setResult(result.subList((page-1) * pageSize, Math.min(page * pageSize, resultCountBeforePaging)));
+
 					} else {
+
 						webSocketData.setResult(result);
 					}
 
@@ -114,12 +117,14 @@ public class SearchCommand extends AbstractCommand {
 
 					logger.warn("Exception occured", ex);
 					getWebSocket().send(MessageBuilder.status().code(400).message(ex.getMessage()).build(), true);
+
 					return;
 
 				}
 			}
 
 			if (restQuery != null) {
+
 				throw new UnsupportedOperationException("Using restQuery in the SEARCH command is deprecated.");
 			}
 		}
@@ -132,6 +137,7 @@ public class SearchCommand extends AbstractCommand {
 		query.key(type.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), searchString, exactSearch);
 
 		if (type != null) {
+
 			query.types(type);
 		}
 
@@ -153,6 +159,7 @@ public class SearchCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "SEARCH";
 	}
 

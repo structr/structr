@@ -80,51 +80,43 @@ public class MethodTest extends StructrRestTestBase {
 		assertEquals("Invalid inheritance result, overriding method is not called", "BaseType", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + base + "/doTest")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		assertEquals("Invalid inheritance result, overriding method is not called", "Extended1", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + ext1 + "/doTest")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + ext11 + "/doTest")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		assertEquals("Invalid inheritance result, overriding method is not called", "Extended2", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + ext2 + "/doTest")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		// test base methods
 		assertEquals("Invalid inheritance result, base method is not called", "BaseType", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + base + "/doBase")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		assertEquals("Invalid inheritance result, base method is not called", "BaseType", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + ext1 + "/doBase")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		assertEquals("Invalid inheritance result, base method is not called", "BaseType", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + ext11 + "/doBase")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		assertEquals("Invalid inheritance result, base method is not called", "BaseType", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + ext2 + "/doBase")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 	}
 
@@ -157,14 +149,12 @@ public class MethodTest extends StructrRestTestBase {
 		assertEquals("Invalid method call result, lower-case method is not called", "BaseType: test", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + base + "/test")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 
 		assertEquals("Invalid method call result, lower-case method is not called", "BaseType: base", RestAssured.given().contentType("application/json; charset=UTF-8")
 			.expect().statusCode(200)
 			.when().post("/BaseType/" + base + "/base")
-			.body().as(Map.class).get("result")
-		);
+			.body().as(Map.class).get("result"));
 	}
 
 	@Test
@@ -550,7 +540,6 @@ public class MethodTest extends StructrRestTestBase {
 		RestAssured.expect().statusCode(405).when().patch("/BaseType/" + base + "/doDelete");
 		RestAssured.expect().statusCode(200).body("result", equalTo("delete")).when().delete("/BaseType/" + base + "/doDelete");
 	}
-
 
 	@Test
 	public void testGETMethodParametersInURL() {

@@ -31,15 +31,18 @@ import org.structr.core.function.CryptFunction;
 public class EncryptedStringProperty extends StringProperty {
 
 	public EncryptedStringProperty(final String name) {
+
 		this(name, name);
 	}
 
 	public EncryptedStringProperty(final String name, final String dbName) {
+
 		super(name, dbName);
 	}
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 

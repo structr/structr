@@ -51,11 +51,13 @@ public class UserDefinedFunctionWrapper implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
+
 		return methods.values().stream().map(AbstractMethod::getName).toList();
 	}
 
 	@Override
 	public boolean hasMember(final String key) {
+
 		return methods.containsKey(key);
 	}
 
@@ -66,7 +68,6 @@ public class UserDefinedFunctionWrapper implements ProxyObject {
 	private ProxyExecutable getExecutable(final String methodName) {
 
 		final List<ProxyExecutable> executables = getExecutables(methodName);
-
 		if (!executables.isEmpty()) {
 
 			return executables.get(0);

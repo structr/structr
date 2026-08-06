@@ -34,6 +34,7 @@ public class Param extends GenericHtmlElementTraitDefinition {
 	public static final String VALUE_PROPERTY = getPrefixedHTMLAttributeName("value");
 
 	public Param() {
+
 		super(StructrTraits.PARAM);
 	}
 
@@ -44,11 +45,11 @@ public class Param extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -62,19 +63,12 @@ public class Param extends GenericHtmlElementTraitDefinition {
 
 		final PropertyKey<String> valueProperty = new StringProperty(VALUE_PROPERTY);
 
-		return newSet(
-			valueProperty
-		);
+		return newSet(valueProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					VALUE_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(VALUE_PROPERTY));
 	}
 }

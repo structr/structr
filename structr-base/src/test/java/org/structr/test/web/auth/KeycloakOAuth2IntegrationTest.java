@@ -87,6 +87,7 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 		super.stop();
 
 		if (keycloakContainer != null) {
+
 			keycloakContainer.stop();
 		}
 	}
@@ -97,8 +98,7 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 								.withRealmImportFile("keycloak-integration-test-config.json")
 								.waitingFor(Wait.forHttp("/realms/master")
 									.forPort(8080)
-									.withStartupTimeout(Duration.ofMinutes(2))
-								);
+									.withStartupTimeout(Duration.ofMinutes(2)));
 
 		keycloakContainer.start();
 
@@ -106,6 +106,7 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 
 		// Remove trailing slash if present for consistency
 		if (keycloakUrl.endsWith("/")) {
+
 			keycloakUrl = keycloakUrl.substring(0, keycloakUrl.length() - 1);
 		}
 	}
@@ -155,6 +156,7 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 			assertEquals("Should be same user ID", firstUser.getUuid(), secondUser.getUuid());
 
 		} catch (FrameworkException fex) {
+
 			logger.error(fex.getMessage(), fex);
 		}
 	}
@@ -164,7 +166,6 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 	private boolean verifyKeycloakAvailable() {
 
 		String url = keycloakUrl + "/realms/" + TEST_REALM;
-
 		Response response = RestAssured
 				.given()
 				.relaxedHTTPSValidation()
@@ -222,9 +223,9 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 		// Submit credentials
 		Document doc = Jsoup.parse(loginPage.getBody().asString());
 		Element form = doc.select("form").first();
+
 		Assert.assertNotNull(form, "No form found for login page of Keycloak");
 		String formAction = form.attr("action");
-
 		Response loginSubmit = RestAssured
 				.given()
 				.redirects().follow(false)
@@ -250,6 +251,7 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 		final PropertyKey credentialKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 
 		// first try: literal, unchanged value from oauth provider
+
 		return AuthHelper.getPrincipalForCredential(credentialKey, TEST_EMAIL);
 	}
 }

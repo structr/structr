@@ -29,36 +29,43 @@ import org.structr.transform.traits.definitions.VirtualPropertyTraitDefinition;
 public class VirtualPropertyTraitWrapper extends AbstractNodeTraitWrapper implements VirtualProperty {
 
 	public VirtualPropertyTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
 	@Override
 	public Integer getPosition() {
+
 		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.POSITION_PROPERTY));
 	}
 
 	@Override
 	public String getSourceName() {
+
 		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.SOURCE_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getTargetName() {
+
 		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.TARGET_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getOutputFunction() {
+
 		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.OUTPUT_FUNCTION_PROPERTY));
 	}
 
 	@Override
 	public String getInputFunction() {
+
 		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.INPUT_FUNCTION_PROPERTY));
 	}
 
@@ -71,11 +78,13 @@ public class VirtualPropertyTraitWrapper extends AbstractNodeTraitWrapper implem
 		String _targetName           = getTargetName();
 
 		if (_sourceName == null && _outputFunction == null) {
+
 			throw new FrameworkException(500, "VirtualProperty with ID " + getUuid() + " needs source name or output function");
 		}
 
 		// don't rename
 		if (_targetName == null) {
+
 			_targetName = _sourceName;
 		}
 

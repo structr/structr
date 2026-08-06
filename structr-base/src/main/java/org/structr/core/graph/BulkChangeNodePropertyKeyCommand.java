@@ -64,7 +64,6 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 					final Node dbNode = node.getNode();
-
 					if (dbNode.hasProperty(newKey)) {
 
 						logger.warn("Skipping node {}: a property with the new key {} already exists", node.getUuid(), newKey);
@@ -80,15 +79,16 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
+
 					logger.warn("Unable to set properties of node {}: {}", node.getUuid(), t.getMessage());
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
 					logger.warn("Unable to set node properties: {}", t.getMessage() );
 				}
 			});
-
 
 			logger.info("Fixed {} nodes ...", count);
 			logger.info("Done");
@@ -107,32 +107,38 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "changeNodePropertyKey";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Migrates property values from one property key to another.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 	        Use this command when you rename a property in your schema and need to move existing data to the new key.
 	        """;
@@ -140,6 +146,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("oldKey", "Source property key"),
 			Parameter.mandatory("newKey", "Target property key"),
@@ -149,31 +156,37 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

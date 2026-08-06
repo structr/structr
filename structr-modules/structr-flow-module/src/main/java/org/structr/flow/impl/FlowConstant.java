@@ -26,22 +26,22 @@ import org.structr.module.api.DeployableEntity;
 public class FlowConstant extends FlowDataSource implements DeployableEntity {
 
 	public enum ConstantType {
-		String,
-		Boolean,
-		Integer,
-		Double,
-		Date
+
+		String, Boolean, Integer, Double, Date
 	}
 
 	public FlowConstant(Traits traits, NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final String getConstantType() {
+
 		return wrappedObject.getProperty(traits.key(FlowConstantTraitDefinition.CONSTANT_TYPE_PROPERTY));
 	}
 
 	public final Object getValue() {
+
 		return wrappedObject.getProperty(traits.key(FlowConstantTraitDefinition.VALUE_PROPERTY));
 	}
 }

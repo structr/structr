@@ -73,6 +73,7 @@
 	</properties>
 
 	<modules>
+		<module>structr-build-extension</module>
 		<module>structr-annotation-processor</module>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
@@ -1058,6 +1059,32 @@
 								</goals>
 							</execution>
 						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- Opt-in style linting. Does NOT run on a normal build and never fails it; invoke explicitly:
+		       mvn -Pcheckstyle checkstyle:check
+		     Reports the mechanical/structural house-style rules (always-brace, K&R, trailing whitespace,
+		     no double blank lines, one-statement-per-line) as WARNINGS only (failOnViolation=false).
+		     The semantic blank-line rules live in the separate config/style/style_lint.py linter, and
+		     the AGPL header is handled by the license-maven-plugin above. -->
+		<profile>
+			<id>checkstyle</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<version>3.6.0</version>
+						<configuration>
+							<configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle.xml</configLocation>
+							<failOnViolation>false</failOnViolation>
+							<failsOnError>false</failsOnError>
+							<violationSeverity>warning</violationSeverity>
+							<includeTestSourceDirectory>true</includeTestSourceDirectory>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

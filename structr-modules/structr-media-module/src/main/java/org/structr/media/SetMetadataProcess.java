@@ -52,6 +52,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 	private String fileExtension               = null;
 
 	public SetMetadataProcess(final SecurityContext securityContext, final VideoFile inputVideo, final String key, final String value) {
+
 		this(securityContext, inputVideo, toMap(key, value));
 	}
 
@@ -82,6 +83,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 	public StringBuilder getCommandLine() {
 
 		if (metadata.isEmpty()) {
+
 			return null;
 		}
 
@@ -94,6 +96,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 		for (final Entry<String, String> meta : metadata.entrySet()) {
 
 			try {
+
 				commandLine.append(" -metadata ");
 				commandLine.append(clean(meta.getKey()));
 				commandLine.append("=\"");
@@ -101,6 +104,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 				commandLine.append("\"");
 
 			} catch (Throwable t) {
+
 				logger.warn("", t);
 			}
 		}
@@ -109,6 +113,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 		//commandLine.append(diskFilePath);
 
 		if (!fileExtension.isEmpty()) {
+
 			commandLine.append(".");
 			commandLine.append(fileExtension);
 		}
@@ -126,6 +131,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 				// move converted file into place
 				final java.io.File diskFile = new java.io.File(outputFileName + "." + fileExtension);
 				final java.io.File dstFile  = new java.io.File(outputFileName);
+
 				if (diskFile.exists()) {
 
 					Files.move(diskFile.toPath(), dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -135,6 +141,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 				tx.success();
 
 			} catch (FrameworkException | IOException fex) {
+
 				logger.warn("", fex);
 			}
 
@@ -144,14 +151,17 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 	}
 
 	protected boolean accept(final String key, final String value) {
+
 		return key != null && !key.startsWith(";");
 	}
 
 	private String clean(final String input) {
+
 		return input.replaceAll("[\\W]+", "");
 	}
 
 	private String escape(final String input) throws UnsupportedEncodingException {
+
 		return URLEncoder.encode(input, "UTF-8");
 	}
 

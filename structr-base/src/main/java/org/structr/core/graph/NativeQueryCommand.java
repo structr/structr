@@ -54,14 +54,17 @@ public class NativeQueryCommand extends NodeServiceCommand {
 	private boolean runInNewTransaction = false;
 
 	public Iterable execute(String query) throws FrameworkException {
+
 		return execute(query, null, false);
 	}
 
 	public Iterable execute(String query, Map<String, Object> parameters) throws FrameworkException {
+
 		return execute(query, parameters, true);
 	}
 
 	public Iterable execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted) throws FrameworkException {
+
 		return execute(query, parameters, includeHiddenAndDeleted, false);
 	}
 
@@ -75,16 +78,19 @@ public class NativeQueryCommand extends NodeServiceCommand {
 			final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
 
 			if (parameters != null) {
+
 				nativeQuery.configure(parameters);
 			}
 
 			if (runInNewTransaction) {
+
 				// Run query in isolated tx
 				final Transaction tx = graphDb.beginTx(true);
 
 				result = graphDb.execute(nativeQuery, tx);
 				tx.success();
 				tx.close();
+
 			} else {
 
 				// Run query in current tx
@@ -94,6 +100,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 			extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
 			if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
+
 				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in native query: " + query);
 				FlushCachesCommand.flushAll();
 			}
@@ -105,14 +112,17 @@ public class NativeQueryCommand extends NodeServiceCommand {
 	}
 
 	public void setRunInNewTransaction(final boolean runInNewTransaction) {
+
 		this.runInNewTransaction = runInNewTransaction;
 	}
 
 	public void setDontFlushCachesIfKeywordsInQuery(final boolean dontFlushCachesIfKeywordsInQuery) {
+
 		this.dontFlushCachesIfKeywordsInQuery = dontFlushCachesIfKeywordsInQuery;
 	}
 
 	private Iterable extractRows(final Iterable<Map<String, Object>> result, final boolean includeHiddenAndDeleted, final boolean publicOnly) {
+
 		return Iterables.map(map -> { return extractColumns(map, includeHiddenAndDeleted, publicOnly); }, result);
 	}
 
@@ -132,6 +142,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 				return handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
 
 			} catch (FrameworkException fex) {
+
 				logger.error(ExceptionUtils.getStackTrace(fex));
 			}
 
@@ -147,6 +158,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 					return handleObject(nodeFactory, relFactory, key, val, includeHiddenAndDeleted, publicOnly, 0);
 
 				} catch (FrameworkException fex) {
+
 					logger.error(ExceptionUtils.getStackTrace(fex));
 				}
 
@@ -190,6 +202,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 				} else {
 
 					// remove path from list if one of the children is null (=> permission)
+
 					return null;
 				}
 			}
@@ -230,6 +243,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 				} else {
 
 					// remove tuple from list if one of the children is null (=> permission)
+
 					return null;
 				}
 			}

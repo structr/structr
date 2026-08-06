@@ -30,11 +30,13 @@ class NodeIdNodeMapper implements Function<NodeId, Node> {
 	private BoltDatabaseService db = null;
 
 	public NodeIdNodeMapper(final BoltDatabaseService db) {
+
 		this.db            = db;
 	}
 
 	@Override
 	public Node apply(final NodeId t) {
+
 		return db.getCurrentTransaction().getNodeWrapper(t.getNode());
 	}
 }

@@ -46,18 +46,22 @@ public class Aggregation implements Value<Aggregation> {
 	}
 
 	public void setNotionForProperty(Class type, Notion notion) {
+
 		notions.put(type, notion);
 	}
 	
 	public Notion getNotionForType(Class type) {
+
 		return notions.get(type);
 	}
 	
 	public Comparator<NodeInterface> getComparator() {
+
 		return comparator;
 	}
 
 	public Set<Property> getAggregationProperties() {
+
 		return aggregationProperties;
 	}
 
@@ -67,6 +71,7 @@ public class Aggregation implements Value<Aggregation> {
 
 	@Override
 	public Aggregation get(SecurityContext securityContext) {
+
 		return this;
 	}
 }

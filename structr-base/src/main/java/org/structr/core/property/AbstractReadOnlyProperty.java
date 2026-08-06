@@ -36,18 +36,22 @@ import java.util.TreeMap;
 public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
 	public AbstractReadOnlyProperty(final String name) {
+
 		this(name, name);
 	}
 
 	public AbstractReadOnlyProperty(final String name, final T defaultValue) {
+
 		this(name, name, defaultValue);
 	}
 
 	public AbstractReadOnlyProperty(final String jsonName, final String dbName) {
+
 		this(jsonName, dbName, null);
 	}
 
 	public AbstractReadOnlyProperty(final String jsonName, final String dbName, final T defaultValue) {
+
 		super(jsonName, dbName, defaultValue);
 	}
 
@@ -57,41 +61,49 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 		// related node properties are always passively indexed
 		// (because they can change without setProperty())
 		super.passivelyIndexed();
+
 		return this;
 	}
 
 	@Override
 	public String typeName() {
+
 		return ""; // read-only
 	}
 
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
+
 		return value;
 	}
 
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, final T value) throws FrameworkException {
+
 		throw new FrameworkException(422, "Property ‛" + this.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(obj.getClass().getSimpleName(), jsonName));
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isReadOnly() {
+
 		return true;
 	}
 
@@ -101,16 +113,16 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
 		final Map<String, Object> map = new TreeMap<>();
 		final Class valueType         = valueType();
-
 		final Map<String, String> openApiTypeMap = new HashMap<>();
+
 		openApiTypeMap.put("image", "object");
 		openApiTypeMap.put("double", "number");
 
 		if (valueType != null) {
 
 			String simpleName = valueType.getSimpleName().toLowerCase();
-
 			if (openApiTypeMap.containsKey(simpleName)) {
+
 				simpleName = openApiTypeMap.get(simpleName);
 			}
 
@@ -118,6 +130,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
+
 				map.put("readOnly", true);
 			}
 		}
@@ -137,6 +150,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
+
 				map.put("readOnly", true);
 			}
 		}

@@ -39,6 +39,7 @@ public class Link {
 	private String shortDescription;
 
 	public Link(final Concept source, final Verb verb, final Concept target) {
+
 		this.source = source;
 		this.verb   = verb;
 		this.target = target;
@@ -72,26 +73,32 @@ public class Link {
 
 	@Override
 	public boolean equals(Object obj) {
+
 		return obj.hashCode() == this.hashCode();
 	}
 
 	public Concept getSource() {
+
 		return source;
 	}
 
 	public Verb getVerb() {
+
 		return verb;
 	}
 
 	public Concept getTarget() {
+
 		return target;
 	}
 
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 
 	public void setShortDescription(final String shortDescription) {
+
 		this.shortDescription = shortDescription;
 	}
 
@@ -124,6 +131,7 @@ public class Link {
 
 			// we need to create a new token in the source file
 			final Set<AbstractToken> tokens = concept.getTokens();
+
 			for (final AbstractToken token : tokens) {
 
 				// first token wins
@@ -139,11 +147,14 @@ public class Link {
 	}
 
 	public FormatSpecification getFormatSpecification() {
+
 		return formatSpecification;
 	}
 
 	public ConceptType getType() {
+
 		final Concept concept = target;
+
 		return concept.getType();
 	}
 

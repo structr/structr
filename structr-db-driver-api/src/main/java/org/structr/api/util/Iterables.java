@@ -42,6 +42,7 @@ public class Iterables {
 	 * @param <C> Type of the elements in the existing collection
 	 */
 	public static <T, C extends Collection<T>> C addAll(final C collection, final Iterable<? extends T> iterable) {
+
 		return Iterables.addAll(collection, iterable, true);
 	}
 
@@ -92,6 +93,7 @@ public class Iterables {
 		try {
 
 			for (Object o : iterable) {
+
 				c++;
 			}
 
@@ -112,6 +114,7 @@ public class Iterables {
 	}
 
 	public static boolean isEmpty(final Iterable<?> iterable) {
+
 		return !iterable.iterator().hasNext();
 	}
 
@@ -150,6 +153,7 @@ public class Iterables {
 			tmp = iterator.next();
 
 			if (count++ == index) {
+
 				return tmp;
 			}
 		}
@@ -158,32 +162,39 @@ public class Iterables {
 	}
 
 	public static <T> Iterable<T> filter(final Predicate<? super T> specification, Iterable<T> i) {
+
 		return new FilterIterable<>(i, specification);
 	}
 
 	public static <T> Iterator<T> filter(final Predicate<? super T> specification, final Iterator<T> i) {
+
 		return new FilterIterable.FilterIterator<>(i, specification);
 	}
 
 	public static <S, T> Iterable<T> map(final Function<? super S, ? extends T> function, final Iterable<S> from) {
+
 		return new FilterIterable<>(new MapIterable<>(from, function), e -> e != null);
 	}
 
 	public static <S, T> Iterator<T> map(final Function<? super S, ? extends T> function, final Iterator<S> from) {
+
 		return new FilterIterable.FilterIterator<>(new MapIterable.MapIterator<>(from, function), e -> e != null);
 	}
 
 	public static <T> Iterable<T> flatten(final Iterable<Iterable<T>> source) {
+
 		return new FlatteningIterable<>(source);
 	}
 
 	public static <T> List<T> toList(final Iterable<T> iterable) {
+
 		return Iterables.toList(iterable, true);
 	}
 
 	public static <T> List<T> toList(final Iterable<T> iterable, final boolean closeStream) {
 
 		if (iterable instanceof List) {
+
 			return (List<T>)iterable;
 		}
 
@@ -193,6 +204,7 @@ public class Iterables {
 	public static <T> List<T> toList(Iterator<T> iterator) {
 
 		final List<T> list = new LinkedList<>();
+
 		while (iterator.hasNext()) {
 
 			final T value = iterator.next();
@@ -206,10 +218,12 @@ public class Iterables {
 	}
 
 	public static <T> Set<T> toSet(final Iterable<T> iterable) {
+
 		return addAll(new LinkedHashSet<>(), iterable, true);
 	}
 
 	public static <T> Iterable<T> wrap(final Iterable<T> iterable, final UnaryOperator<T> callback) {
+
 		return new ClosingCallbackIterable<>(iterable, callback);
 	}
 
@@ -220,6 +234,7 @@ public class Iterables {
 		private Iterator<T> iterator = null;
 
 		public MapIterable(final Iterable<S> from, Function<? super S, ? extends T> function) {
+
 			this.from = from;
 			this.function = function;
 		}
@@ -228,6 +243,7 @@ public class Iterables {
 		public Iterator<T> iterator() {
 
 			if (iterator == null) {
+
 				iterator = new MapIterator<>(from.iterator(), function);
 			}
 
@@ -247,6 +263,7 @@ public class Iterables {
 
 			@Override
 			public boolean hasNext() {
+
 				return fromIterator.hasNext();
 			}
 
@@ -254,11 +271,13 @@ public class Iterables {
 			public T next() {
 
 				final S from = fromIterator.next();
+
 				return function.apply(from);
 			}
 
 			@Override
 			public void remove() {
+
 				fromIterator.remove();
 			}
 
@@ -289,6 +308,7 @@ public class Iterables {
 		public Iterator<T> iterator() {
 
 			if (iterator == null) {
+
 				iterator = new FilterIterator<>(iterable.iterator(), specification);
 			}
 
@@ -305,6 +325,7 @@ public class Iterables {
 			boolean nextConsumed = true;
 
 			public FilterIterator(Iterator<T> iterator, Predicate<? super T> specification) {
+
 				this.specification = specification;
 				this.iterator = iterator;
 			}
@@ -316,7 +337,6 @@ public class Iterables {
 				while (!found && iterator.hasNext()) {
 
 					final T nextValue = iterator.next();
-
 					if (nextValue != null && specification.accept(nextValue)) {
 
 						found             = true;
@@ -326,6 +346,7 @@ public class Iterables {
 				}
 
 				if (!found) {
+
 					finished = true;
 				}
 
@@ -338,6 +359,7 @@ public class Iterables {
 				if (!nextConsumed) {
 
 					nextConsumed = true;
+
 					return currentValue;
 
 				} else {
@@ -347,6 +369,7 @@ public class Iterables {
 						if (moveToNextValid()) {
 
 							nextConsumed = true;
+
 							return currentValue;
 						}
 					}
@@ -357,11 +380,13 @@ public class Iterables {
 
 			@Override
 			public boolean hasNext() {
+
 				return !finished && (!nextConsumed || moveToNextValid());
 			}
 
 			@Override
 			public void remove() {
+
 				throw new UnsupportedOperationException("This iterator does not support removal of elements");
 			}
 
@@ -383,6 +408,7 @@ public class Iterables {
 		private Iterator<T> iterator         = null;
 
 		public FlatteningIterable(final Iterable<Iterable<T>> source) {
+
 			this.source = source.iterator();
 		}
 
@@ -416,6 +442,7 @@ public class Iterables {
 
 					@Override
 					public T next() {
+
 						return current.next();
 					}
 
@@ -447,10 +474,12 @@ public class Iterables {
 
 		@Override
 		public Iterator<T> iterator() {
+
 			return iterable.iterator();
 		}
 
 		public void close() {
+
 			callback.apply(null);
 		}
 	}

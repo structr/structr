@@ -77,7 +77,6 @@ import java.util.function.BooleanSupplier;
 
 import static org.testng.AssertJUnit.*;
 
-
 /**
  * Tests for the StorageSyncService, ported from the former
  * DirectoryWatchServiceTest and extended with sync-specific cases
@@ -120,6 +119,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			createTestFile(testDir.resolve(Paths.get("test3.txt")), "test file content 3");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -138,6 +138,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -168,6 +169,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -189,6 +191,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			createTestFile(testDir.resolve(Paths.get("test3.txt")), "test file content 3");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -196,7 +199,6 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface parent1 = app.create(StructrTraits.FOLDER, "parent");
-
 			final NodeInterface parent2 = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parent"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent1)
@@ -215,6 +217,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -242,6 +245,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -294,9 +298,9 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
-
 
 			// wait some time
 			try { Thread.sleep(5000); } catch (Throwable t) {}
@@ -317,6 +321,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -339,6 +344,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -354,6 +360,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -413,9 +420,9 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
-
 
 			// wait some time
 			try { Thread.sleep(5000); } catch (Throwable t) {}
@@ -436,6 +443,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -458,6 +466,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -473,6 +482,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -514,6 +524,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -528,6 +539,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -545,6 +557,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -579,9 +592,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				final StorageConfiguration outerMount = StorageProviderFactory.createConfig("outerMount", LocalFSStorageProvider.class,
 					Map.of("mountTarget", outerDir.toString(), StorageSyncService.DELETE_STALE_KEY, "true"));
 
-				final StorageConfiguration innerMount = StorageProviderFactory.createConfig("innerMount", LocalFSStorageProvider.class,
-					Map.of("mountTarget", innerDir.toString()));
-
+				final StorageConfiguration innerMount = StorageProviderFactory.createConfig("innerMount", LocalFSStorageProvider.class, Map.of("mountTarget", innerDir.toString()));
 				final NodeInterface outer = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outer"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
@@ -599,6 +610,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -624,6 +636,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -653,7 +666,6 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				final StorageConfiguration mount = StorageProviderFactory.createConfig("uuidMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
-
 				final NodeInterface folder = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted5"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
@@ -666,6 +678,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -686,6 +699,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -705,6 +719,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -727,6 +742,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -738,6 +754,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -766,7 +783,6 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				final StorageConfiguration mount = StorageProviderFactory.createConfig("extKeyMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
-
 				final NodeInterface folder = app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted6"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
@@ -779,12 +795,12 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
 			final SyncTarget target = new SyncTarget(folderUuid, "/mounted6", true, configUuid, Map.of("mountTarget", root.toString()));
 			final App syncApp        = StructrApp.getInstance(StorageSyncService.createSyncContext());
-
 			final String nativeKey = "docs/report.pdf";
 			final long now         = System.currentTimeMillis();
 
@@ -807,6 +823,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -826,6 +843,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -843,6 +861,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -857,6 +876,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -883,6 +903,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			testDir = Files.createDirectory(base.resolve(dirName));
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -897,7 +918,6 @@ public class StorageSyncServiceTest extends StructrUiTest {
 
 			// create folder to mount
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
-
 			final AccessControllable folder = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
@@ -911,6 +931,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -936,12 +957,14 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			// add onCreate method that sets the parent of an uploaded image
 			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
 			final JsonType imageType = schema.getType(StructrTraits.IMAGE);
+
 			imageType.addMethod("onCreation", "set(this, 'parent', first(find('Folder', 'name', 'mounted')))");
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -977,6 +1000,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1009,6 +1033,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1031,6 +1056,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1054,6 +1080,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1066,6 +1093,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1114,6 +1142,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -1129,6 +1158,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1171,6 +1201,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1233,6 +1264,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1244,6 +1276,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1257,6 +1290,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1271,6 +1305,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1317,6 +1352,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1339,6 +1375,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1363,8 +1400,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		// no mountTarget: the recording provider always creates a synchronizer
 		try (final Tx tx = app.tx()) {
 
-			final StorageConfiguration config = StorageProviderFactory.createConfig("recordingConfig", RecordingStorageProvider.class,
-				Map.of(StorageSyncService.DIRECTION_KEY, "both"));
+			final StorageConfiguration config = StorageProviderFactory.createConfig("recordingConfig", RecordingStorageProvider.class, Map.of(StorageSyncService.DIRECTION_KEY, "both"));
 
 			app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "recorded"),
@@ -1374,6 +1410,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1390,6 +1427,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1402,6 +1440,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1431,6 +1470,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -1441,9 +1481,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		// recording provider target with one committed child
 		try (final Tx tx = app.tx()) {
 
-			final StorageConfiguration config = StorageProviderFactory.createConfig("rollbackConfig", RecordingStorageProvider.class,
-				Map.of(StorageSyncService.DIRECTION_KEY, "both"));
-
+			final StorageConfiguration config = StorageProviderFactory.createConfig("rollbackConfig", RecordingStorageProvider.class, Map.of(StorageSyncService.DIRECTION_KEY, "both"));
 			final NodeInterface folder = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "rollback"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), config)
@@ -1457,6 +1495,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1479,6 +1518,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			// no tx.success()
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1511,7 +1551,6 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface parent = app.create(StructrTraits.FOLDER, "plainParent");
-
 			final NodeInterface folder = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "plainFolder"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent)
@@ -1532,6 +1571,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Creating plain nodes without a storage configuration must not fail.");
 		}
@@ -1549,6 +1589,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1566,6 +1607,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Moving a plain node without a storage configuration must not fail.");
 		}
@@ -1580,6 +1622,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1591,6 +1634,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Deleting a plain node without a storage configuration must not fail.");
 		}
@@ -1602,6 +1646,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -1620,6 +1665,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception.");
+
 			return null;
 		}
 	}
@@ -1637,6 +1683,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				return node != null;
 
 			} catch (FrameworkException fex) {
+
 				return false;
 			}
 		});
@@ -1664,6 +1711,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		while (System.currentTimeMillis() < deadline) {
 
 			if (condition.getAsBoolean()) {
+
 				return;
 			}
 
@@ -1689,6 +1737,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			return IOUtils.toString(is, "utf-8");
 
 		} catch (IOException ioex) {
+
 			ioex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1710,6 +1759,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		try (final InputStream is = file.getInputStream()) {
 
 			final String content = IOUtils.toString(is, "utf-8");
+
 			return content;
 		}
 	}
@@ -1717,6 +1767,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 	private void cleanupDirectory(final Path root) {
 
 		if (root == null) {
+
 			return;
 		}
 
@@ -1726,36 +1777,49 @@ public class StorageSyncServiceTest extends StructrUiTest {
 
 				@Override
 				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+
 					return FileVisitResult.CONTINUE;
 				}
 
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+
 					try {
+
 						Files.delete(file);
+
 					} catch (Throwable t) {
+
 						t.printStackTrace();
 					}
+
 					return FileVisitResult.CONTINUE;
 				}
 
 				@Override
 				public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+
 					return FileVisitResult.CONTINUE;
 				}
 
 				@Override
 				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+
 					try {
+
 						Files.delete(dir);
+
 					} catch (Throwable t) {
+
 						t.printStackTrace();
 					}
+
 					return FileVisitResult.CONTINUE;
 				}
 			});
 
 		} catch (Throwable ex) {
+
 			ex.printStackTrace();
 		}
 	}

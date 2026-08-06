@@ -32,6 +32,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public boolean isHidden() {
+
 		return true;
 	}
 
@@ -39,6 +40,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
+
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final String eventType        = sources[0].toString();
@@ -58,11 +60,13 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Triggers the sending of a sever-sent event to all authenticated and/or anonymous users with an open connection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `broadcastEvent()` function implements the server-side part of server-sent events based on the EventSource servlet. Server-sent events allow you to send messages from the server to the client asynchronously, e.g. you can update data or trigger a reload based on events that happen on ther server.
 
@@ -83,16 +87,19 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "broadcastEvent";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${broadcastEvent(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}. Example: ${broadcastEvent(\"message\", \"Welcome!\", true, false)}"),
 			Usage.javaScript("Usage: ${{ $.broadcastEvent(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}}. Example: ${{ $.broadcastEvent(\"message\", \"Welcome!\", true, false)}}")
@@ -112,6 +119,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${ broadcastEvent('message', 'Hello world!', true, false) }", "Send a generic message to the frontend"),
 			Example.javaScript("${{ $.broadcastEvent('message', JSON.stringify({id: 'APP_MAINTENANCE_SOON', message: 'Application going down for maintenance soon!', date: new Date().getTime()}), true, false); }}", "Send a JSON message to the frontend")
@@ -129,6 +137,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

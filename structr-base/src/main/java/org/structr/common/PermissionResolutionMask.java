@@ -50,24 +50,29 @@ public class PermissionResolutionMask {
 
 	@Override
 	public String toString() {
+
 		return "mask: " + Integer.toBinaryString(value) + ", checked: " + Integer.toBinaryString(checked);
 	}
 
 	public boolean alreadyChecked(final Permission permission) {
 
 		if (Permission.read.equals(permission)) {
+
 			return (checked & READ) != 0;
 		}
 
 		if (Permission.write.equals(permission)) {
+
 			return (checked & WRITE) != 0;
 		}
 
 		if (Permission.delete.equals(permission)) {
+
 			return (checked & DELETE) != 0;
 		}
 
 		if (Permission.accessControl.equals(permission)) {
+
 			return (checked & ACCESS_CONTROL) != 0;
 		}
 
@@ -77,18 +82,22 @@ public class PermissionResolutionMask {
 	public boolean setChecked(final Permission permission) {
 
 		if (Permission.read.equals(permission)) {
+
 			checked |= READ;
 		}
 
 		if (Permission.write.equals(permission)) {
+
 			checked |= WRITE;
 		}
 
 		if (Permission.delete.equals(permission)) {
+
 			checked |= DELETE;
 		}
 
 		if (Permission.accessControl.equals(permission)) {
+
 			checked |= ACCESS_CONTROL;
 		}
 
@@ -151,18 +160,22 @@ public class PermissionResolutionMask {
 	public boolean allowsPermission(final Permission permission) {
 
 		if (Permission.read.equals(permission)) {
+
 			return (value & READ) != 0;
 		}
 
 		if (Permission.write.equals(permission)) {
+
 			return (value & WRITE) != 0;
 		}
 
 		if (Permission.delete.equals(permission)) {
+
 			return (value & DELETE) != 0;
 		}
 
 		if (Permission.accessControl.equals(permission)) {
+
 			return (value & ACCESS_CONTROL) != 0;
 		}
 
@@ -170,14 +183,15 @@ public class PermissionResolutionMask {
 	}
 
 	public void clear() {
+
 		value = 0;
 	}
 
 	public boolean allowsProperty(final PropertyKey key) {
 
 		final String name = key.jsonName();
-
 		if (systemProperties.contains(name)) {
+
 			return true;
 		}
 
@@ -185,47 +199,58 @@ public class PermissionResolutionMask {
 	}
 
 	public Set<String> getRemovedProperties() {
+
 		return removedProperties;
 	}
 
 	public Set<String> propertyMask() {
+
 		return removedProperties;
 	}
 
 	public boolean isEmpty() {
+
 		return value == 0;
 	}
 
 	public void addRead() {
+
 		value |= READ;
 
 	}
 
 	public void removeRead() {
+
 		value &= ~READ;
 	}
 
 	public void addWrite() {
+
 		value |= WRITE;
 	}
 
 	public void removeWrite() {
+
 		value &= ~WRITE;
 	}
 
 	public void addDelete() {
+
 		value |= DELETE;
 	}
 
 	public void removeDelete() {
+
 		value &= ~DELETE;
 	}
 
 	public void addAccessControl() {
+
 		value |= ACCESS_CONTROL;
 	}
 
 	public void removeAccessControl() {
+
 		value &= ~ACCESS_CONTROL;
 	}
 
@@ -241,6 +266,7 @@ public class PermissionResolutionMask {
 	}
 
 	public PermissionResolutionMask copy() {
+
 		return new PermissionResolutionMask(this);
 	}
 

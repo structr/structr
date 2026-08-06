@@ -47,11 +47,13 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 	private Long maximum          = null;
 
 	public StructrLongProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public boolean isExclusiveMinimum() {
+
 		return exclusiveMinimum;
 	}
 
@@ -59,11 +61,13 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 	public JsonLongProperty setExclusiveMinimum(final boolean exclusiveMinimum) {
 
 		this.exclusiveMinimum = exclusiveMinimum;
+
 		return this;
 	}
 
 	@Override
 	public boolean isExclusiveMaximum() {
+
 		return exclusiveMaximum;
 	}
 
@@ -71,16 +75,19 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 	public JsonLongProperty setExclusiveMaximum(final boolean exclusiveMaximum) {
 
 		this.exclusiveMaximum = exclusiveMaximum;
+
 		return this;
 	}
 
 	@Override
 	public Long getMinimum() {
+
 		return minimum;
 	}
 
 	@Override
 	public JsonLongProperty setMinimum(final long minimum) {
+
 		return setMinimum(minimum, false);
 	}
 
@@ -95,11 +102,13 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 
 	@Override
 	public Long getMaximum() {
+
 		return maximum;
 	}
 
 	@Override
 	public JsonLongProperty setMaximum(final long maximum) {
+
 		return this.setMaximum(maximum, false);
 	}
 
@@ -118,18 +127,22 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 		final Map<String, Object> map = super.serialize();
 
 		if (exclusiveMinimum) {
+
 			map.put(JsonSchema.KEY_EXCLUSIVE_MINIMUM, true);
 		}
 
 		if (exclusiveMaximum) {
+
 			map.put(JsonSchema.KEY_EXCLUSIVE_MAXIMUM, true);
 		}
 
 		if (minimum != null) {
+
 			map.put(JsonSchema.KEY_MINIMUM, minimum);
 		}
 
 		if (maximum != null) {
+
 			map.put(JsonSchema.KEY_MAXIMUM, maximum);
 		}
 
@@ -143,21 +156,25 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 
 		final Object _exclusiveMinimum = source.get(JsonSchema.KEY_EXCLUSIVE_MINIMUM);
 		if (_exclusiveMinimum != null && Boolean.TRUE.equals(_exclusiveMinimum)) {
+
 			this.exclusiveMinimum = true;
 		}
 
 		final Object _exclusiveMaximum = source.get(JsonSchema.KEY_EXCLUSIVE_MAXIMUM);
 		if (_exclusiveMaximum != null && Boolean.TRUE.equals(_exclusiveMaximum)) {
+
 			this.exclusiveMaximum = true;
 		}
 
 		final Object _minimum = source.get(JsonSchema.KEY_MINIMUM);
 		if (_minimum != null && _minimum instanceof Number) {
+
 			this.minimum = ((Number)_minimum).longValue();
 		}
 
 		final Object _maximum = source.get(JsonSchema.KEY_MAXIMUM);
 		if (_maximum != null && _maximum instanceof Number) {
+
 			this.maximum = ((Number)_maximum).longValue();
 		}
 	}
@@ -175,11 +192,13 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 
 			final Number min = longPropertyParser.getLowerBound();
 			if (min != null) {
+
 				this.minimum = min.longValue();
 			}
 
 			final Number max = longPropertyParser.getUpperBound();
 			if (max != null) {
+
 				this.maximum = max.longValue();
 			}
 		}
@@ -199,8 +218,11 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 			final StringBuilder range = new StringBuilder();
 
 			if (exclusiveMinimum) {
+
 				range.append("]");
+
 			} else {
+
 				range.append("[");
 			}
 
@@ -209,8 +231,11 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 			range.append(maximum);
 
 			if (exclusiveMaximum) {
+
 				range.append("[");
+
 			} else {
+
 				range.append("]");
 			}
 
@@ -224,6 +249,7 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 
 	@Override
 	public String getType() {
+
 		return "long";
 	}
 }

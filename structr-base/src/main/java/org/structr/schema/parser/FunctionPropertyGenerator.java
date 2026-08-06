@@ -31,26 +31,31 @@ import org.structr.schema.SchemaHelper.Type;
 public class FunctionPropertyGenerator extends PropertyGenerator {
 
 	public FunctionPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Object.class.getName();
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new FunctionProperty(source.getPropertyName());
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Function;
 	}
 }

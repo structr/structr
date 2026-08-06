@@ -37,6 +37,7 @@ import java.util.Map;
 class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 
 	public CypherNodeIndex(final BoltDatabaseService db) {
+
 		super(db);
 	}
 
@@ -54,11 +55,11 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
 		if (query.hasPredicates()) {
+
 			buf.append(":NodeInterface");
 		}
 
 		final String tenantId = db.getTenantIdentifier();
-
 		if (tenantId != null) {
 
 			buf.append(":");
@@ -70,7 +71,6 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 			buf.append(":");
 			buf.append(typeLabel);
 		}
-
 
 		buf.append(")");
 
@@ -113,6 +113,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 		final String tenantIdentifier        = db.getTenantIdentifier();
 		final Map<String, Object> parameters = new LinkedHashMap<>();
 		final SessionTransaction tx          = db.getCurrentTransaction();
+
 		final String statement;
 
 		// check if index exists first
@@ -158,8 +159,11 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 			return db.getCurrentTransaction().getCachedResult(query);
 
 		} catch (ClientException e) {
+
 			ReactiveSessionTransaction.translateClientException(e);
+
 		} catch (DatabaseException d) {
+
 			ReactiveSessionTransaction.translateDatabaseException(d);
 		}
 

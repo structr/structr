@@ -52,12 +52,14 @@ public class Validator {
 		buf.append("ValidationHelper.").append(validator).append("(").append(obj).append(", ");
 
 		if (includeClassName) {
+
 			buf.append(className).append(".");
 		}
 
 		buf.append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 
 		if (expression != null) {
+
 			buf.append(", \"").append(expression).append("\"");
 		}
 

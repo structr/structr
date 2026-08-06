@@ -37,10 +37,12 @@ public class MethodHint extends AbstractHint {
 		this.name = name;
 
 		if (!StringUtils.isEmpty(summary)) {
+
 			this.openAPISummary = summary;
 		}
 
 		if (!StringUtils.isEmpty(description)) {
+
 			this.openAPIDescription = description;
 		}
 	}
@@ -62,57 +64,67 @@ public class MethodHint extends AbstractHint {
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return getName() + "()";
 	}
 
 	@Override
 	public String getName() {
+
 		return name;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Method;
 	}
 }

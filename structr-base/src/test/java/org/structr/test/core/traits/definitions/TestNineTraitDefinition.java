@@ -37,6 +37,7 @@ import java.util.Set;
 public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestNineTraitDefinition() {
+
 		super("TestNine");
 	}
 
@@ -45,8 +46,7 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -64,18 +64,18 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> oneToManyTestSixConstraint  = new StartNode(traitsInstance, "oneToManyTestSixConstraint", "SixNineOneToManyCascadeConstraint");
 
-		return newSet(
-			oneToManyTestSixConstraint
-		);
+		return newSet(oneToManyTestSixConstraint);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

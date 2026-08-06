@@ -78,6 +78,7 @@ public class CacheTest extends StructrUiTest {
 						tx.success();
 
 					} catch (Throwable t) {
+
 						t.printStackTrace();
 					}
 
@@ -113,6 +114,7 @@ public class CacheTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 			}
 
@@ -132,6 +134,7 @@ public class CacheTest extends StructrUiTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 			}
 
@@ -159,6 +162,7 @@ public class CacheTest extends StructrUiTest {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -170,6 +174,7 @@ public class CacheTest extends StructrUiTest {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -177,11 +182,12 @@ public class CacheTest extends StructrUiTest {
 
 				final JsonSchema schema = StructrSchema.createFromDatabase(app);
 				final JsonType type     = schema.getType(StructrTraits.MAIL_TEMPLATE);
-
 				final Iterator<JsonProperty> iterator = type.getProperties().iterator();
+
 				while (iterator.hasNext()) {
 
 					if ("rollbackTest".equals(iterator.next().getName())) {
+
 						iterator.remove();
 					}
 				}
@@ -189,6 +195,7 @@ public class CacheTest extends StructrUiTest {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -200,10 +207,12 @@ public class CacheTest extends StructrUiTest {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -227,6 +236,7 @@ public class CacheTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -241,7 +251,6 @@ public class CacheTest extends StructrUiTest {
 			.statusCode(200)
 			.when()
 			.get("/test/" + uuid);
-
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -252,6 +261,7 @@ public class CacheTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -266,7 +276,6 @@ public class CacheTest extends StructrUiTest {
 			.statusCode(200)
 			.when()
 			.get("/test/" + uuid);
-
 
 	}
 }

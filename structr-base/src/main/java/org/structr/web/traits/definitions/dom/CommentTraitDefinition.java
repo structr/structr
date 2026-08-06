@@ -49,6 +49,7 @@ import java.util.Set;
 public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CommentTraitDefinition() {
+
 		super(StructrTraits.COMMENT);
 	}
 
@@ -57,8 +58,7 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -76,8 +76,7 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			Render.class,
-			new Render() {
+			Render.class, new Render() {
 
 				@Override
 				public void render(final DOMNode thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -126,6 +125,7 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -134,22 +134,24 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			Comment.class, (traits, node) -> new CommentTraitWrapper(traits, node)
-		);
+			Comment.class, (traits, node) -> new CommentTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
 		return Set.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

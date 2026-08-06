@@ -42,6 +42,7 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 		this.propertyKeys = propertyKeys;
 
 		if (propertyKeys == null || propertyKeys.isEmpty()) {
+
 			throw new IllegalStateException("PropertySetDeserializationStrategy must contain at least one property.");
 		}
 	}

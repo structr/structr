@@ -40,6 +40,7 @@ public class A extends GenericHtmlElementTraitDefinition {
 	public static final String TYPE_PROPERTY     = getPrefixedHTMLAttributeName("type");
 
 	public A() {
+
 		super(StructrTraits.A);
 	}
 
@@ -50,11 +51,11 @@ public class A extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}
@@ -74,19 +75,12 @@ public class A extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> hreflangProperty = new StringProperty(HREFLANG_PROPERTY);
 		final PropertyKey<String> typeProperty     = new StringProperty(TYPE_PROPERTY);
 
-		return newSet(
-			hrefProperty, targetProperty, pingProperty, relProperty, mediaProperty, hreflangProperty, typeProperty
-		);
+		return newSet(hrefProperty, targetProperty, pingProperty, relProperty, mediaProperty, hreflangProperty, typeProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					HREF_PROPERTY, TARGET_PROPERTY, PING_PROPERTY, REL_PROPERTY, MEDIA_PROPERTY, HREFLANG_PROPERTY, TYPE_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(HREF_PROPERTY, TARGET_PROPERTY, PING_PROPERTY, REL_PROPERTY, MEDIA_PROPERTY, HREFLANG_PROPERTY, TYPE_PROPERTY));
 	}
 }

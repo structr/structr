@@ -25,6 +25,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -36,6 +38,9 @@ import org.structr.process.engine.ProcessEngine;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnProcess;
+import org.structr.process.traits.wrappers.BpmnProcessTraitWrapper;
 import java.util.Set;
 
 /**
@@ -69,8 +74,24 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String INSTANCE_PAGE_PROPERTY                    = "instancePage";
 	public static final String CONTROL_ACTIONS_PROPERTY                  = "controlActions";
 	public static final String VISIBILITY_MAPPINGS_PROPERTY              = "visibilityMappings";
+	// Process / UI contract: the SchemaNode type of the single domain object
+	// (the "subject") this process operates on. A ProcessInstance has at most
+	// one subject, so its type is a process-level fact -- it cannot legitimately
+	// differ between steps. Individual UserTask elements narrow *which fields*
+	// of this type they expose via subjectFormView / subjectWritableView, but
+	// the type itself lives here. Read at render time by process-bound widgets
+	// as their expected data type; their data source is the `current` channel
+	// (the process instance's single subject), not "node:<subjectType>".
+	public static final String SUBJECT_TYPE_PROPERTY                     = "subjectType";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(BpmnProcess.class, (traits, node) -> new BpmnProcessTraitWrapper(traits, node));
+	}
 
 	public BpmnProcessTraitDefinition() {
+
 		super(ProcessTraits.BPMN_PROCESS);
 	}
 
@@ -80,7 +101,13 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>  processId                          = new StringProperty(PROCESS_ID_PROPERTY).indexed();
 		final Property<String>  processName                        = new StringProperty(PROCESS_NAME_PROPERTY).indexed();
 		final Property<Boolean> processIsExecutable                = new BooleanProperty(PROCESS_IS_EXECUTABLE_PROPERTY);
-		final Property<Boolean> defaultAssigneeFromInitiator       = new BooleanProperty(DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY);
+
+		// Default TRUE: out of the box, user tasks whose humanPerformer / candidateGroups don't
+		// resolve (e.g. groups not created yet) fall back to the initiator, so a freshly imported
+		// process is walkable end-to-end by a single user -- no group setup needed. Speeds up test
+		// and demo workflows; can be turned off per process for strict BPMN spec semantics.
+		final Property<Boolean> defaultAssigneeFromInitiator       = new BooleanProperty(DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY).defaultValue(true);
+		final Property<String>  subjectType                        = new StringProperty(SUBJECT_TYPE_PROPERTY).indexed();
 
 		// Parent reference: which BpmnDefinitions hosts this process.
 		final Property<NodeInterface>           definition         = new StartNode(traitsInstance, DEFINITION_PROPERTY,        ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS);
@@ -90,6 +117,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> methods            = new EndNodes(traitsInstance,  METHODS_PROPERTY,           ProcessTraits.BPMN_PROCESS_HAS_METHOD);
 		final Property<Iterable<NodeInterface>> processListeners   = new EndNodes(traitsInstance,  PROCESS_LISTENERS_PROPERTY, ProcessTraits.BPMN_PROCESS_HAS_PROCESS_LISTENER);
 		final Property<Iterable<NodeInterface>> lanes              = new EndNodes(traitsInstance,  LANES_PROPERTY,             ProcessTraits.BPMN_PROCESS_HAS_LANE);
+
 		// Inverse: the BpmnParticipant (if any) that wraps this process in a
 		// collaboration. Optional -- single-process imports have no participant.
 		final Property<NodeInterface>           participant        = new StartNode(traitsInstance, PARTICIPANT_PROPERTY,       ProcessTraits.BPMN_PARTICIPANT_OF_PROCESS);
@@ -108,7 +136,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		// resolve the source side when a VM's boundProcess is reassigned.
 		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS);
 
-		return newSet(processId, processName, processIsExecutable, defaultAssigneeFromInitiator,
+		return newSet(processId, processName, processIsExecutable, defaultAssigneeFromInitiator, subjectType,
 			definition, elements, sequenceFlows, methods, processListeners, lanes, participant, instancePage, controlActions, visibilityMappings);
 	}
 
@@ -119,13 +147,13 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public, newSet(
 				BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY,
 				PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, PROCESS_IS_EXECUTABLE_PROPERTY,
-				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY,
+				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY, SUBJECT_TYPE_PROPERTY,
 				ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, METHODS_PROPERTY, PROCESS_LISTENERS_PROPERTY,
 				LANES_PROPERTY),
 			PropertyView.Ui, newSet(
 				BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY,
 				PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, PROCESS_IS_EXECUTABLE_PROPERTY,
-				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY,
+				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY, SUBJECT_TYPE_PROPERTY,
 				DEFINITION_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, METHODS_PROPERTY,
 				PROCESS_LISTENERS_PROPERTY, LANES_PROPERTY, PARTICIPANT_PROPERTY, INSTANCE_PAGE_PROPERTY)
 		);
@@ -140,21 +168,64 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
-					final SecurityContext securityContext = actionContext.getSecurityContext();
-					final ProcessEngine engine = new ProcessEngine(securityContext);
+
+					final SecurityContext securityContext    = actionContext.getSecurityContext();
+					final ProcessEngine engine               = new ProcessEngine(securityContext);
 					final java.util.Map<String, Object> args = arguments.toMap();
-					final NodeInterface subject = BpmnDefinitionsTraitDefinition.resolveSubject(actionContext, args.get("subject"));
+					final NodeInterface subject              = BpmnDefinitionsTraitDefinition.resolveSubject(actionContext, args.get("subject"));
+
 					// Forward the remaining EAM parameters as initial process
 					// parameters: subject-matching fields populate the subject,
 					// the rest become ProcessParameterValues. Mirrors complete().
 					final java.util.Map<String, Object> params = new java.util.LinkedHashMap<>(args);
+
 					params.remove("subject");
+
 					return engine.startProcess((NodeInterface) entity, subject, params.isEmpty() ? null : params);
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Starts a new process instance from this BpmnProcess. Pass an optional 'subject' parameter (node UUID or node object) to attach the domain object this instance operates on. Any other parameters are stored as initial process parameters (subject-matching fields populate the subject; the rest become ProcessParameterValues). Returns the created ProcessInstance node.";
+				}
+			},
+
+			new JavaMethod("liveTokenCounts", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					// Super-user query so the overlay reflects ALL instances, not just
+					// those the current user is permitted to read.
+					final App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+
+					return ProcessEngine.computeLiveTokenCounts(app, (NodeInterface) entity);
+				}
+
+				@Override
+				public String getDescription() {
+
+					return "Returns a map of element bpmnId -> number of non-completed tokens currently sitting at that element, aggregated across all instances of this process. Powers the editor's live instance-count overlay.";
+				}
+			},
+
+			new JavaMethod("completedTokenCounts", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					// Super-user query so the overlay reflects ALL instances, not just
+					// those the current user is permitted to read.
+					final App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+
+					return ProcessEngine.computeCompletedTokenCounts(app, (NodeInterface) entity);
+				}
+
+				@Override
+				public String getDescription() {
+
+					return "Returns a map of element bpmnId -> number of completed tokens that finished at that element, aggregated across all instances of this process. Powers the editor's finished-instance-count overlay (shown alongside the live/active badge).";
 				}
 			}
 		);
@@ -162,6 +233,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

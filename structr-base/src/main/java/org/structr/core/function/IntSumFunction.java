@@ -31,11 +31,13 @@ public class IntSumFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "intSum";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list");
 	}
 
@@ -61,57 +63,56 @@ public class IntSumFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (Throwable t) {
 
 			logException(caller, t, sources);
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${intSum(list)}"),
-				Usage.javaScript("Usage: ${{ $.intSum(list) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${intSum(list)}"), Usage.javaScript("Usage: ${{ $.intSum(list) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the sum of the given arguments as an integer.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function will most likely be used in combination with the `extract()` or `merge()` functions.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("collection", "collection of values to sum")
-		);
+		return List.of(Parameter.mandatory("collection", "collection of values to sum"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-				Example.structrScript("${intSum(merge(1, 2, 3, 4))}", "Return the sum of a list of values"),
-				Example.structrScript("${intSum(extract(this.children, 'number'))}")
-		);
+		return List.of(Example.structrScript("${intSum(merge(1, 2, 3, 4))}", "Return the sum of a list of values"), Example.structrScript("${intSum(extract(this.children, 'number'))}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

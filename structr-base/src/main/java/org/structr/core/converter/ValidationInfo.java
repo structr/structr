@@ -35,6 +35,7 @@ public class ValidationInfo implements Value<ValidationInfo> {
 	private int minLength = -1;
 
 	public ValidationInfo(String errorType, PropertyKey<String> errorKey, int minLength) {
+
 		this.errorType = errorType;
 		this.errorKey  = errorKey;
 		this.minLength = minLength;
@@ -46,22 +47,27 @@ public class ValidationInfo implements Value<ValidationInfo> {
 
 	@Override
 	public ValidationInfo get(SecurityContext securityContext) {
+
 		return this;
 	}
 
 	public String getErrorType() {
+
 		return errorType;
 	}
 
 	public void setErrorKey(PropertyKey<String> errorKey) {
+
 		this.errorKey = errorKey;
 	}
 	
 	public PropertyKey getErrorKey() {
+
 		return errorKey;
 	}
 
 	public int getMinLength() {
+
 		return minLength;
 	}
 }

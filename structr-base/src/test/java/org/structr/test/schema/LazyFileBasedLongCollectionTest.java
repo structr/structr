@@ -33,7 +33,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class LazyFileBasedLongCollectionTest {
 
-
 	@Test
 	public void testCollection() {
 
@@ -42,15 +41,16 @@ public class LazyFileBasedLongCollectionTest {
 			assertEquals("Invalid test prerequisite", true, coll.isEmpty());
 
 			for (int i=0; i<100; i++) {
+
 				coll.add((long)i);
 			}
 
 			long test = 0;
 
 			for (final Long val : coll) {
+
 				assertEquals("Invalid value in collection", test++, val.longValue());
 			}
-
 
 		} catch (Exception ex) {
 
@@ -93,6 +93,7 @@ public class LazyFileBasedLongCollectionTest {
 			final int count = new Random().nextInt(100);
 
 			for (int i=0; i<count; i++) {
+
 				coll.add((long)i);
 			}
 
@@ -130,7 +131,6 @@ public class LazyFileBasedLongCollectionTest {
 
 			assertEquals("Invalid test prerequisite", true, coll.isEmpty());
 
-
 		} catch (Exception ex) {
 
 			ex.printStackTrace();
@@ -146,6 +146,7 @@ public class LazyFileBasedLongCollectionTest {
 			assertEquals("Invalid test prerequisite", true, coll.isEmpty());
 
 			for (int i=0; i<10; i++) {
+
 				coll.add((long)i);
 			}
 
@@ -157,6 +158,7 @@ public class LazyFileBasedLongCollectionTest {
 			long test = 0;
 
 			for (final Long val : coll) {
+
 				assertEquals("Invalid value in collection", test++, val.longValue());
 			}
 
@@ -175,6 +177,7 @@ public class LazyFileBasedLongCollectionTest {
 			assertEquals("Invalid test prerequisite", true, coll.isEmpty());
 
 			for (int i=0; i<10; i++) {
+
 				coll.add((long)i);
 			}
 
@@ -186,6 +189,7 @@ public class LazyFileBasedLongCollectionTest {
 			long test = 0;
 
 			for (final Long val : coll) {
+
 				assertEquals("Invalid value in collection", test++, val.longValue());
 			}
 
@@ -211,6 +215,7 @@ public class LazyFileBasedLongCollectionTest {
 			long test = 0;
 
 			for (final Long val : coll) {
+
 				assertEquals("Invalid value in collection", test++, val.longValue());
 			}
 
@@ -227,7 +232,9 @@ public class LazyFileBasedLongCollectionTest {
 		try (final LazyFileBasedLongCollection coll = new LazyFileBasedLongCollection("/tmp/" + System.nanoTime() + ".lfc")) {
 
 			final List<Long> list = new LinkedList<>();
+
 			for (int i=0; i<10; i++) {
+
 				list.add((long)i);
 			}
 
@@ -239,6 +246,7 @@ public class LazyFileBasedLongCollectionTest {
 			long test = 0;
 
 			for (final Long val : coll) {
+
 				assertEquals("Invalid value in collection", test++, val.longValue());
 			}
 

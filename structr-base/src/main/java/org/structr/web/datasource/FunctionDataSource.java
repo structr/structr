@@ -46,6 +46,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 	private String propertyName = null;
 
 	public FunctionDataSource(final String propertyName) {
+
 		this.propertyName = propertyName;
 	}
 
@@ -55,8 +56,8 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 		final RenderContext renderContext = (RenderContext) actionContext;
 		final Traits traits               = referenceNode.getTraits();
 		final PropertyKey<String> key     = traits.key(propertyName);
-
 		final String functionQuery = referenceNode.getProperty(key);
+
 		if (StringUtils.isBlank(functionQuery)) {
 
 			return null;
@@ -97,6 +98,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 		return Iterables.map((Object t) -> {
 
 			if (t instanceof GraphObject) {
+
 				return (GraphObject)t;
 			}
 

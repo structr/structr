@@ -42,11 +42,7 @@ public class ExportDataConsoleCommand extends AdminConsoleCommand {
 			final DeployDataCommand cmd = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
 
 			cmd.setLogBuffer(writable);
-			cmd.execute(toMap(
-					"mode", "export",
-					"target", getParameter(parameters, 1),
-					"types", getParameter(parameters, 2)
-			));
+			cmd.execute(toMap("mode", "export", "target", getParameter(parameters, 1), "types", getParameter(parameters, 2)));
 
 		} else {
 
@@ -56,11 +52,13 @@ public class ExportDataConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
+
 		writable.println("Exports data from the Structr application to a directory.");
 	}
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
+
 		writable.println("export-data <target> <types>  -  Exports data from this application to a path in the file system.");
 		writable.println("");
 		writable.println("  <target> - absolute path to the target directory");

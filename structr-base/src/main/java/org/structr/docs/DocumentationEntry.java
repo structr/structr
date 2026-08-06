@@ -37,18 +37,22 @@ public class DocumentationEntry {
 	}
 
 	public void addLines(final List<String> lines, final String... additionalInfo) {
+
 		this.lines.addAll(lines);
 	}
 
 	public List<String> getLines() {
+
 		return lines;
 	}
 
 	public String getFileName() {
+
 		return fileName;
 	}
 
 	public String getHeader() {
+
 		return header;
 	}
 }

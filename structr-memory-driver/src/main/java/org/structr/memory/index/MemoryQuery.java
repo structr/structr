@@ -48,19 +48,23 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	private boolean negateNextPredicate           = false;
 
 	public MemoryQuery(final QueryContext queryContext) {
+
 		this.queryContext = queryContext;
 	}
 
 	@Override
 	public String toString() {
+
 		return rootPredicate.toString();
 	}
 
 	public void addTypeLabel(final String typeLabel) {
+
 		labels.add(typeLabel);
 	}
 
 	public Set<String> getTypeLabels() {
+
 		return labels;
 	}
 
@@ -100,17 +104,20 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public void not() {
+
 		negateNextPredicate = true;
 	}
 
 	@Override
 	public void andNot() {
+
 		and();
 		not();
 	}
 
 	@Override
 	public void sort(final SortOrder sortOrder) {
+
 		this.sortOrder = sortOrder;
 	}
 
@@ -142,6 +149,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 				return list;
 
 			} catch (Throwable t) {
+
 				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
@@ -158,6 +166,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	}
 
 	public QueryContext getQueryContext() {
+
 		return queryContext;
 	}
 
@@ -167,6 +176,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 		private SortOrder sortOrder = null;
 
 		public Sorter(final SortOrder order) {
+
 			this.sortOrder = order;
 		}
 
@@ -174,6 +184,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 		public int compare(final T o1, final T o2) {
 
 			if (o1 == null || o2 == null) {
+
 				throw new NullPointerException("Cannot compare null objects.");
 			}
 
@@ -198,6 +209,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 						} else if (v1 == null) {
 
 							// sort order is "nulls last"
+
 							return desc ? -1 : 1;
 
 						} else {
@@ -210,11 +222,12 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 						Comparable c1 = (Comparable)v1;
 						Comparable c2 = (Comparable)v2;
-
 						final int result = desc ? c2.compareTo(c1) : c1.compareTo(c2);
+
 						if (result != 0) {
 
 							// return result if values are different, stay in loop if values are equal
+
 							return result;
 						}
 
@@ -225,6 +238,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 				}
 
 				// if we arrive here, the values for all the keys are equal
+
 				return 0;
 			}
 

@@ -118,6 +118,23 @@ let _Widgets = {
 		_wPager.setIsPaused(false);
 		_wPager.refresh();
 	},
+	// Deploy the default widget set from structr.com. Extracted from
+	// createImportWidgetsButton so callers that can't host a page-tile (e.g. the
+	// process editor's side panel) trigger the same import instead of repeating
+	// the download URL. Resolves true when the deployment request was accepted.
+	importDefaultWidgetSet: async () => {
+
+		let formData = new FormData();
+		formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.1/widgets-0.1.1.zip');
+		formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
+
+		let response = await fetch(`${Structr.deployRoot}`, {
+			method: 'POST',
+			body: formData
+		});
+
+		return response.ok;
+	},
 	createImportWidgetsButton: (container, title, callback) => {
 		let importTile = _Helpers.createSingleDOMElementFromHTML(
 			`<div id="import-widget-set" class="page-tile bg-gray-f8"><div class="h-full flex flex-column items-center" title="${title}">
@@ -130,20 +147,12 @@ let _Widgets = {
 		container.append(importTile);
 
 		let importWidgetsButton = container.querySelector('#import-widget-set');
-		importWidgetsButton.addEventListener('click', () => {
-			let formData = new FormData();
-			formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.1/widgets-0.1.1.zip');
-			formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
-			fetch(`${Structr.deployRoot}`, {
-				method: 'POST',
-				body: formData
-			}).then(response => {
-				if (response.ok) {
-					if (callback && typeof callback === 'function') {
-						callback();
-					}
+		importWidgetsButton.addEventListener('click', async () => {
+			if (await _Widgets.importDefaultWidgetSet()) {
+				if (callback && typeof callback === 'function') {
+					callback();
 				}
-			})
+			}
 		});
 	},
 	getTreeParent: (element, treePath, suffix) => {
@@ -681,10 +690,11 @@ let _Widgets = {
                     // on every process change. The selected value is the BpmnElement UUID, which is
                     // what ActionMapping's targetsElement EndNode rel expects.
                     //
-                    // A read-only contract summary div below the select reflects the picked task's
+                    // A read-only contract summary div below the select reflects the process's
                     // subjectType so the UI dev sees, before confirming the dialog, what schema type
-                    // the widget will render. Empty subjectType surfaces as a warning -- the form
-                    // will render no fields until the process designer sets the contract.
+                    // the widget will render. The subject type is process-level (one subject per
+                    // instance), so it is the same for every task. Empty subjectType surfaces as a
+                    // warning -- the form will render no fields until the process designer sets it.
                     form.append(`
 						<div>
 							<h4 id="label-${cleanedLabel}">${titleLabel}</h4>
@@ -696,20 +706,18 @@ let _Widgets = {
 					`);
                 {
                     let processSelectForUserTask = document.querySelector('select[data-info="select-process"]');
-                    let userTasksById = {};  // id -> task node, closed over so the change handler can read subjectType
+                    let userTasksById = {};        // id -> task node
+                    let processSubjectType = '';   // process-level, shared by all of its user tasks
 
                     const updateContractSummary = (taskId) => {
                         const el = document.querySelector(`#${cleanedLabel}-contract`);
                         if (!el) return;
                         if (!taskId) { el.innerHTML = ''; return; }
-                        const task = userTasksById[taskId];
-                        if (!task) { el.innerHTML = ''; return; }
-                        const subjectType = task.subjectType;
-                        if (subjectType) {
-                            el.innerHTML = `Subject: <b>${_Helpers.escapeTags(subjectType)}</b> (from the bound UserTask)`;
+                        if (processSubjectType) {
+                            el.innerHTML = `Subject: <b>${_Helpers.escapeTags(processSubjectType)}</b> (from the process)`;
                             el.style.color = '';
                         } else {
-                            el.innerHTML = '⚠ No subject type set on this UserTask. The form will render no fields until the process designer sets it in the BPMN editor.';
+                            el.innerHTML = '⚠ No subject type set on this process. The form will render no fields until the process designer sets it in the BPMN editor.';
                             el.style.color = '#c0392b';
                         }
                     };
@@ -719,8 +727,11 @@ let _Widgets = {
                             let s = document.querySelector(`select#${cleanedLabel}`);
                             s.innerHTML = '<option value="">--- Select user task ---</option>';
                             userTasksById = {};
+                            processSubjectType = '';
                             updateContractSummary(null);
                             if (!processId) return;
+                            // subject type is process-level: fetch it once for the chosen process
+                            _Processes.getSubjectType(processId).then((st) => { processSubjectType = st || ''; });
                             Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, elements => {
                                 const userTasks = (elements || []).filter(el => el.bpmnElementType === 'userTask');
                                 for (const t of userTasks) {
@@ -786,6 +797,24 @@ let _Widgets = {
 							});
 						}
 					}
+					break;
+
+				case 'page':
+				case 'boolean':
+					// Delegated to the shared typed-input renderer so a widget's `page` or
+					// `boolean` parameter looks and behaves the same here as in a field's Render
+					// Template Settings. The type-dependent controls above (datasource,
+					// schema-*) stay here: they need siblings from this dialog.
+					form.append(await _Entities.generalTab.templates.typedFieldConfigInput({
+						attributeSet: 'widgets',
+						cleanedLabel,
+						name:         label,
+						label:        titleLabel,
+						value:        defaultValue,
+						type:         fieldType,
+						comment:      fieldConfig.comment,
+						options:      fieldConfig.options
+					}));
 					break;
 
 				case 'select':
@@ -1126,6 +1155,7 @@ let _Widgets = {
 					{ isSeparator: true },
 					{ name: 'Custom Types', children: await _Widgets.templates.getCustomTypesForMenu() },
 					{ name: 'System Types', children: await _Widgets.templates.getSystemTypesForMenu() },
+					...(await _Widgets.templates.getProcessSourcesForMenu()),
 					{ isSeparator: true },
 					{ name: 'Folders', children: await _Widgets.templates.getFoldersForMenu({ parent: null }, { name: 'All root folders', icon: '#database-icon', value: 'root-folders' }) },
 					{ isSeparator: true },
@@ -1216,7 +1246,10 @@ let _Widgets = {
 			return values;
 		},
 		getCustomTypesForMenu: async () => {
-			let sources = await _Widgets.templates.getFetchResult('_schema', t => !t.isBuiltin && !t.isRel);
+			// Service classes are excluded: they exist to hold static methods and are never
+			// instantiated, so "All <X> nodes" could only ever be empty. The _schema endpoint
+			// reports the flag (SchemaResource.isServiceClassProperty).
+			let sources = await _Widgets.templates.getFetchResult('_schema', t => !t.isBuiltin && !t.isRel && !t.isServiceClass);
 			sources.sort((a, b) => a.name.localeCompare(b.name));
 			let values = [];
 			for (let value of sources) {
@@ -1236,6 +1269,32 @@ let _Widgets = {
 				await _Widgets.templates.getSystemTypeOptions('Page', 'Pages'),
 				await _Widgets.templates.getSystemTypeOptions('User', 'Users'),
 			];
+		},
+		/**
+		 * Process-engine data sources, as their own group rather than mixed in with the system
+		 * types: a user building a process UI looks for "the running processes", not for a type
+		 * name. Empty (so the group disappears) where the process module is not installed.
+		 *
+		 * "Running Processes" resolves to TaskInstance deliberately -- a running process is only
+		 * actionable through its open tasks, which is what carries assignee, status and the step
+		 * it sits at.
+		 */
+		getProcessSourcesForMenu: async () => {
+
+			if (!await _Widgets.templates.typeExists('TaskInstance')) {
+				return [];
+			}
+
+			return [
+				{ isSeparator: true },
+				{ name: 'Processes', children: [
+					{ name: 'Running Processes', icon: '#database-icon', value: 'node:TaskInstance' },
+				] }
+			];
+		},
+		/** True if the schema knows this type, i.e. the module providing it is installed. */
+		typeExists: async (type) => {
+			return (await _Widgets.templates.getFetchResult('_schema', t => t.className === type)).length > 0;
 		},
 		getSystemTypeOptions: async (type, plural) => {
 			return { name: `All ${plural}`, icon: '#database-icon', value: `node:${type}` };

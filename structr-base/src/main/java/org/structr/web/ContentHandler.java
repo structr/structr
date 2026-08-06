@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import java.io.IOException;
 
 public interface ContentHandler {
+
 	void handleScript(String script, int row, int column) throws FrameworkException, IOException;
 
 	void handleIncompleteScript(String script) throws FrameworkException, IOException;

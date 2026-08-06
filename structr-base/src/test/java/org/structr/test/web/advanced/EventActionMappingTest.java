@@ -58,7 +58,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class EventActionMappingTest extends StructrUiTest {
 
-
 	@Test
 	public void testDialogAttributes() {
 
@@ -104,11 +103,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc              = Jsoup.parse(html);
 		final Element button            = doc.getElementById("button");
 		final Map<String, String> attrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -119,7 +116,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-dialog-type", "okcancel");
 		expectedValues.put("data-structr-dialog-title", "example-dialog-title-admin");
 		expectedValues.put("data-structr-dialog-text", "example-dialog-text-admin");
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -135,6 +131,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -187,11 +184,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -219,6 +214,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -271,11 +267,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -303,6 +297,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -362,11 +357,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -375,7 +368,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "custom-dialog-linked");
 		expectedValues.put("data-structr-success-notifications-custom-dialog-element", "[data-structr-id='" + notificationUuid + "']");
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -396,6 +388,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -454,11 +447,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -467,7 +458,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "custom-dialog");
 		expectedValues.put("data-structr-success-notifications-partial", "#notification-element");
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -488,6 +478,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -542,11 +533,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -555,7 +544,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "fire-event");
 		expectedValues.put("data-structr-success-notifications-event", "success-notification-event");
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -576,6 +564,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -628,11 +617,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -660,6 +647,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -712,11 +700,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -744,6 +730,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -805,11 +792,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -818,7 +803,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "custom-dialog-linked");
 		expectedValues.put("data-structr-failure-notifications-custom-dialog-element", "[data-structr-id='" + notificationUuid + "']");
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -839,6 +823,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -893,11 +878,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -906,7 +889,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "fire-event");
 		expectedValues.put("data-structr-failure-notifications-event", "failure-notification-event");
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -927,6 +909,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -985,11 +968,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -998,7 +979,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "custom-dialog");
 		expectedValues.put("data-structr-failure-notifications-partial", "#notification-element");
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1019,6 +999,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -1071,11 +1052,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1084,8 +1063,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-success-target", "#name-of-success-partial");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1106,6 +1083,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-notifications-event");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -1163,12 +1141,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1177,8 +1153,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "[data-structr-id='" + divUuid + "']");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1199,6 +1173,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -1206,7 +1181,6 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			assertEquals("Wrong value for EAM attribute " + key, null, buttonAttrs.get(key));
 		}
-
 
 		final Map<String, String> divAttrs = getAttributes(div);
 
@@ -1260,12 +1234,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1274,8 +1246,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "url:/success");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1296,6 +1266,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -1351,12 +1322,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1365,8 +1334,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "event:success-event");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1387,6 +1354,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -1441,12 +1409,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1455,8 +1421,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "url:");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1477,6 +1441,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -1531,12 +1496,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1545,8 +1508,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "sign-out");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1567,6 +1528,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -1619,11 +1581,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1651,6 +1611,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -1703,11 +1664,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1716,8 +1675,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-failure-target", "#name-of-failure-partial");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1738,6 +1695,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-notifications-event");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -1795,12 +1753,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1809,8 +1765,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "[data-structr-id='" + divUuid + "']");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1831,6 +1785,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-success-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -1838,7 +1793,6 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			assertEquals("Wrong value for EAM attribute " + key, null, buttonAttrs.get(key));
 		}
-
 
 		final Map<String, String> divAttrs = getAttributes(div);
 
@@ -1892,12 +1846,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1906,8 +1858,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "url:/failure");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -1928,6 +1878,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-success-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -1983,12 +1934,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -1997,8 +1946,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "event:failure-event");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -2019,6 +1966,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-success-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -2073,12 +2021,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -2087,8 +2033,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "url:");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -2109,6 +2053,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-success-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -2163,12 +2108,10 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
 		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -2177,8 +2120,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "sign-out");
-
-
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
@@ -2199,6 +2140,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-success-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), buttonAttrs.get(key));
 		}
 
@@ -2251,11 +2193,9 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final String html = fetchPageHtml("/html/page1");
-
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
 		expectedValues.put("data-structr-event", "click");
@@ -2283,6 +2223,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-failure-target");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 
@@ -2331,10 +2272,12 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			// collect IDs
 			for (final DOMNode node : page1.getElementsByTagName("div")) {
+
 				divIds.add(node.getUuid());
 			}
 
 			for (final DOMNode node : page1.getElementsByTagName("button")) {
+
 				buttonIds.add(node.getUuid());
 			}
 
@@ -2350,7 +2293,6 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		final String html  = fetchPageHtml("/html/page1");
 		final Document doc = Jsoup.parse(html);
-
 		final Map<String, String> expectedValues1 = new LinkedHashMap<>();
 		final Map<String, String> expectedValues2 = new LinkedHashMap<>();
 		final Map<String, String> attrs1          = getAttributes(doc.getElementsByTag("button").get(0));
@@ -2370,6 +2312,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues1.put("data-structr-success-target", "[data-structr-id='" + divIds.get(0) + "']");
 
 		for (final String key : expectedValues1.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues1.get(key), attrs1.get(key));
 		}
 
@@ -2380,6 +2323,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues2.put("data-structr-success-target", "[data-structr-id='" + divIds.get(1) + "']");
 
 		for (final String key : expectedValues2.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues2.get(key), attrs2.get(key));
 		}
 	}
@@ -2423,10 +2367,12 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			// collect IDs
 			for (final DOMNode node : page1.getElementsByTagName("div")) {
+
 				divIds.add(node.getUuid());
 			}
 
 			for (final DOMNode node : page1.getElementsByTagName("button")) {
+
 				buttonIds.add(node.getUuid());
 			}
 
@@ -2442,7 +2388,6 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		final String html  = fetchPageHtml("/html/page1");
 		final Document doc = Jsoup.parse(html);
-
 		final Map<String, String> expectedValues1 = new LinkedHashMap<>();
 		final Map<String, String> expectedValues2 = new LinkedHashMap<>();
 		final Map<String, String> attrs1          = getAttributes(doc.getElementsByTag("button").get(0));
@@ -2460,6 +2405,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues1.put("data-structr-success-target", "[data-structr-id='" + divIds.get(0) + "']");
 
 		for (final String key : expectedValues1.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues1.get(key), attrs1.get(key));
 		}
 
@@ -2470,6 +2416,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues2.put("data-structr-success-target", "[data-structr-id='" + divIds.get(0) + "']");
 
 		for (final String key : expectedValues2.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues2.get(key), attrs2.get(key));
 		}
 	}
@@ -2532,7 +2479,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		final String html       = fetchPageHtml("/html/page1");
 		final String clonedHtml = fetchPageHtml("/html/page2");
 		final Document doc = Jsoup.parse(clonedHtml);
-
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 		final Map<String, String> attrs          = getAttributes(doc.getElementsByTag("button").get(0));
 
@@ -2548,6 +2494,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-success-target", "[data-structr-id='" + divId + "']");
 
 		for (final String key : expectedValues.keySet()) {
+
 			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
 		}
 	}
@@ -2565,7 +2512,6 @@ public class EventActionMappingTest extends StructrUiTest {
 			// create schema
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.addType("Test");
-
 			final JsonMethod method1 = type.addMethod("testMethod", "{ return { test1: 1, test2: 'test1' }; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -2637,7 +2583,6 @@ public class EventActionMappingTest extends StructrUiTest {
 			// create schema
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.addType("Test");
-
 			final JsonMethod method1 = type.addMethod("testMethod", "{ return { test1: 1, test2: 'test1' }; }");
 
 			method1.setReturnRawResult(true);
@@ -2962,7 +2907,6 @@ public class EventActionMappingTest extends StructrUiTest {
 			.post("/structr/rest/DOMElement/" + button3Uuid + "/event");
 
 	}
-
 
 	// ----- private methods -----
 	final Map<String, String> getAttributes(final Element element) {

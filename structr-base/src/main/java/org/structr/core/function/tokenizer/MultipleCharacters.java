@@ -23,26 +23,31 @@ public class MultipleCharacters extends Tokenizer {
 	private char key = 0;
 
 	public MultipleCharacters(final char key) {
+
 		this.key = key;
 	}
 
 	@Override
 	public boolean accept(final char character) {
+
 		return key == character;
 	}
 
 	@Override
 	public String getType() {
+
 		return Character.toString(key);
 	}
 
 	@Override
 	public String getQuoteChar() {
+
 		return null;
 	}
 
 	@Override
 	public void add(final char character) {
+
 		super.add(character);
 	}
 
@@ -52,6 +57,7 @@ public class MultipleCharacters extends Tokenizer {
 
 	@Override
 	Tokenizer newInstance() {
+
 		return new MultipleCharacters(key);
 	}
 }

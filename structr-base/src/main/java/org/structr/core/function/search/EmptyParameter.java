@@ -29,11 +29,13 @@ public class EmptyParameter extends SearchParameter {
 
 	@Override
 	public String toString() {
+
 		return "Empty(" + key + ")";
 	}
 
 	@Override
 	public boolean isEmptyPredicate() {
+
 		return true;
 	}
 }

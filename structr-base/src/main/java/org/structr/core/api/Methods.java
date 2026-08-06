@@ -58,6 +58,7 @@ public class Methods {
 				}
 
 			} catch (FrameworkException fex) {
+
 				throw new RuntimeException(fex);
 			}
 		}
@@ -72,6 +73,7 @@ public class Methods {
 		// between the two and use the appropriate calling method.
 
 		if (methodName == null) {
+
 			throw new RuntimeException(new FrameworkException(422, "Cannot resolve method without methodName!"));
 		}
 
@@ -97,6 +99,7 @@ public class Methods {
 					tx.success();
 
 				} catch (FrameworkException fex) {
+
 					throw new RuntimeException(fex);
 				}
 			}
@@ -112,12 +115,13 @@ public class Methods {
 	}
 
 	public static void clearMethodCache() {
+
 		methodCache.clear();
 	}
 
-
 	// ----- private static methods -----
 	private static class CacheEntry {
+
 		public AbstractMethod method = null;
 	}
 }

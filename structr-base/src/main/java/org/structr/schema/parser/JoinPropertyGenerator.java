@@ -41,21 +41,25 @@ public class JoinPropertyGenerator extends PropertyGenerator {
 	private String parameters   = "";
 
 	public JoinPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public SchemaHelper.Type getPropertyType() {
+
 		return Type.Join;
 	}
 
 	@Override
 	public String getValueType() {
+
 		return String.class.getSimpleName();
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
@@ -72,6 +76,7 @@ public class JoinPropertyGenerator extends PropertyGenerator {
 		int type = 0;
 
 		try {
+
 			do {
 
 				token = null;
@@ -111,11 +116,11 @@ public class JoinPropertyGenerator extends PropertyGenerator {
 			} while (type != StreamTokenizer.TT_EOF);
 
 		} catch (IOException ex) {
+
 			logger.warn("", ex);
 		}
 
 		parameters = buf.toString();
-
 
 		return null;
 	}

@@ -59,6 +59,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -70,7 +71,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 				.statusCode(401)
 			.when()
 				.post("/myTestMethod01");
-
 
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
@@ -84,6 +84,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -115,6 +116,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail("Error creating schema node");
 		}
 
@@ -126,7 +128,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 				.statusCode(401)
 			.when()
 				.post("/MyTestType/testTypeMethod01");
-
 
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
@@ -140,6 +141,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -173,6 +175,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -207,6 +210,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -244,6 +248,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -282,6 +287,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -322,6 +328,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -382,8 +389,8 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			);
 
 			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), testTypeName));
-
 			final Set<String> lifecycleMethods = Set.of("onNodeCreation", "onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
+
 			for (final String methodName : lifecycleMethods) {
 
 				app.create(StructrTraits.SCHEMA_METHOD,
@@ -409,6 +416,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -480,8 +488,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create global schema which does not have any visibility flags
-			app.create(StructrTraits.SCHEMA_METHOD,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myTestMethod01"),
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myTestMethod01"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), """
 				{
 					let res = $.response;
@@ -494,6 +501,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -505,7 +513,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 				.statusCode(401)
 				.when()
 				.post("/myTestMethod01");
-
 
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
@@ -519,6 +526,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -562,10 +570,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test7"), new NodeAttribute<>(source, "{ return [ null,    'test2',  null   ]; }"));
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test8"), new NodeAttribute<>(source, "{ return [ null,    null,     null   ]; }"));
 
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -577,7 +585,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 					.body("result", hasSize(0))
 					.when().post("/nullTestEmptyArray");
 		}
-
 
 		// array with one entry
 		{
@@ -595,7 +602,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 					.body("result[0]", equalTo(null))
 					.when().post("/nullTestArrayLen1_test2");
 		}
-
 
 		// array with two entries
 		{
@@ -631,7 +637,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 					.body("result[1]", equalTo(null))
 					.when().post("/nullTestArrayLen2_test4");
 		}
-
 
 		// array with three entries
 		{
@@ -670,7 +675,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 					.body("result[1]", equalTo(null))
 					.body("result[2]", equalTo("test3"))
 					.when().post("/nullTestArrayLen3_test4");
-
 
 			RestAssured
 					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
@@ -725,18 +729,19 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
 		final Function<String, String> toString = (String val) -> {
 
 			if (val == null) {
+
 				return "null";
 			}
 
 			return "'" + val + "'";
 		};
-
 
 		final Function<String, Boolean> testWithArraySizeOne = (String p1) -> {
 
@@ -789,16 +794,13 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			return true;
 		};
 
-
 		testWithArraySizeOne.apply("test");
 		testWithArraySizeOne.apply(null);
-
 
 		testWithArraySizeTwo.apply("test1", "test2");
 		testWithArraySizeTwo.apply("test1", null);
 		testWithArraySizeTwo.apply(null, "test2");
 		testWithArraySizeTwo.apply(null, null);
-
 
 		testWithArraySizeThree.apply("test1", "test2", "test3");
 		testWithArraySizeThree.apply("test1", null, "test3");

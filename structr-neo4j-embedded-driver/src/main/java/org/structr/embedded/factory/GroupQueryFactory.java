@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public GroupQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -74,17 +75,17 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 				}
 
 				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
+
 					checkOperation(query, group.getOperation(), isFirst);
 				}
 
 				final boolean createGroup = attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup);
-
 				if (createGroup) {
+
 					query.beginGroup();
 				}
 
 				boolean firstWithinGroup = true;
-
 				Iterator<QueryPredicate> it = attributeAndGroupPredicates.iterator();
 
 				while (it.hasNext()) {
@@ -113,6 +114,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 				}
 
 				if (createGroup) {
+
 					query.endGroup();
 				}
 

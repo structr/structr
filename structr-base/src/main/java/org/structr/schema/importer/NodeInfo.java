@@ -53,6 +53,7 @@ public class NodeInfo {
 
 	@Override
 	public int hashCode() {
+
 		return hashCode;
 	}
 
@@ -68,14 +69,17 @@ public class NodeInfo {
 	}
 
 	public boolean hasType(final String type) {
+
 		return types.contains(type);
 	}
 
 	public Map<String, Class> getProperties() {
+
 		return properties;
 	}
 
 	public Set<String> getTypes() {
+
 		return types;
 	}
 
@@ -86,6 +90,7 @@ public class NodeInfo {
 
 			final Object value = node.getProperty(key);
 			if (value != null) {
+
 				properties.put(key, value.getClass());
 			}
 		}
@@ -140,6 +145,7 @@ public class NodeInfo {
 
 			// fifth try: analyze properties
 			final StringBuilder buf = new StringBuilder("NodeWith");
+
 			for (final String key : properties.keySet()) {
 
 				buf.append(StringUtils.capitalize(key));
@@ -152,6 +158,7 @@ public class NodeInfo {
 	private void addType (final String type) {
 
 		if (type != null && !type.equals("")) {
+
 			types.add(type);
 		}
 

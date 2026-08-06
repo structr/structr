@@ -81,6 +81,7 @@ public class Deployment7Test extends DeploymentTestBase {
 			if (exportPath != null) {
 
 				try {
+
 					deleteExportAt(exportPath);
 				} catch (Exception ignore) {}
 			}

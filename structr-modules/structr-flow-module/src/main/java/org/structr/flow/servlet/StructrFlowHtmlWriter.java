@@ -37,6 +37,7 @@ public class StructrFlowHtmlWriter extends StructrJsonHtmlWriter {
 	final static private Logger logger = LoggerFactory.getLogger(StreamingFlowWriter.class);
 
 	public StructrFlowHtmlWriter(SecurityContext securityContext, PrintWriter rawWriter) {
+
 		super(securityContext, rawWriter);
 	}
 
@@ -46,6 +47,7 @@ public class StructrFlowHtmlWriter extends StructrJsonHtmlWriter {
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
 
 		if (!propertyView.equals("public")) {
+
 			this.propertyView = "/" + propertyView;
 		}
 

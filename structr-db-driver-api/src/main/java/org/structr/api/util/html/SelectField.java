@@ -41,8 +41,11 @@ public class SelectField extends Block {
 	public SelectField addOption(final String text, final String value) {
 
 		if (value != null && value.equals(this.value)) {
+
 			this.block("option").text(text).attr(new Attr("value", value), new Attr("selected", "selected"));
+
 		} else {
+
 			this.block("option").text(text).attr(new Attr("value", value));
 		}
 

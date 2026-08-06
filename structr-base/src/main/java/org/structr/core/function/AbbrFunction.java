@@ -33,6 +33,7 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "abbr";
 	}
 
@@ -44,6 +45,7 @@ public class AbbrFunction extends CoreFunction {
 			if (sources == null || sources.length < 2 || sources[1] == null) {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -53,7 +55,6 @@ public class AbbrFunction extends CoreFunction {
 			}
 
 			final String abbreviationText = ((sources.length == 3 && sources[2] != null) ? sources[2].toString() : "…");
-
 			int maxLength = Double.valueOf(sources[1].toString()).intValue();
 
 			if (sources[0].toString().length() > maxLength) {
@@ -81,6 +82,7 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string, maxLength[, abbr = '…']");
 	}
 
@@ -96,6 +98,7 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${abbr(string, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}"),
 			Usage.javaScript("Usage: ${{ $.abbr(string, maxLength[, abbr = '…']) }}. Example: ${{ $.abbr(this.title, 20) }}")
@@ -104,6 +107,7 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 					${abbr('1234567890', 5)}
@@ -122,11 +126,13 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Abbreviates the given string if it exceeds `maxLength`.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			If `string.length <= maxLength`, returns `string` unchanged.
 
@@ -138,6 +144,7 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

@@ -33,16 +33,19 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.sort";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.sort";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.sort";
 	}
 
@@ -80,6 +83,7 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.sort(key [, descending]) }}. Example: ${{ $.find('Group', $.predicate.sort('name')) }}"),
 			Usage.structrScript("Usage: ${sort(key [, descending]). Example: ${find('Group', sort('name'))}")
@@ -88,11 +92,13 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes.
 
@@ -102,6 +108,7 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("key", "name of the sort key"),
 				Parameter.optional("descending", "If true, sorts in descending order; otherwise sorts in ascending order. (boolean, default `false`)")
@@ -110,6 +117,7 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -128,11 +136,13 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key [, descending = false]");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

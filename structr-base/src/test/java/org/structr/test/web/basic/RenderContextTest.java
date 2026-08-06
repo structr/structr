@@ -51,9 +51,7 @@ import java.util.Objects;
 
 import static org.testng.AssertJUnit.*;
 
-
 public class RenderContextTest extends StructrUiTest {
-
 
 	@Test
 	public void testVariableReplacementInDynamicTypes() {
@@ -169,6 +167,7 @@ public class RenderContextTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -200,7 +199,6 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid method evaluation result: ", "true", Scripting.replaceVariables(renderContext, item, "${item.testMethodCalled}"));
 
 			tx.success();
-
 
 		} catch (FrameworkException fex) {
 
@@ -331,7 +329,6 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid dot syntax result: ", "Task3", Scripting.replaceVariables(renderContext, project, "${project.currentTask.name}"));
 
 			tx.success();
-
 
 		} catch (FrameworkException fex) {
 
@@ -492,7 +489,6 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("${id} should evaluate to the ID if the current details object", "abc12345", Scripting.replaceVariables(ctx, p1, "${id!abc12345}"));
 			ctx.setDetailsDataObject(detailsDataObject);
 
-
 			assertEquals("${id} should be equal to ${current.id}", "true", Scripting.replaceVariables(ctx, p1, "${equal(id, current.id)}"));
 
 			assertEquals("", Scripting.replaceVariables(ctx, p1, "${if(true, null, \"no\")}"));
@@ -520,7 +516,6 @@ public class RenderContextTest extends StructrUiTest {
 
 			// Number default value
 			assertEquals("true", Scripting.replaceVariables(ctx, p1, "${equal(42, this.null!42)}"));
-
 
 			final User tester1 = app.nodeQuery(StructrTraits.USER).name("tester1").getFirst().as(User.class);
 			final User tester2 = app.nodeQuery(StructrTraits.USER).name("tester2").getFirst().as(User.class);
@@ -655,7 +650,6 @@ public class RenderContextTest extends StructrUiTest {
 
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			// obtain class objects to create instances of the above types
@@ -663,7 +657,6 @@ public class RenderContextTest extends StructrUiTest {
 			final String taskType       = "Task";
 			final PropertyKey taskKey  = Traits.of(taskType).key("task");
 			final PropertyKey tasksKey = Traits.of(projectType).key("tasks");
-
 			final List<NodeInterface> tasks = new LinkedList<>();
 
 			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));

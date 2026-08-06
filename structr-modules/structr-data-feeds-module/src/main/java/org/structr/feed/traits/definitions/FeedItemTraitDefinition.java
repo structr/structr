@@ -63,6 +63,7 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String VERSION_PROPERTY           = "version";
 
 	public FeedItemTraitDefinition() {
+
 		super(StructrTraits.FEED_ITEM);
 	}
 
@@ -71,8 +72,7 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -87,20 +87,20 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					graphObject.as(FeedItem.class).updateIndex(securityContext);
 				}
 			},
 
-			AfterCreation.class,
-			new AfterCreation() {
+			AfterCreation.class, new AfterCreation() {
 
 				@Override
 				public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
+
 					graphObject.as(FeedItem.class).updateIndex(securityContext);
 				}
 			}
@@ -113,7 +113,6 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> contentsProperty   = new EndNodes(traitsInstance, CONTENTS_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
 		final Property<Iterable<NodeInterface>> enclosuresProperty = new EndNodes(traitsInstance, ENCLOSURES_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
 		final Property<NodeInterface> feedProperty                 = new StartNode(traitsInstance, FEED_PROPERTY, StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
-
 		final Property<String> urlProperty              = new StringProperty(URL_PROPERTY).indexed().notNull();
 		final Property<String> authorProperty           = new StringProperty(AUTHOR_PROPERTY);
 		final Property<String> commentsProperty         = new StringProperty(COMMENTS_PROPERTY);
@@ -143,13 +142,12 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FeedItem.class, (traits, node) -> new FeedItemTraitWrapper(traits, node)
-		);
+		return Map.of(FeedItem.class, (traits, node) -> new FeedItemTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 

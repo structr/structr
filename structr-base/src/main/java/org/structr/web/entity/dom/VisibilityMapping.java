@@ -52,4 +52,17 @@ public interface VisibilityMapping extends NodeInterface {
 	 * match.</p>
 	 */
 	boolean evaluate(SecurityContext securityContext, NodeInterface contextObject);
+
+	/**
+	 * The object the host partial acts on, or null when there is none. Like {@link #evaluate},
+	 * the meaning is supplied by the concrete trait: the process engine returns the TaskInstance
+	 * the partial's step is about, so a template can read its status and use its id as an action
+	 * target without re-deriving it.
+	 *
+	 * <p>Two cases, and the distinction matters: when the context object already IS the feature's
+	 * action target (a task-list row), it is returned as-is, so the row talks about itself. Only
+	 * when the context is the enclosing scope (a process instance) is the target derived from it
+	 * and this mapping's bound step.</p>
+	 */
+	NodeInterface resolveTask(SecurityContext securityContext, NodeInterface contextObject);
 }

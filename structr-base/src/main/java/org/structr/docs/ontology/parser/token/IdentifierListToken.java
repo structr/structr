@@ -38,6 +38,7 @@ public class IdentifierListToken extends AbstractToken<List<IdentifierToken>> {
 
 	@Override
 	public String toString() {
+
 		return "IdentifierListToken(" + tokens + ")";
 	}
 
@@ -52,30 +53,36 @@ public class IdentifierListToken extends AbstractToken<List<IdentifierToken>> {
 
 	@Override
 	public List<IdentifierToken> resolve(final Ontology ontology) {
+
 		return tokens;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
 	public  List<IdentifierToken> getTokens() {
+
 		return tokens;
 	}
 
 	@Override
 	public Token getToken() {
+
 		return null;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Cannot rename list.");
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Cannot update list.");
 	}
 }

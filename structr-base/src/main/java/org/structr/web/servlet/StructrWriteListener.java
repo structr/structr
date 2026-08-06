@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
@@ -27,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 
 /**
  *
@@ -45,6 +43,7 @@ public class StructrWriteListener implements WriteListener {
 	private final ServletOutputStream out;
 
 	public StructrWriteListener(final InputStream content, final AsyncContext async, final ServletOutputStream out) {
+
 		this.content = content;
 		this.async = async;
 		this.out = out;
@@ -61,7 +60,9 @@ public class StructrWriteListener implements WriteListener {
 
 			// EOF?
 			if (len < 0) {
+
 				async.complete();
+
 				return;
 			}
 
@@ -72,6 +73,7 @@ public class StructrWriteListener implements WriteListener {
 
 	@Override
 	public void onError(Throwable t) {
+
 		logger.error("Async error", t);
 		async.complete();
 	}

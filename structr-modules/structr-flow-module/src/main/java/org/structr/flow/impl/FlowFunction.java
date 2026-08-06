@@ -47,16 +47,19 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "flow";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return "api-builder";
 	}
 
@@ -72,10 +75,10 @@ public class FlowFunction extends Function<Object, Object> {
 				final String name                 = (String)sources[0];
 				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 				Map<String, Object> parameters    = null;
-
 				final NodeInterface containerNode = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, name).getFirst();
 
 				if (sources.length > 1 && sources[1] instanceof Map) {
+
 					parameters = (Map)sources[1];
 				}
 
@@ -92,6 +95,7 @@ public class FlowFunction extends Function<Object, Object> {
 						if (parameters != null) {
 
 							for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+
 								context.setParameter(entry.getKey(), entry.getValue());
 							}
 
@@ -101,6 +105,7 @@ public class FlowFunction extends Function<Object, Object> {
 							if (sources.length >= 3 && sources.length % 2 != 0) {
 
 								for (int c = 1; c < sources.length; c += 2) {
+
 									context.setParameter(sources[c].toString(), sources[c + 1]);
 								}
 							}
@@ -133,29 +138,26 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${flow(name)}"),
-				Usage.javaScript("Usage: ${{ $.flow(name) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${flow(name)}"), Usage.javaScript("Usage: ${{ $.flow(name) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Executes a given Flow and returns the evaluation result.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("name", "effective name of the Flow"),
-			Parameter.optional("parameterMap", "parameters")
-		);
+		return List.of(Parameter.mandatory("name", "effective name of the Flow"), Parameter.optional("parameterMap", "parameters"));
 	}
 
 	@Override
@@ -184,6 +186,7 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

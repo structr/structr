@@ -48,66 +48,82 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	public DatabaseConnection() {}
 
 	public DatabaseConnection(final Map<String, Object> data) {
+
 		putAll(data);
 	}
 
 	public void setDisplayName(final String displayName) {
+
 		put(KEY_DISPLAYNAME, displayName);
 	}
 
 	public void setDriver(final String driver) {
+
 		put(KEY_DRIVER, driver);
 	}
 
 	public String getDriver() {
+
 		return (String)get(KEY_DRIVER);
 	}
 
 	public void setName(final String name) {
+
 		put(KEY_NAME, name);
 	}
 
 	public String getName() {
+
 		return String.valueOf(get(KEY_NAME));
 	}
 
 	public String getDisplayName() {
+
 		return String.valueOf(get(KEY_DISPLAYNAME));
 	}
 
 	public void setUrl(final String url) {
+
 		put(KEY_URL, url);
 	}
 
 	public String getUrl() {
+
 		return (String)get(KEY_URL);
 	}
 
 	public void setUsername(final String username) {
+
 		put(KEY_USERNAME, username);
 	}
 
 	public String getUsername() {
+
 		return String.valueOf(get(KEY_USERNAME));
 	}
 
 	public void setPassword(final String password) {
+
 		put(KEY_PASSWORD, password);
 	}
 
 	public String getPassword() {
+
 		return String.valueOf(get(KEY_PASSWORD));
 	}
 
 	public void setDatabaseName(final String databaseName) {
+
 		put(KEY_DATABASENAME, databaseName);
 	}
 
 	public String getDatabaseName() {
+
 		return String.valueOf(get(KEY_DATABASENAME));
 	}
 
 	public boolean isActive() {
+
 		return Boolean.TRUE.equals(get(KEY_ACTIVE));
 	}
 
@@ -123,49 +139,67 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		final Tag driver = div.block("p");
 		driver.block("label").text("Driver");
 		final SelectField driverSelect = new SelectField(driver, "driver-" + name, getDriver()).addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService");
+
 		if (isActive()) {
+
 			driverSelect.attr(new Attr("readonly", "readonly"));
 		}
+
 		driver.add(driverSelect);
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL").css("has-comment").attr(new Attr("data-comment", INFO_TEXT_URL));
 		final InputField nameInput = new InputField(url, "text", "url-" + name, getUrl());
+
 		if (isActive()) {
+
 			nameInput.attr(new Attr("readonly", "readonly"));
 		}
+
 		url.add(nameInput);
 
 		final Tag databaseName = div.block("p");
 		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", INFO_TEXT_DATABASENAME));
 		final InputField databaseNameInput = new InputField(databaseName, "text", "database-" + name, getDatabaseName());
+
 		if (isActive()) {
+
 			databaseNameInput.attr(new Attr("readonly", "readonly"));
 		}
+
 		databaseName.add(databaseNameInput);
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");
 		final InputField usernameInput = new InputField(user, "text", "username-" + name, getUsername());
+
 		if (isActive()) {
+
 			usernameInput.attr(new Attr("readonly", "readonly"));
 		}
+
 		user.add(usernameInput);
 
 		final Tag pass = div.block("p");
 		pass.block("label").text("Password");
 		final InputField passwordInput = new InputField(pass, "password", "password-" + name, getPassword());
+
 		if (isActive()) {
+
 			passwordInput.attr(new Attr("readonly", "readonly"));
 		}
+
 		pass.add(passwordInput);
 
 		final Tag buttons = div.block("p").css("buttons");
 
 		if (isActive()) {
+
 			buttons.block("a").attr(new Attr("href", adminBackendUrl)).text("Open Structr UI");
 			buttons.block("button").css("disconnect-connection hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("data-connection-name", name));
+
 		} else {
+
 			buttons.block("button").css("delete-connection").attr(new Attr("type", "button")).text("Remove").attr(new Attr("data-connection-name", name));
 			buttons.block("button").css("connect-connection default-action").attr(new Attr("type", "button")).text("Connect").attr(new Attr("data-connection-name", name));
 		}

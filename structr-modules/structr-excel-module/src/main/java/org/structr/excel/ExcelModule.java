@@ -42,18 +42,22 @@ public class ExcelModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "excel";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 //		// Excel import depends on the API builder now
 //		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
+
 		return Set.of("ui", "api-builder");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

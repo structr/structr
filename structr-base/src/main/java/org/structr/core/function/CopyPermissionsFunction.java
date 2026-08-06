@@ -32,11 +32,13 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "copyPermissions";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("sourceNode, targetNode [, syncPermissions = false ]");
 	}
 
@@ -68,12 +70,14 @@ public class CopyPermissionsFunction extends CoreFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${copyPermissions(sourceNode, targetNode [, syncPermissions = false ])}. Example: ${copyPermissions(this, this.child)}"),
 			Usage.javaScript("Usage: ${{ $.copyPermissions(sourceNode, targetNode [, syncPermissions = false ]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
@@ -82,11 +86,13 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Copies the security configuration of an entity to another entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Copies permissions from `sourceNode` to `targetNode` for all users and groups defined on `sourceNode`.
 
@@ -99,6 +105,7 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("sourceNode", "source node to copy permissions from"),
 			Parameter.mandatory("targetNode",  "target node to copy permissions to"),
@@ -108,13 +115,13 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This function **only** changes target node permissions that are also present on the source node."
-		);
+
+		return List.of("This function **only** changes target node permissions that are also present on the source node.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

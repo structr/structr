@@ -43,11 +43,13 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "grant";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("user, node, permissions");
 	}
 
@@ -94,12 +96,14 @@ public class GrantFunction extends AdvancedScriptingFunction {
 						} else {
 
 							logParameterError(caller, sources, "Unknown permission \"" + trimmedPart + "\"!", ctx.isJavaScriptContext());
+
 							return null;
 						}
 					}
 				}
 
 				if (permissions.size() > 0) {
+
 					node.as(AccessControllable.class).grant(permissions, principal, ctx.getSecurityContext());
 				}
 			}
@@ -118,19 +122,19 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${grant(principal, node, permissions)}"),
-			Usage.javaScript("Usage: ${{ $.grant(principal, node, permissions) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${grant(principal, node, permissions)}"), Usage.javaScript("Usage: ${{ $.grant(principal, node, permissions) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Grants the given permissions on the given node to the given principal.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function creates or modifies the security relationship between the first two parameters.
 		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`.
@@ -144,6 +148,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${grant(user, node1, 'read')}
@@ -162,6 +167,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("principal", "User or Group node"),
 				Parameter.mandatory("node", "node to grant permissions"),
@@ -171,6 +177,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

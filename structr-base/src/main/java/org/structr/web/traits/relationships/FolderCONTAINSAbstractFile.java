@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FolderCONTAINSAbstractFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FolderCONTAINSAbstractFile() {
+
 		super(StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.FOLDER;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.ABSTRACT_FILE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONTAINS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

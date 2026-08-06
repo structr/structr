@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.docs.Example;
@@ -30,16 +29,17 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
 public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "setResponseHeader";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name, value [, override = false ]");
 	}
 
@@ -53,16 +53,19 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 			final String name      = sources[0].toString();
 			final String value     = sources[1].toString();
 			final Boolean override = sources.length > 2 ? (Boolean) sources[2] : false;
-
 			final SecurityContext securityContext = ctx.getSecurityContext();
+
 			if (securityContext != null) {
 
 				final HttpServletResponse response = securityContext.getResponse();
 				if (response != null) {
 
 					if (override) {
+
 						response.setHeader(name, value);
+
 					} else {
+
 						response.addHeader(name, value);
 					}
 				}
@@ -71,6 +74,7 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -79,6 +83,7 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${setResponseHeader(field, value [, override = false ])}."),
 			Usage.javaScript("Usage: ${{$.setResponseHeader(field, value [, override = false ])}}.")
@@ -87,11 +92,13 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds the given header field and value to the response of the current rendering run.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Sets the value of the HTTP response header with the given name to the given value. 
 		This function can be used to set and/or override HTTP response headers in the Structr server implementation to 
@@ -101,31 +108,25 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${setResponseHeader('Content-Type', 'text/csv')}"),
-			Example.javaScript("${{ $.setResponseHeader('Content-Type', 'text/csv') }}")
-		);
+
+		return List.of(Example.structrScript("${setResponseHeader('Content-Type', 'text/csv')}"), Example.javaScript("${{ $.setResponseHeader('Content-Type', 'text/csv') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("name", "HTTP header name"),
-			Parameter.mandatory("value", "HTTP header value"),
-			Parameter.optional("override", "override previous header")
-		);
+		return List.of(Parameter.mandatory("name", "HTTP header name"), Parameter.mandatory("value", "HTTP header value"), Parameter.optional("override", "override previous header"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"The following example will cause the browser to display a 'Save as...' dialog when visiting the page, because the response content type is set to `text/csv`."
-		);
+
+		return List.of("The following example will cause the browser to display a 'Save as...' dialog when visiting the page, because the response content type is set to `text/csv`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

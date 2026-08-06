@@ -27,6 +27,7 @@ import java.util.Map;
 public class Keygen extends GenericHtmlElementTraitDefinition {
 
 	public Keygen() {
+
 		super(StructrTraits.KEYGEN);
 	}
 
@@ -37,11 +38,11 @@ public class Keygen extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}

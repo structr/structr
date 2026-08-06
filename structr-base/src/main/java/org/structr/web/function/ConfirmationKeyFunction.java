@@ -30,12 +30,15 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "confirmationKey";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -47,6 +50,7 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${confirmationKey()}. Example: ${confirmationKey()}"),
 			Usage.javaScript("Usage: ${{ $.confirmationKey() }}. Example: ${{ $.confirmationKey() }}")
@@ -55,16 +59,19 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates a confirmation key to use as a one-time token. Used for user confirmation or password reset.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

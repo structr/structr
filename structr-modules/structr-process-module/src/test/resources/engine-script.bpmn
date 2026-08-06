@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_Script"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_Script" name="Script Task Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:scriptTask id="Script_1" name="Create marker" scriptFormat="structr-javascript">
+      <bpmn:script>$.create('TestOne', { name: 'script-marker' });</bpmn:script>
+    </bpmn:scriptTask>
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"  targetRef="Script_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Script_1" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

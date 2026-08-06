@@ -29,46 +29,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class SevenSixOneToMany extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SevenSixOneToMany() {
+
 		super("SevenSixOneToMany");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestSeven";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestSix";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

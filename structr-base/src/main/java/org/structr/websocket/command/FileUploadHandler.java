@@ -55,6 +55,7 @@ public class FileUploadHandler {
 		if (this.size == null) {
 
 			SeekableByteChannel channel;
+
 			try {
 
 				channel = getChannel();
@@ -62,6 +63,7 @@ public class FileUploadHandler {
 				updateSize(this.size);
 
 			} catch (IOException ex) {
+
 				logger.error("Could not access file", ex);
 			}
 		}
@@ -70,12 +72,13 @@ public class FileUploadHandler {
 	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
 		final Set<StandardOpenOption> options = new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC));
+
 		if (sequenceNumber == 0) {
+
 			options.add(TRUNCATE_EXISTING);
 		}
 
 		SeekableByteChannel channel = getChannel(options);
-
 		if (channel != null && channel.isOpen()) {
 
 			channel.position(sequenceNumber * chunkSize);
@@ -99,6 +102,7 @@ public class FileUploadHandler {
 	private void updateSize(final Long size) {
 
 		if (size == null) {
+
 			return;
 		}
 
@@ -121,7 +125,6 @@ public class FileUploadHandler {
 		try {
 
 			Channel channel = getChannel();
-
 			if (channel != null && channel.isOpen()) {
 
 				channel.close();
@@ -145,12 +148,14 @@ public class FileUploadHandler {
 
 	// ----- private methods -----
 	private SeekableByteChannel getChannel() throws IOException {
+
 		return getChannel(new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC)));
 	}
 
 	private SeekableByteChannel getChannel(final Set<? extends OpenOption> options) throws IOException {
 
 		if (this.privateChannel == null) {
+
 			this.privateChannel = StorageProviderFactory.getStorageProvider(this.file).getSeekableByteChannel(options);
 		}
 

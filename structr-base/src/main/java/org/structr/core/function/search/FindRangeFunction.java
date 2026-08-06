@@ -33,16 +33,19 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.range";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.range";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.range";
 	}
 
@@ -82,6 +85,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.range(start, end) }}. Example: ${{ $.find('Event', { date: $.predicate.range('2018-12-31', '2019-01-01') }); }}"),
 			Usage.structrScript("Usage: ${range(start, end)}. Example: ${find('Event', 'date', range('2018-12-31', '2019-01-01'))}")
@@ -90,11 +94,13 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a range predicate that can be used in find() function calls.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Returns a search predicate to specify value ranges, greater and less-than searches in find() and search() functions.
 			The first two parameters represent the first and the last element of the desired query range. Both start and end of the range can be 
@@ -106,11 +112,13 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${find('Project', 'taskCount', range(0, 10))}"),
 				Example.structrScript("${find('Project', 'taskCount', range(0, 10, true, false))}"),
@@ -151,6 +159,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

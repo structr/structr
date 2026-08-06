@@ -43,7 +43,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.*;
 
-
 public class ReplaceWidgetCommand extends AbstractCommand {
 
 	private static final Logger logger     = LoggerFactory.getLogger(ReplaceWidgetCommand.class.getName());
@@ -72,6 +71,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		if (nodeToReplace == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node to replace is not a DOMNode or node not found").build(), true);
+
 			return;
 		}
 
@@ -82,7 +82,6 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 			if (parentNode != null) {
 
 				final Map<String, Object> data = webSocketData.getNodeData();
-
 				final DOMNode newRoot = ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, baseUrl, data, processDeploymentInfo);
 
 				// Inherit visibility flags from the replacement's parent onto
@@ -108,6 +107,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "REPLACE_WIDGET";
 	}
 
@@ -160,7 +160,6 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 					idsOfOldNodesWithItemType.add(slotNode.getUuid());
 
 					final ItemData slotData = new ItemData(slotNode, itemType);
-
 					if (items.put(itemType, slotData) != null) {
 
 						throw new FrameworkException(422, "Content slot " + itemType + " exists more than once in " + nameOrTag(slotNode));
@@ -172,7 +171,6 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				if (repeaterType != null) {
 
 					final RepeaterData slotData = new RepeaterData(slotNode, repeaterType);
-
 					if (repeaters.put(repeaterType, slotData) != null) {
 
 						throw new FrameworkException(422, "Repeater slot " + itemType + " exists more than once in " + slotNode);
@@ -271,6 +269,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 			// don't collect nested components
 			if (child.isComponentRoot()) {
+
 				continue;
 			}
 
@@ -291,21 +290,26 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	}
 
 	private static String format(final DOMNode node) {
+
 		return node.getType() + "(" + nameOrTag(node) + ")";
 	}
 
 	public static String nameOrTag(final DOMNode node) {
 
 		if (node.getName() != null) {
+
 			return node.getName();
 		}
 
 		if (node.is(StructrTraits.DOM_ELEMENT)) {
+
 			return node.as(DOMElement.class).getTag();
 		}
 
 		if (node.is(StructrTraits.CONTENT)) {
+
 			final String content = node.as(Content.class).getContent();
+
 			return "Content[" + content.substring(0, Math.min(content.length(), 6)) + "]";
 		}
 
@@ -380,14 +384,17 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		protected boolean processed = false;
 
 		public SlotData(final String identifier) {
+
 			this.identifier = identifier;
 		}
 
 		public String getIdentifier() {
+
 			return identifier;
 		}
 
 		public boolean wasProcessed() {
+
 			return processed;
 		}
 	}

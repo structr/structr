@@ -67,14 +67,12 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 	private static final String[] FLOW_SCRIPT_ATTRIBUTES									= {"query", "script", "result"};
 	private static final String[] FLOW_IGNORE_WARNING_FOR_RELS								= {StructrTraits.FLOW_CALL_CONTAINER};
 
-
 	@Override
 	public void doExport(final Path target, final Gson gson) throws FrameworkException {
 
 		try {
 
 			final App app = StructrApp.getInstance();
-
 			Path baseFolder = target.resolve(FLOW_DEPLOYMENT_TREE_BASE_FOLDER);
 
 			// Delete any existing export data and reinitialize base folder
@@ -121,7 +119,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 		// Start import for each flow and their respective __children
 		File[] children = rootDir.listFiles();
-
 		if (children != null) {
 
 			for (final File dir : children) {
@@ -191,8 +188,8 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 								// Read the script file and write its content with its name as property key
 								final String attrName = nodeScript.getName();
 								final String content = new String(Files.readAllBytes(nodeScript.toPath()));
-
 								final PropertyKey propKey = node.getTraits().key(attrName);
+
 								node.setProperty(propKey, content);
 							}
 						}
@@ -216,6 +213,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 					}
 
 				} catch (NullPointerException npe) {
+
 					logger.warn("Traversed empty config directory during tree based flow import: " + nodesDir.toPath());
 				}
 
@@ -229,7 +227,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 						// Import rels
 						final Map<String, Object> relPropsData = readData(relDir.toPath().resolve(FLOW_DEPLOYMENT_REL_FILE));
 						final String relType                   = relPropsData.get(GraphObjectTraitDefinition.TYPE_PROPERTY).toString();
-
 						final NodeInterface fromNode = app.getNodeById(relPropsData.get(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY).toString());
 						final NodeInterface toNode   = app.getNodeById(relPropsData.get(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY).toString());
 
@@ -266,7 +263,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			final String effectiveName                  = flow.getEffectiveName();
 			final String effectiveFlowPath              = effectiveName.contains(".") ? String.join("/"+ FLOW_DEPLOYMENT_TREE_NODE_CHILDREN_FOLDER + "/",effectiveName.split("\\.")) : effectiveName;
-
 			final Path flowFolder                       = Files.createDirectories(target.resolve(effectiveFlowPath));
 			final Path nodePath                         = Files.createDirectories(flowFolder.resolve(FLOW_DEPLOYMENT_TREE_NODE_FOLDER));
 			final Path relPath                          = Files.createDirectories(flowFolder.resolve(FLOW_DEPLOYMENT_TREE_REL_FOLDER));
@@ -276,6 +272,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			writeData(flowFolder.resolve(FLOW_DEPLOYMENT_CONTAINER_FILE), gson.toJson(flow.exportData()));
 
 			for (final RelationshipInterface rel : flow.getRelationships()) {
+
 				exportRelationship(relPath, rel);
 			}
 
@@ -289,10 +286,14 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 				// Remove scripts from exportData and export them separately
 				for (final String key : FLOW_SCRIPT_ATTRIBUTES) {
+
 					if (exportData.containsKey(key)) {
+
 						if (exportData.get(key) != null) {
+
 							scriptData.put(key, exportData.get(key).toString());
 						}
+
 						exportData.remove(key);
 					}
 				}
@@ -308,12 +309,14 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 				// Write rels for node
 				for (final RelationshipInterface rel : node.getRelationships()) {
+
 					exportRelationship(relPath, rel);
 				}
 			}
 
 			// 3. Export flow container config
 			final Iterable<FlowContainerConfiguration> configs = flow.getFlowConfigurations();
+
 			for (final FlowContainerConfiguration conf : configs) {
 
 				writeData(Files.createDirectories(configPath.resolve(conf.getUuid())).resolve(FLOW_DEPLOYMENT_CONFIG_FILE), gson.toJson(conf.exportData()));
@@ -332,7 +335,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			if (!Arrays.asList(FLOW_BLACKLISTED_REL_TYPES).contains(rel.getRelType().name())) {
 
 				final Path relPath = Files.createDirectories(target.resolve(rel.getUuid()));
-
 				Map<String, String> attrs = new TreeMap<>();
 
 				attrs.put("id",       rel.getUuid());
@@ -386,6 +388,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			fos.write(data);
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}

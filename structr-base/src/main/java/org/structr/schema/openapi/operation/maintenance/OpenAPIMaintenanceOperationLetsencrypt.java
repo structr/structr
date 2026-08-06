@@ -66,11 +66,7 @@ public class OpenAPIMaintenanceOperationLetsencrypt extends LinkedHashMap<String
                 ),
 
                 // responses
-                Map.of(
-                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
-                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-                )
-        ));
+                Map.of("200", new OpenAPISchemaReference("#/components/responses/ok"), "401", new OpenAPISchemaReference("#/components/responses/unauthorized"))));
 
     }
 }

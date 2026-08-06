@@ -28,71 +28,85 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition() {
+
 		super(StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.STORAGE_CONFIGURATION;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.STORAGE_CONFIGURATION_ENTRY;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONFIG_ENTRY";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.Both;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Remove;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Remove;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Remove;
 	}
 }

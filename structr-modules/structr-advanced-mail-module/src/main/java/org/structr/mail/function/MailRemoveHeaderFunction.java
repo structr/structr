@@ -30,16 +30,19 @@ import java.util.List;
 public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 
 	public MailRemoveHeaderFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailRemoveHeader";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name");
 	}
 
@@ -57,32 +60,32 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailRemoveHeader(name)}"),
-			Usage.javaScript("Usage: ${{ $.mailRemoveHeader(name) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailRemoveHeader(name)}"), Usage.javaScript("Usage: ${{ $.mailRemoveHeader(name) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes a specific custom header from the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("name", "header name of header to remove")
-		);
+
+		return List.of(Parameter.mandatory("name", "header name of header to remove"));
 	}
 }

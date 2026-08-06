@@ -44,51 +44,61 @@ public interface FieldDefinition {
 		return new FieldDefinition() {
 			@Override
 			public String fieldName() {
+
 				return null;
 			}
 
 			@Override
 			public String renderTemplate() {
+
 				return null;
 			}
 
 			@Override
 			public String editTemplate() {
+
 				return null;
 			}
 
 			@Override
 			public String dataType() {
+
 				return null;
 			}
 
 			@Override
 			public String nodeType() {
+
 				return null;
 			}
 
 			@Override
 			public boolean hasOptions() {
+
 				return false;
 			}
 
 			@Override
 			public boolean isRequired() {
+
 				return false;
 			}
 
 			@Override
 			public boolean isCollection() {
+
 				return false;
 			}
 
 			@Override
 			public boolean isIndexed() {
+
 				return false;
 			}
 
 			@Override
 			public List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException {
+
 				return null;
 			}
 		};

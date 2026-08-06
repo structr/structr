@@ -38,6 +38,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	private String cachedTenantId = null;
 
 	public NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Node entity) {
+
 		super(db, entity);
 
 		this.relationshipCache = new TreeCache<>(entity.id(), "/");
@@ -45,16 +46,19 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	@Override
 	public String toString() {
+
 		return "N" + getId();
 	}
 
 	@Override
 	protected String getQueryPrefix() {
+
 		return concat("MATCH (n", getTenantIdentifier(db), ")");
 	}
 
 	@Override
 	public Relationship<Long> createRelationshipTo(final Node<Long> endNode, final RelationshipType relationshipType) {
+
 		return createRelationshipTo(endNode, relationshipType, new LinkedHashMap<>());
 	}
 
@@ -128,6 +132,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		// no-op
 		if (input.isEmpty()) {
+
 			return;
 		}
 
@@ -159,6 +164,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	@Override
 	public Iterable<String> getLabels() {
+
 		return entity.labels();
 	}
 
@@ -175,6 +181,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		try {
 
 			// try to fetch existing relationship by node ID(s)
+
 			return tx.getLong(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN id(r)"), params)) != null;
 
 		} catch (Throwable t) {
@@ -200,6 +207,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			return tx.getRelationshipWrapper(tx.getRelationship(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN r"), params)));
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -208,6 +216,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	@Override
 	public Iterable<Relationship<Long>> getRelationships() {
+
 		return fetchAndCacheRelationships(db, id, concat("(n", getTenantIdentifier(db), ")-[r]-(o)"), "RETURN r, o ORDER BY r.internalTimestamp", "all", null, null);
 	}
 
@@ -220,12 +229,15 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		switch (direction) {
 
 			case BOTH:
+
 				return getRelationships();
 
 			case OUTGOING:
+
 				return getRelationshipsFromCache(key, null, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r]->(t)"), "RETURN r, t ORDER BY r.internalTimestamp", key, null, direction));
 
 			case INCOMING:
+
 				return getRelationshipsFromCache(key, null, false, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier , ")<-[r]-(s)"), "RETURN r, s ORDER BY r.internalTimestamp", key, null, direction));
 		}
 
@@ -245,6 +257,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			case BOTH:
 				final String key1 = createKey(Direction.OUTGOING, relationshipType);
 				final String key2 = createKey(Direction.INCOMING, relationshipType);
+
 				return Iterables.flatten(
 					List.of(
 						getRelationshipsFromCache(key1, type, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1, relationshipType, direction)),
@@ -253,9 +266,11 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 				);
 
 			case OUTGOING:
+
 				return getRelationshipsFromCache(key, type, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key, relationshipType, direction));
 
 			case INCOMING:
+
 				return getRelationshipsFromCache(key, type, false, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key, relationshipType, direction));
 		}
 
@@ -308,6 +323,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	 * @param keys
 	 */
 	public void storePrefetchInfo(final Set<String> keys) {
+
 		this.prefetched.addAll(keys);
 	}
 
@@ -320,6 +336,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	@Override
 	public boolean isNode() {
+
 		return true;
 	}
 
@@ -329,7 +346,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		// fetch relationships
 		final String whereStatement         = " WHERE ID(n) = $id ";
 		final String statement              = concat("MATCH ", match, whereStatement, returnStatement);
-
 		final CypherRelationshipIndex index = (CypherRelationshipIndex)db.relationshipIndex();
 		final SimpleCypherQuery query       = new SimpleCypherQuery(statement);
 
@@ -362,6 +378,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	private String createKey(final Relationship relationship) {
+
 		return createKey(relationship.getDirectionForNode(this), relationship.getType());
 	}
 
@@ -370,11 +387,13 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		final StringBuilder buf = new StringBuilder("all");
 
 		if (direction != null) {
+
 			buf.append("/");
 			buf.append(direction.name());
 		}
 
 		if (type != null) {
+
 			buf.append("/");
 			buf.append(type.name());
 		}
@@ -406,6 +425,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			}
 
 			// make query
+
 			return valueSupplier.get();
 		}
 
@@ -433,7 +453,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		if (cachedTenantId == null) {
 
 			final String identifier = db.getTenantIdentifier();
-
 			if (StringUtils.isNotBlank(identifier)) {
 
 				cachedTenantId = ":" + identifier;

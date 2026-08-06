@@ -51,8 +51,8 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String JWKS_REFERENCE_ID_PROPERTY = "jwksReferenceId";
 	public static final String IS_GROUP_PROPERTY          = "isGroup";
 
-
 	public GroupTraitDefinition() {
+
 		super(StructrTraits.GROUP);
 	}
 
@@ -61,14 +61,12 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					boolean valid = true;
-
 					final Traits traits                       = obj.getTraits();
 					final PropertyKey nameProperty            = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final PropertyKey jwksReferenceIdProperty = traits.key(JWKS_REFERENCE_ID_PROPERTY);
@@ -91,8 +89,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			SetProperty.class,
-			new SetProperty() {
+			SetProperty.class, new SetProperty() {
 
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
@@ -108,9 +105,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Group.class, (traits, node) -> new GroupTraitWrapper(traits, node)
-		);
+		return Map.of(Group.class, (traits, node) -> new GroupTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -121,12 +116,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> nameProperty                     = new StringProperty(NodeInterfaceTraitDefinition.NAME_PROPERTY).indexed().notNull().unique();
 		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty(IS_GROUP_PROPERTY, true);
 
-		return newSet(
-			membersProperty,
-			jwksReferenceIdProperty,
-			nameProperty,
-			isGroupProperty
-		);
+		return newSet(membersProperty, jwksReferenceIdProperty, nameProperty, isGroupProperty);
 	}
 
 	@Override
@@ -146,11 +136,13 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 
@@ -158,6 +150,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	public static boolean doesNotContainCircles(final NodeInterface group, final ErrorBuffer errorBuffer) {
 
 		try {
+
 			recursiveCollectParentUuids(group, new LinkedHashSet<>(), errorBuffer);
 			recursiveCollectChildrenUuids(group, new LinkedHashSet<>(), errorBuffer);
 

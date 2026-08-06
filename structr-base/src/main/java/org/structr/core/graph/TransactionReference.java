@@ -35,62 +35,75 @@ public class TransactionReference<T> implements Transaction<T> {
 	private int referenceCount = 0;
 
 	public TransactionReference(final Transaction tx) {
+
 		this.tx          = tx;
 	}
 
 	public boolean isToplevel() {
+
 		return referenceCount == 1;
 	}
 
 	public boolean isSuccessful() {
+
 		return tx.isSuccessful();
 	}
 
 	@Override
 	public void setNodeIsCreated(final T id) {
+
 		tx.setNodeIsCreated(id);
 	}
 
 	@Override
 	public boolean isNodeCreated(final T id) {
+
 		return tx.isNodeCreated(id);
 	}
 
 	@Override
 	public boolean isNodeDeleted(final T id) {
+
 		return tx.isNodeDeleted(id);
 	}
 
 	@Override
 	public boolean isRelationshipDeleted(final T id) {
+
 		return tx.isRelationshipDeleted(id);
 	}
 
 	public void begin() {
+
 		referenceCount++;
 	}
 
 	public void end() {
+
 		referenceCount--;
 	}
 
 	public int level() {
+
 		return referenceCount;
 	}
 
 	// ----- interface Transaction -----
 	@Override
 	public void failure() {
+
 		tx.failure();
 	}
 
 	@Override
 	public void success() {
+
 		tx.success();
 	}
 
 	@Override
 	public long getTransactionId() {
+
 		return tx.getTransactionId();
 	}
 
@@ -99,52 +112,62 @@ public class TransactionReference<T> implements Transaction<T> {
 
 		// only finish transaction if we are at root level
 		if (--referenceCount == 0) {
+
 			tx.close();
 		}
 	}
 
 	@Override
 	public boolean isRolledBack() {
+
 		return tx.isRolledBack();
 	}
 
 	@Override
 	public Node getNode(final Identity id) {
+
 		return tx.getNode(id);
 	}
 
 	@Override
 	public Relationship getRelationship(final Identity id) {
+
 		return tx.getRelationship(id);
 	}
 
 	@Override
 	public void prefetchHint(final String hint) {
+
 		tx.prefetchHint(hint);
 	}
 
 	@Override
 	public void prefetch(final String type1, String type2, final Set<String> keys) {
+
 		tx.prefetch(type1, type2, keys);
 	}
 
 	@Override
 	public void prefetch(final String query, final Set<String> keys) {
+
 		tx.prefetch(query, keys);
 	}
 
 	@Override
 	public void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+
 		tx.prefetch(query, outgoingKeys, incomingKeys);
 	}
 
 	@Override
 	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id) {
+
 		tx.prefetch2(query, outgoingKeys, incomingKeys, id);
 	}
 
 	@Override
 	public void setIsPing(boolean isPing) {
+
 		tx.setIsPing(isPing);
 	}
 }

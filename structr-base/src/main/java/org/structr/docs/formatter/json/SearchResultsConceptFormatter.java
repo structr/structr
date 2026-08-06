@@ -58,6 +58,7 @@ public class SearchResultsConceptFormatter {
 	private void collectParents(final Concept concept, final Map<String, Object> data, final int level) {
 
 		if (level > 3) {
+
 			return;
 		}
 
@@ -84,10 +85,7 @@ public class SearchResultsConceptFormatter {
 				targets.add(childMap);
 			}
 
-			parents.add(Map.of(
-				"name", parent.getKey(),
-				"targets", targets
-			));
+			parents.add(Map.of("name", parent.getKey(), "targets", targets));
 		}
 	}
 }

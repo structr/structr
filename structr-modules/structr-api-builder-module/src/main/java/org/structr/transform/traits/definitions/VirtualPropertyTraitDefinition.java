@@ -48,30 +48,32 @@ public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String OUTPUT_FUNCTION_PROPERTY = "outputFunction";
 
 	public VirtualPropertyTraitDefinition() {
+
 		super(StructrTraits.VIRTUAL_PROPERTY);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			VirtualProperty.class, (traits, node) -> new VirtualPropertyTraitWrapper(traits, node)
-		);
+		return Map.of(VirtualProperty.class, (traits, node) -> new VirtualPropertyTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -84,14 +86,7 @@ public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<String> inputFunction      = new StringProperty(INPUT_FUNCTION_PROPERTY);
 		final Property<String> outputFunction     = new StringProperty(OUTPUT_FUNCTION_PROPERTY);
 
-		return Set.of(
-			virtualType,
-			position,
-			sourceName,
-			targetName,
-			inputFunction,
-			outputFunction
-		);
+		return Set.of(virtualType, position, sourceName, targetName, inputFunction, outputFunction);
 	}
 
 	@Override
@@ -111,6 +106,7 @@ public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -28,6 +28,7 @@ public abstract class SpecialKeywordHint extends KeywordHint {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Special Keywords"));
 	}
 }

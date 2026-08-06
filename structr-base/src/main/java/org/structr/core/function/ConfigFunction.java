@@ -38,11 +38,13 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "config";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key [, defaultValue = null ]");
 	}
 
@@ -90,12 +92,14 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.structrScript("Usage: ${config(key [, defaultValue = null ])}. Example: ${config(\"base.path\")}"),
 				Usage.javaScript("Usage: ${{ $.config(key [, defaultValue = null ]) }}. Example: ${{ $.config(\"base.path\") }}")
@@ -104,11 +108,13 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the configuration value associated with the given key from structr.conf.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function can be used to read values from the configuration file and use it to configure frontend behaviour, default values etc. The optional second parameter is the default value to be returned if the configuration key does not exist.";
 	}
 
@@ -123,18 +129,19 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return super.getExamples();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"For security reasons, protected settings, like the superuser password and other passwords/encryption keys, can not be read with this function."
-		);
+
+		return List.of("For security reasons, protected settings, like the superuser password and other passwords/encryption keys, can not be read with this function.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

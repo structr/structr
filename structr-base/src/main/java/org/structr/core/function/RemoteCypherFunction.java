@@ -47,11 +47,13 @@ public class RemoteCypherFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "remoteCypher";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("url, username, password, query [, parameterMap ]");
 	}
 
@@ -70,6 +72,7 @@ public class RemoteCypherFunction extends CoreFunction {
 
 			// parameters?
 			if (sources.length > 4 && sources[4] != null && sources[4] instanceof Map) {
+
 				params.putAll((Map)sources[4]);
 			}
 
@@ -92,18 +95,20 @@ public class RemoteCypherFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
-
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${remoteCypher(url, username, password, query)}. Example ${remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}"),
 			Usage.javaScript("Usage: ${{ $.remoteCypher(url, username, password query) }}. Example ${{ $.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n') }}")
@@ -112,16 +117,19 @@ public class RemoteCypherFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the result of the given Cypher query against a remote instance.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 
@@ -129,8 +137,8 @@ public class RemoteCypherFunction extends CoreFunction {
 	private Driver getDriver(final String url, final String username, final String password) {
 
 		final String cacheKey = DigestUtils.md5Hex(url + username + password);
-
 		Driver driver = driverCache.get(cacheKey);
+
 		if (driver == null) {
 
 			driver = GraphDatabase.driver(url, AuthTokens.basic(username, password), Config.builder().withEncryption().build());
@@ -141,9 +149,8 @@ public class RemoteCypherFunction extends CoreFunction {
 		return driver;
 	}
 
-
-
 	private Iterable extractRows(final SecurityContext securityContext, final Iterable<Map<String, Object>> result) {
+
 		return Iterables.map(map -> { return extractColumns(securityContext, map); }, result);
 	}
 
@@ -160,6 +167,7 @@ public class RemoteCypherFunction extends CoreFunction {
 				return handleObject(securityContext, key, value, 0);
 
 			} catch (FrameworkException fex) {
+
 				logger.error(ExceptionUtils.getStackTrace(fex));
 			}
 
@@ -175,6 +183,7 @@ public class RemoteCypherFunction extends CoreFunction {
 					return handleObject(securityContext, key, val, 0);
 
 				} catch (FrameworkException fex) {
+
 					logger.error(ExceptionUtils.getStackTrace(fex));
 				}
 
@@ -202,7 +211,6 @@ public class RemoteCypherFunction extends CoreFunction {
 			final Relationship rel = segment.relationship();
 			final Node start       = segment.start();
 			final Node end         = segment.end();
-
 			final Map<String, Object> result = new HashMap<>();
 
 			result.put("relationship", handleObject(securityContext, null, rel,   level + 1));
@@ -226,6 +234,7 @@ public class RemoteCypherFunction extends CoreFunction {
 				} else {
 
 					// remove path from list if one of the children is null (=> permission)
+
 					return null;
 				}
 			}
@@ -266,6 +275,7 @@ public class RemoteCypherFunction extends CoreFunction {
 				} else {
 
 					// remove tuple from list if one of the children is null (=> permission)
+
 					return null;
 				}
 			}
@@ -284,10 +294,12 @@ public class RemoteCypherFunction extends CoreFunction {
 	}
 
 	private Map<String, Object> instantiateNode(final Node node) {
+
 		return node.asMap();
 	}
 
 	private Map<String, Object> instantiateRelationship(final Relationship rel) {
+
 		return rel.asMap();
 	}
 }

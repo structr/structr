@@ -25,40 +25,49 @@ public class Parameter {
 	private final boolean optional;
 
 	public Parameter(final String name, final String description, final boolean optional) {
+
 		this.name = name;
 		this.description = description;
 		this.optional = optional;
 	}
 
 	public Parameter(final String name, final String description) {
+
 		this(name, description, false);
 	}
 
 	public Parameter(final String name) {
+
 		this(name, null, false);
 	}
 
 	public String getName() {
+
 		return name;
 	}
 
 	public String getDescription() {
+
 		return description;
 	}
 
 	public boolean isOptional() {
+
 		return optional;
 	}
 
 	public static Parameter of(final String name, final String description, final boolean optional) {
+
 		return new Parameter(name, description, optional);
 	}
 
 	public static Parameter optional(final String name, final String description) {
+
 		return new Parameter(name, description, true);
 	}
 
 	public static Parameter mandatory(final String name, final String description) {
+
 		return new Parameter(name, description, false);
 	}
 }

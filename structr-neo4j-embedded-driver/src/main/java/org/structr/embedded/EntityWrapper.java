@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer<String> {
 
 	private final Map<String, Object> propertyCacheForDeletedEntities = new HashMap<>();
@@ -54,16 +53,19 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 
 	@Override
 	public int hashCode() {
+
 		return getId().hashCode();
 	}
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return other.hashCode() == this.hashCode();
 	}
 
 	@Override
 	public Identity<String> getId() {
+
 		return identity;
 	}
 
@@ -71,6 +73,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 	public boolean hasProperty(final String name) {
 
 		if (isDeleted()) {
+
 			return propertyCacheForDeletedEntities.containsKey(name);
 		}
 
@@ -81,7 +84,9 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 	public Object getProperty(final String name) {
 
 		if (isDeleted()) {
+
 			// use cached properties for deleted entities
+
 			return propertyCacheForDeletedEntities.get(name);
 		}
 
@@ -113,8 +118,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 			final Object v = convertForStorage(value);
 
 			try {
+
 				entity.setProperty(key, v);
+
 			} catch (IllegalArgumentException e) {
+
 				e.printStackTrace();
 				throw new ConstraintViolationException(e, "constraint_violation", e.getMessage());
 			}
@@ -129,22 +137,26 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 	public void setProperties(final Map<String, Object> values) {
 
 		for (final Entry<String, Object> entry : values.entrySet()) {
+
 			setProperty(entry.getKey(), entry.getValue());
 		}
 	}
 
 	@Override
 	public void removeProperty(final String key) {
+
 		entity.removeProperty(key);
 	}
 
 	@Override
 	public Iterable<String> getPropertyKeys() {
+
 		return entity.getPropertyKeys();
 	}
 
 	@Override
 	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
+
 		propertyCacheForDeletedEntities.putAll(entity.getAllProperties());
 		entity.delete();
 		deleted = true;
@@ -152,6 +164,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 
 	@Override
 	public boolean isDeleted() {
+
 		return deleted;
 	}
 
@@ -166,6 +179,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 				if (!list.isEmpty()) {
 
 					// if value is a list, it is likely a list of Strings..
+
 					return convertArray(list.toArray(new String[0]));
 				}
 			}
@@ -189,6 +203,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 				final Class<?> componentType = type.getComponentType();
 				final Class<?> wrapperType = switch (type.getComponentType().getName()) {
 					case "boolean" -> Boolean.class;
+
 					case "byte" -> Byte.class;
 					case "char" -> Character.class;
 					case "short" -> Short.class;
@@ -203,6 +218,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 				final Object newArray = Array.newInstance(wrapperType, length);
 
 				for (int i = 0; i < length; i++) {
+
 					Array.set(newArray, i, Array.get(value, i));
 				}
 
@@ -216,13 +232,14 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 	private Object convertArray(final Object value) {
 
 		if (!value.getClass().isArray()) {
+
 			throw new IllegalArgumentException(value.getClass() + " is not an array.");
 		}
 
 		final Class<?> componentType = value.getClass().getComponentType();
-
 		final Class<?> wrapperType = switch (componentType.getName()) {
 			case "Boolean" -> Boolean.TYPE;
+
 			case "Byte" -> Byte.TYPE;
 			case "Char" -> Character.TYPE;
 			case "Short" -> Short.TYPE;
@@ -237,6 +254,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 		final Object newArray = Array.newInstance(wrapperType, length);
 
 		for (int i = 0; i < length; i++) {
+
 			Array.set(newArray, i, Array.get(value, i));
 		}
 

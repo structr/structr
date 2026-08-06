@@ -35,66 +35,79 @@ public class WrappingHint extends AbstractHint {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return documentable.getDocumentableType();
 	}
 
 	@Override
 	public String getName() {
+
 		return name;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return documentable.getShortDescription();
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return documentable.getLongDescription();
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return documentable.getParameters();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return documentable.getExamples();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return documentable.getNotes();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return documentable.getSignatures();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return documentable.getLanguages();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return documentable.getUsages();
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return documentable.isHidden();
 	}
 
 	@Override
 	public List<DocumentedProperty> getDocumentedProperties() {
+
 		return documentable.getDocumentedProperties();
 	}
 
 	@Override
 	public List<Setting> getSettings() {
+
 		return documentable.getSettings();
 	}
 }

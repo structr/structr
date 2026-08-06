@@ -37,22 +37,26 @@ public class HashComment extends Tokenizer {
 
 	@Override
 	public void add(final char character) {
+
 		super.add(character);
 		index++;
 	}
 
 	@Override
 	Tokenizer newInstance() {
+
 		return new HashComment();
 	}
 
 	@Override
 	String getQuoteChar() {
+
 		return null;
 	}
 
 	@Override
 	String getType() {
+
 		return "comment";
 	}
 }

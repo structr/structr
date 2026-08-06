@@ -29,11 +29,13 @@ public class NullPredicate<T extends PropertyContainer, V> implements Predicate<
 	private String key = null;
 
 	public NullPredicate(final String key) {
+
 		this.key = key;
 	}
 
 	@Override
 	public String toString() {
+
 		return "NULL(" + key + ")";
 	}
 
@@ -41,7 +43,6 @@ public class NullPredicate<T extends PropertyContainer, V> implements Predicate<
 	public boolean accept(final T entity) {
 
 		final Object value = entity.getProperty(key);
-
 		if (value instanceof String) {
 
 			return StringUtils.isEmpty((String)value);

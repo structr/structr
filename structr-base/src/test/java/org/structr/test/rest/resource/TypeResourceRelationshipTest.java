@@ -30,7 +30,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
-
 	@Test
 	public void testCreateRelationship() {
 
@@ -79,7 +78,6 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 			.when()
 				.post("/TwoOneOneToMany");
 
-
 		// Check results: Only one relationship must exist
 		RestAssured
 			.given()
@@ -91,7 +89,6 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 			.when()
 				.get("/TwoOneOneToMany");
 	}
-
 
 	@Test
 	public void testCardinalityOneToMany() {

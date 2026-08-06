@@ -25,6 +25,7 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
 public class HttpServletRequestWrapper implements ProxyObject {
+
 	private final ActionContext actionContext;
 	private final HttpServletRequest request;
 
@@ -40,7 +41,6 @@ public class HttpServletRequestWrapper implements ProxyObject {
 		if (request != null) {
 
 			final Object value = request.getParameterValues(key);
-
 			if (value != null && ((String[]) value).length == 1) {
 
 				return ((String[]) value)[0];
@@ -78,6 +78,7 @@ public class HttpServletRequestWrapper implements ProxyObject {
 
 	@Override
 	public void putMember(String key, Value value) {
+
 		// Request is immutable
 	}
 }

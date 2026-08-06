@@ -41,6 +41,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 	private static final Logger logger = LoggerFactory.getLogger(DateArrayProperty.class.getName());
 
 	public DateArrayProperty(final String name) {
+
 		this(name, name);
 	}
 
@@ -55,27 +56,32 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return value;
 	}
 
 	@Override
 	public PropertyConverter<Date[], Long[]> databaseConverter(final SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<Date[], Long[]> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, Date[]> inputConverter(final SecurityContext securityContext, final boolean fromString) {
+
 		return new ArrayInputConverter(securityContext, fromString);
 	}
 
 	private class ArrayDatabaseConverter extends PropertyConverter<Date[], Long[]> {
 
 		public ArrayDatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 			super(securityContext, entity);
 		}
 
@@ -107,6 +113,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 		private final boolean fromString;
 
 		public ArrayInputConverter(final SecurityContext securityContext, final boolean fromString) {
+
 			super(securityContext, null);
 			this.fromString = fromString;
 		}
@@ -134,14 +141,17 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 		public Date[] convert(final Object source) throws FrameworkException {
 
 			if (source == null) {
+
 				return null;
 			}
 
 			if (source instanceof List) {
+
 				return DateArrayProperty.this.convert((List)source);
 			}
 
 			if (source.getClass().isArray()) {
+
 				return convert(Arrays.asList((Date[])source));
 			}
 
@@ -161,6 +171,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 					// special handling of empty search attribute
 					if (StringUtils.isBlank(s)) {
+
 						return null;
 					}
 
@@ -179,6 +190,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 		for (final Long o : source) {
 
 			if (o == null) {
+
 				continue;
 			}
 
@@ -186,6 +198,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 		}
 
 		if (result.isEmpty()) {
+
 			return null;
 		}
 
@@ -200,6 +213,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 			// skip unparseable dates
 			if (o == null) {
+
 				continue;
 			}
 
@@ -207,6 +221,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 		}
 
 		if (result.isEmpty()) {
+
 			return null;
 		}
 
@@ -221,6 +236,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 			// skip unparseable dates
 			if (o == null) {
+
 				continue;
 			}
 
@@ -235,6 +251,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 		}
 
 		if (result.isEmpty())  {
+
 			return null;
 		}
 
@@ -244,16 +261,19 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return List.of(new SimpleDateFormat(this.format).format(System.currentTimeMillis()));
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	// ----- static methods -----
 	public static String getDefaultFormat() {
+
 		return Settings.DefaultDateFormat.getValue();
 	}
 

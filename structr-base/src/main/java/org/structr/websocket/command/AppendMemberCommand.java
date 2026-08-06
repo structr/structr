@@ -49,6 +49,7 @@ public class AppendMemberCommand extends AbstractCommand {
 		if (id == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node, no id is given").build(), true);
+
 			return;
 		}
 
@@ -56,6 +57,7 @@ public class AppendMemberCommand extends AbstractCommand {
 		if (parentId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
+
 			return;
 		}
 
@@ -64,6 +66,7 @@ public class AppendMemberCommand extends AbstractCommand {
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
 			return;
 		}
 
@@ -83,6 +86,7 @@ public class AppendMemberCommand extends AbstractCommand {
 				} catch (final FrameworkException ex) {
 
 					if (ex.getStatus() == 403) {
+
 						getWebSocket().send(MessageBuilder.status().code(403).message("Client is not allowed to add member " + principal.getName() + " to group " + group.getName()).build(), true);
 					}
 				}
@@ -97,6 +101,7 @@ public class AppendMemberCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "APPEND_MEMBER";
 	}
 }

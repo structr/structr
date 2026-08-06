@@ -32,16 +32,19 @@ public class StaticValue<T> implements Value<T> {
 	private T value = null;
 
 	public StaticValue(T value) {
+
 		this.value = value;
 	}
 	
 	@Override
 	public void set(SecurityContext securityContext, T value) {
+
 		this.value = value;
 	}
 
 	@Override
 	public T get(SecurityContext securityContext) {
+
 		return value;
 	}
 }

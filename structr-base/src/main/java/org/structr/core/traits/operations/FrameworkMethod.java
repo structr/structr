@@ -23,10 +23,12 @@ public abstract class FrameworkMethod<T> {
 	private T superImplementation = null;
 
 	public final T getSuper() {
+
 		return superImplementation;
 	}
 
 	public final void setSuper(final T superImplementation) {
+
 		this.superImplementation = superImplementation;
 	}
 }

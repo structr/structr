@@ -38,61 +38,73 @@ class MapResultWrapper implements Map<String, Object> {
 
 	@Override
 	public String toString() {
+
 		return source.toString();
 	}
 
 	@Override
 	public int size() {
+
 		return source.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
+
 		return source.isEmpty();
 	}
 
 	@Override
 	public boolean containsKey(Object key) {
+
 		return source.containsKey(key);
 	}
 
 	@Override
 	public boolean containsValue(Object value) {
+
 		return source.containsValue(value);
 	}
 
 	@Override
 	public Object get(Object key) {
+
 		return wrap(source.get(key));
 	}
 
 	@Override
 	public Object put(String key, Object value) {
+
 		throw new UnsupportedOperationException("This result object is read-only");
 	}
 
 	@Override
 	public Object remove(Object key) {
+
 		throw new UnsupportedOperationException("This result object is read-only");
 	}
 
 	@Override
 	public void putAll(Map<? extends String, ? extends Object> m) {
+
 		throw new UnsupportedOperationException("This result object is read-only");
 	}
 
 	@Override
 	public void clear() {
+
 		throw new UnsupportedOperationException("This result object is read-only");
 	}
 
 	@Override
 	public Set<String> keySet() {
+
 		return source.keySet();
 	}
 
 	@Override
 	public Collection<Object> values() {
+
 		return wrap(source.values());
 	}
 
@@ -130,6 +142,7 @@ class MapResultWrapper implements Map<String, Object> {
 		final List<Object> values = new LinkedList<>();
 
 		for (final Object obj : source) {
+
 			values.add(wrap(obj));
 		}
 
@@ -142,21 +155,25 @@ class MapResultWrapper implements Map<String, Object> {
 		private Entry<String, Object> source = null;
 
 		public WrappedEntry(final Entry<String, Object> source) {
+
 			this.source = source;
 		}
 
 		@Override
 		public String getKey() {
+
 			return source.getKey();
 		}
 
 		@Override
 		public Object getValue() {
+
 			return wrap(source.getValue());
 		}
 
 		@Override
 		public Object setValue(Object value) {
+
 			throw new UnsupportedOperationException("This result object is read-only");
 		}
 	}

@@ -39,11 +39,13 @@ public class CoordsToPointFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "coordsToPoint";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("coordObject");
 	}
 
@@ -62,6 +64,7 @@ public class CoordsToPointFunction extends GeoFunction {
 				return factory.createPoint(coordinate);
 
 			} catch (Throwable t) {
+
 				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 
@@ -70,28 +73,32 @@ public class CoordsToPointFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts a coordinate into a point.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

@@ -27,27 +27,31 @@ public class ValueHint extends SpecialKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "value";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the input value in the write function of a Function property.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 }

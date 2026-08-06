@@ -29,11 +29,13 @@ import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefiniti
 public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrapper implements StorageConfigurationEntry {
 
 	public StorageConfigurationEntryTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
@@ -49,14 +51,17 @@ public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrap
 	}
 
 	public void setName(final String name) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	public String getValue() {
+
 		return wrappedObject.getProperty(traits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY));
 	}
 
 	public void setValue(final String value) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY), value);
 	}
 }

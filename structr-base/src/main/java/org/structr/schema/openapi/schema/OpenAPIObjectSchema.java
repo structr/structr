@@ -24,6 +24,7 @@ import java.util.Map;
 public class OpenAPIObjectSchema extends LinkedHashMap<String, Object> {
 
 	public OpenAPIObjectSchema(final Map<String, Object>... properties) {
+
 		this(null, properties);
 	}
 
@@ -39,6 +40,7 @@ public class OpenAPIObjectSchema extends LinkedHashMap<String, Object> {
 		put("type", "object");
 
 		if (description != null) {
+
 			put("description", description);
 		}
 

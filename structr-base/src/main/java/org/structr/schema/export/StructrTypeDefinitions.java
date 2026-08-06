@@ -60,10 +60,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	public static ConcurrentSkipListSet<String> openApiSerializedSchemaTypes = new ConcurrentSkipListSet<>();
 
 	StructrTypeDefinitions(final StructrSchemaDefinition root) {
+
 		this.root = root;
 	}
 
 	public Set<StructrTypeDefinition> getTypes() {
+
 		return typeDefinitions;
 	}
 
@@ -72,6 +74,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		for (final JsonType type : typeDefinitions) {
 
 			if (name.equals(type.getName())) {
+
 				return type;
 			}
 		}
@@ -79,6 +82,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		if (create) {
 
 			// create
+
 			return addType(name);
 		}
 
@@ -88,6 +92,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	public JsonObjectType addType(final String name) {
 
 		if (StructrTraits.XMPP_CLIENT.equals(name)) {
+
 			Thread.dumpStack();
 		}
 
@@ -143,6 +148,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		for (final StructrRelationshipTypeDefinition rel : relationships) {
 
 			if (rel.isBlacklisted(blacklist)) {
+
 				continue;
 			}
 
@@ -156,6 +162,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		for (final StructrTypeDefinition type : typeDefinitions) {
 
 			if (key.equals(type.getName())) {
+
 				return type;
 			}
 		}
@@ -164,6 +171,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	}
 
 	public Map<String, Object> serialize() {
+
 		return serialize(false);
 	}
 
@@ -190,9 +198,13 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		while (!StructrTypeDefinitions.openApiSerializedSchemaTypes.isEmpty()) {
 
 			Set<StructrTypeDefinition> typesInReferencesButNotInOutputYet = new HashSet<>();
+
 			for (final String schemaReference : StructrTypeDefinitions.openApiSerializedSchemaTypes) {
+
 				for (StructrTypeDefinition type : typeDefinitions) {
+
 					if (!schemas.containsKey(schemaReference) && StringUtils.equals(type.getName(), schemaReference)) {
+
 						typesInReferencesButNotInOutputYet.add(type);
 					}
 				}
@@ -201,7 +213,9 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			StructrTypeDefinitions.openApiSerializedSchemaTypes.clear();
 
 			final Map<String, Object> otherReferencesMap = new TreeMap<>();
+
 			if (!typesInReferencesButNotInOutputYet.isEmpty()) {
+
 				otherReferencesMap.putAll(serializeOpenAPIForTypes(typesInReferencesButNotInOutputYet, schemas, tag, PropertyView.Public));
 			}
 
@@ -253,8 +267,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					for (String viewName : viewNames) {
 
 						final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
-
 						String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
+
 						map.put(typeName + "MultipleResponse",
 								new OpenAPIRequestResponse(
 										"The request was executed successfully.",
@@ -344,10 +358,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					type.visitProperties(key -> {
 
 						if (key instanceof FunctionProperty && StringUtils.isEmpty(key.typeHint())) {
-							map.put(
-								type.getName() + "." + key.jsonName() + "PropertySchema",
-								key.describeOpenAPIOutputSchema(typeName, viewName)
-							);
+
+							map.put(type.getName() + "." + key.jsonName() + "PropertySchema", key.describeOpenAPIOutputSchema(typeName, viewName));
 						}
 
 					}, viewName);
@@ -357,9 +369,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 					if (method.isSelected(tag)) {
 
-						map.put(type.getName() + "." + method.getName() + "ResponseSchema",
-								method.getOpenAPISuccessResponse()
-						);
+						map.put(type.getName() + "." + method.getName() + "ResponseSchema", method.getOpenAPISuccessResponse());
 					}
 				}
 			}
@@ -396,6 +406,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	// ----- package methods -----
 	void deserialize(final Map<String, Object> source) {
+
 		deserialize(source, null);
 	}
 
@@ -430,6 +441,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		// initialize reference properties after all types are done
 		for (final StructrTypeDefinition type : typeDefinitions) {
+
 			type.initializeReferenceProperties();
 		}
 	}
@@ -448,6 +460,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			if (type != null) {
 
 				try {
+
 					typeDefinitions.add(type);
 
 				} catch (Throwable t) {
@@ -466,6 +479,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				typeDefinitions.add(type);
 
 				if (type instanceof StructrRelationshipTypeDefinition) {
+
 					relationships.add((StructrRelationshipTypeDefinition)type);
 				}
 			}
@@ -474,14 +488,17 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	}
 
 	void addType(final StructrTypeDefinition type) {
+
 		typeDefinitions.add(type);
 	}
 
 	void removeType(final StructrTypeDefinition type) {
+
 		typeDefinitions.remove(type);
 	}
 
 	Set<StructrRelationshipTypeDefinition> getRelationships() {
+
 		return relationships;
 	}
 
@@ -509,6 +526,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		for (final String key : typesOnlyInDatabase) {
 
 			final StructrTypeDefinition type = databaseTypes.get(key);
+
 			if (toMigrate.contains(key)) {
 
 				//handleRemovedBuiltInType(type);
@@ -544,6 +562,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	}
 
 	private Traits getNodeType(final String name) {
+
 		return Traits.of(name);
 	}
 }

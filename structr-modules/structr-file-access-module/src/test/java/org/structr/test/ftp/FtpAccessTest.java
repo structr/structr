@@ -63,6 +63,7 @@ public class FtpAccessTest extends FtpTest {
 			ftpClient.disconnect();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.error("Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -81,7 +82,6 @@ public class FtpAccessTest extends FtpTest {
 	public void test03UserAccessToDirectory() {
 
 		FTPClient client1 = setupFTPClient("ftpuser1");
-
 		final String name1 = "FTPdir1";
 		FTPFile[] dirs = null;
 
@@ -98,6 +98,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -113,6 +114,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -131,6 +133,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -141,12 +144,9 @@ public class FtpAccessTest extends FtpTest {
 	public void test04UserAccessToSubdirectory() {
 
 		FTPClient client1 = setupFTPClient("ftpuser1");
-
 		final String name1 = "FTPdir1";
 		final String name2 = "FTPdir2";
-
 		FTPFile[] dirs = null;
-
 		Folder dir1 = null;
 		Folder dir2 = null;
 
@@ -167,6 +167,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -189,6 +190,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -216,6 +218,7 @@ public class FtpAccessTest extends FtpTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}

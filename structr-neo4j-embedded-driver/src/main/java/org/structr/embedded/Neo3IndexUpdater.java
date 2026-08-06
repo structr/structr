@@ -32,36 +32,43 @@ public class Neo3IndexUpdater extends IndexUpdater {
 
 	@Override
 	protected String getIndexIdentifier(final NewIndexConfig config) {
+
 		return "";
 	}
 
 	@Override
 	protected String getIndexIdentifier(final ExistingIndexInfo config) {
+
 		return "";
 	}
 
 	@Override
 	protected String getIndexInfoQuery() {
+
 		return "CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state} ORDER BY description";
 	}
 
 	@Override
 	protected ExistingIndexInfo convertIndexInfoRow(final Map<String, Object> indexInfoRow) {
+
 		return null;
 	}
 
 	@Override
 	protected String getCreateIndexStatement(NewIndexConfig newIndexConfig) {
+
 		return "";
 	}
 
 	@Override
 	protected String getDropIndexStatement(ExistingIndexInfo existingIndexInfo) {
+
 		return "";
 	}
 
 	@Override
 	protected String getExpectedIndexType(final NewIndexConfig config) {
+
 		return "";
 	}
 }

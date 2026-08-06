@@ -43,6 +43,7 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 		final Boolean inheritVisibilityFlags = (Boolean) nodeData.getOrDefault("inheritVisibilityFlags", false);
 		final Boolean inheritGrantees        = (Boolean) nodeData.getOrDefault("inheritGrantees", false);
 		final String relativePosition        = (String) nodeData.remove("relativePosition");
+
 		final RelativePosition position;
 
 		// remove configuration elements from the nodeData so we don't set it on the node
@@ -57,24 +58,28 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 		} catch (final IllegalArgumentException iae) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
+
 			return;
 		}
 
 		if (pageId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot insert node without pageId").build(), true);
+
 			return;
 		}
 
 		if (nodeId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot insert node without a reference nodeId").build(), true);
+
 			return;
 		}
 
 		if (tagName == null || tagName.isEmpty()) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Cannot create node without tagname").build(), true);
+
 			return;
 		}
 
@@ -83,6 +88,7 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 		if (refNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node not found").build(), true);
+
 			return;
 		}
 
@@ -90,12 +96,15 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 		if (document == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);
+
 			return;
 		}
 
 		final DOMNode parentNode = refNode.getParent();
 		if (parentNode == null) {
+
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node has no parent node").build(), true);
+
 			return;
 		}
 
@@ -103,6 +112,7 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 
 			DOMNode newNode = CreateAndAppendDOMNodeCommand.createNewNode(getWebSocket(), tagName, document);
 			if (newNode == null) {
+
 				return;
 			}
 
@@ -117,7 +127,6 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 				} else {
 
 					final DOMNode nextNode = refNode.getNextSibling();
-
 					if (nextNode != null) {
 
 						parentNode.insertBefore(newNode, nextNode);
@@ -166,11 +175,13 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 
 	@Override
 	public String getCommand() {
+
 		return "CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 }

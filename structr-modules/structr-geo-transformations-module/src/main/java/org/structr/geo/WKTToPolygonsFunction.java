@@ -42,11 +42,13 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "wktToPolygons";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("wktString");
 	}
 
@@ -73,6 +75,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 						return result;
 
 					} catch (Throwable t) {
+
 						logger.error(ExceptionUtils.getStackTrace(t));
 					}
 				}
@@ -87,28 +90,32 @@ public class WKTToPolygonsFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts a WKT string into a list of polygons.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
@@ -149,7 +156,6 @@ public class WKTToPolygonsFunction extends GeoFunction {
 						handleGeometry(p, nestedList);
 						result.add(nestedList);
 					}
-
 
 				} else {
 

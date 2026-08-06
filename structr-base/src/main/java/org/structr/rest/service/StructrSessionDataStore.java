@@ -49,6 +49,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public boolean doExists(final String id) throws Exception {
+
 		return exists(id);
 	}
 
@@ -65,11 +66,11 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			tx.prefetchHint("StructrSessionDataStore store");
 
 			final NodeInterface user = AuthHelper.getPrincipalForSessionId(id);
-
 			if (user != null) {
 
 				final Traits sessionTraits = Traits.of(StructrTraits.SESSION_DATA_NODE);
 				final NodeInterface node   = getOrCreateSessionDataNode(app, sessionTraits, id);
+
 				if (node != null) {
 
 					final PropertyMap properties = new PropertyMap();
@@ -96,6 +97,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public boolean isPassivating() {
+
 		return true;
 	}
 
@@ -103,6 +105,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	public boolean exists(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
+
 			return true;
 		}
 
@@ -132,6 +135,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	public SessionData load(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
+
 			return anonymousSessionCache.get(id);
 		}
 
@@ -146,6 +150,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			final Traits traits      = Traits.of(StructrTraits.SESSION_DATA_NODE);
 			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).key(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
+
 			if (node != null) {
 
 				result = new SessionData(
@@ -173,7 +178,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	public boolean delete(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
+
 			anonymousSessionCache.remove(id);
+
 			return true;
 		}
 
@@ -206,6 +213,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public SessionData doLoad(final String id) throws Exception {
+
 		return load(id);
 	}
 
@@ -249,6 +257,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public Set<String> doGetExpired(final long sessionTimeout) {
+
 		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
 
 		assertInitialized();
@@ -294,6 +303,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			try {
 
 				delete(id);
+
 			} catch (Exception ex) {
 
 				logger.warn("Could not delete session data for id[" + id + "]");

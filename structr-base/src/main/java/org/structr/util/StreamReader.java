@@ -53,6 +53,7 @@ public class StreamReader extends Thread {
 	public String getBuffer() {
 
 		final StringBuilder buf = new StringBuilder();
+
 		for (final String line : queue) {
 
 			buf.append(line);
@@ -72,7 +73,9 @@ public class StreamReader extends Thread {
 				String line = null;
 
 				do {
+
 					line = reader.readLine();
+
 					if (line != null) {
 
 						queue.add(line);
@@ -83,6 +86,7 @@ public class StreamReader extends Thread {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
+
 				logger.warn("", t);
 			}
 		}

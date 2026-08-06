@@ -35,21 +35,25 @@ public class PrefetchFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "prefetch";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Prefetches a subgraph.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("query, listOfKeys");
 	}
 
@@ -68,6 +72,7 @@ public class PrefetchFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.javaScript("Usage: ${{ $.prefetch(query, listOfKeys); }}. Example: ${{ $.prefetch('(:Customer)-[]->(:Task)', ['', '']) }}"),
 				Usage.structrScript("Usage: ${prefetch(query, listOfKeys)}. Example: ${prefetch('(:Customer)-[]->(:Task)', merge('', ''))}")
@@ -76,6 +81,7 @@ public class PrefetchFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

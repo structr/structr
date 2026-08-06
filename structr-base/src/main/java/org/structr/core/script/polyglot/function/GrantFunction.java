@@ -45,8 +45,8 @@ public class GrantFunction<T extends GraphObject> implements ProxyExecutable {
 	public Object execute(Value... arguments) {
 
 		if (arguments != null && arguments.length > 0) {
-			Object[] parameters = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
+			Object[] parameters = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 			if (parameters.length > 0 && parameters[0] != null) {
 
 				try {
@@ -63,6 +63,7 @@ public class GrantFunction<T extends GraphObject> implements ProxyExecutable {
 							for (int i = 2; i < parameters.length; i++) {
 
 								if (parameters[i] != null) {
+
 									permissions += "," + parameters[i].toString();
 								}
 							}

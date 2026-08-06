@@ -28,6 +28,7 @@ import java.util.TreeMap;
 public class OpenAPICreateResponseSchema extends TreeMap<String, Object> {
 
     public OpenAPICreateResponseSchema() {
+
         Map<String, Object> propertiesMap = new HashMap<>();
 
         put("properties", propertiesMap);

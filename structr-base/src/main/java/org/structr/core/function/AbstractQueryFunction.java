@@ -63,11 +63,13 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 
 	@Override
 	public List<Documentable> getContextHints(final String lastToken) {
+
 		return getContextHintsForTypes(lastToken);
 	}
 
@@ -168,7 +170,6 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 				if (!isAdvancedSearch(securityContext, traits, null, sources[1], query, exact)) {
 
 					final String uuid = sources[1].toString();
-
 					if (Settings.isValidUuid(uuid)) {
 
 						// special case: second parameter is a UUID
@@ -197,6 +198,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 			for (int c = 1; c < parameterCount; c++) {
 
 				if (sources[c] == null) {
+
 					throw new IllegalArgumentException();
 				}
 
@@ -215,7 +217,6 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 						}
 
 						Object value = sources[++c]; // increment c to
-
 						if (!isAdvancedSearch(securityContext, traits, key, value, query, exact)) {
 
 							if (inputConverter != null) {
@@ -244,6 +245,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		if (source instanceof Map) {
 
 			final Map<String, Object> queryData = (Map)source;
+
 			for (final Entry<String, Object> entry : queryData.entrySet()) {
 
 				final String keyName = entry.getKey();
@@ -272,12 +274,11 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 				} else {
 
 					final PropertyKey key = traits.key(keyName);
-
 					if (!isAdvancedSearch(securityContext, traits, key, value, query, exact)) {
 
 						Object convertedValue = value;
-
 						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
+
 						if (inputConverter != null) {
 
 							convertedValue = inputConverter.convert(value);

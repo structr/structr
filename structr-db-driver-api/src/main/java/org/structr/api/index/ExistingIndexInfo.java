@@ -32,14 +32,17 @@ public class ExistingIndexInfo {
 	}
 
 	public String getIdentifier() {
+
 		return identifier;
 	}
 
 	public String getState() {
+
 		return state;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 }

@@ -24,6 +24,7 @@ package org.structr.common.error;
 public class InvalidSortKey extends SemanticErrorToken {
 
 	public InvalidSortKey(final String type, final String propertyKey) {
+
 		super(type, propertyKey, "invalid_sort_key");
 	}
 }

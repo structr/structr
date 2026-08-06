@@ -31,6 +31,7 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public String getName() {
+
 		return "callPrivileged";
 	}
 
@@ -45,11 +46,13 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("functionName [, parameterMap ]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${callPrivileged(key [, key, value]}. Example ${callPrivileged('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
 			Usage.javaScript("Usage: ${{ $.callPrivileged(key [, parameterMap]}}. Example ${{ $.callPrivileged('myEvent', {key1: 'value1', key2: 'value2'})}}")
@@ -58,24 +61,25 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Calls the given user-defined function **in a superuser context**.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("functionName", "name of the user-defined function to call"),
-			Parameter.mandatory("parameterMap", "map of parameters")
-		);
+
+		return List.of(Parameter.mandatory("functionName", "name of the user-defined function to call"), Parameter.mandatory("parameterMap", "map of parameters"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${call('updateUsers', 'param1', 'value1', 'param2', 'value2')}", "Call the user-defined function `updateUsers` with two key-value pairs as parameters"),
 			Example.javaScript("""
@@ -90,6 +94,7 @@ public class CallPrivilegedFunction extends CallFunction {
 	}
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"Useful in situations where different types have the same or similar functionality but no common base class so the method can not be attached there",
 			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",

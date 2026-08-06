@@ -46,16 +46,19 @@ public abstract class AbstractDirectoryStream implements DirectoryStream<Path> {
 
 			@Override
 			public boolean hasNext() {
+
 				return index < copy.size();
 			}
 
 			@Override
 			public Path next() {
+
 				return copy.get(index++);
 			}
 
 			@Override
 			public void remove() {
+
 				throw new IllegalStateException("This iterator does not support removal of its elements.");
 			}
 		};

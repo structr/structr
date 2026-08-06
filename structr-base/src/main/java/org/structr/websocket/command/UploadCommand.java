@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -50,7 +49,6 @@ public class UploadCommand extends AbstractCommand {
 
 			final String name      = webSocketData.getNodeDataStringValue("name");
 			final String rawData   = webSocketData.getNodeDataStringValue("fileData");
-
 			final NodeInterface newFile = FileHelper.createFileBase64(securityContext, rawData, null);
 
 			newFile.setProperties(securityContext, new PropertyMap(newFile.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
@@ -67,6 +65,7 @@ public class UploadCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "UPLOAD";
 	}
 }

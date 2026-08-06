@@ -74,7 +74,6 @@ public class MessageEngineModule implements StructrModule {
 		StructrTraits.registerTrait(new MQTTClientTraitDefinition());
 		StructrTraits.registerTrait(new PulsarClientTraitDefinition());
 
-
 		StructrTraits.registerNodeType(StructrTraits.MESSAGE_CLIENT,     StructrTraits.MESSAGE_CLIENT);
 		StructrTraits.registerNodeType(StructrTraits.MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_SUBSCRIBER);
 		StructrTraits.registerNodeType(StructrTraits.KAFKA_CLIENT,       StructrTraits.MESSAGE_CLIENT, StructrTraits.KAFKA_CLIENT);
@@ -92,21 +91,25 @@ public class MessageEngineModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "messaging-module";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 
 	@Override
 	public boolean hasDeploymentData() {
+
 		return true;
 	}
 
@@ -118,9 +121,8 @@ public class MessageEngineModule implements StructrModule {
 		final Traits clientTraits         = Traits.of(StructrTraits.MESSAGE_CLIENT);
 		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final App app                     = StructrApp.getInstance();
-
-
 		final List<Map<String, Object>> entities = new LinkedList();
+
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface subscriberNode : app.nodeQuery(StructrTraits.MESSAGE_SUBSCRIBER).sort(nameKey).getAsList()) {
@@ -137,7 +139,6 @@ public class MessageEngineModule implements StructrModule {
 				entities.add(entry);
 			}
 
-
 			for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MESSAGE_CLIENT).type(StructrTraits.MESSAGE_CLIENT).sort(nameKey).getAsList()) {
 
 				final MessageClient client      = clientNode.as(MessageClient.class);
@@ -149,6 +150,7 @@ public class MessageEngineModule implements StructrModule {
 				List<String> subIds = new ArrayList<>();
 
 				for (MessageSubscriber sub : client.getSubscribers()) {
+
 					subIds.add(sub.getUuid());
 				}
 
@@ -174,7 +176,9 @@ public class MessageEngineModule implements StructrModule {
 				entry.put(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY, client.getIsEnabled());
 
 				List<String> subIds = new ArrayList<>();
+
 				for (MessageSubscriber sub : client.getSubscribers()) {
+
 					subIds.add(sub.getUuid());
 				}
 
@@ -197,7 +201,9 @@ public class MessageEngineModule implements StructrModule {
 				entry.put(KafkaClientTraitDefinition.ENABLED_PROPERTY, client.getIsEnabled());
 
 				List<String> subIds = new ArrayList<>();
+
 				for (MessageSubscriber sub : client.getSubscribers()) {
+
 					subIds.add(sub.getUuid());
 				}
 
@@ -219,7 +225,9 @@ public class MessageEngineModule implements StructrModule {
 				entry.put(PulsarClientTraitDefinition.ENABLED_PROPERTY, client.getEnabled());
 
 				List<String> subIds = new ArrayList<>();
+
 				for (MessageSubscriber sub : client.getSubscribers()) {
+
 					subIds.add(sub.getUuid());
 				}
 
@@ -237,6 +245,7 @@ public class MessageEngineModule implements StructrModule {
 			gson.toJson(entities, fos);
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}
@@ -252,8 +261,8 @@ public class MessageEngineModule implements StructrModule {
 			try (final Reader reader = Files.newBufferedReader(messagingEngineConf, Charset.forName("utf-8"))) {
 
 				final List<Map<String, Object>> entities = gson.fromJson(reader, List.class);
-
 				final SecurityContext context = SecurityContext.getSuperUserInstance();
+
 				context.setDoTransactionNotifications(false);
 
 				final App app = StructrApp.getInstance(context);
@@ -261,29 +270,36 @@ public class MessageEngineModule implements StructrModule {
 				try (final Tx tx = app.tx()) {
 
 					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.MESSAGE_CLIENT).getAsList()) {
+
 						app.delete(toDelete);
 					}
 
 					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.KAFKA_CLIENT).getAsList()) {
+
 						app.delete(toDelete);
 					}
 
 					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.PULSAR_CLIENT).getAsList()) {
+
 						app.delete(toDelete);
 					}
 
 					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.MQTT_CLIENT).getAsList()) {
+
 						app.delete(toDelete);
 					}
 
 					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.MESSAGE_SUBSCRIBER).getAsList()) {
+
 						app.delete(toDelete);
 					}
 
 					for (final Map<String, Object> entry : entities) {
 
 						List<String> subIds = null;
+
 						if (entry.containsKey(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY)) {
+
 							subIds = (List<String>) entry.get(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY);
 							entry.remove(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY);
 						}
@@ -323,6 +339,7 @@ public class MessageEngineModule implements StructrModule {
 				}
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 		}
@@ -336,9 +353,11 @@ public class MessageEngineModule implements StructrModule {
 		if (ids != null && ids.size() > 0) {
 
 			final App app = StructrApp.getInstance();
+
 			try (Tx tx = app.tx()) {
 
 				for (final String id : ids) {
+
 					MessageSubscriber sub = (MessageSubscriber) app.getNodeById(StructrTraits.MESSAGE_SUBSCRIBER, id);
 					result.add(sub);
 				}

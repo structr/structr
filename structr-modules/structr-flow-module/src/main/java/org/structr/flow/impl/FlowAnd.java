@@ -24,6 +24,7 @@ import org.structr.core.traits.Traits;
 public class FlowAnd extends FlowLogicCondition {
 
 	public FlowAnd(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

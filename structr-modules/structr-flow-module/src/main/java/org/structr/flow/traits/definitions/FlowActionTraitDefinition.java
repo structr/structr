@@ -53,6 +53,7 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SCRIPT_PROPERTY            = "script";
 
 	public FlowActionTraitDefinition() {
+
 		super(StructrTraits.FLOW_ACTION);
 	}
 
@@ -61,17 +62,16 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(final FlowNode flowNode) {
+
 						return FlowType.Action;
 					}
 				},
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
@@ -80,6 +80,7 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 						final String uuid = dataSource.getUuid();
 
 						if (!context.hasData(uuid)) {
+
 							action.execute(context);
 						}
 
@@ -87,8 +88,7 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				ActionOperations.class,
-				new ActionOperations() {
+				ActionOperations.class, new ActionOperations() {
 
 					@Override
 					public void execute(final Context context, final FlowAction action) throws FlowException {
@@ -104,6 +104,7 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
 								// make data available to action if present
 								if (_dataSource != null) {
+
 									context.setData(uuid, _dataSource.get(context));
 								}
 
@@ -119,8 +120,7 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -142,9 +142,7 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowAction.class, (traits, node) -> new FlowAction(traits, node)
-		);
+		return Map.of(FlowAction.class, (traits, node) -> new FlowAction(traits, node));
 	}
 
 	@Override
@@ -154,26 +152,18 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> exceptionHandler     = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> script                      = new StringProperty(SCRIPT_PROPERTY);
 
-		return newSet(
-			dataTarget,
-			exceptionHandler,
-			script
-		);
+		return newSet(dataTarget, exceptionHandler, script);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				SCRIPT_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Public, newSet(SCRIPT_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

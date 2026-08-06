@@ -33,12 +33,15 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "enableCascadingDelete";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,24 +55,25 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${enableCascadingDelete()}"),
-			Usage.javaScript("Usage: ${$.enableCascadingDelete()}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${enableCascadingDelete()}"), Usage.javaScript("Usage: ${$.enableCascadingDelete()}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Enables cascading delete in the Structr Backend for the current transaction.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

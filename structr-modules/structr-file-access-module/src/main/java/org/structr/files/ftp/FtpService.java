@@ -56,6 +56,7 @@ public class FtpService implements RunnableService {
 		ListenerFactory factory = new ListenerFactory();
 
 		if (!StringUtils.isAllBlank(passivePortRange)) {
+
 			DataConnectionConfigurationFactory dataConnConfigFactory = new DataConnectionConfigurationFactory();
 			dataConnConfigFactory.setPassivePorts(passivePortRange);
 			factory.setDataConnectionConfiguration(dataConnConfigFactory.createDataConnectionConfiguration());
@@ -78,17 +79,20 @@ public class FtpService implements RunnableService {
 	public void stopService() {
 
 		if (isRunning) {
+
 			this.shutdown();
 		}
 	}
 
 	@Override
 	public boolean runOnStartup() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isRunning() {
+
 		return !server.isStopped();
 	}
 
@@ -121,22 +125,26 @@ public class FtpService implements RunnableService {
 
 	@Override
 	public String getName() {
+
 		return FtpServer.class.getSimpleName();
 	}
 
 	@Override
 	public boolean isVital() {
+
 		return false;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return false;
 	}
 
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "file-access";
 	}
 }

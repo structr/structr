@@ -37,6 +37,7 @@ public class Base64EncodeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "base64encode";
 	}
 
@@ -50,14 +51,20 @@ public class Base64EncodeFunction extends CoreFunction {
 			final Charset charset = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
 			
 			byte[] input;
+
 			if (sources[0] instanceof byte[]) {
+
 				input = (byte[]) sources[0];
+
 			} else {
+
 				input = sources[0].toString().getBytes(charset);
 			}
 
 			String encodingScheme = "basic";
+
 			if (sources.length >= 2) {
+
 				encodingScheme = sources[1].toString();
 			}
 
@@ -93,6 +100,7 @@ public class Base64EncodeFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -101,11 +109,13 @@ public class Base64EncodeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Encodes the given string and returns a base64-encoded string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Valid values for `scheme` are `basic` (default), `url` and `mime`. The following explanation of the encoding schemes is taken directly from https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html
 		
@@ -122,11 +132,13 @@ public class Base64EncodeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("text [, scheme, charset ]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${base64encode(text[, scheme[, charset]])}. Example: ${base64encode(\"Check out https://structr.com\")}"),
 			Usage.javaScript("Usage: ${{ $.base64encode(text[, scheme[, charset]]) }}. Example: ${{ $.base64encode(\"Check out https://structr.com\") }}")
@@ -145,13 +157,13 @@ public class Base64EncodeFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${base64encode(\"Check out https://structr.com\")}", "Encode a string")
-		);
+
+		return List.of(Example.structrScript("${base64encode(\"Check out https://structr.com\")}", "Encode a string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

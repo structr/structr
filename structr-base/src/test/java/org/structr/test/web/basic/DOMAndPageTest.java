@@ -71,10 +71,8 @@ public class DOMAndPageTest extends StructrUiTest {
 		final String pageName = "page-01";
 		final String pageTitle = "Page Title";
 		final String bodyText = "Body Text";
-
 		final String h1ClassAttr = "heading";
 		final String divClassAttr = "main";
-
 		Page page = null;
 		DOMElement html = null;
 		DOMElement head = null;
@@ -82,7 +80,6 @@ public class DOMAndPageTest extends StructrUiTest {
 		DOMElement title = null;
 		DOMElement h1 = null;
 		DOMElement div = null;
-
 		Content titleText = null;
 		Content heading = null;
 		Content bodyContent = null;
@@ -212,6 +209,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			fail("Expected exception to be thrown.");
 
 		} catch (FrameworkException fex) {
+
 			assertEquals("Invalid error code", 422, fex.getStatus());
 		}
 
@@ -234,6 +232,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			fail("Expected exception to be thrown.");
 
 		} catch (FrameworkException fex) {
+
 			assertEquals("Invalid error code", 422, fex.getStatus());
 		}
 
@@ -295,8 +294,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			final NodeInterface siteOne = app.create(StructrTraits.SITE, siteOneProperties);
 			final NodeInterface siteTwo = app.create(StructrTraits.SITE, siteTwoProperties);
-
 			final PropertyMap pageOneProperties = new PropertyMap();
+
 			pageOneProperties.put(sitesKey, Arrays.asList(siteOne));
 			pageOneProperties.put(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			pageOneProperties.put(positionKey, 10);
@@ -311,6 +310,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -336,7 +336,6 @@ public class DOMAndPageTest extends StructrUiTest {
 			.when()
 			.get("http://127.0.0.1:" + httpPort);
 
-
 		RestAssured.basePath = "/structr/rest";
 	}
 
@@ -357,6 +356,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				Content titleText = page.createTextNode(pageTitle);
 
 				for (final RelationshipInterface r : page.getIncomingRelationships()) {
+
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("PAGE", r.getRelType().name());
 
@@ -365,6 +365,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				html.appendChild(head);
 
 				for (final RelationshipInterface r : head.getIncomingRelationships()) {
+
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("CONTAINS", r.getRelType().name());
 
@@ -374,6 +375,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				title.appendChild(titleText);
 
 				for (final RelationshipInterface r : titleText.getIncomingRelationships()) {
+
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("CONTAINS", r.getRelType().name());
 				}
@@ -432,8 +434,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			// iterate over all siblings using the nextSibling method
 			long t0 = System.currentTimeMillis();
-
 			DOMNode it = div.getFirstChild();
+
 			while (it != null) {
 
 				it = it.getNextSibling();
@@ -477,7 +479,6 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			.when()
 				.get("/Folder?name=folder 01");
-
 
 		// find subfolder by name
 		RestAssured
@@ -528,10 +529,8 @@ public class DOMAndPageTest extends StructrUiTest {
 		final String pageName = "page-01";
 		final String pageTitle = "Page Title";
 		final String bodyText = "Body Text";
-
 		final String h1ClassAttr = "heading";
 		final String divClassAttr = "main";
-
 		Page page = null;
 		DOMElement html = null;
 		DOMElement head = null;
@@ -539,7 +538,6 @@ public class DOMAndPageTest extends StructrUiTest {
 		DOMElement title = null;
 		DOMElement h1 = null;
 		DOMElement div = null;
-
 		Content titleText = null;
 		Content heading = null;
 		Content bodyContent = null;
@@ -581,6 +579,7 @@ public class DOMAndPageTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			// add HTML element to page
 			page.appendChild(html);
 
@@ -621,27 +620,26 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			Document doc = null;
 
-
 			// Warm-up caches and JVM
 			for (long i = 1; i <= 5000; i++) {
+
 				if (i % 1000 == 0) {
+
 					logger.info("Making connection #{}", i);
 				}
+
 				doc = Jsoup.connect(baseUri + pageName).timeout(0).get();
 			}
 
 			final long max = 1000;
-
-
-
 			long t0 = System.currentTimeMillis();
 
 			for (long i = 0; i < max; i++) {
+
 				doc = Jsoup.connect(baseUri).timeout(0).get();
 			}
 
 			long t1 = System.currentTimeMillis();
-
 			DecimalFormat decimalFormat = new DecimalFormat("0.000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			Double time                 = (t1 - t0) / 1000.0;
 			Double rate                 = max / ((t1 - t0) / 1000.0);
@@ -665,11 +663,10 @@ public class DOMAndPageTest extends StructrUiTest {
 			assertEquals(divElements.first().text(), bodyText);
 			assertEquals(divElements.first().attr("class"), divClassAttr);
 
-
-
 			t0 = System.currentTimeMillis();
 
 			for (long i = 0; i < max; i++) {
+
 				doc = Jsoup.connect(baseUri + pageName).get();
 			}
 
@@ -679,7 +676,6 @@ public class DOMAndPageTest extends StructrUiTest {
 			rate                 = max / ((t1 - t0) / 1000.0);
 
 			logger.info("------> Time to render {} the test page by name: {} seconds ({} per second)", max, decimalFormat.format(time), decimalFormat.format(rate));
-
 
 			assertFalse(doc.select("html").isEmpty());
 			assertFalse(doc.select("html > head").isEmpty());
@@ -808,7 +804,6 @@ public class DOMAndPageTest extends StructrUiTest {
 				tx.success();
 			}
 
-
 			// modify file name to move the first file to the end of the sorted list
 			try (final Tx tx = app.tx()) {
 
@@ -816,7 +811,6 @@ public class DOMAndPageTest extends StructrUiTest {
 
 				tx.success();
 			}
-
 
 			// check final sort order
 			try (final Tx tx = app.tx()) {
@@ -851,6 +845,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unepxected exception.");
 		}
 
@@ -889,6 +884,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unepxected exception.");
 		}
 
@@ -904,6 +900,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unepxected exception.");
 		}
 
@@ -914,6 +911,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unepxected exception.");
 		}
 	}
@@ -982,6 +980,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1016,6 +1015,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1050,6 +1050,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1084,6 +1085,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1128,6 +1130,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1166,7 +1169,6 @@ public class DOMAndPageTest extends StructrUiTest {
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement body = createElement(page, html, "body");
 			final DOMElement div1 = createElement(page, body, "div");
-
 			final DOMElement center = createElement(page, div1, "center", "This text is centered");
 			final DOMElement nobr = createElement(page, div1, "nobr");
 
@@ -1218,7 +1220,6 @@ public class DOMAndPageTest extends StructrUiTest {
 		try {
 
 			final List<NodeInterface> pages = this.createTestNodes(StructrTraits.PAGE, 1);
-
 			if (!pages.isEmpty()) {
 
 				return pages.get(0).as(Page.class);

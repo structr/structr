@@ -66,21 +66,25 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 			// house
 			if (house != null && !house.isEmpty()) {
+
 				urlBuffer.append(encodeURL(house)).append("+");
 			}
 
 			// street
 			if (street != null && !street.isEmpty()) {
+
 				urlBuffer.append(encodeURL(street)).append("+");
 			}
 
 			// city
 			if (city != null && !city.isEmpty()) {
+
 				urlBuffer.append(encodeURL(city)).append("+");
 			}
 
 			// postalCode
 			if (postalCode != null && !postalCode.isEmpty()) {
+
 				urlBuffer.append("&postalCode=").append(encodeURL(postalCode));
 			}
 
@@ -97,6 +101,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 			String url = urlBuffer.toString();
 
 			try {
+
 				logger.info("Using url {}", url);
 
 				URL mapsUrl                  = new URL(urlBuffer.toString());
@@ -109,6 +114,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 				// skip leading 0xFEFF character if present
 				if (reader.read() != 65279) {
+
 					reader.reset();
 				}
 
@@ -142,8 +148,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 							(StringUtils.isNotBlank(postalCode) ? postalCode : "" +
 							(StringUtils.isNotBlank(city) ? city : "") + " " +
 							(StringUtils.isNotBlank(state) ? state : "") + " " +
-							(StringUtils.isNotBlank(country) ? country : "") + " "
-						);
+							(StringUtils.isNotBlank(country) ? country : "") + " ");
 
 						return new BingGeoCodingResult(address, data);
 
@@ -165,7 +170,6 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 			logger.warn("Unable to use Bing geocoding provider, missing API key. Please supply API key in structr.conf using the key geocoding.apikey.");
 		}
-
 
 		return null;
 	}
@@ -192,6 +196,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		@Override
 		public String getAddress() {
+
 			return address;
 		}
 
@@ -201,6 +206,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 			for(AddressComponent addressComponent : addressComponents) {
 
 				if(addressComponent.getType() == type) {
+
 					return addressComponent;
 				}
 			}
@@ -210,36 +216,43 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		@Override
 		public List<AddressComponent> getAddressComponents() {
+
 			return addressComponents;
 		}
 
 		@Override
 		public double getLatitude() {
+
 			return latitude;
 		}
 
 		@Override
 		public double getLongitude() {
+
 			return longitude;
 		}
 
 		@Override
 		public void setAddress(String address) {
+
 			this.address = address;
 		}
 
 		@Override
 		public void setLatitude(double latitude) {
+
 			this.latitude = latitude;
 		}
 
 		@Override
 		public void setLongitude(double longitude) {
+
 			this.longitude = longitude;
 		}
 
 		@Override
 		public Double[] toArray() {
+
 			return new Double[]{ latitude, longitude };
 		}
 	}
@@ -257,11 +270,13 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		@Override
 		public String getValue() {
+
 			return value;
 		}
 
 		@Override
 		public Type getType() {
+
 			return type;
 		}
 

@@ -54,11 +54,7 @@ public class OpenAPIMaintenanceOperationFlushCaches extends LinkedHashMap<String
 		null,
 
                 // responses
-                Map.of(
-                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
-                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-                )
-        ));
+                Map.of("200", new OpenAPISchemaReference("#/components/responses/ok"), "401", new OpenAPISchemaReference("#/components/responses/unauthorized"))));
 
     }
 }

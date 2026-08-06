@@ -44,11 +44,13 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "dateFormat";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value, pattern");
 	}
 
@@ -61,10 +63,12 @@ public class DateFormatFunction extends CoreFunction {
 
 			// a null date value is a normal data condition, not an error: pass it through
 			if (sources[0] == null) {
+
 				return null;
 			}
 
 			if (sources[1] == null) {
+
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: Pattern must not be null: %s".formatted(getDisplayName(), getParametersAsString(sources)));
 			}
 
@@ -98,12 +102,14 @@ public class DateFormatFunction extends CoreFunction {
 					} catch (ParseException ex) {
 
 						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getDisplayName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
+
 						return sources[0];
 					}
 				}
 			}
 
 			// format with given pattern
+
 			return new SimpleDateFormat(sources[1].toString(), ctx.getLocale()).format(date);
 
 		} catch (ArgumentCountException ace) {
@@ -118,6 +124,7 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript(ERROR_MESSAGE_DATE_FORMAT),
 			Usage.javaScript("Usage: ${{ $.dateFormat(value, pattern); }}. Example: ${{ $.dateFormat($.this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\"); }}")
@@ -126,11 +133,13 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Formats the given date object according to the given pattern, using the current locale (language/country settings).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				This function supports Date objects and ZonedDateTime objects. The tables below list the supported patterns for those types.
 				
@@ -148,6 +157,7 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Some format options are locale-specific. See the examples or the `locale` keyword for information about locales.",
 				"If the date value is null, the function returns null. A null pattern is an error."
@@ -156,14 +166,13 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("date", "date to format"),
-				Parameter.mandatory("pattern", "format pattern")
-		);
+
+		return List.of(Parameter.mandatory("date", "date to format"), Parameter.mandatory("pattern", "format pattern"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${dateFormat(toDate(1585504800000), 'yyyy-MM-dd')}", "2020-03-29"),
 				Example.structrScript("${dateFormat(toDate(1585504800000), 'EEEE')}", "Sunday"),
@@ -181,6 +190,7 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

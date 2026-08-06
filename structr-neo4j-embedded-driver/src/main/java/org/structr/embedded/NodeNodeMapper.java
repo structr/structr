@@ -30,11 +30,13 @@ class NodeNodeMapper implements Function<org.neo4j.graphdb.Node, Node> {
 	private EmbeddedDatabaseService db = null;
 
 	public NodeNodeMapper(final EmbeddedDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Node apply(final org.neo4j.graphdb.Node t) {
+
 		return db.getCurrentTransaction().getNodeWrapper(t);
 	}
 }

@@ -25,16 +25,19 @@ import java.util.List;
 public class OnStructrLogout extends LifecycleBase {
 
 	public OnStructrLogout() {
+
 		super("onStructrLogout");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called when a user finishes a new session by logging out.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onStructrLogout()` lifecycle method is called when users finish a session by logging themselves out, **OR** when the session times out.
 		
@@ -47,8 +50,6 @@ public class OnStructrLogout extends LifecycleBase {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also: `onStructrLogin()`."
-		);
+		return List.of("See also: `onStructrLogin()`.");
 	}
 }

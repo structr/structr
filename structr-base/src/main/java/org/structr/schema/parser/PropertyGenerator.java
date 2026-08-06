@@ -55,6 +55,7 @@ public abstract class PropertyGenerator<T> {
 	}
 
 	public IsValid getValidator() {
+
 		return null;
 	}
 
@@ -68,6 +69,7 @@ public abstract class PropertyGenerator<T> {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
 					return ValidationHelper.isValidPropertyNotNull(obj, obj.getTraits().key(key), errorBuffer);
 				}
 			});
@@ -79,6 +81,7 @@ public abstract class PropertyGenerator<T> {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
 					return ValidationHelper.isValidUniqueProperty(obj, obj.getTraits().key(key), errorBuffer);
 				}
 			});
@@ -88,52 +91,64 @@ public abstract class PropertyGenerator<T> {
 	}
 
 	public String getClassName() {
+
 		return className;
 	}
 
 	public void reportError(final ErrorToken error) {
+
 		errorBuffer.add(error);
 	}
 
 	public ErrorBuffer getErrorBuffer() {
+
 		return errorBuffer;
 	}
 
 	public PropertyKey createKey() {
 
 		final Property propertyKey;
+
 		try {
+
 			propertyKey = newInstance();
 
 		} catch (FrameworkException e) {
+
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 
 		// no property was created
 		if (propertyKey == null) {
+
 			return null;
 		}
 
 		if (StringUtils.isNotBlank(source.getDbName())) {
+
 			propertyKey.dbName(source.getDbName());
 		}
 
 		propertyKey.dynamic();
 
 		if (StringUtils.isNotBlank(source.getDefaultValue())) {
+
 			propertyKey.defaultValue(getDefaultValue());
 		}
 
 		if (StringUtils.isNotBlank(source.getFormat())) {
+
 			propertyKey.format(source.getFormat());
 		}
 
 		if (StringUtils.isNotBlank(source.getReadFunction())) {
+
 			propertyKey.readFunction(source.getReadFunction());
 		}
 
 		if (StringUtils.isNotBlank(source.getWriteFunction())) {
+
 			propertyKey.writeFunction(source.getWriteFunction());
 		}
 
@@ -142,30 +157,37 @@ public abstract class PropertyGenerator<T> {
 		propertyKey.writeFunctionWrapJS(source.getWriteFunctionWrapJS());
 
 		if (source.isSerializationDisabled()) {
+
 			propertyKey.disableSerialization(source.isSerializationDisabled());
 		}
 
 		if (source.isAbstract()) {
+
 			propertyKey.setIsAbstract(true);
 		}
 
 		if (StringUtils.isNotBlank(source.getTypeHint())) {
+
 			propertyKey.typeHint(source.getTypeHint());
 		}
 
 		if (source.isUnique()) {
+
 			propertyKey.unique(true);
 		}
 
 		if (source.isCompound()) {
+
 			propertyKey.compound();
 		}
 
 		if (source.isNotNull()) {
+
 			propertyKey.notNull(true);
 		}
 
 		if (source.isCachingEnabled()) {
+
 			propertyKey.cachingEnabled(true);
 		}
 
@@ -187,6 +209,7 @@ public abstract class PropertyGenerator<T> {
 		}
 
 		if (source.isReadOnly()) {
+
 			propertyKey.readOnly();
 		}
 
@@ -201,10 +224,12 @@ public abstract class PropertyGenerator<T> {
 		*/
 
 		if (StringUtils.isNotBlank(source.getHint())) {
+
 			propertyKey.hint(source.getHint());
 		}
 
 		if (StringUtils.isNotBlank(source.getCategory())) {
+
 			propertyKey.category(source.getCategory());
 		}
 

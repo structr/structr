@@ -32,6 +32,7 @@ public class ConstraintViolationException extends RuntimeException {
 	}
 
 	public String getErrorCode() {
+
 		return errorCode;
 	}
 }

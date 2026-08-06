@@ -29,16 +29,19 @@ import java.util.List;
 public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 	public MailClearAttachmentsFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailClearAttachments";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,19 +55,19 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailClearAttachments()}"),
-			Usage.javaScript("Usage: ${{ $.mailClearAttachments() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailClearAttachments()}"), Usage.javaScript("Usage: ${{ $.mailClearAttachments() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes all attachments from the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

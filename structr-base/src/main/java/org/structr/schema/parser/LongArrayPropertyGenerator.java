@@ -38,11 +38,13 @@ import java.util.List;
 public class LongArrayPropertyGenerator extends NumericalArrayPropertyGenerator<Long> {
 
 	public LongArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Long[].class.getSimpleName();
 	}
 
@@ -50,6 +52,7 @@ public class LongArrayPropertyGenerator extends NumericalArrayPropertyGenerator<
 	public Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which) {
 
 		try {
+
 			return Long.parseLong(source);
 
 		} catch (Throwable t) {
@@ -62,6 +65,7 @@ public class LongArrayPropertyGenerator extends NumericalArrayPropertyGenerator<
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new ArrayProperty(source.getPropertyName(), Long.class);
 	}
 
@@ -81,11 +85,13 @@ public class LongArrayPropertyGenerator extends NumericalArrayPropertyGenerator<
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.LongArray;
 	}
 
 	@Override
 	public Long[] getDefaultValue() {
+
 		return null;
 	}
 }

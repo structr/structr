@@ -41,11 +41,13 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "getContent";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("file [, encoding ]");
 	}
 
@@ -59,8 +61,8 @@ public class GetContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 				final File file = n.as(File.class);
-
 				if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
+
 					return null;
 				}
 
@@ -71,6 +73,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 					if (encoding != null) {
 
 						return new Scanner(is, encoding).useDelimiter("\\A").next();
+
 					} else {
 
 						return is.readAllBytes();
@@ -79,6 +82,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 				} catch (IOException e) {
 
 					logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 					return usage(ctx.isJavaScriptContext());
 				}
 			}
@@ -90,6 +94,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -98,19 +103,19 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${getContent(file[, encoding ])}"),
-			Usage.javaScript("Usage: ${{ $.getContent(file[, encoding ]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${getContent(file[, encoding ])}"), Usage.javaScript("Usage: ${{ $.getContent(file[, encoding ]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the content of the given file.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Retrieves the content of the given file from the Structr filesystem. This function can be used to access the binary content of a file stored in Structr.
 		
@@ -122,6 +127,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${getContent(first(find('File', 'name', 'test.txt')))}"),
 			Example.javaScript("${{ let bytes = $.getContent($.first($.find('File', 'name', 'test.txt'))) }}"),
@@ -131,6 +137,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"If you want to access the raw binary content of the file, omit the `encoding` argument.",
 			"If you don't provide the `encoding` argument, this function returns a byte array."
@@ -140,14 +147,12 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("file", "source file to extract content"),
-			Parameter.optional("encoding", "encoding of source data, see notes and description")
-		);
+		return List.of(Parameter.mandatory("file", "source file to extract content"), Parameter.optional("encoding", "encoding of source data, see notes and description"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

@@ -32,6 +32,7 @@ class RecordRelationshipMapper implements Function<Record, Relationship> {
 	private BoltDatabaseService db = null;
 
 	public RecordRelationshipMapper(final BoltDatabaseService db) {
+
 		this.db = db;
 	}
 

@@ -31,11 +31,13 @@ class RecordMapMapper implements Function<Map<String, Object>, Map<String, Objec
 	private EmbeddedDatabaseService db = null;
 
 	public RecordMapMapper(final EmbeddedDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Map<String, Object> apply(final Map<String, Object> map) {
+
 		return new MapResultWrapper(db, map);
 	}
 }

@@ -35,11 +35,13 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "escapeXml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
@@ -55,17 +57,20 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 		} catch (ArgumentNullException ane) {
 
 			// silently ignore null strings
+
 			return null;
 
 		} catch (ArgumentCountException ace) {
 
 			logParameterError(caller, sources, ace.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${escapeXml(text)}. Example: ${escapeXml('test & test')}"),
 			Usage.javaScript("Usage: ${{ $.escapeXml(text)}}. Example: ${{ $.escapeXml('test & test')}}")
@@ -74,28 +79,26 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Replaces XML characters with their corresponding XML entities.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("text", "text to escape")
-		);
+		return List.of(Parameter.mandatory("text", "text to escape"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${escapeXml('This is a \"test\" & another \"test\"')} => This is a &quot;test&quot; &amp; another &quot;test&quot;")
-		);
+		return List.of(Example.structrScript("${escapeXml('This is a \"test\" & another \"test\"')} => This is a &quot;test&quot; &amp; another &quot;test&quot;"));
 	}
 
 	@Override
@@ -110,6 +113,7 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

@@ -114,10 +114,12 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 			if (key == null) {
 
 				logger.warn("Unknown key {} while resolving path {} for sorting.", part, path);
+
 				return null;
 			}
 
 			try {
+
 				final Object value = current.evaluate(actionContext, part, null, obj, 1, 1);
 				if (value != null) {
 
@@ -130,6 +132,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 						}
 
 						logger.warn("Path evaluation result of component {} of type {} in {} cannot be used for sorting.", part, value.getClass().getSimpleName(), path);
+
 						return null;
 					}
 
@@ -144,18 +147,21 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 					} else {
 
 						logger.warn("Path component {} of type {} in {} cannot be evaluated further.", part, value.getClass().getSimpleName(), path);
+
 						return null;
 					}
 
 				} else {
 
 					// value needs to be sorted as null if getProperty() returns null
+
 					return null;
 				}
 
 			} catch (FrameworkException fex) {
 
 				logger.warn("Exception while evaluating sort path {}: {}", path, fex.getMessage());
+
 				return null;
 			}
 		}

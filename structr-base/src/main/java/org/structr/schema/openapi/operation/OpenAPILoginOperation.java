@@ -32,9 +32,7 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 
 	public OpenAPILoginOperation() {
 
-
 		final Map<String, Object> operations = new LinkedHashMap<>();
-
 		final Map<String, Object> post       = new OpenAPIOperation(
 
 			// summary
@@ -66,12 +64,7 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 			),
 
 			// responses
-			Map.of(
-					"200", new OpenAPISchemaReference("#/components/responses/loginResponse"),
-					"401", new OpenAPISchemaReference("#/components/responses/loginError")
-			)
-		);
-
+			Map.of("200", new OpenAPISchemaReference("#/components/responses/loginResponse"), "401", new OpenAPISchemaReference("#/components/responses/loginError")));
 
 		// override global security object to indicate that this request does not need authentication
 		post.put("security", Set.of());

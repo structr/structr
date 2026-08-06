@@ -26,6 +26,7 @@ import org.structr.web.entity.css.CssSelector;
 public class CssSelectorTraitWrapper extends AbstractNodeTraitWrapper implements CssSelector {
 
 	public CssSelectorTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

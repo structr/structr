@@ -31,6 +31,7 @@ import java.util.Map;
 public class FlowBaseNode extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	public FlowBaseNode(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -57,14 +58,17 @@ public class FlowBaseNode extends AbstractNodeTraitWrapper implements Deployable
 	}
 
 	public final void setDataSource(final FlowDataSource dataSource) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY), dataSource);
 	}
 
 	public final void setFlowContainer(final FlowContainer flowContainer) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowBaseNodeTraitDefinition.FLOW_CONTAINER_PROPERTY), flowContainer);
 	}
 
 	public Map<String, Object> exportData() {
+
 		return traits.getMethod(GetExportData.class).getExportData(this);
 	}
 }

@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ExecutableStaticTypeMethodCache {
+
 	private final FixedSizeCache<String, Map<String, ProxyExecutable>> staticTypeMethodCache = new FixedSizeCache<>("executableStaticTypeMethodCache", 100);
 
 	public ProxyExecutable getExecutable(final String typeName, final String methodName) {
@@ -42,6 +43,7 @@ public class ExecutableStaticTypeMethodCache {
 		if (staticTypeMethodCache.containsKey(typeName)) {
 
 			staticTypeMethodCache.get(typeName).put(methodName, executable);
+
 		} else {
 
 			Map<String, ProxyExecutable> methodMap = new HashMap<>();

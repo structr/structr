@@ -38,80 +38,94 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	private PropertyKey<T> mappedKey = null;
 
 	public MappedProperty(String name, PropertyKey<T> mappedKey) {
+
 		super(name);
 
 		this.mappedKey = mappedKey;
 	}
 
 	public PropertyKey<T> mappedKey() {
+
 		return mappedKey;
 	}
 
 	@Override
 	public String typeName() {
+
 		return mappedKey.typeName();
 	}
 
 	@Override
 	public Class valueType() {
+
 		return mappedKey.valueType();
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return mappedKey.getSortType();
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return new PropertyMapper(securityContext, entity, mappedKey);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return mappedKey.inputConverter(securityContext, false);
 	}
 
-
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return mappedKey.isArray();
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return mappedKey.getExampleValue(index);
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 }

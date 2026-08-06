@@ -27,7 +27,6 @@ import org.structr.core.auth.Authenticator;
 
 import java.lang.reflect.InvocationTargetException;
 
-
 /**
  *
  */
@@ -42,10 +41,12 @@ public class StructrHttpServiceConfig {
 	private int outputNestingDepth     = 3;
 
 	public String getDefaultPropertyView() {
+
 		return defaultPropertyView;
 	}
 
 	public int getOutputNestingDepth() {
+
 		return outputNestingDepth;
 	}
 
@@ -63,6 +64,7 @@ public class StructrHttpServiceConfig {
 		} else {
 
 			authenticatorClass = loadClass(authenticatorValue);
+
 			if (authenticatorClass == null) {
 
 				logger.error("Unable to instantiate authenticator {}", authenticatorValue );
@@ -86,9 +88,11 @@ public class StructrHttpServiceConfig {
 		}
 
 		try {
+
 			authenticator = (Authenticator) authenticatorClass.getDeclaredConstructor().newInstance();
 
 		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+
 			logger.error("Unable to instantiate authenticator {}: {}", new Object[] { authenticatorClass, ex.getMessage() } );
 		}
 

@@ -27,20 +27,92 @@ import org.structr.process.ProcessTraits;
 
 public class BpmnDiDiagramHasEdge extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnDiDiagramHasEdge() { super(ProcessTraits.BPMN_DI_DIAGRAM_HAS_EDGE); }
+	public BpmnDiDiagramHasEdge() {
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_DI_DIAGRAM; }
-	@Override public String getTargetType() { return ProcessTraits.BPMN_DI_EDGE; }
-	@Override public String getRelationshipType() { return "HAS_EDGE"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }
-	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+		super(ProcessTraits.BPMN_DI_DIAGRAM_HAS_EDGE);
+	}
+
+	@Override
+	public String getSourceType() {
+
+		return ProcessTraits.BPMN_DI_DIAGRAM;
+	}
+
+	@Override
+	public String getTargetType() {
+
+		return ProcessTraits.BPMN_DI_EDGE;
+	}
+
+	@Override
+	public String getRelationshipType() {
+
+		return "HAS_EDGE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+
+		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+
+		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+
+		return null;
+	}
 }

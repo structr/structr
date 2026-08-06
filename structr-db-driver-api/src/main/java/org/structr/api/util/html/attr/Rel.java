@@ -27,6 +27,7 @@ import org.structr.api.util.html.Attr;
 public class Rel extends Attr {
 
 	public Rel(final String rel) {
+
 		super("rel", rel);
 	}
 }

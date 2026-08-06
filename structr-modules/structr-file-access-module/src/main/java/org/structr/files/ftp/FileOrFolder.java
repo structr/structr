@@ -59,35 +59,41 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 	private static final Logger logger = LoggerFactory.getLogger(FileOrFolder.class.getName());
 
 	public FileOrFolder(final String newPath, final StructrFtpUser user) {
+
 		super(newPath, user);
 	}
 
 	@Override
 	public boolean isDirectory() {
+
 		logger.error("isDirectory()");
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public boolean isFile() {
+
 		logger.error("isFile()");
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public long getSize() {
+
 		logger.error("getSize()");
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public InputStream createInputStream(long l) throws IOException {
+
 		logger.error("createInputStream()");
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public Object getPhysicalFile() {
+
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -95,13 +101,16 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 	public boolean mkdir() {
 
 		final App app = StructrApp.getInstance(securityContext);
+
 		try (final Tx tx = app.tx()) {
 
 			logger.info("mkdir() Folder");
 
 			NodeInterface existing = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newPath);
 			if (existing != null) {
+
 				logger.warn("File {} already exists.", newPath);
+
 				return false;
 			}
 
@@ -118,7 +127,9 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				);
 
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
+
 				return false;
 			}
 
@@ -127,13 +138,16 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			return true;
 
 		} catch (FrameworkException ex) {
+
 			logger.error("", ex);
+
 			return false;
 		}
 	}
 
 	@Override
 	public List<FtpFile> listFiles() {
+
 		logger.error("listFiles()");
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
@@ -148,16 +162,20 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				final NodeInterface parentFolder = FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
 
 				try {
+
 					structrFile = FileHelper.createFile(securityContext, new byte[0], null, StructrTraits.FILE, getName(), false).as(AbstractFile.class);
 
 					structrFile.as(AccessControllable.class).setOwner(owner.getStructrUser());
 
 					if (parentFolder != null) {
+
 						structrFile.setParent(parentFolder.as(Folder.class));
 					}
 
 				} catch (FrameworkException ex) {
+
 					logger.error("", ex);
+
 					return null;
 				}
 			}
@@ -167,6 +185,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			return structrFile.as(File.class).getOutputStream();
 
 		} catch (FrameworkException fex) {
+
 			logger.error(null, fex);
 		}
 

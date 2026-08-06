@@ -25,10 +25,12 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 public class PolyglotLogHandler extends Handler {
+
     private static final Logger logger = LoggerFactory.getLogger(PolyglotLogHandler.class);
 
     @Override
     public void publish(LogRecord record) {
+
         logger.info(record.getMessage());
     }
 

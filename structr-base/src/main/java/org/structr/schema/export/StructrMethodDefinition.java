@@ -89,11 +89,13 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	@Override
 	public String toString() {
+
 		return getName();
 	}
 
 	@Override
 	public int hashCode() {
+
 		return getName().hashCode();
 	}
 
@@ -115,10 +117,13 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (parentId != null) {
 
 			try {
+
 				final URI containerURI = new URI(parentId.toString() + "/");
+
 				return containerURI.resolve("properties/" + getName());
 
 			} catch (URISyntaxException urex) {
+
 				logger.warn("", urex);
 			}
 		}
@@ -128,15 +133,18 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	@Override
 	public JsonType getParent() {
+
 		return parent;
 	}
 
 	public String getUniqueName() {
+
 		return name;
 	}
 
 	@Override
 	public String getName() {
+
 		return name;
 	}
 
@@ -144,44 +152,55 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	public JsonMethod setName(String name) {
 
 		this.name = name;
+
 		return this;
 	}
 
 	@Override
 	public String getSource() {
+
 		return source;
 	}
 
 	@Override
 	public JsonMethod setSource(final String source) {
+
 		this.source = source;
+
 		return this;
 	}
 
 	@Override
 	public String getSummary() {
+
 		return summary;
 	}
 
 	@Override
 	public JsonMethod setSummary(String summary) {
+
 		this.summary = summary;
+
 		return this;
 	}
 
 	@Override
 	public String getDescription() {
+
 		return description;
 	}
 
 	@Override
 	public JsonMethod setDescription(String description) {
+
 		this.description = description;
+
 		return this;
 	}
 
 	@Override
 	public List<JsonParameter> getParameters() {
+
 		return (List)parameters;
 	}
 
@@ -202,143 +221,181 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	@Override
 	public JsonMethod setOpenAPIReturnType(final String openAPIReturnType) {
+
 		this.openAPIReturnType = openAPIReturnType;
+
 		return this;
 	}
 
 	@Override
 	public boolean callSuper() {
+
 		return callSuper;
 	}
 
 	@Override
 	public JsonMethod setCallSuper(final boolean callSuper) {
+
 		this.callSuper = callSuper;
+
 		return this;
 	}
 
 	@Override
 	public boolean isStatic() {
+
 		return isStatic;
 	}
 
 	@Override
 	public JsonMethod setIsStatic(final boolean isStatic) {
+
 		this.isStatic = isStatic;
+
 		return this;
 	}
 
 	@Override
 	public boolean isPrivate() {
+
 		return isPrivate;
 	}
 
 	@Override
 	public JsonMethod setIsPrivate(final boolean isPrivate) {
+
 		this.isPrivate = isPrivate;
+
 		return this;
 	}
 
 	@Override
 	public boolean returnRawResult() {
+
 		return returnRawResult;
 	}
 
 	@Override
 	public JsonMethod setReturnRawResult(final boolean returnRawResult) {
+
 		this.returnRawResult = returnRawResult;
+
 		return this;
 	}
 
 	@Override
 	public JsonMethod setHttpVerb(final String httpVerb) {
+
 		this.httpVerb = httpVerb;
+
 		return this;
 	}
 
 	@Override
 	public String getHttpVerb() {
+
 		return httpVerb;
 	}
 
 	@Override
 	public boolean overridesExisting() {
+
 		return overridesExisting;
 	}
 
 	@Override
 	public JsonMethod setOverridesExisting(final boolean overridesExisting) {
+
 		this.overridesExisting = overridesExisting;
+
 		return this;
 	}
 
 	@Override
 	public boolean doExport() {
+
 		return doExport;
 	}
 
 	@Override
 	public JsonMethod setDoExport(final boolean doExport) {
+
 		this.doExport = doExport;
+
 		return this;
 	}
 
 	@Override
 	public List<String> getExceptions() {
+
 		return exceptions;
 	}
 
 	@Override
 	public JsonMethod addException(final String exception) {
+
 		this.exceptions.add(exception);
+
 		return this;
 	}
 
 	@Override
 	public String getCodeType() {
+
 		return codeType;
 	}
 
 	@Override
 	public JsonMethod setCodeType(String codeType) {
+
 		this.codeType = codeType;
+
 		return this;
 	}
 
 	@Override
 	public int compareTo(final JsonMethod o) {
+
 		return getName().compareTo(o.getName());
 	}
 
 	@Override
 	public Set<String> getTags() {
+
 		return tags;
 	}
 
 	@Override
 	public JsonMethod addTags(final String... tags) {
+
 		this.tags.addAll(Arrays.asList(tags));
+
 		return this;
 	}
 
 	@Override
 	public boolean includeInOpenAPI() {
+
 		return includeInOpenAPI;
 	}
 
 	@Override
 	public JsonMethod setIncludeInOpenAPI(final boolean includeInOpenAPI) {
+
 		this.includeInOpenAPI = includeInOpenAPI;
+
 		return this;
 	}
 
 	@Override
 	public StructrDefinition resolveJsonPointerKey(final String key) {
+
 		return null;
 	}
 
 	// ----- package methods -----
 	SchemaMethod getSchemaMethod() {
+
 		return schemaMethod;
 	}
 
@@ -392,6 +449,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		if (!mergedTags.isEmpty()) {
+
 			updateProperties.put(traits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY), listToArray(mergedTags));
 		}
 
@@ -399,16 +457,16 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		// create database schema for method parameters
 		for (final StructrParameterDefinition param : parameters) {
+
 			param.createDatabaseSchema(app, method, index++);
 		}
-
 
 		this.schemaMethod = method;
 
 		// return modified property
+
 		return method;
 	}
-
 
 	void deserialize(final Map<String, Object> source) {
 
@@ -446,6 +504,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (_exceptions != null && _exceptions instanceof List) {
 
 			final List<String> list = (List)_exceptions;
+
 			for (final String fqcn : list) {
 
 				this.exceptions.add(fqcn);
@@ -559,6 +618,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (exceptionArray != null) {
 
 			for (final String fqcn : exceptionArray) {
+
 				addException(fqcn);
 			}
 		}
@@ -604,14 +664,17 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, openAPIReturnType);
 
 		for (final StructrParameterDefinition param : parameters) {
+
 			params.put(param.getName(), param.serialize());
 		}
 
 		if (!params.isEmpty()) {
+
 			map.put(JsonSchema.KEY_PARAMETERS, params);
 		}
 
 		if (!tags.isEmpty()) {
+
 			map.put(JsonSchema.KEY_TAGS, tags);
 		}
 
@@ -629,7 +692,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (includeInOpenAPI()) {
 
 			final SchemaMethod method = this.getSchemaMethod();
-
 			final boolean isLifecycleMethod = method.isLifecycleMethod();
 			final boolean isTypeMethod      = (parent != null);
 
@@ -673,6 +735,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		pathBuilder.append(getParent().getName());
 
 		if (!isStatic) {
+
 			pathBuilder.append("/{uuid}");
 		}
 
@@ -691,6 +754,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		if (includeView) {
+
 			pathBuilder.append("/{view}");
 		}
 
@@ -704,6 +768,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		// don't show types without tags
 		if (tags.isEmpty()) {
+
 			return false;
 		}
 
@@ -749,6 +814,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			Object typedValue   = null;
 
 			if (type == null || StringUtils.isBlank(type)) {
+
 				type = "string";
 			}
 
@@ -803,6 +869,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		if (!viewNames.isEmpty()) {
+
 			list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false));
 		}
 
@@ -812,8 +879,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	public Map<String, Object> getOpenAPIRequestBody() {
 
 		final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
-
 		if (!"get".equals(verb) && !getParameters().isEmpty()) {
+
 			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null, false);
 		}
 

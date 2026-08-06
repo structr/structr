@@ -51,16 +51,19 @@ public class XMPPModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "xmpp";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

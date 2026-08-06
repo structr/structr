@@ -48,11 +48,13 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public String getName() {
+
 		return "execBinary";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("output, scriptConfigKey [, parameters [, logBehaviour ] ]");
 	}
 
@@ -64,10 +66,10 @@ public class ExecBinaryFunction extends ExecFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final String sanityCheckedAbsolutePathOrNull = getSanityCheckedPathForScriptSetting(sources[1].toString());
-
 			if (sanityCheckedAbsolutePathOrNull != null) {
 
 				final OutputStream out;
+
 				if (sources[0] instanceof AbstractNode node && node.is(StructrTraits.FILE)) {
 
 					final File f = node.as(File.class);
@@ -86,6 +88,7 @@ public class ExecBinaryFunction extends ExecFunction {
 					} else {
 
 						logger.warn("{}(): Unable to execute: 'output' parameter is not a file or an OutputStream: {}.", getName(), sources[0]);
+
 						return null;
 					}
 				}
@@ -95,7 +98,6 @@ public class ExecBinaryFunction extends ExecFunction {
 				if (sources.length > 2) {
 
 					final boolean isNewCallSignature = (sources[2] instanceof Collection<?>);
-
 					if (!isNewCallSignature) {
 
 						logger.warn("{}(): Deprecation Warning: The call signature for this function has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
@@ -172,6 +174,7 @@ public class ExecBinaryFunction extends ExecFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -180,6 +183,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${execBinary(output, scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
 			Usage.javaScript("Usage: ${{ $.execBinary(output, scriptConfigKey [, parameters [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
@@ -188,6 +192,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Scripts are executed using `/bin/sh` - thus this function is only supported in environments where this exists.",
 				"All script files are looked up inside the `scripts` folder in the main folder of the installation (not in the files area).",
@@ -206,6 +211,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("output", "file or output stream to write the output to"),
 				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename"),
@@ -215,19 +221,18 @@ public class ExecBinaryFunction extends ExecFunction {
 										+ "<p>`0`: skip logging the command line<br>"
 										+ "`1`: log only the script's full path<br>"
 										+ "`2`: log the script path and all parameters, applying masking as configured</p>"
-										+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey()
-						)
-				)
-		);
+										+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey())));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Executes a script returning the returning the raw output directly into the output stream.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output **without modifying the binary data**.
 			
@@ -239,13 +244,13 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${execBinary(response, 'my.create.pdf')}", "Streaming binary content of the `my.create.pdf` script to the client.")
-		);
+
+		return List.of(Example.structrScript("${execBinary(response, 'my.create.pdf')}", "Streaming binary content of the `my.create.pdf` script to the client."));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 
@@ -268,20 +273,24 @@ public class ExecBinaryFunction extends ExecFunction {
 
 		@Override
 		public StringBuilder getCommandLine() {
+
 			return cmdLineBuilder;
 		}
 
 		@Override
 		public StringBuilder getLogLine() {
+
 			return logLineBuilder;
 		}
 
 		@Override
 		public String processExited(final int exitCode) {
+
 			return errorStream();
 		}
 
 		private void addParameter(final String parameter) {
+
 			this.addParameter(parameter, false);
 		}
 

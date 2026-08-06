@@ -40,6 +40,7 @@ public interface StructrTransactionListener {
 	void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents);
 
 	default void simpleBroadcast(final String messageName, final Map<String, Object> data) {
+
 		simpleBroadcast(messageName, data, null);
 	}
 

@@ -52,18 +52,19 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(3));
 
 		if (Settings.WsIndentation.getValue()) {
+
 			gsonBuilder.setPrettyPrinting();
 		}
 
 		final boolean lenient = Settings.JsonLenient.getValue();
 		if (lenient) {
+
 			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
 			gsonBuilder.serializeSpecialFloatingPointValues();
 
 		}
 
 		final Gson gson = gsonBuilder.create();
-
 		final WebsocketController controller = new WebsocketController(gson);
 		final Authenticator authenticator    = new UiAuthenticator();
 		final StructrWebSocket websocket     = new StructrWebSocket(controller, gson, authenticator);
@@ -92,14 +93,7 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 
 	protected void login(final StructrWebSocket websocket, final String username, final String password, final String sessionId) {
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "LOGIN",
-			"sessionId", sessionId,
-			"data", Map.of(
-				"username", username,
-				"password", password
-			)
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "LOGIN", "sessionId", sessionId, "data", Map.of("username", username, "password", password))));
 	}
 
 	protected Map<String, Object> assertResponse(final MockedWebsocketSetup mock, final String command, final double statusCode, final boolean sessionValid) {

@@ -70,6 +70,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
 				logger.warn("No write permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+
 				return;
 
 			}
@@ -83,7 +84,6 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 		}
 
 		GraphObject objToRemove = getNode(idToRemove);
-
 		if (obj != null && objToRemove != null) {
 
 			try {

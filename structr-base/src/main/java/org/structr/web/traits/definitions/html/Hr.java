@@ -27,6 +27,7 @@ import java.util.Map;
 public class Hr extends GenericHtmlElementTraitDefinition {
 
 	public Hr() {
+
 		super(StructrTraits.HR);
 	}
 
@@ -37,11 +38,11 @@ public class Hr extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}

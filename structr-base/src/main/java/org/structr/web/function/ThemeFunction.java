@@ -39,6 +39,7 @@ public class ThemeFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "theme";
 	}
 
@@ -59,7 +60,6 @@ public class ThemeFunction extends UiCommunityFunction {
 				final Resource styleResource             = baseResource.resolve("/themes/style.css");
 				final Path themePath                     = getThemePathOrDefault(baseResource, name);
 				final Path stylePath                     = styleResource.getPath();
-
 				final String themeSource = Files.readString(themePath);
 				final String styleSource = Files.readString(stylePath);
 
@@ -70,6 +70,7 @@ public class ThemeFunction extends UiCommunityFunction {
 				renderContext.getBuffer().append(Scripting.replaceVariables(ctx, null, styleSource));
 
 			} catch (IOException ioex) {
+
 				logger.warn("Unable to read theme file {}: {}", name, ioex.getMessage());
 			}
 		}
@@ -79,19 +80,19 @@ public class ThemeFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Applies the theme with the given name.";
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${theme('dark')}"),
-			Usage.javaScript("Usage: ${{ $.theme('dark'); }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${theme('dark')}"), Usage.javaScript("Usage: ${{ $.theme('dark'); }}"));
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name");
 	}
 
@@ -102,6 +103,7 @@ public class ThemeFunction extends UiCommunityFunction {
 		final Path themePath         = themeResource.getPath();
 
 		if (Files.exists(themePath)) {
+
 			return themePath;
 		}
 

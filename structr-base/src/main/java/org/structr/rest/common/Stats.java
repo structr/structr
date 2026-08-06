@@ -43,8 +43,8 @@ public class Stats {
 			synchronized (values) {
 
 				final Long key = value - (value % globalAggregationIntervalMilliseconds);
-
 				Long sum = values.get(key);
+
 				if (sum == null) {
 
 					values.put(key, 1L);
@@ -59,10 +59,12 @@ public class Stats {
 		sum += value;
 
 		if (value < min) {
+
 			min = value;
 		}
 
 		if (value > max) {
+
 			max = value;
 		}
 
@@ -70,18 +72,22 @@ public class Stats {
 	}
 
 	public long getCount() {
+
 		return count;
 	}
 
 	public long getMinValue() {
+
 		return min;
 	}
 
 	public long getMaxValue() {
+
 		return max;
 	}
 
 	public long getAverageValue() {
+
 		return sum / count;
 	}
 
@@ -106,6 +112,7 @@ public class Stats {
 
 					// max
 					if (aggregation.size() >= maxCount) {
+
 						break;
 					}
 				}
@@ -120,8 +127,8 @@ public class Stats {
 					final Long originalKey = entry.getKey();
 					final Long aggregationKey = originalKey - (originalKey % aggregationIntervalMilliseconds);
 					final Long value = entry.getValue();
-
 					Long sum = aggregation.get(aggregationKey);
+
 					if (sum == null) {
 
 						aggregation.put(aggregationKey, value);
@@ -133,6 +140,7 @@ public class Stats {
 
 					// max
 					if (aggregation.size() >= maxCount) {
+
 						break;
 					}
 				}

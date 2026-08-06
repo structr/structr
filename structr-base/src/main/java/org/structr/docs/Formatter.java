@@ -55,24 +55,32 @@ public abstract class Formatter {
 
 		// max level reached, no output beyond this point
 		if (level >= outputSettings.getMaxLevels()) {
+
 			Formatter.renderComment(lines, outputSettings, concept + " not rendered because level " + level + " >= maxLevels (" + outputSettings.getMaxLevels() + ")");
+
 			return;
 		}
 
 		if (concept == null) {
+
 			Formatter.renderComment(lines, outputSettings, "Encountered null concept while processing ontology.");
+
 			return;
 		}
 
 		// type filter
 		if (!outputSettings.renderType(concept.getType())) {
+
 			Formatter.renderComment(lines, outputSettings, concept + " not rendered because OutputSettings#typesToRender did not contain " + concept.getType());
+
 			return;
 		}
 
 		// only output the same concept once
 		if (!seenConcepts.add(concept)) {
+
 			Formatter.renderComment(lines, outputSettings, concept + " not rendered because it was already rendered previously.");
+
 			return;
 		}
 
@@ -103,10 +111,12 @@ public abstract class Formatter {
 
 			// check if children want to be sorted
 			for (final Link child : links) {
+
 				sortChildren &= ConceptType.SortedChildren.equals(child.getFormat());
 			}
 
 			if (sortChildren) {
+
 				Collections.sort(links, Comparator.comparing(c -> c.getTarget().getName()));
 			}
 
@@ -114,6 +124,7 @@ public abstract class Formatter {
 
 				walkOntology(lines, child, outputSettings, level + 1, seenConcepts);
 			}
+
 		} else {
 
 			Formatter.renderComment(lines, outputSettings, "Children of " + concept + " not rendered because " + formatterType + " prevents rendering of children.");
@@ -122,10 +133,12 @@ public abstract class Formatter {
 
 	// ----- protected methods -----
 	protected String formatMarkdownHeading(final String text, final int level) {
+
 		return StringUtils.repeat("#", level) + " " + text;
 	}
 
 	protected String formatListHeading(final String text, final int level) {
+
 		return StringUtils.repeat("  ", level) + "- " + text;
 	}
 

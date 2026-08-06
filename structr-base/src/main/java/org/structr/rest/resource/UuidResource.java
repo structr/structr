@@ -61,6 +61,7 @@ public class UuidResource extends ExactMatchEndpoint {
 		}
 
 		// only return a handler if there is actually a type with the requested name
+
 		return null;
 	}
 
@@ -102,6 +103,7 @@ public class UuidResource extends ExactMatchEndpoint {
 				}
 
 				// PATCH on UUID resource redirects to PUT with flattened inputs
+
 				return genericPut(securityContext, flattenedInputs);
 
 			}
@@ -111,6 +113,7 @@ public class UuidResource extends ExactMatchEndpoint {
 
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
 			return genericPut(securityContext, propertySet);
 		}
 
@@ -122,11 +125,9 @@ public class UuidResource extends ExactMatchEndpoint {
 			try (final Tx tx = app.tx(true, true, false)) {
 
 				final GraphObject obj = getEntity(securityContext);
-
 				if (obj.isNode()) {
 
 					final NodeInterface node = (NodeInterface)obj;
-
 					if (!node.isGranted(Permission.delete, securityContext)) {
 
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
@@ -151,14 +152,15 @@ public class UuidResource extends ExactMatchEndpoint {
 		public GraphObject getEntity(final SecurityContext securityContext) throws FrameworkException {
 
 			final App app = StructrApp.getInstance(securityContext);
-
 			GraphObject entity = app.nodeQuery().and().uuid(uuid).getFirst();
+
 			if (entity == null) {
 
 				entity = app.relationshipQuery().and().uuid(uuid).getFirst();
 			}
 
 			if (entity == null) {
+
 				throw new FrameworkException(404, "Entity with ID " + uuid + " not found.");
 			}
 
@@ -167,21 +169,25 @@ public class UuidResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getURL() {
+
 			return uuid;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
 		}
 	}

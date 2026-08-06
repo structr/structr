@@ -35,6 +35,7 @@ public class AsyncBuffer {
 		synchronized(queue) {
 
 			if (s != null) {
+
 				queue.add(s);
 			}
 		}
@@ -43,6 +44,7 @@ public class AsyncBuffer {
 	}
 
 	public Queue<String> getQueue() {
+
 		return queue;
 	}
 }

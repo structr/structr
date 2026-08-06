@@ -53,11 +53,7 @@ public class LocalizationTest extends StructrTest {
 		// create
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.LOCALIZATION,
-				new NodeAttribute<>(name, "test1"),
-				new NodeAttribute<>(locale, "de"),
-				new NodeAttribute<>(localizedName, "test1-de-no_domain")
-			);
+			app.create(StructrTraits.LOCALIZATION, new NodeAttribute<>(name, "test1"), new NodeAttribute<>(locale, "de"), new NodeAttribute<>(localizedName, "test1-de-no_domain"));
 
 			app.create(StructrTraits.LOCALIZATION,
 				new NodeAttribute<>(name, "test2"),
@@ -66,11 +62,7 @@ public class LocalizationTest extends StructrTest {
 				new NodeAttribute<>(localizedName, "test2-de-ExistingDomain")
 			);
 
-			app.create(StructrTraits.LOCALIZATION,
-				new NodeAttribute<>(name, "test3"),
-				new NodeAttribute<>(locale, "de_DE"),
-				new NodeAttribute<>(localizedName, "test3-de_DE-no_domain")
-			);
+			app.create(StructrTraits.LOCALIZATION, new NodeAttribute<>(name, "test3"), new NodeAttribute<>(locale, "de_DE"), new NodeAttribute<>(localizedName, "test3-de_DE-no_domain"));
 
 			app.create(StructrTraits.LOCALIZATION,
 				new NodeAttribute<>(name, "test4"),
@@ -82,6 +74,7 @@ public class LocalizationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -110,6 +103,7 @@ public class LocalizationTest extends StructrTest {
 			tx.success();
 
 		} catch (UnlicensedScriptException |FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -138,6 +132,7 @@ public class LocalizationTest extends StructrTest {
 			tx.success();
 
 		} catch (UnlicensedScriptException |FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 

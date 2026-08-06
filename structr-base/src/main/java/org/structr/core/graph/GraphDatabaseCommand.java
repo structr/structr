@@ -28,6 +28,7 @@ import org.structr.api.DatabaseService;
 public class GraphDatabaseCommand extends NodeServiceCommand {
 
 	public DatabaseService execute() {
+
 		return (DatabaseService)arguments.get("graphDb");
 	}
 }

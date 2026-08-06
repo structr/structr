@@ -24,11 +24,13 @@ package org.structr.embedded;
 public class LongQuery extends AbstractNativeQuery<Long> {
 
 	public LongQuery(final String query) {
+
 		super(query);
 	}
 
 	@Override
 	Long execute(final EmbeddedTransaction tx) {
+
 		return tx.getLong(new SimpleCypherQuery(query, parameters));
 	}
 }

@@ -88,10 +88,10 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-
 				while (!indexCreatedSuccessfully(db, true, false, expectedRangeIndexType, "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -130,6 +130,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "Customer", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -184,6 +185,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -196,16 +198,18 @@ public class IndexManagementTest extends StructrTest {
 
 					final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 					final JsonType customer       = sourceSchema.getType("Customer");
-
 					JsonProperty toRemove = null;
 
 					for (final JsonProperty prop : customer.getProperties()) {
+
 						if ("test".equals(prop.getName())) {
+
 							toRemove = prop;
 						}
 					}
 
 					if (toRemove != null) {
+
 						customer.getProperties().remove(toRemove);
 					}
 
@@ -227,6 +231,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, true, false, expectedRangeIndexType, "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -279,6 +284,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -317,6 +323,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "Customer", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -370,6 +377,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -387,6 +395,7 @@ public class IndexManagementTest extends StructrTest {
 
 						final JsonProperty prop = it.next();
 						if ("test".equals(prop.getName())) {
+
 							it.remove();
 						}
 					}
@@ -407,6 +416,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "Customer", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -460,6 +470,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -492,6 +503,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "Customer", 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -547,6 +559,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, false, true, "TEXT", "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -585,6 +598,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -640,6 +654,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, false, true, "TEXT", "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -657,6 +672,7 @@ public class IndexManagementTest extends StructrTest {
 
 						final JsonProperty prop = it.next();
 						if ("test".equals(prop.getName())) {
+
 							it.remove();
 						}
 					}
@@ -677,6 +693,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index update!");
 					}
 
@@ -732,6 +749,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, false, true, "TEXT", "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index creation!");
 					}
 
@@ -762,6 +780,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+
 						fail("Timeout waiting for index removal!");
 					}
 
@@ -790,55 +809,70 @@ public class IndexManagementTest extends StructrTest {
 			if (!infos.isEmpty()) {
 
 				if (infos.size() != expectedEntryCount) {
+
 					logger.info("Returning false because infos.size() was {} while expected count was {}", infos.size(), expectedEntryCount);
+
 					return false;
 				}
 
 				final IndexInfo first = infos.get(0);
-
 				if (isNode && !first.isNode()) {
+
 					logger.info("Returning false because first entry is not a node index and a node index was expected.");
+
 					return false;
 				}
 
 				if (isRelationship && !first.isRelationship()) {
+
 					logger.info("Returning false because first entry is not a relationship index and a relationship index was expected.");
+
 					return false;
 				}
 
 				if (!indexType.equals(first.getIndexType())) {
+
 					logger.info("Returning false because returned index type was {} while expected index type was {}", first.getIndexType(), indexType);
+
 					return false;
 				}
 
 				if (!entityType.equals(first.getEntityType())) {
+
 					logger.info("Returning false because returned entity type was {} while expected type was {}", first.getEntityType(), entityType);
+
 					return false;
 				}
 
 				if (!propertyNames.containsAll(first.getProperties())) {
+
 					logger.info("Returning false because expected properties did not contain {}.", first.getProperties());
+
 					return false;
 				}
 
 				// important, this is the only place where the test passes
 				logger.info("Returning true, check successful.");
+
 				return true;
 
 			} else if (expectedEntryCount == 0) {
 
 				// expected count matches empty result
 				logger.info("Returning true, expected 0 entries and got 0 entries from index query.");
+
 				return true;
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
 		logger.info("Returning false at the end of the check method.");
+
 		return false;
 	}
 
@@ -851,6 +885,7 @@ public class IndexManagementTest extends StructrTest {
 			final List<IndexInfo> infos = queryIndexes(db, entityType);
 
 			for (final IndexInfo info : infos) {
+
 				System.out.println(info.type + ", " + info.types + ", " + info.props);
 			}
 
@@ -863,6 +898,7 @@ public class IndexManagementTest extends StructrTest {
 			return result;
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -910,20 +946,24 @@ public class IndexManagementTest extends StructrTest {
 
 		@Override
 		public String toString() {
+
 			return getClass().getSimpleName() + "(" + type + ", " + props + ")";
 		}
 
 		public boolean isNode() {
+
 			return "NODE".equals(this.type);
 		}
 
 		public boolean isRelationship() {
+
 			return "RELATIONSHIP".equals(this.type);
 		}
 
 		public String getEntityType() {
 
 			if (types == null ||  types.isEmpty()) {
+
 				return null;
 			}
 
@@ -931,12 +971,14 @@ public class IndexManagementTest extends StructrTest {
 		}
 
 		public String getIndexType() {
+
 			return indexType;
 		}
 
 		public String getPropertyName() {
 
 			if (props == null || props.isEmpty()) {
+
 				return null;
 			}
 
@@ -944,6 +986,7 @@ public class IndexManagementTest extends StructrTest {
 		}
 
 		public List<String> getProperties() {
+
 			return this.props;
 		}
 	}
@@ -968,6 +1011,7 @@ public class IndexManagementTest extends StructrTest {
 			this.props = (List<String>)data.get("properties");
 
 			if ("node_label_property".equals(this.type)) {
+
 				this.type = "NODE";
 			}
 		}

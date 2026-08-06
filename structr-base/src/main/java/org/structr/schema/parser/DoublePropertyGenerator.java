@@ -38,16 +38,19 @@ import java.util.List;
 public class DoublePropertyGenerator extends NumericalPropertyGenerator<Double> {
 
 	public DoublePropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Double.class.getName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Double;
 	}
 
@@ -55,6 +58,7 @@ public class DoublePropertyGenerator extends NumericalPropertyGenerator<Double> 
 	public Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which) {
 
 		try {
+
 			return Double.parseDouble(source);
 
 		} catch (Throwable t) {
@@ -67,6 +71,7 @@ public class DoublePropertyGenerator extends NumericalPropertyGenerator<Double> 
 
 	@Override
 	protected Property<Double> newInstance() throws FrameworkException {
+
 		return new DoubleProperty(source.getPropertyName());
 	}
 

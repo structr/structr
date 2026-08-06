@@ -27,6 +27,7 @@ import org.structr.api.util.html.Attr;
 public class Type extends Attr {
 
 	public Type(final String type) {
+
 		super("type", type);
 	}
 }

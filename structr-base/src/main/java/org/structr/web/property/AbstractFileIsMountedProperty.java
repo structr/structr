@@ -32,21 +32,25 @@ import java.util.Map;
 public class AbstractFileIsMountedProperty extends AbstractReadOnlyProperty<Boolean> {
 
 	public AbstractFileIsMountedProperty() {
+
 		super(AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY);
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Boolean.class;
 	}
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -63,26 +67,31 @@ public class AbstractFileIsMountedProperty extends AbstractReadOnlyProperty<Bool
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return Map.of();
 	}
 }

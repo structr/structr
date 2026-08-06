@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 public class MessageException extends FrameworkException {
 
 	public MessageException(int status, String msg) {
+
 		super(status, msg);
 	}
 }

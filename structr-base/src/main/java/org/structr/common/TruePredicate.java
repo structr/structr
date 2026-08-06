@@ -31,16 +31,19 @@ public class TruePredicate implements Predicate<GraphObject> {
 	private Comparator<GraphObject> comparator = null;
 
 	public TruePredicate(final Comparator<GraphObject> comparator) {
+
 		this.comparator = comparator;
 	}
 
 	@Override
 	public boolean accept(final GraphObject value) {
+
 		return true;
 	}
 
 	@Override
 	public Comparator<GraphObject> comparator() {
+
 		return comparator;
 	}
 }

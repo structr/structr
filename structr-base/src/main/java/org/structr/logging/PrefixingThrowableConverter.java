@@ -28,7 +28,6 @@ public class PrefixingThrowableConverter extends ThrowableProxyConverter {
 	public String convert(ILoggingEvent event) {
 
 		final String stack = super.convert(event);
-
 		if (stack == null || stack.isEmpty()) {
 
 			return "";

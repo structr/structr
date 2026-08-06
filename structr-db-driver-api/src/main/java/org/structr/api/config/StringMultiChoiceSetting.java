@@ -39,6 +39,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	 * Constructor to create an empty StringSetting with NO default value.
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String key) {
+
 		this(group, key, null);
 	}
 
@@ -46,6 +47,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	 * Constructor to create a StringSetting WITH default value.
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String key, final String value) {
+
 		this(group, null, key, value);
 	}
 
@@ -53,6 +55,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	 * Constructor to create a StringSetting with category name and default value.
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value) {
+
 		super(group, categoryName, key, value);
 	}
 
@@ -60,6 +63,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	 * Constructor to create a StringSetting with category name and default value and a list of possible values
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> possibleValues) {
+
 		super(group, categoryName, key, value);
 
 		this.AvailableOptions = possibleValues;
@@ -69,6 +73,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	 * Constructor to create a StringSetting with category name and default value and a list of possible values
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> possibleValues, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 
 		this.AvailableOptions = possibleValues;
@@ -83,6 +88,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	 * @param comment
 	 */
 	public StringMultiChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 	}
 
@@ -96,7 +102,6 @@ public class StringMultiChoiceSetting extends Setting<String> {
 		renderLabel(group);
 
 		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
-
 		final Tag input = settingInputContainer.empty("input").attr(
 			new Attr("type",         "text"),
 			new Attr("name",         getKey()),
@@ -109,12 +114,14 @@ public class StringMultiChoiceSetting extends Setting<String> {
 
 		// display value if non-empty
 		if (value != null) {
+
 			input.attr(new Attr("value", value));
 		}
 
 		final Tag options = settingInputContainer.block("div");
 
 		for (final String option : sortedOptions) {
+
 			options.block("button").attr(
 				new Attr("type", "button"),
 				new Attr("class", "toggle-option hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666" + (value.contains(option) ? " active" : "")),
@@ -131,6 +138,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	public void fromString(final String source) {
 
 		if (source == null) {
+
 			return;
 		}
 
@@ -156,10 +164,12 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	}
 
 	public List<String> getAvailableOptions() {
+
 		return AvailableOptions.stream().toList();
 	}
 
 	public void addAvailableOption(final String option) {
+
 		this.AvailableOptions.add(option);
 	}
 

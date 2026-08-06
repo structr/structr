@@ -64,44 +64,54 @@ public class ContextStore {
 
 	// --- Headers ---
 	public void addHeader(final String key, final String value) {
+
 		headers.put(key, value);
 	}
 
 	public void removeHeader(final String key) {
+
 		headers.remove(key);
 	}
 
 	public void clearHeaders() {
+
 		headers.clear();
 	}
 
 	public Map<String, String> getHeaders() {
+
 		return headers;
 	}
 
 	// --- Headers ---
 	public void setValidateCertificates(final boolean validate) {
+
 		validateCertificates = validate;
 	}
 
 	public boolean isValidateCertificates() {
+
 		return validateCertificates;
 	}
 
 	// --- Constants ---
 	public Object getConstant(final String name) {
+
 		return constants.get(name);
 	}
 
 	public void setConstant(final String name, final Object data) {
+
 		constants.put(name, data);
 	}
 
 	public Set<String> getConstantKeys() {
+
 		return constants.keySet();
 	}
 
 	public boolean hasConstant(final String name) {
+
 		return constants.containsKey(name);
 	}
 
@@ -112,14 +122,17 @@ public class ContextStore {
 	}
 
 	public Set<String> getTemporaryParameterKeys() {
+
 		return this.tmpParameters.keySet();
 	}
 
 	public Map<String, Object> getTemporaryParameters() {
+
 		return this.tmpParameters;
 	}
 
 	public void clearTemporaryParameters() {
+
 		this.tmpParameters.clear();
 	}
 
@@ -136,6 +149,7 @@ public class ContextStore {
 	public Object retrieve(final String key) {
 
 		if (tmpParameters.containsKey(key)) {
+
 			return tmpParameters.get(key);
 		}
 
@@ -145,25 +159,31 @@ public class ContextStore {
 	public void remove(final String key) { requestStore.remove(key);}
 
 	public Map<String, Object> getRequestStore() {
+
 		return requestStore;
 	}
 
 	// --- Function Properties ---
 	public void storeFunctionPropertyResult(final String uuid, final String propertyName, final Object value) {
+
 		this.functionPropertyCache.put(contextCacheKey(uuid, propertyName), value);
 	}
 
 	public Object retrieveFunctionPropertyResult(final String uuid, final String propertyName) {
+
 		return this.functionPropertyCache.get(contextCacheKey(uuid, propertyName));
 	}
 
 	public void clearFunctionPropertyCache() {
+
 		this.functionPropertyCache.clear();
 	}
 
 	// --- Timers ---
 	public void startTimer(final String key) {
+
 		if (!timerStore.containsKey(key)) {
+
 			timerStore.put(key, System.nanoTime());
 		}
 	}
@@ -198,6 +218,7 @@ public class ContextStore {
 		long total = timerElapsedStore.getOrDefault(key, 0L);
 
 		if (timerStore.containsKey(key)) {
+
 			total += (System.nanoTime() - timerStore.get(key));
 		}
 
@@ -207,6 +228,7 @@ public class ContextStore {
 	public AdvancedMailContainer getAdvancedMailContainer () {
 
 		if (amc == null) {
+
 			amc = new AdvancedMailContainer();
 		}
 
@@ -220,15 +242,17 @@ public class ContextStore {
 		final GenericProperty domainKey = new GenericProperty("domain");
 		final GenericProperty localeKey = new GenericProperty("locale");
 		final GenericProperty nodeKey   = new GenericProperty("node");
-
 		boolean notContained = true;
+
 		for (GraphObject gom : localizations) {
+
 			if (notContained) {
 
 				if (gom.getProperty(keyKey).equals(key) && gom.getProperty(domainKey).equals(domain) && gom.getProperty(localeKey).equals(locale)) {
 
 					final GraphObject prevNode = (GraphObject)gom.getProperty(nodeKey);
 					if (prevNode != null && node != null && prevNode.getUuid().equals(((GraphObject)node).getUuid())) {
+
 						notContained = false;
 					}
 				}
@@ -245,8 +269,8 @@ public class ContextStore {
 			data.put("localization", localization);
 
 			GraphObjectMap converted = GraphObjectMap.fromMap(data);
-
 			if (!localizations.contains(converted)) {
+
 				localizations.add(converted);
 			}
 		}
@@ -260,34 +284,42 @@ public class ContextStore {
 
 	// ----- query configuration
 	public void setRangeStart(final int start) {
+
 		this.queryRangeStart = start;
 	}
 
 	public void setRangeEnd(final int end) {
+
 		this.queryRangeEnd = end;
 	}
 
 	public void setSortKey(final String sortKey) {
+
 		this.sortKey = sortKey;
 	}
 
 	public void setSortDescending(final boolean descending) {
+
 		this.sortDescending = descending;
 	}
 
 	public int getRangeStart() {
+
 		return queryRangeStart;
 	}
 
 	public int getRangeEnd() {
+
 		return queryRangeEnd;
 	}
 
 	public String getSortKey() {
+
 		return sortKey;
 	}
 
 	public boolean getSortDescending() {
+
 		return sortDescending;
 	}
 
@@ -299,9 +331,9 @@ public class ContextStore {
 		queryRangeEnd   = -1;
 	}
 
-
 	// ----- private methods -----
 	private String contextCacheKey(final String uuid, final String propertyName) {
+
 		return uuid + "." + propertyName;
 	}
 }

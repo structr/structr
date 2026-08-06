@@ -45,11 +45,13 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getName() {
+
 		return "includeChild";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of(
 			Signature.structrScript("name"),
 			Signature.structrScript("name, collection, dataKey"),
@@ -85,6 +87,7 @@ public class IncludeChildFunction extends IncludeFunction {
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.TEMPLATE)) {
 
 				if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+
 					innerCtx.getBuffer().append("<structr:include-child data-caller-id=\"").append(caller.toString()).append("\">");
 				}
 
@@ -95,6 +98,7 @@ public class IncludeChildFunction extends IncludeFunction {
 				if (childrenWithNameCount == 1) {
 
 					// Exactly one child found => use this node
+
 					return renderNode(securityContext, ctx, innerCtx, sources, app, childrenWithName.getFirst(), true);
 
 				} else if (childrenWithNameCount > 1) {
@@ -113,30 +117,32 @@ public class IncludeChildFunction extends IncludeFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${includeChild(name)}"),
-			Usage.javaScript("Usage: ${{ $.includeChild(name) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${includeChild(name)}"), Usage.javaScript("Usage: ${{ $.includeChild(name) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Loads a template's child element with the given name and renders its HTML representation into the output buffer.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
 			
@@ -166,6 +172,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

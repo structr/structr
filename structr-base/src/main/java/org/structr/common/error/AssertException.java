@@ -40,11 +40,13 @@ public class AssertException extends RuntimeException implements JsonException {
 
 	@Override
 	public int getStatus() {
+
 		return statusCode;
 	}
 
 	@Override
 	public Map<String, String> headers() {
+
 		return headers;
 	}
 
@@ -56,7 +58,6 @@ public class AssertException extends RuntimeException implements JsonException {
 
 		container.add("code", new JsonPrimitive(statusCode));
 		container.add("message", (getMessage() != null) ? new JsonPrimitive(getMessage()) : JsonNull.INSTANCE);
-
 
 		return container;
 	}

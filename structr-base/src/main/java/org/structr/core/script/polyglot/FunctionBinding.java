@@ -40,6 +40,7 @@ public class FunctionBinding implements ProxyObject {
 	public Object getMember(final String name) {
 
 		if (hasMember(name)) {
+
 			return new FunctionWrapper(actionContext, entity, Functions.get(name));
 		}
 
@@ -48,11 +49,13 @@ public class FunctionBinding implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
+
 		return Functions.getNames();
 	}
 
 	@Override
 	public boolean hasMember(final String key) {
+
 		return (Functions.get(key) != null);
 	}
 

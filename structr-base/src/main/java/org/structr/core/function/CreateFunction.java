@@ -37,11 +37,13 @@ public class CreateFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "create";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type [, parameterMap ]");
 	}
 
@@ -53,7 +55,6 @@ public class CreateFunction extends CoreFunction {
 		if (sources.length >= 1 && sources[0] != null) {
 
 			final String typeString = sources[0].toString();
-
 			if (Traits.exists(typeString)) {
 
 				type = Traits.of(typeString);
@@ -85,7 +86,6 @@ public class CreateFunction extends CoreFunction {
 
 			propertyMap               = new PropertyMap();
 			final int parameterCount = sources.length;
-
 			if (parameterCount % 2 == 0) {
 
 				throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -94,7 +94,6 @@ public class CreateFunction extends CoreFunction {
 			for (int c = 1; c < parameterCount; c += 2) {
 
 				final PropertyKey key = type.key(sources[c].toString());
-
 				if (key != null) {
 
 					final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
@@ -115,39 +114,38 @@ public class CreateFunction extends CoreFunction {
 
 	@Override
 	public List<Documentable> getContextHints(final String lastToken) {
+
 		return getContextHintsForTypes(lastToken);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${create(type, key, value)}"),
-			Usage.javaScript("Usage: ${{ $.create(type, { key: value }) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${create(type, key, value)}"), Usage.javaScript("Usage: ${{ $.create(type, { key: value }) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates a new node with the given type and key-value pairs in the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("type", "type of node to create"),
-			Parameter.optional("additionalValues", "key-value pairs or a map thereof")
-		);
+
+		return List.of(Parameter.mandatory("type", "type of node to create"), Parameter.optional("additionalValues", "key-value pairs or a map thereof"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${create('User', 'name', 'tester', 'password', 'changeMeNow!')}"),
+
+		return List.of(Example.structrScript("${create('User', 'name', 'tester', 'password', 'changeMeNow!')}"),
 			Example.javaScript("""
 				${{
 					let user = $.create('User', { name: 'tester', password: 'changeMeNow!' });
@@ -158,6 +156,7 @@ public class CreateFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"In a StructrScript environment, parameters are passed as pairs of `'key1', 'value1'`.",
 			"In a JavaScript environment, the function takes a map as the second parameter."
@@ -166,6 +165,7 @@ public class CreateFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

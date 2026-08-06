@@ -43,14 +43,17 @@ class SimpleCypherQuery implements CypherQuery {
 	private boolean outgoing                = false;
 
 	public SimpleCypherQuery(final StringBuilder buf) {
+
 		this(buf.toString(), new TreeMap<>());
 	}
 
 	public SimpleCypherQuery(final StringBuilder buf, final Map<String, Object> parameters) {
+
 		this(buf.toString(), parameters);
 	}
 
 	public SimpleCypherQuery(final String statement) {
+
 		this(statement, new TreeMap<>());
 	}
 
@@ -62,6 +65,7 @@ class SimpleCypherQuery implements CypherQuery {
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return hashCode() == other.hashCode();
 	}
 
@@ -95,16 +99,19 @@ class SimpleCypherQuery implements CypherQuery {
 
 	@Override
 	public int pageSize() {
+
 		return Integer.MAX_VALUE;
 	}
 
 	@Override
 	public String getStatement() {
+
 		return statement;
 	}
 
 	@Override
 	public Map<String, Object> getParameters() {
+
 		return params;
 	}
 
@@ -130,6 +137,7 @@ class SimpleCypherQuery implements CypherQuery {
 
 	@Override
 	public QueryContext getQueryContext() {
+
 		return queryContext;
 	}
 
@@ -137,6 +145,7 @@ class SimpleCypherQuery implements CypherQuery {
 	public QueryTimer getQueryTimer() {
 
 		if (queryTimer == null) {
+
 			queryTimer = QueryHistogram.newTimer();
 		}
 
@@ -154,14 +163,17 @@ class SimpleCypherQuery implements CypherQuery {
 	}
 
 	public String getType() {
+
 		return type;
 	}
 
 	public String getRelationshipType() {
+
 		return relationshipType;
 	}
 
 	public boolean isOutgoing() {
+
 		return outgoing;
 	}
 }

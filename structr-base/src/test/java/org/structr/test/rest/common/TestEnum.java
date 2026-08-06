@@ -24,10 +24,6 @@ package org.structr.test.rest.common;
  */
 public enum TestEnum {
 	
-	Status1,
-	Status2,
-	Status3,
-	Status4,
-	Status5
+	Status1, Status2, Status3, Status4, Status5
 	
 }

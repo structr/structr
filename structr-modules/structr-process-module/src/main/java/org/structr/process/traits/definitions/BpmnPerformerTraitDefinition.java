@@ -27,6 +27,9 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnPerformer;
+import org.structr.process.traits.wrappers.BpmnPerformerTraitWrapper;
 import java.util.Set;
 
 /**
@@ -68,15 +71,21 @@ public class BpmnPerformerTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String KIND_HUMAN_PERFORMER   = "humanPerformer";
 	public static final String KIND_POTENTIAL_OWNER   = "potentialOwner";
 
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(BpmnPerformer.class, (traits, node) -> new BpmnPerformerTraitWrapper(traits, node));
+	}
+
 	public BpmnPerformerTraitDefinition() {
+
 		super(ProcessTraits.BPMN_PERFORMER);
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
-		final Property<String> kind                = new EnumProperty(KIND_PROPERTY,
-			Set.of(KIND_PERFORMER, KIND_HUMAN_PERFORMER, KIND_POTENTIAL_OWNER)).indexed();
+		final Property<String> kind                = new EnumProperty(KIND_PROPERTY, Set.of(KIND_PERFORMER, KIND_HUMAN_PERFORMER, KIND_POTENTIAL_OWNER)).indexed();
 		final Property<String> expression          = new StringProperty(EXPRESSION_PROPERTY);
 		final Property<String> expressionLanguage  = new StringProperty(EXPRESSION_LANGUAGE_PROPERTY);
 		final Property<String> performerName       = new StringProperty(PERFORMER_NAME_PROPERTY);
@@ -97,6 +106,7 @@ public class BpmnPerformerTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

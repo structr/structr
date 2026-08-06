@@ -34,11 +34,13 @@ public class UrlEncodeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "urlencode";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str");
 	}
 
@@ -54,50 +56,50 @@ public class UrlEncodeFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.urlencode(string) }}."),
-			Usage.structrScript("Usage: ${urlencode(string)}.")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.urlencode(string) }}."), Usage.structrScript("Usage: ${urlencode(string)}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "URL-encodes the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${urlencode(this.email)}"),
-				Example.javaScript("${{ $.urlencode($.this.email) }}")
-		);
+
+		return List.of(Example.structrScript("${urlencode(this.email)}"), Example.javaScript("${{ $.urlencode($.this.email) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("str", "given string")
-				);
+
+		return List.of(Parameter.mandatory("str", "given string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

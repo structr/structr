@@ -41,10 +41,12 @@ public class JoinProperty extends StringProperty {
 	private List<PropertyKey> keys = new ArrayList<>();
 
 	public JoinProperty(final String name, final String separator, final PropertyKey... keys) {
+
 		this(name, name, separator, keys);
 	}
 
 	public JoinProperty(final String jsonName, final String dbName, final String messageFormat, final PropertyKey... keys) {
+
 		super(jsonName);
 
 		this.dbName = dbName;
@@ -67,6 +69,7 @@ public class JoinProperty extends StringProperty {
 			if (inputConverter != null) {
 
 				try {
+
 					final Object value = inputConverter.revert(key.getProperty(securityContext, obj, applyConverter, predicate));
 					if (value != null) {
 
@@ -74,6 +77,7 @@ public class JoinProperty extends StringProperty {
 					}
 
 				} catch (FrameworkException fex) {
+
 					logger.warn("", fex);
 				}
 
@@ -88,6 +92,7 @@ public class JoinProperty extends StringProperty {
 		}
 
 		try {
+
 			return MessageFormat.format(format, arguments.toArray());
 
 		} catch (Throwable t) { }
@@ -103,10 +108,12 @@ public class JoinProperty extends StringProperty {
 		int len                           = 0;
 
 		try {
+
 			values = formatter.parse(value);
 			len    = values.length;
 
 		} catch (ParseException pex) {
+
 			throw new FrameworkException(422, pex.getMessage());
 		}
 

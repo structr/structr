@@ -50,12 +50,13 @@ import static org.testng.AssertJUnit.*;
 
 public class PageTest extends StructrUiTest {
 
-
 	@Test
 	public void testGetElementsByTagName() {
 
 		final String pageName = "page-01";
+
 		try {
+
 			try (final Tx tx = app.tx()) {
 
 				Page page = Page.createNewPage(securityContext, pageName);
@@ -125,6 +126,7 @@ public class PageTest extends StructrUiTest {
 	public void testAdoptNodes() {
 
 		try {
+
 			try (final Tx tx = app.tx()) {
 
 				Page srcPage = Page.createNewPage(securityContext, "srcPage");
@@ -280,6 +282,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -295,6 +298,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -304,6 +308,7 @@ public class PageTest extends StructrUiTest {
 	public void testCloneNode() {
 
 		try {
+
 			try (final Tx tx = app.tx()) {
 
 				Page page = Page.createNewPage(securityContext, "srcPage");
@@ -565,6 +570,7 @@ public class PageTest extends StructrUiTest {
 		isClone &= StringUtils.equals(content1, content2);
 
 		final Set<PropertyKey> compareKeys = n1.getTraits().getPropertyKeysForView(PropertyView.Html);
+
 		for (final PropertyKey key : compareKeys) {
 
 			final Object value1 = n1.getProperty(key);
@@ -579,14 +585,17 @@ public class PageTest extends StructrUiTest {
 	private boolean isEqualOrNull(final Object o1, final Object o2) {
 
 		if (o1 == null && o2 != null) {
+
 			return false;
 		}
 
 		if (o1 != null && o2 == null) {
+
 			return false;
 		}
 
 		if (o1 == null && o2 == null) {
+
 			return true;
 		}
 

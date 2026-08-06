@@ -25,6 +25,7 @@ package org.structr.common.error;
 public class IdNotFoundToken extends PropertyNotFoundToken {
 
 	public IdNotFoundToken(final String type, final Object value) {
+
 		super(type, "id", value);
 	}
 }

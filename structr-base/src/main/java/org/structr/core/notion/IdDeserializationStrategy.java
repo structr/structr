@@ -54,6 +54,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 	@Override
 	public void setRelationProperty(final RelationProperty parentProperty) {
+
 		this.relationProperty = parentProperty;
 	}
 
@@ -75,6 +76,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 					// fetch node by ID
 					relatedNode = (T) app.getNodeById(properties.get("id").toString());
+
 					if (relatedNode != null) {
 
 						// fetch type from actual node
@@ -98,7 +100,6 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 				for (final Iterator<String> it = properties.keySet().iterator(); it.hasNext();) {
 
 					final String key = it.next();
-
 					if (!actualType.hasKey(key)) {
 
 						foreignProps.put(key, properties.get(key));
@@ -118,6 +119,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					if (relatedNode != null) {
 
 						if ( !SearchCommand.isTypeAssignableFromOtherType(actualType, relatedNode.getTraits()) ) {
+
 							throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 						}
 
@@ -198,11 +200,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					}
 
 					// FIXME: when can the relationProperty be null at all?
-					throw new FrameworkException(500, concat(
-						"Unable to resolve related node of type ",
-						type,
-						", no relation defined."
-					));
+					throw new FrameworkException(500, concat("Unable to resolve related node of type ", type, ", no relation defined."));
 
 				} else {
 
@@ -237,6 +235,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 						String propertyName = null;
 
 						if (relationProperty instanceof PropertyKey propertyKey) {
+
 							propertyName = propertyKey.jsonName();
 						}
 
@@ -255,12 +254,13 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 					// interpret source as a raw ID string and fetch entity
 					final GraphObject obj = app.getNodeById(type, uuid);
-
 					if (obj == null && !securityContext.ignoreMissingNodesInDeserialization()) {
+
 						throw new FrameworkException(422, "No " + type + " with UUID " + uuid + " found.", new IdNotFoundToken(type, uuid));
 					}
 
 					if (obj != null && !obj.getTraits().contains(type)) {
+
 						throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type));
 					}
 
@@ -277,6 +277,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 		final StringBuilder buf = new StringBuilder(values.length * 20);
 
 		for (Object value : values) {
+
 			buf.append(value);
 		}
 
@@ -284,6 +285,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 	}
 
 	private boolean isIdentifying(final Traits actualType, final PropertyKey key) {
+
 		return (actualType.contains(StructrTraits.PRINCIPAL) && (NodeInterfaceTraitDefinition.NAME_PROPERTY.equals(key.jsonName()) || PrincipalTraitDefinition.EMAIL_PROPERTY.equals(key.jsonName())));
 	}
 
@@ -292,6 +294,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 		final List<T> list = new LinkedList<>();
 
 		for (final NodeInterface n : iterable) {
+
 			list.add((T)n);
 		}
 

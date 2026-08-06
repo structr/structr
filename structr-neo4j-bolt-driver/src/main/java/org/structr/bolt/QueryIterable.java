@@ -30,6 +30,7 @@ public class QueryIterable implements Iterable<Record> {
 	private CypherQuery query      = null;
 
 	public QueryIterable(final BoltDatabaseService db, final CypherQuery query) {
+
 		this.query = query;
 		this.db    = db;
 	}

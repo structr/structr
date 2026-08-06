@@ -50,6 +50,7 @@ public class EachExpression extends Expression {
 	private Expression eachExpression = null;
 
 	public EachExpression(final int row, final int column) {
+
 		super("each", row, column);
 	}
 
@@ -61,8 +62,10 @@ public class EachExpression extends Expression {
 		buf.append("each(");
 
 		for (final Expression expr : expressions) {
+
 			buf.append(expr.toString());
 		}
+
 		buf.append(")");
 
 		return buf.toString();
@@ -93,12 +96,13 @@ public class EachExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null) {
+
 			return ERROR_MESSAGE_EACH;
 		}
 
 		Object listSource = listExpression.evaluate(ctx, entity);
-
 		if (listSource != null && listSource.getClass().isArray()) {
+
 			listSource = Arrays.asList((Object[]) listSource);
 		}
 
@@ -123,6 +127,7 @@ public class EachExpression extends Expression {
 							eachExpression.evaluate(ctx, entity);
 
 							if ((++count % getBatchSize()) == 0) {
+
 								break;
 							}
 						}
@@ -159,34 +164,37 @@ public class EachExpression extends Expression {
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	@Override
 	public String getName() {
+
 		return "each";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Evaluates a StructrScript expression for every element of a collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function returns no value. Inside the expression function, the keyword `data` refers to the current element. See also: `all()`, `any()`, and `none()` if the expression returns a value.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("list", "list of elements to loop over"),
-			Parameter.mandatory("expression", "expression to evaluate for each element")
-		);
+
+		return List.of(Parameter.mandatory("list", "list of elements to loop over"), Parameter.mandatory("expression", "expression to evaluate for each element"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${each(find('User'), log(data.name))}", "Log the names of all users"),
 			Example.structrScript("${each(find('User', '0b514b0bd5ef4f2e8ad7230cb2e6c9d1').sessionIds), log(data))}", "Log the session IDs of a given user")
@@ -195,6 +203,7 @@ public class EachExpression extends Expression {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.forEach()`).",
 			"The collection can also be a list of strings or numbers (see example 2)."
@@ -203,25 +212,25 @@ public class EachExpression extends Expression {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return List.of(
-			Signature.structrScript("list, expression")
-		);
+
+		return List.of(Signature.structrScript("list, expression"));
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.StructrScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${each(list, expression)}. Example: ${each(user.groups, print(data.name))}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${each(list, expression)}. Example: ${each(user.groups, print(data.name))}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

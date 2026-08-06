@@ -28,6 +28,7 @@ import org.structr.flow.traits.definitions.FlowObjectDataSourceTraitDefinition;
 public class FlowObjectDataSource extends FlowDataSource {
 
 	public FlowObjectDataSource(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

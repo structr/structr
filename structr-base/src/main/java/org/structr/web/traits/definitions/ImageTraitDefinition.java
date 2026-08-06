@@ -76,6 +76,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String POSTER_IMAGE_OF_VIDEO_PROPERTY     = "posterImageOfVideo";
 
 	public ImageTraitDefinition() {
+
 		super(StructrTraits.IMAGE);
 	}
 
@@ -84,8 +85,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -123,8 +123,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			SetProperty.class,
-			new SetProperty() {
+			SetProperty.class, new SetProperty() {
 
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
@@ -149,14 +148,12 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			SetProperties.class,
-			new SetProperties() {
+			SetProperties.class, new SetProperties() {
 
 				@Override
 				public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
 					final Image thisImage = graphObject.as(Image.class);
-
 					if (!thisImage.isThumbnail()) {
 
 						final PropertyMap propertiesCopiedToAllThumbnails = new PropertyMap();
@@ -164,7 +161,6 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 						for (final PropertyKey key : properties.keySet()) {
 
 							final String keyName = key.jsonName();
-
 							if (GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY.equals(keyName) || GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY.equals(keyName) || NodeInterfaceTraitDefinition.OWNER_PROPERTY.equals(keyName)) {
 
 								propertiesCopiedToAllThumbnails.put(key, properties.get(key));
@@ -190,14 +186,12 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			IsGranted.class,
-			new IsGranted() {
+			IsGranted.class, new IsGranted() {
 
 				@Override
 				public boolean isGranted(final NodeInterface graphObject, final Permission permission, final SecurityContext securityContext, final boolean isCreation) {
 
 					final Image thisImage = graphObject.as(Image.class);
-
 					if (thisImage.isThumbnail()) {
 
 						final org.structr.web.entity.Image originalImage = thisImage.getOriginalImage();
@@ -215,15 +209,14 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Image.class, (traits, node) -> new ImageTraitWrapper(traits, node)
-		);
+		return Map.of(Image.class, (traits, node) -> new ImageTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -288,11 +281,13 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

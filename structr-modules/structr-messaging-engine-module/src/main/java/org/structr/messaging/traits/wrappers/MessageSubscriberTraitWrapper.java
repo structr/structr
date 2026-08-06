@@ -43,14 +43,17 @@ import java.util.Map;
 public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper implements MessageSubscriber {
 
 	public MessageSubscriberTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getTopic() {
+
 		return wrappedObject.getProperty(traits.key(MessageSubscriberTraitDefinition.TOPIC_PROPERTY));
 	}
 
 	public String getCallback() {
+
 		return wrappedObject.getProperty(traits.key(MessageSubscriberTraitDefinition.CALLBACK_PROPERTY));
 	}
 
@@ -102,8 +105,8 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 		if (!StringUtils.isEmpty(this.getCallback())) {
 
 			String script = "${" + this.getCallback().trim() + "}";
-
 			Map<String, Object> params = new HashMap<>();
+
 			params.put("topic", topic);
 			params.put("message", message);
 

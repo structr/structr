@@ -48,36 +48,43 @@ public class CallbackCounter {
 	}
 
 	public void onCreate() {
+
 		onCreate++;
 		count();
 	}
 
 	public void onSave() {
+
 		onSave++;
 		count();
 	}
 
 	public void onDelete() {
+
 		onDelete++;
 		count();
 	}
 
 	public void afterCreate() {
+
 		afterCreate++;
 		count();
 	}
 
 	public void afterSave() {
+
 		afterSave++;
 		count();
 	}
 
 	public void afterDelete() {
+
 		afterDelete++;
 		count();
 	}
 
 	public void indexing() {
+
 		indexing++;
 		count();
 	}
@@ -87,8 +94,7 @@ public class CallbackCounter {
 
 		if ((++sum % LOGGING_THRESHOLD) == 0) {
 
-			logger.warn(
-				  "Number of callbacks in transaction {} by thread {} has exceeded logging threshold: onCreate/onSave/onDelete: {}/{}/{}, "
+			logger.warn("Number of callbacks in transaction {} by thread {} has exceeded logging threshold: onCreate/onSave/onDelete: {}/{}/{}, "
 				+ "afterCreate/afterSave/afterDelete: {}/{}/{}, indexing: {}. This is a warning that the transaction size might be too large, "
 				+ "or that an unusual number of callbacks are executed in this transaction. To disable this warning message, increase the "
 				+ "value of {} in structr.conf.",

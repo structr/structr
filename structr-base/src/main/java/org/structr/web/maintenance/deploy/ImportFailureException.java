@@ -39,6 +39,7 @@ public class ImportFailureException extends RuntimeException {
 	}
 
 	public ErrorBuffer getErrorBuffer() {
+
 		return errorBuffer;
 	}
 

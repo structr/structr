@@ -74,6 +74,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 	@Override
 	public int hashCode() {
+
 		return name.hashCode();
 	}
 
@@ -90,6 +91,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 	@Override
 	public String getRelationship() {
+
 		return relationshipType;
 	}
 
@@ -97,6 +99,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setRelationship(final String relationship) {
 
 		this.relationshipType = relationship;
+
 		return this;
 	}
 
@@ -104,21 +107,25 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setCardinality(final Cardinality cardinality) {
 
 		this.cardinality = cardinality;
+
 		return this;
 	}
 
 	@Override
 	public Cardinality getCardinality() {
+
 		return cardinality;
 	}
 
 	@Override
 	public URI getSourceType() {
+
 		return sourceType;
 	}
 
 	@Override
 	public URI getTargetType() {
+
 		return targetType;
 	}
 
@@ -126,11 +133,13 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setSourcePropertyName(final String sourcePropertyName) {
 
 		this.sourcePropertyName = sourcePropertyName;
+
 		return this;
 	}
 
 	@Override
 	public String getSourcePropertyName() {
+
 		return sourcePropertyName;
 	}
 
@@ -138,31 +147,37 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setTargetPropertyName(final String targetPropertyName) {
 
 		this.targetPropertyName = targetPropertyName;
+
 		return this;
 	}
 
 	@Override
 	public String getTargetPropertyName() {
+
 		return targetPropertyName;
 	}
 
 	@Override
 	public JsonReferenceProperty getSourceProperty() {
+
 		return sourceReference;
 	}
 
 	@Override
 	public JsonReferenceProperty getTargetProperty() {
+
 		return targetReference;
 	}
 
 	@Override
 	public Cascade getCascadingDelete() {
+
 		return cascadingDelete;
 	}
 
 	@Override
 	public Cascade getCascadingCreate() {
+
 		return cascadingCreate;
 	}
 
@@ -170,6 +185,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setCascadingDelete(final Cascade cascade) {
 
 		this.cascadingDelete = cascade;
+
 		return this;
 	}
 
@@ -177,31 +193,37 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setCascadingCreate(final Cascade cascade) {
 
 		this.cascadingCreate = cascade;
+
 		return this;
 	}
 
 	@Override
 	public PropagationDirection getPermissionPropagation() {
+
 		return permissionPropagation;
 	}
 
 	@Override
 	public PropagationMode getReadPermissionPropagation() {
+
 		return readPropagation;
 	}
 
 	@Override
 	public PropagationMode getWritePermissionPropagation() {
+
 		return writePropagation;
 	}
 
 	@Override
 	public PropagationMode getDeletePermissionPropagation() {
+
 		return deletePropagation;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPermissionPropagation() {
+
 		return accessControlPropagation;
 	}
 
@@ -209,6 +231,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setPermissionPropagation(final PropagationDirection value) {
 
 		permissionPropagation = value;
+
 		return this;
 	}
 
@@ -216,6 +239,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setReadPermissionPropagation(final PropagationMode value) {
 
 		readPropagation = value;
+
 		return this;
 	}
 
@@ -223,6 +247,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setWritePermissionPropagation(final PropagationMode value) {
 
 		writePropagation = value;
+
 		return this;
 	}
 
@@ -230,6 +255,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setDeletePermissionPropagation(final PropagationMode value) {
 
 		deletePropagation = value;
+
 		return this;
 	}
 
@@ -237,12 +263,14 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public JsonReferenceType setAccessControlPermissionPropagation(final PropagationMode value) {
 
 		accessControlPropagation = value;
+
 		return this;
 	}
 
 	// ----- package methods ------
 	@Override
 	Map<String, Object> serialize() {
+
 		return serialize(false);
 	}
 
@@ -263,22 +291,27 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			map.put(JsonSchema.KEY_ACL_RESOLUTION, permissionPropagation);
 
 			if (!PropagationMode.Remove.equals(readPropagation)) {
+
 				map.put(JsonSchema.KEY_ACL_READ_MASK, readPropagation);
 			}
 
 			if (!PropagationMode.Remove.equals(writePropagation)) {
+
 				map.put(JsonSchema.KEY_ACL_WRITE_MASK, writePropagation);
 			}
 
 			if (!PropagationMode.Remove.equals(deletePropagation)) {
+
 				map.put(JsonSchema.KEY_ACL_DELETE_MASK, deletePropagation);
 			}
 
 			if (!PropagationMode.Remove.equals(accessControlPropagation)) {
+
 				map.put(JsonSchema.KEY_ACL_ACCESS_CONTROL_MASK, accessControlPropagation);
 			}
 
 			if (aclHiddenProperties != null) {
+
 				map.put(JsonSchema.KEY_ACL_HIDDEN_PROPERTIES, aclHiddenProperties);
 			}
 		}
@@ -286,17 +319,22 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final Map<String, Object> cascade = new TreeMap<>();
 
 		if (cascadingCreate != null) {
+
 			cascade.put(JsonSchema.KEY_CREATE, cascadingCreate.name());
 		}
+
 		if (cascadingDelete != null) {
+
 			cascade.put(JsonSchema.KEY_DELETE, cascadingDelete.name());
 		}
 
 		if (!cascade.isEmpty()) {
+
 			map.put(JsonSchema.KEY_CASCADE, cascade);
 		}
 
 		if (cardinality != null && !Cardinality.ManyToMany.equals(cardinality)) {
+
 			map.put(JsonSchema.KEY_CARDINALITY, cardinality.name());
 		}
 
@@ -452,13 +490,14 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		this.aclHiddenProperties       = schemaNode.getPropertyMask();
 
 		if (sourcePropertyName == null) {
+
 			sourcePropertyName = schemaNode.getPropertyName(root.getExistingPropertyNames(), false);
 		}
 
 		if (targetPropertyName == null) {
+
 			targetPropertyName = schemaNode.getPropertyName(root.getExistingPropertyNames(), true);
 		}
-
 
 		final Long cascadingDeleteFlag = schemaNode.getCascadingDeleteFlag();
 		if (cascadingDeleteFlag != null) {
@@ -480,6 +519,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			if ("1".equals(targetMultiplicity)) {
 
 				this.cardinality = Cardinality.OneToOne;
+
 			} else {
 
 				this.cardinality = Cardinality.OneToMany;
@@ -490,13 +530,13 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			if ("1".equals(targetMultiplicity)) {
 
 				this.cardinality = Cardinality.ManyToOne;
+
 			} else {
 
 				this.cardinality = Cardinality.ManyToMany;
 			}
 		}
 	}
-
 
 	@Override
 	SchemaRelationshipNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
@@ -519,26 +559,32 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.AUTOCREATION_FLAG_PROPERTY),     getCascadingFlag(cascadingCreate));
 
 		if (permissionPropagation != null) {
+
 			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), permissionPropagation.name());
 		}
 
 		if (readPropagation != null) {
+
 			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), readPropagation.name());
 		}
 
 		if (writePropagation != null) {
+
 			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.WRITE_PROPAGATION_PROPERTY), writePropagation.name());
 		}
 
 		if (deletePropagation != null) {
+
 			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.DELETE_PROPAGATION_PROPERTY), deletePropagation.name());
 		}
 
 		if (accessControlPropagation != null)  {
+
 			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY), accessControlPropagation.name());
 		}
 
 		if (aclHiddenProperties != null) {
+
 			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.PROPERTY_MASK_PROPERTY), aclHiddenProperties);
 		}
 
@@ -551,6 +597,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public boolean isBlacklisted(final Set<String> blacklist) {
 
 		if (blacklist.contains(name)) {
+
 			return true;
 		}
 
@@ -558,8 +605,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		if (source instanceof JsonType) {
 
 			final JsonType t = (JsonType) source;
-
 			if (blacklist.contains(t.getName())) {
+
 				return true;
 			}
 		}
@@ -568,8 +615,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		if (target instanceof JsonType) {
 
 			final JsonType t = (JsonType) target;
-
 			if (blacklist.contains(t.getName())) {
+
 				return true;
 			}
 		}
@@ -583,8 +630,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		// nodes is completed and all references can be resolved
 		final SchemaNode sourceSchemaNode = resolveSchemaNode(schemaNodes, app, sourceType);
 		final SchemaNode targetSchemaNode = resolveSchemaNode(schemaNodes, app, targetType);
-
 		final SchemaRelationshipNode thisSchemaRelationship = getSchemaNode();
+
 		if (thisSchemaRelationship != null) {
 
 			final String prefix = "static/";
@@ -718,10 +765,12 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 			case OneToOne:
 			case OneToMany:
+
 				return "1";
 
 			case ManyToOne:
 			case ManyToMany:
+
 				return "*";
 		}
 
@@ -734,10 +783,12 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 			case OneToOne:
 			case ManyToOne:
+
 				return "1";
 
 			case OneToMany:
 			case ManyToMany:
+
 				return "*";
 		}
 
@@ -749,15 +800,19 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		switch (cascadingFlag) {
 
 			case Relation.NONE:
+
 				return null;
 
 			case Relation.SOURCE_TO_TARGET:
+
 				return Cascade.sourceToTarget;
 
 			case Relation.TARGET_TO_SOURCE:
+
 				return Cascade.targetToSource;
 
 			case Relation.ALWAYS:
+
 				return Cascade.always;
 		}
 
@@ -771,12 +826,15 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			switch (cascade) {
 
 				case sourceToTarget:
+
 					return Relation.SOURCE_TO_TARGET;
 
 				case targetToSource:
+
 					return Relation.TARGET_TO_SOURCE;
 
 				case always:
+
 					return Relation.ALWAYS;
 			}
 		}
@@ -788,16 +846,19 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private class SourcePropertyReference extends StructrReferenceProperty {
 
 		private SourcePropertyReference(final JsonType parent, final String name) {
+
 			super(parent, name);
 		}
 
 		@Override
 		public URI getId() {
+
 			return URI.create(targetType.toString() + "/properties/" + getName());
 		}
 
 		@Override
 		public String getName() {
+
 			return sourcePropertyName;
 		}
 
@@ -808,10 +869,12 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 				case OneToOne:
 				case OneToMany:
+
 					return "object";
 
 				case ManyToMany:
 				case ManyToOne:
+
 					return "array";
 			}
 
@@ -822,6 +885,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		public JsonProperty setName(final String name) {
 
 			StructrRelationshipTypeDefinition.this.sourcePropertyName = name;
+
 			return this;
 		}
 	}
@@ -829,16 +893,19 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private class TargetPropertyReference extends StructrReferenceProperty {
 
 		private TargetPropertyReference(final JsonType parent, final String name) {
+
 			super(parent, name);
 		}
 
 		@Override
 		public URI getId() {
+
 			return URI.create(sourceType.toString() + "/properties/" + getName());
 		}
 
 		@Override
 		public String getName() {
+
 			return targetPropertyName;
 		}
 
@@ -849,10 +916,12 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 				case OneToOne:
 				case ManyToOne:
+
 					return "object";
 
 				case OneToMany:
 				case ManyToMany:
+
 					return "array";
 			}
 
@@ -863,6 +932,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		public JsonProperty setName(final String name) {
 
 			StructrRelationshipTypeDefinition.this.targetPropertyName = name;
+
 			return this;
 		}
 

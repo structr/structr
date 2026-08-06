@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class SiteCONTAINSPage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SiteCONTAINSPage() {
+
 		super(StructrTraits.SITE_CONTAINS_PAGE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.SITE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.PAGE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONTAINS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

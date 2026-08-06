@@ -64,12 +64,14 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 			}
 
 			for (final NodeInterface node : filteredResults) {
+
 				app.delete(node);
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
@@ -78,11 +80,13 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "DELETE_UNATTACHED_NODES";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 }

@@ -26,9 +26,7 @@ import org.structr.docs.ontology.ConceptType;
 @Documentation(name="Notifications", type=ConceptType.Topic, shortDescription="Notifications that can be executed after an action was executed.", parent="Event Action Mapping")
 public enum EventNotification implements Documentable {
 
-	CustomDialogLinked("custom-dialog-linked", "Custom dialog", null),
-	FireEvent("fire-event", "Fire event", null),
-	InlineTextMessage("inline-text-message", "Inline text message", null),
+	CustomDialogLinked("custom-dialog-linked", "Custom dialog", null), FireEvent("fire-event", "Fire event", null), InlineTextMessage("inline-text-message", "Inline text message", null),
 
 	Unknown("unknown", null, null);
 
@@ -43,20 +41,24 @@ public enum EventNotification implements Documentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.EventNotification;
 	}
 
 	public String getName() {
+
 		return identifier;
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return displayName;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 
@@ -71,6 +73,7 @@ public enum EventNotification implements Documentable {
 		for (final EventNotification type : EventNotification.values()) {
 
 			if (type.getName().equals(identifier)) {
+
 				return type;
 			}
 		}

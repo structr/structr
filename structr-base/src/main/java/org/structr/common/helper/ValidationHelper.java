@@ -79,11 +79,13 @@ public class ValidationHelper {
 			}
 
 			errorBuffer.add(new TooShortToken(type, key.jsonName(), minLength));
+
 			return false;
 
 		}
 
 		errorBuffer.add(new EmptyPropertyToken(type, key.jsonName()));
+
 		return false;
 	}
 
@@ -122,9 +124,11 @@ public class ValidationHelper {
 	public static boolean isValidPropertyNotNull(final GraphObject node, final PropertyKey key, final ErrorBuffer errorBuffer) {
 
 		final String type  = node.getType();
+
 		if (key == null) {
 
 			errorBuffer.add(new EmptyPropertyToken(type, "unknown type"));
+
 			return false;
 		}
 
@@ -149,6 +153,7 @@ public class ValidationHelper {
 
 		// for nodes, that were not created in the current tx, add the detail UUID
 		if (!TransactionCommand.getCurrentTransaction().isNodeCreated(node.getPropertyContainer().getId().getId())) {
+
 			ept.withDetail(node.getUuid());
 		}
 
@@ -170,13 +175,14 @@ public class ValidationHelper {
 	public static boolean isValidStringMatchingRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final String description, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
-
 		if (isValidStringMatchingRegex(value, expression)) {
+
 			return true;
 		}
 
 		// no match
 		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), description, value));
+
 		return false;
 	}
 
@@ -191,7 +197,6 @@ public class ValidationHelper {
 	public static boolean isValidStringMatchingRegex(final String value, final String expression) {
 
 		Pattern pattern = patterns.get(expression);
-
 		if (pattern == null) {
 
 			pattern = Pattern.compile(expression);
@@ -213,13 +218,14 @@ public class ValidationHelper {
 	public static boolean isValidUuid(final GraphObject node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
-
 		if (Settings.isValidUuid(value)) {
+
 			return true;
 		}
 
 		// no match
 		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), Settings.getValidUUIDRegexString(), value));
+
 		return false;
 	}
 
@@ -251,14 +257,20 @@ public class ValidationHelper {
 				boolean inRange = true;
 
 				if ("[".equals(leftBound)) {
+
 					inRange &= (value >= left);
+
 				} else {
+
 					inRange &= (value > left);
 				}
 
 				if ("]".equals(rightBound)) {
+
 					inRange &= (value <= right);
+
 				} else {
+
 					inRange &= (value < right);
 				}
 
@@ -272,6 +284,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -305,14 +318,20 @@ public class ValidationHelper {
 				for (final Integer value : values) {
 
 					if ("[".equals(leftBound)) {
+
 						inRange &= (value >= left);
+
 					} else {
+
 						inRange &= (value > left);
 					}
 
 					if ("]".equals(rightBound)) {
+
 						inRange &= (value <= right);
+
 					} else {
+
 						inRange &= (value < right);
 					}
 				}
@@ -327,6 +346,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -358,14 +378,20 @@ public class ValidationHelper {
 				boolean inRange         = true;
 
 				if ("[".equals(leftBound)) {
+
 					inRange &= (value >= left);
+
 				} else {
+
 					inRange &= (value > left);
 				}
 
 				if ("]".equals(rightBound)) {
+
 					inRange &= (value <= right);
+
 				} else {
+
 					inRange &= (value < right);
 				}
 
@@ -380,6 +406,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -413,14 +440,20 @@ public class ValidationHelper {
 				for (final Long value : values) {
 
 					if ("[".equals(leftBound)) {
+
 						inRange &= (value >= left);
+
 					} else {
+
 						inRange &= (value > left);
 					}
 
 					if ("]".equals(rightBound)) {
+
 						inRange &= (value <= right);
+
 					} else {
+
 						inRange &= (value < right);
 					}
 				}
@@ -436,6 +469,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -467,14 +501,20 @@ public class ValidationHelper {
 				boolean inRange         = true;
 
 				if ("[".equals(leftBound)) {
+
 					inRange &= (value >= left);
+
 				} else {
+
 					inRange &= (value > left);
 				}
 
 				if ("]".equals(rightBound)) {
+
 					inRange &= (value <= right);
+
 				} else {
+
 					inRange &= (value < right);
 				}
 
@@ -489,6 +529,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -522,14 +563,20 @@ public class ValidationHelper {
 				for (final Double value : values) {
 
 					if ("[".equals(leftBound)) {
+
 						inRange &= (value >= left);
+
 					} else {
+
 						inRange &= (value > left);
 					}
 
 					if ("]".equals(rightBound)) {
+
 						inRange &= (value <= right);
+
 					} else {
+
 						inRange &= (value < right);
 					}
 				}
@@ -545,6 +592,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -558,6 +606,7 @@ public class ValidationHelper {
 
 				final Traits traits      = object.getTraits();
 				List<GraphObject> result = null;
+
 				final String type;
 
 				// use declaring class for inheritance-aware uniqueness
@@ -623,6 +672,7 @@ public class ValidationHelper {
 							errorBuffer.add(new UniqueToken(object.getType(), key.jsonName(), object.getUuid(), foundNode.getUuid(), value));
 
 							// error!
+
 							return false;
 						}
 					}
@@ -631,6 +681,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -710,6 +761,7 @@ public class ValidationHelper {
 						errorBuffer.add(new CompoundToken(object.getType(), keys, object.getUuid()));
 
 						// error!
+
 						return false;
 					}
 				}
@@ -717,6 +769,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 	}
 
@@ -776,6 +829,7 @@ public class ValidationHelper {
 						errorBuffer.add(new UniqueToken(object.getType(), key.jsonName(), object.getUuid(), foundNode.getUuid(), value));
 
 						// error!
+
 						return false;
 					}
 				}
@@ -783,6 +837,7 @@ public class ValidationHelper {
 		}
 
 		// no error
+
 		return true;
 
 	}
@@ -798,8 +853,8 @@ public class ValidationHelper {
 	public static boolean isNotReservedWordForPropertyNames(final GraphObject node, final PropertyKey<String> key, final String prefix, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
-
 		if (value == null) {
+
 			return true;
 		}
 
@@ -811,6 +866,7 @@ public class ValidationHelper {
 		);
 
 		if (!reserved.contains(value)) {
+
 			return true;
 		}
 

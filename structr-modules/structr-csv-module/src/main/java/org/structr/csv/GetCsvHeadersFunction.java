@@ -35,11 +35,13 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public String getName() {
+
 		return "getCsvHeaders";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' ]]]");
 	}
 
@@ -69,9 +71,13 @@ public class GetCsvHeadersFunction extends CsvFunction {
 				}
 
 				CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0)).withHeader();
+
 				if (quoteChar.length() > 0) {
+
 					format = format.withQuote(quoteChar.charAt(0));
+
 				} else {
+
 					format = format.withQuote(null);
 				}
 
@@ -96,12 +102,14 @@ public class GetCsvHeadersFunction extends CsvFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.structrScript("Usage: ${getCsvHeaders(source[, delimiterChar [, quoteChar[, recordSeparator]]])}"),
 				Usage.javaScript("Usage: ${{ $.getCsvHeaders(source[, delimiterChar[, quoteChar[, recordSeparator]]]) }}")
@@ -110,30 +118,31 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Parses the given CSV string and returns a list of column headers.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getCsvHeaders('COL1;COL2;COL3\\none;two;three')}"),
-				Example.javaScript("${{ $.getCsvHeaders('COL1;COL2;COL3\\none;two;three') }}")
-		);
+
+		return List.of(Example.structrScript("${getCsvHeaders('COL1;COL2;COL3\\none;two;three')}"), Example.javaScript("${{ $.getCsvHeaders('COL1;COL2;COL3\\none;two;three') }}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("source", "CSV string"),
 				Parameter.optional("delimiter", "CSV field delimiter, default: ';'"),
@@ -144,6 +153,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

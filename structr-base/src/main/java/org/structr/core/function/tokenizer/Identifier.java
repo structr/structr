@@ -37,22 +37,26 @@ public class Identifier extends Tokenizer {
 
 	@Override
 	public void add(final char character) {
+
 		super.add(character);
 		index++;
 	}
 
 	@Override
 	public String getType() {
+
 		return "identifier";
 	}
 
 	@Override
 	public String getQuoteChar() {
+
 		return null;
 	}
 
 	@Override
 	Tokenizer newInstance() {
+
 		return new Identifier();
 	}
 }

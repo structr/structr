@@ -35,16 +35,19 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 
 	@Override
 	public String getName() {
+
 		return "searchRelationshipsFulltext";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("indexName, searchString");
 	}
 
 	@Override
 	public String getNamespaceIdentifier() {
+
 		return "searchRelationshipsFulltext";
 	}
 
@@ -72,12 +75,14 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${searchRelationshipsFulltext(indexName, searchString)}. Example: ${searchRelationshipsFulltext(\"UserName\", \"abc\")}"),
 			Usage.javaScript("Usage: ${{ $.searchRelationshipsFulltext(indexName, value) }}. Example: ${{ $.searchRelationshipsFulltext(\"UserName\", \"abc\") }}")
@@ -86,16 +91,19 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a map of entities and search scores matching the given search string from the given fulltext index. Searches case-insensitive / inexact.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

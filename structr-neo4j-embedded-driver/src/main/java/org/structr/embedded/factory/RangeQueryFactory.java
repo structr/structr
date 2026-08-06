@@ -30,6 +30,7 @@ import org.structr.embedded.AdvancedCypherQuery;
 public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public RangeQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -44,6 +45,7 @@ public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 			// to select the correct index
 			final String label = predicate.getLabel();
 			if (label != null) {
+
 				query.indexLabel(label);
 			}
 
@@ -53,6 +55,7 @@ public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 			final String name           = predicate.getName();
 
 			if (rangeStart == null && rangeEnd == null) {
+
 				return false;
 			}
 
@@ -60,6 +63,7 @@ public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 			if (rangeStart == null && rangeEnd != null) {
 
 				query.addSimpleParameter(name, getLessThanOperator(rangeQuery.getIncludeEnd()), rangeEnd);
+
 				return true;
 			}
 
@@ -67,6 +71,7 @@ public class RangeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 			if (rangeStart != null && rangeEnd == null) {
 
 				query.addSimpleParameter(name, getGreaterThanOperator(rangeQuery.getIncludeStart()), rangeStart);
+
 				return true;
 			}
 

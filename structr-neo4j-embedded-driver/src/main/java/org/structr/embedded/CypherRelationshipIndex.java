@@ -33,6 +33,7 @@ import java.util.Map;
 class CypherRelationshipIndex extends AbstractCypherIndex<Relationship<String>> {
 
 	public CypherRelationshipIndex(final EmbeddedDatabaseService db) {
+
 		super(db);
 	}
 
@@ -45,12 +46,14 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship<String>> 
 		buf.append("MATCH (");
 
 		if (tenantIdentifier != null) {
+
 			buf.append(":");
 			buf.append(tenantIdentifier);
 		}
 
 		final String sourceTypeLabel = query.getSourceType();
 		if (sourceTypeLabel != null) {
+
 			buf.append(":");
 			buf.append(sourceTypeLabel);
 		}
@@ -58,6 +61,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship<String>> 
 		buf.append(")-[n");
 
 		if (typeLabel != null) {
+
 			buf.append(":");
 			buf.append(typeLabel);
 		}
@@ -65,12 +69,14 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship<String>> 
 		buf.append("]->(");
 
 		if (tenantIdentifier != null) {
+
 			buf.append(":");
 			buf.append(tenantIdentifier);
 		}
 
 		final String targetTypeLabel = query.getTargetType();
 		if (targetTypeLabel != null) {
+
 			buf.append(":");
 			buf.append(targetTypeLabel);
 		}
@@ -148,6 +154,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship<String>> 
 
 	@Override
 	public Iterable<Relationship<String>> getResult(final CypherQuery query) {
+
 		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), new LazyRecordIterable(db, query)));
 	}
 }

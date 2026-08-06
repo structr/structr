@@ -36,54 +36,66 @@ import java.util.TreeMap;
 public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTime> {
 
 	public ZonedDateTimeProperty(final String name) {
+
 		super(name);
 
 		this.format = getFormatOverride();
 	}
 
 	public ZonedDateTimeProperty(final String jsonName, final String dbName) {
+
 		super(jsonName, dbName);
 
 		this.format = getFormatOverride();
 	}
 
 	public ZonedDateTimeProperty(final String jsonName, final String dbName, final String format) {
+
 		super(jsonName);
 
 		if (StringUtils.isNotBlank(format)) {
+
 			this.format = format;
+
 		} else {
+
 			this.format = getFormatOverride();
 		}
 	}
 
 	@Override
 	public String typeName() {
+
 		return "ZonedDateTime";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return ZonedDateTime.class;
 	}
 
 	@Override
 	public PropertyConverter<ZonedDateTime, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return new DatabaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<ZonedDateTime, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, ZonedDateTime> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		if (value != null) {
 
 			try {
@@ -108,19 +120,21 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
-
 
 	// Converters
 	private class DatabaseConverter extends PropertyConverter<ZonedDateTime, ZonedDateTime> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 			super(securityContext, entity);
 		}
 
@@ -151,6 +165,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 	private class InputConverter extends PropertyConverter<Object, ZonedDateTime> {
 
 		public InputConverter(SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
@@ -186,8 +201,8 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		}
 	}
 
-
 	public static String getFormatOverride() {
+
 		return Settings.ZonedDateTimeFormatOverride.getValue();
 	}
 
@@ -196,7 +211,6 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		if (StringUtils.isBlank(customPattern)) {
 
 			final String settingsPatternOverride = Settings.ZonedDateTimeFormatOverride.getValue();
-
 			if (StringUtils.isBlank(settingsPatternOverride)) {
 
 				return DateTimeFormatter.ISO_ZONED_DATE_TIME;
@@ -212,15 +226,16 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		}
 	}
 
-
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return getDateTimeFormatter(format).format(ZonedDateTime.now());
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -233,6 +248,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		map.put("format", "zoned-date-time");
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -249,6 +265,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		map.put("example", getExampleValue(0));
 
 		if (defaultValue != null) {
+
 			map.put("default", getDateTimeFormatter(format).format(defaultValue));
 		}
 
@@ -264,6 +281,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		map.put("format", "zoned-date-time");
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -273,11 +291,13 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property type for zoned date-time values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 }

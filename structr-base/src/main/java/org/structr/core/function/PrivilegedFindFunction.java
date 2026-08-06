@@ -39,16 +39,19 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND = "Error in findPrivileged(): type not found: ";
 	@Override
 	public String getName() {
+
 		return "findPrivileged";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type, options...");
 	}
 
 	@Override
 	public String getNamespaceIdentifier() {
+
 		return "find";
 	}
 
@@ -68,7 +71,6 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-
 				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
 
 					throw new FrameworkException(422, "Type GraphObject not supported in findPrivileged(), please use type NodeInterface to search for nodes of all types.");
@@ -83,6 +85,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 				} else {
 
 					logger.warn("Error in findPrivileged(): type '{}' not found.", typeString);
+
 					return ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND + typeString;
 
 				}
@@ -90,7 +93,9 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
+
 				logger.warn("Error in findPrivileged(): no type specified. Parameters: {}", getParametersAsString(sources));
+
 				return ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED;
 			}
 
@@ -113,6 +118,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.findPrivileged(type, map)}. Example: ${{$.findPrivileged(\"User\", { eMail: 'tester@test.com' }); }}"),
 			Usage.structrScript("Usage: ${findPrivileged(type, key, value)}. Example: ${findPrivileged(\"User\", \"email\", \"tester@test.com\"}")
@@ -121,11 +127,13 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Executes a `find()` operation with elevated privileges.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can use this function to query data from an anonymous context or when a users privileges need to be escalated. See documentation of `find()` for more details.";
 	}
 
@@ -141,6 +149,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return super.getExamples();
 	}
 

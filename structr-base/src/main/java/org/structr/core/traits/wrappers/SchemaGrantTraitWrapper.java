@@ -32,6 +32,7 @@ import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 public class SchemaGrantTraitWrapper extends AbstractNodeTraitWrapper implements SchemaGrant {
 
 	public SchemaGrantTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -73,26 +74,31 @@ public class SchemaGrantTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public String getStaticSchemaNodeName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
 	@Override
 	public boolean allowRead() {
+
 		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY));
 	}
 
 	@Override
 	public boolean allowWrite() {
+
 		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY));
 	}
 
 	@Override
 	public boolean allowDelete() {
+
 		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY));
 	}
 
 	@Override
 	public boolean allowAccessControl() {
+
 		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY));
 	}
 }

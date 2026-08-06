@@ -30,6 +30,7 @@ import org.structr.xmpp.XMPPRequest;
 public class XMPPRequestTraitWrapper extends AbstractNodeTraitWrapper implements XMPPRequest {
 
 	public XMPPRequestTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

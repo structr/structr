@@ -39,11 +39,13 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "propertyInfo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type, property");
 	}
 
@@ -56,13 +58,15 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 			final String typeName = sources[0].toString();
 			final String keyName  = sources[1].toString();
-
 			final Traits type = Traits.of(typeName);
+
 			if (type == null) {
+
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
 			}
 
 			if (!type.hasKey(keyName)) {
+
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted(getName(), typeName, keyName));
 			}
 
@@ -71,30 +75,32 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${propertyInfo(type, property)}."),
-				Usage.javaScript("Usage: ${{ $.propertyInfo(type, property) }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${propertyInfo(type, property)}."), Usage.javaScript("Usage: ${{ $.propertyInfo(type, property) }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the schema information for the given property on the given type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """  
 		Returns a property info object for the property of the given type with the given name. A property info object has the following structure:
 	
@@ -126,23 +132,19 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${propertyInfo('User', 'name').uiType}"),
-				Example.javaScript("${{ $.propertyInfo('User', 'name').uiType }}")
-		);
+
+		return List.of(Example.structrScript("${propertyInfo('User', 'name').uiType}"), Example.javaScript("${{ $.propertyInfo('User', 'name').uiType }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("type", "name of the schema type"),
-				Parameter.mandatory("property", "name of the property for the given schema type")
-		);
+		return List.of(Parameter.mandatory("type", "name of the schema type"), Parameter.mandatory("property", "name of the property for the given schema type"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
 				"If the requested property does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned."
@@ -151,6 +153,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Schema;
 	}
 }

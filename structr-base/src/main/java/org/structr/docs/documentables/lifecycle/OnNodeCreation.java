@@ -23,16 +23,19 @@ import java.util.List;
 public class OnNodeCreation extends LifecycleBase {
 
 	public OnNodeCreation() {
+
 		super("onNodeCreation");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called at the moment when a new object of this type is created.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onNodeCreation()` lifecycle method is called at the moment when a new object of this type is created. In contrast to `onCreate()`, this method runs at the same time that the object is created.
 		
@@ -46,9 +49,6 @@ public class OnNodeCreation extends LifecycleBase {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onCreate()`, `afterCreate()`, `error()` and `assert()`."
-		);
+		return List.of("This lifecycle method can be defined on any node type.", "See also: `onCreate()`, `afterCreate()`, `error()` and `assert()`.");
 	}
 }

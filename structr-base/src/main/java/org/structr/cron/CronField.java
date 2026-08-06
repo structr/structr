@@ -35,10 +35,12 @@ public class CronField {
 	private int end = 0;
 
 	public CronField(int start, int end, int step) {
+
 		this(start, end, step, false);
 	}
 
 	public CronField(int start, int end, int step, boolean isWildcard) {
+
 		this.isWildcard = isWildcard;
 		this.start = start;
 		this.step = step;
@@ -46,16 +48,19 @@ public class CronField {
 	}
 
 	public CronField(final List<Integer> values) {
+
 		this.list = values;
 	}
 
 	public boolean isInside(int value) {
 
 		if (isWildcard) {
+
 			return true;
 		}
 
 		if (list != null) {
+
 			return list.contains(value);
 		}
 
@@ -63,18 +68,22 @@ public class CronField {
 	}
 
 	public int getStartValue() {
+
 		return start;
 	}
 
 	public int getEndValue() {
+
 		return end;
 	}
 
 	public int getStep() {
+
 		return step;
 	}
 
 	public List<Integer> getList() {
+
 		return list;
 	}
 
@@ -90,6 +99,7 @@ public class CronField {
 				buf.append(it.next());
 
 				if (it.hasNext()) {
+
 					buf.append(",");
 				}
 			}
@@ -120,10 +130,12 @@ public class CronField {
 	}
 
 	public boolean isIsWildcard() {
+
 		return isWildcard;
 	}
 
 	public void setIsWildcard(boolean isWildcard) {
+
 		this.isWildcard = isWildcard;
 	}
 }

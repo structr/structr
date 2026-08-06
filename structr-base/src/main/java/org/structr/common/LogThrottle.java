@@ -78,6 +78,7 @@ public class LogThrottle {
 		this.perKey = new LinkedHashMap<>(256, 0.75f, false) {
 			@Override
 			protected boolean removeEldestEntry(final Map.Entry<String, Integer> eldest) {
+
 				return size() > MAX_KEYS;
 			}
 		};
@@ -107,6 +108,7 @@ public class LogThrottle {
 			perKey.clear();
 
 			if (hidden > 0) {
+
 				logger.info("{}: {} further entries were suppressed in the previous {} ms.", name, hidden, windowMs);
 			}
 		}
@@ -115,6 +117,7 @@ public class LogThrottle {
 		if (maxTotal > 0 && total >= maxTotal) {
 
 			suppressed++;
+
 			return false;
 		}
 
@@ -124,6 +127,7 @@ public class LogThrottle {
 		if (forKey >= maxPerKey) {
 
 			suppressed++;
+
 			return false;
 		}
 

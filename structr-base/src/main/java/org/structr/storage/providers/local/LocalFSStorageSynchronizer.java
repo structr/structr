@@ -70,11 +70,13 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 
 	@Override
 	public SyncTarget getTarget() {
+
 		return target;
 	}
 
 	@Override
 	public boolean supportsWatching() {
+
 		return true;
 	}
 
@@ -94,8 +96,8 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 	public Iterator<ExternalEntry> enumerate(final String relativePath) throws IOException {
 
 		final Path base = relativePath != null && !relativePath.isEmpty() ? mountRoot.resolve(relativePath) : mountRoot;
-
 		if (!Files.isDirectory(base)) {
+
 			throw new IOException("Mount target " + base + " does not exist or is not a directory");
 		}
 
@@ -130,6 +132,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 			}
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to apply virtual change {} below {}: {}", event, mountRoot, ioex.getMessage());
 		}
 	}
@@ -140,6 +143,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 		closed = true;
 
 		if (poller != null) {
+
 			poller.interrupt();
 		}
 
@@ -150,6 +154,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 				watchService.close();
 
 			} catch (IOException ioex) {
+
 				logger.warn("Error while closing watch service for {}: {}", mountRoot, ioex.getMessage());
 			}
 		}
@@ -176,6 +181,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 
 			// nothing to move - materialize directories at the new location
 			if (event.directory()) {
+
 				Files.createDirectories(newPath);
 			}
 
@@ -183,6 +189,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 		}
 
 		if (newPath.getParent() != null) {
+
 			Files.createDirectories(newPath.getParent());
 		}
 
@@ -201,12 +208,14 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 				} catch (DirectoryNotEmptyException dnee) {
 
 					logger.warn("Not moving {} to {} below {}: a non-empty directory already exists at the target", event.previousRelativePath(), event.relativePath(), mountRoot);
+
 					return;
 				}
 
 			} else {
 
 				logger.warn("Not moving {} to {} below {}: a file already exists at the target", event.previousRelativePath(), event.relativePath(), mountRoot);
+
 				return;
 			}
 		}
@@ -230,6 +239,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 				Files.deleteIfExists(path);
 
 			} catch (DirectoryNotEmptyException dnee) {
+
 				logger.warn("Not deleting non-empty directory {} below {}", event.previousRelativePath(), mountRoot);
 			}
 
@@ -246,8 +256,8 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 	private Path resolveWithinMount(final String relativePath) throws IOException {
 
 		final Path resolved = mountRoot.resolve(relativePath).normalize();
-
 		if (!resolved.startsWith(mountRoot)) {
+
 			throw new IOException("Path " + relativePath + " escapes mount root " + mountRoot);
 		}
 
@@ -265,10 +275,12 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 				key = watchService.poll(100, TimeUnit.MILLISECONDS);
 
 			} catch (InterruptedException | ClosedWatchServiceException ex) {
+
 				break;
 			}
 
 			if (key == null) {
+
 				continue;
 			}
 
@@ -282,7 +294,6 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 			for (final WatchEvent<?> event : key.pollEvents()) {
 
 				final Kind<?> kind = event.kind();
-
 				if (OVERFLOW.equals(kind)) {
 
 					// events were lost - ask for a full reconciliation scan
@@ -295,11 +306,13 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 					handleEvent(listener, kind, directory.resolve((Path)event.context()));
 
 				} catch (Throwable t) {
+
 					logger.warn("Error while handling watch event for {}: {}", mountRoot, t.getMessage());
 				}
 			}
 
 			if (!key.reset()) {
+
 				watchKeyMap.remove(key);
 			}
 		}
@@ -353,7 +366,6 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 			for (final Iterator<Path> it = stream.iterator(); it.hasNext();) {
 
 				final Path path = it.next();
-
 				if (Files.isDirectory(path)) {
 
 					final WatchKey key = path.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
@@ -380,14 +392,15 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 			if (!Files.exists(path)) {
 
 				// vanished between event/walk and inspection
+
 				return null;
 			}
 
 			final String relativePath = toRelativePath(path);
-
 			if (relativePath.isEmpty()) {
 
 				// the mount root itself is represented by the sync root node
+
 				return null;
 			}
 
@@ -401,11 +414,13 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 		} catch (IOException ioex) {
 
 			logger.warn("Unable to read attributes of {}: {}", path, ioex.getMessage());
+
 			return null;
 		}
 	}
 
 	private String toRelativePath(final Path path) {
+
 		return mountRoot.relativize(path).toString().replace('\\', '/');
 	}
 
@@ -431,11 +446,11 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 			// the underlying walk iterator must not be touched again after the
 			// stream was closed (it would throw IllegalStateException)
 			if (exhausted) {
+
 				return false;
 			}
 
 			final boolean hasNext = iterator.hasNext();
-
 			if (!hasNext) {
 
 				exhausted = true;
@@ -447,6 +462,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 
 		@Override
 		public ExternalEntry next() {
+
 			return iterator.next();
 		}
 	}

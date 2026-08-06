@@ -42,24 +42,29 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 	private final Map<String, PulsarClientTraitWrapper.ConsumerWorker> consumerWorkerMap = new ConcurrentHashMap<>();
 
 	public PulsarClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public boolean getEnabled() {
+
 		return wrappedObject.getProperty(traits.key(PulsarClientTraitDefinition.ENABLED_PROPERTY));
 	}
 
 	@Override
 	public void setEnabled(final boolean enabled) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(PulsarClientTraitDefinition.ENABLED_PROPERTY), enabled);
 	}
 
 	@Override
 	public String[] getServers() {
+
 		return wrappedObject.getProperty(traits.key(PulsarClientTraitDefinition.SERVERS_PROPERTY));
 	}
 
 	public void setServers(final String[] servers) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(PulsarClientTraitDefinition.SERVERS_PROPERTY), servers);
 	}
 
@@ -68,6 +73,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 
 		PulsarClientTraitWrapper.ConsumerWorker cw = new PulsarClientTraitWrapper.ConsumerWorker(this);
 		Thread t = new Thread(cw);
+
 		consumerWorkerMap.put(this.getUuid(), cw);
 		t.start();
 	}
@@ -76,19 +82,21 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 	public void close() {
 
 		PulsarClientTraitWrapper.ConsumerWorker cw = consumerWorkerMap.get(this.getUuid());
-
 		if (cw != null) {
+
 			cw.stop();
 		}
 	}
 
 	@Override
 	public void forwardReceivedMessage(final ActionContext actionContext, String topic, String message) throws FrameworkException {
+
 		sendMessage(actionContext, topic, message);
 	}
 
 	@Override
 	public ConsumerWorker getConsumerWorker() {
+
 		return consumerWorkerMap.get(this.getUuid());
 	}
 
@@ -112,8 +120,11 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 
 			// wait for service layer to be initialized
 			while (!Services.getInstance().isInitialized()) {
+
 				try {
+
 					Thread.sleep(1000);
+
 				} catch (InterruptedException iex) {
 				}
 			}
@@ -123,22 +134,25 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
 					if (this.thisClient == null || Thread.currentThread().isInterrupted()) {
+
 						running = false;
 						break;
 					}
 
 					if (thisClient.getServers() == null || thisClient.getServers().length == 0 || !thisClient.getEnabled()) {
+
 						continue;
 					}
 
 					if (consumer == null) {
+
 						consumer = createConsumer();
 					}
 
 					if (thisClient.getEnabled()) {
+
 						updateConsumerIfTopicsHaveChanged();
 					}
-
 
 				} catch (FrameworkException ex) {
 
@@ -156,6 +170,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 		}
 
 		public void invalidateConsumer() {
+
 			try {
 
 				if (this.consumer != null) {
@@ -163,6 +178,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 					this.consumer.close();
 					this.consumer = null;
 				}
+
 			} catch (PulsarClientException ex) {
 
 				logger.error("Could not close pulsar consumer. " + ex);
@@ -170,7 +186,9 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 		}
 
 		private void updateConsumerIfTopicsHaveChanged() {
+
 			if (subbedTopics == null) {
+
 				return;
 			}
 
@@ -182,6 +200,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 		}
 
 		private List<String> getSubTopics() {
+
 			List<String> aggregatedTopics = new ArrayList<>();
 
 			if (thisClient == null) {
@@ -192,6 +211,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 			thisClient.getSubscribers().forEach((MessageSubscriber sub) -> {
 				String topic = sub.getTopic();
 				if (topic != null) {
+
 					aggregatedTopics.add(topic);
 				}
 			});
@@ -200,11 +220,13 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 		}
 
 		private Consumer createConsumer() {
+
 			List<String> aggregatedTopics = getSubTopics();
 
 			try {
 
 				if (pulsarClient != null) {
+
 					invalidateConsumer();
 					pulsarClient.close();
 					pulsarClient = null;
@@ -213,7 +235,6 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 				pulsarClient = PulsarClient.builder()
 					.serviceUrl(String.join(",", thisClient.getServers()))
 					.build();
-
 
 				if (pulsarClient != null) {
 
@@ -224,8 +245,10 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 
 								String[] topicFragments = msg.getTopicName().split("/");
 								String topic = topicFragments[topicFragments.length - 1];
+
 								forwardReceivedMessage(new ActionContext(getSecurityContext()), topic, new String(msg.getData()));
 								consumer.acknowledge(msg);
+
 							} catch (Exception e) {
 
 								consumer.negativeAcknowledge(msg);
@@ -233,6 +256,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 						});
 
 						subbedTopics = aggregatedTopics;
+
 						return pulsarClient.newConsumer()
 							.subscriptionName("structr-pulsar-subscription")
 							.topics(aggregatedTopics)

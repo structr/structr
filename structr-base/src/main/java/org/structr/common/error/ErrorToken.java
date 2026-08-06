@@ -35,11 +35,14 @@ public abstract class ErrorToken {
 	protected final Map<String, Object> data = new LinkedHashMap<>();
 
 	public ErrorToken(final String token) {
+
 		data.put("token", token);
 	}
 
 	public ErrorToken with(final String key, final Object value) {
+
 		data.put(key, value);
+
 		return this;
 	}
 
@@ -82,42 +85,52 @@ public abstract class ErrorToken {
 	}
 
 	public ErrorToken withType(final String type) {
+
 		return with("type", type);
 	}
 
 	public ErrorToken withProperty(final String property) {
+
 		return with("property", property);
 	}
 
 	public ErrorToken withDetail(final Object detail) {
+
 		return with("detail", detail);
 	}
 
 	public ErrorToken withValue(final Object value) {
+
 		return with("value", value);
 	}
 
 	public String getProperty() {
+
 		return (String)data.get("property");
 	}
 
 	public String getType() {
+
 		return (String)data.get("type");
 	}
 
 	public String getToken() {
+
 		return (String)data.get("token");
 	}
 
 	public Object getDetail() {
+
 		return data.get("detail");
 	}
 
 	public Object getValue() {
+
 		return data.get("value");
 	}
 
 	public void setValue(final Object value) {
+
 		data.put("value", value);
 	}
 
@@ -145,8 +158,8 @@ public abstract class ErrorToken {
 	public String toString() {
 
 		final StringBuilder buf = new StringBuilder();
-
 		final String type = getType();
+
 		if (type != null) {
 
 			buf.append(type);
@@ -195,6 +208,7 @@ public abstract class ErrorToken {
 	protected JsonElement getStringOrNull(final String source) {
 
 		if (source != null) {
+
 			return new JsonPrimitive(source);
 		}
 
@@ -210,6 +224,7 @@ public abstract class ErrorToken {
 				final JsonArray array = new JsonArray();
 
 				for (final Object o : iterable) {
+
 					array.add(getObjectOrNull(o));
 				}
 
@@ -245,18 +260,22 @@ public abstract class ErrorToken {
 			}
 
 			if (source instanceof PropertyKey key) {
+
 				return new JsonPrimitive(key.jsonName());
 			}
 
 			if (source instanceof String string) {
+
 				return new JsonPrimitive(string);
 			}
 
 			if (source instanceof Number number) {
+
 				return new JsonPrimitive(number);
 			}
 
 			if (source instanceof Boolean bool) {
+
 				return new JsonPrimitive(bool);
 			}
 

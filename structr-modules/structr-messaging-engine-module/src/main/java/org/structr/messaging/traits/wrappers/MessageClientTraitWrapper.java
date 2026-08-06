@@ -34,11 +34,13 @@ import org.structr.schema.action.ActionContext;
 public class MessageClientTraitWrapper extends AbstractNodeTraitWrapper implements MessageClient {
 
 	public MessageClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	// FIXME: isEnabled only exists on the types inheriting from MessageClient (XMPPClient:isEnabled, KafkaClient.enabled, PulsarClient.enabled)
 	public boolean getIsEnabled() {
+
 		return wrappedObject.getProperty(traits.key("isEnabled"));
 	}
 
@@ -50,6 +52,7 @@ public class MessageClientTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	public void setSubscribers(final Iterable<MessageSubscriber> subscribers) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY), subscribers);
 	}
 

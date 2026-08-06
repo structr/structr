@@ -72,32 +72,38 @@ public class ActionContext {
 	private ScriptingEngine scriptingEngine                                   = ScriptingEngine.STRUCTR_SCRIPT;
 
 	public enum ScriptingEngine {
-		PYTHON("python", true),
-		JS("js", true),
-		STRUCTR_SCRIPT("structrScript", false);
+
+		PYTHON("python", true), JS("js", true), STRUCTR_SCRIPT("structrScript", false);
 
 		private final String name;
 		private final boolean supportsExceptionHandling;
 
 		ScriptingEngine(final String name, final boolean supportsExceptionHandling) {
+
 			this.name = name;
 			this.supportsExceptionHandling = supportsExceptionHandling;
 		}
 
 		public String getName() {
+
 			return name;
 		}
 
 		public boolean supportsExceptionHandling() {
+
 			return supportsExceptionHandling;
 		}
 
 		public static ScriptingEngine fromName(final String name) throws FrameworkException {
+
 			for (ScriptingEngine engine : values()) {
+
 				if (engine.name.equalsIgnoreCase(name)) {
+
 					return engine;
 				}
 			}
+
 			throw new FrameworkException(422, "Unsupported scripting engine: " + name);
 		}
 	}
@@ -105,6 +111,7 @@ public class ActionContext {
 	public int level = 0;
 
 	public ActionContext(final SecurityContext securityContext) {
+
 		this(securityContext, null);
 	}
 
@@ -117,6 +124,7 @@ public class ActionContext {
 			this.locale = this.securityContext.getEffectiveLocale();
 
 			if (parameters != null) {
+
 				this.securityContext.getContextStore().setTemporaryParameters(parameters);
 			}
 		}
@@ -130,30 +138,37 @@ public class ActionContext {
 	}
 
 	public SecurityContext getSecurityContext() {
+
 		return securityContext;
 	}
 
 	public void setSecurityContext(final SecurityContext securityContext) {
+
 		this.securityContext = securityContext;
 	}
 
 	public boolean returnRawValue() {
+
 		return false;
 	}
 
 	public void setDisableVerboseExceptionLogging(final boolean disable) {
+
 		this.disableVerboseExceptionLogging = disable;
 	}
 
 	public boolean getDisableVerboseExceptionLogging() {
+
 		return this.disableVerboseExceptionLogging;
 	}
 
 	public Object getConstant(final String name) {
+
 		return this.temporaryContextStore.getConstant(name);
 	}
 
 	public void setConstant(final String name, final Object data) {
+
 		this.temporaryContextStore.setConstant(name, data);
 	}
 
@@ -167,6 +182,7 @@ public class ActionContext {
 		String defaultValue  = null;
 
 		if (refs.length > 1) {
+
 			defaultValue = refs[1];
 		}
 
@@ -194,11 +210,13 @@ public class ActionContext {
 
 			// stop evaluation on null
 			if (_data == null) {
+
 				break;
 			}
 		}
 
 		if (_data == null && defaultValue != null) {
+
 			return Function.numberOrString(defaultValue);
 		}
 
@@ -206,72 +224,89 @@ public class ActionContext {
 	}
 
 	public void raiseError(final int code, final ErrorToken errorToken) {
+
 		errorBuffer.add(errorToken);
 		errorBuffer.setStatus(code);
 	}
 
 	public ErrorBuffer getErrorBuffer() {
+
 		return errorBuffer;
 	}
 
 	public boolean hasError() {
+
 		return errorBuffer.hasError();
 	}
 
 	public void store(final String key, final Object value) {
+
 		getContextStore().store(key, value);
 	}
 
 	public Object retrieve(final String key) {
+
 		return getContextStore().retrieve(key);
 	}
 
 	public Map<String, Object> getRequestStore() {
+
 		return getContextStore().getRequestStore();
 	}
 
 	// --- Timers ---
 	public void startTimer(final String key) {
+
 		getContextStore().startTimer(key);
 	}
 
 	public long pauseTimer(final String key) {
+
 		return getContextStore().pauseTimer(key);
 	}
 
 	public long clearTimer(final String key) {
+
 		return getContextStore().clearTimer(key);
 	}
 
 	public Long getTimerElapsedMs(final String key) {
+
 		return getContextStore().getTimerElapsedMs(key);
 	}
 
 	public void addHeader(final String key, final String value) {
+
 		getContextStore().addHeader(key, value);
 	}
 
 	public void removeHeader(final String key) {
+
 		getContextStore().removeHeader(key);
 	}
 
 	public void clearHeaders() {
+
 		getContextStore().clearHeaders();
 	}
 
 	public Map<String, String> getHeaders() {
+
 		return getContextStore().getHeaders();
 	}
 
 	public void setValidateCertificates(final boolean validate) {
+
 		getContextStore().setValidateCertificates(validate);
 	}
 
 	public boolean isValidateCertificates() {
+
 		return getContextStore().isValidateCertificates();
 	}
 
 	public AdvancedMailContainer getAdvancedMailContainer() {
+
 		return getContextStore().getAdvancedMailContainer();
 	}
 
@@ -295,6 +330,7 @@ public class ActionContext {
 				if (data instanceof HttpServletRequest) {
 
 					value = ((HttpServletRequest) data).getParameterValues(key);
+
 					if (value != null) {
 
 						if (((String[]) value).length == 1) {
@@ -347,15 +383,22 @@ public class ActionContext {
 						switch (key) {
 
 							case "size":
+
 								if (data instanceof Collection) {
+
 									return ((Collection) data).size();
 								}
+
 								if (data instanceof Iterable) {
+
 									return Iterables.count((Iterable) data);
 								}
+
 								if (data.getClass().isArray()) {
+
 									return ((Object[]) data).length;
 								}
+
 								break;
 						}
 
@@ -372,25 +415,33 @@ public class ActionContext {
 						switch (key) {
 
 							case "request":
+
 								return securityContext.getRequest();
 
 							case "session":
+
 								if (securityContext.getRequest() != null) {
+
 									return new HttpSessionWrapper(new ActionContext(securityContext), securityContext.getRequest().getSession(false));
 								}
+
 								break;
 
 							case "baseUrl":
 							case "base_url":
+
 								return getBaseUrl(securityContext.getRequest());
 
 							case "applicationRootPath":
+
 								return Settings.ApplicationRootPath.getValue();
 
 							case "me":
+
 								return securityContext.getUser(false);
 
 							case "depth":
+
 								return securityContext.getSerializationDepth() - 1;
 
 						}
@@ -402,28 +453,35 @@ public class ActionContext {
 							switch (key) {
 
 								case "host":
+
 									return request.getServerName();
 
 								case "ip":
+
 									return request.getLocalAddr();
 
 								case "port":
+
 									return request.getServerPort();
 
 								case "pathInfo":
 								case "path_info":
+
 									return request.getPathInfo();
 
 								case "queryString":
 								case "query_string":
+
 									return request.getQueryString();
 
 								case "parameterMap":
 								case "parameter_map":
+
 									return request.getParameterMap();
 
 								case "remoteAddress":
 								case "remote_address":
+
 									return getRemoteAddr(request);
 							}
 						}
@@ -436,6 +494,7 @@ public class ActionContext {
 
 								case "statusCode":
 								case "status_code":
+
 									return response.getStatus();
 							}
 						}
@@ -445,20 +504,25 @@ public class ActionContext {
 					switch (key) {
 
 						case "now":
+
 							return this.isJavaScriptContext() ? new Date() : DatePropertyGenerator.format(new Date(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
+
 							return entity;
 
 						case "locale":
+
 							return locale != null ? locale.toString() : null;
 
 						case "tenantIdentifier":
 						case "tenant_identifier":
+
 							return Settings.TenantIdentifier.getValue();
 
 						case "applicationStore":
 						case "application_store":
+
 							return Services.getInstance().getApplicationStore();
 
 						default:
@@ -479,6 +543,7 @@ public class ActionContext {
 		}
 
 		if (value == null && defaultValue != null) {
+
 			return Function.numberOrString(defaultValue);
 		}
 
@@ -488,7 +553,6 @@ public class ActionContext {
 	public String getRequestInfoForVerboseJavaScriptExceptionLog() {
 
 		final HttpServletRequest request = securityContext.getRequest();
-
 		if (request != null) {
 
 			final StringBuilder sb = new StringBuilder("Path = ");
@@ -527,69 +591,86 @@ public class ActionContext {
 	}
 
 	public void clear() {
+
 		outputBuffer.setLength(0);
 	}
 
 	public String getOutput() {
+
 		final String out = outputBuffer.toString();
 		// clear buffer after fetching the output
 		clear();
+
 		return out;
 	}
 
 	public boolean isJavaScriptContext() {
+
 		return scriptingEngine.equals(ScriptingEngine.JS);
 	}
 
 	public void setScriptingEngine(final ScriptingEngine engine) {
+
 		this.scriptingEngine = engine;
 	}
 
 	public boolean supportsExceptionHandling() {
+
 		return scriptingEngine.supportsExceptionHandling();
 	}
 
 	public Locale getLocale() {
+
 		return locale;
 	}
 
 	public void setLocale(final Locale locale) {
+
 		this.locale = locale;
 	}
 
 	public void setPredicate(final Predicate predicate) {
+
 		this.predicate = predicate;
 	}
 
 	public Predicate getPredicate() {
+
 		return predicate;
 	}
 
 	public ContextStore getContextStore() {
+
 		return this.securityContext.getContextStore();
 	}
 
 	public ContextFactory.LockedContext getScriptingContext(final String language) {
+
 		return scriptingContexts.get(language);
 	}
 
 	public void putScriptingContext(final String language, final ContextFactory.LockedContext context) {
+
 		scriptingContexts.put(language, context);
 	}
 
 	public void removeScriptingContextByValue(final ContextFactory.LockedContext context) {
+
 		scriptingContexts.entrySet().removeIf(entry -> entry.getValue().equals(context));
 	}
 
 	public void setScriptingContexts(final Map<String, ContextFactory.LockedContext> contexts) {
+
 		scriptingContexts = contexts;
 	}
 
 	public Map<String,ContextFactory.LockedContext> getScriptingContexts() {
+
 		return scriptingContexts;
 	}
 
 	public boolean isRenderContext() {
+
 		return false;
 	}
 
@@ -600,33 +681,36 @@ public class ActionContext {
 	}
 
 	public AbstractMethod getCurrentMethod() {
+
 		return currentMethod;
 	}
 
 	// ----- public static methods -----
 	public static String getBaseUrl() {
+
 		return getBaseUrl(null);
 	}
 
 	public static String getBaseUrl(final HttpServletRequest request) {
+
 		return getBaseUrl(request, false);
 	}
 
 	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
 
 		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
-
 		if (StringUtils.isNotEmpty(baseUrlOverride)) {
+
 			return baseUrlOverride;
 		}
 
 		final StringBuilder sb = new StringBuilder("http");
-
 		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
 		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
 		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		if (httpsEnabled) {
+
 			sb.append("s");
 		}
 
@@ -635,6 +719,7 @@ public class ActionContext {
 
 		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
 		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
+
 			sb.append(":").append(port);
 		}
 
@@ -644,8 +729,8 @@ public class ActionContext {
 	public static String getRemoteAddr(HttpServletRequest request) {
 
 		final String remoteAddress = request.getHeader(RequestHeaders.XForwardedFor.getName());
-
 		if (remoteAddress == null) {
+
 			return request.getRemoteAddr();
 		}
 

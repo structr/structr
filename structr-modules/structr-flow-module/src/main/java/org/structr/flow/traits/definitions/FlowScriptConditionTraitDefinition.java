@@ -50,6 +50,7 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 	public static final String SCRIPT_PROPERTY            = "script";
 
 	public FlowScriptConditionTraitDefinition() {
+
 		super(StructrTraits.FLOW_SCRIPT_CONDITION);
 	}
 
@@ -58,8 +59,7 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -72,18 +72,18 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 							final FlowDataSource _sc = condition.getScriptSource();
 							final String _script     = condition.getScript();
 							final String uuid        = condition.getUuid();
-
 							final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
 
 							if (_script != null || _dynamicScript != null) {
 
 								if (_ds != null) {
+
 									context.setData(uuid, _ds.get(context));
 								}
 
 								final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
-
 								Object result =  Scripting.evaluate(context.getActionContext(condition.getSecurityContext(), condition), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowScriptCondition(" + uuid + ")");
+
 								context.setData(condition.getUuid(), result);
 
 								return result;
@@ -99,8 +99,7 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -122,9 +121,7 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowScriptCondition.class, (traits, node) -> new FlowScriptCondition(traits, node)
-		);
+		return Map.of(FlowScriptCondition.class, (traits, node) -> new FlowScriptCondition(traits, node));
 	}
 
 	@Override
@@ -135,32 +132,20 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 		final Property<NodeInterface> exceptionHandler     = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> script                      = new StringProperty(SCRIPT_PROPERTY);
 
-		return newSet(
-			scriptSource,
-			dataTarget,
-			exceptionHandler,
-			script
-		);
+		return newSet(scriptSource, dataTarget, exceptionHandler, script);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				SCRIPT_PROPERTY, SCRIPT_SOURCE_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(SCRIPT_PROPERTY, SCRIPT_SOURCE_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				SCRIPT_PROPERTY, SCRIPT_SOURCE_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(SCRIPT_PROPERTY, SCRIPT_SOURCE_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

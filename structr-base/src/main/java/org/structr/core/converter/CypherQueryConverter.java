@@ -54,6 +54,7 @@ public class CypherQueryConverter extends PropertyConverter {
 		this.handler = handler;
 
 		try {
+
 			graphDb = (DatabaseService)StructrApp.getInstance().command(GraphDatabaseCommand.class).execute();
 
 		} catch(Throwable t) {
@@ -64,6 +65,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 	@Override
 	public Object convert(final Object source) throws FrameworkException {
+
 		return source;
 	}
 

@@ -34,6 +34,7 @@ public class CapitalizeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "capitalize";
 	}
 
@@ -49,17 +50,20 @@ public class CapitalizeFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.capitalize(string)}}. Example: ${{$.capitalize($.this.nickName)}}"),
 			Usage.structrScript("Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}")
@@ -68,16 +72,19 @@ public class CapitalizeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Capitalizes the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "No other characters are changed. If the first character has no explicit titlecase mapping and is not itself a titlecase char according to UnicodeData, then the uppercase mapping is returned as an equivalent titlecase mapping.";
 	}
 
@@ -93,6 +100,7 @@ public class CapitalizeFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

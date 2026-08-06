@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class MailboxCONTAINS_EMAILMESSAGESEMailMessage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public MailboxCONTAINS_EMAILMESSAGESEMailMessage() {
+
 		super(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.MAILBOX;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.EMAIL_MESSAGE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONTAINS_EMAILMESSAGES";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

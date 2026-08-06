@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -34,8 +35,10 @@ import org.structr.core.traits.Traits;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
+import org.structr.web.traits.wrappers.ComponentConfigurationTraitWrapper;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -84,26 +87,37 @@ public class WidgetAutoVisibilityMappingHelper {
 		if (data == null) return;
 		final Object raw = data.remove(SPEC_DATA_KEY);
 		if (raw == null) return;
+
 		if (rootNode == null) {
+
 			logger.warn("WidgetAutoVisibilityMappingHelper: spec present but no widget root node available; skipping VM creation.");
+
 			return;
 		}
 
 		if (!Traits.exists(StructrTraits.VISIBILITY_MAPPING)) {
+
 			// Process module not loaded. The widget that emitted this spec
 			// must therefore have come from a process-aware deployment that
 			// no longer is one. Log and move on.
 			logger.warn("WidgetAutoVisibilityMappingHelper: VisibilityMapping trait is not registered; skipping VM creation.");
+
 			return;
 		}
 
 		final Map<String, Object> spec;
+
 		try {
+
 			spec = gson.fromJson(String.valueOf(raw), Map.class);
+
 		} catch (JsonSyntaxException jex) {
+
 			logger.warn("WidgetAutoVisibilityMappingHelper: malformed __visibilityMappingSpec '{}': {}", raw, jex.getMessage());
+
 			return;
 		}
+
 		if (spec == null) return;
 
 		final String visibleWhen     = stringOrNull(spec.get("visibleWhen"));
@@ -111,39 +125,52 @@ public class WidgetAutoVisibilityMappingHelper {
 		final String boundStepId     = stringOrNull(spec.get("boundStep"));      // UUID, optional for process-level states
 
 		if (visibleWhen == null || visibleWhen.isEmpty() || boundProcessId == null || boundProcessId.isEmpty()) {
-			logger.warn("WidgetAutoVisibilityMappingHelper: incomplete spec (visibleWhen='{}', boundProcess='{}'); skipping VM creation.",
-				visibleWhen, boundProcessId);
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: incomplete spec (visibleWhen='{}', boundProcess='{}'); skipping VM creation.", visibleWhen, boundProcessId);
+
 			return;
 		}
 
 		try {
-			final App app = StructrApp.getInstance(securityContext);
 
+			final App app = StructrApp.getInstance(securityContext);
 			final NodeInterface processNode = app.getNodeById(boundProcessId);
+
 			if (processNode == null) {
+
 				logger.warn("WidgetAutoVisibilityMappingHelper: BpmnProcess '{}' not found; skipping VM creation.", boundProcessId);
+
 				return;
 			}
-			final String denormalizedProcessId = processNode.getProperty(processNode.getTraits().key("processId"));
 
+			final String denormalizedProcessId = processNode.getProperty(processNode.getTraits().key("processId"));
 			NodeInterface stepNode      = null;
 			String denormalizedStepBpmnId = null;
+
 			if (boundStepId != null && !boundStepId.isEmpty()) {
+
 				stepNode = app.getNodeById(boundStepId);
+
 				if (stepNode == null) {
+
 					logger.warn("WidgetAutoVisibilityMappingHelper: BpmnElement '{}' not found; creating VM without bound step.", boundStepId);
+
 				} else {
+
 					denormalizedStepBpmnId = stepNode.getProperty(stepNode.getTraits().key("bpmnId"));
 				}
 			}
 
 			final Traits vmTraits = Traits.of(StructrTraits.VISIBILITY_MAPPING);
 			final PropertyMap props = new PropertyMap();
+
 			props.put(vmTraits.key("domNode"),         rootNode);
 			props.put(vmTraits.key("visibleWhen"),     visibleWhen);
 			props.put(vmTraits.key("boundProcess"),    processNode);
 			props.put(vmTraits.key("boundProcessId"),  denormalizedProcessId);
+
 			if (stepNode != null) {
+
 				props.put(vmTraits.key("boundStep"),         stepNode);
 				props.put(vmTraits.key("boundStepBpmnId"),   denormalizedStepBpmnId);
 			}
@@ -154,21 +181,23 @@ public class WidgetAutoVisibilityMappingHelper {
 			// view-derived fields list pre-populated and can fine-tune each
 			// field via the Configured Fields UI (which lazily creates
 			// DataAdapterField nodes only when a non-default config is set).
-			// Skipped if the step does not declare a subjectType+subjectFormView.
+			// Skipped if the process has no subjectType (the step's own
+			// subjectFormView only narrows which of its fields to show).
 			if (stepNode != null) {
+
 				seedFieldSetFromView(rootNode, stepNode);
 			}
 
 		} catch (FrameworkException fex) {
-			logger.warn("WidgetAutoVisibilityMappingHelper: failed to create VisibilityMapping for widget root '{}': {}",
-				rootNode.getUuid(), fex.getMessage());
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: failed to create VisibilityMapping for widget root '{}': {}", rootNode.getUuid(), fex.getMessage());
 		}
 	}
 
 	/**
-	 * Read {@code subjectType} + {@code subjectFormView} from the bound step,
-	 * resolve the view to its property keys, and write the comma-joined names
-	 * into the widget's {@code ComponentConfiguration.fieldSet}.
+	 * Read the process-level {@code subjectType} (via the step's owning process) plus the step's
+	 * own {@code subjectFormView}, resolve the view to its property keys, and write the
+	 * comma-joined names into the widget's {@code ComponentConfiguration.fieldSet}.
 	 *
 	 * <p>Per-field tuning ({@code renderTemplate}, {@code editTemplate},
 	 * {@code label}, {@code columns}, ...) stays a separate concern: a
@@ -183,55 +212,108 @@ public class WidgetAutoVisibilityMappingHelper {
 	 *
 	 * <p>Skipped silently when:
 	 * <ul>
-	 *   <li>The step has no {@code subjectType} or no {@code subjectFormView}.</li>
+	 *   <li>The step's process has no {@code subjectType}.</li>
 	 *   <li>The named view does not exist on the subject type.</li>
 	 *   <li>No ComponentConfiguration is found in the widget subtree.</li>
 	 * </ul>
 	 * </p>
 	 */
-	private static void seedFieldSetFromView(final DOMNode rootNode, final NodeInterface stepNode) throws FrameworkException {
+	public static void seedFieldSetFromView(final DOMNode rootNode, final NodeInterface stepNode) throws FrameworkException {
 
 		final Traits stepTraits = stepNode.getTraits();
-		if (!stepTraits.hasKey("subjectType") || !stepTraits.hasKey("subjectFormView")) return;
 
-		final String subjectType = stepNode.getProperty(stepTraits.key("subjectType"));
-		final String viewName    = stepNode.getProperty(stepTraits.key("subjectFormView"));
+		// The subject type is a process-level fact: read it through the step's owning
+		// BpmnProcess. The step still narrows *which fields* via its own subjectFormView.
+		final String subjectType = ComponentConfigurationTraitWrapper.subjectTypeOfOwningProcess(stepNode);
 		if (subjectType == null || subjectType.isEmpty()) return;
-		if (viewName    == null || viewName.isEmpty())    return;
 		if (!Traits.exists(subjectType))                  return;
 
-		final Traits subjectTraits = Traits.of(subjectType);
-		if (!subjectTraits.getViewNames().contains(viewName)) return;
+		final String declaredView = stepTraits.hasKey("subjectFormView")
+			? stepNode.getProperty(stepTraits.key("subjectFormView"))
+			: null;
 
-		final ComponentConfiguration config = findComponentConfiguration(rootNode);
-		if (config == null) {
-			logger.warn("WidgetAutoVisibilityMappingHelper: no ComponentConfiguration on widget root '{}' or its subtree; skipping fieldSet seeding.",
-				rootNode.getUuid());
+		final Traits subjectTraits = Traits.of(subjectType);
+		final String fields        = fieldsForSubject(subjectTraits, declaredView);
+
+		if (fields.isEmpty()) {
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: subject type '{}' has no usable fields (tried view '{}' and 'custom'), leaving the field set alone.",
+				subjectType, declaredView);
+
 			return;
 		}
 
-		final String fields = subjectTraits.getPropertyKeysForView(viewName).stream()
-			.map(PropertyKey::jsonName)
-			.collect(Collectors.joining(","));
+		final ComponentConfiguration config = findComponentConfiguration(rootNode);
+		if (config == null) {
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: no ComponentConfiguration on widget root '{}' or its subtree; skipping fieldSet seeding.", rootNode.getUuid());
+
+			return;
+		}
 
 		config.setProperty(config.getTraits().key(ComponentConfigurationTraitDefinition.FIELD_SET_PROPERTY), fields);
 	}
 
-	private static ComponentConfiguration findComponentConfiguration(final DOMNode rootNode) {
+	/**
+	 * The comma-joined field list to seed for a subject type: the declared
+	 * {@code subjectFormView} when the type has it, otherwise the {@code custom} view.
+	 *
+	 * <p>{@code custom} is the right fallback because it holds exactly the schema author's own
+	 * properties -- every dynamically registered key is added to it automatically (see
+	 * {@code Trait#registerPropertyKey}). {@code ui} and {@code public} are deliberately NOT
+	 * used: they carry framework properties (owner, visibility flags, timestamps) that would
+	 * fill a generated form with fields nobody asked for.</p>
+	 *
+	 * <p>System-internal and read-only keys are dropped in either case -- a form is for editing.
+	 * An empty result leaves the field set untouched, so a subject type with no custom
+	 * properties keeps the configuration's default rather than losing it.</p>
+	 *
+	 * <p>Without this fallback a step declaring only a {@code subjectType} kept the
+	 * ComponentConfiguration's default field set of {@code name}, and the generated form showed
+	 * exactly one field.</p>
+	 */
+	private static String fieldsForSubject(final Traits subjectTraits, final String declaredView) {
+
+		final Set<String> viewNames = subjectTraits.getViewNames();
+
+		for (final String candidate : new String[] { declaredView, PropertyView.Custom }) {
+
+			if (candidate != null && !candidate.isEmpty() && viewNames.contains(candidate)) {
+
+				final String fields = subjectTraits.getPropertyKeysForView(candidate).stream()
+					.filter(key -> !key.isSystemInternal() && !key.isReadOnly())
+					.map(PropertyKey::jsonName)
+					.collect(Collectors.joining(","));
+
+				if (!fields.isEmpty()) {
+
+					return fields;
+				}
+			}
+		}
+
+		return "";
+	}
+
+	public static ComponentConfiguration findComponentConfiguration(final DOMNode rootNode) {
 
 		final ComponentConfiguration onRoot = rootNode.getComponentConfiguration();
 		if (onRoot != null) return onRoot;
 
 		for (final NodeInterface descendant : rootNode.getAllChildNodes()) {
+
 			if (descendant.is(StructrTraits.DOM_NODE)) {
+
 				final ComponentConfiguration c = descendant.as(DOMNode.class).getComponentConfiguration();
 				if (c != null) return c;
 			}
 		}
+
 		return null;
 	}
 
 	private static String stringOrNull(final Object o) {
+
 		return (o == null) ? null : String.valueOf(o);
 	}
 }

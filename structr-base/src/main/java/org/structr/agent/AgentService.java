@@ -90,6 +90,7 @@ public class AgentService extends Thread implements RunnableService {
 		List<Agent> agents = getRunningAgentsForTask(agent.getSupportedTaskType());
 
 		synchronized (agents) {
+
 			agents.add(agent);
 		}
 	}
@@ -99,6 +100,7 @@ public class AgentService extends Thread implements RunnableService {
 		List<Agent> agents = getRunningAgentsForTask(agent.getSupportedTaskType());
 
 		synchronized (agents) {
+
 			agents.remove(agent);
 		}
 	}
@@ -116,11 +118,13 @@ public class AgentService extends Thread implements RunnableService {
 
 	@Override
 	public void injectArguments(Command command) {
+
 		command.setArgument("agentService", this);
 	}
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
+
 		return new ServiceResult(true);
 	}
 
@@ -152,11 +156,13 @@ public class AgentService extends Thread implements RunnableService {
 			final List<Agent> snapshot;
 
 			synchronized (agents) {
+
 				snapshot = new ArrayList<>(agents);
 			}
 
 			// signal every worker to stop accepting tasks and interrupt it
 			for (final Agent agent : snapshot) {
+
 				agent.killAgent();
 			}
 
@@ -164,6 +170,7 @@ public class AgentService extends Thread implements RunnableService {
 			for (final Agent agent : snapshot) {
 
 				try {
+
 					agent.join(AGENT_SHUTDOWN_JOIN_TIMEOUT);
 
 				} catch (InterruptedException iex) {
@@ -173,6 +180,7 @@ public class AgentService extends Thread implements RunnableService {
 				}
 
 				if (agent.isAlive()) {
+
 					logger.warn("Agent {} did not stop within {} ms during shutdown", agent.getName(), AGENT_SHUTDOWN_JOIN_TIMEOUT);
 				}
 			}
@@ -181,6 +189,7 @@ public class AgentService extends Thread implements RunnableService {
 
 	@Override
 	public boolean runOnStartup() {
+
 		return true;
 	}
 
@@ -210,7 +219,6 @@ public class AgentService extends Thread implements RunnableService {
 
 			// if we get here, task was not assigned to any agent, need to create a new one.
 			Agent agent = createAgent(nextTask);
-
 			if ((agent != null) && agent.assignTask(nextTask)) {
 
 				agent.start();
@@ -219,6 +227,7 @@ public class AgentService extends Thread implements RunnableService {
 
 				// re-add task..
 				synchronized (taskQueue) {
+
 					taskQueue.add(nextTask);
 				}
 			}
@@ -229,6 +238,7 @@ public class AgentService extends Thread implements RunnableService {
 
 			// re-add task..
 			synchronized (taskQueue) {
+
 				taskQueue.add(nextTask);
 			}
 		}
@@ -258,6 +268,7 @@ public class AgentService extends Thread implements RunnableService {
 			}
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
@@ -275,7 +286,6 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass == null) {
 
 			Map<String, Class<? extends Agent>> agentClassesMap = getAgents();
-
 			if (agentClassesMap != null) {
 
 				for (Entry<String, Class<? extends Agent>> classEntry : agentClassesMap.entrySet()) {
@@ -290,6 +300,7 @@ public class AgentService extends Thread implements RunnableService {
 						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
 						if (supportedTaskClass.equals(taskClass)) {
+
 							agentClass = supportedAgentClass;
 						}
 
@@ -303,6 +314,7 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass != null) {
 
 			try {
+
 				AgentService.class.getModule().addReads(agentClass.getModule());
 				agent = (Agent) agentClass.getDeclaredConstructor().newInstance();
 
@@ -317,6 +329,7 @@ public class AgentService extends Thread implements RunnableService {
 	 * @return tasks
 	 */
 	public Collection<Task> getTaskQueue() {
+
 		return (taskQueue);
 	}
 
@@ -325,13 +338,13 @@ public class AgentService extends Thread implements RunnableService {
 	 * @return agents
 	 */
 	public Map<String, List<Agent>> getRunningAgents() {
+
 		return (runningAgents);
 	}
 
 	private List<Agent> getRunningAgentsForTask(Class taskClass) {
 
 		List<Agent> agents = runningAgents.get(taskClass.getName());
-
 		if (agents == null) {
 
 			agents = Collections.synchronizedList(new LinkedList<>());
@@ -345,22 +358,26 @@ public class AgentService extends Thread implements RunnableService {
 
 	@Override
 	public boolean isRunning() {
+
 		return (this.run);
 	}
 
 	@Override
 	public boolean isVital() {
+
 		return false;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return false;
 	}
 
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "core";
 	}
 }

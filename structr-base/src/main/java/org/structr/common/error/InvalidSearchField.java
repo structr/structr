@@ -24,6 +24,7 @@ package org.structr.common.error;
 public class InvalidSearchField extends SemanticErrorToken {
 
 	public InvalidSearchField(final String type, final String propertyKey) {
+
 		super(type, propertyKey, "invalid_search_key");
 	}
 }

@@ -28,76 +28,91 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class AbstractFileCONFIGURED_BYStorageConfiguration extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public AbstractFileCONFIGURED_BYStorageConfiguration() {
+
 		super(StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.ABSTRACT_FILE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.STORAGE_CONFIGURATION;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONFIGURED_BY";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.Both;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Remove;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Remove;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Remove;
 	}
 
 	@Override
 	public String getDeltaProperties() {
+
 		return "";
 	}
 }

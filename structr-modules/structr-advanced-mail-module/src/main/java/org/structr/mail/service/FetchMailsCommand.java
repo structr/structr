@@ -37,6 +37,7 @@ public class FetchMailsCommand extends Command {
 
 	@Override
 	public Class getServiceClass() {
+
 		return MailService.class;
 	}
 }

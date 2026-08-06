@@ -34,6 +34,7 @@ import java.util.Set;
 public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestThreeTraitDefinition() {
+
 		super("TestThree");
 	}
 
@@ -59,7 +60,6 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> oneToOneTestFive        = new StartNode(traitsInstance, "oneToOneTestFive",  "FiveThreeOneToOne");
 		final Property<ZonedDateTime> zonedDateTimeProperty   = new ZonedDateTimeProperty("zonedDateTime").indexed().indexedWhenEmpty();
 		final Property<String[]>      testEnumArrayProperty   = new EnumArrayProperty("enumArrayProperty", TestEnum.class).indexed().indexedWhenEmpty();
-
 		final Property<ZonedDateTime> customZonedDateTimeProperty   = new ZonedDateTimeProperty("customZonedDateTime").format("yyyy-MM-dd HH:mm:ss '['VV']'").indexed().indexedWhenEmpty();
 
 		return newSet(
@@ -101,6 +101,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

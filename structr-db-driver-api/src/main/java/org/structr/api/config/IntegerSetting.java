@@ -38,6 +38,7 @@ public class IntegerSetting extends Setting<Integer> {
 	 * @param key
 	 */
 	public IntegerSetting(final SettingsGroup group, final String key) {
+
 		this(group, key, null);
 	}
 
@@ -49,6 +50,7 @@ public class IntegerSetting extends Setting<Integer> {
 	 * @param value
 	 */
 	public IntegerSetting(final SettingsGroup group, final String key, final Integer value) {
+
 		this(group, null, key, value);
 	}
 
@@ -60,6 +62,7 @@ public class IntegerSetting extends Setting<Integer> {
 	 * @param value
 	 */
 	public IntegerSetting(final SettingsGroup group, final String categoryName, final String key, final Integer value) {
+
 		super(group, categoryName, key, value);
 	}
 
@@ -72,6 +75,7 @@ public class IntegerSetting extends Setting<Integer> {
 	 * @param comment
 	 */
 	public IntegerSetting(final SettingsGroup group, final String categoryName, final String key, final Integer value, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 	}
 
@@ -83,12 +87,12 @@ public class IntegerSetting extends Setting<Integer> {
 		renderLabel(group);
 
 		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
-
 		final Tag input     = settingInputContainer.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final Integer value = getValue();
 
 		// display value if non-empty
 		if (value != null) {
+
 			input.attr(new Attr("value", value));
 		}
 
@@ -99,12 +103,14 @@ public class IntegerSetting extends Setting<Integer> {
 	public void fromString(final String source) {
 
 		if (source == null) {
+
 			return;
 		}
 
 		if (StringUtils.isNotBlank(source)) {
 
 			try {
+
 				setValue(Integer.parseInt(source));
 
 			} catch (NumberFormatException nex) {
@@ -121,6 +127,7 @@ public class IntegerSetting extends Setting<Integer> {
 
 	@Override
 	protected Setting<Integer> copy(final String key) {
+
 		return new IntegerSetting(group, category, key, value);
 	}
 }

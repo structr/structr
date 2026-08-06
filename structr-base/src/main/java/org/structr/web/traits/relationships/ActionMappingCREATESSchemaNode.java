@@ -41,46 +41,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ActionMappingCREATESSchemaNode extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ActionMappingCREATESSchemaNode() {
+
 		super(StructrTraits.ACTION_MAPPING_CREATES_SCHEMA_NODE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.ACTION_MAPPING;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.SCHEMA_NODE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CREATES";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

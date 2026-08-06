@@ -49,6 +49,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DATA_SOURCE_PROPERTY    = "dataSource";
 
 	public FlowBaseNodeTraitDefinition() {
+
 		super(StructrTraits.FLOW_BASE_NODE);
 	}
 
@@ -57,11 +58,11 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				OnCreation.class,
-				new OnCreation() {
+				OnCreation.class, new OnCreation() {
 
 					@Override
 					public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 						graphObject.setVisibility(true, true);
 					}
 				}
@@ -73,8 +74,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -95,9 +95,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowBaseNode.class, (traits, node) -> new FlowBaseNode(traits, node)
-		);
+		return Map.of(FlowBaseNode.class, (traits, node) -> new FlowBaseNode(traits, node));
 	}
 
 	@Override
@@ -106,10 +104,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> flowContainer = new StartNode(traitsInstance, FLOW_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_BASE_NODE).indexed();
 		final Property<NodeInterface> dataSource    = new StartNode(traitsInstance, DATA_SOURCE_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
-		return newSet(
-			flowContainer,
-			dataSource
-		);
+		return newSet(flowContainer, dataSource);
 	}
 
 	@Override
@@ -117,15 +112,12 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PropertyView.Ui,
-			newSet(
-				FLOW_CONTAINER_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(FLOW_CONTAINER_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

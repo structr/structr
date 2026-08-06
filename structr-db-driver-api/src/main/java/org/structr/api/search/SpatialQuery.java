@@ -18,7 +18,6 @@
  */
 package org.structr.api.search;
 
-
 public interface SpatialQuery extends QueryPredicate {
 
 	Double[] getCoords();

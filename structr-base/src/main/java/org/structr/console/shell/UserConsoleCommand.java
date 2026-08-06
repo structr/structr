@@ -83,6 +83,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
+
 		writable.println("Creates and deletes users, sets passwords.");
 	}
 
@@ -108,6 +109,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 				final String name = user.getName();
 
 				if (!first) {
+
 					writable.print(", ");
 				}
 
@@ -125,6 +127,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 	private void handleAdd(final SecurityContext securityContext, final Writable writable, final String name, final String eMail, final String isAdmin) throws FrameworkException, IOException {
 
 		if (StringUtils.isEmpty(name)) {
+
 			throw new FrameworkException(422, "Missing user name for add command.");
 		}
 
@@ -137,11 +140,13 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 			// set e-mail address
 			if (eMail != null && !"isAdmin".equals(eMail)) {
+
 				user.setEMail(eMail);
 			}
 
 			// set isAdmin flag
 			if ("isAdmin".equals(eMail) || "isAdmin".equals(isAdmin)) {
+
 				user.setIsAdmin(true);
 			}
 
@@ -154,6 +159,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 	private void handleDelete(final SecurityContext securityContext, final Writable writable, final String name, final String confirm) throws FrameworkException, IOException {
 
 		if (StringUtils.isEmpty(name)) {
+
 			throw new FrameworkException(422, "Missing user name for delete command.");
 		}
 
@@ -179,7 +185,6 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 				} else {
 
 					final String hash = user.getUuid().substring(7, 11);
-
 					if (confirm == null || !confirm.equals(hash)) {
 
 						writable.print("User '");
@@ -210,6 +215,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 	private void handlePwd(final SecurityContext securityContext, final Writable writable, final String name, final String password) throws FrameworkException, IOException {
 
 		if (StringUtils.isEmpty(name)) {
+
 			throw new FrameworkException(422, "Missing user name for password command.");
 		}
 

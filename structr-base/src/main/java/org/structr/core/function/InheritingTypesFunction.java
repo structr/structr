@@ -35,11 +35,13 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "inheritingTypes";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type [, blacklist ]");
 	}
 
@@ -84,12 +86,14 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${inheritingTypes(type[, blacklist])}. Example ${inheritingTypes('User')}"),
 			Usage.javaScript("Usage: ${{ $.inheritingTypes(type[, blacklist]) }}. Example ${{ $.inheritingTypes('User') }}")
@@ -98,33 +102,31 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the list of types that inherit the given trait.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can remove unwanted types from the resulting list by providing a list of unwanted type names as a second parameter.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("type", "type name to fetch subtypes for"),
-			Parameter.optional("blacklist", "collection of unwanted type names that are removed from the result")
-		);
+		return List.of(Parameter.mandatory("type", "type name to fetch subtypes for"), Parameter.optional("blacklist", "collection of unwanted type names that are removed from the result"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${inheritingTypes('MyType', merge('UndesiredSubtype'))}", "Returns a list of subtypes of type \"MyType\"")
-		);
+		return List.of(Example.structrScript("${inheritingTypes('MyType', merge('UndesiredSubtype'))}", "Returns a list of subtypes of type \"MyType\""));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
 				"The types in the blacklist collection are not validated and are just removed from the result set.",
@@ -134,6 +136,7 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Schema;
 	}
 }

@@ -26,6 +26,9 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnSequenceFlow;
+import org.structr.process.traits.wrappers.BpmnSequenceFlowTraitWrapper;
 import java.util.Set;
 
 /**
@@ -48,7 +51,14 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String DI_EDGE_PROPERTY                     = "diEdge";
 
 	public BpmnSequenceFlowTraitDefinition() {
+
 		super(ProcessTraits.BPMN_SEQUENCE_FLOW);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(BpmnSequenceFlow.class, (traits, node) -> new BpmnSequenceFlowTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -81,6 +91,7 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

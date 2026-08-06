@@ -44,30 +44,32 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PORT_PROPERTY     = "port";
 
 	public SiteTraitDefinition() {
+
 		super(StructrTraits.SITE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Site.class, (traits, node) -> new SiteTraitWrapper(traits, node)
-		);
+		return Map.of(Site.class, (traits, node) -> new SiteTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -77,36 +79,26 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> hostnameProperty               = new StringProperty(HOSTNAME_PROPERTY).indexed().description("Domain name used to match incoming requests to this site. Requests with a matching Host header are routed to pages assigned to this site.");
 		final Property<Integer> portProperty                  = new IntProperty(PORT_PROPERTY).indexed().description("Port number used together with hostname to match incoming requests. Allows hosting multiple sites on different ports of the same domain.");
 
-		return Set.of(
-			pagesProperty,
-			hostnameProperty,
-			portProperty
-		);
+		return Set.of(pagesProperty, hostnameProperty, portProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-					PAGES_PROPERTY, HOSTNAME_PROPERTY, PORT_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(PAGES_PROPERTY, HOSTNAME_PROPERTY, PORT_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-					PAGES_PROPERTY, HOSTNAME_PROPERTY, PORT_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(PAGES_PROPERTY, HOSTNAME_PROPERTY, PORT_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

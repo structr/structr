@@ -25,6 +25,7 @@ package org.structr.api.schema;
 public class InvalidSchemaException extends Exception {
 
 	public InvalidSchemaException(final String message) {
+
 		super(message);
 	}
 }

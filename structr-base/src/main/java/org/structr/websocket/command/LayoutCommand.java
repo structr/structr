@@ -77,12 +77,14 @@ public class LayoutCommand extends AbstractCommand {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "LAYOUT";
 	}
 

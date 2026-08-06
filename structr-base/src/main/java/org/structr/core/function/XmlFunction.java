@@ -41,11 +41,13 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "xml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("xmlString");
 	}
 
@@ -61,7 +63,6 @@ public class XmlFunction extends AdvancedScriptingFunction {
 				try {
 
 					final DocumentBuilder builder = getDocumentBuilder();
-
 					if (builder != null) {
 
 						final String xml = (String)sources[0];
@@ -86,6 +87,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -94,6 +96,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.xml(xmlString) }}. Example: ${{ $.xpath($.xml($.this.text), \"/test/testValue\") }}"),
 			Usage.structrScript("Usage: ${xml(xmlString)}. Example: ${xpath(xml(this.text), \"/test/testValue\")}")
@@ -102,6 +105,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${xml(read('test.xml'))}", "Read file test.xml from exchange/ directory and return parsed document"),
 				Example.structrScript("${xml(getContent(first(find('File', 'name', 'test.xml'))))}", "Read first file named test.xml from virtual filesystem and return parsed document")
@@ -110,11 +114,13 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Tries to parse the contents of the given string into an XML document, returning the document on success.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function can be used in conjunction with `xpath()` to extract data from an XML document.
 
@@ -135,6 +141,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Disabling `%s` reduces protection against malicious input. Do this only when the data source is fully trusted and you accept the associated risks.".formatted(Settings.XMLParserSecurity.getKey())
 		);
@@ -142,6 +149,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 

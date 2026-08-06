@@ -66,7 +66,6 @@ public interface Widget extends NodeInterface {
 	String getComponentType();
 	Integer getDimensions();
 
-
 	/**
 	 * Parses HTML code from the "source" entry in the given parameters map into a set of DOMNodes that are created
 	 * in the given page, with the given parent. An additional config entry in the parameters can be specified to
@@ -87,8 +86,8 @@ public interface Widget extends NodeInterface {
 		final App app                         = StructrApp.getInstance(securityContext);
 		final List<String> attributes         = new LinkedList<>();
 		final ErrorBuffer errorBuffer         = new ErrorBuffer();
-
 		String _source = (String) parameters.get("source");
+
 		if (_source == null) {
 
 			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), "source"));
@@ -111,6 +110,7 @@ public interface Widget extends NodeInterface {
 
 				final String name              = (String) parameters.get("dataSourceName");
 				final NodeInterface dataSource = app.create(StructrTraits.SCRIPT_DATA_SOURCE, name);
+
 				parameters.put("dataSource", "node:" + dataSource.getUuid());
 			}
 
@@ -118,10 +118,12 @@ public interface Widget extends NodeInterface {
 
 				final String name              = (String) parameters.get("dataSourceName");
 				final NodeInterface dataSource = app.create(StructrTraits.QUERY_DATA_SOURCE, name);
+
 				parameters.put("dataSource", "node:" + dataSource.getUuid());
 			}
 
 			if ("create-new-data-adapter".equals(parameters.get("dataAdapter"))) {
+
 				throw new IllegalStateException("Data adapter creation is done elsewhere now, please do not use this special key.");
 			}
 
@@ -178,13 +180,17 @@ public interface Widget extends NodeInterface {
 
 						newChild.setIsComponentRoot(true);
 
-						if (!attributes.isEmpty()) {
+						final ComponentConfiguration componentConfiguration = newChild.getComponentConfiguration();
+						if (componentConfiguration != null) {
 
-							final ComponentConfiguration componentConfiguration = newChild.getComponentConfiguration();
-							if (componentConfiguration != null) {
+							if (!attributes.isEmpty()) {
 
 								componentConfiguration.setFieldSet(StringUtils.join(attributes, ","));
 							}
+
+							// validate on the widget-insertion path, where the widget has just established the
+							// component's dimensions and configuration (rather than on every lifecycle modification)
+							componentConfiguration.checkCompatibility();
 						}
 					}
 
@@ -198,6 +204,7 @@ public interface Widget extends NodeInterface {
 								parent.appendChild(child.as(DOMNode.class));
 
 							} else {
+
 								StructrApp.getInstance().delete(child);
 							}
 						}
@@ -257,6 +264,7 @@ public interface Widget extends NodeInterface {
 
 		// checkbox without value sends the string "on"
 		if ("on".equals(parameters.get("dataSourceCreateExampleData"))) {
+
 			TransactionCommand.registerTransactionListener(ExampleData.postProcess(name, attributes, 5));
 		}
 
@@ -266,6 +274,7 @@ public interface Widget extends NodeInterface {
 	static Integer toInt(final Object value) {
 
 		if (value != null && value instanceof Number number) {
+
 			return number.intValue();
 		}
 
@@ -307,14 +316,17 @@ public interface Widget extends NodeInterface {
 		}
 
 		public String getKey() {
+
 			return key;
 		}
 
 		public ArrayList<String> getOptions() {
+
 			return options;
 		}
 
 		public boolean hasOptions() {
+
 			return hasOptions;
 		}
 	}

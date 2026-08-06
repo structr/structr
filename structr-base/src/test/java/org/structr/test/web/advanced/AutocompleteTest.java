@@ -44,7 +44,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class AutocompleteTest extends StructrUiTest {
 
-
 	@Test
 	public void testAutocompleteInMixedContent() {
 
@@ -271,6 +270,7 @@ public class AutocompleteTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -299,6 +299,7 @@ public class AutocompleteTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -307,9 +308,7 @@ public class AutocompleteTest extends StructrUiTest {
 	public void testJavascriptAutocompleteForPredicateKeyword() {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
-
 		final List<GraphObject> result = AbstractHintProvider.getHints(actionContext, false, null, "${{ $.find('User', $.predica", "", 0, 0);
-
 		final String[] predicateChecks = {
 			"predicate.and",
 			"predicate.any",
@@ -333,6 +332,7 @@ public class AutocompleteTest extends StructrUiTest {
 		int resultIndex =1; // ignore first entry of result (should be predicate without anything)
 
 		for (String predicateCheck : predicateChecks) {
+
 			final Map<String, Object> entry = ((GraphObjectMap) result.get(resultIndex++)).toMap();
 			assertEquals("Invalid autocomplete result", predicateCheck, entry.get("text"));
 			assertEquals("Invalid autocomplete replacement", predicateCheck, entry.get("replacement"));
@@ -370,10 +370,12 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEquals("Invalid autocomplete result", "queryString",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "request",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "session",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "task",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "template",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "tenantIdentifier",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "this",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "value",                                 ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "visibilityMapping",                     ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "abbr()",                                ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "add()",                                 ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "addHeader()",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));
@@ -389,6 +391,7 @@ public class AutocompleteTest extends StructrUiTest {
 	}
 
 	void assertEmptyResult(final List<GraphObject> result) {
+
 		assertEquals("Invalid autocomplete result", 0, result.size());
 	}
 }

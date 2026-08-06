@@ -50,11 +50,13 @@ public abstract class GeoFunction extends Function<Object, Object> {
 
 	@Override
 	public String getRequiredModule() {
+
 		return "geo-transformations";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Geocoding;
 	}
 
@@ -77,7 +79,6 @@ public abstract class GeoFunction extends Function<Object, Object> {
 			final List point = (List)source;
 			final Object x   = point.get(0);
 			final Object y   = point.get(1);
-
 			final Double px  = this.getDoubleOrNull(x);
 			final Double py  = this.getDoubleOrNull(y);
 
@@ -89,7 +90,6 @@ public abstract class GeoFunction extends Function<Object, Object> {
 		} else if (source instanceof Map) {
 
 			final Map point = (Map)source;
-
 			if (point.containsKey("x") && point.containsKey("y")) {
 
 				final Double px = this.getDoubleOrNull(point.get("x"));
@@ -137,8 +137,8 @@ public abstract class GeoFunction extends Function<Object, Object> {
 
 		final RenderedImage image           = coverage.getRenderedImage();
 		final int type                      = BufferedImage.TYPE_BYTE_INDEXED;
-
 		final BufferedImage src = new BufferedImage(image.getWidth(), image.getHeight(), type);
+
 		src.setData(image.getData());
 
 		final AffineTransform at = new AffineTransform();
@@ -185,6 +185,7 @@ public abstract class GeoFunction extends Function<Object, Object> {
 			frame.setVisible(true);
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 	}
@@ -197,12 +198,13 @@ public abstract class GeoFunction extends Function<Object, Object> {
 			final MapContent content = new MapContent();
 			final JMapFrame frame    = new JMapFrame(content);
 			int index                = 0;
-
 			final FeatureIterator it = features.features();
+
 			while (it.hasNext()) {
 
 				final SimpleFeature feature      = (SimpleFeature)it.next();
 				final DefaultFeatureCollection c = new DefaultFeatureCollection();
+
 				c.add(feature);
 
 				content.addLayer(new FeatureLayer(c, SLD.createLineStyle(colors[index++], 1)));
@@ -214,6 +216,7 @@ public abstract class GeoFunction extends Function<Object, Object> {
 			frame.setVisible(true);
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 	}

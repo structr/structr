@@ -29,7 +29,6 @@ public class IntegerSettingTest {
 
 		final SettingsGroup testGroup = new SettingsGroup("testInt", "testInt");
 		final IntegerSetting setting = new IntegerSetting(testGroup, "keyInt", 123);
-
 		final Integer newValue = 4362;
 		final Integer value    = 123;
 		final Integer noValue  = -1;

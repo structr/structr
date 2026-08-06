@@ -29,46 +29,55 @@ import static org.structr.core.entity.Relation.Multiplicity.One;
 public class SchemaMethodParametersDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaMethodParametersDefinition() {
+
 		super(StructrTraits.SCHEMA_METHOD_PARAMETERS);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.SCHEMA_METHOD;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.SCHEMA_METHOD_PARAMETER;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_PARAMETER";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return true;
 	}
 }

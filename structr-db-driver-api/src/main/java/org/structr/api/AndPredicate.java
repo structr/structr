@@ -29,6 +29,7 @@ public class AndPredicate<T> implements Predicate<T> {
 	private List<Predicate<T>> predicates = new LinkedList<>();
 
 	public AndPredicate(final Predicate<T>... predicates) {
+
 		this.predicates.addAll(Arrays.asList(predicates));
 	}
 
@@ -38,15 +39,18 @@ public class AndPredicate<T> implements Predicate<T> {
 		for (final Predicate<T> p : predicates) {
 
 			if (!p.accept(value)) {
+
 				return false;
 			}
 		}
 
 		// default is true if no values are given?
+
 		return true;
 	}
 
 	public void addPredicate(final Predicate<T> predicate) {
+
 		predicates.add(predicate);
 	}
 }

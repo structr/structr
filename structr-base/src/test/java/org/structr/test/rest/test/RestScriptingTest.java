@@ -141,6 +141,7 @@ public class RestScriptingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -179,8 +180,8 @@ public class RestScriptingTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonType type = schema.addType("API");
+
 			type.addMethod("test1", "'static structr script method'").setIsStatic(true).setReturnRawResult(true);
 			type.addMethod("test2", "{ 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
 
@@ -228,8 +229,8 @@ public class RestScriptingTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonType type = schema.addType("API");
+
 			type.addMethod("calledTestMethod", "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); return 'test'; }").setIsStatic(true);
 
 			type.addMethod("test1", "'static structr script method'").setIsStatic(true).setReturnRawResult(true);
@@ -284,6 +285,7 @@ public class RestScriptingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}

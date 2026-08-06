@@ -43,12 +43,15 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "getAvailableServerlogs";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -60,6 +63,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getAvailableServerlogs()}. Example: ${getAvailableServerlogs()}"),
 			Usage.javaScript("Usage: ${{ $.getAvailableServerlogs(); }}. Example: ${{ $.getAvailableServerlogs(); }}")
@@ -68,16 +72,19 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a collection of available server logs files.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The collection of available server logs files is identical to the list of available server log files in the dashboard area.";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 
@@ -94,7 +101,6 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 	public static List<String> getListOfServerlogFileNames() {
 
 		final String basePath = Settings.getBasePath();
-
 		if (!basePath.isEmpty()) {
 
 			File logFile;
@@ -106,10 +112,12 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 				logFile = new File(envLogFile);
 
 				if (logFile.exists()) {
-					String parentDir = logFile.getParent() + File.separator;
 
+					String parentDir = logFile.getParent() + File.separator;
 					List<String> logsInDir = getLogFilesInDirectory(parentDir, logFile.getName());
+
 					if (logsInDir.size() > 1) {
+
 						return logsInDir;
 					}
 				}
@@ -120,6 +128,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 			// second priority: default log file for local installations (logs/server.log)
 			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
 			logFile = new File(logPath.concat("server.log"));
+
 			if (logFile.exists()) {
 
 				return List.of(logPath.concat("server.log"));
@@ -127,6 +136,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 			// third priority: deb installation / log files in /var/log/ (although ENV can also use this path)
 			logFile = new File("/var/log/structr.log");
+
 			if (logFile.exists()) {
 
 				return getLogFilesInDirectory("/var/log/", logFile.getName());
@@ -162,6 +172,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 
 					if (attrs.isRegularFile() && isFileOfInterest(file)) {
+
 						logFiles.add(file.toString());
 					}
 
@@ -172,6 +183,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 				public FileVisitResult visitFileFailed(Path file, IOException exc) {
 
 					if (isFileOfInterest(file)) {
+
 						logger.debug("Skipping {}: {}", file, exc.toString());
 					}
 

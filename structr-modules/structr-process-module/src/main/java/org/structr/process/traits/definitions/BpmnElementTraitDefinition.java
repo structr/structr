@@ -36,9 +36,12 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 import org.structr.schema.action.ActionContext;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnElement;
+import org.structr.process.traits.wrappers.BpmnElementTraitWrapper;
 import java.util.Set;
 
 /**
@@ -59,6 +62,10 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	// --- Content properties (promoted from XML child elements) ---
 	public static final String DOCUMENTATION_PROPERTY       = "documentation";
 	public static final String SCRIPT_CONTENT_PROPERTY      = "scriptContent";
+	// Camunda inputOutput mappings, stored as JSON:
+	// {"inputs":[{"name":..,"source":..}],"outputs":[{"name":..,"source":..}]}.
+	// Applied around automatic-task execution (inputs before, outputs after).
+	public static final String IO_MAPPINGS_PROPERTY         = "ioMappings";
 
 	// --- Event definition properties ---
 	public static final String EVENT_DEF_TYPE_PROPERTY      = "eventDefinitionType";
@@ -96,23 +103,30 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	// rewire step (matched by bpmnId). Empty / unset on non-UserTask
 	// elements; meaningless there. See the process / UI separation pillar
 	// (project_process_ui_contract_pillar.md) for the design rationale.
-	//   subjectType         - name of the SchemaNode the task operates on
-	//                         (e.g. "LeaveRequest"). Read at render time by
-	//                         process-bound widgets to derive their dataSource.
-	//   subjectFormView     - optional SchemaView on subjectType naming the
-	//                         fields the form should expose. When unset the
-	//                         widget defaults to the standard view.
-	//   subjectWritableView - optional SchemaView on subjectType naming the
-	//                         subset of fields the task may write. Convention:
-	//                         a subset of subjectFormView.
+	//   subjectFormView     - optional SchemaView on the process's subjectType
+	//                         (see BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY)
+	//                         naming the fields this step's form should expose.
+	//                         When unset the widget defaults to the standard view.
+	//   subjectWritableView - optional SchemaView naming the subset of fields
+	//                         this step may write. Convention: a subset of
+	//                         subjectFormView.
 	//   instructions        - free-text help shown to the human user above
 	//                         the form.
-	public static final String SUBJECT_TYPE_PROPERTY          = "subjectType";
+	// The subject *type* is deliberately NOT here: a process has a single subject,
+	// so its type is process-level (BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY).
+	// Steps only pick which fields of that one type they show/edit.
 	public static final String SUBJECT_FORM_VIEW_PROPERTY     = "subjectFormView";
 	public static final String SUBJECT_WRITABLE_VIEW_PROPERTY = "subjectWritableView";
 	public static final String INSTRUCTIONS_PROPERTY          = "instructions";
 
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(BpmnElement.class, (traits, node) -> new BpmnElementTraitWrapper(traits, node));
+	}
+
 	public BpmnElementTraitDefinition() {
+
 		super(ProcessTraits.BPMN_ELEMENT);
 	}
 
@@ -127,6 +141,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// Content
 		final Property<String> documentation   = new StringProperty(DOCUMENTATION_PROPERTY);
 		final Property<String> scriptContent   = new StringProperty(SCRIPT_CONTENT_PROPERTY);
+		final Property<String> ioMappings      = new StringProperty(IO_MAPPINGS_PROPERTY);
 
 		// Event definitions
 		final Property<String> eventDefType         = new StringProperty(EVENT_DEF_TYPE_PROPERTY);
@@ -146,6 +161,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> performers       = new EndNodes(traitsInstance, PERFORMERS_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_PERFORMER);
 		final Property<Iterable<NodeInterface>> taskListeners    = new EndNodes(traitsInstance, TASK_LISTENERS_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_TASK_LISTENER);
 		final Property<Iterable<NodeInterface>> methods          = new EndNodes(traitsInstance, METHODS_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_METHOD);
+
 		// Inverse properties for relationships pointing INTO this BpmnElement.
 		// Required so OneToMany.ensureCardinality can resolve the source side when
 		// a VisibilityMapping or ActionMapping is reassigned (e.g. by the importer's
@@ -153,6 +169,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// throws "missing StartNode(s) property".
 		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT);
 		final Property<Iterable<NodeInterface>> controlActions     = new StartNodes(traitsInstance, CONTROL_ACTIONS_PROPERTY,     StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT);
+
 		// Inverse for ComponentConfiguration -[BOUND]-> BpmnElement so the
 		// OneToMany cardinality check can resolve the source side when a
 		// component's boundUserTask is reassigned. Lists every widget
@@ -160,6 +177,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// render the same step).
 		final Property<Iterable<NodeInterface>> boundConfigurations = new StartNodes(traitsInstance, BOUND_CONFIGURATIONS_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT);
 		final Property<NodeInterface> diShape                    = new StartNode(traitsInstance, DI_SHAPE_PROPERTY, ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
+
 		// Inverse for BpmnLane -[HAS_FLOW_NODE]-> BpmnElement: each element
 		// belongs to at most one lane (BPMN 2.0 rule). Required so
 		// OneToMany.ensureCardinality on the lane->element rel can resolve
@@ -175,17 +193,16 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> attachedBoundaries = new StartNodes(traitsInstance, ATTACHED_BOUNDARIES_PROPERTY, ProcessTraits.BPMN_ELEMENT_ATTACHED_TO);
 
 		// Process / UI contract (UserTask elements only); see docstring above.
-		final Property<String> subjectType         = new StringProperty(SUBJECT_TYPE_PROPERTY).indexed();
 		final Property<String> subjectFormView     = new StringProperty(SUBJECT_FORM_VIEW_PROPERTY);
 		final Property<String> subjectWritableView = new StringProperty(SUBJECT_WRITABLE_VIEW_PROPERTY);
 		final Property<String> instructions        = new StringProperty(INSTRUCTIONS_PROPERTY);
 
 		return newSet(bpmnElementType, bpmnName, bpmnAttributes,
-			documentation, scriptContent,
+			documentation, scriptContent, ioMappings,
 			eventDefType, eventDefId, eventDefRef, timerType, timerExpressionType, timerValue,
 			process, parentElement, childElements, childFlows, outgoingFlows, incomingFlows, performers, taskListeners, methods, visibilityMappings, controlActions, boundConfigurations, diShape, lane,
 			attachedTo, attachedBoundaries,
-			subjectType, subjectFormView, subjectWritableView, instructions);
+			subjectFormView, subjectWritableView, instructions);
 	}
 
 	@Override
@@ -194,15 +211,15 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, BPMN_ELEMENT_TYPE_PROPERTY, BPMN_NAME_PROPERTY,
 				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY, EVENT_DEF_TYPE_PROPERTY,
-				SUBJECT_TYPE_PROPERTY, SUBJECT_FORM_VIEW_PROPERTY, SUBJECT_WRITABLE_VIEW_PROPERTY, INSTRUCTIONS_PROPERTY),
+				SUBJECT_FORM_VIEW_PROPERTY, SUBJECT_WRITABLE_VIEW_PROPERTY, INSTRUCTIONS_PROPERTY),
 			PropertyView.Ui, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, BPMN_ELEMENT_TYPE_PROPERTY, BPMN_NAME_PROPERTY, BPMN_ATTRIBUTES_PROPERTY,
-				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY,
+				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY, IO_MAPPINGS_PROPERTY,
 				EVENT_DEF_TYPE_PROPERTY, EVENT_DEF_ID_PROPERTY, EVENT_DEF_REF_PROPERTY,
 				TIMER_TYPE_PROPERTY, TIMER_EXPRESSION_TYPE_PROPERTY, TIMER_VALUE_PROPERTY,
 				PROCESS_PROPERTY, PARENT_ELEMENT_PROPERTY, CHILD_ELEMENTS_PROPERTY, CHILD_FLOWS_PROPERTY,
 				OUTGOING_FLOWS_PROPERTY, INCOMING_FLOWS_PROPERTY, PERFORMERS_PROPERTY, TASK_LISTENERS_PROPERTY, METHODS_PROPERTY, DI_SHAPE_PROPERTY, LANE_PROPERTY,
 				ATTACHED_TO_PROPERTY, ATTACHED_BOUNDARIES_PROPERTY,
-				SUBJECT_TYPE_PROPERTY, SUBJECT_FORM_VIEW_PROPERTY, SUBJECT_WRITABLE_VIEW_PROPERTY, INSTRUCTIONS_PROPERTY)
+				SUBJECT_FORM_VIEW_PROPERTY, SUBJECT_WRITABLE_VIEW_PROPERTY, INSTRUCTIONS_PROPERTY)
 		);
 	}
 
@@ -237,22 +254,22 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final App app = StructrApp.getInstance(securityContext);
 					final Map<String, Object> args = arguments.toMap();
-
 					final Object hpArg = args.get("humanPerformer");
 					final Object poArg = args.get("potentialOwner");
 					final String humanPerformer = (hpArg instanceof String) ? ((String) hpArg).trim() : "";
 					final String potentialOwner = (poArg instanceof String) ? ((String) poArg).trim() : "";
-
 					final List<NodeInterface> hpPrincipals = resolvePrincipalIds(app, args.get("humanPerformerPrincipals"));
 					final List<NodeInterface> poPrincipals = resolvePrincipalIds(app, args.get("potentialOwnerPrincipals"));
 
 					reconcilePerformer(app, element, BpmnPerformerTraitDefinition.KIND_HUMAN_PERFORMER, humanPerformer, hpPrincipals);
 					reconcilePerformer(app, element, BpmnPerformerTraitDefinition.KIND_POTENTIAL_OWNER, potentialOwner, poPrincipals);
+
 					return null;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Replace humanPerformer / potentialOwner configuration on this BpmnElement. Each kind accepts an expression string (\"${initiator}\" / \"user(alice)\" syntax) and a list of Principal UUIDs. The performer is removed when both are empty; otherwise a single BpmnPerformer of the kind is created / updated to carry both. Generic <performer> entries are not touched.";
 				}
 			}
@@ -269,31 +286,57 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	 * right behaviour.
 	 */
 	private static List<NodeInterface> resolvePrincipalIds(final App app, final Object arg) throws FrameworkException {
-		final List<NodeInterface> out = new ArrayList<>();
-		if (arg == null) return out;
-		final Iterable<?> source;
-		if (arg instanceof Iterable) {
-			source = (Iterable<?>) arg;
-		} else if (arg instanceof Object[]) {
-			source = java.util.Arrays.asList((Object[]) arg);
-		} else if (arg instanceof String) {
-			source = List.of((String) arg);
-		} else {
+
+		final List<NodeInterface> out = new LinkedList<>();
+
+		if (arg == null) {
+
 			return out;
 		}
-		for (final Object item : source) {
-			if (!(item instanceof String)) continue;
-			final String id = ((String) item).trim();
-			if (id.isEmpty()) continue;
-			final NodeInterface node = app.getNodeById(id);
-			if (node != null) out.add(node);
+
+		final Iterable<?> source;
+
+		if (arg instanceof Iterable) {
+
+			source = (Iterable<?>) arg;
+
+		} else if (arg instanceof Object[]) {
+
+			source = java.util.Arrays.asList((Object[]) arg);
+
+		} else if (arg instanceof String) {
+
+			source = List.of((String) arg);
+
+		} else {
+
+			return out;
 		}
+
+		for (final Object item : source) {
+
+			if (!(item instanceof String)) {
+
+				continue;
+			}
+
+			final String id = ((String) item).trim();
+			if (id.isEmpty()) {
+
+				continue;
+			}
+
+			final NodeInterface node = app.getNodeById(id);
+			if (node != null) {
+
+				out.add(node);
+			}
+		}
+
 		return out;
 	}
 
-	private static void reconcilePerformer(final App app, final NodeInterface element,
-										   final String kind, final String expression,
-										   final List<NodeInterface> principals) throws FrameworkException {
+	private static void reconcilePerformer(final App app, final NodeInterface element, final String kind, final String expression, final List<NodeInterface> principals) throws FrameworkException {
 
 		final Traits elemTraits = element.getTraits();
 		final Traits perfTraits = Traits.of(ProcessTraits.BPMN_PERFORMER);
@@ -302,14 +345,24 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// Bucket existing performers by kind. Generic <performer> entries are
 		// left as-is; only the two managed kinds are reconciled.
-		final List<NodeInterface> ofKind = new ArrayList<>();
-		final List<NodeInterface> others = new ArrayList<>();
+		final List<NodeInterface> ofKind = new LinkedList<>();
+		final List<NodeInterface> others = new LinkedList<>();
 		final Iterable<NodeInterface> existing = element.getProperty(performersKey);
+
 		if (existing != null) {
+
 			for (final NodeInterface p : existing) {
+
 				final String pKind = p.getProperty(perfTraits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY));
-				if (kind.equals(pKind)) ofKind.add(p);
-				else                    others.add(p);
+				if (kind.equals(pKind)) {
+
+					ofKind.add(p);
+				}
+
+				else {
+
+					others.add(p);
+				}
 			}
 		}
 
@@ -317,18 +370,25 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final boolean hasPrincipals = principals != null && !principals.isEmpty();
 
 		if (!hasExpr && !hasPrincipals) {
+
 			// Remove all performers of this kind.
-			for (final NodeInterface p : ofKind) app.delete(p);
+			for (final NodeInterface p : ofKind) {
+
+				app.delete(p);
+			}
+
 			return;
 		}
 
 		if (ofKind.isEmpty()) {
+
 			// Create a new BpmnPerformer of this kind and link via the rel.
-			final NodeInterface created = app.create(ProcessTraits.BPMN_PERFORMER, (String) null);
+			final NodeInterface created = app.create(ProcessTraits.BPMN_PERFORMER);
 			created.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY),       kind);
 			created.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY), hasExpr ? expression : null);
 			created.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.ELEMENT_PROPERTY),    element);
 			created.setProperty(principalsKey, principals != null ? principals : List.of());
+
 			return;
 		}
 
@@ -336,14 +396,28 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final NodeInterface keep = ofKind.get(0);
 		keep.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY), hasExpr ? expression : null);
 		keep.setProperty(principalsKey, principals != null ? principals : List.of());
-		for (int i = 1; i < ofKind.size(); i++) {
-			app.delete(ofKind.get(i));
+
+		boolean first = true;
+
+		for (final NodeInterface p : ofKind) {
+
+			// Skip the survivor (first element); delete the extras. Index-free so the
+			// choice of List implementation stays O(n).
+			if (first) {
+
+				first = false;
+				continue;
+			}
+
+			app.delete(p);
 		}
+
 		// `others` is read-only here -- they remain attached untouched.
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

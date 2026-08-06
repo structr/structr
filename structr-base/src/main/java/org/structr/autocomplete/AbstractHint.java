@@ -43,18 +43,22 @@ public abstract class AbstractHint implements Documentable {
 	}
 
 	public void setIsDynamic(final boolean isDynamic) {
+
 		this.isDynamic = isDynamic;
 	}
 
 	public boolean isDynamic() {
+
 		return isDynamic;
 	}
 
 	public boolean isHidden() {
+
 		return false;
 	}
 
 	public List<Documentable> getContextHints(final String lastToken) {
+
 		return null;
 	}
 }

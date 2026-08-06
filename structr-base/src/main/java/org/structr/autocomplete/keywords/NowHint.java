@@ -27,23 +27,25 @@ public class NowHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "now";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the current timestamp.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `now` keyword allows you to access the current time and use it in calculations etc. This keyword is mainly used in StructrScript, because in JavaScript you can simply use `new Date()`.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${date_format(now, 'dd.MM.yyyy')}", "Display the current date, for example in an HTML attribute")
-		);
+
+		return List.of(Example.structrScript("${date_format(now, 'dd.MM.yyyy')}", "Display the current date, for example in an HTML attribute"));
 	}
 }

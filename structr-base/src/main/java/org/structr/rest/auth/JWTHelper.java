@@ -88,23 +88,27 @@ public class JWTHelper {
 				if (provider != null) {
 
 					try {
-						DecodedJWT jwt = JWT.decode(token);
 
+						DecodedJWT jwt = JWT.decode(token);
 						final String kid = jwt.getKeyId();
+
 						if (kid != null) {
 
 							// if no issuer is specified, we can assume that issuer url = provider url.
 							JwkProvider jwkProvider;
+
 							if (!StringUtils.isEmpty(issuer) && !StringUtils.equals("structr", issuer)) {
+
 								jwkProvider = new UrlJwkProvider(new URL(provider));
+
 							} else {
+
 								// loads jwks from .well-known resource of provider
 								jwkProvider = new UrlJwkProvider(provider);
 							}
+
 							Jwk jwk = jwkProvider.get(kid);
-
 							Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
-
 							JWTVerifier verifier = JWT.require(algorithm)
 								.withIssuer(issuer)
 								.build();
@@ -165,19 +169,22 @@ public class JWTHelper {
 		}
 
 		if (claims == null) {
+
 			return null;
 		}
 
 		final String tokenId = claims.get("tokenId").asString();
 		final String tokenType = claims.get("tokenType").asString();
+
 		if (tokenId == null || tokenType == null || !StringUtils.equals(tokenType, "refresh_token")) {
+
 			return null;
 
 		}
 
 		final Principal user = AuthHelper.getPrincipalForCredential(traits.key(PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY), new String[]{ tokenId }, false, false);
-
 		if (user == null) {
+
 			return null;
 		}
 
@@ -189,6 +196,7 @@ public class JWTHelper {
 	public static Map<String, String> createTokensForUser(final Principal user) throws FrameworkException {
 
 		if (user == null) {
+
 			throw new FrameworkException(500, "Can't create token if no user is given");
 		}
 
@@ -207,6 +215,7 @@ public class JWTHelper {
 		Map<String, String> tokens = null;
 
 		if (user == null) {
+
 			throw new FrameworkException(500, "Can't create token if no user is given");
 		}
 
@@ -225,6 +234,7 @@ public class JWTHelper {
 		}
 
 		clearTimedoutRefreshTokens(user);
+
 		return tokens;
 	}
 
@@ -232,6 +242,7 @@ public class JWTHelper {
 
 		// if tokenId is empty, token was created without refresh_token
 		if (StringUtils.isEmpty(tokenId)) {
+
 			return true;
 		}
 
@@ -245,12 +256,12 @@ public class JWTHelper {
 		final String instanceName = Settings.InstanceName.getValue();
 		NodeInterface userNode    = null;
 		Principal user            = null;
-
 		String instance = claims.get("instance").isNull() ? null : claims.get("instance").asString();
 		String uuid     = claims.get("uuid").isNull()     ? null : claims.get("uuid").asString();
 		String eMail    = claims.get("eMail").isNull()    ? null : claims.get("eMail").asString();
 
 		if (StringUtils.isEmpty(eMail)) {
+
 			eMail = claims.get("email").isNull() ? null : claims.get("email").asString();
 		}
 
@@ -258,6 +269,7 @@ public class JWTHelper {
 		if (StringUtils.equals(instance, instanceName)) {
 
 			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).disableSorting().getFirst();
+
 			if (userNode != null) {
 
 				user = userNode.as(Principal.class);
@@ -266,6 +278,7 @@ public class JWTHelper {
 		} else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
 			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(eMailKey, eMail).disableSorting().getFirst();
+
 			if (userNode != null) {
 
 				user = userNode.as(Principal.class);
@@ -365,18 +378,19 @@ public class JWTHelper {
 	}
 
 	private static Principal getPrincipalForAccessTokenWithKeystore(String token, PropertyKey<String> eMailKey) throws FrameworkException {
-		Key publicKey = getPublicKeyForToken();
 
+		Key publicKey = getPublicKeyForToken();
 		final Algorithm alg = parseAlgorithm(publicKey.getAlgorithm());
 		Map<String, Claim> claims = validateTokenWithKeystore(token, alg);
 
 		if (claims == null) {
+
 			return null;
 		}
 
 		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
-
 		if (user == null) {
+
 			return null;
 		}
 
@@ -394,16 +408,16 @@ public class JWTHelper {
 	private static Principal getUserForAccessTokenWithSecret(String token, PropertyKey<String> eMailKey) throws FrameworkException {
 
 		final String secret = Settings.JWTSecret.getValue();
-
 		Map<String, Claim> claims = validateTokenWithSecret(token, secret);
 
 		if (claims == null) {
+
 			return null;
 		}
 
 		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
-
 		if (user == null) {
+
 			return null;
 		}
 
@@ -421,7 +435,6 @@ public class JWTHelper {
 	private static void clearTimedoutRefreshTokens(final Principal user) {
 
 		final String[] refreshTokens = user.getRefreshTokens();
-
 		if (refreshTokens != null) {
 
 			try {
@@ -446,10 +459,10 @@ public class JWTHelper {
 	private static boolean refreshTokenTimedOut(String refreshToken) {
 
 		final String[] splittedToken = refreshToken.split("_");
-
 		if (splittedToken.length > 1 && splittedToken[1] != null) {
 
 			if (Calendar.getInstance().getTimeInMillis() > Long.parseLong(splittedToken[1])) {
+
 				return true;
 			}
 		}
@@ -479,6 +492,7 @@ public class JWTHelper {
 		try {
 
 			final Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
+
 			return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
 
 		} catch (JWTCreationException ex) {
@@ -498,16 +512,14 @@ public class JWTHelper {
 		}
 
 		final String jwtIssuer = Settings.JWTIssuer.getValue();
-
-
 		final Algorithm alg = Algorithm.RSA256(publicKey, privateKey);
 
 		return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
 	}
 
 	private static Map<String, String> createTokens(Principal user, Algorithm alg, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
-		final Map<String, String> tokens = new HashMap<>();
 
+		final Map<String, String> tokens = new HashMap<>();
 		String tokenId = null;
 
 		if (refreshTokenExpirationDate != null) {
@@ -515,6 +527,7 @@ public class JWTHelper {
 			// create a unique uuid for refresh_token with expiration
 			final String newTokenUUID = NodeServiceCommand.getNextUuid();
 			StringBuilder tokenStringBuilder = new StringBuilder();
+
 			tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
 
 			tokenId = tokenStringBuilder.toString();
@@ -527,7 +540,6 @@ public class JWTHelper {
 				.withClaim("tokenType", "refresh_token");
 			applyAudience(refreshBuilder);
 			String refreshToken = refreshBuilder.sign(alg);
-
 
 			user.addRefreshToken(tokenId);
 			tokens.put("refresh_token", refreshToken);
@@ -561,11 +573,13 @@ public class JWTHelper {
 
 			File keyStoreFile = new File(keyStorePath);
 			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+
 			keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
 
 			final RSAPrivateKey privateKey = (RSAPrivateKey) keystore.getKey(keyAlias, keyStorePassword.toCharArray());
 
 			return privateKey;
+
 		} catch (IOException e) {
 
 			logger.warn("Cannot read private key file", e);
@@ -573,9 +587,11 @@ public class JWTHelper {
 		} catch (CertificateException e) {
 
 			logger.warn("Error while reading jwt keystore", e);
+
 		} catch (UnrecoverableKeyException e) {
 
 			logger.warn("Error while reading jwt keystore, probably wrong password", e);
+
 		} catch (Exception e) {
 
 			logger.warn("Error while reading jwt keystore", e);
@@ -591,8 +607,10 @@ public class JWTHelper {
 		final String keyAlias = Settings.JWTKeyAlias.getValue();
 
 		try {
+
 			File keyStoreFile = new File(keyStorePath);
 			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+
 			keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
 
 			Certificate cert = keystore.getCertificate(keyAlias);
@@ -601,6 +619,7 @@ public class JWTHelper {
 			return publicKey;
 
 		} catch (Exception e) {
+
 			logger.warn("Error while reading jwt keystore", e);
 		}
 
@@ -608,16 +627,17 @@ public class JWTHelper {
 	}
 
 	private static Map<String, Claim> validateTokenWithSecret(String token, String secret) {
+
 		try {
 
 			Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
-
 			JWTVerifier verifier = buildVerifier(alg);
-
 			DecodedJWT decodedJWT = verifier.verify(token);
+
 			return decodedJWT.getClaims();
 
 		} catch (JWTVerificationException e) {
+
 			logger.debug("Invalid token", e);
 		}
 
@@ -625,14 +645,16 @@ public class JWTHelper {
 	}
 
 	private static Map<String, Claim> validateTokenWithKeystore(String token, Algorithm alg) {
+
 		try {
 
 			JWTVerifier verifier = buildVerifier(alg);
-
 			DecodedJWT decodedJWT = verifier.verify(token);
+
 			return decodedJWT.getClaims();
 
 		} catch (JWTVerificationException e) {
+
 			logger.debug("Invalid token", e);
 		}
 
@@ -649,14 +671,16 @@ public class JWTHelper {
 	public static JWTVerifier buildVerifier(final Algorithm alg) {
 
 		Verification verification = JWT.require(alg);
-
 		final String jwtIssuer = Settings.JWTIssuer.getValue();
+
 		if (StringUtils.isNotBlank(jwtIssuer)) {
+
 			verification = verification.withIssuer(jwtIssuer);
 		}
 
 		final String[] audiences = configuredAudiences();
 		if (audiences.length > 0) {
+
 			// "any of" semantics: the token is accepted if its aud claim
 			// contains at least one of the configured values. Default
 			// withAudience requires all of them, which is rarely what a
@@ -676,6 +700,7 @@ public class JWTHelper {
 
 		final String raw = Settings.JWTAudience.getValue("");
 		if (StringUtils.isBlank(raw)) {
+
 			return new String[0];
 		}
 
@@ -694,16 +719,18 @@ public class JWTHelper {
 
 		final String[] audiences = configuredAudiences();
 		if (audiences.length > 0) {
+
 			builder.withAudience(audiences);
 		}
+
 		return builder;
 	}
-
 
 	private static Algorithm parseAlgorithm(final String algString) {
 
 		switch (algString) {
 			case "RSA":
+
 				return Algorithm.RSA256(getPublicKeyForToken(), getPrivateKeyForToken());
 		}
 

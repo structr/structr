@@ -40,11 +40,13 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
 	@Override
 	public String getName() {
+
 		return "getWcsData";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("baseUrl, coverageId, bBox, min, max");
 	}
 
@@ -67,38 +69,44 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 			// we need to return a single object that contains all the data since Structr returns a
 			// list with a single element in a different format that a list with multiple elements
 			// when the enclosing resource endpoint is not a collection endpoint.. :(
+
 			return data;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentTypeException te) {
 
 			logParameterError(caller, sources, te.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Reads coverage data from a WCS endpoint and returns it.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

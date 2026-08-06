@@ -46,11 +46,13 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "pdfEncrypt";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("file, password");
 	}
 
@@ -66,21 +68,22 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				if (!(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))) {
 
 					logParameterError(caller, sources, "First parameter is not a file object.", ctx.isJavaScriptContext());
+
 					return usage(ctx.isJavaScriptContext());
 				}
 
 				if (!(sources[1] instanceof String)) {
 
 					logParameterError(caller, sources, "Second parameter is not a string.", ctx.isJavaScriptContext());
+
 					return usage(ctx.isJavaScriptContext());
 				}
 
 				final File pdfFileObject  = ((NodeInterface) sources[0]).as(File.class);
 				final String userPassword = (String) sources[1];
-
 				final PDDocument pdDocument = Loader.loadPDF(new RandomAccessReadBuffer(StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream()));
-
 				final AccessPermission accessPermission = new AccessPermission();
+
 				accessPermission.setCanPrint(false);
 
 				// Owner password (to open the file with all permissions) is the superuser password
@@ -90,6 +93,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				pdDocument.protect(standardProtectionPolicy);
 
 				if (StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream().available() <= 0) {
+
 					pdDocument.save(StorageProviderFactory.getStorageProvider(pdfFileObject).getOutputStream());
 				}
 
@@ -107,6 +111,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 		} catch (final ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -115,6 +120,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${pdfEncrypt(file, password)}. Example: ${pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}"),
 			Usage.javaScript("Usage: ${{ $.pdfEncrypt(file, password) }}. Example: ${{ $.pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword') }}")
@@ -123,16 +129,19 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Encrypts a PDF file so that it can't be opened without password.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

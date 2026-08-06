@@ -49,9 +49,12 @@ public class FunctionExpression extends Expression {
 		final StringBuilder buf = new StringBuilder();
 
 		if (this.function != null) {
+
 			buf.append(function.getName());
 			buf.append("(");
+
 		} else {
+
 			buf.append("function(");
 		}
 
@@ -72,6 +75,7 @@ public class FunctionExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		final ArrayList<Object> results = new ArrayList<>();
+
 		for (Expression expr : expressions) {
 
 			final Object result = expr.evaluate(ctx, entity);
@@ -79,6 +83,7 @@ public class FunctionExpression extends Expression {
 		}
 
 		if (results.isEmpty() && expressions.size() > 0) {
+
 			return function.usage(ctx.isJavaScriptContext());
 		}
 
@@ -89,6 +94,7 @@ public class FunctionExpression extends Expression {
 			((BatchableFunction)function).setBatched(isBatched());
 
 			// batchable functions must create their own transaction when in batched mode
+
 			return function.apply(ctx, entity, results.toArray());
 
 		} else if (isBatched()) {
@@ -106,6 +112,7 @@ public class FunctionExpression extends Expression {
 		} else {
 
 			// default execution path: enclosing transaction exists, no batching
+
 			return PolyglotWrapper.unwrap(ctx, function.apply(ctx, entity, results.toArray()));
 		}
 
@@ -113,10 +120,12 @@ public class FunctionExpression extends Expression {
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	public Function<Object, Object> getFunction() {
+
 		return function;
 	}
 
@@ -146,46 +155,55 @@ public class FunctionExpression extends Expression {
 	// ----- documentation (unused) -----
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return null;
 	}
 }

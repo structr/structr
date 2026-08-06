@@ -28,6 +28,7 @@ import java.util.Map;
 public class Wbr extends GenericHtmlElementTraitDefinition {
 
 	public Wbr() {
+
 		super(StructrTraits.WBR);
 	}
 
@@ -38,11 +39,11 @@ public class Wbr extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}
@@ -50,11 +51,11 @@ public class Wbr extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}

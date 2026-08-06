@@ -27,6 +27,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowExceptionHandler extends FlowDataSource implements DeployableEntity {
 
 	public FlowExceptionHandler(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

@@ -27,11 +27,13 @@ import org.structr.core.traits.operations.VoidAction;
 public class OnCreationActionVoid extends VoidAction implements OnCreation {
 
 	public OnCreationActionVoid(final Runnable function) {
+
 		super(function);
 	}
 
 	@Override
 	public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 		function.run();
 	}
 }

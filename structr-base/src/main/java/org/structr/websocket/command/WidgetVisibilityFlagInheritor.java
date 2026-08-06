@@ -54,21 +54,25 @@ public class WidgetVisibilityFlagInheritor {
 		if (rootNode == null || parentNode == null) return;
 
 		try {
+
 			final PropertyKey<Boolean> publicKey = rootNode.getTraits().key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 			final PropertyKey<Boolean> authKey   = rootNode.getTraits().key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
-
 			final Boolean parentPublic = parentNode.getProperty(publicKey);
 			final Boolean parentAuth   = parentNode.getProperty(authKey);
 
 			applyFlags(rootNode, publicKey, parentPublic, authKey, parentAuth);
+
 			for (final NodeInterface descendant : rootNode.getAllChildNodes()) {
+
 				if (descendant.is(StructrTraits.DOM_NODE)) {
+
 					applyFlags(descendant.as(DOMNode.class), publicKey, parentPublic, authKey, parentAuth);
 				}
 			}
+
 		} catch (FrameworkException fex) {
-			logger.warn("WidgetVisibilityFlagInheritor: failed to inherit visibility flags onto widget root '{}': {}",
-				rootNode.getUuid(), fex.getMessage());
+
+			logger.warn("WidgetVisibilityFlagInheritor: failed to inherit visibility flags onto widget root '{}': {}", rootNode.getUuid(), fex.getMessage());
 		}
 	}
 

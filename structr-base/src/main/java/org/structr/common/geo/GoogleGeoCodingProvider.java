@@ -58,13 +58,14 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			(StringUtils.isNotBlank(postalCode) ? postalCode : "" +
 			(StringUtils.isNotBlank(city) ? city : "") + " " +
 			(StringUtils.isNotBlank(state) ? state : "") + " " +
-			(StringUtils.isNotBlank(country) ? country : "") + " "
-		);
+			(StringUtils.isNotBlank(country) ? country : "") + " ");
 
 		String encodedAddress;
 
 		try {
+
 			encodedAddress = URLEncoder.encode(address, "UTF-8");
+
 		} catch (UnsupportedEncodingException ex) {
 
 			logger.warn("Unsupported Encoding", ex);
@@ -89,6 +90,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 			// set the api key if there is any
 			if (apiKey != null && !apiKey.isEmpty()) {
+
 				urlBuffer.append("&key=").append(apiKey);
 			}
 
@@ -126,7 +128,6 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		// List<Element> rootChildren = root.elements();
 		String status = root.element("status").getTextTrim();
-
 		if ("OK".equals(status)) {
 
 			try {
@@ -162,7 +163,6 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		} else if ("REQUEST_DENIED".equals(status)) {
 
 			final String errorMessage = root.element("error_message").getTextTrim();
-
 			if (errorMessage != null) {
 
 				logger.warn("Unable to gecode address {}. Error: {} - {}", address, status, errorMessage);
@@ -198,8 +198,8 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 			String latString  = root.element("result").element("geometry").element("location").element("lat").getTextTrim();
 			String lonString  = root.element("result").element("geometry").element("location").element("lng").getTextTrim();
-
 			Iterator<Element> addressComponentsElement = root.element("result").elementIterator("address_component");
+
 			for(;addressComponentsElement.hasNext();) {
 
 				addressComponents.add(new GoogleAddressComponent(addressComponentsElement.next()));
@@ -222,6 +222,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		 */
 		@Override
 		public double getLatitude() {
+
 			return latitude;
 		}
 
@@ -230,6 +231,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		 */
 		@Override
 		public double getLongitude() {
+
 			return longitude;
 		}
 
@@ -240,6 +242,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		 */
 		@Override
 		public void setLatitude(double latitude) {
+
 			this.latitude = latitude;
 		}
 
@@ -248,21 +251,25 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		 */
 		@Override
 		public void setLongitude(double longitude) {
+
 			this.longitude = longitude;
 		}
 
 		@Override
 		public Double[] toArray() {
+
 			return new Double[]{ latitude, longitude };
 		}
 
 		@Override
 		public String getAddress() {
+
 			return address;
 		}
 
 		@Override
 		public void setAddress(String address) {
+
 			this.address = address;
 		}
 
@@ -272,6 +279,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			for(AddressComponent addressComponent : addressComponents) {
 
 				if(addressComponent.getType() == type) {
+
 					return addressComponent;
 				}
 			}
@@ -281,6 +289,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		@Override
 		public List<AddressComponent> getAddressComponents() {
+
 			return addressComponents;
 		}
 	}
@@ -295,12 +304,14 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			this.value = addressComponent.element("long_name").getTextTrim();
 
 			Iterator<Element> typesElement = addressComponent.elementIterator("type");
+
 			for(;typesElement.hasNext();) {
 
 				Element typeElement = typesElement.next();
 				String typeName = typeElement.getTextTrim();
 
 				try {
+
 					this.type = Type.valueOf(typeName);
 					break;
 
@@ -314,11 +325,13 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		@Override
 		public Type getType() {
+
 			return type;
 		}
 
 		@Override
 		public String getValue() {
+
 			return value;
 		}
 

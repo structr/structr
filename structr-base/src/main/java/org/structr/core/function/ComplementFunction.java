@@ -34,11 +34,13 @@ public class ComplementFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "complement";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("sourceList, objects...");
 	}
 
@@ -58,6 +60,7 @@ public class ComplementFunction extends CoreFunction {
 		} else {
 
 			logger.warn("Argument 1 for complement() must be a Collection. Parameters: {}", new Object[] { getDisplayName(), getParametersAsString(sources) });
+
 			return "Argument 1 for complement() must be a Collection";
 
 		}
@@ -65,10 +68,10 @@ public class ComplementFunction extends CoreFunction {
 		for (int cnt = 1; cnt < sources.length; cnt++) {
 
 			final Object source = sources[cnt];
-
 			if (source instanceof Iterable) {
 
 				for (Object o : ((Iterable) source)) {
+
 					final List mockList = new ArrayList();
 					mockList.add(o);
 					resultingList.removeAll(mockList);
@@ -87,9 +90,9 @@ public class ComplementFunction extends CoreFunction {
 		return resultingList;
 	}
 
-
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.complement(sourceList, objects...)}}. Example: ${{$.complement(allUsers, $.me)}} => List of all users except myself"),
 			Usage.structrScript("Usage: ${complement(sourceList, objects...)}. Example: ${complement(allUsers, me)} => List of all users except myself")
@@ -98,31 +101,31 @@ public class ComplementFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes objects from a list.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function removes all objects from the source list that are contained in the other parameters.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("sourceList", "list of objects"),
-			Parameter.mandatory("objects..", "objects or lists of objects **that are removed from the source list**")
-		);
+
+		return List.of(Parameter.mandatory("sourceList", "list of objects"), Parameter.mandatory("objects..", "objects or lists of objects **that are removed from the source list**"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.javaScript("${{ let list = $.complement([3, 4, 2, 1, 5, 6], 5, 1, 3); }}", "Removes 5, 1 and 3 from the given list")
-		);
+
+		return List.of(Example.javaScript("${{ let list = $.complement([3, 4, 2, 1, 5, 6], 5, 1, 3); }}", "Removes 5, 1 and 3 from the given list"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"If an object in the list of `removeObject`s is a list, all elements of that list are removed from the `sourceList`.",
 			"If an object occurs multiple times in the `sourceList` and is not removed, it will remain multiple times in the returned list."
@@ -131,6 +134,7 @@ public class ComplementFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

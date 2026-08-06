@@ -128,7 +128,6 @@ public class UploadServletTest extends StructrUiTest {
 		}
 
 		final String targetFolderPath = Settings.DefaultUploadFolder.getValue() + "/uploads";
-
 		final String locationHeader = RestAssured
 			.given()
 				.header(X_USER_HEADER,       ADMIN_USERNAME)
@@ -184,7 +183,6 @@ public class UploadServletTest extends StructrUiTest {
 			ext.addTrait(StructrTraits.FILE);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
-
 
 			tx.success();
 
@@ -243,7 +241,6 @@ public class UploadServletTest extends StructrUiTest {
 		}
 
 		final String targetFolderPath = Settings.DefaultUploadFolder.getValue() + "/uploads";
-
 		final String locationHeader = RestAssured
 			.given()
 				.header(X_USER_HEADER,       ADMIN_USERNAME)
@@ -431,7 +428,6 @@ public class UploadServletTest extends StructrUiTest {
 		String folderId_underneath_default_upload_folder_not_visible_to_upload_user              = null;
 		String folderId_underneath_default_upload_folder_but_visible_to_public                   = null;
 		String uploadUserId =null;
-
 		final byte[] defaultFileUploadContents = "This is a test!".getBytes(Charset.forName("utf-8"));
 
 		try (final Tx tx = app.tx()) {

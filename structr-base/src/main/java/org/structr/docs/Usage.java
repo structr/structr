@@ -32,26 +32,32 @@ public class Usage {
 	}
 
 	public String getUsage() {
+
 		return usage;
 	}
 
 	public List<Language> getLanguages() {
+
 		return languages;
 	}
 
 	public static Usage javaScript(final String usage) {
+
 		return new Usage(usage, Language.JavaScript);
 	}
 
 	public static Usage structrScript(final String usage) {
+
 		return new Usage(usage, Language.StructrScript);
 	}
 
 	public boolean isJavaScript() {
+
 		return languages.contains(Language.JavaScript);
 	}
 
 	public boolean isStructrScript() {
+
 		return languages.contains(Language.StructrScript);
 	}
 }

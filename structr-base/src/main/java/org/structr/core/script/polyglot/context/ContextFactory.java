@@ -57,7 +57,6 @@ public abstract class ContextFactory {
 				.option("js.ecmascript-version", "latest")
 				.option("js.temporal", "true"));
 
-
 	// Python context builder
 	private static final Context.Builder pythonBuilder = applyResourceLimits(Context.newBuilder("python")
 			.engine(engine)
@@ -84,7 +83,6 @@ public abstract class ContextFactory {
 			//.option("python.PosixModuleBackend", "java")
 			//.option("python.NoUserSiteFlag", "true");
 
-
 	// other languages context builder
 	private static final Context.Builder genericBuilder = applyResourceLimits(Context.newBuilder()
 				.engine(engine)
@@ -104,6 +102,7 @@ public abstract class ContextFactory {
 
 		final int limit = Settings.ScriptingStatementLimit.getValue(0);
 		if (limit <= 0) {
+
 			return builder;
 		}
 
@@ -151,7 +150,6 @@ public abstract class ContextFactory {
 				//.option("log.level","FINE")
 				.out(new PolyglotOutputStream(LoggerFactory.getLogger("GenericPolyglotContext")));
 
-
 		// Debugging
 		if (Settings.ScriptingDebugger.getValue(false)) {
 
@@ -168,10 +166,12 @@ public abstract class ContextFactory {
 	}
 
 	public static ContextFactory.LockedContext getContext(final String language) throws FrameworkException {
+
 		return getContext(language, null, null);
 	}
 
 	public static ContextFactory.LockedContext getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
+
 		return getContext(language, actionContext, entity, true);
 	}
 
@@ -180,9 +180,11 @@ public abstract class ContextFactory {
 		switch (language) {
 
 			case "js":
+
 				return getOrCreateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity), allowEntityOverride);
 
 			case "python":
+
 				return getOrCreateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity), allowEntityOverride);
 
 			default:
@@ -193,7 +195,6 @@ public abstract class ContextFactory {
 	private static ContextFactory.LockedContext getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<ContextFactory.LockedContext> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
 
 		ContextFactory.LockedContext storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
-
 		if (actionContext != null && storedContext == null) {
 
 			try {
@@ -207,6 +208,7 @@ public abstract class ContextFactory {
 				LoggerFactory.getLogger(ContextFactory.class).error("Unexpected exception while initializing language context for language \"{}\".", language, ex);
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
 			}
+
 		} else if (actionContext != null && allowEntityOverride) {
 
 			// If binding exists in context, ensure entity is up to date
@@ -218,14 +220,17 @@ public abstract class ContextFactory {
 	}
 
 	private static ContextFactory.LockedContext buildJSContext(final ActionContext actionContext, final GraphObject entity) {
+
 		return updateBindings(new LockedContext(jsBuilder.build()), "js", actionContext, entity);
 	}
 
 	private static ContextFactory.LockedContext buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
+
 		return updateBindings(new LockedContext(pythonBuilder.build()), "python", actionContext, entity);
 	}
 
 	private static ContextFactory.LockedContext buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
+
 		return updateBindings(new LockedContext(genericBuilder.build()), language, actionContext, entity);
 	}
 
@@ -234,48 +239,60 @@ public abstract class ContextFactory {
 		final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
 
 		lockedContext.getLock().lock();
+
 		try {
+
 			Context context = lockedContext.getContext();
 
 			context.getBindings(language).putMember("Structr", structrBinding);
 
 			if (!language.equals("python")) {
+
 				context.getBindings(language).putMember("$", structrBinding);
 			}
+
 		} finally {
+
 			lockedContext.getLock().unlock();
 		}
 
 		lockedContext.setBinding(structrBinding);
+
 		return lockedContext;
 	}
 
 	private static Predicate<String> allowedHostClassPredicate() {
+
 		return s -> {
 			final String allowedHostClassesString = Settings.AllowedHostClasses.getValue("");
-
 			if (allowedHostClassesString.isEmpty()) {
+
 				return false;
 			}
 
 			if (allowedHostClassesString.contains(s)) {
+
 				return true;
 			}
 
 			String[] allowedHostClasses = allowedHostClassesString.split(",");
 			String[] requestClassComponents = s.split("\\.");
-
 			String partialPath = "";
+
 			// Check requested class package path one by one and accept only wildcards at the end
 			for (String requestClassComponent : requestClassComponents) {
 
 				partialPath += (requestClassComponent.trim() + ".");
+
 				if (partialPath.length() > s.length()) {
+
 					break;
 				}
 
 				for (String allowedHostClass : allowedHostClasses) {
+
 					if (allowedHostClass.trim().equals(partialPath + "*")) {
+
 						return true;
 					}
 				}
@@ -286,35 +303,44 @@ public abstract class ContextFactory {
 	}
 
 	public static class LockedContext {
+
 		private static final boolean DEBUG_ENABLED = false;
 		private final ReentrantLock lock = new PolyglotReentrantLock();
 		private final Context context;
 		private StructrBinding binding = null;
 
 		public LockedContext(final Context context) {
+
 			this.context = context;
 		}
 
 		public ReentrantLock getLock() {
+
 			return this.lock;
 		}
 
 		public void setBinding(final StructrBinding binding) {
+
 			this.binding = binding;
 		}
 
 		public StructrBinding getBinding() {
+
 			return this.binding;
 		}
 
 		public boolean locksContext(final Context context) {
+
 			return context.equals(this.context);
 		}
 
 		public Context getContext() {
+
 			if (this.lock.isHeldByCurrentThread()) {
+
 				return context;
 			}
+
 			throw new IllegalStateException("Lock for context is not held by current thread.");
 		}
 
@@ -322,21 +348,28 @@ public abstract class ContextFactory {
 
 			@Override
 			public void lock() {
+
 				if (DEBUG_ENABLED) {
+
 					LoggerFactory.getLogger(PolyglotReentrantLock.class).info("lock(" + this.getHoldCount() + "): Thread(" + Thread.currentThread() + ")\nStackTrace => \n\t" + getCurrentStackTrace());
 				}
+
 				super.lock();
 			}
 
 			@Override
 			public void unlock() {
+
 				if (DEBUG_ENABLED) {
+
 					LoggerFactory.getLogger(PolyglotReentrantLock.class).info("unlock(" + this.getHoldCount() + "): Thread(" + Thread.currentThread() + ")\nStackTrace => \n\t" + getCurrentStackTrace());
 				}
+
 				super.unlock();
 			}
 
 			public static String getCurrentStackTrace() {
+
 				return Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).filter(s -> s.toString().contains("structr")).limit(7).map(StackTraceElement::toString).collect(Collectors.joining("\n\t"));
 			}
 		}

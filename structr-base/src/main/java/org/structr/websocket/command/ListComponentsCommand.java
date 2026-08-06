@@ -58,11 +58,9 @@ public class ListComponentsCommand extends AbstractCommand {
 
 			TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + hiddenDoc.getUuid() + "\" })<-[:PAGE]-(:DOMNode)-[r:CONTAINS*]->(m:DOMNode)", Set.of(
 
-				"all/INCOMING/PAGE",
-				"all/INCOMING/CONTAINS",
+				"all/INCOMING/PAGE", "all/INCOMING/CONTAINS",
 
-				"all/OUTGOING/PAGE",
-				"all/OUTGOING/CONTAINS"
+				"all/OUTGOING/PAGE", "all/OUTGOING/CONTAINS"
 
 			));
 

@@ -37,6 +37,7 @@ public class PlaintextMarkdownFileFormatter extends Formatter {
 	private final Resource baseResource;
 
 	public PlaintextMarkdownFileFormatter(final Resource baseResource) {
+
 		this.baseResource = baseResource;
 	}
 

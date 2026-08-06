@@ -28,11 +28,13 @@ import org.structr.core.traits.operations.VoidAction;
 public class OnModificationActionVoid extends VoidAction implements OnModification {
 
 	public OnModificationActionVoid(final Runnable function) {
+
 		super(function);
 	}
 
 	@Override
 	public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 		function.run();
 	}
 }

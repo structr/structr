@@ -63,15 +63,14 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 	public static final String IS_SERVICE_CLASS_PROPERTY    = "isServiceClass";
 
 	public AbstractSchemaNodeTraitDefinition() {
+
 		super(StructrTraits.ABSTRACT_SCHEMA_NODE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			AbstractSchemaNode.class, (traits, node) -> new AbstractSchemaNodeTraitWrapper(traits, node)
-		);
+		return Map.of(AbstractSchemaNode.class, (traits, node) -> new AbstractSchemaNodeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -81,8 +80,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 		methods.put(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -91,9 +89,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 			}
 		);
 
-		methods.put(
-			OnModification.class,
-			new OnModification() {
+		methods.put(OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -108,6 +104,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return newSet();
 	}
 
@@ -125,18 +122,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		final Property<String>  description                      = new StringProperty(DESCRIPTION_PROPERTY).indexed();
 		final Property<Boolean> isServiceClass                   = new BooleanProperty(IS_SERVICE_CLASS_PROPERTY).indexed();
 
-		return newSet(
-			schemaProperties,
-			schemaMethods,
-			schemaViews,
-			includeInOpenAPI,
-			changelogDisabled,
-			icon,
-			tags,
-			summary,
-			description,
-			isServiceClass
-		);
+		return newSet(schemaProperties, schemaMethods, schemaViews, includeInOpenAPI, changelogDisabled, icon, tags, summary, description, isServiceClass);
 	}
 
 	@Override
@@ -144,19 +130,16 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(CHANGELOG_DISABLED_PROPERTY, ICON_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
+			PropertyView.Public, newSet(CHANGELOG_DISABLED_PROPERTY, ICON_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
+			PropertyView.Ui, newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
 
-			PropertyView.Schema,
-			newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY)
-		);
+			PropertyView.Schema, newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -169,6 +152,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 			// Don't create duplicate and internal views
 			if (existingViewNames.contains(view)) {
+
 				continue;
 			}
 
@@ -179,6 +163,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 			for (final PropertyKey key : traits.getPropertyKeysForView(view)) {
 
 				if (!key.isDynamic()) {
+
 					viewPropertyNames.add(key.jsonName());
 				}
 			}

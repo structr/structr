@@ -35,6 +35,7 @@ public class Base extends GenericHtmlElementTraitDefinition {
 	public static final String TARGET_PROPERTY   = getPrefixedHTMLAttributeName("target");
 
 	public Base() {
+
 		super(StructrTraits.BASE);
 	}
 
@@ -45,11 +46,11 @@ public class Base extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -64,17 +65,12 @@ public class Base extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> hrefProperty   = new StringProperty(HREF_PROPERTY);
 		final PropertyKey<String> targetProperty = new StringProperty(TARGET_PROPERTY);
 
-		return newSet(
-			hrefProperty, targetProperty
-		);
+		return newSet(hrefProperty, targetProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(HREF_PROPERTY, TARGET_PROPERTY)
-		);
+		return Map.of(PropertyView.Html, newSet(HREF_PROPERTY, TARGET_PROPERTY));
 	}
 }

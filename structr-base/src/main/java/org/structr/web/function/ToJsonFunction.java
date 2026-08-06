@@ -49,11 +49,13 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "toJson";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("obj [, view, depth = 3, serializeNulls = true ]");
 	}
 
@@ -66,11 +68,9 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final StringWriter writer = new StringWriter();
-
 			final String view = (sources.length > 1) ? sources[1].toString() : PropertyView.Public;
 			final int outputDepth = (sources.length > 2 && sources[2] instanceof Number) ? ((Number) sources[2]).intValue() : Settings.RestOutputDepth.getValue();
 			final boolean serializeNulls = (sources.length > 3 && sources[3] instanceof Boolean) ? ((Boolean) sources[3]) : true;
-
 			final boolean returnRawResultWasEnabled = securityContext.returnRawResult();
 
 			// prevent "result" wrapper from being introduced when we are using StreamingJsonWriter
@@ -121,8 +121,8 @@ public class ToJsonFunction extends UiCommunityFunction {
 					// for everything that we do not have a special representation in structr - or special functionality attached (views), use the native JSON.stringify
 
 					final ScriptConfig scriptConfig = ScriptConfig.builder().wrapJsInMain(false).build();
-
 					final GraphObjectMap tmpGraphObject = new GraphObjectMap();
+
 					tmpGraphObject.setProperty(new GenericProperty("tmp"), obj);
 
 					final Object stringifyResult = Scripting.evaluate(new ActionContext(securityContext), tmpGraphObject, "${{ JSON.stringify($.this.tmp); }}", "internal_JSON_stringify", null, scriptConfig);
@@ -132,6 +132,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 			}
 
 			if (Boolean.FALSE.equals(returnRawResultWasEnabled)) {
+
 				securityContext.disableReturnRawResult();
 			}
 
@@ -149,6 +150,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.structrScript("Usage: ${toJson(obj [, view [, depth = 3 [, serializeNulls = true ]]])}."),
 				Usage.javaScript("Usage: ${{ $.toJson(obj [, view [, depth = 3 [, serializeNulls = true ]]]) }}.")
@@ -157,11 +159,13 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Serializes the given object to JSON.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Returns a JSON string representation of the given object very similar to `JSON.stringify()` in JavaScript.
 			The output of this method will be very similar to the output of the REST server except for the response
@@ -175,14 +179,13 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${ toJson(find('MyData'), 'public', 4) }"),
-				Example.javaScript("${{ $.toJson($.this, 'public', 4) }}")
-		);
+
+		return List.of(Example.structrScript("${ toJson(find('MyData'), 'public', 4) }"), Example.javaScript("${{ $.toJson($.this, 'public', 4) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("source", "object or collection"),
 				Parameter.optional("view", "view (default: `public`)"),
@@ -193,6 +196,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"For database objects this method is preferable to `JSON.stringify()` because a view can be chosen. `JSON.stringify()` will only return the `id` and `type` property for nodes.",
 				"For native JavaScript objects in a JavaScript context, it is highly encouraged to use the native JSON.stringify() function.",
@@ -207,6 +211,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

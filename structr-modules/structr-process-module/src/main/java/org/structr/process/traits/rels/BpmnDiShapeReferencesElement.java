@@ -27,20 +27,92 @@ import org.structr.process.ProcessTraits;
 
 public class BpmnDiShapeReferencesElement extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnDiShapeReferencesElement() { super(ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT); }
+	public BpmnDiShapeReferencesElement() {
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_DI_SHAPE; }
-	@Override public String getTargetType() { return ProcessTraits.BPMN_ELEMENT; }
-	@Override public String getRelationshipType() { return "REFERENCES"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
-	@Override public int getAutocreationFlag() { return Relation.NONE; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+		super(ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
+	}
+
+	@Override
+	public String getSourceType() {
+
+		return ProcessTraits.BPMN_DI_SHAPE;
+	}
+
+	@Override
+	public String getTargetType() {
+
+		return ProcessTraits.BPMN_ELEMENT;
+	}
+
+	@Override
+	public String getRelationshipType() {
+
+		return "REFERENCES";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+
+		return null;
+	}
 }

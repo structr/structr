@@ -30,12 +30,15 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "hasError";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -47,24 +50,25 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${hasError()}"),
-			Usage.javaScript("Usage: ${{ $.hasError() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${hasError()}"), Usage.javaScript("Usage: ${{ $.hasError() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Allows checking if an error has been raised in the scripting context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 }

@@ -27,16 +27,19 @@ public class BaseUrlHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "baseUrl";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the base URL for this Structr application.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The value is assembled from the protocol, hostname and port of the server instance Structr is running on.
 	
@@ -46,11 +49,13 @@ public class BaseUrlHint extends GeneralKeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"If `application.baseurl.override` is set in structr.conf, the value of that setting will be returned.",
 			"If HTTPS is enabled, the result string will always begin with https://",

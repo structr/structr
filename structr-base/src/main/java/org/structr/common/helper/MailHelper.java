@@ -29,7 +29,6 @@ import org.structr.api.config.Settings;
 import java.util.List;
 import java.util.Map;
 
-
 public abstract class MailHelper {
 
 	private static final String charset      = "UTF-8";
@@ -49,6 +48,7 @@ public abstract class MailHelper {
 	public static String sendAdvancedMail(final AdvancedMailContainer amc) throws EmailException {
 
 		if (Settings.SmtpTesting.getValue()) {
+
 			return "Testing";
 		}
 
@@ -57,66 +57,91 @@ public abstract class MailHelper {
 		configureAdvancedMail(mail, amc);
 
 		if (StringUtils.isNotBlank(amc.getFromName())) {
+
 			mail.setFrom(amc.getFromAddress(), amc.getFromName());
+
 		} else {
+
 			mail.setFrom(amc.getFromAddress());
 		}
 
 		for (Map.Entry<String, String> entry : amc.getTo().entrySet()) {
+
 			if (StringUtils.isNotBlank(entry.getValue())) {
+
 				mail.addTo(entry.getKey(), entry.getValue());
+
 			} else {
+
 				mail.addTo(entry.getKey());
 			}
 		}
 
 		for (Map.Entry<String, String> entry : amc.getCc().entrySet()) {
+
 			if (StringUtils.isNotBlank(entry.getValue())) {
+
 				mail.addCc(entry.getKey(), entry.getValue());
+
 			} else {
+
 				mail.addCc(entry.getKey());
 			}
 		}
 
 		for (Map.Entry<String, String> entry : amc.getBcc().entrySet()) {
+
 			if (StringUtils.isNotBlank(entry.getValue())) {
+
 				mail.addBcc(entry.getKey(), entry.getValue());
+
 			} else {
+
 				mail.addBcc(entry.getKey());
 			}
 		}
 
 		for (Map.Entry<String, String> entry : amc.getReplyTo().entrySet()) {
+
 			if (StringUtils.isNotBlank(entry.getValue())) {
+
 				mail.addReplyTo(entry.getKey(), entry.getValue());
+
 			} else {
+
 				mail.addReplyTo(entry.getKey());
 			}
 		}
 
 		for (Map.Entry<String, String> entry : amc.getCustomHeaders().entrySet()) {
+
 			mail.addHeader(entry.getKey(), entry.getValue());
 		}
 
 		if (StringUtils.isNotBlank(amc.getBounceAddress())) {
+
 			mail.setBounceAddress(amc.getBounceAddress());
 		}
 
 		mail.setSubject(amc.getSubject());
 
 		if (StringUtils.isNotBlank(amc.getHtmlContent())) {
+
 			mail.setHtmlMsg(amc.getHtmlContent());
 		}
 
 		if (StringUtils.isNotBlank(amc.getTextContent())) {
+
 			mail.setTextMsg(amc.getTextContent());
 		}
 
 		for (final Pair<String, String> part : amc.getMimeParts()) {
+
 			mail.addPart(part.getLeft(), part.getRight());
 		}
 
 		for (final DynamicMailAttachment attachment : amc.getAttachments()) {
+
 			mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
 		}
 
@@ -126,6 +151,7 @@ public abstract class MailHelper {
 	private static String _sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject, final String htmlContent, final String textContent, final List<DynamicMailAttachment> attachments) throws EmailException {
 
 		if (Settings.SmtpTesting.getValue()) {
+
 			return "Testing";
 		}
 
@@ -138,6 +164,7 @@ public abstract class MailHelper {
 		if (attachments != null) {
 
 			for (final DynamicMailAttachment attachment : attachments) {
+
 				mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
 			}
 		}
@@ -163,14 +190,17 @@ public abstract class MailHelper {
 		mail.setFrom(from, fromName);
 
 		if (StringUtils.isNotBlank(cc)) {
+
 			mail.addCc(cc);
 		}
 
 		if (StringUtils.isNotBlank(bcc)) {
+
 			mail.addBcc(bcc);
 		}
 
 		if (StringUtils.isNotBlank(bounce)) {
+
 			mail.setBounceAddress(bounce);
 		}
 
@@ -198,7 +228,6 @@ public abstract class MailHelper {
 		} else {
 
 			final String configurationPrefix = amc.getConfigurationPrefix();
-
 			final String smtpHost         = Settings.SmtpHost.getPrefixedValue(configurationPrefix);
 			final int smtpPort            = Settings.SmtpPort.getPrefixedValue(configurationPrefix);
 			final String smtpUser         = Settings.SmtpUser.getPrefixedValue(configurationPrefix);
@@ -219,6 +248,7 @@ public abstract class MailHelper {
 		mail.setCharset(charset);
 
 		if (StringUtils.isNotBlank(smtpUser) && StringUtils.isNotBlank(smtpPassword)) {
+
 			mail.setAuthentication(smtpUser, smtpPassword);
 		}
 	}

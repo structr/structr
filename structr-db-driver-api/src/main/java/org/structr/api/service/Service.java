@@ -84,10 +84,12 @@ public interface Service extends Feature {
 	boolean waitAndRetry();
 
 	default int getRetryCount() {
+
 		return Settings.ServicesStartRetries.getValue(10);
 	}
 
 	default int getRetryDelay() {
+
 		return Settings.ServicesStartTimeout.getValue(30);
 	}
 }

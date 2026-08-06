@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  targetNamespace="http://structr.org/test">
+  <bpmn:process id="collision_proc" name="CollisionForm" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- "Task-A" and "Task.A" both sanitize to the view name "Task_A": the first keeps the plain
+         name, the second must be disambiguated so their field sets do not overwrite each other. -->
+    <bpmn:userTask id="Task-A" name="Erste Aufgabe">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="alpha" label="Alpha" type="string"/>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task.A" name="Zweite Aufgabe">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="beta" label="Beta" type="string"/>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" name="End">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task-A"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task-A"  targetRef="Task.A"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task.A"  targetRef="End_1"/>
+
+  </bpmn:process>
+</bpmn:definitions>

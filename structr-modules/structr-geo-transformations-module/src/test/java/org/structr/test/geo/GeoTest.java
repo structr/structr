@@ -66,6 +66,7 @@ public class GeoTest {
 			assertEquals("Invalid UTM conversion result", "3H 541926 5949631", result5);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
@@ -157,7 +158,6 @@ public class GeoTest {
 
 			System.out.println(obj);
 
-
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
@@ -173,12 +173,14 @@ public class GeoTest {
 		final String sourceUTM              = "32U 439596 5967780";
 
 		try {
+
 			final GraphObjectMap result1 = (GraphObjectMap)utmLatLon.apply(null, null, new Object[] { sourceUTM });
 			final String result2         = (String)latLonUtm.apply(null, null, new Object[] { result1.getProperty(UTMToLatLonFunction.latitudeProperty), result1.getProperty(UTMToLatLonFunction.longitudeProperty) } );
 
 			assertEquals("Invalid UTM to lat/lon roundtrip result", sourceUTM, result2);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
@@ -193,6 +195,7 @@ public class GeoTest {
 		final double longitude              = 7.49998773689121;
 
 		try {
+
 			final String result1         = (String)latLonUtm.apply(null, null, new Object[] { latitude, longitude } );
 			final GraphObjectMap result2 = (GraphObjectMap)utmLatLon.apply(null, null, new Object[] { result1 } );
 
@@ -200,6 +203,7 @@ public class GeoTest {
 			assertEquals("Invalid UTM to lat/lon roundtrip result", (Double)longitude, result2.getProperty(UTMToLatLonFunction.longitudeProperty));
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
@@ -240,9 +244,8 @@ public class GeoTest {
 			assertEquals("Invalid UTM conversion result", -36.59789213337618, get(result12, 0));
 			assertEquals("Invalid UTM conversion result", -164.5312529421211, get(result12, 1));
 
-
-
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
@@ -256,9 +259,11 @@ public class GeoTest {
 			switch (index) {
 
 				case 0:
+
 					return ((GraphObjectMap)map).getProperty(UTMToLatLonFunction.latitudeProperty);
 
 				case 1:
+
 					return ((GraphObjectMap)map).getProperty(UTMToLatLonFunction.longitudeProperty);
 			}
 		}

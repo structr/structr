@@ -38,11 +38,13 @@ import java.util.Set;
 public class GenericHtmlElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public GenericHtmlElementTraitDefinition(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return new LinkedHashMap<>();
 	}
 
@@ -53,11 +55,11 @@ public class GenericHtmlElementTraitDefinition extends AbstractNodeTraitDefiniti
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return false;
 				}
 			}
@@ -65,11 +67,11 @@ public class GenericHtmlElementTraitDefinition extends AbstractNodeTraitDefiniti
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return false;
 				}
 			}
@@ -80,30 +82,36 @@ public class GenericHtmlElementTraitDefinition extends AbstractNodeTraitDefiniti
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
 		return Set.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	protected static String getPrefixedHTMLAttributeName(final String name) {
+
 		return PropertyView.Html.concat(name);
 	}
 }

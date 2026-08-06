@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
 
-
 /**
  *
  *
@@ -54,6 +53,7 @@ public class MeResourceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 
@@ -115,6 +115,7 @@ public class MeResourceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 
@@ -222,6 +223,7 @@ public class MeResourceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 
@@ -242,7 +244,6 @@ public class MeResourceTest extends StructrUiTest {
 			.when()
 
 				.post("/me/doTest");
-
 
 		// test method call with view
 		RestAssured
@@ -274,6 +275,7 @@ public class MeResourceTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 

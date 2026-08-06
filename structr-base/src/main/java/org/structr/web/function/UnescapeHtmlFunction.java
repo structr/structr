@@ -35,11 +35,13 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "unescapeHtml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("text");
 	}
 
@@ -55,50 +57,50 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${unescapeHtml(text)}."),
-			Usage.javaScript("Usage: ${{ $.unescapeHtml(text) }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${unescapeHtml(text)}."), Usage.javaScript("Usage: ${{ $.unescapeHtml(text) }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Reverses the effect of `escapeHtml()`.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Relaces escaped HTML entities with the actual characters, e.g. &lt; with <.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${unescapeHtml('test &amp; test')}"),
-			Example.javaScript("${{ $.unescapeHtml('test &amp; test') }}")
-		);
+
+		return List.of(Example.structrScript("${unescapeHtml('test &amp; test')}"), Example.javaScript("${{ $.unescapeHtml('test &amp; test') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("string", "escaped string")
-		);
+
+		return List.of(Parameter.mandatory("string", "escaped string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

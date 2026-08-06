@@ -27,16 +27,19 @@ import org.structr.core.traits.definitions.QueryDataSourceTraitDefinition;
 public class QueryDataSourceTraitWrapper extends DataSourceTraitWrapper implements QueryDataSource<GraphObject> {
 
 	public QueryDataSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getDataType() {
+
 		return wrappedObject.getProperty(traits.key(QueryDataSourceTraitDefinition.DATA_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getQuery() {
+
 		return wrappedObject.getProperty(traits.key(QueryDataSourceTraitDefinition.QUERY_PROPERTY));
 	}
 }

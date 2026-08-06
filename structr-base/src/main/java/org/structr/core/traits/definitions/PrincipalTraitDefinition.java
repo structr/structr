@@ -74,8 +74,8 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PROXY_USERNAME_PROPERTY       = "proxyUsername";
 	public static final String PROXY_PASSWORD_PROPERTY       = "proxyPassword";
 
-
 	public PrincipalTraitDefinition() {
+
 		super(StructrTraits.PRINCIPAL);
 	}
 
@@ -84,8 +84,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -107,8 +106,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetProperty.class,
-			new GetProperty() {
+			GetProperty.class, new GetProperty() {
 
 				final Set<String> hiddenProperties = newSet(PASSWORD_PROPERTY, SALT_PROPERTY, TWO_FACTOR_SECRET_PROPERTY);
 
@@ -126,8 +124,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			SetProperty.class,
-			new SetProperty() {
+			SetProperty.class, new SetProperty() {
 
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
@@ -138,8 +135,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			IsValidPassword.class,
-			new IsValidPassword() {
+			IsValidPassword.class, new IsValidPassword() {
 
 				@Override
 				public boolean isValidPassword(Principal principal, String password) {
@@ -190,15 +186,14 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Principal.class, (traits, node) -> new PrincipalTraitWrapper(traits, node)
-		);
+		return Map.of(Principal.class, (traits, node) -> new PrincipalTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -235,14 +230,12 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Ui,
-			newSet(BLOCKED_PROPERTY)
-		);
+		return Map.of(PropertyView.Ui, newSet(BLOCKED_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

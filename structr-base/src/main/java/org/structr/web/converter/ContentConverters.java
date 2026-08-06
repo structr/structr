@@ -60,6 +60,7 @@ public class ContentConverters {
 				if (s != null) {
 
 					com.vladsch.flexmark.util.ast.Node document = flexMarkProcessor.get().parser.parse(s);
+
 					return flexMarkProcessor.get().renderer.render(document);
 				}
 
@@ -179,6 +180,7 @@ public class ContentConverters {
 	}
 
 	public static Adapter<String, String> getConverterForType(final String contentType) {
+
 		return ContentConverters.get(contentType);
 	}
 
@@ -250,6 +252,7 @@ public class ContentConverters {
 		HtmlRenderer renderer;
 
 		public FlexMarkProcessor(final Parser parser, final HtmlRenderer renderer) {
+
 			this.parser = parser;
 			this.renderer = renderer;
 		}

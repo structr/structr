@@ -28,6 +28,7 @@ import java.util.List;
 public class IdentifyListsRule extends Rule {
 
 	public IdentifyListsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -39,7 +40,6 @@ public class IdentifyListsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.pop();
-
 			if (token1 instanceof IdentifierListToken list) {
 
 				final AbstractToken token2 = tokens.pop();
@@ -49,7 +49,6 @@ public class IdentifyListsRule extends Rule {
 				if (token2 instanceof ConjunctionToken && !tokens.isEmpty()) {
 
 					final AbstractToken token3 = tokens.pop();
-
 					if (token3 instanceof IdentifierToken identifier3) {
 
 						list.addToken(identifier3);
@@ -58,7 +57,6 @@ public class IdentifyListsRule extends Rule {
 						identifier3.addSyntaxToken(token2.getToken());
 
 						tokens.push(list);
-
 
 					} else if (token3 instanceof ConceptToken concept1) {
 
@@ -98,7 +96,6 @@ public class IdentifyListsRule extends Rule {
 				if (token2 instanceof ConjunctionToken && !tokens.isEmpty()) {
 
 					final AbstractToken token3 = tokens.pop();
-
 					if (token3 instanceof IdentifierToken identifier3) {
 
 						//identifier1.addIdentifier(identifier3);
@@ -137,7 +134,6 @@ public class IdentifyListsRule extends Rule {
 				result.add(token1);
 			}
 		}
-
 
 		tokens.addAll(result);
 	}

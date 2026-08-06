@@ -41,6 +41,9 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.ProcessInstance;
+import org.structr.process.traits.wrappers.ProcessInstanceTraitWrapper;
 import java.util.Set;
 
 /**
@@ -84,7 +87,14 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String STATUS_TERMINATED  = "terminated";
 	public static final String STATUS_ERROR       = "error";
 
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(ProcessInstance.class, (traits, node) -> new ProcessInstanceTraitWrapper(traits, node));
+	}
+
 	public ProcessInstanceTraitDefinition() {
+
 		super(ProcessTraits.PROCESS_INSTANCE);
 	}
 
@@ -98,8 +108,8 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 			// here: the initial running-from-creation must not be confused with resumed-
 			// from-suspended. The engine fires 'started' and 'resumed' explicitly so the
 			// two cases stay distinct.
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
+
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -113,20 +123,28 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 						final ProcessEngine engine = new ProcessEngine(securityContext);
 
 						if (STATUS_COMPLETED.equals(newStatus)) {
+
 							if (graphObject.getProperty(traits.key(END_TIME_PROPERTY)) == null) {
+
 								graphObject.setProperty(traits.key(END_TIME_PROPERTY), new Date());
 							}
+
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_COMPLETED, (NodeInterface) graphObject);
 
 						} else if (STATUS_TERMINATED.equals(newStatus)) {
+
 							if (graphObject.getProperty(traits.key(END_TIME_PROPERTY)) == null) {
+
 								graphObject.setProperty(traits.key(END_TIME_PROPERTY), new Date());
 							}
+
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_TERMINATED, (NodeInterface) graphObject);
 
 						} else if (STATUS_SUSPENDED.equals(newStatus)) {
+
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_SUSPENDED, (NodeInterface) graphObject);
 						}
+
 						// 'running' transitions are handled by the engine: 'started' from startProcess,
 						// 'resumed' from resumeProcess.
 					}
@@ -135,8 +153,10 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 					// target fires the subjectAttached event. Common pattern: the LeaveRequest case where
 					// the subject is created from form data after startProcess and attached post-hoc.
 					if (modificationQueue.isPropertyModified(graphObject, traits.key(SUBJECT_PROPERTY))) {
+
 						final NodeInterface newSubject = graphObject.getProperty(traits.key(SUBJECT_PROPERTY));
 						if (newSubject != null) {
+
 							final ProcessEngine engine = new ProcessEngine(securityContext);
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_SUBJECT_ATTACHED, (NodeInterface) graphObject);
 						}
@@ -180,20 +200,45 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					final java.util.Map<String, Object> params = arguments.toMap();
 					final String eventBpmnId = (String) params.remove("eventBpmnId");
+
 					if (eventBpmnId == null || eventBpmnId.isEmpty()) {
+
 						throw new FrameworkException(422, "Missing required parameter: eventBpmnId");
 					}
+
 					engine.signalEvent((NodeInterface) entity, eventBpmnId, params.isEmpty() ? null : params);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Signals an intermediate catch event by bpmnId, resuming the waiting token. Pass eventBpmnId as a required parameter.";
+				}
+			},
+
+			new JavaMethod("getCurrentSteps", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					// The BpmnElement node(s) this instance is currently at (elements of its
+					// non-completed tokens). Returns the nodes so callers can read bpmnName /
+					// bpmnElementType / bpmnId / etc. as needed.
+
+					return ProcessEngine.currentStepElements((NodeInterface) entity);
+				}
+
+				@Override
+				public String getDescription() {
+
+					return "Returns the BpmnElement node(s) this instance is currently at (the elements of its non-completed tokens). Usually one; a parallel split yields several. Empty once the instance has finished.";
 				}
 			},
 
@@ -201,14 +246,18 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					engine.terminateProcess((NodeInterface) entity);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Terminates this process instance: status='terminated', endTime=now, all waiting tokens are marked completed without advancing. Fires the 'terminated' lifecycle event.";
 				}
 			},
@@ -217,14 +266,18 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					engine.suspendProcess((NodeInterface) entity);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Suspends this process instance: status='suspended'. Existing tokens stay in place; no new advancement occurs until the instance is resumed. Fires the 'suspended' lifecycle event.";
 				}
 			},
@@ -233,14 +286,18 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					engine.resumeProcess((NodeInterface) entity);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Resumes a suspended process instance: status='running'. Fires the 'resumed' lifecycle event (distinct from the initial 'started' event fired at startProcess time).";
 				}
 			}
@@ -249,6 +306,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

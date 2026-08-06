@@ -51,11 +51,16 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 				case "interrupt":
 				case "kill":
 					this.command = command;
+
 					if (!attributes.containsKey("id")) {
+
 						throw new FrameworkException(422, "ManageThreadsCommand: kill command needs id parameter.");
+
 					} else {
+
 						this.id = (long)attributes.get("id");
 					}
+
 					break;
 
 				case "list":
@@ -74,11 +79,13 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
@@ -88,12 +95,15 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 		switch (this.command) {
 
 			case "list":
+
 				return listThreads();
 
 			case "interrupt":
+
 				return interruptThread();
 
 			case "kill":
+
 				return killThread();
 		}
 
@@ -111,6 +121,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 		if (deadlocked != null) {
 
 			for (final long id : bean.findDeadlockedThreads()) {
+
 				deadlockedSet.add(id);
 			}
 		}
@@ -143,6 +154,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 			final double id2 = (double)b.get("cpuTime");
 
 			// sort descending
+
 			return Double.compare(id2, id1);
 		});
 
@@ -247,7 +259,6 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 		Map.entry(Pattern.compile("org.structr.core.graph.ModificationQueue.doValidation"),     "Transaction Phase: Indexing"),
 		Map.entry(Pattern.compile("org.structr.core.graph.ModificationQueue.doPostProcessing"), "Transaction Phase: Callbacks After Commit"),
 
-
 		// HTML
 		Map.entry(Pattern.compile("org.structr.web.servlet.HtmlServlet.doGet"),                                           "HTTP GET"),
 		Map.entry(Pattern.compile("org.structr.web.traits.definitions.dom.PageTraitDefinition[^.]*.render"),              "Render Page"),
@@ -275,51 +286,61 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getName() {
+
 		return "";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 }

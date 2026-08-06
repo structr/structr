@@ -26,20 +26,24 @@ public class FormatSpecification {
 	private ConceptToken token;
 
 	public FormatSpecification(final ConceptType format, final ConceptToken token) {
+
 		this.format = format;
 		this.token = token;
 	}
 
 	@Override
 	public String toString() {
+
 		return format.toString();
 	}
 
 	public ConceptType getFormat() {
+
 		return format;
 	}
 
 	public ConceptToken getToken() {
+
 		return token;
 	}
 
@@ -49,6 +53,7 @@ public class FormatSpecification {
 	}
 
 	public void setToken(final ConceptToken token) {
+
 		this.token = token;
 	}
 }

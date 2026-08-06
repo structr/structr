@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class CaseHelper {
 
 	public static String toUpperCamelCase(final String input) {
+
 		return WordUtils.capitalize(input, new char[] { '_' }).replaceAll("_", "");
 	}
 
@@ -52,8 +53,11 @@ public class CaseHelper {
 			} else {
 
 				if (uppercaseNext) {
+
 					out.append(Character.toUpperCase(c));
+
 				} else {
+
 					out.append(c);
 				}
 
@@ -65,10 +69,12 @@ public class CaseHelper {
 	}
 
 	public static String toLowerCamelCase(final String input) {
+
 		return input.substring(0, 1).toLowerCase().concat(WordUtils.capitalize(input, new char[] { '_' }).replaceAll("_", "").substring(1));
 	}
 
 	public static String dashesToCamelCase(final String input) {
+
 		return StringUtils.uncapitalize(Arrays.stream(input.split("\\-")).map(s -> StringUtils.capitalize(s)).collect(Collectors.joining()));
 	}
 
@@ -84,8 +90,8 @@ public class CaseHelper {
 		for (int i = 0; i < input.length(); i++) {
 
 			char c = input.charAt(i);
-
 			if (Character.isUpperCase(c)) {
+
 				char nextCharacter = 0;
 
 				try {
@@ -96,7 +102,6 @@ public class CaseHelper {
 				}
 
 				Boolean nextCharacterIsUpperCase = Character.isUpperCase(nextCharacter);
-
 				if (i > 0 && !nextCharacterIsUpperCase) {
 
 					out.append("_");
@@ -129,7 +134,6 @@ public class CaseHelper {
 	public static String plural(String type) {
 
 		int len = type.length();
-
 		if (type.substring(len - 1, len).equals("y")) {
 
 			return type.substring(0, len - 1) + "ies";
@@ -139,6 +143,7 @@ public class CaseHelper {
 			return type.concat("s");
 
 		} else {
+
 			return type;
 		}
 	}

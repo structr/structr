@@ -38,27 +38,33 @@ public class IdentifierToken extends AbstractToken<String> implements TokenColle
 
 	@Override
 	public String toString() {
+
 		return "IdentifierToken(" + token + ")";
 	}
 
 	public String resolve(final Ontology ontology) {
+
 		return token.getContent();
 	}
 
 	public void setFormat(final ConceptToken format) {
+
 		this.formatSpecification = format;
 	}
 
 	public ConceptToken getFormat() {
+
 		return formatSpecification;
 	}
 
 	public Token getToken() {
+
 		return token;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
@@ -69,10 +75,12 @@ public class IdentifierToken extends AbstractToken<String> implements TokenColle
 	}
 
 	public void addSyntaxToken(final Token token) {
+
 		syntaxTokens.add(token);
 	}
 
 	public List<Token> getSyntaxTokens() {
+
 		return syntaxTokens;
 	}
 
@@ -80,12 +88,14 @@ public class IdentifierToken extends AbstractToken<String> implements TokenColle
 	public void updateContent(final String key, final String value) {
 
 		if ("content".equals(key) || "name".equals(key)) {
+
 			token.setContent(value);
 		}
 	}
 
 	@Override
 	public List<Token> getAllSourceTokens() {
+
 		return List.of(token);
 	}
 }

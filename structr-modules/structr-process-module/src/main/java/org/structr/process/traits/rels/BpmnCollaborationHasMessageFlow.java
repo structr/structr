@@ -31,20 +31,92 @@ import org.structr.process.ProcessTraits;
  */
 public class BpmnCollaborationHasMessageFlow extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnCollaborationHasMessageFlow() { super(ProcessTraits.BPMN_COLLABORATION_HAS_MESSAGE_FLOW); }
+	public BpmnCollaborationHasMessageFlow() {
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_COLLABORATION; }
-	@Override public String getTargetType() { return ProcessTraits.BPMN_MESSAGE_FLOW; }
-	@Override public String getRelationshipType() { return "HAS_MESSAGE_FLOW"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }
-	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+		super(ProcessTraits.BPMN_COLLABORATION_HAS_MESSAGE_FLOW);
+	}
+
+	@Override
+	public String getSourceType() {
+
+		return ProcessTraits.BPMN_COLLABORATION;
+	}
+
+	@Override
+	public String getTargetType() {
+
+		return ProcessTraits.BPMN_MESSAGE_FLOW;
+	}
+
+	@Override
+	public String getRelationshipType() {
+
+		return "HAS_MESSAGE_FLOW";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+
+		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+
+		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+
+		return null;
+	}
 }

@@ -27,21 +27,25 @@ public class CurrentHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "current";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the object returned by URI Object Resolution, if available.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "When a valid UUID is present in the URL of a page, Structr automatically retrieves the object associated with that UUID and makes it available to all scripts, templates, and logic executed during the page rendering process under the keyword `current`.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.html("""
 			<!DOCTYPE html>
@@ -59,7 +63,7 @@ public class CurrentHint extends GeneralKeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 }

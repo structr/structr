@@ -54,6 +54,7 @@ public class Functions {
 	private static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
 	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function) {
+
 		Functions.put(licenseManager, function, true);
 	}
 
@@ -69,10 +70,12 @@ public class Functions {
 	}
 
 	public static Set<String> getNames() {
+
 		return new LinkedHashSet<>(functions.keySet());
 	}
 
 	public static Function<Object, Object> get(final String name) {
+
 		return functions.get(name);
 	}
 
@@ -90,6 +93,7 @@ public class Functions {
 	}
 
 	public static Collection<Function<Object, Object>> getFunctions() {
+
 		return new LinkedList<>(functions.values());
 	}
 
@@ -125,6 +129,7 @@ public class Functions {
 		final String expression                 = snippet.getSource();
 		final List<String> tokens               = result.getTokens();
 		final StructrScriptTokenizer tokenizer  = new StructrScriptTokenizer(false);
+
 		tokenizer.setIsSilent(silenceTokenizer);
 
 		Expression root = new RootExpression();
@@ -141,9 +146,12 @@ public class Functions {
 			switch (token.getType()) {
 
 				case "number":
+
 					if (current == null) {
+
 						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before NUMBER", token.getRow(), token.getColumn());
 					}
+
 					final String stringToken = String.valueOf(token.getContent());
 					tokens.add(stringToken);
 					next = new ConstantExpression(Double.valueOf(token.getContent()), token.getRow(), token.getColumn());
@@ -151,9 +159,12 @@ public class Functions {
 					break;
 
 				case "identifier":
+
 					if (current == null) {
+
 						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.getContent(), token.getRow(), token.getColumn());
 					}
+
 					next = checkReservedWords(token.getContent(), level, namespaceMap, token.getRow(), token.getColumn());
 					Expression previousExpression = current.getPrevious();
 					if (token.getContent().startsWith(".") && previousExpression != null && previousExpression instanceof FunctionExpression && next instanceof ValueExpression) {
@@ -162,13 +173,17 @@ public class Functions {
 						final ValueExpression    valueExpression            = (ValueExpression) next;
 
 						current.replacePrevious(new FunctionValueExpression(previousFunctionExpression, valueExpression, token.getRow(), token.getColumn()));
+
 					} else {
+
 						current.add(next);
 					}
+
 					tokens.add(token.getContent());
 					break;
 
 				case "(":
+
 					if (((current == null || current instanceof RootExpression) && next == null) || current == next) {
 
 						// an additional bracket without a new function, this can only be an execution group.
@@ -192,13 +207,19 @@ public class Functions {
 					break;
 
 				case ")":
+
 					if (current == null) {
+
 						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.getContent(), token.getRow(), token.getColumn());
 					}
+
 					current = current.getParent();
+
 					if (current == null) {
+
 						//throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.getContent(), token.getRow(), token.getColumn());
 					}
+
 					tokens.add(")");
 					level--;
 					namespaceMap.remove(level);
@@ -214,13 +235,19 @@ public class Functions {
 					break;
 
 				case "]":
+
 					if (current == null) {
+
 						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket before " + token.getContent(), token.getRow(), token.getColumn());
 					}
+
 					current = current.getParent();
+
 					if (current == null) {
+
 						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.getContent(), token.getRow(), token.getColumn());
 					}
+
 					tokens.add("]");
 					level--;
 					break;
@@ -236,22 +263,33 @@ public class Functions {
 					break;
 
 				case "string":
+
 					if (current == null) {
+
 						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.getContent(), token.getRow(), token.getColumn());
 					}
+
 					final ConstantExpression constantExpression = new ConstantExpression(token.getContent(), token.getRow(), token.getColumn());
 					final String quoteChar                      = token.getQuote();
+
 					current.add(constantExpression);
 					constantExpression.setQuoteChar(quoteChar);
+
 					if (StringUtils.isEmpty(token.getContent())) {
+
 						tokens.add(quoteChar);
+
 					} else {
+
 						tokens.add(quoteChar + token.getContent() + quoteChar);
 					}
+
 					break;
 
 				case "map":
+
 					try {
+
 						final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 						next = new ConstantExpression(gson.fromJson(token.getContent(), Map.class), token.getRow(), token.getColumn());
 						current.add(next);
@@ -263,6 +301,7 @@ public class Functions {
 		}
 
 		if (level > 0) {
+
 			throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken.getContent(), lastToken.getRow(), lastToken.getColumn());
 		}
 
@@ -354,54 +393,69 @@ public class Functions {
 	private static Expression checkReservedWords(final String word, final int level, final Map<Integer, String> namespace, final int row, final int column) throws FrameworkException {
 
 		if (word == null) {
+
 			return new NullExpression(row, column);
 		}
 
 		switch (word) {
 
 			case "cache":
+
 				return new CacheExpression(row, column);
 
 			case "true":
+
 				return new ConstantExpression(true, row, column);
 
 			case "false":
+
 				return new ConstantExpression(false, row, column);
 
 			case "if":
+
 				return new IfExpression(row, column);
 
 			case "is":
+
 				return new IsExpression(row, column);
 
 			case "each":
+
 				return new EachExpression(row, column);
 
 			case "filter":
+
 				return new FilterExpression(row, column);
 
 			case "map":
+
 				return new MapExpression(row, column);
 
 			case "reduce":
+
 				return new ReduceExpression(row, column);
 
 			case "slice":
 				throw new FrameworkException(422, "The slice() function is not supported any more, please use the page() predicate which does exactly the same, but with database support.");
 
 			case "data":
+
 				return new ValueExpression("data", row, column);
 
 			case "any":
+
 				return new AnyExpression(row, column);
 
 			case "all":
+
 				return new AllExpression(row, column);
 
 			case "none":
+
 				return new NoneExpression(row, column);
 
 			case "null":
+
 				return new ConstantExpression(null, row, column);
 
 		}
@@ -427,8 +481,8 @@ public class Functions {
 	private static String getNamespacedKeyword(final String keyword, final Collection<String> namespace) {
 
 		final StringBuilder buf = new StringBuilder(StringUtils.join(namespace, "."));
-
 		if (buf.length() > 0) {
+
 			buf.append(".");
 		}
 

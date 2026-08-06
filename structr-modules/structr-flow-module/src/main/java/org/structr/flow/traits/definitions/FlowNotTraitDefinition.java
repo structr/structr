@@ -32,6 +32,7 @@ import java.util.Map;
 public class FlowNotTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowNotTraitDefinition() {
+
 		super(StructrTraits.FLOW_NOT);
 	}
 
@@ -40,13 +41,13 @@ public class FlowNotTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			LogicConditionOperations.class,
-			new LogicConditionOperations() {
+			LogicConditionOperations.class, new LogicConditionOperations() {
 
 				@Override
 				public Boolean combine(final FlowLogicCondition condition, final Boolean result, final Boolean value) {
 
 					if (result == null) {
+
 						return !value;
 					}
 
@@ -59,13 +60,12 @@ public class FlowNotTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowNot.class, (traits, node) -> new FlowNot(traits, node)
-		);
+		return Map.of(FlowNot.class, (traits, node) -> new FlowNot(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

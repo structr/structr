@@ -29,16 +29,19 @@ import java.util.List;
 public class MailClearBccFunction extends AdvancedMailModuleFunction {
 
 	public MailClearBccFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailClearBcc";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,19 +55,19 @@ public class MailClearBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailClearBcc()}"),
-			Usage.javaScript("Usage: ${{ $.mailClearBcc() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailClearBcc()}"), Usage.javaScript("Usage: ${{ $.mailClearBcc() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Clears the current list of `Bcc:` recipients.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

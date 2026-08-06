@@ -34,6 +34,7 @@ public class JavaHintProvider extends AbstractHintProvider {
 
 	@Override
 	protected List<Documentable> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
+
 		return new LinkedList<>();
 	}
 
@@ -41,6 +42,7 @@ public class JavaHintProvider extends AbstractHintProvider {
 	protected String getFunctionName(final String source) {
 
 		if (source.contains("_")) {
+
 			return CaseHelper.toLowerCamelCase(source);
 		}
 

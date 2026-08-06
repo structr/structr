@@ -50,6 +50,7 @@ public class FulltextSearchCommand extends NodeServiceCommand {
 			return mappedResult;
 
 		} catch (Throwable t) {
+
 			throw new FrameworkException(422, t.getMessage());
 		}
 	}
@@ -75,6 +76,7 @@ public class FulltextSearchCommand extends NodeServiceCommand {
 			return mappedResult;
 
 		} catch (Throwable t) {
+
 			throw new FrameworkException(422, t.getMessage());
 		}
 	}

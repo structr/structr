@@ -52,16 +52,12 @@ public class CreateDocumentationTest extends StructrUiTest {
 	// ----- private methods -----
 	private List<String> checkFunctionMetadata(final Documentable item) {
 
-		final Set<DocumentableType> blacklist = Set.of(
-			DocumentableType.Service,
-			DocumentableType.SystemType,
-			DocumentableType.Setting
-		);
-
+		final Set<DocumentableType> blacklist = Set.of(DocumentableType.Service, DocumentableType.SystemType, DocumentableType.Setting);
 		final DocumentableType documentableType = item.getDocumentableType();
 
 		// skip documentables that are hidden
 		if (item.isHidden()) {
+
 			return Collections.emptyList();
 		}
 
@@ -160,25 +156,27 @@ public class CreateDocumentationTest extends StructrUiTest {
 				for (final Parameter parameter : parameters) {
 
 					if (StringUtils.isEmpty(parameter.getName())) {
+
 						errors.add(type + " " + item.getName() + " has empty parameter name.");
 					}
 
 					if (Character.isUpperCase(parameter.getName().charAt(0))) {
+
 						errors.add("Parameter " + parameter.getName() + " of function " + item.getName() + " should not start with an uppercase letter.");
 					}
 
 					if (parameter.getDescription() != null) {
 
 						final String parameterDescription = parameter.getDescription();
-
 						if (parameterDescription.endsWith(".") && !parameterDescription.endsWith("etc.")) {
+
 							errors.add("Parameter description for " + parameter.getName() + " of function " + item.getName() + " should not end with a period character.");
 						}
 
 						// check some things in the description text
 						final String d = parameterDescription.toLowerCase();
-
 						if (d.startsWith("the ") || d.startsWith("a ") || d.startsWith("an ") || d.startsWith("optional ")) {
+
 							errors.add("Parameter description for " + parameter.getName() + " of function " + item.getName() + " should not start with the words 'the', 'a', 'an', or 'optional'.");
 						}
 					}
@@ -240,6 +238,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 			int counter   = 0;
 
 			if (pos == -1) {
+
 				return false;
 			}
 
@@ -258,6 +257,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 				final char before = string.charAt(pos - 1);
 				if (isIgnorable(before)) {
+
 					counter++;
 				}
 
@@ -271,6 +271,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 				final char after = string.charAt(pos + structrLength);
 				if (isIgnorable(after)) {
+
 					counter++;
 				}
 
@@ -296,6 +297,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 	private boolean isIgnorable(final char c) {
 
 		if (Character.isWhitespace(c)) {
+
 			return true;
 		}
 

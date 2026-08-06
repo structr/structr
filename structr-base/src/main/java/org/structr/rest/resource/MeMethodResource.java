@@ -34,10 +34,8 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class MeMethodResource extends WildcardMatchEndpoint {
 
 	public MeMethodResource() {
-		super(
-			RESTParameter.forStaticString("me", true, StructrTraits.USER),
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
-		);
+
+		super(RESTParameter.forStaticString("me", true, StructrTraits.USER), RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true));
 	}
 
 	@Override

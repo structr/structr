@@ -46,6 +46,7 @@ public class RendererTest extends StructrUiTest {
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div = page1.getElementsByTagName("div").get(0);
+
 			content           = div.getFirstChild().as(Content.class);
 
 			tx.success();
@@ -60,11 +61,9 @@ public class RendererTest extends StructrUiTest {
 
 			// test markdown content
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/markdown");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY),
-				"# Title\n" +
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "# Title\n" +
 				"This is a test\n\n" +
-				"## Another title\n"
-			);
+				"## Another title\n");
 
 			tx.success();
 
@@ -103,6 +102,7 @@ public class RendererTest extends StructrUiTest {
 
 			final Page page1  = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div = page1.getElementsByTagName("div").get(0);
+
 			content           = div.getFirstChild().as(Content.class);
 
 			tx.success();
@@ -117,11 +117,9 @@ public class RendererTest extends StructrUiTest {
 
 			// test markdown content
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/textile");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
-				"h1. Title\n\n" +
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "h1. Title\n\n" +
 				"This is a test\n\n" +
-				"h2. Another title\n"
-			);
+				"h2. Another title\n");
 
 			tx.success();
 
@@ -160,6 +158,7 @@ public class RendererTest extends StructrUiTest {
 
 			final Page page1  = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div = page1.getElementsByTagName("div").get(0);
+
 			content           = div.getFirstChild().as(Content.class);
 
 			tx.success();
@@ -174,11 +173,9 @@ public class RendererTest extends StructrUiTest {
 
 			// test markdown content
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/mediawiki");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
-				"==Title==\n" +
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "==Title==\n" +
 				"This is a test\n\n" +
-				"=== Another title ===\n"
-			);
+				"=== Another title ===\n");
 
 			tx.success();
 
@@ -217,6 +214,7 @@ public class RendererTest extends StructrUiTest {
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div = page1.getElementsByTagName("div").get(0);
+
 			content           = div.getFirstChild().as(Content.class);
 
 			tx.success();
@@ -231,11 +229,9 @@ public class RendererTest extends StructrUiTest {
 
 			// test markdown content
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/tracwiki");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
-				"=Title=\n" +
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "=Title=\n" +
 				"This is a test\n\n" +
-				"==Another title==\n"
-			);
+				"==Another title==\n");
 
 			tx.success();
 
@@ -274,6 +270,7 @@ public class RendererTest extends StructrUiTest {
 
 			final Page page1  = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div = page1.getElementsByTagName("div").get(0);
+
 			content           = div.getFirstChild().as(Content.class);
 
 			tx.success();
@@ -288,11 +285,9 @@ public class RendererTest extends StructrUiTest {
 
 			// test markdown content
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/confluence");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
-				"h1. Title\n\n" +
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "h1. Title\n\n" +
 				"This is a test\n\n" +
-				"h2. Another title\n"
-			);
+				"h2. Another title\n");
 
 			tx.success();
 
@@ -331,6 +326,7 @@ public class RendererTest extends StructrUiTest {
 
 			final Page page1  = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div = page1.getElementsByTagName("div").get(0);
+
 			content           = div.getFirstChild().as(Content.class);
 
 			tx.success();
@@ -345,11 +341,9 @@ public class RendererTest extends StructrUiTest {
 
 			// test markdown content
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/asciidoc");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
-				"== Title\n\n" +
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "== Title\n\n" +
 				"This is a test\n\n" +
-				"=== Another title\n"
-			);
+				"=== Another title\n");
 
 			tx.success();
 

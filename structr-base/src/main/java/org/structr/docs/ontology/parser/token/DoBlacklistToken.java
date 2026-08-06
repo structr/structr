@@ -24,6 +24,7 @@ import org.structr.docs.ontology.Ontology;
 public class DoBlacklistToken extends NamedConceptToken {
 
 	public DoBlacklistToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
+
 		super(conceptToken, identifierToken);
 	}
 
@@ -35,11 +36,13 @@ public class DoBlacklistToken extends NamedConceptToken {
 		ontology.getBlacklist().add(identifier);
 
 		// empty list
+
 		return null;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return true;
 	}
 }

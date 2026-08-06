@@ -27,6 +27,7 @@ import org.structr.embedded.AdvancedCypherQuery;
 public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public ComparisonQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -41,6 +42,7 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 			// to select the correct index
 			final String label = predicate.getLabel();
 			if (label != null) {
+
 				query.indexLabel(label);
 			}
 
@@ -50,6 +52,7 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 			final String name                           = predicate.getName();
 
 			if (value == null && comparison == null) {
+
 				return false;
 			}
 
@@ -75,9 +78,11 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 					break;
 				case isNull:
 					query.addSimpleParameter(name, "IS", null);
+
 					return true;
 				case isNotNull:
 					query.addSimpleParameter(name, "IS NOT", null);
+
 					return true;
 				case startsWith:
 					operationString = "STARTS WITH";
@@ -91,14 +96,17 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 				case caseInsensitiveStartsWith:
 					operationString = "STARTS WITH";
 					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
+
 					return true;
 				case caseInsensitiveEndsWith:
 					operationString = "ENDS WITH";
 					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
+
 					return true;
 				case caseInsensitiveContains:
 					operationString = "CONTAINS";
 					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
+
 					return true;
 
 				case matches:

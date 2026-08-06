@@ -31,6 +31,7 @@ public class DateTypeConverter extends LongTypeConverter {
 		if (value instanceof Date) {
 
 			final long time = ((Date)value).getTime();
+
 			return super.getReadValue(time);
 		}
 
@@ -43,6 +44,7 @@ public class DateTypeConverter extends LongTypeConverter {
 		if (value instanceof Date) {
 
 			final long time = ((Date)value).getTime();
+
 			return super.getWriteValue(time);
 		}
 

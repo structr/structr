@@ -27,6 +27,7 @@ import org.structr.api.util.html.Attr;
 public class Onload extends Attr {
 
 	public Onload(final String onload) {
+
 		super("onload", onload);
 	}
 }

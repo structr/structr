@@ -45,6 +45,31 @@ let _Processes = {
 	processVersionPending: new Set(),
 
 	/**
+	 * Normalize a related "process" field to its id. The field arrives in
+	 * several shapes depending on the fetch: an object stub {id,...}, a
+	 * single-element array of those, or a bare id string. Returns null when
+	 * there is no process reference. Shared by the process-bound widget UIs
+	 * that need the owning process of a BpmnElement / bound UserTask.
+	 */
+	processRefId: (node) => {
+		const ref = node?.process;
+		if (!ref) return null;
+		if (Array.isArray(ref)) return ref[0]?.id ?? (typeof ref[0] === 'string' ? ref[0] : null);
+		return ref.id ?? (typeof ref === 'string' ? ref : null);
+	},
+
+	/**
+	 * The process-level subjectType of a BpmnProcess (or null). A process
+	 * instance has exactly one subject, so its type is a process-level fact;
+	 * the process-bound widget UIs resolve it here rather than off a step.
+	 */
+	getSubjectType: async (processId) => {
+		if (!processId) return null;
+		try { const p = await Command.getPromise(processId, 'id,subjectType', 'ui'); return p?.subjectType || null; }
+		catch (e) { console.error('getSubjectType failed', e); return null; }
+	},
+
+	/**
 	 * Fetch the version of a BpmnProcess and, when it lands, patch every
 	 * Process Instance row whose process cell needs the version suffix.
 	 * No-op if the version is already cached or the fetch is in flight.
@@ -145,7 +170,7 @@ let _Processes = {
 	},
 
 	rest: {
-		callEntityMethod: async (type, id, method, params = {}) => {
+		callEntityMethod: async (type, id, method, params = {}, { showError = true } = {}) => {
 
 			// Static methods are routed without an instance id: POST /{type}/{method}.
 			let url = id
@@ -159,15 +184,31 @@ let _Processes = {
 					body: JSON.stringify(params)
 				});
 			} catch (e) {
-				new ErrorMessage().text(`${method} failed: ${e.message}`).show();
+				if (showError) new ErrorMessage().text(`${method} failed: ${e.message}`).show();
 				throw e;
 			}
 
 			let json = await response.json().catch(() => ({}));
 			if (!response.ok) {
-				let msg = json?.message ?? response.statusText;
-				new ErrorMessage().text(`${method} failed: ${msg}`).show();
-				throw new Error(msg);
+				// Expand the FULL Structr error envelope -- the top-level message
+				// plus the per-field errors[] details -- via the shared formatter,
+				// instead of json.message alone. Validation failures (e.g. a
+				// duplicate user-defined function left over from an earlier import)
+				// carry the actionable reason in errors[]; the bare message omits
+				// it, so that reason used to be visible only in the browser console.
+				let hasBody    = json && (json.errors?.length || json.message || json.code !== undefined);
+				let detailHtml = hasBody
+					? Structr.getErrorMessageFromResponse(json, true)
+					: _Helpers.escapeTags(response.statusText || 'Request failed');
+				if (showError) {
+					new ErrorMessage().title(`${method} failed`).text(detailHtml).show();
+				}
+				// Plain-text detail for the thrown Error; attach the raw envelope so
+				// callers can re-render it with their own context (e.g. a filename).
+				let plain = (typeof detailHtml === 'string') ? detailHtml.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '') : String(detailHtml);
+				let err = new Error(plain);
+				err.responseData = json;
+				throw err;
 			}
 			return json;
 		},
@@ -269,6 +310,9 @@ let _Processes = {
 						<th>Name</th>
 						<th>Version</th>
 						<th>Processes</th>
+						<th>Active Instances</th>
+						<th>Suspended</th>
+						<th>Completed</th>
 						<th>Methods</th>
 						<th>Security</th>
 						<th class="actions-col">Actions</th>
@@ -392,11 +436,21 @@ let _ProcessDefinitions = {
 				for (const f of files) {
 					try {
 						const xml = await f.text();
-						await _Processes.rest.callEntityMethod('BpmnDefinitions', null, 'importBpmn', { xml, filename: f.name });
+						// showError:false -- suppress callEntityMethod's own popup so we
+						// can surface a single, filename-scoped error below carrying the
+						// full server-side detail (message + errors[]).
+						await _Processes.rest.callEntityMethod('BpmnDefinitions', null, 'importBpmn', { xml, filename: f.name }, { showError: false });
 						imported++;
 						new SuccessMessage().text(`Imported "${f.name}".`).show();
 					} catch (err) {
-						new ErrorMessage().text(`Import of "${f.name}" failed: ${err.message}`).show();
+						if (err && err.responseData) {
+							// Full Structr error envelope: expands the errors[] details
+							// (e.g. a duplicate user-defined function name from a previous
+							// import) that json.message alone leaves out.
+							Structr.errorFromResponse(err.responseData, null, { title: `Import of "${f.name}" failed`, requiresConfirmation: true });
+						} else {
+							new ErrorMessage().title(`Import of "${f.name}" failed`).text(_Helpers.escapeTags(err.message ?? 'Unknown error')).requiresConfirmation().show();
+						}
 					}
 				}
 				if (imported > 0) _ProcessDefinitions.refresh();
@@ -502,11 +556,18 @@ let _ProcessDefinitions = {
 		// the aggregate count from the pager payload alone. Show a dash here
 		// and let the side panel surface details once the editor is open.
 		let methodsCell = '<span class="text-gray-500">—</span>';
+		// Instance counts (running / suspended / completed) across this file's
+		// processes. Not part of the pager payload, so render placeholders and
+		// patch the cells asynchronously (see updateInstanceCounts below).
+		let loadingCell = '<span class="text-gray-500">…</span>';
 		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${def.id}" class="process-definition">
 				<td><a href="#" class="show-diagram-link" title="Open BPMN diagram editor">${_Helpers.escapeTags(displayName)}</a></td>
 				<td class="mono">${_Helpers.escapeTags(def.version ?? '')}</td>
 				<td>${processesCell}</td>
+				<td class="active-instances-cell mono">${loadingCell}</td>
+				<td class="suspended-instances-cell mono">${loadingCell}</td>
+				<td class="completed-instances-cell mono">${loadingCell}</td>
 				<td>${methodsCell}</td>
 				<td>${_Helpers.escapeTags(def.securityLevel ?? '')}</td>
 				<td class="actions">
@@ -577,6 +638,64 @@ let _ProcessDefinitions = {
 		});
 
 		tbody.appendChild(tr);
+
+		// Fill in the running / suspended / completed instance counts once the
+		// queries come back.
+		_ProcessDefinitions.updateInstanceCounts(processes.map(p => p?.id).filter(Boolean), tr);
+	},
+
+	/**
+	 * Count ProcessInstances in the given status across all of a definition's
+	 * BpmnProcess ids. Each process is queried with _pageSize=1 so only the
+	 * envelope's result_count is used; a failed request counts as zero rather
+	 * than breaking the total. Statuses match ProcessInstanceTraitDefinition
+	 * (running / suspended / completed / terminated / error).
+	 */
+	countInstancesByStatus: async (processIds, status) => {
+
+		const counts = await Promise.all(processIds.map(async (pid) => {
+			const res = await fetch(`${Structr.rootUrl}ProcessInstance/ui?process=${pid}&status=${status}&_pageSize=1`, { credentials: 'same-origin', cache: 'no-store' });
+			if (!res.ok) return 0;
+			const json = await res.json();
+			return json.result_count ?? (Array.isArray(json.result) ? json.result.length : 0);
+		}));
+		return counts.reduce((a, b) => a + b, 0);
+	},
+
+	/**
+	 * Populate the running / suspended / completed cells of a definition row
+	 * with plain counts. Each status is loaded independently so one failing
+	 * query only degrades its own cell.
+	 */
+	updateInstanceCounts: async (processIds, tr) => {
+
+		const activeCell    = tr.querySelector('td.active-instances-cell');
+		const suspendedCell = tr.querySelector('td.suspended-instances-cell');
+		const completedCell = tr.querySelector('td.completed-instances-cell');
+
+		const renderCount = (cell, n) => { if (cell) cell.textContent = String(n); };
+		const renderError = (cell)    => { if (cell) cell.innerHTML = '<span class="text-gray-500" title="Failed to load count">?</span>'; };
+
+		if (!processIds || processIds.length === 0) {
+			renderCount(activeCell, 0);
+			renderCount(suspendedCell, 0);
+			renderCount(completedCell, 0);
+			return;
+		}
+
+		const load = async (status, cell) => {
+			try {
+				renderCount(cell, await _ProcessDefinitions.countInstancesByStatus(processIds, status));
+			} catch (e) {
+				renderError(cell);
+			}
+		};
+
+		await Promise.all([
+			load('running',   activeCell),
+			load('suspended', suspendedCell),
+			load('completed', completedCell),
+		]);
 	}
 };
 
@@ -1040,12 +1159,108 @@ let _ProcessDiagram = {
 				if (candidatesPicker) candidatesPicker.addEventListener('change', commitPerformers);
 			}
 
-			// Process / UI contract inputs (userTask only). Each input
-			// persists its own property via api.updateElement so changes
-			// ride the editor's buffer and undo stack like everything else
-			// on this panel. Empty value clears the property.
+			// Process / UI contract (userTask only): the subject type, the views that carve it up
+			// per step, and the instructions text. Every control here persists its own property
+			// through api.updateElement, so changes ride the editor's buffer and undo stack.
+
+			// Views of the selected subject type. This is how a process designer says WHICH
+			// properties a given step works on -- two steps on the same subject usually want
+			// different subsets, and a view is the existing mechanism for naming a subset. The
+			// picker is possible here (unlike render-template parameters) because the subject
+			// type is a sibling field, so the type is known at design time.
+			const formViewSelect     = sidePanel.querySelector('.input-subject-form-view');
+			const writableViewSelect = sidePanel.querySelector('.input-subject-writable-view');
+
+			// The subject type is process-level now: read it from the element's owning process so
+			// the view pickers below list the right type's views. Only fall back to "the one
+			// process" when there is exactly one -- in a multi-pool collaboration, borrowing
+			// another pool's subject type would be wrong, so show none instead.
+			const allProcesses       = (api.getProcesses?.() || []);
+			const owningProcess       = allProcesses.find(p => p.id === _Processes.processRefId(elem))
+			                          ?? (allProcesses.length === 1 ? allProcesses[0] : null);
+			const processSubjectType = owningProcess?.subjectType || '';
+
+			const loadSubjectViews = async (typeName) => {
+
+				const selects = [formViewSelect, writableViewSelect].filter(Boolean);
+				if (selects.length === 0) return;
+
+				// reset to the placeholder plus whatever is currently stored, so a view that was
+				// renamed or deleted stays visible instead of silently clearing the property
+				for (const sel of selects) {
+					const current     = sel.dataset.current || '';
+					const placeholder = sel.querySelector('option[value=""]')?.outerHTML ?? '';
+					sel.innerHTML     = placeholder + (current ? `<option value="${_Helpers.escapeTags(current)}" selected>${_Helpers.escapeTags(current)}</option>` : '');
+				}
+
+				if (!typeName) return;
+
+				try {
+					const nodes = await Command.queryPromise('SchemaNode', 1, 1, 'name', 'asc', { name: typeName }, true, null, 'id,name');
+					if (!nodes || nodes.length === 0) return;
+
+					const views = await Command.queryPromise('SchemaView', 1000, 1, 'name', 'asc', { schemaNode: nodes[0].id }, true, null, 'id,name');
+					const names = (views ?? []).map(v => v.name).filter(Boolean);
+
+					for (const sel of selects) {
+						const current = sel.dataset.current || '';
+						sel.insertAdjacentHTML('beforeend', names
+							.filter(n => n !== current)
+							.map(n => `<option value="${_Helpers.escapeTags(n)}">${_Helpers.escapeTags(n)}</option>`).join(''));
+					}
+				} catch (e) {
+					console.error('fetching subject views failed', e);
+				}
+			};
+
+			// The contract says the writable view is a subset of the form view. Nothing enforced
+			// it, so a step could declare a writable field the form never shows. Checked on
+			// commit rather than by filtering the dropdown: the views are authored elsewhere and
+			// a warning explains the problem, whereas a silently shorter list would not.
+			const warnIfNotSubset = async () => {
+
+				const typeName = processSubjectType;
+				const formName = formViewSelect?.value || '';
+				const writName = writableViewSelect?.value || '';
+
+				if (!typeName || !formName || !writName || formName === writName) return;
+
+				const viewFields = async (viewName) => {
+					const views = await Command.queryPromise('SchemaView', 1000, 1, 'name', 'asc', { name: viewName }, true, null, 'id,name,schemaProperties,nonGraphProperties');
+					const view  = (views ?? []).find(v => v.name === viewName);
+					if (!view) return null;
+					const own   = (view.schemaProperties ?? []).map(p => p.name).filter(Boolean);
+					const extra = (view.nonGraphProperties ?? '').split(',').map(v => v.trim()).filter(Boolean);
+					return new Set([...own, ...extra]);
+				};
+
+				try {
+					const formFields = await viewFields(formName);
+					const writFields = await viewFields(writName);
+					if (!formFields || !writFields) return;
+
+					const outside = [...writFields].filter(f => !formFields.has(f));
+					if (outside.length > 0) {
+						new WarningMessage().text(
+							`Writable view "${_Helpers.escapeTags(writName)}" contains ${outside.length} field(s) the form view "${_Helpers.escapeTags(formName)}" does not show: `
+							+ `${_Helpers.escapeTags(outside.join(', '))}. Those fields can be written but never appear.`
+						).show();
+					}
+				} catch (e) {
+					console.error('checking writable view subset failed', e);
+				}
+			};
+
+			for (const sel of [formViewSelect, writableViewSelect]) {
+				if (sel) sel.addEventListener('change', warnIfNotSubset);
+			}
+
+			// The subject type is process-level (set on the Process tab); the per-step view
+			// pickers just follow it. Populate them once from the owning process's type.
+			loadSubjectViews(processSubjectType);
+
+			// Commit wiring for the contract controls. An empty value clears the property.
 			const contractInputs = [
-				['.input-subject-type',           'subjectType'],
 				['.input-subject-form-view',      'subjectFormView'],
 				['.input-subject-writable-view',  'subjectWritableView'],
 				['.input-instructions',           'instructions'],
@@ -1067,6 +1282,9 @@ let _ProcessDiagram = {
 					}
 				};
 				el.addEventListener('blur', commit);
+				if (el.tagName === 'SELECT') {
+					el.addEventListener('change', commit);
+				}
 				el.addEventListener('keydown', (e) => {
 					// Enter commits only on single-line inputs; textareas keep Enter
 					// for newline insertion.
@@ -1642,6 +1860,21 @@ let _ProcessDiagram = {
 	// process-wide behaviour (assignment fallback, instance-page
 	// binding). Selecting a single element to configure a process-wide
 	// option is the wrong mental model.
+	// Long-form help for the Process settings panel, rendered as info icons at wire
+	// time via the admin UI's data-comment convention (_Helpers.activateCommentsInElement).
+	// It used to sit inline as four permanently visible paragraphs, which in a ~330px
+	// panel pushed the controls themselves below the fold. Inline text is reserved for
+	// state that changes what a control does; explanations live here.
+	_processSettingsHints: {
+		panel:         'Structr-specific settings that are <strong>not part of the BPMN spec</strong>, so they are not preserved across re-imports. They control engine and routing behaviour at runtime.',
+		subjectType:   'The schema type of the single domain object (the "subject") this process operates on — e.g. <code>Claim</code>, <code>LeaveRequest</code>.<br><br>A process instance has <strong>one</strong> subject, so its type is a process-level fact. Individual user tasks pick <em>which fields</em> of this type they show or write (via the form / writable view on each step), but the type is chosen here once. Process-bound widgets bind to the <code>current</code> process instance and use this type as their <em>expected type</em> (which fields to render).',
+		autoAssign:    'When a userTask has no <code>humanPerformer</code> declared, the engine reserves the task for the user who started the instance.<br><br>Useful for editor-authored processes where assignment is not wired up explicitly. Off by default so imported BPMN keeps spec semantics.',
+		instancePage:  'The page that renders an instance of this process. The Start-process EAM action navigates to <code>/&lt;page-name&gt;/&lt;instance-uuid&gt;</code>.<br><br>When unset, the URL falls back to the slugified process name.',
+		pageTemplate:  'The page-template Widget the generated page is built from — the same templates the Pages area offers under "Create New Page". Page templates come from the widget set, which has to be imported once; without one, the page is a bare <code>html/head/body</code> shell.<br><br>The step divs are appended into the template\'s <strong>Main Content</strong> node — the content area page templates mark by that name. A template without one gets them in its <code>&lt;body&gt;</code>.',
+		pageSkeleton:  'Generates a page with one empty <code>&lt;div&gt;</code> per step that needs a human — userTasks, the start event, manual tasks and message catch events — in flow order.<br><br>Each div is bound to its step by a VisibilityMapping, so it only renders when that step is actionable. Machine steps (service and script tasks, gateways) are skipped. The new page is bound above when no instance page is set yet; fill the divs in the Pages area.',
+		eventHandlers: 'Runs a method on a process lifecycle event. <code>on</code> runs pre-commit and can veto; <code>after</code> runs post-commit.'
+	},
+
 	_renderProcessSettingsPanel: (api) => {
 		const esc = (v) => v == null ? '' : _Helpers.escapeTags(String(v));
 		const procs = (api.getProcesses && api.getProcesses()) || [];
@@ -1656,10 +1889,13 @@ let _ProcessDiagram = {
 			if (Array.isArray(rel)) return rel[0]?.id ?? (typeof rel[0] === 'string' ? rel[0] : '');
 			return rel.id ?? '';
 		};
+		const hints = _ProcessDiagram._processSettingsHints;
+		const comment = (key) => `data-comment="${_Helpers.escapeForHtmlAttributes(hints[key])}"`;
 		const section = (proc) => {
 			const name = proc.processName || proc.name || proc.processId || proc.id;
 			const checked = proc.defaultAssigneeFromInitiator ? 'checked' : '';
 			const boundPageId = extractPageId(proc.instancePage);
+			const boundPageName = (proc.instancePage && proc.instancePage.name) || '';
 			return `
 				<div class="process-settings-section" data-process-id="${esc(proc.id)}" data-process-name="${esc(name)}">
 					<label class="pd-field">
@@ -1667,55 +1903,68 @@ let _ProcessDiagram = {
 						<input type="text" class="input-process-name" value="${esc(proc.processName ?? '')}" placeholder="${esc(proc.processId ?? 'Process')}">
 					</label>
 
-					<label class="pd-checkbox-label">
-						<input type="checkbox" class="chk-default-assignee-from-initiator" ${checked}>
-						<span>
-							<span class="pd-text-12">Auto-assign tasks to the initiator</span>
-							<span class="pd-hint">
-								When a userTask has no <code>humanPerformer</code> declared, the engine
-								reserves the task for the user who started the instance. Useful for
-								editor-authored processes where assignment isn't wired up explicitly.
-								Off by default so imported BPMN keeps spec semantics.
-							</span>
-						</span>
+					<label class="pd-field">
+						<div class="pd-label-row">
+							<span>Subject type</span>
+							<span class="pd-info" ${comment('subjectType')}></span>
+						</div>
+						<select class="input-process-subject-type" data-current="${esc(proc.subjectType ?? '')}">
+							<option value="">— No subject type —</option>
+							${proc.subjectType ? `<option value="${esc(proc.subjectType)}" selected>${esc(proc.subjectType)}</option>` : ''}
+						</select>
 					</label>
 
-					<label class="pd-block">
-						<span class="pd-label-block">Instance page</span>
+					<div class="pd-inline-row pd-mb-6">
+						<label class="pd-checkbox-label pd-mb-0">
+							<input type="checkbox" class="chk-default-assignee-from-initiator" ${checked}>
+							<span class="pd-text-12">Auto-assign tasks to the initiator</span>
+						</label>
+						<span class="pd-info" ${comment('autoAssign')}></span>
+					</div>
+
+					<div class="pd-section">
+						<div class="pd-label-row">
+							<span>Instance page</span>
+							<span class="pd-info" ${comment('instancePage')}></span>
+						</div>
 						<select class="select-instance-page" data-bound-page-id="${esc(boundPageId)}">
 							<option value="">— No page bound —</option>
 						</select>
-						<span class="pd-hint">
-							The page that renders an instance of this process. The Start-process
-							EAM action navigates to <code>/&lt;page-name&gt;/&lt;instance-uuid&gt;</code>.
-							When unset, the URL falls back to the slugified process name.
-						</span>
-					</label>
+						<div class="pd-label-row pd-field-mt6">
+							<span>Page template</span>
+							<span class="pd-info" ${comment('pageTemplate')}></span>
+						</div>
+						<select class="select-page-template">
+							<option value="">— Loading templates… —</option>
+						</select>
+						<span class="pd-state-note no-page-templates" hidden></span>
+
+						<div class="pd-button-row">
+							<button class="action btn-create-page-skeleton" title="Generate a page with one empty div per step that requires user interaction">${boundPageName ? 'Create another page skeleton' : 'Create page skeleton'}</button>
+							<span class="pd-info" ${comment('pageSkeleton')}></span>
+						</div>
+						${boundPageName ? `<span class="pd-state-note"><strong>${esc(boundPageName)}</strong> is already bound — this adds a second page.</span>` : ''}
+					</div>
 
 					<div class="bpmn-listener-block">
 						<div class="bpmn-listener-header">
-							<div class="bpmn-listener-title">Process event handlers <span class="bpmn-process-listeners-count"></span></div>
+							<div class="bpmn-listener-title">
+								Process event handlers <span class="bpmn-process-listeners-count"></span>
+								<span class="pd-info" ${comment('eventHandlers')}></span>
+							</div>
 							<button class="action btn-add-process-listener" title="Add a handler that runs on a process lifecycle event">+ Add handler</button>
 						</div>
 						<ul class="bpmn-listener-list bpmn-process-listeners-list"></ul>
-						<div class="bpmn-listener-hint">
-							Runs a method on a process lifecycle event. <code>on</code> runs pre-commit (can veto); <code>after</code> runs post-commit.
-						</div>
 					</div>
 				</div>
 			`;
 		};
 		return `
-			<h4 class="pd-heading-lg">Process settings</h4>
-			<div class="pd-panel-intro">
-				These settings are Structr-specific and not part of the BPMN spec, so they
-				are not preserved across re-imports. They control engine and routing
-				behaviour at runtime.
+			<div class="pd-heading-row">
+				<h4 class="pd-heading">Process settings</h4>
+				<span class="pd-info" ${comment('panel')}></span>
 			</div>
 			${procs.map(section).join('')}
-			<div class="pd-panel-note">
-				Select an element on the canvas to edit its properties.
-			</div>
 		`;
 	},
 
@@ -1726,13 +1975,17 @@ let _ProcessDiagram = {
 	// once Pages have been fetched (Command.query is async); the saved
 	// selection is restored from the section's data-bound-page-id.
 	_wireProcessSettingsPanel: (sidePanel, api) => {
+		// Turn every data-comment anchor in the panel into an info icon.
+		_Helpers.activateCommentsInElement(sidePanel);
+
+		const pageOption = (id, name) => `<option value="${_Helpers.escapeForHtmlAttributes(id)}">${_Helpers.escapeTags(name)}</option>`;
 		// Populate every Page picker on this panel from a single fetch.
 		// Hidden pages (preview / partial / template containers) are
 		// excluded -- the binding is for user-facing instance pages.
 		const pageSelects = sidePanel.querySelectorAll('.select-instance-page');
 		if (pageSelects.length > 0) {
 			Command.query('Page', 1000, 1, 'name', 'asc', { hidden: false }, (pages) => {
-				const opts = (pages ?? []).map(p => `<option value="${_Helpers.escapeTags(p.id)}">${_Helpers.escapeTags(p.name ?? p.id)}</option>`).join('');
+				const opts = (pages ?? []).map(p => pageOption(p.id, p.name ?? p.id)).join('');
 				for (const sel of pageSelects) {
 					sel.insertAdjacentHTML('beforeend', opts);
 					if (sel.dataset.boundPageId) sel.value = sel.dataset.boundPageId;
@@ -1767,6 +2020,165 @@ let _ProcessDiagram = {
 					}
 				});
 			}
+			// Subject type: the process-level domain type this process operates on. Custom
+			// schema types only -- service classes are excluded (they hold static methods and
+			// are never instantiated, so they cannot be a subject). Commit clears the property
+			// on empty. Changing it drives every step's form on the next render.
+			const subjectTypeSel = section.querySelector('.input-process-subject-type');
+			if (procId && subjectTypeSel) {
+
+				const current = subjectTypeSel.dataset.current || '';
+				fetch(`${Structr.rootUrl}_schema`).then(r => r.ok ? r.json() : null).then(json => {
+					const types = (json?.result ?? [])
+						.filter(t => !t.isBuiltin && !t.isRel && !t.isServiceClass && t.className !== current)
+						.map(t => t.className)
+						.sort((a, b) => a.localeCompare(b));
+					subjectTypeSel.insertAdjacentHTML('beforeend',
+						types.map(t => `<option value="${_Helpers.escapeTags(t)}">${_Helpers.escapeTags(t)}</option>`).join(''));
+				}).catch(e => console.error('fetching schema types for subject type failed', e));
+
+				subjectTypeSel.addEventListener('change', () => {
+					try {
+						api.updateProcess(procId, { subjectType: subjectTypeSel.value || null });
+						subjectTypeSel.dataset.current = subjectTypeSel.value;
+					} catch (e) {
+						console.error('updateProcess subjectType failed', e);
+						subjectTypeSel.value = subjectTypeSel.dataset.current || '';
+					}
+				});
+			}
+			// Generate an instance-page skeleton for this process: one empty div per
+			// human-facing step, each with a VisibilityMapping bound to that step.
+			// Server-side (BPMN_PAGE_SKELETON) so page, divs and mappings land in one
+			// transaction instead of a chain of createDOMNode round trips.
+			// Generate an instance-page skeleton for this process: one empty div per
+			// human-facing step, each with a VisibilityMapping bound to that step.
+			// Server-side (BPMN_PAGE_SKELETON) so page, divs and mappings land in one
+			// transaction instead of a chain of createDOMNode round trips.
+			const skeletonBtn = section.querySelector('.btn-create-page-skeleton');
+			const templateSel = section.querySelector('.select-page-template');
+			const noTemplates = section.querySelector('.no-page-templates');
+
+			// Page templates are Widgets flagged isPageTemplate -- the same set the Pages
+			// area's "Create New Page" dialog offers. They arrive with the widget set, which
+			// has to be imported once, so an empty list is a normal first-run state and gets
+			// an import offer rather than an empty dropdown.
+			const SHELL_OPTION = '<option value="">— Bare html/head/body shell —</option>';
+
+			// Once the widget set has been imported, the import offer must not come back even if
+			// the set brought no page-template widgets (a bare shell is still a valid choice) --
+			// re-showing the button after a successful import reads as "the import did nothing".
+			let widgetSetImported = false;
+
+			const loadPageTemplates = async () => {
+				if (!templateSel) return;
+				let templates = [];
+				try {
+					templates = (await _Widgets.fetchAllPageTemplateWidgets()) ?? [];
+				} catch (e) {
+					console.error('fetching page templates failed', e);
+				}
+				const hasTemplates = templates.length > 0;
+				templateSel.innerHTML = SHELL_OPTION + templates.map(w => pageOption(w.id, w.name ?? w.id)).join('');
+				// Show the template picker once there is anything to pick OR the set was imported
+				// (at least the shell option); hide the import offer in the same cases.
+				templateSel.hidden = !(hasTemplates || widgetSetImported);
+				noTemplates.hidden =   hasTemplates || widgetSetImported;
+				if (!hasTemplates && !widgetSetImported) {
+					noTemplates.innerHTML = 'No page templates yet — they come with the widget set. '
+						+ '<button class="btn-import-widget-set">Import widget set</button> '
+						+ 'or generate a bare page shell now.';
+					noTemplates.querySelector('.btn-import-widget-set').addEventListener('click', async (e) => {
+						e.currentTarget.disabled = true;
+						if (await _Widgets.importDefaultWidgetSet()) {
+							widgetSetImported = true;
+							new SuccessMessage().text('Widget set imported.').show();
+							await loadPageTemplates();
+						} else {
+							e.currentTarget.disabled = false;
+							new ErrorMessage().text('Could not import the widget set from structr.com.').show();
+						}
+					});
+				}
+			};
+			loadPageTemplates();
+
+			if (procId && skeletonBtn) {
+				skeletonBtn.addEventListener('click', async () => {
+					// The skeleton is built from persisted state, so unsaved diagram
+					// edits (a new userTask, a renamed step) wouldn't be in it.
+					if (api.hasPendingChanges && api.hasPendingChanges()) {
+						new WarningMessage().text('Save your diagram changes first — the skeleton is generated from the saved process.').show();
+						return;
+					}
+					// Pre-flight: forms are only inserted when the process declares a subject type
+					// (process-level, one subject per instance). Without one, every user-task step
+					// gets a bare div and no form -- surface that up front so "0 forms" is a choice,
+					// not a surprise. The select reflects the saved value here (no pending changes).
+					// Empty divs are still useful scaffolding, so warn-and-confirm rather than block.
+					const subjectType = (sidePanel.querySelector('.input-process-subject-type')?.value || '').trim();
+					if (!subjectType) {
+						const proceed = await _Dialogs.confirmation.showPromise(
+							`This process has <strong>no subject type</strong> set, so the generated user-task steps will get <strong>no forms</strong> — just empty step divs.<br><br>` +
+							`Set the <strong>Subject type</strong> above (and save) first to get the forms, or create the skeleton without forms now?`
+						);
+						if (!proceed) return;
+					}
+					// Confirm rather than disable when a page is already bound: regenerating
+					// after a model change is a real use case, silently creating a second
+					// page is not.
+					const boundName = pageSel.value ? (pageSel.selectedOptions[0]?.textContent ?? '').trim() : '';
+					if (boundName) {
+						const confirmed = await _Dialogs.confirmation.showPromise(
+							`<strong>${_Helpers.escapeTags(boundName)}</strong> is already bound as the instance page of this process.<br><br>` +
+							`This creates an additional page with a numbered name. Nothing on <strong>${_Helpers.escapeTags(boundName)}</strong> ` +
+							`is changed or removed, and the binding stays as it is.<br><br>Create a second skeleton page?`
+						);
+						if (!confirmed) return;
+					}
+					skeletonBtn.disabled = true;
+					StructrWS.sendObj({
+						command: 'BPMN_PAGE_SKELETON',
+						data:    {
+							processId:        procId,
+							templateWidgetId: templateSel?.value || null
+						}
+					}, (resp) => {
+						skeletonBtn.disabled = false;
+						// resp === null means the server replied STATUS 422 and the websocket
+						// layer has already surfaced its message; anything else would double up.
+						if (!resp) return;
+						if (resp.ok !== true) {
+							new ErrorMessage().text('Failed to create page skeleton: ' + (resp.message || 'unknown error')).show();
+							return;
+						}
+						// This path doesn't go through api.updateProcess, so the panel is not
+						// re-rendered: reflect the new page in the picker here.
+						for (const sel of sidePanel.querySelectorAll('.select-instance-page')) {
+							sel.insertAdjacentHTML('beforeend', pageOption(resp.pageId, resp.pageName));
+						}
+						if (resp.boundAsInstancePage) {
+							pageSel.value                = resp.pageId;
+							pageSel.dataset.boundPageId  = resp.pageId;
+							skeletonBtn.textContent      = 'Create another page skeleton';
+						}
+						const bound = resp.boundAsInstancePage ? ' and bound it as the instance page' : '';
+						// Forms are inserted automatically for user-task steps when the process
+						// declares a subject type (it is process-level, one subject per instance).
+						// Report how many forms landed, and -- when the process has no subject type
+						// -- how many user tasks got none as a result.
+						let forms = '';
+						if (resp.formCount > 0) {
+							forms = `, ${resp.formCount} form(s)`;
+						}
+						if (resp.stepsMissingSubject > 0) {
+							forms += ` (the process declares no subject type, so its ${resp.stepsMissingSubject} user task(s) got no form — set it on the Process tab)`;
+						}
+						new SuccessMessage().text(`Created page "${_Helpers.escapeTags(resp.pageName)}" with ${resp.stepCount} step div(s)${forms}${bound}.`).show();
+					});
+				});
+			}
+
 			if (procId && pageSel) {
 				pageSel.addEventListener('change', () => {
 					try {
@@ -1998,36 +2410,43 @@ let _ProcessDiagram = {
 			</div>
 		`;
 
-		// Process / UI contract (userTask only): properties the process
-		// designer attaches to declare the contract the UI side consumes
-		// when rendering a process-bound widget. Free-text inputs for v1;
-		// can be upgraded to typed pickers (SchemaNode for subjectType,
-		// SchemaView for the two views) later. Empty values clear the
-		// property. See project_process_ui_contract_pillar.md for the
-		// design rationale.
+		// Process / UI contract (userTask only): per-step properties the process
+		// designer attaches to declare the contract the UI side consumes when
+		// rendering a process-bound widget. The subject *type* is NOT here -- it
+		// is process-level (a process has one subject), set on the Process tab.
+		// A step only narrows WHICH fields of that one type it shows / writes,
+		// via the two view pickers below (populated from the process's subject
+		// type in the wiring). Empty values clear the property. See
+		// project_process_ui_contract_pillar.md for the design rationale.
 		const contractBlock = !isUserTask ? '' : `
 			<div class="pd-section">
 				<div class="pd-section-title">Process / UI contract</div>
+				<div class="pd-hint pd-mb-6">
+					The subject <b>type</b> is set once for the whole process on the
+					<b>Process</b> tab. Here you choose which of its fields this step shows.
+				</div>
 				<label class="pd-field">
-					<div class="pd-field-label">Subject type</div>
-					<input type="text" class="input-subject-type" value="${esc(elem.subjectType ?? '')}" placeholder="SchemaNode name, e.g. LeaveRequest">
-				</label>
-				<label class="pd-field">
-					<div class="pd-field-label">Form view (optional)</div>
-					<input type="text" class="input-subject-form-view" value="${esc(elem.subjectFormView ?? '')}" placeholder="SchemaView name (defaults to standard view)">
+					<div class="pd-field-label">Form view — the fields this step shows</div>
+					<select class="input-subject-form-view" data-current="${esc(elem.subjectFormView ?? '')}">
+						<option value="">— All own properties (custom view) —</option>
+						${elem.subjectFormView ? `<option value="${esc(elem.subjectFormView)}" selected>${esc(elem.subjectFormView)}</option>` : ''}
+					</select>
 				</label>
 				<label class="pd-field">
 					<div class="pd-field-label">Writable view (optional, subset of form view)</div>
-					<input type="text" class="input-subject-writable-view" value="${esc(elem.subjectWritableView ?? '')}" placeholder="SchemaView name">
+					<select class="input-subject-writable-view" data-current="${esc(elem.subjectWritableView ?? '')}">
+						<option value="">— Same as form view —</option>
+						${elem.subjectWritableView ? `<option value="${esc(elem.subjectWritableView)}" selected>${esc(elem.subjectWritableView)}</option>` : ''}
+					</select>
 				</label>
 				<label class="pd-block">
 					<div class="pd-field-label">Instructions for the human user</div>
 					<textarea class="input-instructions" rows="2" placeholder="Optional help text shown above the form">${esc(elem.instructions ?? '')}</textarea>
 				</label>
 				<div class="pd-hint">
-					Process-bound widgets read these to derive their data source
-					and field set at render time. UI designers configure layout
-					and styling on their side; the subject type leads.
+					Process-bound widgets read these to derive their field set at
+					render time. The data source comes from the process-level
+					subject type; UI designers configure layout and styling on their side.
 				</div>
 			</div>
 		`;
@@ -2100,6 +2519,18 @@ let _ProcessDiagram = {
 		`;
 
 		const headerName = esc(elem.bpmnName || elem.bpmnId || elem.id);
+		// Attached handler methods (the info the old canvas "method count" badge
+		// showed). Listed here on selection instead of on the diagram.
+		const methods = Array.isArray(elem.methods) ? elem.methods : [];
+		const methodsBlock = methods.length === 0 ? '' : `
+			<div class="pd-section">
+				<div class="pd-section-title">Methods (${methods.length})</div>
+				<ul class="pd-method-list">
+					${methods.map(m => `<li><code>${esc((m && (m.name || m.id)) || m)}</code></li>`).join('')}
+				</ul>
+			</div>
+		`;
+
 		return `
 			<h4 class="pd-heading">${headerName}</h4>
 			<div class="pd-mb-6">
@@ -2114,6 +2545,7 @@ let _ProcessDiagram = {
 			${attributesBlock}
 			${performersBlock}
 			${taskListenersBlock}
+			${methodsBlock}
 			<div class="pd-button-row">
 				<button class="action btn-open-properties">Open in editor…</button>
 				<button class="action btn-delete-element">Delete</button>

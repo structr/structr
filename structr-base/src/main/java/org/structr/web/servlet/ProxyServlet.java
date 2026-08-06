@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,11 +63,13 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
+
 		return config;
 	}
 
 	@Override
 	public String getModuleName() {
+
 		return "proxy";
 	}
 
@@ -84,7 +85,6 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		}
 
-
 		try {
 
 			assertInitialized();
@@ -92,6 +92,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 		} catch (FrameworkException fex) {
 
 			try {
+
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
@@ -117,11 +118,13 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			logger.error(errorMessage);
 
 			try {
+
 				final ServletOutputStream out = response.getOutputStream();
 				content = errorPage(new Throwable(errorMessage));
 				IOUtils.write(content, out);
 
 			} catch (IOException ex) {
+
 				logger.error("Could not write to response", ex);
 			}
 
@@ -144,8 +147,10 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			securityContext.setAccessMode(AccessMode.Frontend);
 
 			if (Settings.ProxyServletMode.getValue().equals("protected") && !hasUser) {
+
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				logger.error("Authorization required in 'protected' mode");
+
 				return;
 			}
 
@@ -162,25 +167,24 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			HttpHelper.validateUrl(address);
 
 			final URI url  = URI.create(address);
-
 			String proxyUrl      = request.getParameter("proxyUrl");
 			String proxyUsername = request.getParameter("proxyUsername");
 			String proxyPassword = request.getParameter("proxyPassword");
 			String authUsername  = request.getParameter("authUsername");
 			String authPassword  = request.getParameter("authPassword");
 			String cookie        = request.getParameter("cookie");
-
 			String contentType   = request.getContentType();
 			String charset       = null;
 
 			// Extract character set from contentType if given
 			if (StringUtils.isNotBlank(contentType)) {
+
 				final String[] contentTypeParts = contentType.split(";");
 				if (contentTypeParts.length == 2) {
+
 					charset = org.apache.commons.lang3.StringUtils.trim(contentTypeParts[1]);
 				}
 			}
-
 
 			if (StringUtils.isBlank(proxyUrl)) {
 
@@ -204,6 +208,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			final String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
 			if (body == null) {
+
 				throw new FrameworkException(422, "Request returned empty body");
 			}
 
@@ -217,15 +222,19 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 		}
 
 		try {
+
 			final ServletOutputStream out = response.getOutputStream();
 			IOUtils.write(content, out, "utf-8");
+
 		} catch (IOException ex) {
+
 			logger.error("Could not write to response", ex);
 		}
 	}
 
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
 		doGet(request, response);
 	}
 
@@ -247,6 +256,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 		} catch (FrameworkException fex) {
 
 			try {
+
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
@@ -271,6 +281,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 	}
 
 	private String errorPage(final Throwable t) {
+
 		return "<html><head><title>Error in Structr Proxy</title></head><body><h1>Error in Proxy</h1><p>An error occurred while processing your request.</p></body></html>";
 	}
 

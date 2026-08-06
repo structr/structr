@@ -18,12 +18,9 @@
  */
 package org.structr.rest;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
-
-
 
 /**
  *
@@ -35,16 +32,19 @@ public class RequestParameterValue implements Value<String> {
 	private String defaultValue = null;
 	
 	public RequestParameterValue(String parameterName) {
+
 		this(parameterName, null);
 	}
 	
 	public RequestParameterValue(String parameterName, String defaultValue) {
+
 		this.parameterName = parameterName;
 		this.defaultValue = defaultValue;
 	}
 	
 	@Override
 	public void set(SecurityContext securityContext, String value) {
+
 		throw new UnsupportedOperationException("Cannot set request parameter value.");
 	}
 
@@ -54,11 +54,9 @@ public class RequestParameterValue implements Value<String> {
 		if (securityContext != null) {
 
 			HttpServletRequest request = securityContext.getRequest();
-			
 			if (request != null) {
 				
 				String value = request.getParameter(parameterName);
-				
 				if (value != null) {
 					
 					return value;

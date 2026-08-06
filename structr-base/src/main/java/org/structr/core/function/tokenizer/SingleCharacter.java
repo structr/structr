@@ -24,37 +24,44 @@ public class SingleCharacter extends Tokenizer {
 	private char key = 0;
 
 	public SingleCharacter(final char key) {
+
 		this.key = key;
 	}
 
 	@Override
 	public boolean accept(final char character) {
+
 		return (first && key == character) || Character.isWhitespace(character);
 	}
 
 	@Override
 	public String getType() {
+
 		return Character.toString(key);
 	}
 
 	@Override
 	public String getQuoteChar() {
+
 		return null;
 	}
 
 	@Override
 	public void add(final char character) {
+
 		super.add(character);
 		first = false;
 	}
 
 	@Override
 	public void reset() {
+
 		first = true;
 	}
 
 	@Override
 	Tokenizer newInstance() {
+
 		return new SingleCharacter(key);
 	}
 }

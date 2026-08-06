@@ -24,6 +24,7 @@ import org.structr.core.traits.Traits;
 public class FlowNot extends FlowLogicCondition {
 
 	public FlowNot(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

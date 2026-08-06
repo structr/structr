@@ -55,6 +55,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	}
 
 	public KeywordQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -85,7 +86,6 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			}
 
 		} else {
-
 
 			if (value != null && isString) {
 

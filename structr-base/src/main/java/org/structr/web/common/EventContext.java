@@ -26,10 +26,12 @@ public class EventContext extends LinkedHashMap<String, Object> {
 	private static final String KEY_DATA = "data";
 
 	public void data(final String key, final Object value) {
+
 		getData().put(key, value);
 	}
 
 	public void data(final Map<String, Object> data) {
+
 		getData().putAll(data);
 	}
 

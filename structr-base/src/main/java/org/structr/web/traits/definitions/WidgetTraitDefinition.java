@@ -56,30 +56,32 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DIMENSIONS_PROPERTY         = "dimensions";
 
 	public WidgetTraitDefinition() {
+
 		super(StructrTraits.WIDGET);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Widget.class, (traits, node) -> new WidgetTraitWrapper(traits, node)
-		);
+		return Map.of(Widget.class, (traits, node) -> new WidgetTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -147,11 +149,13 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

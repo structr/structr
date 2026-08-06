@@ -31,6 +31,7 @@ import org.structr.memory.index.predicate.ValuePredicate;
 public class UuidQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public UuidQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

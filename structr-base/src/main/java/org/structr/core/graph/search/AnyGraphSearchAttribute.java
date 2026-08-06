@@ -46,6 +46,7 @@ public class AnyGraphSearchAttribute<T> extends GraphSearchAttribute<T> implemen
 		// System.out.println("Comparing entity values " + entityValues + " to search values " + searchValues + " , (isExactMatch ? "exactly" : "INexactly"))");
 
 		if (searchValues.isEmpty() && entityValues.isEmpty()) {
+
 			return true;
 		}
 
@@ -62,6 +63,7 @@ public class AnyGraphSearchAttribute<T> extends GraphSearchAttribute<T> implemen
 
 						// sizes must be equal and the elements must be the same
 						if (searchValCollection.size() == entityValues.size() && entityValues.containsAll(searchValCollection)) {
+
 							return true;
 						}
 					}
@@ -72,6 +74,7 @@ public class AnyGraphSearchAttribute<T> extends GraphSearchAttribute<T> implemen
 			} else {
 
 				// entityValues is just one element and searchValues should also only be single elements, not collections
+
 				return searchValues.contains(entityValues.getFirst());
 			}
 
@@ -87,6 +90,7 @@ public class AnyGraphSearchAttribute<T> extends GraphSearchAttribute<T> implemen
 
 						// all searchValues must be contained in the entityCollection
 						if (entityValues.containsAll(searchValCollection)) {
+
 							return true;
 						}
 					}

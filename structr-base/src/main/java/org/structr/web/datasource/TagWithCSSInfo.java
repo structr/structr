@@ -54,6 +54,7 @@ public class TagWithCSSInfo {
 	}
 
 	public void formatStartTag(final AsyncBuffer buffer) {
+
 		formatStartTag(buffer, null, null);
 	}
 
@@ -62,11 +63,13 @@ public class TagWithCSSInfo {
 		final Set<String> mergedClasses = new LinkedHashSet<>(classes);
 
 		if (additionalClasses != null) {
+
 			mergedClasses.addAll(additionalClasses);
 		}
 
 		// apply default column width
 		if (!containsAny(mergedClasses, "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6")) {
+
 			mergedClasses.add("col-span-6");
 		}
 
@@ -76,6 +79,7 @@ public class TagWithCSSInfo {
 			buffer.append(tag);
 
 			if (id != null) {
+
 				buffer.append(" id=\"" + id + "\"");
 			}
 
@@ -113,11 +117,13 @@ public class TagWithCSSInfo {
 
 			// match CSS class only
 			if (selector.startsWith(".") && classes.contains(selector.substring(1))) {
+
 				return true;
 			}
 
 			// match CSS class only
 			if (selector.startsWith("#") && selector.substring(1).equals(id)) {
+
 				return true;
 			}
 
@@ -141,6 +147,7 @@ public class TagWithCSSInfo {
 
 			// separator creates new part
 			if (separators.contains(c)) {
+
 				parts.add(current.toString());
 				current.setLength(0);
 			}
@@ -158,6 +165,7 @@ public class TagWithCSSInfo {
 		for (final String value : values) {
 
 			if (set.contains(value)) {
+
 				return true;
 			}
 		}

@@ -39,6 +39,7 @@ import org.structr.flow.traits.operations.GetExportData;
 public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowFirstTraitDefinition() {
+
 		super(StructrTraits.FLOW_FIRST);
 	}
 
@@ -47,8 +48,7 @@ public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -57,16 +57,16 @@ public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 						if (_dataSource != null) {
 
 							final String uuid = node.getUuid();
-
 							Object currentData = context.getData(uuid);
 
 							if (currentData != null) {
+
 								return currentData;
 							}
 
 							Object dsData = _dataSource.get(context);
-
 							if (dsData instanceof Iterable) {
+
 								Iterable c = (Iterable)dsData;
 								Iterator it = c.iterator();
 
@@ -74,6 +74,7 @@ public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 
 									Object data = it.next();
 									context.setData(uuid, data);
+
 									return data;
 								}
 							}
@@ -83,8 +84,7 @@ public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -105,13 +105,12 @@ public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowFirst.class, (traits, node) -> new FlowFirst(traits, node)
-		);
+		return Map.of(FlowFirst.class, (traits, node) -> new FlowFirst(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

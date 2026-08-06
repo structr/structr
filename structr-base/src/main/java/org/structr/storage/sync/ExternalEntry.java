@@ -51,10 +51,12 @@ public record ExternalEntry(String relativePath, String nodeUuid, boolean direct
 	public ExternalEntry {
 
 		if (relativePath == null && nodeUuid == null) {
+
 			throw new IllegalArgumentException("ExternalEntry needs at least one of relativePath or nodeUuid");
 		}
 
 		if (bindNativeKey && nativeKey == null) {
+
 			throw new IllegalArgumentException("ExternalEntry with bindNativeKey needs a nativeKey");
 		}
 
@@ -62,18 +64,22 @@ public record ExternalEntry(String relativePath, String nodeUuid, boolean direct
 	}
 
 	public static ExternalEntry file(final String relativePath, final Long size, final Long lastModified) {
+
 		return new ExternalEntry(relativePath, null, false, size, lastModified, null, false);
 	}
 
 	public static ExternalEntry directory(final String relativePath, final Long lastModified) {
+
 		return new ExternalEntry(relativePath, null, true, null, lastModified, null, false);
 	}
 
 	public static ExternalEntry byUuid(final String nodeUuid, final boolean directory, final Long size, final Long lastModified) {
+
 		return new ExternalEntry(null, nodeUuid, directory, size, lastModified, null, false);
 	}
 
 	public static ExternalEntry byUuidAndPath(final String nodeUuid, final String relativePath, final boolean directory, final Long size, final Long lastModified) {
+
 		return new ExternalEntry(relativePath, nodeUuid, directory, size, lastModified, null, false);
 	}
 
@@ -84,18 +90,22 @@ public record ExternalEntry(String relativePath, String nodeUuid, boolean direct
 	 * to the node so the provider can address it.
 	 */
 	public static ExternalEntry externalFile(final String nativeKey, final String relativePath, final Long size, final Long lastModified) {
+
 		return new ExternalEntry(relativePath, null, false, size, lastModified, nativeKey, true);
 	}
 
 	public ExternalEntry withNativeKey(final String nativeKey) {
+
 		return new ExternalEntry(relativePath, nodeUuid, directory, size, lastModified, nativeKey, bindNativeKey);
 	}
 
 	public boolean hasPath() {
+
 		return relativePath != null;
 	}
 
 	public boolean hasUuid() {
+
 		return nodeUuid != null;
 	}
 
@@ -105,6 +115,7 @@ public record ExternalEntry(String relativePath, String nodeUuid, boolean direct
 	public String name() {
 
 		if (relativePath == null) {
+
 			return null;
 		}
 
@@ -119,6 +130,7 @@ public record ExternalEntry(String relativePath, String nodeUuid, boolean direct
 	public String parentPath() {
 
 		if (relativePath == null) {
+
 			return null;
 		}
 
@@ -131,16 +143,19 @@ public record ExternalEntry(String relativePath, String nodeUuid, boolean direct
 	private static String normalize(final String path) {
 
 		if (path == null) {
+
 			return null;
 		}
 
 		String normalized = path.replace('\\', '/');
 
 		while (normalized.startsWith("/")) {
+
 			normalized = normalized.substring(1);
 		}
 
 		while (normalized.endsWith("/")) {
+
 			normalized = normalized.substring(0, normalized.length() - 1);
 		}
 

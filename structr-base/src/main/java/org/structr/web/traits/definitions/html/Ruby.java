@@ -27,6 +27,7 @@ import java.util.Map;
 public class Ruby extends GenericHtmlElementTraitDefinition {
 
 	public Ruby() {
+
 		super(StructrTraits.RUBY);
 	}
 
@@ -37,11 +38,11 @@ public class Ruby extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

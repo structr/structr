@@ -44,11 +44,13 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 	private Long cachedFlags               = null;
 
 	public ResourceAccessTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
+
 		super(traits, nodeInterface);
 	}
 
 	@Override
 	public boolean hasFlag(long flag) {
+
 		return (getFlags() & flag) == flag;
 	}
 
@@ -77,6 +79,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 		}
 
 		if (cachedFlags != null) {
+
 			return cachedFlags;
 		}
 
@@ -87,6 +90,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public String getResourceSignature() {
 
 		if (cachedResourceSignature == null) {
+
 			cachedResourceSignature = wrappedObject.getProperty(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY));
 		}
 
@@ -95,11 +99,13 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public void setResourceSignature(final String signature) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature);
 	}
 
 	// ----- public static methods -----
 	public static void clearCache() {
+
 		permissionsCache.clear();
 	}
 
@@ -107,6 +113,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 		final Traits traits = Traits.of(StructrTraits.RESOURCE_ACCESS);
 		List<ResourceAccess> permissions = permissionsCache.get(signature);
+
 		if (permissions == null) {
 
 			permissions = new LinkedList<>();

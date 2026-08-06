@@ -46,10 +46,12 @@ public enum Verb {
 	}
 
 	public String getLeftToRight() {
+
 		return leftToRight;
 	}
 
 	public String getRightToLeft() {
+
 		return rightToLeft;
 	}
 
@@ -58,6 +60,7 @@ public enum Verb {
 		for (final Verb verb : Verb.values()) {
 
 			if (verb.getLeftToRight().equals(name)) {
+
 				return verb;
 			}
 		}
@@ -70,6 +73,7 @@ public enum Verb {
 		for (final Verb verb : Verb.values()) {
 
 			if (verb.getRightToLeft().equals(name)) {
+
 				return verb;
 			}
 		}

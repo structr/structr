@@ -77,6 +77,7 @@ public class TransactionChangeSet {
 	}
 
 	public void clear() {
+
 		modifiedRels.clear();
 		createdRels.clear();
 		deletedRels.clear();
@@ -112,6 +113,7 @@ public class TransactionChangeSet {
 		buf.append(deletedRels.size());
 
 		if (systemOnly) {
+
 			buf.append(" system only");
 		}
 
@@ -119,10 +121,12 @@ public class TransactionChangeSet {
 	}
 
 	public void nonSystemProperty() {
+
 		systemOnly = false;
 	}
 
 	public boolean systemOnly() {
+
 		return systemOnly;
 	}
 
@@ -231,67 +235,83 @@ public class TransactionChangeSet {
 	}
 
 	public Queue<AbstractRelationship> getModifiedRelationships() {
+
 		return modifiedRels;
 	}
 
 	public Queue<AbstractRelationship> getCreatedRelationships() {
+
 		return createdRels;
 	}
 
 	public Queue<AbstractRelationship> getDeletedRelationships() {
+
 		return deletedRels;
 	}
 
 	public Queue<NodeInterface> getModifiedNodes() {
+
 		return modifiedNodes;
 	}
 
 	public Queue<NodeInterface> getCreatedNodes() {
+
 		return createdNodes;
 	}
 
 	public Queue<NodeInterface> getDeletedNodes() {
+
 		return deletedNodes;
 	}
 
 	public Queue<NodeInterface> getOwnerModifiedNodes() {
+
 		return ownerModifiedNodes;
 	}
 
 	public Queue<NodeInterface> getSecurityModifiedNodes() {
+
 		return securityModifiedNodes;
 	}
 
 	public Queue<NodeInterface> getLocationModifiedNodes() {
+
 		return locationModifiedNodes;
 	}
 
 	public Queue<NodeInterface> getPropagationQueue() {
+
 		return propagationQueue;
 	}
 
 	// ----- private methods -----
 	private boolean isNew(NodeInterface node) {
+
 		return createdNodes.contains(node);
 	}
 
 	private boolean isNew(AbstractRelationship relationship) {
+
 		return createdRels.contains(relationship);
 	}
 
 	private boolean isDeleted(NodeInterface node) {
+
 		return deletedNodes.contains(node);
 	}
 
 	private boolean isDeleted(AbstractRelationship relationship) {
+
 		return deletedRels.contains(relationship);
 	}
 
 	private boolean isNewOrDeleted(NodeInterface node) {
+
 		return isNew(node) || isDeleted(node);
 	}
 
 	private boolean isNewOrDeleted(AbstractRelationship relationship) {
+
 		return isNew(relationship) || isDeleted(relationship);
 	}
 }

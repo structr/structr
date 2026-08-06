@@ -43,6 +43,7 @@ public class GetLocalStorageCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {
+
 			webSocketData.setNodeData(LOCAL_STORAGE_STRING_KEY, securityContext.getUser(false).as(User.class).getLocalStorage());
 
 			// send only over local connection (no broadcast)

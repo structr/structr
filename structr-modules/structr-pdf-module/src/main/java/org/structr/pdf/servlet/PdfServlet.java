@@ -66,6 +66,7 @@ public class PdfServlet extends HtmlServlet {
 
 		// resolving properties
 		final String resolvePropertiesSource = Settings.HtmlResolveProperties.getValue();
+
 		for (final String src : resolvePropertiesSource.split("[, ]+")) {
 
 			final String name = src.trim();
@@ -78,11 +79,13 @@ public class PdfServlet extends HtmlServlet {
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
+
 		return config;
 	}
 
 	@Override
 	public String getModuleName() {
+
 		return "pdf";
 	}
 
@@ -95,6 +98,7 @@ public class PdfServlet extends HtmlServlet {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to create shadow page: {}", fex.getMessage());
 		}
 	}
@@ -105,6 +109,7 @@ public class PdfServlet extends HtmlServlet {
 
 	@Override
 	public void registerStatsCallback(final StatsCallback stats) {
+
 		this.stats = stats;
 	}
 
@@ -149,6 +154,7 @@ public class PdfServlet extends HtmlServlet {
 						finished.set(true);
 
 					} catch (IOException ex) {
+
 						logger.warn("", ex);
 					}
 				}
@@ -166,11 +172,13 @@ public class PdfServlet extends HtmlServlet {
 
 					final Queue<String> queue = renderContext.getBuffer().getQueue();
 					String pageContent = "";
+
 					while (out.isReady()) {
 
 						String buffer = null;
 
 						synchronized (queue) {
+
 							buffer = queue.poll();
 						}
 
@@ -199,21 +207,25 @@ public class PdfServlet extends HtmlServlet {
 						}
 					}
 
-
-
-
 				} catch (EofException ee) {
+
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+
 				} catch (IOException | InterruptedException t) {
+
 					logger.warn("Unexpected exception", t);
 				}
 			}
 
 			@Override
 			public void onError(Throwable t) {
+
 				if (t instanceof EofException) {
+
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+
 				} else {
+
 					logger.warn("Unexpected exception", t);
 				}
 			}
@@ -222,6 +234,7 @@ public class PdfServlet extends HtmlServlet {
 
 	@Override
 	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();

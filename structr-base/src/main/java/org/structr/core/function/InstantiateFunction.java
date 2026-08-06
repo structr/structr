@@ -34,11 +34,13 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "instantiate";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("node");
 	}
 
@@ -59,17 +61,20 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.instantiate(node); }}. Example: ${{ $.instantiate(result.node); }}"),
 			Usage.structrScript("Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}")
@@ -78,24 +83,25 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts the given raw Neo4j entity to a Structr entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can use this function to convert raw Neo4j entities from a `cypher()` result into Structr entities.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("entity", "entity to instantiate")
-		);
+		return List.of(Parameter.mandatory("entity", "entity to instantiate"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

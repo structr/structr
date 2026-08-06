@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 public class PolyglotProxyArray implements ProxyArray {
+
 	private static final Logger logger = LoggerFactory.getLogger(PolyglotProxyArray.class);
 	final ActionContext actionContext;
 	final GraphObject node;
@@ -88,7 +89,6 @@ public class PolyglotProxyArray implements ProxyArray {
 		this.checkIndex(index);
 
 		final int size = list.size();
-
 		if (size <= index) {
 
 			// Determine delta between current index and target index
@@ -113,6 +113,7 @@ public class PolyglotProxyArray implements ProxyArray {
 
 	@Override
 	public long getSize() {
+
 		return list.size();
 	}
 

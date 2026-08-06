@@ -39,11 +39,13 @@ public class ExtractFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "extract";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list, propertyName");
 	}
 
@@ -72,10 +74,10 @@ public class ExtractFunction extends CoreFunction {
 
 			}
 
-
 			if (sources.length == 2) {
 
 				if (sources[0] == null) {
+
 					return null;
 				}
 
@@ -122,6 +124,7 @@ public class ExtractFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.extract(list, propertyName); }}. Example: ${{ $.extract($.this.children, 'amount'); }}"),
 			Usage.structrScript("Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, 'amount')}")
@@ -130,41 +133,37 @@ public class ExtractFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Extracts property values from all elements of a collection and returns them as a collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function iterates over the given collection and extracts the value for the given property key of each element. The return value of this function is a collection of extracted property values. It is often used in combination with `find()` and `join()` to create comma-separated lists of entity values.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("collection", "source collection"),
-			Parameter.mandatory("propertyName", "name of property value to extract")
-		);
+		return List.of(Parameter.mandatory("collection", "source collection"), Parameter.mandatory("propertyName", "name of property value to extract"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${extract(find('User'), 'name')} => [admin, user1, user2, user3]")
-		);
+		return List.of(Example.structrScript("${extract(find('User'), 'name')} => [admin, user1, user2, user3]"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This function is the StructrScript equivalent of JavaScript's `map()` function with a lambda expression of `l -> l.propertyName`."
-		);
+		return List.of("This function is the StructrScript equivalent of JavaScript's `map()` function with a lambda expression of `l -> l.propertyName`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

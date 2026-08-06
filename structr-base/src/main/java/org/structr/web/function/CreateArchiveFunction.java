@@ -46,11 +46,13 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "createArchive";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("fileName, files [, customFileTypeName ]");
 	}
 
@@ -67,8 +69,8 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 		try {
 
 			java.io.File newArchive = java.io.File.createTempFile(sources[0].toString(), "zip");
-
 			ZipArchiveOutputStream zaps = new ZipArchiveOutputStream(newArchive);
+
 			zaps.setEncoding("UTF8");
 			zaps.setUseLanguageEncodingFlag(true);
 			zaps.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
@@ -105,6 +107,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 					} else {
 
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 						return usage(ctx.isJavaScriptContext());
 					}
 				}
@@ -112,6 +115,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -131,6 +135,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 			}
 
 			try (final FileInputStream fis = new FileInputStream(newArchive)) {
+
 				return FileHelper.createFile(ctx.getSecurityContext(), fis, "application/zip", archiveClass, sources[0].toString() + ".zip");
 			}
 
@@ -138,11 +143,13 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 			logException(caller, e, sources);
 		}
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${createArchive(archiveFileName, files [, customFileType])}"),
 			Usage.javaScript("Usage: ${{ $.createArchive(archiveFileName, files [, customFileType]) }}")
@@ -151,11 +158,13 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates and returns a ZIP archive with the given files (and folders).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function creates a ZIP archive with the given files and folder and stores it as a File with the given name in Structr's filesystem. The second parameter can be either a single file, a single folder or a list of files and folders, but all of the objects must be Structr entities. The third parameter can be used to set the node type of the resulting archive to something other than `File`, although the given type must be a subtype of `File`.";
 	}
 
@@ -171,6 +180,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${createArchive('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
 			Example.javaScript("""
@@ -207,6 +217,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The resulting file will be named `archiveFileName` + `.zip` and will be put in the root folder of the structr filesystem.",
 			"The second parameter can be a single file, a collection of files, a folder, a collection of folders or a mixture.",
@@ -217,6 +228,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 

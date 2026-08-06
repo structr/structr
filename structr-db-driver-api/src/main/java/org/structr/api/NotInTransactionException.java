@@ -24,10 +24,12 @@ package org.structr.api;
 public class NotInTransactionException extends RuntimeException {
 
 	public NotInTransactionException(final Throwable cause) {
+
 		super(cause);
 	}
 
 	public NotInTransactionException(final String message) {
+
 		super(message);
 	}
 }

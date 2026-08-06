@@ -45,9 +45,7 @@ public class FileImportCommand extends AbstractCommand {
 
 		final String mode                     = webSocketData.getNodeDataStringValue("mode");		// default: list    start | pause | resume | cancel | abort | cancelAllAfter
 		final Long jobId                      = webSocketData.getNodeDataLongValue("jobId");
-
 		final JobQueueManager mgr = JobQueueManager.getInstance();
-
 		final List<GraphObject> result = new LinkedList<>();
 
 		switch (mode) {
@@ -91,6 +89,7 @@ public class FileImportCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "FILE_IMPORT";
 	}
 }

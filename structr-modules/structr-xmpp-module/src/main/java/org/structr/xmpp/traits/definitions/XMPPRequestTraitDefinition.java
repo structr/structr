@@ -45,6 +45,7 @@ public class XMPPRequestTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String REQUEST_TYPE_PROPERTY = "requestType";
 
 	public XMPPRequestTraitDefinition() {
+
 		super(StructrTraits.XMPP_REQUEST);
 	}
 
@@ -56,12 +57,7 @@ public class XMPPRequestTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> content       = new StringProperty(CONTENT_PROPERTY);
 		final Property<String> requestType   = new EnumProperty(REQUEST_TYPE_PROPERTY, Type.class);
 
-		return newSet(
-			client,
-			sender,
-			content,
-			requestType
-		);
+		return newSet(client, sender, content, requestType);
 	}
 
 	@Override
@@ -82,13 +78,12 @@ public class XMPPRequestTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			XMPPRequest.class, (traits, node) -> new XMPPRequestTraitWrapper(traits, node)
-		);
+		return Map.of(XMPPRequest.class, (traits, node) -> new XMPPRequestTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

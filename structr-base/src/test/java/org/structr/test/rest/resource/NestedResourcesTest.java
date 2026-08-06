@@ -189,6 +189,5 @@ public class NestedResourcesTest extends StructrRestTestBase {
 			.when()
 				.get("/TestTwo");
 
-
 	}
 }

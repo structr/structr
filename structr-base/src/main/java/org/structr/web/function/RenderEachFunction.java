@@ -47,11 +47,13 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "renderEach";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("tag [, slot]");
 	}
 
@@ -90,7 +92,6 @@ public class RenderEachFunction extends UiCommunityFunction {
 					final AsyncBuffer buffer      = renderContext.getBuffer();
 					final String role             = domNode.getRoleForComponent();
 					final String resets           = getChannelDependencies(domNode, selectionChannel);
-
 					final ChannelResult<GraphObject> result = sourceChannel.getResult(renderContext, config.getChannelInput(renderContext), config.getTransform());
 
 					for (final GraphObject item : result.getData()) {
@@ -164,6 +165,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 						func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, true);
 
 						if (outerWrapper != null) {
+
 							outerWrapper.formatEndTag(buffer);
 						}
 					}
@@ -183,24 +185,25 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${renderEach(tag)} or ${renderEach(tag, slot)}."),
-			Usage.javaScript("Usage: ${{ $.renderEach(tag)}} or ${{ $.renderEach(tag, slot)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${renderEach(tag)} or ${renderEach(tag, slot)}."), Usage.javaScript("Usage: ${{ $.renderEach(tag)}} or ${{ $.renderEach(tag, slot)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Renders the filtered contents of a component's enclosing data source according to the data adapter configuration.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function iterates over the paginated and filtered elements from the component's data source, evaluates the `value` expression(s) and renders the result, wrapped in the given tag. If the `slot` argument is present, only the value for the given slot is rendered. If no slot is given, this function renders all fields for all values, wrapped in the HTML element given in the `tag` argument.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${renderEach('li', 'label')}", "Render list items"),
 			Example.structrScript("${renderEach('th td')}", "Render table rows and cells"),
@@ -212,23 +215,18 @@ public class RenderEachFunction extends UiCommunityFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.optional("tag", "tag to wrap the content in"),
-			Parameter.optional("slot", "slot to fetch content from")
-		);
+		return List.of(Parameter.optional("tag", "tag to wrap the content in"), Parameter.optional("slot", "slot to fetch content from"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"Works only during page rendering in Template nodes.",
-			"This function implements the core logic of data-driven components."
-		);
+		return List.of("Works only during page rendering in Template nodes.", "This function implements the core logic of data-driven components.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 
@@ -236,6 +234,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 	private String getChannelDependencies(DOMNode node, final String channel) throws FrameworkException {
 
 		if (channel == null) {
+
 			return null;
 		}
 
@@ -267,7 +266,6 @@ public class RenderEachFunction extends UiCommunityFunction {
 				}
 			}
 
-
 			queue.push(channel);
 
 			while (!queue.isEmpty()) {
@@ -276,6 +274,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 				final Set<String> mappings = dependencies.get(current);
 
 				if (mappings != null) {
+
 					for (final String dependency : mappings) {
 
 						if (result.add(dependency)) {

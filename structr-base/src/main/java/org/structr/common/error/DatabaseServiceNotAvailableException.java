@@ -21,14 +21,17 @@ package org.structr.common.error;
 public class DatabaseServiceNotAvailableException extends FrameworkException {
 
 	public DatabaseServiceNotAvailableException(final int status, final String message) {
+
 		super(status, message, (ErrorToken)null);
 	}
 
 	public DatabaseServiceNotAvailableException(final int status, final String message, final ErrorBuffer errorBuffer) {
+
 		super(status, message, (ErrorToken)null);
 	}
 
 	public DatabaseServiceNotAvailableException(final int status, final String message, final ErrorToken errorToken) {
+
 		super(status, message, (ErrorToken)null);
 	}
 }

@@ -33,6 +33,7 @@ public class If extends Conditional {
 
 			@Override
 			public boolean accept(Context item) {
+
 				return condition;
 			}
 

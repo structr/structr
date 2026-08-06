@@ -25,6 +25,7 @@ public abstract class UiAdvancedFunction extends UiFunction {
 
 	@Override
 	public String getRequiredModule() {
+
 		return "advanced-scripting";
 	}
 }

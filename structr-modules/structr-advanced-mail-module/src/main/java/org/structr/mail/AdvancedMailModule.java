@@ -35,7 +35,6 @@ import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.util.Set;
 
-
 public class AdvancedMailModule implements StructrModule {
 
 	@Override
@@ -102,16 +101,19 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "advanced-mail";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

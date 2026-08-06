@@ -36,9 +36,7 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 			.statusCode(201)
 		.when()
 			.post("/TestThree")
-			.getHeader("Location")
-		);
-
+			.getHeader("Location"));
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -47,7 +45,6 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].booleanProperty", equalTo(Boolean.TRUE))
 		.when()
 			.get("/TestThree");
-
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")

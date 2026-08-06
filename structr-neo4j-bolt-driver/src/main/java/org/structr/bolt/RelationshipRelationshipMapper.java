@@ -30,11 +30,13 @@ class RelationshipRelationshipMapper implements Function<org.neo4j.driver.types.
 	private BoltDatabaseService db = null;
 
 	public RelationshipRelationshipMapper(final BoltDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Relationship<Long> apply(final org.neo4j.driver.types.Relationship t) {
+
 		return db.getCurrentTransaction().getRelationshipWrapper(t);
 	}
 }

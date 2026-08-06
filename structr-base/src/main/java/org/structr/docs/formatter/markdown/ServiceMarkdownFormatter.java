@@ -40,6 +40,7 @@ public class ServiceMarkdownFormatter extends Formatter {
 
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {
+
 			return false;
 		}
 

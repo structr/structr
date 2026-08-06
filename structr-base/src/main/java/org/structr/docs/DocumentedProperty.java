@@ -34,14 +34,17 @@ public class DocumentedProperty {
 	}
 
 	public String getName() {
+
 		return name;
 	}
 
 	public String getPropertyType() {
+
 		return propertyType;
 	}
 
 	public String getDescription() {
+
 		return description;
 	}
 

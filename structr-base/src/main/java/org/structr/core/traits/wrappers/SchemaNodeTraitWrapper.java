@@ -39,16 +39,19 @@ import java.util.*;
 public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper implements SchemaNode {
 
 	public SchemaNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public boolean defaultVisibleToPublic() {
+
 		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY));
 	}
 
 	@Override
 	public boolean defaultVisibleToAuth() {
+
 		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_AUTH_PROPERTY));
 	}
 
@@ -76,6 +79,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		for (final SchemaRelationshipNode outRel : getRelatedTo()) {
 
 			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(outRel, existingPropertyNames, true))) {
+
 				return outRel.getTargetMultiplicity();
 			}
 		}
@@ -84,6 +88,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		for (final SchemaRelationshipNode inRel : getRelatedFrom()) {
 
 			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(inRel, existingPropertyNames, false))) {
+
 				return inRel.getSourceMultiplicity();
 			}
 		}
@@ -135,6 +140,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		for (final SchemaRelationshipNode outRel : getRelatedTo()) {
 
 			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(outRel, existingPropertyNames, true))) {
+
 				return outRel.getSchemaNodeTargetType();
 			}
 		}
@@ -143,6 +149,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		for (final SchemaRelationshipNode inRel : getRelatedFrom()) {
 
 			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(inRel, existingPropertyNames, false))) {
+
 				return inRel.getSchemaNodeSourceType();
 			}
 		}
@@ -170,11 +177,13 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 	@Override
 	public void setInheritedTraits(final Set<String> setOfTraits) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), setOfTraits.toArray(new String[0]));
 	}
 
 	@Override
 	public TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance) {
+
 		return new DynamicNodeTraitDefinition(traitsInstance, this);
 	}
 
@@ -221,7 +230,6 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 			for (final Relationship rel : rels) {
 
 				final String relType = rel.getType().name();
-
 				if ("EXTENDS".equals(relType)) {
 
 					final String startType = (String) rel.getStartNode().getProperty("name");
@@ -245,6 +253,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	// ----- interface TypeInfo -----
 	@Override
 	public String getTypeName() {
+
 		return getClassName();
 	}
 
@@ -286,6 +295,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 				}
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 			}
 		}
@@ -300,6 +310,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		final Set<TraitDefinition> definitions = new LinkedHashSet<>();
 
 		if (visited.contains(traits.getName())) {
+
 			return definitions;
 		}
 

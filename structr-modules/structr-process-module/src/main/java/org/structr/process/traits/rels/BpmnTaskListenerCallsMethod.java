@@ -42,14 +42,56 @@ import org.structr.process.ProcessTraits;
  */
 public class BpmnTaskListenerCallsMethod extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnTaskListenerCallsMethod() { super(ProcessTraits.BPMN_TASK_LISTENER_CALLS_METHOD); }
+	public BpmnTaskListenerCallsMethod() {
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_TASK_LISTENER; }
-	@Override public String getTargetType() { return StructrTraits.SCHEMA_METHOD; }
-	@Override public String getRelationshipType() { return "CALLS"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.TARGET_TO_SOURCE; }
-	@Override public int getAutocreationFlag() { return Relation.NONE; }
-	@Override public boolean isInternal() { return false; }
+		super(ProcessTraits.BPMN_TASK_LISTENER_CALLS_METHOD);
+	}
+
+	@Override
+	public String getSourceType() {
+
+		return ProcessTraits.BPMN_TASK_LISTENER;
+	}
+
+	@Override
+	public String getTargetType() {
+
+		return StructrTraits.SCHEMA_METHOD;
+	}
+
+	@Override
+	public String getRelationshipType() {
+
+		return "CALLS";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+
+		return Relation.TARGET_TO_SOURCE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+
+		return false;
+	}
 }

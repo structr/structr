@@ -31,15 +31,18 @@ public class ParameterHolder<T> {
 	private Class targetType = null;
 
 	public ParameterHolder(PropertyKey<T> targetKey, Class targetType) {
+
 		this.targetKey = targetKey;
 		this.targetType = targetType;
 	}
 
 	public PropertyKey<T> getTargetKey() {
+
 		return targetKey;
 	}
 
 	public Class getTargetType() {
+
 		return targetType;
 	}
 }

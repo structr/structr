@@ -35,11 +35,13 @@ public class PrintFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "print";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("objects...");
 	}
 
@@ -60,24 +62,25 @@ public class PrintFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${print(objects...)}."),
-				Usage.javaScript("Usage: ${{ $.print(objects...)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${print(objects...)}."), Usage.javaScript("Usage: ${{ $.print(objects...)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Prints the given strings or objects to the output buffer.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Prints the string representation of all of the given objects into the page rendering buffer. This method is often used in conjunction with `each()` to create rendering output for a collection of entities etc. in scripting context.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${print('Hello, world!')}"),
 				Example.structrScript("${print(this.name, 'test')}"),
@@ -89,13 +92,12 @@ public class PrintFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("objects", "Objects that will be printed into the page rendering buffer")
-		);
+		return List.of(Parameter.mandatory("objects", "Objects that will be printed into the page rendering buffer"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

@@ -86,6 +86,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 			final Geometry bbox            = subset.getEnvelope();
 			final Coordinate[] coordinates = bbox.getCoordinates();
+
 			if (coordinates.length >= 3) {
 
 				final Coordinate lowerLeft  = coordinates[0];
@@ -127,6 +128,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 		buf.append("&typeNames=").append(typeName);
 
 		if (parameters !=null) {
+
 			buf.append(parameters);
 		}
 
@@ -297,6 +299,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 					final String content = IOUtils.toString(is, "utf-8");
 					final JSONObject obj = XML.toJSONObject(content);
+
 					if (obj != null) {
 
 						data.put("id",         getString(obj, "wcs:CoverageDescriptions.wcs:CoverageDescription.wcs:CoverageId"));
@@ -312,6 +315,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 					final String content = IOUtils.toString(is, "utf-8");
 					final JSONObject obj = XML.toJSONObject(content);
+
 					if (obj != null) {
 
 						data.put("message",  getString(obj, "ows:ExceptionReport.ows:Exception.ows:ExceptionText"));
@@ -320,6 +324,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 			}
 
 		} catch (Throwable t) {
+
 			data.put("message", t.getMessage());
 		}
 
@@ -387,6 +392,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 			}
 
 		} catch (Throwable t) {
+
 			throw new FrameworkException(GEOSERVER_ERROR_STATUS, t.getMessage());
 		}
 	}
@@ -394,7 +400,6 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 	protected double[] getExtrema(final Coverage coverage, final int sampleDimensionIndex) {
 
 		final GridCoverage2D extrema = (GridCoverage2D)Operations.DEFAULT.extrema(coverage);
-
 		final double[] min = (double[])extrema.getProperty("minimum");
 		final double[] max = (double[])extrema.getProperty("maximum");
 

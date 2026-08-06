@@ -156,9 +156,12 @@ public abstract class FtpTest extends StructrFileTestBase {
 			String password = "ftpuserpw1";
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 				ftpUser = createFTPUser(username, password);
 				tx.success();
+
 			} catch (FrameworkException fex) {
+
 				logger.error("Unable to create FTP user", fex);
 			}
 
@@ -170,6 +173,7 @@ public abstract class FtpTest extends StructrFileTestBase {
 			assertEquals(FTPReply.USER_LOGGED_IN, reply);
 
 		} catch (IOException ex) {
+
 			logger.error("Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -179,9 +183,13 @@ public abstract class FtpTest extends StructrFileTestBase {
 	}
 
 	protected void disconnect(final FTPClient ftp) {
+
 		try {
+
 			ftp.disconnect();
+
 		} catch (IOException ex) {
+
 			logger.error("Error while disconnecting from FTP server", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}

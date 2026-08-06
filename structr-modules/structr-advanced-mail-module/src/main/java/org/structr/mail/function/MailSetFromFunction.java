@@ -30,16 +30,19 @@ import java.util.List;
 public class MailSetFromFunction extends AdvancedMailModuleFunction {
 
 	public MailSetFromFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailSetFrom";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("address [, name ]");
 	}
 
@@ -58,6 +61,7 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -66,27 +70,25 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailSetFrom(address [, name])}"),
-			Usage.javaScript("Usage: ${{ $.mailSetFrom(address [, name]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailSetFrom(address [, name])}"), Usage.javaScript("Usage: ${{ $.mailSetFrom(address [, name]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Overwrites/Sets the from address (and optionally name) of the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("address", "address of the sender"),
-				Parameter.optional("name", "name of the sender")
-		);
+
+		return List.of(Parameter.mandatory("address", "address of the sender"), Parameter.optional("name", "name of the sender"));
 	}
 }

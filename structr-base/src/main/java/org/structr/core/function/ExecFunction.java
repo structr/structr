@@ -52,15 +52,18 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "exec";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("scriptConfigKey [, parameters [, logBehaviour ] ]");
 	}
 
 	public String getSignature() {
+
 		return getSignatures().get(0).getSignature();
 	}
 
@@ -72,7 +75,6 @@ public class ExecFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			final String sanityCheckedAbsolutePathOrNull = getSanityCheckedPathForScriptSetting(sources[0].toString());
-
 			if (sanityCheckedAbsolutePathOrNull != null) {
 
 				final ScriptingProcess scriptingProcess = new ScriptingProcess(ctx.getSecurityContext(), sanityCheckedAbsolutePathOrNull);
@@ -80,7 +82,6 @@ public class ExecFunction extends AdvancedScriptingFunction {
 				if (sources.length > 1) {
 
 					final boolean isNewCallSignature = (sources[1] instanceof Collection<?>);
-
 					if (!isNewCallSignature) {
 
 						logger.warn("{}(): Deprecation Warning: The call signature for this function has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
@@ -130,7 +131,6 @@ public class ExecFunction extends AdvancedScriptingFunction {
 					}
 				}
 
-
 				final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 				try {
@@ -158,6 +158,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -166,6 +167,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
 			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey  [, parameters [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
@@ -174,6 +176,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Scripts are executed using `/bin/sh` - thus this function is only supported in environments where this exists.",
 				"All script files are looked up inside the `scripts` folder in the main folder of the installation (not in the files area).",
@@ -191,6 +194,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename"),
 				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag"),
@@ -199,19 +203,18 @@ public class ExecFunction extends AdvancedScriptingFunction {
 								+ "<p>`0`: skip logging the command line<br>"
 								+ "`1`: log only the script's full path<br>"
 								+ "`2`: log the script path and all parameters, applying masking as configured</p>"
-								+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey()
-						)
-				)
-		);
+								+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey())));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Executes a script returning the standard output of the script.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			In order to prevent execution of arbitrary code, the script must be registered in structr.conf file using the following syntax.
 			`key.for.my.script = my-script.sh`
@@ -224,6 +227,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${exec('key.for.my.script', merge('param1', 'param2'), 0)}", "Execute a script with 2 parameters and no log output, using merge() to create the parameter list"),
 				Example.javaScript("""
@@ -236,13 +240,13 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 
 	protected String getSanityCheckedPathForScriptSetting(final String scriptKey) throws IOException {
 
 		final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);
-
 		if (scriptSetting == null) {
 
 			logger.warn("{}(): Key '{}' not found in structr.conf, nothing executed.", getName(), scriptKey);
@@ -257,7 +261,6 @@ public class ExecFunction extends AdvancedScriptingFunction {
 			final Path scriptPath                = Paths.get(SCRIPTS_FOLDER.concat(File.separator).concat(scriptName));
 			final String absolutePath            = scriptPath.toAbsolutePath().toString();
 			final String canonicalPath           = scriptPath.toFile().getCanonicalPath();
-
 			final boolean pathExists        = Files.exists(scriptPath);
 			final boolean pathIsRegularFile = Files.isRegularFile(scriptPath, LinkOption.NOFOLLOW_LINKS);
 			final boolean pathIsAllowed     = absolutePath.equals(canonicalPath);
@@ -302,20 +305,24 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		@Override
 		public StringBuilder getCommandLine() {
+
 			return cmdLineBuilder;
 		}
 
 		@Override
 		public StringBuilder getLogLine() {
+
 			return logLineBuilder;
 		}
 
 		@Override
 		public String processExited(final int exitCode) {
+
 			return outputStream();
 		}
 
 		private void addParameter(final String parameter) {
+
 			this.addParameter(parameter, false);
 		}
 

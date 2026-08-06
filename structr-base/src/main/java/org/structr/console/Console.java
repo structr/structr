@@ -55,6 +55,7 @@ public class Console {
 	private static Logger logger = LoggerFactory.getLogger(Console.class);
 
 	public enum ConsoleMode {
+
 		Cypher, JavaScript, StructrScript, AdminShell
 	};
 
@@ -78,6 +79,7 @@ public class Console {
 	}
 
 	public boolean hasStillTheSameTraitsInstance() {
+
 		return TraitsManager.getCurrentInstance().isSameAs(traitsInstance);
 	}
 
@@ -171,10 +173,12 @@ public class Console {
 	}
 
 	public SecurityContext getSecurityContext() {
+
 		return actionContext.getSecurityContext();
 	}
 
 	public String getMode() {
+
 		return mode.name();
 	}
 
@@ -189,9 +193,12 @@ public class Console {
 			case JavaScript:
 			case StructrScript:
 			case AdminShell:
+
 				if (principal != null) {
+
 					buf.append(principal.getName());
 				}
+
 				break;
 		}
 
@@ -202,30 +209,37 @@ public class Console {
 	}
 
 	public void setUsername(final String username) {
+
 		this.username = username;
 	}
 
 	public void setPassword(final String password) {
+
 		this.password = password;
 	}
 
 	public String getUsername() {
+
 		return this.username;
 	}
 
 	public String getPassword() {
+
 		return this.password;
 	}
 
 	public Map<String, Object> getVariables() {
+
 		return actionContext.getRequestStore();
 	}
 
 	public void store(final String key, final Object value) {
+
 		actionContext.store(key, value);
 	}
 
 	public Object retrieve(final String key) {
+
 		return actionContext.retrieve(key);
 	}
 
@@ -237,8 +251,8 @@ public class Console {
 		try (final Tx tx = app.tx()) {
 
 			final long t0                  = System.currentTimeMillis();
-
 			final NativeQueryCommand nqc = app.command(NativeQueryCommand.class);
+
 			nqc.setRunInNewTransaction(true);
 
 			final List<GraphObject> result = Iterables.toList(nqc.execute(line));
@@ -262,6 +276,7 @@ public class Console {
 			writable.println();
 
 			tx.success();
+
 		} catch (SyntaxErrorException see) {
 
 			writable.println("Unexpected syntax error in console command. " + see.getMessage());
@@ -314,7 +329,6 @@ public class Console {
 			Snippet script = new Snippet("console, interactive script", line, false);
 			script.setCodeSource(line);
 			Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script, scriptConfig);
-
 			if (!extractedValue.toString().isEmpty()) {
 
 				writable.println(extractedValue.toString());
@@ -375,6 +389,7 @@ public class Console {
 		String[] parts;
 
 		try {
+
 			parts = CommandLineUtils.translateCommandline(src);
 
 		} catch (Exception ex) {
@@ -385,7 +400,6 @@ public class Console {
 		for (final String part : parts) {
 
 			final String trimmed = part.trim();
-
 			if (StringUtils.isNotBlank(trimmed)) {
 
 				list.add(trimmed);
@@ -402,21 +416,27 @@ public class Console {
 
 		@Override
 		public void print(final Object... text) throws IOException {
+
 			for (final Object o : text) {
+
 				buf.append(o);
 			}
 		}
 
 		@Override
 		public void println(final Object... text) throws IOException {
+
 			for (final Object o : text) {
+
 				buf.append(o);
 			}
+
 			println();
 		}
 
 		@Override
 		public void println() throws IOException {
+
 			buf.append("\r\n");
 		}
 
@@ -425,6 +445,7 @@ public class Console {
 		}
 
 		public String getBuffer() {
+
 			return buf.toString();
 		}
 	}

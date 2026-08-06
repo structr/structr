@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class CssRuleHAS_SELECTORCssSelector extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public CssRuleHAS_SELECTORCssSelector() {
+
 		super(StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR);
 	}
 	
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.CSS_RULE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.CSS_SELECTOR;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_SELECTOR";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

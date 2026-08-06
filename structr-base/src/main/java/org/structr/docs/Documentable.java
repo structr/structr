@@ -64,10 +64,12 @@ public interface Documentable {
 		final String startHeading                 = StringUtils.repeat("#", startLevel);
 
 		if (details.contains(Details.name) || details.contains(Details.all)) {
+
 			lines.add(startHeading + " " + getDisplayName(false));
 		}
 
 		if (details.contains(Details.shortDescription) || details.contains(Details.all)) {
+
 			lines.add(getShortDescription());
 		}
 
@@ -75,6 +77,7 @@ public interface Documentable {
 		if (details.contains(Details.all)) {
 
 			if (isExperimental()) {
+
 				lines.add("");
 				lines.add("**Experimental functionality!**");
 				lines.add("");
@@ -102,6 +105,7 @@ public interface Documentable {
 				lines.add("|---|---|");
 
 				for (final DocumentedProperty property : properties) {
+
 					lines.add("|`" + property.getName() + "`|" + property.getDescription() + "|");
 				}
 
@@ -117,6 +121,7 @@ public interface Documentable {
 				lines.add("|---|---|");
 
 				for (final Setting setting : settings) {
+
 					lines.add("|`" + setting.getName() + "`|" + setting.getDescription() + "|");
 				}
 
@@ -132,6 +137,7 @@ public interface Documentable {
 				lines.add("|---|---|---|");
 
 				for (final Parameter parameter : parameters) {
+
 					lines.add("|`" + parameter.getName() + "`|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
 				}
 
@@ -150,6 +156,7 @@ public interface Documentable {
 				lines.add(startHeading + "# Notes");
 
 				for (final String note : notes) {
+
 					lines.add("- " + note);
 				}
 
@@ -163,6 +170,7 @@ public interface Documentable {
 				lines.add("```");
 
 				for (final Signature signature : signatures) {
+
 					lines.add(name + "(" + signature.getSignature() + ")");
 				}
 
@@ -186,6 +194,7 @@ public interface Documentable {
 
 						lines.add(startHeading + "## Example " + index + " (" + example.getLanguage() + ")");
 					}
+
 					lines.add("```");
 					lines.add(example.getText());
 					lines.add("```");
@@ -229,6 +238,7 @@ public interface Documentable {
 	 * @return replacement hint
 	 */
 	default String getReplacementHint() {
+
 		return getName();
 	}
 
@@ -240,6 +250,7 @@ public interface Documentable {
 	 * @return the long description or null
 	 */
 	default String getLongDescription() {
+
 		return null;
 	}
 
@@ -250,6 +261,7 @@ public interface Documentable {
 	 * @return the parameters or null
 	 */
 	default List<Parameter> getParameters() {
+
 		return null;
 	}
 
@@ -260,6 +272,7 @@ public interface Documentable {
 	 * @return the examples or null
 	 */
 	default List<Example> getExamples() {
+
 		return null;
 	}
 
@@ -270,6 +283,7 @@ public interface Documentable {
 	 * @return the notes or null
 	 */
 	default List<String> getNotes() {
+
 		return null;
 	}
 
@@ -280,6 +294,7 @@ public interface Documentable {
 	 * @return the signatures or null
 	 */
 	default List<Signature> getSignatures() {
+
 		return null;
 	}
 
@@ -292,6 +307,7 @@ public interface Documentable {
 	 * @return the languages
 	 */
 	default List<Language> getLanguages() {
+
 		return null;
 	}
 
@@ -301,6 +317,7 @@ public interface Documentable {
 	 * @return the usages or null
 	 */
 	default List<Usage> getUsages() {
+
 		return null;
 	}
 
@@ -311,6 +328,7 @@ public interface Documentable {
 	 * @return the properties or null
 	 */
 	default List<DocumentedProperty> getDocumentedProperties() {
+
 		return null;
 	}
 
@@ -321,6 +339,7 @@ public interface Documentable {
 	 * @return the methods or null
 	 */
 	default List<DocumentedMethod> getDocumentedMethods() {
+
 		return null;
 	}
 
@@ -331,6 +350,7 @@ public interface Documentable {
 	 * @return the settings or null
 	 */
 	default List<Setting> getSettings() {
+
 		return null;
 	}
 
@@ -342,35 +362,43 @@ public interface Documentable {
 	 * @return
 	 */
 	default List<ConceptReference> getParentConcepts() {
+
 		return new LinkedList<>();
 	}
 
 	default List<Link> getLinkedConcepts() {
+
 		return new LinkedList<>();
 	}
 
 	default List<String> getSynonyms() {
+
 		return new LinkedList<>();
 	}
 
 	default Category getCategory() {
+
 		return null;
 	}
 
 	default Map<String, String> getTableHeaders() {
+
 		return null;
 	}
 
 	// ----- "private" methods, don't override
 	default boolean isDynamic() {
+
 		return false;
 	}
 
 	default boolean isHidden() {
+
 		return DocumentableType.Hidden.equals(getDocumentableType());
 	}
 
 	default String getDisplayName() {
+
 		return getDisplayName(true);
 	}
 
@@ -411,6 +439,7 @@ public interface Documentable {
 	}
 
 	default boolean hasExamples() {
+
 		return getExamples() != null;
 	}
 
@@ -439,10 +468,12 @@ public interface Documentable {
 		}
 
 		if (getShortDescription() != null && getShortDescription().toLowerCase().contains(searchString)) {
+
 			score += Concept.SHORT_DESC_MATCH_SCORE;
 		}
 
 		if (getLongDescription() != null && getLongDescription().toLowerCase().contains(searchString)) {
+
 			score += Concept.LONG_DESC_MATCH_SCORE;
 		}
 
@@ -451,6 +482,7 @@ public interface Documentable {
 			for (final String note : getNotes()) {
 
 				if (note.toLowerCase().contains(searchString)) {
+
 					score += Concept.NOTES_MATCH_SCORE;
 				}
 			}
@@ -460,6 +492,7 @@ public interface Documentable {
 	}
 
 	default boolean isExperimental() {
+
 		return this.getClass().isAnnotationPresent(Experimental.class);
 	}
 
@@ -469,11 +502,13 @@ public interface Documentable {
 		public String name;
 
 		public ConceptReference(final ConceptType type, final String name) {
+
 			this.type = type;
 			this.name = name;
 		}
 
 		public static ConceptReference of(final ConceptType type, final String name) {
+
 			return new ConceptReference(type, name);
 		}
 	}
@@ -490,6 +525,7 @@ public interface Documentable {
 		}
 
 		public static Link to(final String verb, final ConceptReference target) {
+
 			return new Link(verb, target);
 		}
 	}

@@ -34,10 +34,12 @@ public interface Predicate<T> {
 	 * @return a comparator or null
 	 */
 	default Comparator<T> comparator() {
+
 		return null;
 	}
 
 	static <T> Predicate<T> all() {
+
 		return value -> true;
 	}
 
@@ -46,6 +48,7 @@ public interface Predicate<T> {
 		return value -> {
 
 			if (value != null && given != null) {
+
 				return !value.equals(given);
 			}
 
@@ -58,6 +61,7 @@ public interface Predicate<T> {
 		return value -> {
 
 			if (value != null && given != null) {
+
 				return value.equals(given);
 			}
 

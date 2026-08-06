@@ -40,16 +40,19 @@ import java.util.List;
 public class IntegerPropertyGenerator extends NumericalPropertyGenerator<Integer> {
 
 	public IntegerPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Integer.class.getName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Integer;
 	}
 
@@ -70,6 +73,7 @@ public class IntegerPropertyGenerator extends NumericalPropertyGenerator<Integer
 
 	@Override
 	protected Property<Integer> newInstance() throws FrameworkException {
+
 		return new IntProperty(source.getPropertyName());
 	}
 

@@ -39,11 +39,13 @@ import java.util.TreeMap;
 public class StructrByteArrayProperty extends StructrPropertyDefinition implements JsonByteArrayProperty {
 
 	public StructrByteArrayProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "array";
 	}
 

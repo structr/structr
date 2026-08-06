@@ -31,11 +31,13 @@ public class LengthFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "length";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
@@ -51,39 +53,39 @@ public class LengthFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${length(string)}"),
-				Usage.javaScript("Usage: ${{ $.length(string) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${length(string)}"), Usage.javaScript("Usage: ${{ $.length(string) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the length of the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function **only** works for strings, do not use it on collections. See `size()` for that.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("string", "input string to measure")
-		);
+		return List.of(Parameter.mandatory("string", "input string to measure"));
 	}
 
 	@Override
@@ -96,13 +98,13 @@ public class LengthFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${length(this.name)}")
-		);
+
+		return List.of(Example.structrScript("${length(this.name)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

@@ -44,6 +44,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "barcode";
 	}
 
@@ -58,7 +59,6 @@ public class BarcodeFunction extends UiAdvancedFunction {
 			final String barcodeData = sources[1].toString();
 			final Number width      = (sources.length >= 3) ? (Number)sources[2] : 200;
 			final Number height     = (sources.length >= 4) ? (Number)sources[3] : 200;
-
 			final Map<String, Object> hints = (sources.length >= 5 && sources[4] instanceof Map) ? (Map)sources[4] : parseParametersAsMap(sources, 4);
 
 			return BarcodeFunction.getQRCode(barcodeData, barcodeType, width, height, hints);
@@ -66,6 +66,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -79,7 +80,6 @@ public class BarcodeFunction extends UiAdvancedFunction {
 			try {
 
 				BitMatrix bitMatrix = barcodeWriter.encode(barcodeData, BarcodeFormat.valueOf(barcodeType), width.intValue(), height.intValue(), BarcodeFunction.parseHints(hints));
-
 				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 				ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
@@ -103,7 +103,6 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	public Map<String, Object> parseParametersAsMap(final Object[] sources, final int startIndex) throws FrameworkException {
 
 		final int parameterCount = sources.length - startIndex;
-
 		if (parameterCount % 2 != 0) {
 
 			throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". " + usage(true));
@@ -129,8 +128,11 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 			// All hints that are of type Number are Integers (since internally everything is handled as Double, we need to convert this)
 			if (obj instanceof Number) {
+
 				hints.put(EncodeHintType.valueOf(hint.getKey()), ((Number)obj).intValue());
+
 			} else {
+
 				hints.put(EncodeHintType.valueOf(hint.getKey()), obj);
 			}
 		}
@@ -140,11 +142,13 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates a barcode image of given type with the given data.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The following barcode types are supported.
 
@@ -175,6 +179,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("type", "type of barcode to create"),
 			Parameter.mandatory("data", "data to encode"),
@@ -186,11 +191,13 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type, data [, width, height, hintKey, hintValue ]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }"),
 			Usage.javaScript("Usage: ${{ $.barcode(type, data[, width, height[, hintsMap]]) }}")
@@ -199,13 +206,13 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"In StructrScript, you can provide alternating key and value entries , i.e. key1, value1, key2, value2, ..."
-		);
+
+		return List.of("In StructrScript, you can provide alternating key and value entries , i.e. key1, value1, key2, value2, ...");
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("""
 				File content: ${barcode('QR_CODE', 'My testcode', 200, 200, 'MARGIN', 0, 'ERROR_CORRECTION', 'Q')}
@@ -217,6 +224,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

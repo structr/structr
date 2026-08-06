@@ -31,26 +31,31 @@ import org.structr.schema.SchemaHelper.Type;
 public class ByteArrayPropertyGenerator extends PropertyGenerator<Byte[]> {
 
 	public ByteArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Byte[].class.getSimpleName();
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new ByteArrayProperty(source.getPropertyName());
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.ByteArray;
 	}
 
 	@Override
 	public Byte[] getDefaultValue() {
+
 		return null;
 	}
 

@@ -46,6 +46,7 @@ public class QueryContext {
 	 * @param deferred
 	 */
 	public QueryContext(final boolean deferred) {
+
 		this.deferred = deferred;
 	}
 
@@ -68,59 +69,74 @@ public class QueryContext {
 	}
 
 	public boolean isSliced () {
+
 		return sliced;
 	}
 
 	public int getSkip() {
+
 		return skip;
 	}
 
 	public int getLimit() {
+
 		return limit;
 	}
 
 	public int getPage() {
+
 		return (skip / Math.max(1, limit)) + 1;
 	}
 
 	public int getPageSize() {
+
 		return limit;
 	}
 
 	public QueryContext isPing(final boolean isPing) {
+
 		this.isPing = isPing;
+
 		return this;
 	}
 
 	public boolean isPing() {
+
 		return this.isPing;
 	}
 
 	public void setSkipped(final int skipped) {
+
 		this.skipped = skipped;
 	}
 
 	public int getSkipped() {
+
 		return skipped;
 	}
 
 	public void setIsSuperuser(final boolean isSuperuser) {
+
 		this.isSuperuser = isSuperuser;
 	}
 
 	public boolean isSuperuser() {
+
 		return isSuperuser;
 	}
 
 	public boolean isDeferred() {
+
 		return deferred;
 	}
 
 	public boolean overridesFetchSize() {
+
 		return overridesFetchSize;
 	}
 
 	public int getOverriddenFetchSize() {
+
 		return overriddenFetchSize;
 	}
 
@@ -131,6 +147,7 @@ public class QueryContext {
 	}
 
 	public void prefetch() {
+
 		this.prefetch = true;
 	}
 }

@@ -44,12 +44,12 @@ public class GetRelationshipCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-
 		final String nodeId             = webSocketData.getNodeDataStringValue("nodeId");
 		final RelationshipInterface rel = getRelationship(webSocketData.getId(), nodeId);
 		final String properties         = webSocketData.getRelDataStringValue("properties");
 
 		if (properties != null) {
+
 			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
 
@@ -71,6 +71,7 @@ public class GetRelationshipCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "GET_RELATIONSHIP";
 	}
 }

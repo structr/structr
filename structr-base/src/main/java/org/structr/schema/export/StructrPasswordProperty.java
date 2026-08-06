@@ -37,11 +37,13 @@ import org.structr.schema.SchemaHelper.Type;
 public class StructrPasswordProperty extends StructrPropertyDefinition implements JsonStringProperty {
 
 	public StructrPasswordProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "password";
 	}
 

@@ -24,10 +24,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 
-
 public class ArgumentTypeException extends IllegalArgumentException {
 
 	public ArgumentTypeException(final String message) {
+
 		super(message);
 	}
 
@@ -41,7 +41,6 @@ public class ArgumentTypeException extends IllegalArgumentException {
 
 		return new ArgumentTypeException(buf.toString());
 	}
-
 
 	private static <T> String join(final T[] objects, final int minimum, Function<T, String> mappingFunction) {
 
@@ -60,6 +59,7 @@ public class ArgumentTypeException extends IllegalArgumentException {
 			}
 
 			if (count++ > minimum) {
+
 				break;
 			}
 		}

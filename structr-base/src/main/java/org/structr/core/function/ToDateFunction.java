@@ -33,11 +33,13 @@ public class ToDateFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "toDate";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("number");
 	}
 
@@ -54,6 +56,7 @@ public class ToDateFunction extends CoreFunction {
 		if (sources != null && sources.length == 1 && sources[0] instanceof Number) {
 
 			try {
+
 				Long timestamp = 0L;
 
 				if (sources[0] instanceof Double) {
@@ -65,18 +68,21 @@ public class ToDateFunction extends CoreFunction {
 					timestamp = (Long) sources[0];
 
 				} else {
+
 					throw new UnsupportedOperationException();
 				}
 
 				return new Date(timestamp);
 
 			} catch (Throwable t) {
+
 				// fail silently
 			}
 
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -85,46 +91,43 @@ public class ToDateFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${toDate(value)}"),
-			Usage.javaScript("Usage: ${{ $.toDate(value) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${toDate(value)}"), Usage.javaScript("Usage: ${{ $.toDate(value) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts the given number to a date.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The number is interpreted as UNIX timestamp (milliseconds from Jan. 1, 1970).";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${toDate(1585504800000)}"),
-				Example.javaScript("${{ $.toDate(1585504800000) }}")
-		);
+
+		return List.of(Example.structrScript("${toDate(1585504800000)}"), Example.javaScript("${{ $.toDate(1585504800000) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("number", "unix timestamp")
-		);
+
+		return List.of(Parameter.mandatory("number", "unix timestamp"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"If the value is null, the function returns null."
-		);
+
+		return List.of("If the value is null, the function returns null.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

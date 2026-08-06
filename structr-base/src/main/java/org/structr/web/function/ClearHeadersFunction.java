@@ -29,12 +29,15 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "clearHeaders";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -44,6 +47,7 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 		if (sources == null || sources.length == 0) {
 
 			ctx.clearHeaders();
+
 			return null;
 
 		} else {
@@ -56,19 +60,19 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${clearHeaders()}. Example: ${clearHeaders()}"),
-			Usage.javaScript("Usage: ${{ $.clearHeaders()}}. Example: ${{ $.clearHeaders()}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${clearHeaders()}. Example: ${clearHeaders()}"), Usage.javaScript("Usage: ${{ $.clearHeaders()}}. Example: ${{ $.clearHeaders()}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Clears headers for the next HTTP request.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Removes all headers previously set with `addHeader()` in the same request. This function is a helper for the HTTP request functions that make HTTP requests **from within the Structr Server**, triggered by a frontend control like a button etc.
 		""";
@@ -76,6 +80,7 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"This is important if multiple calls to the family of HTTP functions is made in the same request to clear the headers in between usages to prevent sending the wrong headers in subsequent requests."
 		);
@@ -83,6 +88,7 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

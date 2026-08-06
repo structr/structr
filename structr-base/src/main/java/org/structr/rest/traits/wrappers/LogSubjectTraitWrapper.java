@@ -26,11 +26,13 @@ import org.structr.rest.entity.LogSubject;
 public class LogSubjectTraitWrapper extends AbstractNodeTraitWrapper implements LogSubject {
 
 	public LogSubjectTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 }

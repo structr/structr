@@ -29,11 +29,13 @@ import java.io.Writer;
 public class StreamingJsonWriter extends StreamingWriter {
 
 	public StreamingJsonWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+
 		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
 	}
 
 	@Override
 	public RestWriter getRestWriter(final SecurityContext securityContext, Writer writer) {
+
 		return new StructrJsonWriter(securityContext, writer);
 	}
 }

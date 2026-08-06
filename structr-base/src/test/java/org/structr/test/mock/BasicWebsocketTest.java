@@ -104,10 +104,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		final StructrWebSocket websocket = mock.getWebSocket();
 		final String sessionId = "TESTSESSION";
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "PING",
-			"sessionId", sessionId
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "PING", "sessionId", sessionId)));
 
 		assertResponse(mock, "STATUS", 401, false);
 	}
@@ -126,10 +123,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		try { Thread.sleep(200); } catch (Throwable t) {}
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "PING",
-			"sessionId", sessionId
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "PING", "sessionId", sessionId)));
 
 		final SecurityContext securityContext = websocket.getSecurityContext();
 		final Principal userInWebsocket       = websocket.getCurrentUser();
@@ -153,7 +147,6 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		// create test object to GET
 		final String id = createEntityAsSuperUser("/Group", "{ name: Testgroup }");
-
 		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
 		final StructrWebSocket websocket = mock.getWebSocket();
 		final String sessionId = "TESTSESSION";
@@ -162,11 +155,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		try { Thread.sleep(200); } catch (Throwable t) {}
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "GET",
-			"sessionId", sessionId,
-			"id", id
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "GET", "sessionId", sessionId, "id", id)));
 
 		final Map<String, Object> response     = assertResponse(mock, "GET", 200, true);
 		final List<Map<String, Object>> result = (List)response.get("result");
@@ -197,7 +186,6 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		// create test object to GET
 		final String id = createEntityAsSuperUser("/Group", "{ name: Testgroup }");
-
 		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
 		final StructrWebSocket websocket = mock.getWebSocket();
 
@@ -205,14 +193,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		try { Thread.sleep(200); } catch (Throwable t) {}
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "GET",
-			"sessionId", sessionId,
-			"id", id,
-			"data", Map.of(
-				"properties", "id,type,name,visibleToPublicUsers"
-			)
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "GET", "sessionId", sessionId, "id", id, "data", Map.of("properties", "id,type,name,visibleToPublicUsers"))));
 
 		final Map<String, Object> response     = assertResponse(mock, "GET", 200, true);
 		final List<Map<String, Object>> result = (List)response.get("result");
@@ -238,14 +219,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	@Test
 	public void testCreate() {
 
-		final Map<String, String> data = Map.of(
-			"File", "test_create.txt",
-			"Folder", "TestFolder",
-			"User", "TestUser",
-			"Group", "TestGroup",
-			"Page", "TestPage"
-		);
-
+		final Map<String, String> data = Map.of("File", "test_create.txt", "Folder", "TestFolder", "User", "TestUser", "Group", "TestGroup", "Page", "TestPage");
 		final String sessionId = "TESTSESSION";
 
 		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
@@ -257,7 +231,9 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		login(websocket, "admin", "admin", sessionId);
 
 		try {
+
 			Thread.sleep(200);
+
 		} catch (Throwable t) {
 		}
 
@@ -268,25 +244,12 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 			final String name = data.get(type);
 
-			websocket.onWebSocketText(toJson(Map.of(
-				"command", "CREATE",
-				"sessionId", sessionId,
-				"data", Map.of(
-					"name", name
-				)
-			)));
+			websocket.onWebSocketText(toJson(Map.of("command", "CREATE", "sessionId", sessionId, "data", Map.of("name", name))));
 
 			final Map<String, Object> createResponse = assertResponse(mock, "STATUS", 422, true);
 			assertEquals("Empty type (null). Please supply a valid class name in the type property.", createResponse.get("message"));
 
-			websocket.onWebSocketText(toJson(Map.of(
-				"command", "CREATE",
-				"sessionId", sessionId,
-				"data", Map.of(
-					"name", name,
-					"type", type
-				)
-			)));
+			websocket.onWebSocketText(toJson(Map.of("command", "CREATE", "sessionId", sessionId, "data", Map.of("name", name, "type", type))));
 
 			// successful create does not send a response, so no response check here,
 			// but we can check that the object exists
@@ -297,6 +260,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 				tx.success();
 
 			} catch (FrameworkException t) {
+
 				fail("Unexpected exception: " + t.getMessage());
 			}
 		}
@@ -315,7 +279,6 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		// create file to work with
 		final String fileId = createEntityAsUser("admin", "admin", "/File", "{ name: test.txt }");
-
 		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
 		final StructrWebSocket websocket = mock.getWebSocket();
 
@@ -326,17 +289,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		// #####################################################################################################
 		// change file contents using the CHUNK command
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "CHUNK",
-			"sessionId", sessionId,
-			"id", fileId,
-			"data", Map.of(
-				"chunkId", 0,
-				"chunkSize", 65536,
-				"chunk", base64Data,
-				"chunks", 1
-			)
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "CHUNK", "sessionId", sessionId, "id", fileId, "data", Map.of("chunkId", 0, "chunkSize", 65536, "chunk", base64Data, "chunks", 1))));
 
 		final Map<String, Object> editResponse = assertResponse(mock, "STATUS", 200, true);
 		final String message                   = (String) editResponse.get("message");
@@ -359,17 +312,14 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			tx.success();
 
 		} catch (FrameworkException | IOException t) {
+
 			fail("Unexpected exception: " + t.getMessage());
 		}
 
 		// #####################################################################################################
 		// delete the file
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "DELETE",
-			"sessionId", sessionId,
-			"id", fileId
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "DELETE", "sessionId", sessionId, "id", fileId)));
 
 		// delete command does not send a response, so no check here..
 
@@ -381,6 +331,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -417,7 +368,9 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		login(websocket, "admin", "admin", sessionId);
 
 		try {
+
 			Thread.sleep(200);
+
 		} catch (Throwable t) {
 		}
 
@@ -444,9 +397,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 			AssertJUnit.assertNotNull("Entity was not created correctly", project);
 
-
 			final PropertyKey<Iterable<NodeInterface>> tasksKey = project.getTraits().key("tasks");
-
 			final List tasks = Iterables.toList(project.getProperty(tasksKey));
 
 			AssertJUnit.assertEquals("Relationship was not created correctly", 1, tasks.size());
@@ -454,6 +405,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			fail("Unexpected exception: " + t.getMessage());
 		}
 	}
@@ -462,6 +414,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	public void testRawResultCountWithCypher() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage)) {
+
 			return;
 		}
 
@@ -481,6 +434,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -500,18 +454,13 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		login(websocket, "admin", "admin", sessionId);
 
 		try {
+
 			Thread.sleep(200);
+
 		} catch (Throwable t) {
 		}
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "SEARCH",
-			"sessionId", sessionId,
-			"data", Map.of(
-				"cypherQuery", query
-			),
-			"pageSize", 25
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command", "SEARCH", "sessionId", sessionId, "data", Map.of("cypherQuery", query), "pageSize", 25)));
 
 		final Map<String, Object> data = mock.getLastWebsocketResponse();
 

@@ -77,6 +77,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 							isIndex    = true;
 							hasCommand = true;
 						}
+
 						break;
 
 					case "ids":
@@ -93,6 +94,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 							isIds      = true;
 							hasCommand = true;
 						}
+
 						break;
 
 					case "labels":
@@ -117,6 +119,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 								hasCommand     = true;
 							}
 						}
+
 						break;
 
 					case "node":
@@ -140,6 +143,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 							typeKey = "type";
 							allRels = false;
 						}
+
 						break;
 
 					case "rel":
@@ -170,6 +174,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 							typeKey  = "relType";
 							allNodes = false;
 						}
+
 						break;
 
 					case "for":
@@ -179,6 +184,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 							writable.println("Unknown init mode 'for'.");
 							error = true;
 						}
+
 						hasFor = true;
 						break;
 
@@ -198,6 +204,7 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 
 							// only set type key if not already set, default is "type" not "relType"
 							if (typeKey == null) {
+
 								typeKey = "type";
 							}
 
@@ -214,11 +221,13 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 								error = true;
 							}
 						}
+
 						break;
 				}
 
 				// break early on errors
 				if (error) {
+
 					break;
 				}
 			}
@@ -267,11 +276,13 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void commandHelp(final Writable buf) throws IOException {
+
 		buf.println("Initializes UUIDs, labels and indexes on nodes and relationships.");
 	}
 
 	@Override
 	public void detailHelp(final Writable buf) throws IOException {
+
 		buf.println("init [node|rel] index [for <type>] - Rebuilds the node/relationship index.");
 		buf.println("init [node|rel] ids [for <type>]   - Sets UUIDs on nodes and/or relationship.");
 		buf.println("init [node] labels [for <type>]    - Sets labels on nodes and/or relationship.");

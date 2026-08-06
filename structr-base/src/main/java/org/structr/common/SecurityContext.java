@@ -18,7 +18,6 @@
  */
 package org.structr.common;
 
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,6 +54,7 @@ public class SecurityContext {
 	public static final String LOCALE_KEY = "locale";
 
 	public enum MergeMode {
+
 		Add, Remove, Toggle, Replace
 	}
 
@@ -81,7 +81,6 @@ public class SecurityContext {
 	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
 	private int serializationDepth                        = -1;
 
-
 	private final Map<String, List<String>> requestParameters = new LinkedHashMap<>();
 	private final Map<String, List<String>> requestHeaders    = new LinkedHashMap<>();
 	private final Map<String, QueryRange> ranges              = new ConcurrentHashMap<>();
@@ -107,6 +106,7 @@ public class SecurityContext {
 	private Locale effectiveLocale;
 
 	private SecurityContext() {
+
 		determineEffectiveLocale(null);
 	}
 
@@ -192,34 +192,42 @@ public class SecurityContext {
 	private void initializeHttpParameters(final HttpServletRequest request) {
 
 		if ("true".equals(request.getHeader(RequestHeaders.ReturnDetailsForCreatedObjects.getName()))) {
+
 			this.returnDetailedCreationResults = true;
 		}
 
 		if ("disabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getName()))) {
+
 			this.doTransactionNotifications = false;
 		}
 
 		if ("enabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getName()))) {
+
 			this.doTransactionNotifications = true;
 		}
 
 		if ("disabled".equals(request.getHeader(RequestHeaders.StructrCascadingDelete.getName()))) {
+
 			this.doCascadingDelete = false;
 		}
 
 		if ("enabled".equals(request.getHeader(RequestHeaders.StructrForceMergeOfNestedProperties.getName()))) {
+
 			this.forceMergeOfNestedProperties = true;
 		}
 
 		if (request.getParameter(RequestParameters.ForceResultCount.getName()) != null) {
+
 			this.forceResultCount = true;
 		}
 
 		if (request.getParameter(RequestParameters.DisableSoftLimit.getName()) != null) {
+
 			this.disableSoftLimit = true;
 		}
 
 		if (request.getParameter(RequestParameters.ParallelizeJsonOutput.getName()) != null) {
+
 			this.doMultiThreadedJsonOutput = true;
 		}
 	}
@@ -229,6 +237,7 @@ public class SecurityContext {
 		// check for custom view attributes
 
 		try {
+
 			final String acceptedContentType = request.getHeader(RequestHeaders.Accept.getName());
 			final Matcher matcher            = customViewPattern.matcher(acceptedContentType);
 
@@ -285,6 +294,7 @@ public class SecurityContext {
 
 								// remove optional total size indicator
 								if (endString.contains("/")) {
+
 									endString = endString.substring(0, endString.indexOf("/"));
 								}
 
@@ -308,18 +318,22 @@ public class SecurityContext {
 	}
 
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
+
 		return new SuperUserSecurityContext(request);
 	}
 
 	public static SecurityContext getSuperUserInstance() {
+
 		return new SuperUserSecurityContext();
 	}
 
 	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
+
 		return new SecurityContext(user, accessMode);
 	}
 
 	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
+
 		return new SecurityContext(user, request, accessMode);
 	}
 
@@ -330,7 +344,6 @@ public class SecurityContext {
 		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
 
 			final GraphObject obj = it.next();
-
 			if (obj.isNode()) {
 
 				final NodeInterface node = (NodeInterface) obj;
@@ -360,6 +373,7 @@ public class SecurityContext {
 				// reload running in the post-response tx commit on a pool thread), which
 				// makes getSession() throw an NPE; treat that as "no session" so callers
 				// fall back to the cached session id instead of failing
+
 				return null;
 			}
 		}
@@ -368,22 +382,27 @@ public class SecurityContext {
 	}
 
 	public HttpServletRequest getRequest() {
+
 		return internalRequest;
 	}
 
 	public HttpServletResponse getResponse() {
+
 		return response;
 	}
 
 	public String getCachedUserId() {
+
 		return cachedUserId;
 	}
 
 	public String getCachedUserName() {
+
 		return cachedUserName;
 	}
 
 	public Principal getCachedUser() {
+
 		return cachedUser;
 	}
 
@@ -401,11 +420,13 @@ public class SecurityContext {
 
 			// update caches, we can safely assume a transaction context here
 			if (cachedUserId == null) {
+
 				this.cachedUserId   = cachedUser.getUuid();
 			}
 
 			// update caches, we can safely assume a transaction context here
 			if (cachedUserName == null) {
+
 				this.cachedUserName = cachedUser.getName();
 			}
 
@@ -423,12 +444,14 @@ public class SecurityContext {
 			// we assume that we will not get new information.
 			// Otherwise, the cachedUser would have been != null
 			// and we would not land here.
+
 			return null;
 		}
 
 		try {
 
 			cachedUser = authenticator.getUser(internalRequest, tryLogin);
+
 			if (cachedUser != null) {
 
 				cachedUserId   = cachedUser.getUuid();
@@ -449,6 +472,7 @@ public class SecurityContext {
 	}
 
 	public boolean hasParameter(final String name) {
+
 		return getRequestParameter(name) != null;
 	}
 
@@ -480,12 +504,14 @@ public class SecurityContext {
 	}
 
 	public Object getAttribute(String key) {
+
 		return attrs.get(key);
 	}
 
 	public <T> T getAttribute(String key, final T defaultValue) {
 
 		if (attrs.containsKey(key)) {
+
 			return (T)attrs.get(key);
 		}
 
@@ -523,6 +549,7 @@ public class SecurityContext {
 	}
 
 	public boolean isSuperUserSecurityContext () {
+
 		return false;
 	}
 
@@ -531,12 +558,15 @@ public class SecurityContext {
 		switch (accessMode) {
 
 			case Backend:
+
 				return isVisibleInBackend(node);
 
 			case Frontend:
+
 				return isVisibleInFrontend(node);
 
 			default:
+
 				return false;
 		}
 	}
@@ -577,6 +607,7 @@ public class SecurityContext {
 	}
 
 	public MergeMode getRemoteCollectionMergeMode() {
+
 		return remoteCollectionMergeMode;
 	}
 
@@ -639,8 +670,8 @@ public class SecurityContext {
 
 		// Fetch already logged-in user, if present (don't try to login)
 		final Principal user = getUser(false);
-
 		if (user != null && user.isAdmin()) {
+
 			return true;
 		}
 
@@ -680,11 +711,13 @@ public class SecurityContext {
 		this.internalRequest = request;
 
 		if (request != null) {
+
 			initializeRequestInfos(request);
 		}
 	}
 
 	public void setResponse(HttpServletResponse response) {
+
 		this.response = response;
 	}
 
@@ -707,11 +740,13 @@ public class SecurityContext {
 	public void setAttribute(final String key, final Object value) {
 
 		if (value != null) {
+
 			attrs.put(key, value);
 		}
 	}
 
 	public void removeAttribute(final String key) {
+
 		attrs.remove(key);
 	}
 
@@ -722,6 +757,7 @@ public class SecurityContext {
 	}
 
 	public void clearCustomView() {
+
 		customView = new LinkedHashSet<>();
 	}
 
@@ -730,35 +766,43 @@ public class SecurityContext {
 		customView = new LinkedHashSet<>();
 
 		for (final String prop : properties) {
+
 			customView.add(prop);
 		}
 	}
 
 	public void setCustomView(final Set<String> properties) {
+
 		customView = properties;
 	}
 
 	public Authenticator getAuthenticator() {
+
 		return authenticator;
 	}
 
 	public void setAuthenticator(final Authenticator authenticator) {
+
 		this.authenticator = authenticator;
 	}
 
 	public boolean hasCustomView() {
+
 		return customView != null && !customView.isEmpty();
 	}
 
 	public Set<String> getCustomView() {
+
 		return customView;
 	}
 
 	public QueryRange getRange(final String key) {
+
 		return ranges.get(key);
 	}
 
 	public Locale getEffectiveLocale() {
+
 		return effectiveLocale;
 	}
 
@@ -804,7 +848,6 @@ public class SecurityContext {
 				locale = request.getLocale();
 
 				final Cookie[] cookies = request.getCookies();
-
 				if (cookies != null) {
 
 					// Priority 3: Cookie locale
@@ -843,102 +886,127 @@ public class SecurityContext {
 	}
 
 	public void enableDetailedCreationResults() {
+
 		this.returnDetailedCreationResults = true;
 	}
 
 	public boolean returnDetailedCreationResults() {
+
 		return this.returnDetailedCreationResults;
 	}
 
 	public List<Object> getCreationDetails() {
+
 		return creationDetails;
 	}
 
 	public boolean doCascadingDelete() {
+
 		return doCascadingDelete;
 	}
 
 	public void setDoCascadingDelete(boolean doCascadingDelete) {
+
 		this.doCascadingDelete = doCascadingDelete;
 	}
 
 	public boolean doTransactionNotifications() {
+
 		return doTransactionNotifications;
 	}
 
 	public void setDoTransactionNotifications(boolean doTransactionNotifications) {
+
 		this.doTransactionNotifications = doTransactionNotifications;
 	}
 
 	public boolean modifyAccessTime() {
+
 		return modifyAccessTime;
 	}
 
 	public void disableModificationOfAccessTime() {
+
 		modifyAccessTime = false;
 	}
 
 	public void enableModificationOfAccessTime() {
+
 		modifyAccessTime = true;
 	}
 
 	public boolean forceResultCount() {
+
 		return forceResultCount;
 	}
 
 	public void disableUuidValidation(final boolean disable) {
+
 		this.disableUuidValidation = disable;
 	}
 
 	public boolean disableSoftLimit() {
+
 		return disableSoftLimit;
 	}
 
 	public void setDisableSoftLimit(final boolean disableSoftLimit) {
+
 		this.disableSoftLimit = disableSoftLimit;
 	}
 
 	public boolean preventDuplicateRelationships() {
+
 		return preventDuplicateRelationships;
 	}
 
 	public void disablePreventDuplicateRelationships() {
+
 		preventDuplicateRelationships = false;
 	}
 
 	public void enablePreventDuplicateRelationships() {
+
 		preventDuplicateRelationships = false;
 	}
 
 	public void disableInnerCallbacks() {
+
 		doInnerCallbacks = false;
 	}
 
 	public void enableInnerCallbacks() {
+
 		doInnerCallbacks = false;
 	}
 
 	public boolean doInnerCallbacks() {
+
 		return doInnerCallbacks;
 	}
 
 	public boolean forceMergeOfNestedProperties() {
+
 		return forceMergeOfNestedProperties;
 	}
 
 	public boolean uuidWasSetManually() {
+
 		return uuidWasSetManually && !disableUuidValidation;
 	}
 
 	public void uuidWasSetManually(final boolean wasSet) {
+
 		this.uuidWasSetManually = wasSet;
 	}
 
 	public boolean ignoreMissingNodesInDeserialization() {
+
 		return ignoreMissingNodesInDeserialization;
 	}
 
 	public void setIgnoreMissingNodesInDeserialization(final boolean value) {
+
 		this.ignoreMissingNodesInDeserialization = value;
 	}
 
@@ -947,32 +1015,39 @@ public class SecurityContext {
 		// return session id for HttpSession if present
 		HttpSession session = getSession();
 		if (session != null) {
+
 			return session.getId();
 		}
 
 		// otherwise return cached session id if present (for websocket connections for example)
+
 		return sessionId;
 	}
 
 	public void setSessionId(String sessionId) {
+
 		this.sessionId = sessionId;
 	}
 
 	public void increaseSerializationDepth() {
+
 		this.serializationDepth++;
 	}
 
 	public void decreaseSerializationDepth() {
+
 		this.serializationDepth--;
 	}
 
 	public int getSerializationDepth() {
+
 		return serializationDepth;
 	}
 
 	public ContextStore getContextStore() {
 
 		if (contextStore == null) {
+
 			setContextStore(new ContextStore());
 		}
 
@@ -980,45 +1055,53 @@ public class SecurityContext {
 	}
 
 	public void setContextStore(ContextStore contextStore) {
+
 		this.contextStore = contextStore;
 	}
 
 	public void setReadOnlyTransaction() {
+
 		this.isReadOnlyTransaction = true;
 	}
 
 	public boolean isReadOnlyTransaction() {
+
 		return isReadOnlyTransaction;
 	}
 
 	public boolean doMultiThreadedJsonOutput() {
+
 		return doMultiThreadedJsonOutput;
 	}
 
 	public void setDoIndexing(final boolean doIndexing) {
+
 		this.doIndexing = doIndexing;
 	}
 
 	public boolean doIndexing() {
+
 		return doIndexing;
 	}
 
 	public void storeTemporary(final String uuid) {
+
 		tmp.put(uuid, this);
 	}
 
 	public void clearTemporary(final String uuid) {
+
 		tmp.remove(uuid);
 	}
 
 	public int getSoftLimit(final int pageSize) {
 
 		if (disableSoftLimit) {
+
 			return Integer.MAX_VALUE;
 		}
 
 		final int softLimit = Settings.ResultCountSoftLimit.getValue();
-
 		if (pageSize > 0 && pageSize < Integer.MAX_VALUE && pageSize > softLimit) {
 
 			return pageSize;
@@ -1028,19 +1111,23 @@ public class SecurityContext {
 	}
 
 	public boolean returnRawResult() {
+
 		return returnRawResult;
 	}
 
 	public void enableReturnRawResult() {
+
 		this.returnRawResult = true;
 	}
 
 	public void disableReturnRawResult() {
+
 		this.returnRawResult = false;
 	}
 
 	// ----- static methods -----
 	public static SecurityContext getTemporaryStoredContext(final String uuid) {
+
 		return tmp.get(uuid);
 	}
 
@@ -1050,6 +1137,7 @@ public class SecurityContext {
 		private static final SuperUser superUser = new SuperUser();
 
 		public SuperUserSecurityContext(HttpServletRequest request) {
+
 			super(request);
 		}
 
@@ -1064,16 +1152,19 @@ public class SecurityContext {
 
 		@Override
 		public Principal getCachedUser() {
+
 			return superUser;
 		}
 
 		@Override
 		public String getCachedUserId() {
+
 			return Principal.SUPERUSER_ID;
 		}
 
 		@Override
 		public String getCachedUserName() {
+
 			return Settings.SuperUserName.getValue();
 		}
 
@@ -1085,21 +1176,25 @@ public class SecurityContext {
 
 		@Override
 		public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
+
 			return true;
 		}
 
 		@Override
 		public boolean isVisible(final GraphObject node) {
+
 			return true;
 		}
 
 		@Override
 		public boolean isSuperUser() {
+
 			return true;
 		}
 
 		@Override
 		public boolean isSuperUserSecurityContext () {
+
 			return true;
 		}
 	}

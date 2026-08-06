@@ -108,6 +108,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			// FIXME, only the first property set is used, we need to test this
+
 			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet.get(0)));
 
 		} else {
@@ -139,6 +140,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
@@ -156,6 +158,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of(method.getHttpVerb());
 	}
 }

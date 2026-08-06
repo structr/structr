@@ -25,6 +25,7 @@ import org.structr.flow.traits.definitions.FlowGetPropertyTraitDefinition;
 public class FlowGetProperty extends FlowDataSource {
 
 	public FlowGetProperty(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -51,6 +52,7 @@ public class FlowGetProperty extends FlowDataSource {
 	}
 
 	public final String getPropertyName() {
+
 		return wrappedObject.getProperty(traits.key(FlowGetPropertyTraitDefinition.PROPERTY_NAME_PROPERTY));
 	}
 }

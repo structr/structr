@@ -87,6 +87,7 @@ public class XMPPContext {
 
 						// enable clients on startup
 						if (client.getIsEnabled()) {
+
 							XMPPContext.connect(client);
 						}
 					}
@@ -94,6 +95,7 @@ public class XMPPContext {
 					tx.success();
 
 				} catch (Throwable t) {
+
 					logger.error("Unable to access XMPP clients: {}", t.getMessage());
 				}
 			}
@@ -124,6 +126,7 @@ public class XMPPContext {
 	}
 
 	public static XMPPClientConnection getClientForId(final String id) {
+
 		return connections.get(id);
 	}
 
@@ -241,6 +244,7 @@ public class XMPPContext {
 			if (isConnected) {
 
 				try {
+
 					final Presence presence = new Presence(Presence.Type.available);
 					presence.setMode(mode);
 
@@ -263,6 +267,7 @@ public class XMPPContext {
 			if (isConnected) {
 
 				try {
+
 					final Presence presence = new Presence(Presence.Type.subscribe);
 					presence.setTo(JidCreate.bareFrom(to));
 
@@ -285,6 +290,7 @@ public class XMPPContext {
 			if (isConnected) {
 
 				try {
+
 					final Presence presence = new Presence(Presence.Type.subscribed);
 					presence.setTo(JidCreate.bareFrom(subscriber));
 
@@ -307,6 +313,7 @@ public class XMPPContext {
 			if (isConnected) {
 
 				try {
+
 					final Presence presence = new Presence(Presence.Type.unsubscribed);
 					presence.setTo(JidCreate.bareFrom(subscriber));
 
@@ -329,6 +336,7 @@ public class XMPPContext {
 			if (isConnected) {
 
 				try {
+
 					final Presence presence = new Presence(Presence.Type.unsubscribe);
 					presence.setTo(JidCreate.bareFrom(to));
 
@@ -347,16 +355,19 @@ public class XMPPContext {
 
 		@Override
 		public Exception getException() {
+
 			return exception;
 		}
 
 		@Override
 		public boolean isConnected() {
+
 			return isConnected;
 		}
 
 		@Override
 		public boolean isAuthenticated() {
+
 			return isAuthenticated;
 		}
 
@@ -364,28 +375,34 @@ public class XMPPContext {
 		public void disconnect() {
 
 			if (isConnected) {
+
 				connection.disconnect();
 			}
 		}
 
 		public String getUuid() {
+
 			return uuid;
 		}
 
 		public void setJID(final String jid) {
+
 			this.jid = jid;
 		}
 
 		public void setResource(final String resource) {
+
 			this.resource = resource;
 		}
 
 		// ----- interface ConnectionListener -----
 		@Override
 		public void connected(final XMPPConnection xmppc) {
+
 			isConnected = true;
 
 			try {
+
 				connection.login();
 
 			} catch (Exception ex) {
@@ -396,11 +413,13 @@ public class XMPPContext {
 
 		@Override
 		public void authenticated(final XMPPConnection xmppc, final boolean resumed) {
+
 			isAuthenticated = true;
 		}
 
 		@Override
 		public void connectionClosed() {
+
 			isConnected = false;
 		}
 
@@ -412,6 +431,7 @@ public class XMPPContext {
 		}
 		@Override
 		public void processStanza(Stanza stanza) throws NotConnectedException, InterruptedException, SmackException.NotLoggedInException {
+
 			final TypeHandler handler = typeHandlers.get(stanza.getClass().getName());
 			if (handler != null) {
 

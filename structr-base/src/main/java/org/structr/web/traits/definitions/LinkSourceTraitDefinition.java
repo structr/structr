@@ -47,30 +47,32 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String LINKABLE_ID_PROPERTY = "linkableId";
 
 	public LinkSourceTraitDefinition() {
+
 		super(StructrTraits.LINK_SOURCE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			LinkSource.class, (traits, node) -> new LinkSourceTraitWrapper(traits, node)
-		);
+		return Map.of(LinkSource.class, (traits, node) -> new LinkSourceTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -79,25 +81,18 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> linkableProperty = new EndNode(traitsInstance, LINKABLE_PROPERTY, StructrTraits.LINK_SOURCE_LINK_LINKABLE);
 		final Property<String> linkableIdProperty      = new EntityIdProperty(LINKABLE_ID_PROPERTY, StructrTraits.LINK_SOURCE, LINKABLE_PROPERTY, StructrTraits.LINKABLE);
 
-		return Set.of(
-			linkableProperty,
-			linkableIdProperty
-		);
+		return Set.of(linkableProperty, linkableIdProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Ui,
-			newSet(
-				LINKABLE_ID_PROPERTY, LINKABLE_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Ui, newSet(LINKABLE_ID_PROPERTY, LINKABLE_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

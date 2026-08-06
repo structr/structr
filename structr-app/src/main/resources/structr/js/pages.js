@@ -1349,10 +1349,13 @@ let _Pages = {
 				relinkHint.style.color = isError ? '#c0392b' : '';
 			};
 			const updateHint = (taskId, subj) => {
-				if (taskId && subj)       setHint(`Subject type from this UserTask: ${subj}`, false);
-				else if (taskId)          setHint('Bound UserTask has no subjectType. Set it in the BPMN editor to drive process-bound rendering.', true);
+				if (taskId && subj)       setHint(`Subject type (from the process): ${subj}`, false);
+				else if (taskId)          setHint('This process has no subject type. Set it on the Process tab in the BPMN editor to drive process-bound rendering.', true);
 				else                      setHint('Unbound. Process-bound widgets fall back to their manual data source until a task is selected.', false);
 			};
+
+			// The subject type is process-level (one subject per instance): resolve it from the
+			// bound task's owning process via _Processes.getSubjectType, not the task itself.
 
 			// Cached per-process userTask lists so flipping the Process dropdown
 			// is instantaneous after the first hit.
@@ -1388,9 +1391,8 @@ let _Pages = {
 					boundTask    = config?.boundUserTask || null;
 					if (boundTask && typeof boundTask === 'object') {
 						currentTaskId  = boundTask.id || '';
-						currentSubject = boundTask.subjectType || null;
-						const procRel  = Array.isArray(boundTask.process) ? boundTask.process[0] : boundTask.process;
-						currentProcessId = (procRel && procRel.id) || '';
+						currentProcessId = _Processes.processRefId(boundTask) || '';
+						currentSubject = await _Processes.getSubjectType(currentProcessId);
 					}
 				} catch (e) {
 					console.error('processDialog: failed to fetch ComponentConfiguration', e);
@@ -1444,7 +1446,7 @@ let _Pages = {
 					try {
 						const updated = await Command.getPromise(componentConfigId, '', 'ui');
 						const bt   = updated?.boundUserTask || null;
-						const subj = (bt && typeof bt === 'object') ? bt.subjectType : null;
+						const subj = await _Processes.getSubjectType(_Processes.processRefId(bt));
 						relinkSelect.dataset.current = newId || '';
 						updateHint(newId, subj);
 						_Helpers.blinkGreen(relinkSelect);
@@ -1669,7 +1671,7 @@ let _Pages = {
 			// Tasks (participant)
 			{ value: 'claim',         label: 'Claim a task',                            group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
 			{ value: 'complete',      label: 'Complete a task',                         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
-			{ value: 'completeWithSubject', label: 'Complete a task and create the subject', group: 'Tasks', elementType: 'userTask', needsTarget: true,  needsSubjectType: true },
+			{ value: 'completeWithSubject', label: 'Complete a task, creating or updating the subject', group: 'Tasks', elementType: 'userTask', needsTarget: true,  needsSubjectType: true },
 			{ value: 'release',       label: 'Release a task back to the pool',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
 			{ value: 'decline',       label: 'Decline a task (vote, reversible)',       group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
 			{ value: 'delegate',      label: 'Delegate a task to someone else',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
@@ -1835,9 +1837,13 @@ let _Pages = {
 		// an existing step after the load completes.
 		let loadProcessSteps = (processId, preselectStepId) => {
 			processElementSelect.innerHTML = '<option value="">— Select step —</option>';
+			processElementSelect.dataset.subjectType = '';
 			if (!processId) {
 				return;
 			}
+			// Subject type is process-level: fetch it once and stash it on the select, so the
+			// step-change handler can fill the Data type for completeWithSubject.
+			_Processes.getSubjectType(processId).then((st) => { processElementSelect.dataset.subjectType = st || ''; });
 			let cfg = lookupProcessOperation(processOperationSelect.value);
 			let elementTypeFilter = cfg?.elementType;
 			Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, (elements) => {
@@ -1856,13 +1862,13 @@ let _Pages = {
 				processElementSelect.insertAdjacentHTML('beforeend',
 					filtered.map(el => {
 						let label = el.bpmnName ?? el.bpmnId;
-						return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-subject-type="${_Helpers.escapeTags(el.subjectType ?? '')}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
+						return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
 					}).join('')
 				);
 				if (preselectStepId) {
 					processElementSelect.value = preselectStepId;
 				}
-			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,subjectType,process');
+			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,process');
 		};
 
 		processOperationSelect.addEventListener('change', () => {
@@ -1878,14 +1884,13 @@ let _Pages = {
 			saveEventMappingData(entity);
 		});
 		processElementSelect.addEventListener('change', () => {
-			// Derive the Data type from the selected step's declared subjectType
-			// (the process/UI contract) for operations that create the subject,
-			// e.g. completeWithSubject. The process declares it, the action
-			// consumes it. Only fills when the step actually declares one, so a
-			// step without a subjectType leaves the field untouched.
+			// Derive the Data type from the process's subjectType (the process/UI contract)
+			// for operations that create the subject, e.g. completeWithSubject. The process
+			// declares it once, the action consumes it. Only fills when the process actually
+			// declares one, so a process without a subjectType leaves the field untouched.
 			let opCfg = lookupProcessOperation(processOperationSelect.value);
 			if (opCfg?.needsSubjectType) {
-				let st = processElementSelect.selectedOptions[0]?.dataset.subjectType || '';
+				let st = processElementSelect.dataset.subjectType || '';
 				if (st) { dataTypeInput.value = st; dataTypeSelect.value = st; }
 			}
 			saveEventMappingData(entity);
@@ -5233,9 +5238,9 @@ let _Pages = {
 						</div>
 						<div class="inline-info-text">
 							Attaches this component's <code>ComponentConfiguration</code> to a BPMN UserTask. The bound
-							UserTask is the source of truth for the subject type (rendered fields) and lets process-bound
-							widgets derive their data source from <code>subjectType</code>. Primary recovery path after a
-							process re-import that orphans the previous binding.
+							UserTask's process is the source of truth for the subject type, letting process-bound widgets
+							derive their data source from the process's <code>subjectType</code> (the task narrows which
+							fields are shown). Primary recovery path after a process re-import that orphans the previous binding.
 						</div>
 					</div>
 

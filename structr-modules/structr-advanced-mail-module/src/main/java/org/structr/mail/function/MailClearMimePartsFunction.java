@@ -29,16 +29,19 @@ import java.util.List;
 public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 
 	public MailClearMimePartsFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailClearMimeParts";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,19 +55,19 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailClearMimeParts()}"),
-			Usage.javaScript("Usage: ${{ $.mailClearMimeParts() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailClearMimeParts()}"), Usage.javaScript("Usage: ${{ $.mailClearMimeParts() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes all custom MIME parts from the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

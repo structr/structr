@@ -29,16 +29,19 @@ import java.util.List;
 public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFunction {
 
 	public MailGetLastOutgoingMessageFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailGetLastOutgoingMessage";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -51,26 +54,25 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailGetLastOutgoingMessage()}"),
-			Usage.javaScript("Usage: ${{ $.mailGetLastOutgoingMessage() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailGetLastOutgoingMessage()}"), Usage.javaScript("Usage: ${{ $.mailGetLastOutgoingMessage() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the last outgoing message sent by the advanced mail module in the current script as a node of type `EMailMessage`.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"This method will only yield a result if `mailSaveOutgoingMessage()` was active when sending the mail."
-		);
+
+		return List.of("This method will only yield a result if `mailSaveOutgoingMessage()` was active when sending the mail.");
 	}
 }

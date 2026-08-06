@@ -68,11 +68,13 @@ public class OntologyTest extends StructrUiTest {
 	public void testUnsupportedPhrases() {
 
 		try {
+
 			new Ontology(new TestFacts("testUnsupportedPhrases1", "Auth0 button uses Auth0 provider and has hint \"Only visible if Auth0 provider is configured in structr.conf\""));
 			fail("Using compound phrases should fail.");
 		} catch (RuntimeException e) { }
 
 		try {
+
 			new Ontology(new TestFacts("testUnsupportedPhrases2", "Pages area has buttons one and two and has inputs three and four"));
 			fail("Using compound phrases should fail.");
 		} catch (RuntimeException e) { }
@@ -104,7 +106,6 @@ public class OntologyTest extends StructrUiTest {
 	public void testInverseVerbs() {
 
 		final String facts = "Type Test isCreatedBy button Test";
-
 		final Ontology ontology = new Ontology(new TestFacts("testInverseVerbs", facts));
 
 		assertNotNull(ontology.getConcept(ConceptType.Type, "Test"));
@@ -300,8 +301,6 @@ public class OntologyTest extends StructrUiTest {
 			children.moveChild(0, 2);
 			*/
 		}
-
-
 
 		System.out.println(facts.toString());
 	}

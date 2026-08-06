@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 public interface ResourceAccess extends NodeInterface {
 
 	static boolean hasFlag(long flag, long flags) {
+
 		return (flags & flag) == flag;
 	}
 

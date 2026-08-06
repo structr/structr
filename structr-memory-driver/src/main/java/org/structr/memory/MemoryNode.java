@@ -36,10 +36,12 @@ import java.util.Map;
 public class MemoryNode extends MemoryEntity implements Node<Long> {
 
 	private MemoryNode(final MemoryDatabaseService db) {
+
 		super(db);
 	}
 
 	public MemoryNode(final MemoryDatabaseService db, final MemoryIdentity identity) {
+
 		super(db, identity);
 	}
 
@@ -72,6 +74,7 @@ public class MemoryNode extends MemoryEntity implements Node<Long> {
 
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType relationshipType, final Node<Long> targetNode) {
+
 		return getRelationshipTo(relationshipType, targetNode) != null;
 	}
 
@@ -86,25 +89,26 @@ public class MemoryNode extends MemoryEntity implements Node<Long> {
 		return Iterables.first(Iterables.filter(r -> {
 
 			return
-				   sourceId.equals(r.getSourceNodeIdentity())
-				&& targetId.equals(r.getTargetNodeIdentity())
-				&& name.equals(r.getType().name());
+				   sourceId.equals(r.getSourceNodeIdentity()) && targetId.equals(r.getTargetNodeIdentity()) && name.equals(r.getType().name());
 
 		}, tx.getRelationships(new MemoryLabelFilter<>(name))));
 	}
 
 	@Override
 	public Iterable<Relationship<Long>> getRelationships() {
+
 		return db.getRelationships(this);
 	}
 
 	@Override
 	public Iterable<Relationship<Long>> getRelationships(final Direction direction) {
+
 		return db.getRelationships(this, direction);
 	}
 
 	@Override
 	public Iterable<Relationship<Long>> getRelationships(final Direction direction, final RelationshipType relationshipType) {
+
 		return db.getRelationships(this, direction, relationshipType);
 	}
 
@@ -123,6 +127,7 @@ public class MemoryNode extends MemoryEntity implements Node<Long> {
 				degree.put(type, 1L);
 
 			} else {
+
 				degree.put(type, count + 1);
 			}
 		}
@@ -132,17 +137,20 @@ public class MemoryNode extends MemoryEntity implements Node<Long> {
 
 	@Override
 	public void delete(boolean deleteRelationships) throws NotInTransactionException {
+
 		lock();
 		db.delete(this);
 	}
 
 	@Override
 	public boolean isNode() {
+
 		return true;
 	}
 
 	@Override
 	protected void updateCache() {
+
 		db.updateCache(this);
 	}
 

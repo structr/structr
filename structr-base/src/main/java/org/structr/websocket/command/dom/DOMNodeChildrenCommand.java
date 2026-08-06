@@ -70,6 +70,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "DOM_NODE_CHILDREN";
 	}
 

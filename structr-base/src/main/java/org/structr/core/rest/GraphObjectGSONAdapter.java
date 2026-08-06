@@ -149,6 +149,7 @@ public class GraphObjectGSONAdapter {
 		if (serializer == null && !nonSerializerClasses.contains(type.getName())) {
 
 			do {
+
 				serializer = serializers.get(localType.getName());
 
 				if (serializer == null) {
@@ -161,6 +162,7 @@ public class GraphObjectGSONAdapter {
 						serializer = serializers.get(interfaceType.getName());
 
 						if (serializer != null) {
+
 							break;
 						}
 					}
@@ -170,9 +172,9 @@ public class GraphObjectGSONAdapter {
 
 			} while (serializer == null && !localType.equals(Object.class));
 
-
 			// cache found serializer
 			if (serializer != null) {
+
 				serializerCache.put(type.getName(), serializer);
 			}
 		}
@@ -183,6 +185,7 @@ public class GraphObjectGSONAdapter {
 	private void collectAllInterfaces(Class type, Set<Class> interfaces) {
 
 		if (interfaces.contains(type)) {
+
 			return;
 		}
 
@@ -214,11 +217,12 @@ public class GraphObjectGSONAdapter {
 		public JsonElement serializeProperty(PropertyKey key, Object value, String localPropertyView, int depth) {
 
 			try {
-				PropertyConverter converter = key.inputConverter(securityContext, false);
 
+				PropertyConverter converter = key.inputConverter(securityContext, false);
 				if (converter != null) {
 
 					try {
+
 						return serializeRoot(converter.revert(value), localPropertyView, depth);
 
 					} catch (ClassCastException cce) {
@@ -276,11 +280,13 @@ public class GraphObjectGSONAdapter {
 
 					// speciality for the Ui view: limit recursive rendering to (id, name)
 					if (compactNestedProperties && depth > 0 && ((PropertyView.Ui.equals(localPropertyView) && !securityContext.isSuperUserSecurityContext()) || PropertyView.All.equals(localPropertyView))) {
+
 						keys = Traits.getDefaultKeys();
 					}
 
 					// prefetching hook
 					if (source instanceof NodeInterface n) {
+
 						n.prefetchPropertySet(keys);
 					}
 
@@ -317,6 +323,7 @@ public class GraphObjectGSONAdapter {
 			}
 
 			final JsonArray array = new JsonArray();
+
 			for (Object o : value) {
 
 				array.add(serializeRoot(o, localPropertyView, depth));

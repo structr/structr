@@ -47,6 +47,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		super.setFormat(format);
 
 		for (final String value : format.split("[, ]+")) {
+
 			enums.add(value.trim());
 		}
 
@@ -55,6 +56,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 	@Override
 	public Set<String> getEnums() {
+
 		return enums;
 	}
 
@@ -75,7 +77,6 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		super.deserialize(source);
 
 		final List<String> enumValues = getListOrNull(source.get(JsonSchema.KEY_ENUM));
-
 		if (enumValues != null && !enumValues.isEmpty()) {
 
 			enums.addAll((List)enumValues);
@@ -84,12 +85,14 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 	@Override
 	public String getFormat() {
+
 		return StringUtils.join(getEnums(), ", ");
 	}
 
 	// ----- protected methods -----
 	@Override
 	protected Type getTypeToSerialize() {
+
 		return Type.Enum;
 	}
 

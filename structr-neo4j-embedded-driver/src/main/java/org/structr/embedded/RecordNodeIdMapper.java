@@ -29,6 +29,7 @@ class RecordNodeIdMapper implements Function<Record, NodeId> {
 
 	@Override
 	public NodeId apply(final Record t) {
+
 		return new NodeId(t);
 	}
 }

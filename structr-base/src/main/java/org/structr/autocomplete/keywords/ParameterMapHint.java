@@ -24,16 +24,19 @@ public class ParameterMapHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "parameterMap";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the HTTP request parameters of the current request.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `parameterMap` keyword allows you to access the HTTP request parameters of the current request as a map, similar to the `request` keyword.";
 	}
 }

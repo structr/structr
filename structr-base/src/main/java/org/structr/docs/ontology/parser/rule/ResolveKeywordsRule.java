@@ -30,6 +30,7 @@ import java.util.List;
 public class ResolveKeywordsRule extends Rule {
 
 	public ResolveKeywordsRule(Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -41,11 +42,9 @@ public class ResolveKeywordsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.pop();
-
 			if (token1 instanceof NewKeywordToken && !tokens.isEmpty()) {
 
 				AbstractToken token2 = tokens.pop();
-
 				if (token2 instanceof ConceptToken concept2) {
 
 					concept2.setAllowReuse(false);

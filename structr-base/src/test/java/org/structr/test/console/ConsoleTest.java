@@ -37,7 +37,6 @@ import static org.testng.AssertJUnit.*;
 
 public class ConsoleTest extends StructrUiTest {
 
-
 	@Test
 	public void testSwitchModes() {
 
@@ -50,8 +49,8 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "Mode set to 'JavaScript'.\r\n",    console.runForTest("Console.setMode('" + ConsoleMode.JavaScript.name() + "')"));
 			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.AdminShell.name() + "')"));
 
-
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 			fex.printStackTrace();
 		}
@@ -140,6 +139,7 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "root\r\n", console.runForTest("user list"));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -149,7 +149,6 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-
 		final int nodeCount           = 0;
 		final int relCount            = 0;
 		final int resourceAccessCount = 0;
@@ -281,8 +280,8 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "Cannot set labels on relationships.\r\n", console.runForTest("init rel labels for test User"));
 			assertEquals("Invalid console execution result", "Unknown init mode 'test'.\r\n", console.runForTest("init test relationship test labels for User"));
 
-
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 			fex.printStackTrace();
 		}

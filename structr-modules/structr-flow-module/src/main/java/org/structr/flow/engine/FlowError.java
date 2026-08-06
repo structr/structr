@@ -24,6 +24,7 @@ public class FlowError {
 	private final Throwable cause;
 
 	public FlowError(final String message, final Throwable cause) {
+
 		this.message = message;
 		this.cause = cause;
 	}
@@ -31,11 +32,13 @@ public class FlowError {
 	public Throwable getCause() { return cause; }
 
 	public String getMessage() {
+
 		return message;
 	}
 
 	@Override
 	public String toString() {
+
 		return getMessage();
 	}
 }

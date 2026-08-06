@@ -42,54 +42,67 @@ public class RuntimeEventLog {
 	private static final BlockingDeque<RuntimeEvent> events = new LinkedBlockingDeque<>(101_000);
 
 	private enum EventType {
+
 		Transaction, Maintenance, Cron, ResourceAccess, Authentication, Rest, Http, Csv, Scripting, SystemInfo, GraphQL
 	}
 
 	public static void resourceAccess(final String description, final Map<String, Object> data) {
+
 		add(EventType.ResourceAccess, description, data);
 	}
 
 	public static void failedLogin(final String description, final Map<String, Object> data) {
+
 		add(EventType.Authentication, description, data);
 	}
 
 	public static void login(final String description, final Map<String, Object> data) {
+
 		add(EventType.Authentication, description, data);
 	}
 
 	public static void token(final String description, final Map<String, Object> data) {
+
 		add(EventType.Authentication, description, data);
 	}
 
 	public static void logout(final String description, final Map<String, Object> data) {
+
 		add(EventType.Authentication, description, data);
 	}
 
 	public static void registration(final String description, final Map<String, Object> data) {
+
 		add(EventType.Authentication, description, data);
 	}
 
 	public static void transaction(final String status) {
+
 		add(EventType.Transaction, status);
 	}
 
 	public static void transaction(final String status, final Map<String, Object> data) {
+
 		add(EventType.Transaction, status, data);
 	}
 
 	public static void cron(final String command) {
+
 		add(EventType.Cron, command);
 	}
 
 	public static void cron(final String command, final Map<String, Object> data) {
+
 		add(EventType.Cron, command, data);
 	}
 
 	public static void maintenance(final String command) {
+
 		add(EventType.Maintenance, command);
 	}
 
 	public static void maintenance(final String command, final Map<String, Object> data) {
+
 		add(EventType.Maintenance, command, data);
 	}
 
@@ -97,19 +110,11 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Rest, method, Map.of(
-					METHOD_KEY, method,
-					PATH_KEY,   path,
-					ID_KEY,     user.getUuid(),
-					NAME_KEY,   user.getName()
-			));
+			add(EventType.Rest, method, Map.of(METHOD_KEY, method, PATH_KEY,   path, ID_KEY,     user.getUuid(), NAME_KEY,   user.getName()));
 
 		} else {
 
-			add(EventType.Rest, method, Map.of(
-					METHOD_KEY, method,
-					PATH_KEY,   path
-			));
+			add(EventType.Rest, method, Map.of(METHOD_KEY, method, PATH_KEY,   path));
 		}
 	}
 
@@ -117,19 +122,11 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Csv, method, Map.of(
-					METHOD_KEY, method,
-					PATH_KEY,   path,
-					ID_KEY,     user.getUuid(),
-					NAME_KEY,   user.getName()
-			));
+			add(EventType.Csv, method, Map.of(METHOD_KEY, method, PATH_KEY,   path, ID_KEY,     user.getUuid(), NAME_KEY,   user.getName()));
 
 		} else {
 
-			add(EventType.Csv, method, Map.of(
-					METHOD_KEY, method,
-					PATH_KEY,   path
-			));
+			add(EventType.Csv, method, Map.of(METHOD_KEY, method, PATH_KEY,   path));
 		}
 	}
 
@@ -137,10 +134,7 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.GraphQL, query, Map.of(
-					ID_KEY,   user.getUuid(),
-					NAME_KEY, user.getName()
-			));
+			add(EventType.GraphQL, query, Map.of(ID_KEY,   user.getUuid(), NAME_KEY, user.getName()));
 
 		} else {
 
@@ -152,10 +146,7 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Http, path, Map.of(
-					ID_KEY, user.getUuid(),
-					NAME_KEY, user.getName()
-			));
+			add(EventType.Http, path, Map.of(ID_KEY, user.getUuid(), NAME_KEY, user.getName()));
 
 		} else {
 
@@ -164,14 +155,17 @@ public class RuntimeEventLog {
 	}
 
 	public static void scripting(final String errorName, final Map<String, Object> data) {
+
 		add(EventType.Scripting, errorName, data);
 	}
 
 	public static void systemInfo(final String info, final Map<String, Object> data) {
+
 		add(EventType.SystemInfo, info, data);
 	}
 
 	public static List<RuntimeEvent> getEvents() {
+
 		return getEvents(null);
 	}
 
@@ -200,6 +194,7 @@ public class RuntimeEventLog {
 
 	// ----- private methods -----
 	private static void add(final EventType type, final String description) {
+
 		add(type, description, Collections.EMPTY_MAP);
 	}
 
@@ -208,6 +203,7 @@ public class RuntimeEventLog {
 		events.addFirst(new RuntimeEvent(type.name(), description, data));
 
 		if (events.remainingCapacity() < 1000) {
+
 			events.removeLast();
 		}
 	}

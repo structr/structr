@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  targetNamespace="http://structr.org/test">
+  <bpmn:process id="vis_multi" name="VisibilityMultiType" isExecutable="true">
+
+    <!-- 1. startEvent -->
+    <bpmn:startEvent id="Start_1" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- 2. userTask (waits, creates a TaskInstance) -->
+    <bpmn:userTask id="Task_Fill" name="Fill request">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <!-- 3. serviceTask with no implementation (pass-through, no div) -->
+    <bpmn:serviceTask id="Task_Auto" name="Auto step">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <!-- 4. manualTask (pass-through; generator gives it a process-awaiting-action div) -->
+    <bpmn:manualTask id="Task_Manual" name="Manual step">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:manualTask>
+
+    <!-- 5. intermediateCatchEvent, message (waits; generator gives it a process-awaiting-action div) -->
+    <bpmn:intermediateCatchEvent id="Event_Wait" name="Await message">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_1" messageRef="Msg_1"/>
+    </bpmn:intermediateCatchEvent>
+
+    <!-- 6. second userTask -->
+    <bpmn:userTask id="Task_Review" name="Review">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <!-- 7. endEvent -->
+    <bpmn:endEvent id="End_1" name="End">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"    targetRef="Task_Fill"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Fill"  targetRef="Task_Auto"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Auto"  targetRef="Task_Manual"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Manual" targetRef="Event_Wait"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Event_Wait" targetRef="Task_Review"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Review" targetRef="End_1"/>
+
+  </bpmn:process>
+
+  <bpmn:message id="Msg_1" name="Delivery"/>
+</bpmn:definitions>

@@ -31,16 +31,19 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.page";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.page";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.page";
 	}
 
@@ -61,6 +64,7 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 			}
 
 			if (page == 0) {
+
 				logger.warn("Page function used with page == 0 while page count starts at 1.");
 			}
 
@@ -76,6 +80,7 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.page(page, pageSize) }}. Example: ${{ $.find('Group', $.predicate.page(1, 10)) }}"),
 			Usage.structrScript("Usage: ${page(page, pageSize). Example: ${find('Group', page(1, 10))}")
@@ -84,21 +89,25 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("page, pageSize");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

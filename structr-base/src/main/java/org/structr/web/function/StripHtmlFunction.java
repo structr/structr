@@ -34,11 +34,13 @@ public class StripHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "stripHtml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("html");
 	}
 
@@ -54,58 +56,56 @@ public class StripHtmlFunction extends UiCommunityFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${stripHtml(html)}."),
-			Usage.javaScript("Usage: ${{$.stripHtml(html)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${stripHtml(html)}."), Usage.javaScript("Usage: ${{$.stripHtml(html)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes all HTML tags from the given source string and returns only the content.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${stripHtml('<h3><p>Clean me!</p></h3>')}"),
-				Example.javaScript("${{ $.stripHtml('<h3><p>Clean me!</p></h3>') }}")
-		);
+
+		return List.of(Example.structrScript("${stripHtml('<h3><p>Clean me!</p></h3>')}"), Example.javaScript("${{ $.stripHtml('<h3><p>Clean me!</p></h3>') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("source", "HTML string for content extraction")
-				);
+		return List.of(Parameter.mandatory("source", "HTML string for content extraction"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Similar results can be produced by `strReplace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`"
-		);
+
+		return List.of("Similar results can be produced by `strReplace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

@@ -45,6 +45,7 @@ public class JobQueueManager {
 	public static JobQueueManager getInstance() {
 
 		if (singletonInstance == null) {
+
 			singletonInstance = new JobQueueManager();
 		}
 
@@ -81,29 +82,36 @@ public class JobQueueManager {
 	public boolean startJob(final Long jobId) {
 
 		final ScheduledJob job = removeFromQueueInternal(jobId);
-
 		if (job != null) {
+
 			activeJobs.put(jobId, job);
 			job.startJob();
+
 			return true;
+
 		} else {
+
 			return false;
 		}
 	}
 
 	public void pauseRunningJob(final Long jobId) {
+
 		activeJobs.get(jobId).pauseJob();
 	}
 
 	public void resumePausedJob(final Long jobId) {
+
 		activeJobs.get(jobId).resumeJob();
 	}
 
 	public void abortActiveJob(final Long jobId) {
+
 		activeJobs.get(jobId).abortJob();
 	}
 
 	public void cancelQueuedJob(final Long jobId) {
+
 		removeFromQueueInternal(jobId);
 	}
 
@@ -111,6 +119,7 @@ public class JobQueueManager {
 
 		queuedJobs.keySet().forEach((queuedJobId) -> {
 			if (queuedJobId > jobId) {
+
 				removeFromQueueInternal(queuedJobId);
 			}
 		});
@@ -146,6 +155,7 @@ public class JobQueueManager {
 	}
 
 	private void addJobToList (final List<Map<String, Object>> list, final ScheduledJob job) {
+
 		list.add(job.getJobInfo());
 	}
 
@@ -154,6 +164,7 @@ public class JobQueueManager {
 		activeJobs.remove(job.jobId());
 
 		if (canRunMoreJobs()) {
+
 			startNextJobInQueue();
 		}
 
@@ -164,17 +175,21 @@ public class JobQueueManager {
 		activeJobs.remove(job.jobId());
 
 		if (canRunMoreJobs()) {
+
 			startNextJobInQueue();
 		}
 	}
 
 	private void appendToQueueInternal (final ScheduledJob job) {
+
 		jobIdQueue.add(job.jobId());
 		queuedJobs.put(job.jobId(), job);
 	}
 
 	private ScheduledJob removeFromQueueInternal (final Long jobId) {
+
 		jobIdQueue.remove(jobId);
+
 		return queuedJobs.remove(jobId);
 	}
 
@@ -199,11 +214,13 @@ public class JobQueueManager {
 	}
 
 	private void startNextJobInQueue() {
-		final Long jobId = jobIdQueue.peek();
 
+		final Long jobId = jobIdQueue.peek();
 		if (jobId != null) {
+
 			boolean didStart = startJob(jobId);
 			if (!didStart) {
+
 				startNextJobInQueue();
 			}
 		}

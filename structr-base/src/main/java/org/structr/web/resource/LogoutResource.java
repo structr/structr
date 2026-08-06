@@ -18,7 +18,6 @@
  */
 package org.structr.web.resource;
 
-
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Documentation;
 import org.structr.docs.ontology.ConceptType;
@@ -34,11 +33,13 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class LogoutResource extends ExactMatchEndpoint {
 
 	public LogoutResource() {
+
 		super(RESTParameter.forStaticString("logout", true, "_logout"));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new LogoutResourceHandler(call);
 	}
 }

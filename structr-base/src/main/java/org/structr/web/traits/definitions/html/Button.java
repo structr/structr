@@ -42,6 +42,7 @@ public class Button extends GenericHtmlElementTraitDefinition {
 	public static final String VALUE_PROPERTY          = getPrefixedHTMLAttributeName("value");
 
 	public Button() {
+
 		super(StructrTraits.BUTTON);
 	}
 

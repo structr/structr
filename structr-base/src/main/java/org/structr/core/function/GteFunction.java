@@ -29,11 +29,13 @@ public class GteFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "gte";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
@@ -45,33 +47,31 @@ public class GteFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${gte(value1, value2)}"),
-				Usage.javaScript("Usage: ${{ $.gte(value1, value2) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${gte(value1, value2)}"), Usage.javaScript("Usage: ${{ $.gte(value1, value2) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the first argument is greater than or equal to the second argument.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function tries to convert its arguments into numerical values, i.e. you can compare strings numerically.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("value1", "first value"),
-			Parameter.mandatory("value2", "second value")
-		);
+		return List.of(Parameter.mandatory("value1", "first value"), Parameter.mandatory("value2", "second value"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${gte(1, 2)}", "This will return `false`"),
 			Example.structrScript("${gte(2, 1)}", "This will return `true`"),
@@ -82,6 +82,7 @@ public class GteFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

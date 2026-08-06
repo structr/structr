@@ -29,16 +29,19 @@ import java.util.List;
 public class MailClearToFunction extends AdvancedMailModuleFunction {
 
 	public MailClearToFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailClearTo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,19 +55,19 @@ public class MailClearToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailClearTo()}"),
-			Usage.javaScript("Usage: ${{ $.mailClearTo() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailClearTo()}"), Usage.javaScript("Usage: ${{ $.mailClearTo() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Clears the current list of `To:` recipients.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

@@ -29,6 +29,7 @@ public abstract class AbstractQueryFactory<T extends DatabaseQuery> implements Q
 	protected AbstractIndex index = null;
 
 	public AbstractQueryFactory(final AbstractIndex index) {
+
 		this.index = index;
 	}
 
@@ -44,6 +45,7 @@ public abstract class AbstractQueryFactory<T extends DatabaseQuery> implements Q
 
 			// use string value of enum types
 			if (value.getClass().isEnum()) {
+
 				return value.toString();
 			}
 		}
@@ -69,21 +71,26 @@ public abstract class AbstractQueryFactory<T extends DatabaseQuery> implements Q
 	protected void checkOperation(final T query, final Operation operation, final boolean first) {
 
 		if (!first || operation.equals(Operation.NOT)) {
+
 			addOperation(query, operation, first);
 		}
 	}
-
 
 	protected void addOperation(final T query, final Operation operation, final boolean first) {
 
 		switch (operation) {
 
 			case NOT:
+
 				if (first) {
+
 					query.not();
+
 				} else {
+
 					query.andNot();
 				}
+
 				break;
 
 			case OR:

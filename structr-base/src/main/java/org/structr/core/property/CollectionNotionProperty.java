@@ -70,46 +70,55 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public Property<Iterable<T>> indexed() {
+
 		return this;
 	}
 
 	@Override
 	public Property<Iterable<T>> passivelyIndexed() {
+
 		return this;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public String typeName() {
+
 		return "";
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -147,21 +156,25 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public String relatedType() {
+
 		return relatedType;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
@@ -203,43 +216,51 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public int getProcessingOrderPosition() {
+
 		return 1000;
 	}
 
 	@Override
 	public boolean isIndexed() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isPassivelyIndexed() {
+
 		return false;
 	}
 
 	// ----- protected methods overridden from superclass -----
 	@Override
 	protected boolean multiValueSplitAllowed() {
+
 		return false;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 }

@@ -36,16 +36,19 @@ public class EntityMatcher extends BaseMatcher {
 	private Map<String, Object> entityValues = new LinkedHashMap<>();
 
 	public EntityMatcher(final String type) {
+
 		this(type, PropertyView.Public);
 	}
 	
 	public EntityMatcher(final String type, final String view) {
+
 		this(type, view, Collections.EMPTY_MAP);
 	}
 	
 	public EntityMatcher(String type, String view, Map<String, Object> values) {
 
 		final Set<PropertyKey> propertyView = new LinkedHashSet<>(Traits.of(type).getPropertyKeysForView(view));
+
 		for (PropertyKey key : propertyView) {
 
 			entityValues.put(key.jsonName(), values.get(key.jsonName()));
@@ -67,11 +70,11 @@ public class EntityMatcher extends BaseMatcher {
 
 					String key   = entry.getKey();
 					Object value = entry.getValue();
-
 					Object entityValue = map.get(key);
 
 					// mismatch
 					if (value != null && !value.equals(entityValue)) {
+
 						return false;
 					}
 				}
@@ -85,6 +88,7 @@ public class EntityMatcher extends BaseMatcher {
 
 	@Override
 	public void describeTo(Description description) {
+
 		description.appendText(entityValues.toString());
 	}
 }

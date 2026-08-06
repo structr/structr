@@ -27,21 +27,25 @@ import org.structr.core.traits.definitions.ScriptDataSourceTraitDefinition;
 public class ScriptDataSourceTraitWrapper extends DataSourceTraitWrapper implements ScriptDataSource<GraphObject> {
 
 	public ScriptDataSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getValuesScript() {
+
 		return wrappedObject.getProperty(traits.key(ScriptDataSourceTraitDefinition.VALUES_SCRIPT_PROPERTY));
 	}
 
 	@Override
 	public String getFieldsScript() {
+
 		return wrappedObject.getProperty(traits.key(ScriptDataSourceTraitDefinition.FIELDS_SCRIPT_PROPERTY));
 	}
 
 	@Override
 	public String getDataType() {
+
 		return wrappedObject.getProperty(traits.key(ScriptDataSourceTraitDefinition.DATA_TYPE_PROPERTY));
 	}
 }

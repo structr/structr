@@ -31,6 +31,7 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "addHeader";
 	}
 
@@ -44,6 +45,7 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 				final String name = sources[0].toString();
 
 				if (sources[1] == null) {
+
 					ctx.removeHeader(name);
 
 				} else {
@@ -66,11 +68,13 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name, value");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${addHeader(name, value)}. Example: ${addHeader('X-User', 'johndoe')}"),
 			Usage.javaScript("Usage: ${{ $.addHeader(name, value)}}. Example: ${{ $.addHeader('X-User', 'johndoe')}}")
@@ -80,34 +84,31 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("name", "name of the header field"),
-			Parameter.mandatory("value", "value of the header field")
-		);
+		return List.of(Parameter.mandatory("name", "name of the header field"), Parameter.mandatory("value", "value of the header field"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Temporarily adds the given (key, value) tuple to the local list of request headers.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "All headers added with this function will be sent with any subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` call in the same request (meaning the request from the client to Structr).";
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Prior to 3.5.0 it was not possible to remove headers. In 3.5.0 this function was changed to remove a header if `value = null` was provided as an argument."
-		);
+
+		return List.of("Prior to 3.5.0 it was not possible to remove headers. In 3.5.0 this function was changed to remove a header if `value = null` was provided as an argument.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript(
+		return List.of(Example.structrScript(
 				"""
 				${
 				    (
@@ -125,12 +126,12 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 					    let result = $.GET('http://localhost:8082/structr/rest/User');
 					}}
 				""", "Authenticate an HTTP GET request with addHeader (JavaScript version)"
-			)
-		);
+			));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

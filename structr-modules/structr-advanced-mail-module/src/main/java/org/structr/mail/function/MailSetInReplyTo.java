@@ -33,16 +33,19 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	public static final String IN_REPLY_TO_HEADER = "In-Reply-To";
 
 	public MailSetInReplyTo(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailSetInReplyTo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("messageId");
 	}
 
@@ -63,25 +66,26 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailSetInReplyTo(messageId)}"),
-			Usage.javaScript("Usage: ${{ $.mailSetInReplyTo(messageId) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailSetInReplyTo(messageId)}"), Usage.javaScript("Usage: ${{ $.mailSetInReplyTo(messageId) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the `In-Reply-To` header for the outgoing mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				Indicates that the mail is a reply to the message with the given `messageId`. This function automatically sets the `In-Reply-To` header of the mail so that the receiving mail client can handle it correctly.
 				This function is especially interesting in combination with the mail service and automatically ingested mails from configured mailboxes.
@@ -90,15 +94,13 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("messageId", "message id of the mail to respond to")
-		);
+
+		return List.of(Parameter.mandatory("messageId", "message id of the mail to respond to"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${mailSetInReplyTo('<1910177794.5.1555059600315.JavaMail.username@machine.local>')}")
-		);
+
+		return List.of(Example.structrScript("${mailSetInReplyTo('<1910177794.5.1555059600315.JavaMail.username@machine.local>')}"));
 	}
 }

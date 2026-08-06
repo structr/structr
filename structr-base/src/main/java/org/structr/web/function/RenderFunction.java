@@ -38,11 +38,13 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "render";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("nodeOrNodes");
 	}
 
@@ -71,6 +73,7 @@ public class RenderFunction extends UiCommunityFunction {
 			}
 
 			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+
 				innerCtx.getBuffer().append("<structr:render data-caller-id=\"").append(caller.toString()).append("\">");
 			}
 
@@ -83,9 +86,11 @@ public class RenderFunction extends UiCommunityFunction {
 				for (final Object obj : collection) {
 
 					if (obj instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
+
 						n.as(DOMNode.class).render(innerCtx, 0);
 					}
 				}
+
 			} else if (sources[0] instanceof Iterable iterable) {
 
 				for (final Object obj : iterable) {
@@ -95,26 +100,31 @@ public class RenderFunction extends UiCommunityFunction {
 						n.as(DOMNode.class).render(innerCtx, 0);
 
 					} else {
+
 						// TODO: Render data object with its attached template
 					}
 				}
+
 			} else {
 
 				logger.warn("Error: Parameter 1 is neither node nor collection. Parameters: {}", getParametersAsString(sources));
 			}
 
 			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+
 				innerCtx.getBuffer().append("</structr:render>");
 			}
 
 			if (useBuffer) {
 
 				// output was written to RenderContext async buffer
+
 				return null;
 
 			} else {
 
 				// output needs to be returned as a function result
+
 				return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 			}
 
@@ -128,19 +138,19 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${render(nodeOrNodes)}"),
-			Usage.javaScript("Usage: ${{ $.render(nodeOrNodes) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${render(nodeOrNodes)}"), Usage.javaScript("Usage: ${{ $.render(nodeOrNodes) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Renders the given node or nodes.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Renders the HTML representation of the given node(s) into the output buffer. This function is exactly equivalent to the rendering process that Structr uses internally to create the HTML output of pages etc. It can be used to render dynamic content in pages with placeholders etc. Together with `include()`, `render()` is one of the the most important method when dealing with HTML web templates, since it allows the user to fill static HTML pages with dynamic content from the underlying node structure.
 			
@@ -150,6 +160,7 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${render(children)}", "Renders all children of the current node"),
 				Example.structrScript("${render(first(children))}", "Renders only the first child of the current node"),
@@ -159,13 +170,13 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("nodeOrNodes", "node or list of nodes to be rendered")
-		);
+
+		return List.of(Parameter.mandatory("nodeOrNodes", "node or list of nodes to be rendered"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

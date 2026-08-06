@@ -51,10 +51,10 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String VALUE_PROPERTY         = "value";
 	public static final String CONSTANT_TYPE_PROPERTY = "constantType";
 
-
 	private static final Logger logger = LoggerFactory.getLogger(FlowConstantTraitDefinition.class);
 
 	public FlowConstantTraitDefinition() {
+
 		super(StructrTraits.FLOW_CONSTANT);
 	}
 
@@ -63,8 +63,7 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -105,6 +104,7 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 								return converter != null ? converter.convert(val) : val;
 
 							} catch (FrameworkException ex) {
+
 								logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
 							}
 
@@ -114,14 +114,12 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
 
 						final FlowConstant flowConstant = flowBaseNode.as(FlowConstant.class);
-
 						final Map<String, Object> result = new TreeMap<>();
 
 						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowConstant.getUuid());
@@ -140,9 +138,7 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowConstant.class, (traits, node) -> new FlowConstant(traits, node)
-		);
+		return Map.of(FlowConstant.class, (traits, node) -> new FlowConstant(traits, node));
 	}
 
 	@Override
@@ -152,11 +148,7 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> value                       = new StringProperty(VALUE_PROPERTY);
 		final Property<String> constantType                = new EnumProperty(CONSTANT_TYPE_PROPERTY, FlowConstant.ConstantType.class);
 
-		return newSet(
-			dataTarget,
-			value,
-			constantType
-		);
+		return newSet(dataTarget, value, constantType);
 	}
 
 	@Override
@@ -176,6 +168,7 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

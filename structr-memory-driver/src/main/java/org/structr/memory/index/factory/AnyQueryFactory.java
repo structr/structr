@@ -31,6 +31,7 @@ import java.util.Collection;
 public class AnyQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public AnyQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -49,10 +50,12 @@ public class AnyQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			for (final Object item : collection) {
 
 				final Object readValue = getReadValue(item);
-
 				if (!exact && isString && readValue instanceof String s) {
+
 					query.addPredicate(new StringContainsPredicate(name, s, true));
+
 				} else {
+
 					query.addPredicate(new ValuePredicate(name, readValue));
 				}
 			}

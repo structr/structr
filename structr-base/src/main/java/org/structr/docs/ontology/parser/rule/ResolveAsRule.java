@@ -27,6 +27,7 @@ import java.util.LinkedList;
 public class ResolveAsRule extends Rule {
 
 	public ResolveAsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -38,15 +39,12 @@ public class ResolveAsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.pop();
-
 			if (token1 instanceof IdentifierToken identifier1 && !tokens.isEmpty()) {
 
 				final AbstractToken token2 = tokens.pop();
-
 				if (token2 instanceof AsToken && !tokens.isEmpty()) {
 
 					final AbstractToken token3 = tokens.pop();
-
 					if (token3 instanceof ConceptToken concept2) {
 
 						identifier1.setFormat(concept2);

@@ -50,14 +50,17 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		final String relType    = (String) attributes.get("relType");
 
 		if (mode == null || "nodesOnly".equals(mode)) {
+
 			rebuildNodeIndex(entityType);
 		}
 
 		if (mode == null || "relsOnly".equals(mode)) {
+
 			rebuildRelationshipIndex(relType);
 		}
 
 		if ("fulltext".equals(mode)) {
+
 			rebuildFulltextIndex();
 		}
 	}
@@ -78,14 +81,17 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		final String relType    = (String) attributes.get("relType");
 
 		if (mode == null || "nodesOnly".equals(mode)) {
+
 			return rebuildNodeIndex(entityType);
 		}
 
 		if (mode == null || "relsOnly".equals(mode)) {
+
 			return rebuildRelationshipIndex(relType);
 		}
 
 		if ("fulltext".equals(mode)) {
+
 			return rebuildFulltextIndex();
 		}
 
@@ -94,11 +100,13 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
@@ -126,11 +134,13 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 			@Override
 			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface node) {
+
 				logger.warn("Unable to index node {}: {}", node, t.getMessage());
 			}
 
 			@Override
 			public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
+
 				logger.warn("Unable to index node: {}", t.getMessage());
 			}
 		});
@@ -163,11 +173,13 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 			@Override
 			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final AbstractRelationship rel) {
+
 				logger.warn("Unable to index relationship {}: {}", rel, t.getMessage());
 			}
 
 			@Override
 			public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
+
 				logger.warn("Unable to index relationship: {}", t.getMessage());
 			}
 		});
@@ -191,11 +203,13 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 			@Override
 			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface rel) {
+
 				logger.warn("Unable to build fulltext index for {}: {}", rel.getUuid(), t.getMessage());
 			}
 
 			@Override
 			public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
+
 				logger.warn("Unable to build fulltext index: {}", t.getMessage());
 			}
 		});
@@ -208,21 +222,25 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "rebuildIndex";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Rebuilds database indexes by removing and re-adding all indexed properties.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         Use this command after bulk imports or when search results are inconsistent.
         """;
@@ -230,6 +248,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.optional("type", "Limit to this node type"),
 			Parameter.optional("relType", "Limit to this relationship type"),
@@ -239,31 +258,37 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

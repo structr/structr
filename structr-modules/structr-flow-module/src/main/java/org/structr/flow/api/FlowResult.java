@@ -27,15 +27,18 @@ public class FlowResult {
 	private Object result   = null;
 
 	public FlowResult(final Context context) {
+
 		this.error  = context.getError();
 		this.result = context.getResult();
 	}
 
 	public FlowError getError() {
+
 		return error;
 	}
 
 	public Object getResult() {
+
 		return result;
 	}
 }

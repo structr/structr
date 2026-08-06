@@ -27,10 +27,12 @@ public class MemoryTypeFilter<T extends MemoryEntity> implements Filter<T> {
 	private String type = null;
 
 	public MemoryTypeFilter(final String type) {
+
 		this.type = type;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 }

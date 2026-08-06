@@ -55,15 +55,14 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String DATA_TYPE_PROPERTY     = "dataType";
 
 	public ScriptDataSourceTraitDefinition() {
+
 		super(StructrTraits.SCRIPT_DATA_SOURCE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ScriptDataSource.class, (traits, node) -> new ScriptDataSourceTraitWrapper(traits, node)
-		);
+		return Map.of(ScriptDataSource.class, (traits, node) -> new ScriptDataSourceTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -81,6 +80,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 					final String valuesScript                    = source.getValuesScript();
 
 					if (input != null) {
+
 						parameters.put("input", input);
 					}
 
@@ -103,6 +103,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 					}
 
 					// no source => empty result
+
 					return new PagingIterable<>("empty result", List.of());
 				}
 
@@ -138,6 +139,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 
 									// hide some internal properties
 									if (!SchemaNodeTraitDefinition.PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+
 										output.put(key.jsonName(), key.getFieldDefinition());
 									}
 								}
@@ -154,12 +156,15 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 
 				@Override
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
+
 					return provider.as(ScriptDataSource.class).getDataType();
 				}
 
 				@Override
 				public int getDimension(final DataSource provider) {
+
 					// FIXME
+
 					return 0;
 				}
 			}
@@ -173,11 +178,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 		final PropertyKey<String> fieldsScriptProperty = new StringProperty(FIELDS_SCRIPT_PROPERTY);
 		final PropertyKey<String> dataTypeProperty     = new StringProperty(DATA_TYPE_PROPERTY);
 
-		return newSet(
-			valuesScriptProperty,
-			fieldsScriptProperty,
-			dataTypeProperty
-		);
+		return newSet(valuesScriptProperty, fieldsScriptProperty, dataTypeProperty);
 	}
 
 	@Override
@@ -185,24 +186,14 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(
-				VALUES_SCRIPT_PROPERTY,
-				FIELDS_SCRIPT_PROPERTY,
-				DATA_TYPE_PROPERTY
-			),
+			PropertyView.Public, newSet(VALUES_SCRIPT_PROPERTY, FIELDS_SCRIPT_PROPERTY, DATA_TYPE_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				VALUES_SCRIPT_PROPERTY,
-				FIELDS_SCRIPT_PROPERTY,
-				DATA_TYPE_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(VALUES_SCRIPT_PROPERTY, FIELDS_SCRIPT_PROPERTY, DATA_TYPE_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

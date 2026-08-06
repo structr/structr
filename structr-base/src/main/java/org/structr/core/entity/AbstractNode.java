@@ -56,16 +56,19 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	private Identity rawPathSegmentId = null;
 
 	public AbstractNode(final SecurityContext securityContext, final PropertyContainer propertyContainer, final long sourceTransactionId) {
+
 		super(securityContext, propertyContainer, sourceTransactionId);
 	}
 
 	@Override
 	public String getType() {
+
 		return getProperty(typeHandler.key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 	}
 
 	@Override
 	public PropertyContainer getPropertyContainer() {
+
 		return TransactionCommand.getCurrentTransaction().getNode(id);
 	}
 
@@ -104,6 +107,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 		final String _name       = getName();
 
 		if (_name == null) {
+
 			return -1;
 		}
 
@@ -121,6 +125,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	 */
 	@Override
 	public String toString() {
+
 		return getUuid();
 
 	}
@@ -144,6 +149,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 	@Override
 	public void setName(final String name) throws FrameworkException {
+
 		setProperty(typeHandler.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
@@ -151,6 +157,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	public void onNodeCreation(final SecurityContext securityContext) throws FrameworkException {
 
 		for (final OnNodeCreation callback : typeHandler.getMethods(OnNodeCreation.class)) {
+
 			callback.onNodeCreation(this, securityContext);
 		}
 	}
@@ -161,6 +168,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 		this.cachedUuid = getProperty(typeHandler.key(GraphObjectTraitDefinition.ID_PROPERTY));
 
 		for (final OnNodeInstantiation callback : typeHandler.getMethods(OnNodeInstantiation.class)) {
+
 			callback.onNodeInstantiation(this, isCreation);
 		}
 	}
@@ -169,106 +177,127 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 
 		for (final OnNodeDeletion callback : typeHandler.getMethods(OnNodeDeletion.class)) {
+
 			callback.onNodeDeletion(this, securityContext);
 		}
 	}
 
 	@Override
 	public Node getNode() {
+
 		return (Node) getPropertyContainer();
 	}
 
 	@Override
 	public boolean isDeleted() {
+
 		return TransactionCommand.getCurrentTransaction().isNodeDeleted(id.getId());
 	}
 
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
+
 		return typeHandler.getMethod(GetRelationships.class).hasRelationshipTo(this, type, targetNode);
 	}
 
 	@Override
 	public RelationshipInterface getRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
+
 		return typeHandler.getMethod(GetRelationships.class).getRelationshipTo(this, type, targetNode);
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getRelationships() {
+
 		return typeHandler.getMethod(GetRelationships.class).getRelationships(this);
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getRelationships(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getRelationships(this, type);
 	}
 
 	@Override
 	public RelationshipInterface getIncomingRelationship(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationship(this, type);
 	}
 
 	@Override
 	public RelationshipInterface getIncomingRelationshipAsSuperUser(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipAsSuperUser(this, type);
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getIncomingRelationships(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationships(this, type);
 	}
 
 	@Override
 	public RelationshipInterface getOutgoingRelationship(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationship(this, type);
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getOutgoingRelationships(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationships(this, type);
 	}
 
 	@Override
 	public  Iterable<RelationshipInterface> getIncomingRelationships() {
+
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationships(this);
 	}
 
 	@Override
 	public  Iterable<RelationshipInterface> getOutgoingRelationships() {
+
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationships(this);
 	}
 
 	@Override
 	public  Iterable<RelationshipInterface> getRelationshipsAsSuperUser() {
+
 		return typeHandler.getMethod(GetRelationships.class).getRelationshipsAsSuperUser(this);
 	}
 
 	@Override
 	public  Iterable<RelationshipInterface> getRelationshipsAsSuperUser(String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getRelationshipsAsSuperUser(this);
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<GraphObject> predicate) {
+
 		return typeHandler.getMethod(GetRelationships.class).getIncomingRelationshipsAsSuperUser(this, type, predicate);
 	}
 
 	@Override
 	public RelationshipInterface getOutgoingRelationshipAsSuperUser(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).getOutgoingRelationshipAsSuperUser(this, type);
 	}
 
 	public boolean hasRelationship(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).hasRelationship(this, type);
 	}
 
 	@Override
 	public boolean hasIncomingRelationships(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).hasIncomingRelationships(this, type);
 	}
 
 	@Override
 	public boolean hasOutgoingRelationships(final String type) {
+
 		return typeHandler.getMethod(GetRelationships.class).hasOutgoingRelationships(this, type);
 	}
 
@@ -280,6 +309,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 			if (rel != null) {
 
 				final RelationshipFactory factory = new RelationshipFactory(currentSecurityContext);
+
 				return factory.instantiate(rel);
 			}
 		}
@@ -289,27 +319,32 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 	@Override
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
+
 		return typeHandler.getMethod(Evaluate.class).evaluate(this, actionContext, key, defaultValue, contextObject, row, column);
 	}
 
 	@Override
 	public void setRawPathSegmentId(final Identity rawPathSegmentId) {
+
 		this.rawPathSegmentId = rawPathSegmentId;
 	}
 
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
+
 		return new ArrayList<>(); // provide a basis for super.getSyncData() calls
 	}
 
 	@Override
 	public NodeInterface getSyncNode() {
+
 		return this;
 	}
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
+
 		throw new ClassCastException(this.getClass() + " cannot be cast to org.structr.core.graph.RelationshipInterface");
 	}
 
@@ -317,6 +352,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	public synchronized Map<String, Object> getTemporaryStorage() {
 
 		if (tmpStorageContainer == null) {
+
 			tmpStorageContainer = new HashMap<>();
 		}
 
@@ -325,10 +361,12 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 	@Override
 	public void visitForUsage(final Map<String, Object> data) {
+
 		typeHandler.getMethod(VisitForUsage.class).visitForUsage(this, data);
 	}
 
 	protected boolean isGenericNode() {
+
 		return false;
 	}
 }

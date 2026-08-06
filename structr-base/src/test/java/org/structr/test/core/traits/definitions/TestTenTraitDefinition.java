@@ -31,6 +31,7 @@ import java.util.Set;
 public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestTenTraitDefinition() {
+
 		super("TestTen");
 	}
 
@@ -42,21 +43,18 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> testParent                = new StartNode(traitsInstance, "testParent", "TenTenOneToOne");
 		final Property<NodeInterface> testChild                 = new EndNode(traitsInstance, "testChild", "TenTenOneToOne");
 
-		return newSet(
-			testTenParent,
-			testTenChildren,
-			testParent,
-			testChild
-		);
+		return newSet(testTenParent, testTenChildren, testParent, testChild);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -80,14 +80,15 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
-
 			final PropertyMap testFileProperties = new PropertyMap();
+
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FILE);
@@ -96,6 +97,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -160,6 +162,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -167,8 +170,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final NodeInterface fileNodeDef      = app.create(StructrTraits.SCHEMA_NODE, StructrTraits.FILE);
 			final NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
-
 			final PropertyMap changedProperties = new PropertyMap();
+
 			changedProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile");
 			changedProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String");
 			changedProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), fileNodeDef);
@@ -177,6 +180,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -184,17 +188,16 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			// Create new schema node for dynamic class SubFile which extends File
 			NodeInterface subFile = app.create(StructrTraits.SCHEMA_NODE);
-
 			final PropertyMap subFileProperties = new PropertyMap();
+
 			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "SubFile");
 			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.FILE });
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
-
 			// Add String property "testSubFile" to new dynamic class
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
-
 			final PropertyMap testFileProperties = new PropertyMap();
+
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testSubFile");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), subFile);
@@ -203,6 +206,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -244,6 +248,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -251,8 +256,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final NodeInterface fileNodeDef      = app.create(StructrTraits.SCHEMA_NODE, StructrTraits.FILE);
 			final NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
-
 			final PropertyMap testFileProperties = new PropertyMap();
+
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), fileNodeDef);
@@ -261,6 +266,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -271,17 +277,16 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			// Create new schema node for dynamic class SubImage which extends Image
 			NodeInterface subFile = app.create(StructrTraits.SCHEMA_NODE);
-
 			final PropertyMap subFileProperties = new PropertyMap();
+
 			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "SubImage");
 			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.IMAGE });
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
-
 			// Add String property "testSubFile" to new dynamic class
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
-
 			final PropertyMap testFileProperties = new PropertyMap();
+
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testSubImage");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), subFile);
@@ -290,6 +295,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -334,6 +340,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -358,6 +365,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -400,6 +408,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -432,6 +441,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -528,6 +538,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			assertEquals("four",  list3.get(6).toMap().get("jsonName"));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -546,6 +557,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			assertEquals("four",  list4.get(6).toMap().get("jsonName"));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -560,6 +572,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -625,6 +638,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -652,6 +666,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -735,7 +750,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[24]);
 		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[26]);
 
-
 		// try built-in function
 		try {
 
@@ -751,6 +765,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			assertEquals("Invalid view order", "name",  list3.get(6).get(jsonName));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -769,6 +784,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			assertEquals("Invalid view order", "name",  list4.get(6).get(jsonName));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -783,6 +799,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -841,9 +858,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
-
 
 		final String type            = "Test";
 		final List<PropertyKey> list = new LinkedList<>(Traits.of(type).getPropertyKeysForView("test"));
@@ -869,6 +886,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -951,7 +969,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[24]);
 		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[26]);
 
-
 		// try built-in function
 		try {
 
@@ -967,6 +984,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			assertEquals("name",  list3.get(6).get(jsonName));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -985,6 +1003,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			assertEquals("name",  list4.get(6).get(jsonName));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -1002,6 +1021,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -1033,6 +1053,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1080,7 +1101,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	}
 
-
 	@Test
 	public void testMixedOnCreateMethods() {
 
@@ -1095,6 +1115,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -1113,6 +1134,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -1133,6 +1155,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -1155,6 +1178,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1170,6 +1194,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1183,7 +1208,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.body(equalTo("test!"))
 			.when()
 				.get("/test.txt");
-
 
 		// we need to wait for some time before the lifecycle method is called
 		try { Thread.sleep(2000); } catch (Throwable t) {}
@@ -1205,6 +1229,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -1218,6 +1243,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -1241,6 +1267,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -1302,6 +1329,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1337,6 +1365,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1486,7 +1515,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fail(fex.getMessage());
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<Boolean> key = Traits.of("TestBoolean").key("testB");
@@ -1529,7 +1557,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 			fail(fex.getMessage());
 		}
-
 
 		try (final Tx tx = app.tx()) {
 

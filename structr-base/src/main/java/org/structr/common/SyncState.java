@@ -41,6 +41,7 @@ public class SyncState {
 	 * @return whether this SyncState instance has the given flag set
 	 */
 	public boolean hasFlag(final Flag flag) {
+
 		return flags.contains(flag);
 	}
 
@@ -50,6 +51,7 @@ public class SyncState {
 	 * @return whether this SyncState instance has all of the given flags set
 	 */
 	public boolean hasFlags(final Flag... hasFlags) {
+
 		return flags.containsAll(Arrays.asList(hasFlags));
 	}
 

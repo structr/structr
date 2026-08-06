@@ -39,11 +39,13 @@ import java.util.TreeMap;
 public class StructrStringArrayProperty extends StructrPropertyDefinition implements JsonStringArrayProperty {
 
 	public StructrStringArrayProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "array";
 	}
 

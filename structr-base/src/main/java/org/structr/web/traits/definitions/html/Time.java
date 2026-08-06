@@ -34,6 +34,7 @@ public class Time extends GenericHtmlElementTraitDefinition {
 	public static final String DATETIME_PROPERTY = getPrefixedHTMLAttributeName("datetime");
 
 	public Time() {
+
 		super(StructrTraits.TIME);
 	}
 
@@ -44,11 +45,11 @@ public class Time extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}
@@ -62,19 +63,12 @@ public class Time extends GenericHtmlElementTraitDefinition {
 
 		final PropertyKey<String> datetimeProperty = new StringProperty(DATETIME_PROPERTY);
 
-		return newSet(
-			datetimeProperty
-		);
+		return newSet(datetimeProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					DATETIME_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(DATETIME_PROPERTY));
 	}
 }

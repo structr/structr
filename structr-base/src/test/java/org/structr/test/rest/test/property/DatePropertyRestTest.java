@@ -55,7 +55,6 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.post("/TestThree")
 			.getHeader("Location");
 
-
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 		.expect()
@@ -254,7 +253,6 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		.when()
 			.patch("/ActualType");
 
-
 		final String stringType = "StringType";
 		final String dateType   = "DateType";
 
@@ -262,10 +260,12 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+
 				assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 			}
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+
 				assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 			}
 
@@ -362,7 +362,6 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		.when()
 			.patch("/ActualType");
 
-
 		final String stringType = "StringType";
 		final String dateType   = "DateType";
 
@@ -370,10 +369,12 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+
 				assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 			}
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+
 				assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 			}
 
@@ -442,18 +443,8 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		.when()
 			.get("/ActualType");
 
-
 		// create patch document
-		final List<Map<String, Object>> data = List.of(
-			Map.of(
-				"id", date1,
-				"value", "2021-07-26T10:34:56+0000"
-			),
-			Map.of(
-				"id", string1,
-				"value", "Another string"
-			)
-		);
+		final List<Map<String, Object>> data = List.of(Map.of("id", date1, "value", "2021-07-26T10:34:56+0000"), Map.of("id", string1, "value", "Another string"));
 
 		// test
 		RestAssured.given()
@@ -471,10 +462,12 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+
 				assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 			}
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+
 				assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 			}
 
@@ -572,7 +565,6 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.when()
 				.patch("/ActualType");
 
-
 			// verify setup
 			RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
@@ -591,10 +583,12 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			try (final Tx tx = app.tx()) {
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+
 					assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 				}
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+
 					assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 				}
 
@@ -640,7 +634,6 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.when()
 				.patch("/ActualType");
 
-
 			// verify setup
 			RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
@@ -659,10 +652,12 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			try (final Tx tx = app.tx()) {
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+
 					assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 				}
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+
 					assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 				}
 

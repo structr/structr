@@ -32,6 +32,7 @@ import org.structr.core.traits.StructrTraits;
 public class PasswordPropertyGenerator extends StringPropertyGenerator {
 
 	public PasswordPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
@@ -39,9 +40,10 @@ public class PasswordPropertyGenerator extends StringPropertyGenerator {
 	public Property newInstance() throws FrameworkException {
 
 		final String expression = source.getFormat();
-
 		if ("[]".equals(expression)) {
+
 			reportError(new InvalidPropertySchemaToken(StructrTraits.SCHEMA_NODE, source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+
 			return null;
 		}
 

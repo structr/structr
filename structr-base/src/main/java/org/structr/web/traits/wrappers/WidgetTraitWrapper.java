@@ -34,81 +34,97 @@ import java.util.List;
 public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widget {
 
 	public WidgetTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
 	@Override
 	public String getSource() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SOURCE_PROPERTY));
 	}
 
 	@Override
 	public String getDescription() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SHORT_DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public boolean isWidget() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_WIDGET_PROPERTY));
 	}
 
 	@Override
 	public String getSvgPath() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SVG_ICON_PATH_PROPERTY));
 	}
 
 	@Override
 	public String getThumbnailPath() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.THUMBNAIL_PATH_PROPERTY));
 	}
 
 	@Override
 	public String getTreePath() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.TREE_PATH_PROPERTY));
 	}
 
 	@Override
 	public String getConfiguration() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.CONFIGURATION_PROPERTY));
 	}
 
 	@Override
 	public boolean isPageTemplate() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY));
 	}
 
 	@Override
 	public boolean isExclusiveInParent() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_EXCLUSIVE_PROPERTY));
 	}
 
 	@Override
 	public boolean isRenderTemplate() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_RENDER_TEMPLATE_PROPERTY));
 	}
 
 	@Override
 	public String[] getSelectors() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SELECTORS_PROPERTY));
 	}
 
 	@Override
 	public String getComponentType() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.COMPONENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public Integer getDimensions() {
+
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.DIMENSIONS_PROPERTY));
 	}
 }

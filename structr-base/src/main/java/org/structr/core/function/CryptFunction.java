@@ -51,6 +51,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 			// reset hash
 			secretKeyHash = null;
+
 			return;
 		}
 
@@ -59,6 +60,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			secretKeyHash = MessageDigest.getInstance(HASH_ALGO).digest(key.getBytes(CHARSET));
 
 		} catch (Throwable t) {
+
 			logger.error("Unable to set secret key: {}", t.getMessage());
 		}
 	}
@@ -104,14 +106,15 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			final Cipher cipher            = Cipher.getInstance(CRYPT_ALGO);
 			final byte[] iv                = new byte[GCM_IV_LENGTH];
 			final SecureRandom random      = new SecureRandom();
+
 			random.nextBytes(iv);
 			final GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
 
 			cipher.init(Cipher.ENCRYPT_MODE, skeySpec, gcmSpec);
 
 			final byte[] ciphertext = cipher.doFinal(clearText.getBytes(CHARSET));
-
 			final ByteBuffer buffer = ByteBuffer.allocate(iv.length + ciphertext.length);
+
 			buffer.put(iv);
 			buffer.put(ciphertext);
 
@@ -146,6 +149,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 		if (secretKeyHash == null) {
 
 			logger.warn("Unable to decrypt value, no secret key set.");
+
 			return null;
 		}
 
@@ -158,6 +162,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 			ByteBuffer buffer = ByteBuffer.wrap(Base64.getDecoder().decode(encryptedText));
 			final byte[] iv = new byte[GCM_IV_LENGTH];
+
 			buffer.get(iv);
 			final byte[] ciphertext = new byte[buffer.remaining()];
 			buffer.get(ciphertext);

@@ -49,6 +49,7 @@ public class FlowNotEmptyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DECISION_PROPERTY     = "decision";
 
 	public FlowNotEmptyTraitDefinition() {
+
 		super(StructrTraits.FLOW_NOT_EMPTY);
 	}
 
@@ -57,8 +58,7 @@ public class FlowNotEmptyTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -75,10 +75,15 @@ public class FlowNotEmptyTraitDefinition extends AbstractNodeTraitDefinition {
 
 							Object currentData = _dataSource.get(context);
 							if (currentData == null) {
+
 								return false;
+
 							} else if (currentData instanceof String && ((String) currentData).length() == 0) {
+
 								return false;
+
 							} else if (currentData instanceof Iterable && Iterables.toList((Iterable) currentData).size() == 0) {
+
 								return false;
 							}
 						}
@@ -87,8 +92,7 @@ public class FlowNotEmptyTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -107,9 +111,7 @@ public class FlowNotEmptyTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowNotEmpty.class, (traits, node) -> new FlowNotEmpty(traits, node)
-		);
+		return Map.of(FlowNotEmpty.class, (traits, node) -> new FlowNotEmpty(traits, node));
 	}
 
 	@Override
@@ -119,31 +121,20 @@ public class FlowNotEmptyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> condition             = new EndNode(traitsInstance, CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
 		final Property<Iterable<NodeInterface>> decision    = new EndNodes(traitsInstance, DECISION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
 
-		return newSet(
-			dataSources,
-			condition,
-			decision
-		);
+		return newSet(dataSources, condition, decision);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				DATA_SOURCES_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(DATA_SOURCES_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				DATA_SOURCES_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(DATA_SOURCES_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -33,26 +33,31 @@ import java.util.Date;
 public class DateArrayPropertyGenerator extends PropertyGenerator<Date[]> {
 
 	public DateArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Date[].class.getSimpleName();
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new DateArrayProperty(source.getPropertyName());
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.DateArray;
 	}
 
 	@Override
 	public Date[] getDefaultValue() {
+
 		return null;
 	}
 }

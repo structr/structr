@@ -80,6 +80,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	public static final String PROPERTY_MASK_PROPERTY              = "propertyMask";
 
 	public SchemaRelationshipNodeTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 	}
 
@@ -88,8 +89,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
@@ -135,8 +135,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -145,8 +144,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -161,8 +159,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -172,8 +169,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				}
 			},
 
-			OnNodeDeletion.class,
-			new OnNodeDeletion() {
+			OnNodeDeletion.class, new OnNodeDeletion() {
 
 				@Override
 				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
@@ -195,9 +191,8 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of(
-			SchemaRelationshipNode.class, (traits, node) -> new SchemaRelationshipNodeTraitWrapper(traits, node)
-		);
+
+		return Map.of(SchemaRelationshipNode.class, (traits, node) -> new SchemaRelationshipNodeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -287,9 +282,9 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
-
 
 	// ----- private methods -----
 	private boolean isRelationshipDefinitionUnique(final SchemaRelationshipNode node, final ErrorBuffer errorBuffer) {
@@ -306,7 +301,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 			final SchemaNode sourceNode = node.getSourceNode();
 			final SchemaNode targetNode = node.getTargetNode();
-
 			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(relTypeKey, node.getRelationshipType(), true);
 
 			// source node or static type (string-based)
@@ -324,11 +318,11 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			if (!allow) {
 
 				errorBuffer.add(new SemanticErrorToken(node.getType(), RELATIONSHIP_TYPE_PROPERTY, "duplicate_relationship_definition")
-					.withDetail("Schema Relationship with same name between source and target node already exists. This is not allowed.")
-				);
+					.withDetail("Schema Relationship with same name between source and target node already exists. This is not allowed."));
 			}
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -343,9 +337,11 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		if (!className.equals(potentialNewClassName)) {
 
 			try {
+
 				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), potentialNewClassName);
 
 			} catch (FrameworkException fex) {
+
 				logger.warn("Unable to set relationship name to {}.", potentialNewClassName);
 			}
 		}
@@ -366,7 +362,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final Traits traits                      = node.getTraits();
 		final PropertyKey<String> sourceJsonName = traits.key(SOURCE_JSON_NAME_PROPERTY);
 		final PropertyKey<String> targetJsonName = traits.key(TARGET_JSON_NAME_PROPERTY);
-
 		final boolean sourceJsonNameChanged = before.containsKey(sourceJsonName);
 		final boolean targetJsonNameChanged = before.containsKey(targetJsonName);
 
@@ -455,9 +450,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				if (nonGraphProperties != null) {
 
 					final ArrayList<String> properties = new ArrayList<>(Arrays.asList(nonGraphProperties.split("[, ]+")));
-
 					final int pos = properties.indexOf(toRemove);
+
 					if (pos != -1) {
+
 						properties.set(pos, newValue);
 					}
 

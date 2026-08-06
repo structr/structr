@@ -38,11 +38,13 @@ public class NumberFormatFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "numberFormat";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value, locale, format");
 	}
 
@@ -50,7 +52,9 @@ public class NumberFormatFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length != 3 || sources[1] == null || sources[2] == null) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -67,36 +71,39 @@ public class NumberFormatFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (Throwable t) {
 
 			logException(caller, t, sources);
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript(ERROR_MESSAGE_NUMBER_FORMAT),
-			Usage.javaScript("Usage: ${{ $.numberFormat(value, locale, pattern) }}")
-		);
+
+		return List.of(Usage.structrScript(ERROR_MESSAGE_NUMBER_FORMAT), Usage.javaScript("Usage: ${{ $.numberFormat(value, locale, pattern) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Formats the given value using the given locale and format string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function uses the Java NumberFormat class which supports the ISO two-letter language codes, e.g. "en", "de" etc.
 			
@@ -113,20 +120,19 @@ public class NumberFormatFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${ numberFormat(12345.6789, 'en', '#,##0.00') }", "Returns 12,345.68")
-		);
+
+		return List.of(Example.structrScript("${ numberFormat(12345.6789, 'en', '#,##0.00') }", "Returns 12,345.68"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"In general, if you want a formatted number to be visible all the time, use \"0\" in the pattern, otherwise use \"#\"."
-		);
+
+		return List.of("In general, if you want a formatted number to be visible all the time, use \"0\" in the pattern, otherwise use \"#\".");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

@@ -30,6 +30,7 @@ public class Document extends Tag {
 	private PrintWriter writer = null;
 
 	public Document(final PrintWriter writer) {
+
 		super(null, "html", false, true);
 
 		this.writer = writer;

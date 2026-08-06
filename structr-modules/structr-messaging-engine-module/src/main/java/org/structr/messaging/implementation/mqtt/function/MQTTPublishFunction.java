@@ -34,11 +34,13 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 
 	@Override
 	public String getName() {
+
 		return "mqttPublish";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("client, topic, message");
 	}
 
@@ -48,13 +50,16 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 		if (sources != null && sources.length == 3 && sources[0] != null && sources[1] != null && sources[2] != null) {
 
 			MQTTClient client = null;
+
 			if(sources[0] instanceof MQTTClient){
+
 				client = (MQTTClient)sources[0];
 			}
 
 			if(client == null){
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return null;
 			}
 
@@ -70,19 +75,19 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mqttPublish(client, topic, message)}"),
-			Usage.javaScript("Usage: ${{ $.mqttPublish(client, topic, message) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mqttPublish(client, topic, message)}"), Usage.javaScript("Usage: ${{ $.mqttPublish(client, topic, message) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Publishes message on given mqtt client with given topic.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

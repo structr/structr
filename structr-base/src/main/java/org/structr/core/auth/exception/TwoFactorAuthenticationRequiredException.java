@@ -36,14 +36,17 @@ public class TwoFactorAuthenticationRequiredException extends UnauthorizedExcept
 	}
 
 	public String getNextStepToken() {
+
 		return nextStepToken;
 	}
 
 	public boolean showQrCode() {
+
 		return showQrCode;
 	}
 
 	public Principal getUser() {
+
 		return user;
 	}
 

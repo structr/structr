@@ -55,11 +55,13 @@ public class Transformation {
 	public Object transformOutput(final ActionContext actionContext, final GraphObject source) throws FrameworkException {
 
 		if (outputFunction == null) {
+
 			return source.getProperty(sourceProperty);
 		}
 
 		// output transformation requested
 		actionContext.setConstant("input", source);
+
 		return Scripting.evaluate(actionContext, null, "${" + outputFunction.trim() + "}", "virtual property " + targetName, null);
 	}
 
@@ -84,18 +86,22 @@ public class Transformation {
 	}
 
 	public String getSourceName() {
+
 		return sourceName;
 	}
 
 	public String getTargetName() {
+
 		return targetName;
 	}
 
 	public PropertyKey getSourceProperty() {
+
 		return sourceProperty;
 	}
 
 	public PropertyKey getTargetProperty() {
+
 		return targetProperty;
 	}
 }

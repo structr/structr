@@ -30,48 +30,51 @@ public class ClearErrorsFunction extends CoreFunction {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
 		ctx.getErrorBuffer().getErrorTokens().clear();
+
 		return null;
 	}
 
 	@Override
 	public String getName() {
+
 		return "clearErrors";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Clears all error tokens present in the current context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.clearErrors()}}. Example: ${{$.clearErrors()}}"),
-			Usage.structrScript("Usage: ${clearErrors()}. Example: ${clearErrors()}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{$.clearErrors()}}. Example: ${{$.clearErrors()}}"), Usage.structrScript("Usage: ${clearErrors()}. Example: ${clearErrors()}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also `getErrors()`, `clearError()`, `error()` and `assert()`."
-		);
+		return List.of("See also `getErrors()`, `clearError()`, `error()` and `assert()`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 }

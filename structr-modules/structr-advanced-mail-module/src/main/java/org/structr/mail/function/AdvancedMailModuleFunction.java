@@ -27,16 +27,19 @@ public abstract class AdvancedMailModuleFunction extends Function<Object, Object
 	private AdvancedMailModule parent = null;
 
 	public AdvancedMailModuleFunction(final AdvancedMailModule parent) {
+
 		this.parent = parent;
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return parent.getName();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.EMail;
 	}
 }

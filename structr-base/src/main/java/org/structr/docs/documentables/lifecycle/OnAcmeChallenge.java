@@ -27,16 +27,19 @@ import java.util.List;
 public class OnAcmeChallenge extends LifecycleBase {
 
 	public OnAcmeChallenge() {
+
 		super("onAcmeChallenge");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called for each ACME challenge during Let's Encrypt certificate retrieval.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onAcmeChallenge()` lifecycle method is called for each ACME challenge that needs to be fulfilled during automated TLS certificate retrieval via Let's Encrypt. This is typically used with **DNS challenges** to automate the creation of DNS TXT records required for domain validation.
 
@@ -52,6 +55,7 @@ public class OnAcmeChallenge extends LifecycleBase {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("type", "The challenge type, currently always `dns`."),
 			Parameter.mandatory("domain", "The domain name being authorized (e.g. `example.com`)."),
@@ -62,6 +66,7 @@ public class OnAcmeChallenge extends LifecycleBase {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			{
@@ -85,6 +90,7 @@ public class OnAcmeChallenge extends LifecycleBase {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"This method is only called for DNS challenges (`challenge=dns`). HTTP challenges are handled automatically by Structr.",
 			"The method runs in the context of the superuser.",

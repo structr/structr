@@ -34,10 +34,12 @@ public abstract class AdminConsoleCommand {
 	public abstract void detailHelp(final Writable writable) throws IOException;
 
 	public static Set<String> commandNames() {
+
 		return commands.keySet();
 	}
 
 	public static void registerCommand(final String name, final Class<? extends AdminConsoleCommand> cmd) {
+
 		commands.put(name, cmd);
 	}
 
@@ -69,6 +71,7 @@ public abstract class AdminConsoleCommand {
 	 * @return a boolean
 	 */
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
@@ -88,6 +91,7 @@ public abstract class AdminConsoleCommand {
 		final Map<String, Object> map = new HashMap<>();
 
 		if (key != null && value != null) {
+
 			map.put(key, value);
 		}
 
@@ -99,6 +103,7 @@ public abstract class AdminConsoleCommand {
 		final Map<String, Object> map = toMap(key, value);
 
 		if (key2 != null && value2 != null) {
+
 			map.put(key2, value2);
 		}
 
@@ -110,6 +115,7 @@ public abstract class AdminConsoleCommand {
 		final Map<String, Object> map = toMap(key, value, key2, value2);
 
 		if (key3 != null && value3 != null) {
+
 			map.put(key3, value3);
 		}
 
@@ -121,6 +127,7 @@ public abstract class AdminConsoleCommand {
 		final Map<String, Object> map = toMap(key, value, key2, value2, key3, value3);
 
 		if (key4 != null && value4 != null) {
+
 			map.put(key4, value4);
 		}
 
@@ -132,6 +139,7 @@ public abstract class AdminConsoleCommand {
 		final Map<String, Object> map = toMap(key, value, key2, value2, key3, value3, key4, value4);
 
 		if (key5 != null && value5 != null) {
+
 			map.put(key5, value5);
 		}
 

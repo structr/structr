@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_ReviewConditionError"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <!--
+    An exclusive gateway whose first (intended) flow carries a condition that
+    THROWS at evaluation time (calls an undefined JS function). The engine
+    currently catches every exception in evaluateCondition and returns false,
+    so the broken condition is silently indistinguishable from a legitimately
+    false one and the gateway falls through to the default branch. A failing
+    condition should surface as an error, not be masked and mis-routed.
+  -->
+  <bpmn:process id="Process_ReviewConditionError" name="Gateway with a throwing condition" isExecutable="true">
+
+    <bpmn:startEvent       id="Start_1" name="Start" />
+    <bpmn:exclusiveGateway id="Gate_1"  name="Decide" default="Flow_default" />
+
+    <bpmn:userTask id="Task_Intended" name="Intended branch" />
+    <bpmn:userTask id="Task_Default"  name="Default branch" />
+
+    <bpmn:endEvent id="End_Intended" name="End intended" />
+    <bpmn:endEvent id="End_Default"  name="End default" />
+
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="Start_1" targetRef="Gate_1" />
+
+    <bpmn:sequenceFlow id="Flow_intended" sourceRef="Gate_1" targetRef="Task_Intended">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${reviewNonExistentFunction()}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_default" sourceRef="Gate_1" targetRef="Task_Default" />
+
+    <bpmn:sequenceFlow id="Flow_intended_end" sourceRef="Task_Intended" targetRef="End_Intended" />
+    <bpmn:sequenceFlow id="Flow_default_end"  sourceRef="Task_Default"  targetRef="End_Default" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

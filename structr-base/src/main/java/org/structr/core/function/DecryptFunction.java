@@ -35,11 +35,13 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "decrypt";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value [, secret ]");
 	}
 
@@ -75,6 +77,7 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 			if (sources[0] == null) {
 
 				// silently ignore case which can happen for decrypt(current.propertyThatCanBeNull[, key])
+
 				return null;
 
 			} else if (sources.length <= 2) {
@@ -88,6 +91,7 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 				// only show the error message for wrong parameter count
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -96,35 +100,33 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${decrypt(value[, secret])}"),
-			Usage.javaScript("Usage: ${{ $.decrypt(value[, secret]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${decrypt(value[, secret])}"), Usage.javaScript("Usage: ${{ $.decrypt(value[, secret]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Decrypts a base 64 encoded AES ciphertext and returns the decrypted result.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function either uses the internal global encryption key from the '" + Settings.GlobalSecret.getKey() + "' setting in structr.conf, or the optional second parameter.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("encryptedText", "base64-encoded ciphertext to decrypt"),
-			Parameter.optional("secret", "secret key")
-		);
+		return List.of(Parameter.mandatory("encryptedText", "base64-encoded ciphertext to decrypt"), Parameter.optional("secret", "secret key"));
 	}
 
 	@Override
@@ -138,6 +140,7 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

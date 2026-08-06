@@ -62,6 +62,7 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testBasicFulltextSearchOnNodes() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
@@ -106,13 +107,11 @@ public class FulltextIndexingTest extends IndexingTest {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			final String searchString               = "eight";
 			final Map<NodeInterface, Double> result = app.getNodesFromFulltextIndex(indexName, searchString, 10, 1);
 			final List<NodeInterface> list          = new LinkedList<>(result.keySet());
-
 			final NodeInterface node1               = list.get(0);
 			final NodeInterface node2               = list.get(1);
 
@@ -126,7 +125,6 @@ public class FulltextIndexingTest extends IndexingTest {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -145,6 +143,7 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testBasicFulltextSearchOnDashProperty() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
@@ -189,13 +188,11 @@ public class FulltextIndexingTest extends IndexingTest {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			final String searchString               = "eight";
 			final Map<NodeInterface, Double> result = app.getNodesFromFulltextIndex(indexName, searchString, 10, 1);
 			final List<NodeInterface> list          = new LinkedList<>(result.keySet());
-
 			final NodeInterface node1               = list.get(0);
 			final NodeInterface node2               = list.get(1);
 
@@ -210,7 +207,6 @@ public class FulltextIndexingTest extends IndexingTest {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			assertEquals("Wrong fulltext index query result in $.searchFulltext() function", "Test5", Scripting.replaceVariables(new ActionContext(securityContext), null, "${{ $.searchFulltext('" + indexName + "', 'eight')[0].node.name; }}"));
@@ -224,11 +220,11 @@ public class FulltextIndexingTest extends IndexingTest {
 		}
 	}
 
-
 	@Test
 	public void testBasicFulltextSearchOnRelationships() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
@@ -263,13 +259,11 @@ public class FulltextIndexingTest extends IndexingTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test1 = app.create("Test1");
-
 			final NodeInterface test21 = app.create("Test2");
 			final NodeInterface test22 = app.create("Test2");
 			final NodeInterface test23 = app.create("Test2");
 			final NodeInterface test24 = app.create("Test2");
 			final NodeInterface test25 = app.create("Test2");
-
 			final List<RelationshipInterface> rels = Iterables.toList((Iterable) test1.setProperty(relationshipKey, List.of(test21, test22, test23, test24, test25)));
 
 			rels.get(0).setProperty(key, "one two three four five");
@@ -285,7 +279,6 @@ public class FulltextIndexingTest extends IndexingTest {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -308,7 +301,6 @@ public class FulltextIndexingTest extends IndexingTest {
 			fail("Unexpected exception");
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			assertEquals("Wrong fulltext index query result in $.searchRelationshipsFulltext() function", "eight", Scripting.replaceVariables(new ActionContext(securityContext), null, "${{ $.searchRelationshipsFulltext('" + indexName + "', 'eight')[0].relationship.test; }}"));
@@ -326,18 +318,21 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testODTSearch() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			try( final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.odt")) {
+
 				FileHelper.createFile(securityContext, is, "", StructrTraits.FILE, "test.odt").getUuid();
 			}
 
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -349,18 +344,21 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testODT() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			try( final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.odt")) {
+
 				FileHelper.createFile(securityContext, is, "", StructrTraits.FILE, "test.odt");
 			}
 
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -372,18 +370,21 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testPDF() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			try (final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.pdf")) {
+
 				FileHelper.createFile(securityContext, is, "", StructrTraits.FILE, "test.pdf");
 			}
 
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -395,18 +396,21 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testPlaintext01() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			try(final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.txt")) {
+
 				FileHelper.createFile(securityContext, is, "", StructrTraits.FILE, "test.txt");
 			}
 
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -418,18 +422,21 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testPlaintext02() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			try(final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test2.txt")) {
+
 				FileHelper.createFile(securityContext, is, "", StructrTraits.FILE, "test2.txt");
 			}
 
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -441,6 +448,7 @@ public class FulltextIndexingTest extends IndexingTest {
 	public void testIndexManagement() {
 
 		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
 			return;
 		}
 
@@ -473,7 +481,6 @@ public class FulltextIndexingTest extends IndexingTest {
 			assertFalse("Index was not created", result.isEmpty());
 
 			final GraphObject g = result.get(0);
-
 			if (g instanceof GraphObjectMap map) {
 
 				final Map<String, Object> data = map.toMap();
@@ -598,7 +605,6 @@ public class FulltextIndexingTest extends IndexingTest {
 			assertEquals("Number of indexes is wrong after index change", 1, result.size());
 
 			final GraphObject g1 = result.get(0);
-
 			if (g1 instanceof GraphObjectMap map) {
 
 				final Map<String, Object> data = map.toMap();
@@ -680,17 +686,21 @@ public class FulltextIndexingTest extends IndexingTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
 			if (value == null) {
 
 				try {
+
 					Thread.sleep(1000);
+
 				} catch (Throwable t) {
 				}
 
 				if (System.currentTimeMillis() > timeout) {
+
 					throw new RuntimeException("Timeout waiting for indexer to write content into property value.");
 				}
 			}
@@ -705,6 +715,7 @@ public class FulltextIndexingTest extends IndexingTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -718,6 +729,7 @@ public class FulltextIndexingTest extends IndexingTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

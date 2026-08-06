@@ -43,7 +43,6 @@ public class SearchNodesCommand extends AbstractCommand {
 	public static final String SEARCH_CONTEXT_LOCALIZATIONS  = "localizations";
 	public static final String SEARCH_CONTEXT_MAIL_TEMPLATES = "mail-templates";
 
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -55,8 +54,8 @@ public class SearchNodesCommand extends AbstractCommand {
 		try {
 
 			final List<GraphObject> result = executeSearch(searchString, searchContexts);
-
 			int resultCountBeforePaging = result.size();
+
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			webSocketData.setResult(result);
@@ -77,6 +76,7 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "SEARCH_NODES";
 	}
 
@@ -101,26 +101,32 @@ public class SearchNodesCommand extends AbstractCommand {
 			final List<String> labels     = (List) result.get("labels");
 
 			if (labels.contains("DOMNode")) {
+
 				tmp.put("isDOMElement", true);
 			}
 
 			if (labels.contains("Site")) {
+
 				tmp.put("isSiteElement", true);
 			}
 
 			if (labels.contains("AbstractSchemaNode") || labels.contains("SchemaReloadingNode")) {
+
 				tmp.put("isSchemaElement", true);
 			}
 
 			if (labels.contains("File") || labels.contains("Folder")) {
+
 				tmp.put("isFilesystemElement", true);
 			}
 
 			if (labels.contains("Localization")) {
+
 				tmp.put("isLocalizationElement", true);
 			}
 
 			if (labels.contains("MailTemplate")) {
+
 				tmp.put("isMailTemplateElement", true);
 			}
 

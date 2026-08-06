@@ -44,6 +44,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	private Aggregation aggregation = null;
 
 	public AggregatorProperty(final String name, final Aggregation aggregator) {
+
 		super(name);
 
 		this.aggregation = aggregator;
@@ -51,6 +52,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 
 	@Override
 	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -75,6 +77,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			// 2. step: sort nodes according to comparator
 			Comparator<NodeInterface> comparator = aggregation.getComparator();
 			if(nodes.isEmpty() && comparator != null) {
+
 				Collections.sort(nodes, comparator);
 			}
 
@@ -82,6 +85,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			List results = new LinkedList();
 
 			try {
+
 				for(NodeInterface node : nodes) {
 
 					Notion notion = aggregation.getNotionForType(node.getClass());
@@ -96,6 +100,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 				}
 
 			} catch(Throwable t) {
+
 				logger.warn("", t);
 			}
 
@@ -107,37 +112,44 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 
 	@Override
 	public String relatedType() {
+
 		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

@@ -42,6 +42,7 @@ import java.util.Set;
 public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 	public MeMethodResourceHandler(final RESTCall call, final AbstractMethod method) {
+
 		super(call, method);
 	}
 
@@ -99,6 +100,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 			final Principal entity = securityContext.getUser(false);
 
 			// FIXME, only the first property set is used, we need to test this
+
 			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet.get(0)));
 
 		} else {
@@ -124,6 +126,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
@@ -141,6 +144,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of(method.getHttpVerb());
 	}
 }

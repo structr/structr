@@ -28,18 +28,22 @@ public interface RESTParameter {
 	String staticResourceSignaturePart();
 
 	static RESTParameter forPattern(final String key, final String pattern, final boolean includeInSignature) {
+
 		return new PatternParameter(key, pattern, includeInSignature, null);
 	}
 
 	static RESTParameter forPattern(final String key, final String pattern, final boolean includeInSignature, final String staticResourceSignaturePart) {
+
 		return new PatternParameter(key, pattern, includeInSignature, staticResourceSignaturePart);
 	}
 
 	static RESTParameter forStaticString(final String part, final boolean includeInSignature) {
+
 		return new StaticParameter(part, includeInSignature, part);
 	}
 
 	static RESTParameter forStaticString(final String part, final boolean includeInSignature, final String staticSignaturePart) {
+
 		return new StaticParameter(part, includeInSignature, staticSignaturePart);
 	}
 }

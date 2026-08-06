@@ -32,11 +32,13 @@ public class LastFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "last";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("collection");
 	}
 
@@ -71,50 +73,50 @@ public class LastFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${last(collection)}"),
-				Usage.javaScript("Usage: ${{ $.last(collection) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${last(collection)}"), Usage.javaScript("Usage: ${{ $.last(collection) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the last element of the given collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function is often used in conjunction with `find()`. See also `first()` and `nth()`.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("collection", "collection to return last element of")
-		);
+		return List.of(Parameter.mandatory("collection", "collection to return last element of"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${last(this.children)}")
-		);
+
+		return List.of(Example.structrScript("${last(this.children)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

@@ -27,6 +27,7 @@ import java.util.TreeMap;
 public class OpenAPIResponseReference extends TreeMap<String, Object> {
 
 	public OpenAPIResponseReference(final String reference) {
+
 		this(reference, null);
 	}
 
@@ -62,13 +63,13 @@ public class OpenAPIResponseReference extends TreeMap<String, Object> {
 	public OpenAPIResponseReference(final StructrTypeDefinition type, final String viewName, final Boolean isMultipleResponse) {
 
 		final String base = "#/components/responses/";
-
 		final String name = type.getName();
+
 		String reference;
+
 		if (!"all".equals(viewName) && (viewName == null || "public".equals(viewName) || !type.getViewNames().contains(viewName))) {
 
 			reference = base + name;
-
 
 		} else {
 

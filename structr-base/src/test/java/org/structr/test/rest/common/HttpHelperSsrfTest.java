@@ -83,11 +83,15 @@ public class HttpHelperSsrfTest {
 	public void tearDown() {
 
 		if (loopbackServer != null) {
+
 			loopbackServer.stop(0);
 		}
+
 		if (tempOut != null && tempOut.exists()) {
+
 			tempOut.delete();
 		}
+
 		Settings.OutgoingURLWhitelist.setValue(previousWhitelist);
 		Settings.SsrfProtection.setValue(previousSsrfProtection);
 	}
@@ -117,16 +121,8 @@ public class HttpHelperSsrfTest {
 
 		} catch (FrameworkException fex) {
 
-			assertEquals(
-				"Expected 403 SSRF block, got status " + fex.getStatus() + ": " + fex.getMessage(),
-				403,
-				fex.getStatus()
-			);
-			assertTrue(
-				"Expected SSRF block message, got: " + fex.getMessage(),
-				fex.getMessage() != null
-					&& fex.getMessage().contains("internal network addresses")
-			);
+			assertEquals("Expected 403 SSRF block, got status " + fex.getStatus() + ": " + fex.getMessage(), 403, fex.getStatus());
+			assertTrue("Expected SSRF block message, got: " + fex.getMessage(), fex.getMessage() != null && fex.getMessage().contains("internal network addresses"));
 		}
 	}
 }

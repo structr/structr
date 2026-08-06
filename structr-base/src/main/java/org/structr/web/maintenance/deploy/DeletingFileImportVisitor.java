@@ -66,7 +66,6 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 
 		// only delete folder if it was in the export set and NOT as a required parent (meaning that it was deliberately exported and not just because it was required because a child was exported)
 		final boolean folderWasOnlyExportedAsParent = parents.contains(folderPath);
-
 		if (!folderWasOnlyExportedAsParent) {
 
 			try (final Tx tx = app.tx()) {
@@ -107,11 +106,9 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 			if (rawProperties != null) {
 
 				final String id = (String)rawProperties.get("id");
-
 				if (id != null) {
 
 					final NodeInterface existingFile = app.getNodeById(id);
-
 					if (existingFile != null) {
 
 						app.delete(existingFile);
@@ -140,8 +137,8 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 			batchCount++;
 
 			final long endTime = System.currentTimeMillis();
-
 			final long duration = endTime - startTime;
+
 			totalTime += duration;
 
 			startTime = endTime;
@@ -157,8 +154,8 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 			batchCount++;
 
 			final long endTime = System.currentTimeMillis();
-
 			final long duration = endTime - startTime;
+
 			totalTime += duration;
 
 			sendProgressUpdateNotification(count, duration, totalTime / batchCount);

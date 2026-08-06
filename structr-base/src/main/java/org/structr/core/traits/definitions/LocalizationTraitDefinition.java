@@ -50,6 +50,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String LOCALE_PROPERTY         = "locale";
 
 	public LocalizationTraitDefinition() {
+
 		super(StructrTraits.LOCALIZATION);
 	}
 
@@ -58,8 +59,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
@@ -69,8 +69,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -84,8 +83,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -94,8 +92,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -109,9 +106,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Localization.class, (traits, node) -> new LocalizationTraitWrapper(traits, node)
-		);
+		return Map.of(Localization.class, (traits, node) -> new LocalizationTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -121,11 +116,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<String> domainProperty        = new StringProperty(DOMAIN_PROPERTY).indexed().description("domain in which the translation is valid");
 		final Property<String> localeProperty        = new StringProperty(LOCALE_PROPERTY).notNull().indexed().description("locale for which the translation is valid");
 
-		return newSet(
-			localizedNameProperty,
-			domainProperty,
-			localeProperty
-		);
+		return newSet(localizedNameProperty, domainProperty, localeProperty);
 	}
 
 	@Override
@@ -145,6 +136,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

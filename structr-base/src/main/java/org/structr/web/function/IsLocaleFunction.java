@@ -33,11 +33,13 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "isLocale";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("locales...");
 	}
 
@@ -50,10 +52,13 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 			final String localeString = locale.toLanguageTag();
 
 			if (sources != null && sources.length > 0) {
+
 				final int len = sources.length;
+
 				for (int i = 0; i < len; i++) {
 
 					if (localeString.equals(sources[0].toString().replaceAll("_", "-"))) {
+
 						return true;
 					}
 				}
@@ -69,48 +74,43 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${isLocale(locales...)}"),
-			Usage.javaScript("Usage: ${{ $.isLocale(locales...) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${isLocale(locales...)}"), Usage.javaScript("Usage: ${{ $.isLocale(locales...) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the current user locale is equal to the given argument.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("locales", "list of strings that represent different locales to check")
-		);
+		return List.of(Parameter.mandatory("locales", "list of strings that represent different locales to check"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${isLocale('en_GB', 'en_US')}", "Check whether the current locale is an English variant")
-		);
+		return List.of(Example.structrScript("${isLocale('en_GB', 'en_US')}", "Check whether the current locale is an English variant"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See the `locale` keyword to learn how the locale of the current context is determined."
-		);
+		return List.of("See the `locale` keyword to learn how the locale of the current context is determined.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

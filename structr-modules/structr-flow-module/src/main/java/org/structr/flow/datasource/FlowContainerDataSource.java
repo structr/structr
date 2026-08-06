@@ -83,6 +83,7 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 					}
 
 				} catch (UnlicensedScriptException ex) {
+
 					ex.log(LoggerFactory.getLogger(FlowContainerDataSource.class));
 				}
 			}
@@ -97,9 +98,13 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 		return Iterables.map((Object t) -> {
 
 			if (t instanceof GraphObject) {
+
 				return (GraphObject)t;
+
 			} else if (t instanceof Map) {
+
 				return Function.toGraphObjectMap((Map)t);
+
 			} else {
 
 				return (GraphObject)UiFunction.toGraphObject(t, 1);

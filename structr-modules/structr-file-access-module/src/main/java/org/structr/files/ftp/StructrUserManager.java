@@ -67,8 +67,10 @@ public class StructrUserManager implements UserManager {
 			}
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Unable to get user by its name", fex);
 		}
+
 		return null;
 	}
 
@@ -100,10 +102,10 @@ public class StructrUserManager implements UserManager {
 
 			tx.success();
 
-
 			return (String[]) userNames.toArray(new String[userNames.size()]);
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Unable to get user by its name", fex);
 		}
 
@@ -112,11 +114,13 @@ public class StructrUserManager implements UserManager {
 
 	@Override
 	public void delete(String string) throws FtpException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void save(User user) throws FtpException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -132,6 +136,7 @@ public class StructrUserManager implements UserManager {
 			return exists;
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Unable to determine if user " + string + " exists", fex);
 		}
 
@@ -168,6 +173,7 @@ public class StructrUserManager implements UserManager {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("FTP authentication attempt failed with username {} and password {}", userName, password);
 			}
 
@@ -184,11 +190,13 @@ public class StructrUserManager implements UserManager {
 
 	@Override
 	public String getAdminName() throws FtpException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean isAdmin(String string) throws FtpException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -203,6 +211,7 @@ public class StructrUserManager implements UserManager {
 			return user;
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Unable to get user by its name", fex);
 		}
 

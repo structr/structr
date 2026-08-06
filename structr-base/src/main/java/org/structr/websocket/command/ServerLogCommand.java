@@ -44,7 +44,6 @@ public class ServerLogCommand extends AbstractCommand {
 		int truncateLinesAfter = webSocketData.getNodeDataIntegerValue("truncateLinesAfter") != null ? webSocketData.getNodeDataIntegerValue("truncateLinesAfter") : -1;
 		final String fileName  = webSocketData.getNodeDataStringValue("logFileName");	// null is allowed (uses default/first available log file)
 		final String filter    = webSocketData.getNodeDataStringValue("filter");
-
 		final String log = ServerLogFunction.getServerLog(numberOfLines, truncateLinesAfter, fileName, filter);
 
 		try {
@@ -65,11 +64,13 @@ public class ServerLogCommand extends AbstractCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "SERVER_LOG";
 	}
 

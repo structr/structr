@@ -34,11 +34,13 @@ public class DivFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "div";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
@@ -56,6 +58,7 @@ public class DivFunction extends CoreFunction {
 			} catch (NumberFormatException nfe) {
 
 				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+
 				return nfe.getMessage();
 			}
 
@@ -70,6 +73,7 @@ public class DivFunction extends CoreFunction {
 				} catch (NumberFormatException nfe) {
 
 					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+
 					return nfe.getMessage();
 				}
 			}
@@ -77,6 +81,7 @@ public class DivFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -85,38 +90,37 @@ public class DivFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${div(value1, value2)}"),
-				Usage.javaScript("Usage: ${{ $.div(value1, value2) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${div(value1, value2)}"), Usage.javaScript("Usage: ${{ $.div(value1, value2) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the result of value1 divided by value2.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments."
-		);
+
+		return List.of("This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${div(5, 2)}")
-		);
+
+		return List.of(Example.structrScript("${div(5, 2)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

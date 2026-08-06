@@ -76,9 +76,9 @@ public class DynamicPathsTest extends DeploymentTestBase {
 	 * From Jetty 12.1, so we test with the dynamic string.
 	 */
 	private String getAmbiguousEmptyURLSegmentError(final String requestURI) {
+
 		return String.format(ambiguousEmptyURLSegmentErrorTemplate, RestAssured.baseURI + requestURI);
 	}
-
 
 	@Test
 	public void test001DynamicPathResolution() {
@@ -167,6 +167,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -328,12 +329,12 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
 		RestAssured.basePath = "/";
 		String badURI = "";
-
 		final int randomPageNumber = new Random().nextInt(100);
 		final String pageNumber    = StringUtils.leftPad(Integer.toString(randomPageNumber), 3, "0");
 
@@ -438,6 +439,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -466,6 +468,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -483,7 +486,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 					</body>
 				</html>""";
 
-
 		// verify that the page is visible
 		assertEquals("Invalid precondition", expected, getPublicContent(404, "/test004/"));
 
@@ -500,6 +502,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -515,7 +518,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			createAdminUser();
 
 			final Page page = Page.createSimplePage(securityContext, "file");
-
 			final NodeInterface folder = FileHelper.createFolderPath(securityContext, "/level_one/level_two/level_three");
 			final NodeInterface file   = FileHelper.createFile(securityContext, "testContent".getBytes(StandardCharsets.UTF_8), "text/plain", StructrTraits.FILE);
 
@@ -525,6 +527,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -586,6 +589,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -642,6 +646,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -656,8 +661,10 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
+
 			assertEquals("Invalid path resolution result: path priority should produce the correct result", "value_suffix", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
 		}
 
@@ -672,6 +679,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -689,8 +697,10 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
+
 			assertEquals("Invalid path resolution result: path priority should produce the correct result", "value", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
 		}
 	}
@@ -792,6 +802,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -909,6 +920,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1004,6 +1016,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1142,6 +1155,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1169,6 +1183,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.PARAMETER_SHADOWS_ORIGINAL_VALUE_WARNING.formatted("myKey", "myKey")), Arrays.stream(app.getNodeById(pathWithPossibleConflictForOriginalValue).as(PagePath.class).getWarnings()).toList());
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1194,6 +1209,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.PARAMETER_SHADOWS_ORIGINAL_VALUE_WARNING.formatted("myKey", "myKey")), Arrays.stream(app.getNodeById(pathWithPossibleConflictForOriginalValue).as(PagePath.class).getWarnings()).toList());
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -1299,6 +1315,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1431,6 +1448,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1519,6 +1537,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1534,7 +1553,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		assertEquals("Invalid path resolution result: as admin, admin should be found", "admin - object",                                         getContent(200, "/structr/html/nodeParameterTest_3/" + userUUID));
 		assertEquals("Invalid path resolution result: as admin, without a default, no node should be found", "NO NODE! - object",                 getContent(200, "/structr/html/nodeParameterTest_3/"));
 		assertEquals("Invalid path resolution result: as admin, page should NOT be found when parameter requires Principal", "NO NODE! - object", getContent(200, "/structr/html/nodeParameterTest_3/" + pageUUID));
-
 
 		// check without user
 		// - admin can NOT be seen by public users. Not by ID and also not as the default value
@@ -1605,6 +1623,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1639,6 +1658,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1683,6 +1703,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 	}
 
 	private String getContent(final int statusCode, final String url) {
+
 		return getBody(statusCode, url);
 	}
 

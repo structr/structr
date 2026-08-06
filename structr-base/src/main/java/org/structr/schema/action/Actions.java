@@ -70,6 +70,7 @@ public class Actions {
 		Java("", "", "", "java");
 
 		Type(final String method, final String signature, final String parameters, final String logName, final Class... parameterTypes) {
+
 			this.method         = method;
 			this.signature      = signature;
 			this.parameters     = parameters;
@@ -84,36 +85,44 @@ public class Actions {
 		private Class[] parameterTypes = null;
 
 		public String getMethod() {
+
 			return method;
 		}
 
 		public String getLogName() {
+
 			return logName;
 		}
 
 		public List<Signature> getSignatures() {
+
 			return Signature.forAllScriptingLanguages(signature);
 		}
 
 		public String getParameters() {
+
 			return parameters;
 		}
 
 		public Class[] getParameterTypes() {
+
 			return parameterTypes;
 		}
 	}
 
 	// ----- public static methods -----
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName) throws FrameworkException, UnlicensedScriptException {
+
 		return execute(securityContext, entity, source, methodName, null);
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+
 		return execute(securityContext, entity, source, Collections.EMPTY_MAP, methodName, codeSource);
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+
 		final ScriptConfig scriptConfig = ScriptConfig.builder()
 				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 				.build();
@@ -137,13 +146,16 @@ public class Actions {
 
 			// check for errors raised by scripting
 			if (context.hasError()) {
+
 				throw new FrameworkException(422, "Server-side scripting error", context.getErrorBuffer());
 			}
 
 			return result;
+
 		} catch (AssertException e) {
 
 			throw new FrameworkException(e.getStatus(), e.getMessage(), context.getErrorBuffer());
+
 		} finally {
 
 			store.setTemporaryParameters(previousParams);
@@ -160,7 +172,6 @@ public class Actions {
 	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
 		final AbstractMethod method = Methods.resolveMethod(null, key);
-
 		if (method != null) {
 
 			return method.execute(new ActionContext(securityContext), null, NamedArguments.fromMap(parameters));
@@ -179,6 +190,7 @@ public class Actions {
 	}
 
 	public static void clearCache() {
+
 		FunctionProperty.clearCache();
 		Methods.clearMethodCache();
 		// Per-type dynamic method caches in TraitsImplementation: invalidate too,

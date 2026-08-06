@@ -18,7 +18,6 @@
  */
 package org.structr.web.error;
 
-
 import org.structr.common.error.SemanticErrorToken;
 
 import java.util.Map;

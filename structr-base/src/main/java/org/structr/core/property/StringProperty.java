@@ -62,11 +62,13 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return String.class;
 	}
 
@@ -76,6 +78,7 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 		if (value != null) {
 
 			if (value instanceof String) {
+
 				return value;
 			}
 
@@ -87,25 +90,30 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new PropertyConverter<Object, String>(securityContext) {
 
 			@Override
 			public Object revert(String source) throws FrameworkException {
+
 				return source;
 			}
 
@@ -113,6 +121,7 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 			public String convert(final Object source) throws FrameworkException {
 
 				if (source != null) {
+
 					return source.toString();
 				}
 
@@ -127,38 +136,46 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	 * @return contentType
 	 */
 	public String contentType() {
+
 		return contentType != null ? contentType.toString() : null;
 	}
 
 	public StringProperty contentType(final String contentType) {
+
 		this.contentType = parse(contentType);
+
 		return this;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return StringUtils.capitalize(this.jsonName() + " #" + (index + 1));
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property type for string values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 

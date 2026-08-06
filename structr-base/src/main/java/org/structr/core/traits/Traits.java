@@ -60,22 +60,27 @@ public interface Traits extends Documentable {
 
 	// ----- static methods -----
 	static Traits of(final String name) {
+
 		return TraitsManager.getCurrentInstance().getType(name);
 	}
 
 	static Trait getTrait(final String name) {
+
 		return TraitsManager.getCurrentInstance().getTrait(name);
 	}
 
 	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
+
 		return TraitsManager.getCurrentInstance().getPropertiesOfTrait(name);
 	}
 
 	static Set<PropertyKey> getDefaultKeys() {
+
 		return TraitsManager.getCurrentInstance().getDefaultKeys();
 	}
 
 	static Traits ofRelationship(final String type1, final String relType, final String type2) {
+
 		return TraitsManager.getCurrentInstance().ofRelationship(type1, relType, type2);
 	}
 
@@ -86,22 +91,27 @@ public interface Traits extends Documentable {
 	 * @return
 	 */
 	static boolean exists(final String name) {
+
 		return TraitsManager.getCurrentInstance().exists(name);
 	}
 
 	static Set<String> getAllTypes() {
+
 		return TraitsManager.getCurrentInstance().getAllTypes();
 	}
 
 	static Set<String> getAllTypes(final Predicate<Traits> filter) {
+
 		return TraitsManager.getCurrentInstance().getAllTypes(filter);
 	}
 
 	static <T> PropertyKey<T> key(final String type, final String name) {
+
 		return TraitsManager.getCurrentInstance().key(type, name);
 	}
 
 	static Set<String> getAllViews() {
+
 		return TraitsManager.getCurrentInstance().getAllViews();
 	}
 }

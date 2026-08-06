@@ -31,11 +31,13 @@ class RecordMapMapper implements Function<Record, Map<String, Object>> {
 	private BoltDatabaseService db = null;
 
 	public RecordMapMapper(final BoltDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Map<String, Object> apply(final Record t) {
+
 		return new MapResultWrapper(db, t.asMap());
 	}
 }

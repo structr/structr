@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class CssRuleHAS_DECLARATIONCssDeclaration extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public CssRuleHAS_DECLARATIONCssDeclaration() {
+
 		super(StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
 	} // OneToMany<CssRule, CssDeclaration> {
 	
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.CSS_RULE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.CSS_DECLARATION;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_DECLARATION";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

@@ -30,14 +30,17 @@ public class MemoryLabelFilter<T extends MemoryEntity> implements Filter<T> {
 	private final Set<String> labels = new LinkedHashSet<>();
 
 	public MemoryLabelFilter(final String label) {
+
 		this.labels.add(label);
 	}
 
 	public MemoryLabelFilter(final Set<String> labels) {
+
 		this.labels.addAll(labels);
 	}
 
 	public Set<String> getLabels() {
+
 		return labels;
 	}
 }

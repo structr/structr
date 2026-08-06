@@ -76,9 +76,13 @@ public class SystemTest extends StructrTest {
 	public void testCallbacksWithSuperUserContext() {
 
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
 		try {
+
 			testCallbacks(securityContext);
+
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 	}
@@ -89,8 +93,8 @@ public class SystemTest extends StructrTest {
 		try {
 
 			NodeInterface person = this.createTestNode(StructrTraits.USER);
-
 			final SecurityContext securityContext = SecurityContext.getInstance(person.as(Principal.class), null, AccessMode.Backend);
+
 			testCallbacks(securityContext);
 
 		} catch (FrameworkException fex) {
@@ -125,14 +129,13 @@ public class SystemTest extends StructrTest {
 			assertTrue("afterCreationTimestamp should be != 0", test.getAfterCreationTimestamp() != 0L);
 			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
 
-
 // ##################################### test modification callbacks
-
 
 			// reset timestamps
 			test.resetTimestamps();
 
 			try (final Tx tx = app.tx()) {
+
 				test.setProperty(testProperty, 234);
 				tx.success();
 			}
@@ -146,13 +149,13 @@ public class SystemTest extends StructrTest {
 			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
 			assertTrue("afterModificationTimestamp should be != 0", test.getAfterModificationTimestamp() != 0L);
 
-
 // ##################################### test non-modifying set operation
 
 			// reset timestamps
 			test.resetTimestamps();
 
 			try (final Tx tx = app.tx()) {
+
 				test.setProperty(testProperty, 234);
 				tx.success();
 			}
@@ -166,14 +169,13 @@ public class SystemTest extends StructrTest {
 			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
 			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
 
-
-
 // ##################################### test deletion
 
 			// reset timestamps
 			test.resetTimestamps();
 
 			try (final Tx tx = app.tx()) {
+
 				app.delete(test);
 				tx.success();
 			}
@@ -186,8 +188,6 @@ public class SystemTest extends StructrTest {
 			// only the creation methods should have been called now!
 			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
 			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
-
-
 
 		} catch (FrameworkException ex) {
 
@@ -227,7 +227,6 @@ public class SystemTest extends StructrTest {
 			tx.success();
 		}
 
-
 		// 2nd part of the test: modify node
 		try (final Tx tx = app.tx()) {
 
@@ -237,6 +236,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -274,7 +274,6 @@ public class SystemTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		assertNotNull("Type CreateTest should have been created", testType);
 
@@ -381,7 +380,6 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException expected) { }
 
-
 		try {
 
 			try (final Tx tx = app.tx()) {
@@ -428,6 +426,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail("Error creating schema node");
 		}
 
@@ -471,6 +470,7 @@ public class SystemTest extends StructrTest {
 		for (final Future future : futures) {
 
 			try {
+
 				future.get();
 
 			} catch (Throwable t) {
@@ -479,7 +479,6 @@ public class SystemTest extends StructrTest {
 				fail("Unexpected exception");
 			}
 		}
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -496,6 +495,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail("Unexpected exception");
 		}
 
@@ -529,6 +529,7 @@ public class SystemTest extends StructrTest {
 
 			// wait for termination
 			for (final Future future : futures) {
+
 				future.get();
 				System.out.print(".");
 			}
@@ -537,12 +538,14 @@ public class SystemTest extends StructrTest {
 
 			// check for success
 			for (final TestRunner runner : tests) {
+
 				assertTrue("Could not validate transaction isolation", runner.success());
 			}
 
 			executor.shutdownNow();
 
 		} catch (Throwable fex) {
+
 			fail("Unexpected exception");
 		}
 	}
@@ -574,6 +577,7 @@ public class SystemTest extends StructrTest {
 
 			// wait for termination
 			for (final Future future : futures) {
+
 				future.get();
 				System.out.print(".");
 			}
@@ -582,12 +586,14 @@ public class SystemTest extends StructrTest {
 
 			// check for success
 			for (final FailingTestRunner runner : tests) {
+
 				assertTrue("Could not validate transaction isolation", runner.success());
 			}
 
 			executor.shutdownNow();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -612,6 +618,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -620,7 +627,6 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface project      = app.create("Project");
 			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
-
 			final PropertyKey<NodeInterface> taskKey = Traits.of("Project").key("task");
 
 			project.setProperty(taskKey, mailTemplate);
@@ -662,6 +668,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -670,7 +677,6 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface project      = app.create("Project");
 			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
-
 			final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
 
 			project.setProperty(tasksKey, List.of(mailTemplate));
@@ -712,6 +718,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -720,7 +727,6 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface project      = app.create("Project");
 			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
-
 			final PropertyKey<NodeInterface> tasksKey = Traits.of("Project").key("task");
 
 			project.setProperty(tasksKey, mailTemplate);
@@ -762,6 +768,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -771,7 +778,6 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface project      = app.create("Project");
 			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
-
 			final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
 
 			project.setProperty(tasksKey, List.of(mailTemplate));
@@ -816,6 +822,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -846,6 +853,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -862,6 +870,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -873,6 +882,7 @@ public class SystemTest extends StructrTest {
 			final List<RelationshipInterface> rels = Iterables.toList(item1.getOutgoingRelationships());
 
 			for (final RelationshipInterface rel : rels) {
+
 				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
 			}
 
@@ -881,6 +891,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -908,6 +919,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -938,6 +950,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -954,6 +967,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -968,6 +982,7 @@ public class SystemTest extends StructrTest {
 			for (final RelationshipInterface rel : rels) {
 
 				if ("ItemNEXTItem".equals(rel.getType())) {
+
 					filtered.add(rel);
 				}
 			}
@@ -977,6 +992,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1004,6 +1020,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1034,6 +1051,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1050,6 +1068,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1061,6 +1080,7 @@ public class SystemTest extends StructrTest {
 			final List<RelationshipInterface> rels = Iterables.toList(item1.getOutgoingRelationships());
 
 			for (final RelationshipInterface rel : rels) {
+
 				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
 			}
 
@@ -1069,6 +1089,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1085,13 +1106,12 @@ public class SystemTest extends StructrTest {
 
 			System.out.println("Creating supernode with " + num + " relationships.");
 
-			list.add(createTestNode("TestOne",
-				new NodeAttribute<>(Traits.of("TestOne").key("manyToManyTestSixs"), createTestNodes("TestSix", num))
-			));
+			list.add(createTestNode("TestOne", new NodeAttribute<>(Traits.of("TestOne").key("manyToManyTestSixs"), createTestNodes("TestSix", num))));
 
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1112,6 +1132,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1131,6 +1152,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 
@@ -1145,6 +1167,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 	}
@@ -1166,22 +1189,25 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		final String type = "GrantTest";
-
 		final long t0 = System.currentTimeMillis();
+
 		try (final Tx tx = app.tx()) {
 
 			for (int i=0; i<1000; i++) {
+
 				app.create(type, "test" + i);
 			}
 
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -1198,9 +1224,9 @@ public class SystemTest extends StructrTest {
 		for (int i=0; i<1000; i++) {
 
 			try {
+
 				final NodeInterface source          = createTestNode("TestSix");
 				final NodeInterface target          = createTestNode("TestOne");
-
 				final Future one = service.submit(new RelationshipCreator(source, target));
 				final Future two = service.submit(new RelationshipCreator(source, target));
 
@@ -1220,6 +1246,7 @@ public class SystemTest extends StructrTest {
 				}
 
 			} catch (ExecutionException | InterruptedException | FrameworkException fex) {
+
 				// success
 			}
 		}
@@ -1247,6 +1274,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail("Error creating schema node");
 		}
 	}
@@ -1262,6 +1290,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail("Error creating schema node");
 		}
 	}
@@ -1288,6 +1317,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1314,6 +1344,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1337,6 +1368,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1354,6 +1386,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1368,6 +1401,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			System.out.println(t.getMessage());
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -1380,7 +1414,6 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType test1 = sourceSchema.addType("Test1");
 			final JsonObjectType test2 = sourceSchema.addType("Test2");
 
@@ -1391,6 +1424,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1409,6 +1443,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			System.out.println(t.getMessage());
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -1425,6 +1460,7 @@ public class SystemTest extends StructrTest {
 			assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(n));
 
 			for (final RelationshipInterface rel : rels) {
+
 				final Relationship r = rel.getRelationship();
 				assertTrue("TransactionCommand.isDeleted() does not work properly", TransactionCommand.isDeleted(r));
 			}
@@ -1432,6 +1468,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			System.out.println(t.getMessage());
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -1516,7 +1553,6 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType test = sourceSchema.addType("Test");
 
 			test.addStringProperty("test1");
@@ -1527,6 +1563,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1543,6 +1580,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1586,6 +1624,7 @@ public class SystemTest extends StructrTest {
 			service.awaitTermination(10, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -1601,6 +1640,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -1621,6 +1661,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1657,6 +1698,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1668,6 +1710,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1680,6 +1723,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1702,6 +1746,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1713,6 +1758,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1725,6 +1771,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1752,6 +1799,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1774,6 +1822,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1935,6 +1984,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1954,12 +2004,14 @@ public class SystemTest extends StructrTest {
 				}
 
 				for (final NodeInterface g : groups) {
+
 					System.out.println(Thread.currentThread().getName() + ": " + g.getName());
 				}
 
 				tx.success();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -1988,6 +2040,7 @@ public class SystemTest extends StructrTest {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 		}
@@ -2001,6 +2054,7 @@ public class SystemTest extends StructrTest {
 			reader.join();
 
 		} catch (InterruptedException t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -2026,6 +2080,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2033,7 +2088,6 @@ public class SystemTest extends StructrTest {
 		final String left   = "Left";
 		final String middle = "Middle";
 		final String right  = "Right";
-
 		final PropertyKey leftToMiddle  = Traits.of(left).key(  "middle");
 		final PropertyKey rightToMiddle = Traits.of(right).key( "middle");
 		final PropertyKey middleToLeft  = Traits.of(middle).key("lefts");
@@ -2056,6 +2110,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2080,6 +2135,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2100,6 +2156,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2114,6 +2171,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2149,6 +2207,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2156,6 +2215,7 @@ public class SystemTest extends StructrTest {
 
 		// create project and two tasks with one user
 		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+
 		try (final Tx tx = tester1App.tx()) {
 
 			final NodeInterface project = tester1App.create("Project", "Project #1");
@@ -2175,12 +2235,14 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		// try to remove tasks with user that is not allowed to see task1
 		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+
 		try (final Tx tx = tester2App.tx()) {
 
 			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
@@ -2191,6 +2253,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2218,6 +2281,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2254,6 +2318,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2261,6 +2326,7 @@ public class SystemTest extends StructrTest {
 
 		// create project and two tasks with one user
 		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+
 		try (final Tx tx = tester1App.tx()) {
 
 			final NodeInterface project = tester1App.create("Project", "Project #1");
@@ -2280,12 +2346,14 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		// try to remove tasks with user that is not allowed to see task1
 		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+
 		try (final Tx tx = tester2App.tx()) {
 
 			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
@@ -2296,6 +2364,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2323,6 +2392,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2359,6 +2429,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2366,6 +2437,7 @@ public class SystemTest extends StructrTest {
 
 		// create project and two tasks with one user
 		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+
 		try (final Tx tx = tester1App.tx()) {
 
 			final NodeInterface project = tester1App.create("Project", "Project #1");
@@ -2384,12 +2456,14 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		// try to remove tasks with user that is not allowed to see task1
 		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+
 		try (final Tx tx = tester2App.tx()) {
 
 			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
@@ -2400,6 +2474,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2425,6 +2500,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2461,6 +2537,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2468,6 +2545,7 @@ public class SystemTest extends StructrTest {
 
 		// create project and two tasks with one user
 		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+
 		try (final Tx tx = tester1App.tx()) {
 
 			final NodeInterface project = tester1App.create("Project", "Project #1");
@@ -2483,12 +2561,14 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		// try to remove tasks with user that is not allowed to see task1
 		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+
 		try (final Tx tx = tester2App.tx()) {
 
 			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
@@ -2499,6 +2579,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2524,6 +2605,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2537,11 +2619,13 @@ public class SystemTest extends StructrTest {
 		private App app            = null;
 
 		public TestRunner(final App app, final NodeInterface test) {
+
 			this.app  = app;
 			this.test = test;
 		}
 
 		public boolean success() {
+
 			return success;
 		}
 
@@ -2571,6 +2655,7 @@ public class SystemTest extends StructrTest {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				success = false;
 			}
 		}
@@ -2584,11 +2669,13 @@ public class SystemTest extends StructrTest {
 		private App app            = null;
 
 		public FailingTestRunner(final App app, final NodeInterface test) {
+
 			this.app  = app;
 			this.test = test;
 		}
 
 		public boolean success() {
+
 			return success;
 		}
 
@@ -2617,10 +2704,12 @@ public class SystemTest extends StructrTest {
 
 				// make Transactions fail randomly
 				if (Math.random() <= 0.5) {
+
 					tx.success();
 				}
 
 			} catch (Throwable t) {
+
 				success = false;
 			}
 		}
@@ -2633,6 +2722,7 @@ public class SystemTest extends StructrTest {
 		private NodeInterface target = null;
 
 		public RelationshipCreator(final NodeInterface source, final NodeInterface  target) {
+
 			this.source = source;
 			this.target = target;
 		}
@@ -2650,6 +2740,7 @@ public class SystemTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 			}
 		}

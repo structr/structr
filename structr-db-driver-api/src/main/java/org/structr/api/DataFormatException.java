@@ -32,6 +32,7 @@ public class DataFormatException extends RuntimeException {
 	}
 
 	public String getErrorCode() {
+
 		return errorCode;
 	}
 }

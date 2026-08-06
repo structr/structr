@@ -33,17 +33,21 @@ public class ParentDataSource<T extends GraphObject> extends AbstractValueDataSo
 	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
 
 	public ParentDataSource(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public String getChannelName() {
+
 		return Functions.cleanString(name);
 	}
 
 	@Override
 	public int getDimension() {
+
 		// parent is exactly one object
+
 		return 0;
 	}
 
@@ -51,6 +55,7 @@ public class ParentDataSource<T extends GraphObject> extends AbstractValueDataSo
 	protected T getDataSourceValue(final ActionContext actionContext) throws FrameworkException {
 
 		if (actionContext instanceof RenderContext renderContext) {
+
 			return (T) renderContext.getDataNode(name);
 		}
 

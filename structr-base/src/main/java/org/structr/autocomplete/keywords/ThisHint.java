@@ -27,21 +27,25 @@ public class ThisHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "this";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the enclosing object instance of the currently executing method or script.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			{
@@ -55,8 +59,7 @@ public class ThisHint extends GeneralKeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"The value of `this` is `null` in user-defined functions and static methods."
-		);
+
+		return List.of("The value of `this` is `null` in user-defined functions and static methods.");
 	}
 }

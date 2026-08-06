@@ -3027,12 +3027,18 @@ let _Entities = {
 						let renderTemplate = field?.[whichTemplate];
 						let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
 						let stale = Object.keys(fields).length > 0 && !field;
+						// ApplyTemplatesFunction emits "No edit template." at render time for a
+						// field with no template in the active display mode. Flag it while the
+						// user is looking at the field instead of when the page is loaded.
+						let missingTemplate = !!field && !renderTemplate?.length;
 						sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({
 							fieldName,
 							field,
 							renderTemplate,
 							color,
 							stale,
+							missingTemplate,
+							displayMode,
 							open: openField === fieldName
 						}));
 						let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
@@ -3065,11 +3071,19 @@ let _Entities = {
 							}));
 
 							// render template settings
-							let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings');
+							let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings', true);
 							renderTemplateSettings.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
-							// remove element if no render template settings exist
 							if (renderTemplateSettings.children.length === 0) {
-								renderTemplateSettings.parentNode.remove();
+								// Say that there is nothing to configure rather than removing the
+								// section: an absent section is indistinguishable from a broken
+								// template, which is what sent people to the Value Expression.
+								renderTemplateSettings.insertAdjacentHTML('beforeend', `
+									<div class="col-span-6 text-gray-666 text-xs">
+										${renderTemplate ? `The <b>${_Helpers.escapeTags(renderTemplate)}</b> template declares no settings.` : 'No render template set for this field.'}
+									</div>
+								`);
+							} else {
+								_Helpers.activateCommentsInElement(renderTemplateSettings);
 							}
 
 							// expert settings
@@ -3139,7 +3153,9 @@ let _Entities = {
 							editor.querySelectorAll('input').forEach(input => {
 								input.addEventListener('change', async e => {
 									let data = {_fieldName: input.dataset.fieldName, _update: true};
-									data[input.name] = input.value;
+									// a checkbox's value is "on" regardless of state, so unchecking
+									// one would otherwise persist "on" as well
+									data[input.name] = (input.type === 'checkbox') ? input.checked : input.value;
 									data._destination = input.dataset.destination || 'config';
 									await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
 										method: 'POST',
@@ -3718,10 +3734,11 @@ let _Entities = {
 
 			return entity;
 		},
-		createAppendAndReturnDetailsSummary: (parent, label) => {
+		createAppendAndReturnDetailsSummary: (parent, label, open = false) => {
 
 			let details = document.createElement('details');
 			details.classList.add('col-span-6');
+			details.open = open;
 
 			let summary = document.createElement('summary');
 
@@ -4385,37 +4402,49 @@ let _Entities = {
 				</div>
 			`,
 
+				// The subject type is process-level (one subject per instance): resolve it via the
+				// bound user task's owning process. Returns the type name or null. Async because
+				// the process is fetched separately (the nested boundUserTask stub does not carry
+				// its properties). Both the data-source and field-config partials render the same
+				// panel from the same wrapper, so the fetch is memoized on it -- one round trip.
+				resolveProcessSubjectType: async (wrapper) => {
+					const boundTask = wrapper.config.boundUserTask;
+					if (wrapper.config.bindingMode !== 'processBound' || !boundTask || typeof boundTask !== 'object') return null;
+					return wrapper._processSubjectTypePromise ??= _Processes.getSubjectType(_Processes.processRefId(boundTask));
+				},
+
 			dataSourcePartial: async (config) => {
-				// Process-bound widgets derive their data source from the bound
-				// UserTask's subjectType at render time. The field rendered here
-				// depends on whether that derivation is healthy:
+				// Process-bound widgets render the ONE subject of the process instance the
+				// page is showing, so their data source is the `current` channel (a single
+				// object) and the subject *type* is the Expected Type, not the data source.
+				// The render-time wrapper derives both from the binding; here we mirror that
+				// read-only so the UI dev sees the contract without overwriting it:
 				//
-				//   * healthy (subjectType resolved): render a read-only input
-				//     showing the derived value, so the UI dev sees the contract
-				//     without accidentally overwriting it. No `name` attribute,
-				//     so the value is never posted back as a literal.
-				//   * broken (boundUserTask null, or its subjectType empty): fall
-				//     back to the regular dataSourcesSelector so the UI dev can
-				//     pick a data source manually. The wrapper's getDataSourceName
-				//     already falls through to the raw dataSource property in
-				//     this case, so a manual pick takes effect immediately.
+				//   * bound to a task: Source shows a read-only `current`; Expected Type shows
+				//     the process's subjectType (read-only, no `name`, so neither is posted
+				//     back as a literal).
+				//   * broken (boundUserTask null): fall back to the regular dataSourcesSelector
+				//     / editable Expected Type so the UI dev can pick manually. The wrapper's
+				//     getDataSourceName falls through to the raw dataSource in that case.
 				const isProcessBound = (config.config.bindingMode === 'processBound');
 				const boundTask      = config.config.boundUserTask;
-				const subjectType    = (boundTask && typeof boundTask === 'object') ? boundTask.subjectType : null;
-				// Display just the type name; the `node:` prefix is a Channel.forName
-				// implementation detail that the user doesn't need to see in the UI.
-				const displayValue        = subjectType || '';
-				const isProcessBoundHealthy = isProcessBound && !!subjectType;
+				const isBoundToTask  = isProcessBound && boundTask && typeof boundTask === 'object';
+				const subjectType    = await _Entities.generalTab.templates.resolveProcessSubjectType(config);
 
-				const sourceField = isProcessBoundHealthy
-					? `<input type="text" id="data-source-channel-select" class="rounded-none rounded-l border-gray-input px-3 py-1 bg-gray-f4 text-gray-666 cursor-not-allowed flex-grow" value="${_Helpers.escapeTags(displayValue)}" readonly title="Process-bound: subject type owned by the bound UserTask" placeholder="(no subject type set on UserTask)">`
+				const sourceField = isBoundToTask
+					? `<input type="text" id="data-source-channel-select" class="rounded-none rounded-l border-gray-input px-3 py-1 bg-gray-f4 text-gray-666 cursor-not-allowed flex-grow" value="current" readonly title="Process-bound: the current process instance (its single subject)">`
 					: await _Widgets.templates.dataSourcesSelector('data-source-channel-select', 'dataSource', config.config.dataSource, 'rounded-none rounded-l', 'general');
+
+				// Expected Type: read-only derived subjectType when bound, else the normal input.
+				const expectedTypeField = isBoundToTask
+					? `<input type="text" id="expected-data-type-input" class="validated bg-gray-f4 text-gray-666 cursor-not-allowed" value="${_Helpers.escapeTags(subjectType || '')}" readonly title="Process-bound: the process's subject type" placeholder="(no subject type set on the process)">`
+					: `<input class="validated" type="text" id="expected-data-type-input" autocomplete="off" name="expectedDataType" data-which="config">`;
 
 				const processBoundNote = !isProcessBound
 					? ''
-					: (isProcessBoundHealthy
-						? `<div class="text-xs text-gray-555 mt-1">Process-bound — subject type comes from the linked UserTask's <code>subjectType</code>. Change it in the BPMN editor.</div>`
-						: `<div class="text-xs mt-1" style="color:#c0392b;">Process-bound but no subject type resolved from the linked UserTask. Pick a data source here as a fallback, or set <code>subjectType</code> on the UserTask in the BPMN editor — the derivation takes precedence as soon as it resolves.</div>`);
+					: (isBoundToTask && subjectType
+						? `<div class="text-xs text-gray-555 mt-1">Process-bound to the current process instance. The subject type (<code>${_Helpers.escapeTags(subjectType)}</code>, shown as Expected Type) comes from the process's <code>subjectType</code> — change it on the Process tab in the BPMN editor.</div>`
+						: `<div class="text-xs mt-1" style="color:#c0392b;">Process-bound but no subject type resolved from the process. Set the subject type on the Process tab in the BPMN editor — the form renders no fields until it resolves.</div>`);
 
 				return `
 	
@@ -4436,7 +4465,7 @@ let _Entities = {
 							<div class="${_Entities.generalTab.templates.gridClasses()}">
 									<div>
 										<label class="block mb-2" for="expected-data-type-input" data-comment="The type this component expects from its data source. This controls the available fields in the list below.">Expected Type</label>
-										<input class="validated" type="text" id="expected-data-type-input" autocomplete="off" name="expectedDataType" data-which="config">
+										${expectedTypeField}
 									</div>
 									<div>
 										<label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
@@ -4491,7 +4520,7 @@ let _Entities = {
 					</div>
 				`;
 			},
-			fieldConfigPartial: (config) => {
+			fieldConfigPartial: async (config) => {
 				// Process-bound contract summary, shown above the Configured Fields
 				// section so the UI dev sees the source-of-truth binding without
 				// scrolling. Mirrors the appearance of the Append-Widget dialog's
@@ -4501,12 +4530,12 @@ let _Entities = {
 				// is a read-only display of the resulting contract.
 				const isProcessBound = (config.config.bindingMode === 'processBound');
 				const boundTask      = config.config.boundUserTask;
-				const subjectType    = (boundTask && typeof boundTask === 'object') ? boundTask.subjectType : null;
+				const subjectType    = await _Entities.generalTab.templates.resolveProcessSubjectType(config);
 				const taskLabel      = (boundTask && typeof boundTask === 'object') ? (boundTask.bpmnName || boundTask.name || boundTask.id) : null;
 				const contractSummary = !isProcessBound ? '' : (
 					subjectType
-						? `<div class="process-bound-contract-summary text-gray-555 mb-2" style="font-size:12px;">Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b>. Subject type: <b>${_Helpers.escapeTags(subjectType)}</b>.</div>`
-						: `<div class="process-bound-contract-summary mb-2" style="font-size:12px; color:#c0392b;">⚠ Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b> but no subject type set. Re-link on the Process tab, or set <code>subjectType</code> on the UserTask in the BPMN editor.</div>`
+						? `<div class="process-bound-contract-summary text-gray-555 mb-2" style="font-size:12px;">Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b>. Subject type: <b>${_Helpers.escapeTags(subjectType)}</b> (from the process).</div>`
+						: `<div class="process-bound-contract-summary mb-2" style="font-size:12px; color:#c0392b;">⚠ Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b> but its process has no subject type set. Set the subject type on the Process tab in the BPMN editor.</div>`
 				);
 				return `
 
@@ -4536,6 +4565,7 @@ let _Entities = {
 							<input type="checkbox" checked data-key="${config.fieldName}">
 							<span class="${config.stale ? 'line-through text-gray-666' : ''}">${config.fieldName}</span>
 							${config.stale ? `<span class="ml-4" style="color:#c0392b;" title="This field is no longer provided by the current data source and has no configured field of its own — the underlying schema property was likely deleted. Uncheck the box to remove it from this component.">⚠ stale</span>` : ''}
+							${config.missingTemplate ? `<span class="ml-4" style="color:#8a6d3b;" title="This field has no ${config.displayMode === 'input' ? 'edit' : 'render'} template, so it renders as an error placeholder in ${config.displayMode === 'input' ? 'input' : 'display'} mode. Click the template name on the right to pick one.">⚠ no template</span>` : ''}
 						</div>
 						<span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
 					</summary>
@@ -4567,28 +4597,96 @@ let _Entities = {
 			`,
 			fieldDetailInput: (config) => `
 				<div class="${config.css || ''}">
-					<label class="font-bold block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}">${config.label}</label>
+					<label class="font-bold block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}>${config.label}</label>
 					<input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
 				</div>
 			`,
-			fieldDetailCheckbox: (config) => `
+			fieldDetailCheckbox: (config) => {
+				let heading = (config.heading === undefined) ? 'Options' : config.heading;
+				return `
 				<div class="${config.css || ''}">
-					<label class="font-bold block mb-1 px-1">Options</label>
-					<label class="block mb-1 px-1">
+					${heading ? `<label class="font-bold block mb-1 px-1">${heading}</label>` : ''}
+					<label class="block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}>
 						<input type="checkbox" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}" ${config.value ? 'checked': ''}>
 						${config.label}
 					</label>
 				</div>
-			`,
+			`;
+			},
 			fieldDetailDropdown: (config) => `
 				<div class="${config.css || ''}">
-					<label class="font-bold block mb-1 px-1">${config.label}</label>
+					<label class="font-bold block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}>${config.label}</label>
 					<select class="select2 rounded-none rounded-l" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}">
 						<option value="">None</option>
 						${config.options.map(o => `<option value="${o.value}" ${config.value === o.value ? 'selected' : ''}>${o.name}</option>`).join('\n')}
 					</select>
 				</div>
 			`,
+			/**
+			 * One input for a render template's declared parameter.
+			 *
+			 * A template's `configuration` entry may name a `type`; supported are only those
+			 * that are knowable at design time, because the type of the object a field will
+			 * render is NOT: a Node-valued property reports `dataType: "node"` and nothing
+			 * about its target type, so a property picker cannot be offered here (the
+			 * schema-property control in the Insert Widget dialog works only because a sibling
+			 * type picker feeds it). Anything type-dependent stays a named text field, and the
+			 * template is expected to tolerate a wrong or empty value at render time.
+			 */
+			typedFieldConfigInput: async (config) => {
+
+				// Two consumers with different collection conventions: the Insert Widget dialog
+				// reads .form-field[data-key], the general tab reads data-field-name +
+				// data-destination. attributeSet: 'widgets' selects the former, mirroring
+				// _Widgets.templates.dataSourcesSelector.
+				const forWidgetDialog = (config.attributeSet === 'widgets');
+
+				const options = async () => {
+					if (config.type === 'page') {
+						// Store the page's UUID (stable across renames), NOT its name. The render
+						// side (DataField) resolves the UUID back to the page's *current* name, so
+						// `${field.config.detailPage}` still yields a working URL path even after the
+						// page is renamed. Label shows the name, value is the id.
+						const pages = (await Command.queryPromise('Page', 1000, 1, 'name', 'asc', { hidden: false }, true, null, 'id,name') ?? [])
+							.map(p => ({ name: p.name, value: p.id }));
+						// Preserve an already-stored value not in the list (a legacy page NAME from
+						// before this change, or a page not returned) so saving can't silently drop it.
+						if (config.value && !pages.some(p => p.value === config.value)) {
+							pages.unshift({ name: `${config.value} (unresolved)`, value: config.value });
+						}
+						return pages;
+					}
+					// declared by the template itself: ["a","b"] or [{name,value}]
+					return (config.options ?? []).map(o => (typeof o === 'string') ? { name: o, value: o } : o);
+				};
+
+				if (forWidgetDialog) {
+
+					const id   = config.cleanedLabel ?? config.name;
+					const attrs = `class="form-field" id="${_Helpers.escapeForHtmlAttributes(id)}" data-key="${_Helpers.escapeForHtmlAttributes(config.name)}"`;
+
+					if (config.type === 'boolean') {
+						return `<div><h4 id="label-${id}">${config.label}</h4><label class="block"><input type="checkbox" ${attrs} ${config.value ? 'checked' : ''}> ${config.label}</label></div>`;
+					}
+
+					const opts = (await options()).map(o => `<option value="${_Helpers.escapeForHtmlAttributes(o.value)}" ${config.value === o.value ? 'selected' : ''}>${_Helpers.escapeTags(o.name)}</option>`).join('');
+
+					return `<div><h4 id="label-${id}">${config.label}</h4><select ${attrs}><option value="">None</option>${opts}</select></div>`;
+				}
+
+				switch (config.type) {
+
+					case 'page':
+					case 'select':
+						return _Entities.generalTab.templates.fieldDetailDropdown({ ...config, options: await options() });
+
+					case 'boolean':
+						return _Entities.generalTab.templates.fieldDetailCheckbox({ ...config, heading: '' });
+
+					default:
+						return _Entities.generalTab.templates.fieldDetailInput(config);
+				}
+			},
 			fieldConfigurationInput: async (field, templateName) => {
 				let templates = await Command.queryPromise('Widget', 1000, 1, 'name', 'asc', { isRenderTemplate: true, name: templateName }, true, null, 'id,type,name,configuration');
 				let fields = [];
@@ -4597,14 +4695,16 @@ let _Entities = {
 					if (template && template?.configuration?.length > 0) {
 						let config = JSON.parse(template.configuration);
 						for (let key in config) {
-							let label = config[key]?.label || key;
-							let value = field?.config?.[key];
-							fields.push(_Entities.generalTab.templates.fieldDetailInput({
+							let entry = config[key] ?? {};
+							fields.push(await _Entities.generalTab.templates.typedFieldConfigInput({
 								css: 'col-span-3',
 								fieldName: field.name,
 								name: key,
-								value: value,
-								label: label
+								value: field?.config?.[key],
+								label: entry.label || entry.title || key,
+								comment: entry.comment,
+								type: entry.type,
+								options: entry.options
 							}));
 						}
 					}

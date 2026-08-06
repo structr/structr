@@ -32,16 +32,19 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.equals";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.equals";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.equals";
 	}
 
@@ -79,6 +82,7 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.equals(key, value). Example: ${{ $.find('Group', $.predicate.equals('name', 'Test')) }}"),
 			Usage.structrScript("Usage: ${equals(key, value). Example: ${find('Group', equals('name', 'Test'))}")
@@ -87,16 +91,19 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The second parameter can be a value or one of a list of search predicates (any, range, gt, gte, lt, lte).";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -111,11 +118,13 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

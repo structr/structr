@@ -31,11 +31,13 @@ public class NotFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "not";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("bool");
 	}
 
@@ -55,6 +57,7 @@ public class NotFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -63,39 +66,37 @@ public class NotFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${not(bool)}"),
-				Usage.javaScript("Usage: ${{ $.not(bool) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${not(bool)}"), Usage.javaScript("Usage: ${{ $.not(bool) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("expression", "boolean expression to negate")
-		);
+
+		return List.of(Parameter.mandatory("expression", "boolean expression to negate"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the logical negation given boolean expression.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function takes a single arguments and returns the negation of its boolean value.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${not(true)}", "Returns `false`"),
-				Example.structrScript("${not(me.isAdmin)}")
-		);
+
+		return List.of(Example.structrScript("${not(true)}", "Returns `false`"), Example.structrScript("${not(me.isAdmin)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

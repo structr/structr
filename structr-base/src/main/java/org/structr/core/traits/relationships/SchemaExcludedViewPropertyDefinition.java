@@ -28,46 +28,55 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 public class SchemaExcludedViewPropertyDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaExcludedViewPropertyDefinition() {
+
 		super(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.SCHEMA_VIEW;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.SCHEMA_PROPERTY;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "IS_EXCLUDED_FROM_VIEW";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return true;
 	}
 }

@@ -34,6 +34,7 @@ import org.structr.schema.action.Function;
 import java.util.Arrays;
 
 public class CacheFunction implements ProxyExecutable {
+
 	private static final Logger logger = LoggerFactory.getLogger(CacheFunction.class);
 	private final ActionContext actionContext;
 	private final GraphObject entity;
@@ -46,17 +47,19 @@ public class CacheFunction implements ProxyExecutable {
 
 	@Override
 	public Object execute(Value... arguments) {
+
 		final CacheExpression cacheExpr = new CacheExpression(1, 1);
-
 		Object retVal = null;
-
 		Object[] parameters = Arrays.stream(arguments).map(a -> PolyglotWrapper.unwrap(actionContext, a)).toArray();
 
 		try {
+
 			for (Object parameter : parameters) {
+
 				if (parameter instanceof PolyglotWrapper.FunctionWrapper) {
 
 					cacheExpr.add(new LazyEvaluatedFunctionExpression(((PolyglotWrapper.FunctionWrapper) parameter)::execute, 1, 1));
+
 				} else {
 
 					cacheExpr.add(new ConstantExpression(parameter, 1, 1));

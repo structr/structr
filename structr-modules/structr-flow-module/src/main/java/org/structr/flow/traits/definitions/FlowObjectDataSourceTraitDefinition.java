@@ -51,6 +51,7 @@ public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefini
 	private static final Logger logger = LoggerFactory.getLogger(FlowObjectDataSourceTraitDefinition.class);
 
 	public FlowObjectDataSourceTraitDefinition() {
+
 		super(StructrTraits.FLOW_OBJECT_DATA_SOURCE);
 	}
 
@@ -59,8 +60,7 @@ public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefini
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+			DataSourceOperations.class, new DataSourceOperations() {
 
 				@Override
 				public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -92,9 +92,7 @@ public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefini
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowObjectDataSource.class, (traits, node) -> new FlowObjectDataSource(traits, node)
-		);
+		return Map.of(FlowObjectDataSource.class, (traits, node) -> new FlowObjectDataSource(traits, node));
 	}
 
 	@Override
@@ -102,29 +100,20 @@ public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefini
 
 		final Property<Iterable<NodeInterface>> keyValueSources = new StartNodes(traitsInstance, KEY_VALUE_SOURCES_PROPERTY, StructrTraits.FLOW_KEY_VALUE_OBJECT_INPUT);
 
-		return newSet(
-			keyValueSources
-		);
+		return newSet(keyValueSources);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				KEY_VALUE_SOURCES_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(KEY_VALUE_SOURCES_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				KEY_VALUE_SOURCES_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(KEY_VALUE_SOURCES_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -31,6 +31,7 @@ import java.util.function.UnaryOperator;
 public class RemoveUnwantedTokensRule extends Rule {
 
 	public RemoveUnwantedTokensRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -43,7 +44,6 @@ public class RemoveUnwantedTokensRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken abstractToken = tokens.poll();
-
 			if (abstractToken instanceof UnresolvedToken unresolved && blacklist.contains(unresolved.getToken().toLowerCase())) {
 
 				// ignore token
@@ -62,6 +62,7 @@ public class RemoveUnwantedTokensRule extends Rule {
 				*/
 
 			} else {
+
 				result.add(abstractToken);
 			}
 		}

@@ -27,28 +27,31 @@ public class IdHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "id";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the id of the object returned by URI Object Resolution, if available.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "When a valid UUID is present in the URL of a page, Structr automatically retrieves the object associated with that UUID and makes its UUID available to all scripts, templates, and logic executed during the page rendering process under the keyword `id`.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 }

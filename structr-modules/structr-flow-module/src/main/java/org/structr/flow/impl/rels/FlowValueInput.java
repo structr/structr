@@ -28,76 +28,91 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FlowValueInput extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
     public FlowValueInput() {
+
         super(StructrTraits.FLOW_VALUE_INPUT);
     }
 
     @Override
     public String getSourceType() {
+
         return StructrTraits.FLOW_DATA_SOURCE;
     }
 
     @Override
     public String getTargetType() {
+
         return StructrTraits.FLOW_BASE_NODE;
     }
 
     @Override
     public String getRelationshipType() {
+
         return "VALUE_DATA";
     }
 
     @Override
     public Relation.Multiplicity getSourceMultiplicity() {
+
         return Relation.Multiplicity.One;
     }
 
     @Override
     public Relation.Multiplicity getTargetMultiplicity() {
+
         return Relation.Multiplicity.Many;
     }
 
     @Override
     public int getCascadingDeleteFlag() {
+
         return 0;
     }
 
     @Override
     public int getAutocreationFlag() {
+
         return Relation.ALWAYS;
     }
 
     @Override
     public boolean isInternal() {
+
         return false;
     }
 
     @Override
     public PropagationDirection getPropagationDirection() {
+
         return PropagationDirection.Both;
     }
 
     @Override
     public PropagationMode getReadPropagation() {
+
         return PropagationMode.Add;
     }
 
     @Override
     public PropagationMode getWritePropagation() {
+
         return PropagationMode.Keep;
     }
 
     @Override
     public PropagationMode getDeletePropagation() {
+
         return PropagationMode.Keep;
     }
 
     @Override
     public PropagationMode getAccessControlPropagation() {
+
         return PropagationMode.Keep;
     }
 
     @Override
     public String getDeltaProperties() {
+
         return null;
     }
 }

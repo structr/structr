@@ -47,6 +47,7 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SCRIPT_PROPERTY            = "script";
 
 	public FlowAggregateTraitDefinition() {
+
 		super(StructrTraits.FLOW_AGGREGATE);
 	}
 
@@ -55,17 +56,16 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+			GetFlowType.class, new GetFlowType() {
 
 				@Override
 				public FlowType getFlowType(FlowNode flowNode) {
+
 					return FlowType.Aggregation;
 				}
 			},
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+			DataSourceOperations.class, new DataSourceOperations() {
 
 				@Override
 				public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
@@ -91,9 +91,7 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowAggregate.class, (traits, node) -> new FlowAggregate(traits, node)
-		);
+		return Map.of(FlowAggregate.class, (traits, node) -> new FlowAggregate(traits, node));
 	}
 
 	@Override
@@ -104,12 +102,7 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> exceptionHandler     = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> script                      = new StringProperty(SCRIPT_PROPERTY);
 
-		return newSet(
-			dataTarget,
-			startValue,
-			exceptionHandler,
-			script
-		);
+		return newSet(dataTarget, startValue, exceptionHandler, script);
 	}
 
 	@Override
@@ -129,6 +122,7 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

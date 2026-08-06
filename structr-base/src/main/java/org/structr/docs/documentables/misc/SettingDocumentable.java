@@ -42,56 +42,67 @@ public class SettingDocumentable implements Documentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Setting;
 	}
 
 	@Override
 	public Category getCategory() {
+
 		return parentGroup;
 	}
 
 	@Override
 	public String getName() {
+
 		return setting.getKey();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return setting.getComment();
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return this.setting.getLongDescription();
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return null;
 	}
 

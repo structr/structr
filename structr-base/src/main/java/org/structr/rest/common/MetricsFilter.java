@@ -41,6 +41,7 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 		if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
 
 			chain.doFilter(request, response);
+
 			return;
 		}
 
@@ -63,7 +64,6 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 			final String method      = req.getMethod();
 			final String servletPath = req.getServletPath();
 			final int status         = resp.getStatus();
-
 
 			buf.append(servletPath);
 

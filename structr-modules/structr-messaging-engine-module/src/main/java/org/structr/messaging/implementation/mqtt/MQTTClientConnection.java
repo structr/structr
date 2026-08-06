@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended {
+
 	private MemoryPersistence persistence = new MemoryPersistence();
 	private MqttConnectOptions connOpts;
 	private MqttClient client;
@@ -47,6 +48,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 		if (info.getFallbackBrokerURLs() != null) {
 
 			String[] fallBackBrokers;
+
 			if (info.getMainBrokerURL() != null) {
 
 				List<String> mergedBrokers = new ArrayList<>();
@@ -190,6 +192,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 	@Override
 	public void connectionLost(Throwable cause) {
+
 		info.connectionStatusCallback(false);
 	}
 
@@ -199,15 +202,18 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 	@Override
 	public void connectComplete(boolean b, String s) {
+
 		info.connectionStatusCallback(b);
 	}
 
 	private class CallbackWorker implements Runnable {
+
 		private final MQTTInfo info;
 		private final String topic;
 		private final String message;
 
 		public CallbackWorker(MQTTInfo info, String topic, String message){
+
 			this.info = info;
 			this.topic = topic;
 			this.message = message;
@@ -219,6 +225,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 			try {
 
 				if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone()) {
+
 					info.messageCallback(topic, message);
 				}
 

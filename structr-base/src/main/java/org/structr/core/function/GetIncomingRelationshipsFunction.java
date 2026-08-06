@@ -37,11 +37,13 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "getIncomingRelationships";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
@@ -56,7 +58,6 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 			final Object source = sources[0];
 			final Object target = sources[1];
-
 			NodeInterface sourceNode = null;
 			NodeInterface targetNode = null;
 
@@ -68,6 +69,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 			} else {
 
 				logger.warn("Error: entities are not nodes. Parameters: {}", getParametersAsString(sources));
+
 				return "Error: entities are not nodes.";
 			}
 
@@ -79,8 +81,8 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 					final NodeInterface t = rel.getTargetNode();
 
 					// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
-					if (s != null && t != null
-							&& s.equals(targetNode) && t.equals(sourceNode)) {
+					if (s != null && t != null && s.equals(targetNode) && t.equals(sourceNode)) {
+
 						list.add(rel);
 					}
 				}
@@ -96,9 +98,8 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 					final NodeInterface t = rel.getTargetNode();
 
 					// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
-					if (s != null && t != null
-							&& rel.getRelType().name().equals(relType)
-							&& s.equals(targetNode) && t.equals(sourceNode)) {
+					if (s != null && t != null && rel.getRelType().name().equals(relType) && s.equals(targetNode) && t.equals(sourceNode)) {
+
 						list.add(rel);
 					}
 				}
@@ -111,6 +112,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -119,6 +121,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.structrScript("Usage: ${getIncomingRelationships(from, to [, relType])}. Example: ${getIncomingRelationships(me, user, 'FOLLOWS')}"),
 				Usage.javaScript("Usage: ${{$.getIncomingRelationships(from, to [, relType])}}. Example: ${{$.getIncomingRelationships($.me, user, 'FOLLOWS')}}")
@@ -127,35 +130,31 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns all incoming relationships between the given nodes, with an optional qualifying relationship type.";
 	}
 
-
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getIncomingRelationships(page, me)}"),
-				Example.javaScript("${{ $.getIncomingRelationships($.page, $.me) }}")
-		);
+
+		return List.of(Example.structrScript("${getIncomingRelationships(page, me)}"), Example.javaScript("${{ $.getIncomingRelationships($.page, $.me) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("from", "source node"),
-				Parameter.mandatory("to", "target node"),
-				Parameter.optional("relType", "relationship type")
-		);
+		return List.of(Parameter.mandatory("from", "source node"), Parameter.mandatory("to", "target node"), Parameter.optional("relType", "relationship type"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

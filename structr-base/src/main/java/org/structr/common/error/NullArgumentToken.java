@@ -26,6 +26,7 @@ package org.structr.common.error;
 public class NullArgumentToken extends SemanticErrorToken {
 
 	public NullArgumentToken(final String type, final String propertyKey) {
+
 		super(type, propertyKey, "may_not_be_null");
 	}
 }

@@ -41,11 +41,13 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "setContent";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("file, content[, encoding ]");
 	}
 
@@ -68,6 +70,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 						fos.write((byte[]) sources[1]);
 
 					} catch (IOException ioex) {
+
 						logger.warn("setContent(): Unable to write binary data to file '{}'", file.getPath(), ioex);
 					}
 
@@ -78,8 +81,11 @@ public class SetContentFunction extends UiAdvancedFunction {
 						IOUtils.copy(is, fos);
 
 					} catch (IOException ioex) {
+
 						logger.warn("setContent(): Unable to stream content to file '{}'", file.getPath(), ioex);
+
 					} finally {
+
 						try { is.close(); } catch (IOException ignore) {}
 					}
 
@@ -88,12 +94,16 @@ public class SetContentFunction extends UiAdvancedFunction {
 					try (final OutputStream fos = file.getOutputStream(true, false)) {
 
 						if (encoding != null) {
+
 							fos.write(content.getBytes(encoding));
+
 						} else {
+
 							fos.write(content.getBytes());
 						}
 
 					} catch (IOException ioex) {
+
 						logger.warn("setContent(): Unable to write content to file '{}'", file.getPath(), ioex);
 					}
 
@@ -121,24 +131,25 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${setContent(file, content[, encoding ])}."),
-			Usage.javaScript("Usage: ${{$.setContent(file, content[, encoding ])}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${setContent(file, content[, encoding ])}."), Usage.javaScript("Usage: ${{$.setContent(file, content[, encoding ])}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the content of the given file. Content can be of type String, byte[] or InputStream.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 					${
@@ -188,15 +199,12 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("file", "file node"),
-			Parameter.mandatory("content", "content to set"),
-			Parameter.optional("encoding", "encoding, default: UTF-8")
-		);
+		return List.of(Parameter.mandatory("file", "file node"), Parameter.mandatory("content", "content to set"), Parameter.optional("encoding", "encoding, default: UTF-8"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If `content` is an InputStream (via $.GET), the stream is consumed and can not be used again afterwards",
 				"The `encoding` parameter is only used when writing **string** data to the file and ignored otherwise. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
@@ -205,6 +213,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

@@ -33,11 +33,13 @@ public class IsEntityFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "isEntity";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
@@ -53,50 +55,50 @@ public class IsEntityFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return false;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${isEntity(value)}"),
-				Usage.javaScript("Usage: ${{ $.isEntity(value) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${isEntity(value)}"), Usage.javaScript("Usage: ${{ $.isEntity(value) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given argument is a Structr entity (node or relationship).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("value", "value to check")
-		);
+		return List.of(Parameter.mandatory("value", "value to check"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${isEntity(this)}")
-		);
+
+		return List.of(Example.structrScript("${isEntity(this)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

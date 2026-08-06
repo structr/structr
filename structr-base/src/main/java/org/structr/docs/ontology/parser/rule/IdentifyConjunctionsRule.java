@@ -32,6 +32,7 @@ import java.util.Set;
 public class IdentifyConjunctionsRule extends Rule {
 
 	public IdentifyConjunctionsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -44,7 +45,6 @@ public class IdentifyConjunctionsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken abstractToken = tokens.pop();
-
 			if (abstractToken instanceof UnresolvedToken unresolved) {
 
 				final Token token = unresolved.getToken();

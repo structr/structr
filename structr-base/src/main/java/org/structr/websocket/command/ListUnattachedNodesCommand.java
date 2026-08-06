@@ -87,7 +87,6 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		final String sortKey       = webSocketData.getSortKey();
 		final int pageSize         = webSocketData.getPageSize();
 		final int page             = webSocketData.getPage();
-
 		final Query<NodeInterface> query = app.nodeQuery(StructrTraits.DOM_NODE)
 			.includeHidden()
 			.pageSize(pageSize)
@@ -106,6 +105,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "LIST_UNATTACHED_NODES";
 	}
 }

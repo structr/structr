@@ -36,6 +36,7 @@ import java.util.Set;
 
 @Documentation(name="MetricsServlet", parent="Servlets", children={ "MetricsServlet Settings" })
 public class MetricsServlet extends AbstractDataServlet {
+
 	private final io.prometheus.client.servlet.jakarta.exporter.MetricsServlet servlet;
 
 	public static final Counter HTTP_REQUEST_COUNTER = Counter.build("structr_http_requests_total", "Total number of HTTP requests.").labelNames("method", "path", "status").create().register();
@@ -74,6 +75,7 @@ public class MetricsServlet extends AbstractDataServlet {
 
 	@Override
 	public String getModuleName() {
+
 		return "rest";
 	}
 
@@ -88,7 +90,6 @@ public class MetricsServlet extends AbstractDataServlet {
 			for (final String entry : whitelistSource.split(",")) {
 
 				final String trimmed = entry.trim();
-
 				if (StringUtils.isNotBlank(trimmed)) {
 
 					whitelist.add(trimmed);

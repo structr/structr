@@ -22,6 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.core.api.AbstractMethod;
 
 public class ScriptConfig {
+
     private boolean wrapJsInMain                                  = Settings.WrapJSInMainFunction.getValue(false);
     private boolean keepContextOpen                               = false;
     private AbstractMethod currentMethod                          = null;
@@ -29,30 +30,37 @@ public class ScriptConfig {
     protected ScriptConfig() {}
 
     public static ScriptConfigBuilder builder() {
+
         return new ScriptConfigBuilder();
     }
 
     public boolean keepContextOpen() {
+
         return keepContextOpen;
     }
 
     protected void setKeepContextOpen(final boolean keepContextOpen) {
+
         this.keepContextOpen = keepContextOpen;
     }
 
     public boolean wrapJsInMain() {
+
         return wrapJsInMain;
     }
 
     protected void setWrapJsInMain(boolean wrapJsInMain) {
+
         this.wrapJsInMain = wrapJsInMain;
     }
 
     protected void setCurrentMethod(final AbstractMethod currentMethod) {
+
         this.currentMethod = currentMethod;
     }
 
     public AbstractMethod getCurrentMethod() {
+
         return this.currentMethod;
     }
 

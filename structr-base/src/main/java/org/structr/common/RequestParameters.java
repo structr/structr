@@ -38,8 +38,7 @@ public enum RequestParameters implements Documentable {
 	SortOrder("order", "Sort order", "Request parameter used for sorting, sets the sort order, value can be 'asc' or 'desc' for ascending or descending order."),
 
 	// search
-	Inexact_Deprecated("loose", null, null),
-	Inexact("inexact", "Search type", "Request parameter that activates inexact search."),
+	Inexact_Deprecated("loose", null, null), Inexact("inexact", "Search type", "Request parameter that activates inexact search."),
 
 	// distance search
 	LatLon("latlon", "Latitude/Longitude", "Request parameter used for distance search, specifies the center point of the distance search in the form `latitude,longitude`."),
@@ -81,6 +80,7 @@ public enum RequestParameters implements Documentable {
 	private final String shortDescription;
 
 	RequestParameters(final String identifier, final String displayName, final String shortDescription) {
+
 		this(identifier, displayName, shortDescription, false);
 	}
 
@@ -94,11 +94,13 @@ public enum RequestParameters implements Documentable {
 
 	@Override
 	public String toString() {
+
 		return getName();
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.RequestKeyword;
 	}
 
@@ -106,6 +108,7 @@ public enum RequestParameters implements Documentable {
 	public String getName() {
 
 		if (Settings.RequestParameterLegacyMode.getValue(false) || noPrefix) {
+
 			return identifier;
 		}
 
@@ -114,13 +117,16 @@ public enum RequestParameters implements Documentable {
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		// we always return the same format and do not change it based on the legacy parameters setting
 		//return "_" + identifier;
+
 		return displayName;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 

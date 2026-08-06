@@ -38,21 +38,25 @@ public class PatternParameter implements RESTParameter {
 
 	@Override
 	public String key() {
+
 		return key;
 	}
 
 	@Override
 	public String urlPattern() {
+
 		return pattern;
 	}
 
 	@Override
 	public boolean includeInSignature() {
+
 		return includeInSignature;
 	}
 
 	@Override
 	public String staticResourceSignaturePart() {
+
 		return staticSignaturePart;
 	}
 }

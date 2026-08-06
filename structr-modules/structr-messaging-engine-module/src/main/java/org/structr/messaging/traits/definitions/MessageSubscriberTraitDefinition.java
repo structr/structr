@@ -54,6 +54,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String CALLBACK_PROPERTY =  "callback";
 
 	public MessageSubscriberTraitDefinition() {
+
 		super(StructrTraits.MESSAGE_SUBSCRIBER);
 	}
 
@@ -79,9 +80,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			MessageSubscriber.class, (traits, node) -> new MessageSubscriberTraitWrapper(traits, node)
-		);
+		return Map.of(MessageSubscriber.class, (traits, node) -> new MessageSubscriberTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -89,8 +88,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -103,8 +101,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -128,30 +125,18 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<String> topicProperty                    = new StringProperty(TOPIC_PROPERTY).indexed();
 		final Property<String> callbackProperty                 = new StringProperty(CALLBACK_PROPERTY);
 
-		return newSet(
-			clientsProperty,
-			topicProperty,
-			callbackProperty
-		);
+		return newSet(clientsProperty, topicProperty, callbackProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-					TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY
-			),
-			PropertyView.Ui,
-			newSet(
-					TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Public, newSet(TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY), PropertyView.Ui, newSet(TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

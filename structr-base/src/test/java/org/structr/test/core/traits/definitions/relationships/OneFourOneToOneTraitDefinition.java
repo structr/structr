@@ -31,46 +31,55 @@ import java.util.Set;
 public class OneFourOneToOneTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public OneFourOneToOneTraitDefinition() {
+
 		super("OneFourOneToOne");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestOne";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestFour";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "IS_AT";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
@@ -99,21 +108,12 @@ public class OneFourOneToOneTraitDefinition extends AbstractRelationshipTraitDef
 		final Property<String>   stringProperty      = new StringProperty("stringProperty").indexed();
 		final Property<String> enumProperty          = new EnumProperty("enumProperty", newSet("Status1", "Status2", "Status3", "Status4")).indexed();
 
-		return newSet(
-			startNodeId,
-			endNodeId,
-			stringArrayProperty,
-			booleanProperty,
-			doubleProperty,
-			integerProperty,
-			longProperty,
-			stringProperty,
-			enumProperty
-		);
+		return newSet(startNodeId, endNodeId, stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty, enumProperty);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 }

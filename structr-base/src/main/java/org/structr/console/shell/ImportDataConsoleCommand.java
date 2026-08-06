@@ -58,11 +58,13 @@ public class ImportDataConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
+
 		writable.println("Imports data into a Structr application from a directory.");
 	}
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
+
 		writable.println("import-data <source> <doInnerCallbacks> <doOuterCallbacks> <doCascadingDelete>  -  Imports data for an application from a path in the file system.");
 		writable.println("");
 		writable.println("  <source>            - absolute path to the source directory");
@@ -73,6 +75,7 @@ public class ImportDataConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 }

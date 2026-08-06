@@ -24,16 +24,19 @@ import org.structr.docs.ontology.Ontology;
 public class WithToken extends ConstantToken {
 
 	public WithToken(final Token token) {
+
 		super(token);
 	}
 
 	@Override
 	public Object resolve(final Ontology ontology) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 }

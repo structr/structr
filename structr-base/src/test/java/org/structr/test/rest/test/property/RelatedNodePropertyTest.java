@@ -35,7 +35,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 		String test02 = createEntity("/TestSix", "{ name: test02, aString: string02, anInt: 2 }");
 		String test03 = createEntity("/TestSix", "{ name: test03, aString: string03, anInt: 3 }");
 		String test04 = createEntity("/TestSix", "{ name: test04, aString: string04, anInt: 4 }");
-
 		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "] }");
 
 		// test simple related node search
@@ -87,7 +86,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 	public void test02CreateWithRelatedNode() {
 
 		String test01 = createEntity("/TestThree", "{ name: test01 }");
-
 		String test02 = createEntity("/TestFive", "{ name: test02, oneToOneTestThree: ", test01, " }");
 
 		// test simple related node search
@@ -128,7 +126,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 
 	}
 
-
 	/**
 	 * Create a TestFive entity with the id of a related TestThree entity.
 	 */
@@ -136,7 +133,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 	public void test04CreateWithRelatedNode() {
 
 		String test01 = createEntity("/TestThree", "{ name: test01 }");
-
 		String test02 = createEntity("/TestFive", "{ name: test02, manyToOneTestThree: ", test01, " }");
 
 		// test simple related node search
@@ -166,6 +162,7 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 		String test01 = createEntity("/TestFour", "{ name: test01 }");
 
 		try {
+
 			createEntity("/TestFive", "{ name: test02, manyToOneTestThree: ", test01, " }");
 
 			fail("Creation of TestFive entity should fail because entity with id " + test01 + " is of type TestFour, but manyToOneTestThree does only takes an entity of type TestThree");
@@ -183,7 +180,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 	public void test06CreateWithRelatedNode() {
 
 		String test01 = createEntity("/TestOne", "{ name: test01 }");
-
 		String test02 = createEntity("/TestFive", "{ name: test02, manyToManyTestOnes: [", test01, "] }");
 
 		// test simple related node search
@@ -213,6 +209,7 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 		String test01 = createEntity("/TestFour", "{ name: test01 }");
 
 		try {
+
 			createEntity("/TestFive", "{ name: test02, manyToManyTestOnes: [", test01, "] }");
 
 			fail("Creation of TestFive entity should fail because entity with id " + test01 + " is of type TestFour, but manyToManyTestOnes does only take entities of type TestOne");
@@ -220,7 +217,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 		} catch (AssertionError err) {
 
 		}
-
 
 	}
 
@@ -231,7 +227,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 	public void test08CreateWithRelatedNode() {
 
 		String test01 = createEntity("/TestOne", "{ name: test01 }");
-
 		String test02 = createEntity("/TestFive", "{ name: test02, oneToManyTestOnes: [", test01, "] }");
 
 		// test simple related node search
@@ -269,7 +264,6 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 		} catch (AssertionError err) {
 
 		}
-
 
 	}
 

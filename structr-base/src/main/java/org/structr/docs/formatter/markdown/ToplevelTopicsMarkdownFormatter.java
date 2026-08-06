@@ -41,6 +41,7 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {
+
 			return true;
 		}
 
@@ -57,8 +58,8 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 			}
 
 			String title = concept.getName();
-
 			if (concept.getMetadata().containsKey("title")) {
+
 				title = (String) concept.getMetadata().get("title");
 			}
 

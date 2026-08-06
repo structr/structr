@@ -48,6 +48,7 @@ public class AVConv implements VideoHelper {
 	private String outputFileName                = null;
 
 	private AVConv(final SecurityContext securityContext, final VideoFile inputVideo, final String outputFileName) {
+
 		this.securityContext = securityContext;
 		this.inputVideo      = inputVideo;
 		this.outputFileName  = outputFileName;
@@ -55,20 +56,24 @@ public class AVConv implements VideoHelper {
 
 	// ----- public static methods -----
 	public static VideoHelper newInstance(final SecurityContext securityContext, final VideoFile inputVideo) {
+
 		return newInstance(securityContext, inputVideo, null);
 	}
 
 	public static VideoHelper newInstance(final SecurityContext securityContext, final VideoFile inputVideo, final String outputFileName) {
+
 		return new AVConv(securityContext, inputVideo, outputFileName);
 	}
 
 	@Override
 	public Future<VideoFile> doConversion(final String scriptName) {
+
 		return service.submit(new ConverterProcess(securityContext, inputVideo, outputFileName, scriptName));
 	}
 
 	@Override
 	public Future<Image> grabFrame(final String scriptName, final String imageName, final long frameIndex) {
+
 		return service.submit(new FrameGrabberProcess(securityContext, inputVideo, imageName, frameIndex, scriptName));
 	}
 
@@ -80,6 +85,7 @@ public class AVConv implements VideoHelper {
 			return service.submit(new GetMetadataProcess(securityContext, inputVideo)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
+
 			logger.warn("", ex);
 		}
 
@@ -94,6 +100,7 @@ public class AVConv implements VideoHelper {
 			service.submit(new SetMetadataProcess(securityContext, inputVideo, key, value)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
+
 			logger.warn("", ex);
 		}
 	}
@@ -106,6 +113,7 @@ public class AVConv implements VideoHelper {
 			service.submit(new SetMetadataProcess(securityContext, inputVideo, metadata)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
+
 			logger.warn("", ex);
 		}
 	}
@@ -120,6 +128,7 @@ public class AVConv implements VideoHelper {
 			return service.submit(new GetVideoInfoProcess(securityContext, filePath)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
+
 			logger.warn("", ex);
 		}
 
@@ -133,7 +142,6 @@ public class AVConv implements VideoHelper {
 		try {
 
 			Process proc = Runtime.getRuntime().exec(args);
-
 			final String res = new BufferedReader(new InputStreamReader(proc.getInputStream())).readLine();
 
 			return ((res != null) && !("".equals(res.trim())));
@@ -141,6 +149,7 @@ public class AVConv implements VideoHelper {
 		} catch (IOException ex) {
 
 			logger.warn("", ex);
+
 			return false;
 		}
 	}

@@ -18,37 +18,42 @@
  */
 package org.structr.process.engine;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.NamedArguments;
-import org.structr.core.api.ScriptMethod;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.Traits;
+import org.structr.process.ProcessTraits;
+import org.structr.process.bpmn.BpmnElementType;
+import org.structr.process.entity.*;
 import org.structr.process.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
-import org.structr.process.ProcessTraits;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The Structr Process Engine. Executes BPMN process definitions by managing
@@ -66,27 +71,28 @@ public class ProcessEngine {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProcessEngine.class);
 
-	private final SecurityContext securityContext;
 	private final Principal caller;
 
 	/**
 	 * Construct an engine for the given caller's security context. The engine
-	 * internally runs as superuser so that newly created ProcessInstance /
-	 * ProcessToken / TaskInstance / ProcessParameterValue nodes have no owner
-	 * (engine-managed). The caller principal is remembered so the engine can
-	 * grant access where appropriate (e.g. read on the ProcessInstance to the
-	 * user who started it).
+	 * internally runs as superuser (via {@link StructrApp#getInstance()} and an
+	 * explicit {@link SecurityContext#getSuperUserInstance()} for scripts) so that
+	 * newly created ProcessInstance / ProcessToken / TaskInstance /
+	 * ProcessParameterValue nodes have no owner (engine-managed). The caller
+	 * principal is remembered so the engine can grant access where appropriate
+	 * (e.g. read on the ProcessInstance to the user who started it).
 	 */
 	public ProcessEngine(final SecurityContext callerContext) {
+
 		final Principal callerPrincipal = (callerContext != null) ? callerContext.getUser(false) : null;
+
 		// SuperUser is a singleton with no backing graph node and cannot be a grant endpoint.
 		this.caller = (callerPrincipal instanceof SuperUser) ? null : callerPrincipal;
-		this.securityContext = SecurityContext.getSuperUserInstance();
 	}
 
 	/**
-	 * Re-fetch a node through the engine's superuser-bound App so that all
-	 * subsequent property reads on it use the elevated security context.
+	 * Re-fetch a node through the engine's superuser App ({@link StructrApp#getInstance()})
+	 * so that all subsequent property reads on it use the elevated security context.
 	 *
 	 * Engine entry points are invoked with {@link NodeInterface} arguments that
 	 * carry the caller's (user) security context. Property reads through such
@@ -95,22 +101,32 @@ public class ProcessEngine {
 	 * unowned tasks, parameter values). Re-fetching via the superuser App
 	 * guarantees the engine sees the complete graph.
 	 */
-	private NodeInterface elevate(final App app, final NodeInterface node) throws FrameworkException {
+	private NodeInterface elevate(final NodeInterface node) throws FrameworkException {
+
 		if (node == null) {
+
 			return null;
 		}
-		return app.getNodeById(node.getUuid());
+
+		return StructrApp.getInstance().getNodeById(node.getUuid());
 	}
 
 	private void grant(final NodeInterface node, final Principal principal, final Permission... permissions) throws FrameworkException {
+
 		if (node == null || principal == null || permissions.length == 0) {
+
 			return;
 		}
+
 		if (principal instanceof SuperUser) {
+
 			return;
 		}
+
 		final AccessControllable ac = node.as(AccessControllable.class);
+
 		for (final Permission p : permissions) {
+
 			ac.grant(p, principal);
 		}
 	}
@@ -130,10 +146,17 @@ public class ProcessEngine {
 	 * and should not require an application-side listener to wire up.</p>
 	 */
 	private void grantParticipantReadAccess(final NodeInterface instance, final Principal principal) throws FrameworkException {
-		if (instance == null || principal == null) return;
+
+		if (instance == null || principal == null) {
+
+			return;
+		}
+
 		grant(instance, principal, Permission.read);
+
 		final NodeInterface subject = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 		if (subject != null) {
+
 			grant(subject, principal, Permission.read);
 		}
 	}
@@ -155,6 +178,7 @@ public class ProcessEngine {
 	 * @return the created ProcessInstance node
 	 */
 	public NodeInterface startProcess(final NodeInterface callerProcNode, final NodeInterface subject) throws FrameworkException {
+
 		return startProcess(callerProcNode, subject, null);
 	}
 
@@ -167,21 +191,24 @@ public class ProcessEngine {
 	 */
 	public NodeInterface startProcess(final NodeInterface callerProcNode, final NodeInterface subject, final Map<String, Object> parameters) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		// Re-fetch under the engine's superuser context so internal traversals
 		// don't get filtered by the caller's permissions.
-		final NodeInterface procNode = elevate(app, callerProcNode);
-		final Traits procTraits = procNode.getTraits();
 
-		// Find the start event (top-level element with bpmnElementType == "startEvent")
-		final NodeInterface startEvent = findStartEvent(procNode, procTraits);
+		final NodeInterface procNode = elevate(callerProcNode);
+		final Traits procTraits      = procNode.getTraits();
+
+		// Find the single top-level start event (BpmnProcess.getStartEvent rejects
+		// an ambiguous definition with more than one).
+		final NodeInterface startEvent = procNode.as(BpmnProcess.class).getStartEvent();
 		if (startEvent == null) {
+
 			throw new FrameworkException(422, "No startEvent found in process definition");
 		}
 
 		// Create ProcessInstance
-		final NodeInterface instance = app.create(ProcessTraits.PROCESS_INSTANCE, (String) null);
-		final Traits instTraits = instance.getTraits();
+		final NodeInterface instance = app.create(ProcessTraits.PROCESS_INSTANCE);
+		final Traits instTraits      = instance.getTraits();
 
 		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), ProcessInstanceTraitDefinition.STATUS_RUNNING);
 		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.START_TIME_PROPERTY), new Date());
@@ -193,15 +220,17 @@ public class ProcessEngine {
 		// Record the initiator (may be null when invoked from a privileged context that doesn't
 		// represent a real user, e.g. doPrivileged with no effective principal).
 		if (caller != null) {
+
 			instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY), caller);
 		}
 
 		// Attach the domain subject this process operates on (e.g. LeaveRequest, Invoice).
 		if (subject != null) {
+
 			// Re-fetch under superuser too: the caller may pass us a wrapper bound
 			// to their own context; the rel write would otherwise hit a permission
 			// check on the subject from the user's perspective.
-			instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), elevate(app, subject));
+			instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), elevate(subject));
 		}
 
 		// Store initial parameters (e.g. an EAM 'start' action's params).
@@ -209,7 +238,8 @@ public class ProcessEngine {
 		// ProcessParameterValues. Attributed to the start event, and done
 		// before the lifecycle events so listeners observe them.
 		if (parameters != null && !parameters.isEmpty()) {
-			storeParameterValues(app, instance, startEvent, parameters);
+
+			storeParameterValues(instance, startEvent, parameters);
 		}
 
 		// Grant the initiator read access on the ProcessInstance and its
@@ -222,15 +252,18 @@ public class ProcessEngine {
 		fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_CREATED, instance);
 
 		// Create token at start event
-		final NodeInterface token = createToken(app, instance, startEvent);
+		final NodeInterface token = createToken(instance, startEvent);
+
+		// Fire 'started' before advancing the token. A fully-automatic process runs
+		// straight through to its end event during advanceToken() -- which sets the
+		// instance to 'completed' and fires 'completed' -- so firing 'started' afterwards
+		// would emit it after the process had already finished. Firing here guarantees
+		// the lifecycle order created -> started -> ... -> completed for every process,
+		// automatic or not; at this point the token sits on the (pass-through) start event.
+		fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_STARTED, instance);
 
 		// Advance the token from the start event (start events are pass-through)
-		advanceToken(app, instance, token);
-
-		// Fire 'started' after the initial token has been placed and advanced. By this point
-		// the engine has reached the first wait state (a userTask, an intermediate catch event,
-		// or the end of the process if it advanced through to completion synchronously).
-		fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_STARTED, instance);
+		advanceToken(instance, token);
 
 		return instance;
 	}
@@ -245,34 +278,30 @@ public class ProcessEngine {
 	 */
 	public void terminateProcess(final NodeInterface callerInstanceNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface instance = elevate(app, callerInstanceNode);
-		final Traits instTraits = instance.getTraits();
+		final ProcessInstance instance = elevate(callerInstanceNode).as(ProcessInstance.class);
+		if (instance.isCompleted()) {
 
-		final String currentStatus = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
-		if (ProcessInstanceTraitDefinition.STATUS_COMPLETED.equals(currentStatus)) {
 			throw new FrameworkException(422, "Cannot terminate a completed instance");
 		}
-		if (ProcessInstanceTraitDefinition.STATUS_TERMINATED.equals(currentStatus)) {
+
+		if (instance.isTerminated()) {
+
 			throw new FrameworkException(422, "Instance is already terminated");
 		}
 
 		// Mark all waiting / active tokens as completed so the engine treats them as inert.
 		// The instance is left in a terminal state; downstream handlers can clean up via
 		// onProcessTerminated.
-		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		if (tokens != null) {
-			for (final NodeInterface t : tokens) {
-				final Traits tokenTraits = t.getTraits();
-				final String tStatus = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
-				if (ProcessTokenTraitDefinition.STATUS_ACTIVE.equals(tStatus) || ProcessTokenTraitDefinition.STATUS_WAITING.equals(tStatus)) {
-					t.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_COMPLETED);
-				}
+		for (final ProcessToken token : instance.getTokens()) {
+
+			if (token.isActive() || token.isWaiting()) {
+
+				token.markCompleted();
 			}
 		}
 
-		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), ProcessInstanceTraitDefinition.STATUS_TERMINATED);
-		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.END_TIME_PROPERTY), new Date());
+		instance.setStatus(ProcessInstanceTraitDefinition.STATUS_TERMINATED);
+		instance.setEndTime(new Date());
 
 		// 'terminated' event fires via OnModification on the status change.
 		logger.info("Process instance {} terminated", instance.getUuid());
@@ -285,16 +314,13 @@ public class ProcessEngine {
 	 */
 	public void suspendProcess(final NodeInterface callerInstanceNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface instance = elevate(app, callerInstanceNode);
-		final Traits instTraits = instance.getTraits();
+		final ProcessInstance instance = elevate(callerInstanceNode).as(ProcessInstance.class);
+		if (!instance.isRunning()) {
 
-		final String currentStatus = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
-		if (!ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(currentStatus)) {
-			throw new FrameworkException(422, "Can only suspend a running instance (current status: " + currentStatus + ")");
+			throw new FrameworkException(422, "Can only suspend a running instance (current status: " + instance.getStatus() + ")");
 		}
 
-		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), ProcessInstanceTraitDefinition.STATUS_SUSPENDED);
+		instance.setStatus(ProcessInstanceTraitDefinition.STATUS_SUSPENDED);
 
 		// 'suspended' event fires via OnModification on the status change.
 		logger.info("Process instance {} suspended", instance.getUuid());
@@ -309,20 +335,19 @@ public class ProcessEngine {
 	 */
 	public void resumeProcess(final NodeInterface callerInstanceNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface instance = elevate(app, callerInstanceNode);
-		final Traits instTraits = instance.getTraits();
+		final NodeInterface instanceNode = elevate(callerInstanceNode);
+		final ProcessInstance instance = instanceNode.as(ProcessInstance.class);
 
-		final String currentStatus = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
-		if (!ProcessInstanceTraitDefinition.STATUS_SUSPENDED.equals(currentStatus)) {
-			throw new FrameworkException(422, "Can only resume a suspended instance (current status: " + currentStatus + ")");
+		if (!instance.isSuspended()) {
+
+			throw new FrameworkException(422, "Can only resume a suspended instance (current status: " + instance.getStatus() + ")");
 		}
 
-		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), ProcessInstanceTraitDefinition.STATUS_RUNNING);
+		instance.setStatus(ProcessInstanceTraitDefinition.STATUS_RUNNING);
 
 		// Explicit fire: OnModification skips 'running' transitions (cannot disambiguate
 		// initial start from resume), so 'resumed' is emitted here.
-		fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_RESUMED, instance);
+		fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_RESUMED, instanceNode);
 
 		logger.info("Process instance {} resumed", instance.getUuid());
 	}
@@ -334,34 +359,47 @@ public class ProcessEngine {
 	 */
 	public void completeTask(final NodeInterface callerTaskNode, final Map<String, Object> parameters) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		// Re-fetch under superuser context: traversals to processInstance,
 		// tokens, and parameter values must not be filtered by caller perms.
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final Traits taskTraits = taskNode.getTraits();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final TaskInstance task = taskNode.as(TaskInstance.class);
 
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)) {
+		if (task.isCompleted()) {
+
 			throw new FrameworkException(422, "Task is already completed");
 		}
-		if (TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
+
+		if (task.isCancelled()) {
+
 			throw new FrameworkException(422, "Task is cancelled");
 		}
 
+		// Enforce suspend: a task cannot be completed (and the token must not
+		// advance) while the owning instance is not running.
+		final ProcessInstance owningInstance = task.getProcessInstance();
+		if (owningInstance != null && !owningInstance.isRunning()) {
+
+			throw new FrameworkException(422, "Process instance is not running (status: " + owningInstance.getStatus() + "); cannot complete task");
+		}
+
 		// Mark task as completed
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY), TaskInstanceTraitDefinition.STATUS_COMPLETED);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.COMPLETED_TIME_PROPERTY), new Date());
+		task.setStatus(TaskInstanceTraitDefinition.STATUS_COMPLETED);
+		task.setCompletedTime(new Date());
 
 		// Get the process instance
-		final NodeInterface instance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
+		final ProcessInstance instance = task.getProcessInstance();
 		if (instance == null) {
+
 			throw new FrameworkException(422, "Task has no associated process instance");
 		}
 
 		// Find the waiting token at the user task element
-		final NodeInterface userTaskElement = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
+		final NodeInterface userTaskElement = task.getDefinedBy();
 		final NodeInterface waitingToken = findWaitingToken(instance, userTaskElement);
+
 		if (waitingToken == null) {
+
 			throw new FrameworkException(422, "No waiting token found at user task element");
 		}
 
@@ -372,12 +410,11 @@ public class ProcessEngine {
 		// Listeners that want to read just-completed values should use NamedArguments
 		// (the parameters are passed in directly), not ${'$'}.process.<name> -- the
 		// latter shows prior tasks' PVs only at this point in the lifecycle.
-		final PropertyKey<NodeInterface> subjectKey = instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY);
-		final NodeInterface preListenerSubject      = instance.getProperty(subjectKey);
+		final NodeInterface preListenerSubject = instance.getSubject();
 
 		fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_COMPLETED, taskNode, parameters);
 
-		final NodeInterface postListenerSubject     = instance.getProperty(subjectKey);
+		final NodeInterface postListenerSubject     = instance.getSubject();
 		final boolean listenerAttachedSubject       = (preListenerSubject == null && postListenerSubject != null);
 
 		// Engine yields persistence when the listener attached the subject during
@@ -390,21 +427,22 @@ public class ProcessEngine {
 		// matching form fields update the subject; the rest become PVs. Without any
 		// subject (pure control-flow process), everything becomes a PV.
 		if (parameters != null && !parameters.isEmpty() && !listenerAttachedSubject) {
-			storeParameterValues(app, instance, userTaskElement, parameters);
+
+			storeParameterValues(instance, userTaskElement, parameters);
+
 		} else if (listenerAttachedSubject) {
-			logger.info("Task '{}' completion: subject '{}' was attached by the listener; engine yields persistence to it.",
-				safeName(taskNode), postListenerSubject.getUuid());
+
+			logger.info("Task '{}' completion: subject '{}' was attached by the listener; engine yields persistence to it.", safeName(taskNode), postListenerSubject.getUuid());
 		}
 
 		// Reactivate the token and move it past the user task to the next element
-		final Traits tokenTraits = waitingToken.getTraits();
-		waitingToken.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_ACTIVE);
+		waitingToken.as(ProcessToken.class).markActive();
 
 		// Cancel any pending boundary timers attached to this userTask --
 		// they're moot now that the task is done.
-		cancelTimersForActivity(app, userTaskElement, instance);
+		cancelTimersForActivity(userTaskElement, instance);
 
-		completeTokenAndMoveToNext(app, instance, waitingToken, userTaskElement);
+		completeTokenAndMoveToNext(instance, waitingToken, userTaskElement);
 	}
 
 	/**
@@ -414,51 +452,55 @@ public class ProcessEngine {
 	 * @param eventBpmnId the bpmnId of the intermediateCatchEvent element
 	 * @param parameters  optional key-value map of process parameter values
 	 */
-	public void signalEvent(final NodeInterface callerInstanceNode, final String eventBpmnId,
-						   final Map<String, Object> parameters) throws FrameworkException {
+	public void signalEvent(final NodeInterface callerInstanceNode, final String eventBpmnId, final Map<String, Object> parameters) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		// Re-fetch under superuser context so token/element lookups are unfiltered.
-		final NodeInterface instanceNode = elevate(app, callerInstanceNode);
+		final NodeInterface instanceNode = elevate(callerInstanceNode);
 		final Traits instTraits = instanceNode.getTraits();
 
 		// Verify instance is running
 		final String status = instanceNode.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
 		if (!ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(status)) {
+
 			throw new FrameworkException(422, "Process instance is not running (status: " + status + ")");
 		}
 
 		// Find the catch event element by bpmnId
-		final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
-		final NodeInterface catchElement = app.nodeQuery(ProcessTraits.BPMN_ELEMENT)
-			.and().key(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), eventBpmnId)
-			.getFirst();
+		// Resolve the catch event WITHIN this instance's own definition version.
+		// A global lookup would return the first bpmnId match in the index (often a
+		// different, stale version) and the waiting token would not be found.
+		final Traits elemTraits          = Traits.of(ProcessTraits.BPMN_ELEMENT);
+		final NodeInterface catchElement = findElementByBpmnId(instanceNode, eventBpmnId);
 
 		if (catchElement == null) {
+
 			throw new FrameworkException(422, "No element found with bpmnId: " + eventBpmnId);
 		}
 
 		// Verify it is a catch event
 		final String elementType = catchElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-		if (!"intermediateCatchEvent".equals(elementType)) {
+		if (!BpmnElementType.INTERMEDIATE_CATCH_EVENT.matches(elementType)) {
+
 			throw new FrameworkException(422, "Element " + eventBpmnId + " is not an intermediateCatchEvent (type: " + elementType + ")");
 		}
 
 		// Find the waiting token at this element
 		final NodeInterface waitingToken = findWaitingToken(instanceNode, catchElement);
 		if (waitingToken == null) {
+
 			throw new FrameworkException(422, "No waiting token at catch event: " + eventBpmnId);
 		}
 
 		// Store parameter values if provided
 		if (parameters != null && !parameters.isEmpty()) {
-			storeParameterValues(app, instanceNode, catchElement, parameters);
+
+			storeParameterValues(instanceNode, catchElement, parameters);
 		}
 
 		// Reactivate and advance
-		final Traits tokenTraits = waitingToken.getTraits();
-		waitingToken.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_ACTIVE);
-		completeTokenAndMoveToNext(app, instanceNode, waitingToken, catchElement);
+		waitingToken.as(ProcessToken.class).markActive();
+		completeTokenAndMoveToNext(instanceNode, waitingToken, catchElement);
 
 		logger.info("Signalled catch event '{}' in process instance {}", eventBpmnId, instanceNode.getUuid());
 	}
@@ -473,109 +515,153 @@ public class ProcessEngine {
 	 * determines the outgoing path(s), creates new tokens, and recurses for
 	 * automatic elements (events, gateways, service/script tasks).
 	 */
-	private void advanceToken(final App app, final NodeInterface instance, final NodeInterface token) throws FrameworkException {
+	// Token advancement runs iteratively via an explicit LIFO work stack (=
+	// depth-first) so a long chain of automatic elements cannot overflow the call
+	// stack. Public entry points call advanceToken(); nested advances (gateway
+	// forks, pass-throughs, sub-processes) triggered while a drain is in progress
+	// simply enqueue onto the same stack and are processed by the outermost call.
+	// Because all sibling fork tokens are created (and enqueued) before any is
+	// stepped, a branch that reaches an end event sees its siblings still active,
+	// and an inclusive join is only reached once every sibling has arrived.
+	private final java.util.Deque<NodeInterface> tokenWorkStack = new java.util.ArrayDeque<>();
+	private boolean advancing = false;
 
-		final Traits tokenTraits = token.getTraits();
+	private void advanceToken(final NodeInterface instance, final NodeInterface token) throws FrameworkException {
+
+		tokenWorkStack.addFirst(token);
+
+		if (advancing) {
+
+			return;
+		}
+
+		advancing = true;
+
+		try {
+
+			while (!tokenWorkStack.isEmpty()) {
+
+				stepToken(instance, tokenWorkStack.pollFirst());
+			}
+
+		} finally {
+
+			advancing = false;
+			tokenWorkStack.clear();
+		}
+	}
+
+	private void stepToken(final NodeInterface instance, final NodeInterface token) throws FrameworkException {
+
+		final Traits tokenTraits           = token.getTraits();
 		final NodeInterface currentElement = token.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
+
 		if (currentElement == null) {
+
 			logger.warn("Token {} has no current element, cannot advance", token.getUuid());
+
 			return;
 		}
 
 		final Traits elemTraits = currentElement.getTraits();
 		final String elementType = currentElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
 
-		logger.debug("Advancing token {} at element {} ({})",
-			token.getUuid(),
-			currentElement.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)),
-			elementType);
+		logger.debug("Advancing token {} at element {} ({})", token.getUuid(), currentElement.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)), elementType);
 
-		switch (elementType) {
+		switch (BpmnElementType.fromBpmnName(elementType)) {
 
-			case "startEvent":
+			case START_EVENT:
 				// Pass-through: move to the single outgoing flow target
-				completeTokenAndMoveToNext(app, instance, token, currentElement);
+				completeTokenAndMoveToNext(instance, token, currentElement);
 				break;
 
-			case "endEvent":
+			case END_EVENT:
 				// Token reaches the end: check if inside a sub-process
-				completeToken(token, tokenTraits);
+				completeToken(token);
+
 				final NodeInterface parentElement = currentElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
-				if (parentElement != null && "subProcess".equals(parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
+				if (parentElement != null && isSubProcessLikeType(parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
+
 					// Sub-process end: resume the parent token
-					resumeSubProcessParent(app, instance, parentElement);
+					resumeSubProcessParent(instance, parentElement);
+
 				} else {
-					checkProcessCompletion(app, instance);
+
+					checkProcessCompletion(instance);
 				}
+
 				break;
 
-			case "userTask":
+			case USER_TASK:
 				// Create a TaskInstance, schedule any boundary timers, then put the token in waiting state.
-				createTaskInstance(app, instance, currentElement);
-				scheduleBoundaryTimers(app, instance, token, currentElement);
-				token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_WAITING);
+				createTaskInstance(instance, currentElement);
+				scheduleBoundaryTimers(instance, token, currentElement);
+				token.as(ProcessToken.class).markWaiting();
 				break;
 
-			case "serviceTask":
-			case "scriptTask":
-				// Execute the task logic, then advance
-				executeAutomaticTask(app, instance, currentElement, elemTraits, elementType);
-				completeTokenAndMoveToNext(app, instance, token, currentElement);
+			case SERVICE_TASK:
+			case SCRIPT_TASK:
+				// Run the body with Camunda inputOutput semantics (activity-local scope
+				// when io mappings are present), then advance.
+				runAutomaticTask(instance, currentElement, elemTraits, elementType);
+				completeTokenAndMoveToNext(instance, token, currentElement);
 				break;
 
-			case "manualTask":
-			case "task":
+			case MANUAL_TASK:
+			case TASK:
 				// Manual tasks and abstract tasks are pass-through for now
 				// (manual tasks are performed outside the system)
-				completeTokenAndMoveToNext(app, instance, token, currentElement);
+				completeTokenAndMoveToNext(instance, token, currentElement);
 				break;
 
-			case "exclusiveGateway":
-				handleExclusiveGateway(app, instance, token, currentElement);
+			case EXCLUSIVE_GATEWAY:
+				handleExclusiveGateway(instance, token, currentElement);
 				break;
 
-			case "parallelGateway":
-				handleParallelGateway(app, instance, token, currentElement);
+			case PARALLEL_GATEWAY:
+				handleParallelGateway(instance, token, currentElement);
 				break;
 
-			case "inclusiveGateway":
-				handleInclusiveGateway(app, instance, token, currentElement);
+			case INCLUSIVE_GATEWAY:
+				handleInclusiveGateway(instance, token, currentElement);
 				break;
 
-			case "intermediateCatchEvent":
+			case INTERMEDIATE_CATCH_EVENT:
 				// Waiting for an external event -- token waits.
-				token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_WAITING);
+				token.as(ProcessToken.class).markWaiting();
 				// If this catch event is a timer event, schedule the timer; the
 				// service will fire it and advance the token when fireAt elapses.
 				{
 					final String evtDefType = currentElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.EVENT_DEF_TYPE_PROPERTY));
 					if ("timerEventDefinition".equals(evtDefType)) {
+
 						final String timerType  = currentElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.TIMER_TYPE_PROPERTY));
 						final String timerValue = currentElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.TIMER_VALUE_PROPERTY));
 						final Date fireAt = computeFireAt(timerType, timerValue);
+
 						if (fireAt != null) {
-							createTimer(app, fireAt, ProcessTimerTraitDefinition.TIMER_INTERMEDIATE, timerValue,
-								instance, token, currentElement, true);
+
+							createTimer(fireAt, ProcessTimerTraitDefinition.TIMER_INTERMEDIATE, timerValue, instance, token, currentElement, true);
 						}
 					}
 				}
 				break;
 
-			case "intermediateThrowEvent":
+			case INTERMEDIATE_THROW_EVENT:
 				// Fire-and-forget event -- pass through
-				completeTokenAndMoveToNext(app, instance, token, currentElement);
+				completeTokenAndMoveToNext(instance, token, currentElement);
 				break;
 
-			case "subProcess":
-				// Enter the sub-process: find its start event and create a token there
-				handleSubProcess(app, instance, token, currentElement);
+			case SUB_PROCESS:
+			case TRANSACTION:
+			case AD_HOC_SUB_PROCESS:
+				// Enter the (sub-process-like) container: find its start event and create a token there
+				handleSubProcess(instance, token, currentElement);
 				break;
 
 			default:
-				logger.warn("Unknown element type '{}' at element {}, treating as pass-through",
-					elementType,
-					currentElement.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
-				completeTokenAndMoveToNext(app, instance, token, currentElement);
+				logger.warn("Unknown element type '{}' at element {}, treating as pass-through", elementType, currentElement.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
+				completeTokenAndMoveToNext(instance, token, currentElement);
 				break;
 		}
 	}
@@ -588,38 +674,42 @@ public class ProcessEngine {
 	 * Exclusive gateway (XOR): evaluate conditions on outgoing flows,
 	 * take the first matching path (or the default flow).
 	 */
-	private void handleExclusiveGateway(final App app, final NodeInterface instance,
-										final NodeInterface token, final NodeInterface element) throws FrameworkException {
+	private void handleExclusiveGateway(final NodeInterface instance, final NodeInterface token, final NodeInterface element) throws FrameworkException {
 
-		final List<NodeInterface> outgoingFlows = getOutgoingFlows(element);
+		final BpmnElement gateway                  = element.as(BpmnElement.class);
+		final List<BpmnSequenceFlow> outgoingFlows = Iterables.toList(gateway.getOutgoingFlows());
+
 		if (outgoingFlows.isEmpty()) {
-			throw new FrameworkException(422, "Exclusive gateway has no outgoing flows: " + getBpmnId(element));
-		}
 
-		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
-		NodeInterface defaultFlow = null;
-		NodeInterface selectedFlow = null;
+			throw new FrameworkException(422, "Exclusive gateway has no outgoing flows: " + gateway.getBpmnId());
+		}
 
 		// Check for default flow attribute on the gateway
 		final String defaultFlowId = getAttributeValue(element, "default");
+		BpmnSequenceFlow defaultFlow  = null;
+		BpmnSequenceFlow selectedFlow = null;
 
-		for (final NodeInterface flow : outgoingFlows) {
-
-			final String flowId = flow.getProperty(flowTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+		for (final BpmnSequenceFlow flow : outgoingFlows) {
 
 			// Skip the default flow during condition evaluation
+			final String flowId = flow.getBpmnId();
 			if (flowId != null && flowId.equals(defaultFlowId)) {
+
 				defaultFlow = flow;
 				continue;
 			}
 
-			final String condition = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_PROPERTY));
-			if (condition != null && !condition.isEmpty()) {
+			final String condition = flow.getConditionExpression();
+			if (StringUtils.isNotBlank(condition)) {
+
 				if (evaluateCondition(condition, element, instance)) {
+
 					selectedFlow = flow;
 					break;
 				}
+
 			} else if (selectedFlow == null) {
+
 				// Unconditional, non-default flow -- use as fallback
 				selectedFlow = flow;
 			}
@@ -627,67 +717,64 @@ public class ProcessEngine {
 
 		// Fall back to default flow
 		if (selectedFlow == null) {
+
 			selectedFlow = defaultFlow;
 		}
 
 		if (selectedFlow == null) {
-			throw new FrameworkException(422, "No outgoing path matched at exclusive gateway: " + getBpmnId(element));
+
+			throw new FrameworkException(422, "No outgoing path matched at exclusive gateway: " + gateway.getBpmnId());
 		}
 
 		// Move token to the target of the selected flow
-		final NodeInterface target = selectedFlow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-		moveTokenToElement(token, target);
-		advanceToken(app, instance, token);
+		moveTokenToElement(token, selectedFlow.getTargetElement());
+
+		advanceToken(instance, token);
 	}
 
 	/**
 	 * Parallel gateway: fork (one token becomes many) or join (many become one).
 	 * Determined by counting incoming vs outgoing flows.
 	 */
-	private void handleParallelGateway(final App app, final NodeInterface instance,
-									   final NodeInterface token, final NodeInterface element) throws FrameworkException {
+	private void handleParallelGateway(final NodeInterface instance, final NodeInterface token, final NodeInterface element) throws FrameworkException {
 
-		final List<NodeInterface> outgoingFlows = getOutgoingFlows(element);
-		final List<NodeInterface> incomingFlows = getIncomingFlows(element);
-		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
+		final BpmnElement gateway                  = element.as(BpmnElement.class);
+		final List<BpmnSequenceFlow> outgoingFlows = Iterables.toList(gateway.getOutgoingFlows());
+		final List<BpmnSequenceFlow> incomingFlows = Iterables.toList(gateway.getIncomingFlows());
 
 		if (outgoingFlows.size() > 1 && incomingFlows.size() <= 1) {
 
 			// FORK: consume current token, create one new token per outgoing flow
-			completeToken(token, token.getTraits());
+			completeToken(token);
 
-			for (final NodeInterface flow : outgoingFlows) {
-				final NodeInterface target = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-				final NodeInterface newToken = createToken(app, instance, target);
-				advanceToken(app, instance, newToken);
+			for (final BpmnSequenceFlow flow : outgoingFlows) {
+
+				final NodeInterface newToken = createToken(instance, flow.getTargetElement());
+				advanceToken(instance, newToken);
 			}
 
 		} else if (incomingFlows.size() > 1) {
 
 			// JOIN: wait until tokens have arrived from all incoming paths
-			final Traits tokenTraits = token.getTraits();
-			token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_WAITING);
+			token.as(ProcessToken.class).markWaiting();
 
-			// Count how many tokens are waiting at this element
-			int waitingCount = countTokensAtElement(instance, element);
+			// Fire only when a token has arrived on EVERY distinct incoming edge
+			// (two tokens from the SAME edge must not satisfy the join).
+			if (allIncomingEdgesDelivered(instance, element, incomingFlows)) {
 
-			if (waitingCount >= incomingFlows.size()) {
+				// All tokens arrived -- consume them all, then continue down EVERY outgoing flow (a gateway may both join and fork).
+				consumeAllTokensAtElement(instance, element);
 
-				// All tokens arrived -- consume them all, create one continuing token
-				consumeAllTokensAtElement(app, instance, element);
+				for (final BpmnSequenceFlow out : outgoingFlows) {
 
-				if (!outgoingFlows.isEmpty()) {
-					final NodeInterface outFlow = outgoingFlows.get(0);
-					final NodeInterface target = outFlow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-					final NodeInterface newToken = createToken(app, instance, target);
-					advanceToken(app, instance, newToken);
-				}
+						advanceToken(instance, createToken(instance, out.getTargetElement()));
+					}
 			}
 
 		} else {
 
 			// Single in, single out -- pass through
-			completeTokenAndMoveToNext(app, instance, token, element);
+			completeTokenAndMoveToNext(instance, token, element);
 		}
 	}
 
@@ -696,88 +783,98 @@ public class ProcessEngine {
 	 * (at least one must match, or the default is taken). Join waits for all
 	 * tokens that were actually created.
 	 */
-	private void handleInclusiveGateway(final App app, final NodeInterface instance,
-										final NodeInterface token, final NodeInterface element) throws FrameworkException {
+	private void handleInclusiveGateway(final NodeInterface instance, final NodeInterface token, final NodeInterface element) throws FrameworkException {
 
-		final List<NodeInterface> outgoingFlows = getOutgoingFlows(element);
-		final List<NodeInterface> incomingFlows = getIncomingFlows(element);
-		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
+		final BpmnElement gateway                  = element.as(BpmnElement.class);
+		final List<BpmnSequenceFlow> outgoingFlows = Iterables.toList(gateway.getOutgoingFlows());
+		final List<BpmnSequenceFlow> incomingFlows = Iterables.toList(gateway.getIncomingFlows());
 
 		if (outgoingFlows.size() > 1 && incomingFlows.size() <= 1) {
 
 			// FORK: evaluate conditions on all outgoing flows
-			final String defaultFlowId = getAttributeValue(element, "default");
-			NodeInterface defaultFlow = null;
-			final List<NodeInterface> selectedTargets = new ArrayList<>();
+			final String defaultFlowId                = getAttributeValue(element, "default");
+			final List<NodeInterface> selectedTargets = new LinkedList<>();
+			BpmnSequenceFlow defaultFlow              = null;
 
-			for (final NodeInterface flow : outgoingFlows) {
-				final String flowId = flow.getProperty(flowTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+			for (final BpmnSequenceFlow flow : outgoingFlows) {
 
+				final String flowId = flow.getBpmnId();
 				if (flowId != null && flowId.equals(defaultFlowId)) {
+
 					defaultFlow = flow;
 					continue;
 				}
 
-				final String condition = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_PROPERTY));
-				if (condition != null && !condition.isEmpty()) {
+				final String condition = flow.getConditionExpression();
+				if (StringUtils.isNotBlank(condition)) {
+
 					if (evaluateCondition(condition, element, instance)) {
-						final NodeInterface target = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-						selectedTargets.add(target);
+
+						selectedTargets.add(flow.getTargetElement());
 					}
+
 				} else {
+
 					// No condition -- always taken
-					final NodeInterface target = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-					selectedTargets.add(target);
+					selectedTargets.add(flow.getTargetElement());
 				}
 			}
 
 			// If no paths matched, take the default
 			if (selectedTargets.isEmpty() && defaultFlow != null) {
-				final NodeInterface target = defaultFlow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-				selectedTargets.add(target);
+
+				selectedTargets.add(defaultFlow.getTargetElement());
 			}
 
 			if (selectedTargets.isEmpty()) {
-				throw new FrameworkException(422, "No outgoing path matched at inclusive gateway: " + getBpmnId(element));
+
+				throw new FrameworkException(422, "No outgoing path matched at inclusive gateway: " + gateway.getBpmnId());
 			}
 
 			// Consume current token, create new tokens for selected paths
-			completeToken(token, token.getTraits());
+			completeToken(token);
 
 			for (final NodeInterface target : selectedTargets) {
-				final NodeInterface newToken = createToken(app, instance, target);
-				advanceToken(app, instance, newToken);
+
+				final NodeInterface newToken = createToken(instance, target);
+
+				advanceToken(instance, newToken);
 			}
 
 		} else if (incomingFlows.size() > 1) {
 
-			// JOIN: wait for all tokens that are actually in flight.
-			// Unlike a parallel join (which always waits for all incoming paths),
-			// an inclusive join only waits for paths that actually have tokens.
-			// We detect this by checking if any active/waiting tokens exist
-			// elsewhere in the process (not at this gateway). If not, all
-			// expected tokens have arrived.
-			final Traits tokenTraitsInc = token.getTraits();
-			token.setProperty(tokenTraitsInc.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_WAITING);
+			// JOIN: an inclusive join synchronises only the branches that actually
+			// carry tokens. It fires once no OTHER in-flight token can still reach
+			// this gateway. Using reachability (rather than "no active token exists
+			// anywhere") is what makes an unrelated parallel branch -- one that will
+			// never flow into this join -- not block it; that global-count check
+			// deadlocked whenever independent concurrent work was in progress.
+			//
+			// This is reliable because advanceToken drains iteratively: all sibling
+			// fork tokens are created (with their atElement set) before any is
+			// stepped, so a sibling still heading here is seen as reachable and the
+			// join waits for it.
+			//
+			// Note: reachability follows outgoing sequence flows within the same
+			// (sub-)process scope; a token inside a sibling sub-process is treated as
+			// unable to reach a join outside it. That matches the intent here (fix the
+			// unrelated-branch deadlock) and is no worse than the previous behaviour.
+			token.as(ProcessToken.class).markWaiting();
 
-			int tokensAtGateway = countTokensAtElement(instance, element);
-			int tokensElsewhere = countActiveTokensNotAtElement(instance, element);
+			if (!anyActiveTokenCanReach(instance, element)) {
 
-			if (tokensElsewhere == 0) {
-				// All in-flight tokens have arrived at this gateway
-				consumeAllTokensAtElement(app, instance, element);
+				// Every branch that could still deliver a token has arrived.
+				consumeAllTokensAtElement(instance, element);
 
-				if (!outgoingFlows.isEmpty()) {
-					final NodeInterface outFlow = outgoingFlows.get(0);
-					final NodeInterface target = outFlow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-					final NodeInterface newToken = createToken(app, instance, target);
-					advanceToken(app, instance, newToken);
-				}
+				for (final BpmnSequenceFlow out : outgoingFlows) {
+
+						advanceToken(instance, createToken(instance, out.getTargetElement()));
+					}
 			}
 
 		} else {
 
-			completeTokenAndMoveToNext(app, instance, token, element);
+			completeTokenAndMoveToNext(instance, token, element);
 		}
 	}
 
@@ -785,18 +882,33 @@ public class ProcessEngine {
 	// Sub-process handling
 	// -----------------------------------------------------------------------
 
-	private void handleSubProcess(final App app, final NodeInterface instance,
-								  final NodeInterface token, final NodeInterface subProcessElement) throws FrameworkException {
+	/** True for the container element types that host their own start event (subProcess / transaction / adHocSubProcess). */
+	private static boolean isSubProcessLike(final BpmnElement e) {
+
+		return e != null && (e.isType(BpmnElementType.SUB_PROCESS) || e.isType(BpmnElementType.TRANSACTION) || e.isType(BpmnElementType.AD_HOC_SUB_PROCESS));
+	}
+
+	private static boolean isSubProcessLikeType(final String typeName) {
+
+		final BpmnElementType t = BpmnElementType.fromBpmnName(typeName);
+
+		return t == BpmnElementType.SUB_PROCESS || t == BpmnElementType.TRANSACTION || t == BpmnElementType.AD_HOC_SUB_PROCESS;
+	}
+
+	private void handleSubProcess(final NodeInterface instance, final NodeInterface token, final NodeInterface subProcessElement) throws FrameworkException {
 
 		// Find the start event inside the sub-process (child element)
-		final Traits elemTraits = subProcessElement.getTraits();
+		final Traits elemTraits                     = subProcessElement.getTraits();
 		final Iterable<NodeInterface> childElements = subProcessElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.CHILD_ELEMENTS_PROPERTY));
+		NodeInterface subStartEvent                 = null;
 
-		NodeInterface subStartEvent = null;
 		if (childElements != null) {
+
 			for (final NodeInterface child : childElements) {
+
 				final String childType = child.getProperty(child.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-				if ("startEvent".equals(childType)) {
+				if (BpmnElementType.START_EVENT.matches(childType)) {
+
 					subStartEvent = child;
 					break;
 				}
@@ -804,70 +916,264 @@ public class ProcessEngine {
 		}
 
 		if (subStartEvent == null) {
+
 			throw new FrameworkException(422, "Sub-process has no start event: " + getBpmnId(subProcessElement));
 		}
 
 		// Put the parent token in waiting state (it will be resumed when the sub-process completes)
-		final Traits tokenTraits = token.getTraits();
-		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_WAITING);
+		token.as(ProcessToken.class).markWaiting();
 
 		// Create a new token at the sub-process start event
-		final NodeInterface subToken = createToken(app, instance, subStartEvent);
-		advanceToken(app, instance, subToken);
+		final NodeInterface subToken = createToken(instance, subStartEvent);
+		advanceToken(instance, subToken);
 	}
 
 	// -----------------------------------------------------------------------
 	// Task execution
 	// -----------------------------------------------------------------------
 
-	private void executeAutomaticTask(final App app, final NodeInterface instance,
-									  final NodeInterface element, final Traits elemTraits,
-									  final String elementType) throws FrameworkException {
+	private void executeAutomaticTask(final NodeInterface instance, final NodeInterface element, final Traits elemTraits, final String elementType, final Map<String, Object> localScope) throws FrameworkException {
 
-		if ("scriptTask".equals(elementType)) {
+		// Any automatic task carrying a script body runs it: a scriptTask's <script>,
+		// or a serviceTask whose implementation was mapped to scriptContent on import
+		// (a Camunda camunda:expression, or a Structr-native body). A serviceTask with
+		// no runnable body stays a pass-through. The body may set variables (via
+		// $.process.x = y or a transpiled execution.setVariable(...)): with a localScope
+		// active (io mappings) those writes stay local; otherwise they persist through
+		// the ProcessContext write sink.
+		final String script = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY));
+		if (StringUtils.isBlank(script)) {
 
-			final String script = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY));
-			if (script != null && !script.isEmpty()) {
-				final String scriptFormat = getAttributeValue(element, "scriptFormat");
-
-				// Determine executable script: if the script uses a foreign format
-				// (javascript/js), transpile it to Structr-compatible code.
-				// Native Structr scripts (no format or "structrscript") run as-is.
-				final String executableScript;
-				final boolean isJavaScript;
-
-				if ("javascript".equalsIgnoreCase(scriptFormat) || "js".equalsIgnoreCase(scriptFormat)) {
-					// Foreign JavaScript (Camunda/Flowable): transpile to Structr JS
-					executableScript = transpileForeignScript(script);
-					isJavaScript = true;
-				} else if ("structr-javascript".equalsIgnoreCase(scriptFormat) || "structr-js".equalsIgnoreCase(scriptFormat)) {
-					// Structr-native JavaScript: execute as-is
-					executableScript = script;
-					isJavaScript = true;
-				} else {
-					// No format or "structrscript": execute as StructrScript
-					executableScript = script;
-					isJavaScript = false;
-				}
-
-				try {
-					final ActionContext ctx = new ActionContext(securityContext);
-					installProcessContext(ctx, instance, element);
-					final String expression = isJavaScript
-						? "${js{" + executableScript + "}}"
-						: "${" + executableScript + "}";
-					Scripting.evaluate(ctx, element, expression, "scriptTask");
-				} catch (Exception ex) {
-					logger.warn("Script task {} failed (non-fatal): {}\n--- Original ---\n{}\n--- Transpiled ---\n{}",
-						getBpmnId(element), ex.getMessage(), script, executableScript);
-				}
-			}
+			return;
 		}
 
-		// serviceTask: could invoke a Structr method, flow, or REST call.
-		// For now, service tasks are pass-through. The service task implementation
-		// will be connected via schema methods on the BpmnElement or via
-		// extension attributes referencing Structr methods.
+		final String scriptFormat = getAttributeValue(element, "scriptFormat");
+
+		// Determine how to run the script from its declared format.
+		final ScriptLanguage language = detectScriptLanguage(scriptFormat);
+
+		// Foreign JavaScript (Camunda/Flowable) is transpiled to Structr JS;
+		// everything else runs its source as-is.
+		final String executableScript = (language == ScriptLanguage.FOREIGN_JAVASCRIPT)
+			? transpileForeignScript(script)
+			: script;
+
+		try {
+
+			final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+			installProcessContext(ctx, instance, element, localScope);
+			final String expression = (language == ScriptLanguage.STRUCTR_SCRIPT)
+				? "${" + executableScript + "}"
+				: "${js{" + executableScript + "}}";
+			Scripting.evaluate(ctx, element, expression, "automaticTask");
+
+		} catch (Exception ex) {
+
+			logger.warn("Automatic task {} failed (non-fatal): {}\n--- Original ---\n{}\n--- Transpiled ---\n{}", getBpmnId(element), ex.getMessage(), script, executableScript);
+		}
+	}
+
+	/**
+	 * Run an automatic task with Camunda {@code inputOutput} semantics.
+	 *
+	 * <p>When the element has io mappings, the activity gets its own local variable
+	 * scope: input parameters are evaluated in the parent (process) scope and bound
+	 * as locals; the body runs against those locals (reads local-over-process, writes
+	 * stay local and do NOT persist); output parameters are then evaluated in the
+	 * local scope and their results promoted (persisted) to process scope. The local
+	 * scope is discarded afterwards, so inputs never leak, never clobber a same-named
+	 * process variable or subject field, and parallel branches don't share them.</p>
+	 *
+	 * <p>Without io mappings the body runs normally and its writes persist to process
+	 * scope (see {@link #executeAutomaticTask}).</p>
+	 *
+	 * <p>Scope is flat: outputs promote to the top-level process scope, not to an
+	 * enclosing sub-process scope (a simplification vs. Camunda's nested scopes).</p>
+	 */
+	private void runAutomaticTask(final NodeInterface instance, final NodeInterface element, final Traits elemTraits, final String elementType) throws FrameworkException {
+
+		final List<String[]> inputs  = parseIoParams(element, "inputs");
+		final List<String[]> outputs = parseIoParams(element, "outputs");
+
+		if (inputs.isEmpty() && outputs.isEmpty()) {
+
+			// No io mappings: body writes persist to process scope.
+			executeAutomaticTask(instance, element, elemTraits, elementType, null);
+
+			return;
+		}
+
+		// Activity-local scope.
+		final Map<String, Object> local = new LinkedHashMap<>();
+
+		// Inputs: evaluated in the parent (process) scope, bound as locals.
+		for (final String[] in : inputs) {
+
+			local.put(in[0], evaluateSource(in[1], element, instance, null));
+		}
+
+		// Body: reads local-over-process, writes go local (not persisted).
+		executeAutomaticTask(instance, element, elemTraits, elementType, local);
+
+		// Outputs: evaluated in the local scope, promoted (persisted) to process scope.
+		for (final String[] out : outputs) {
+
+			final Object value            = evaluateSource(out[1], element, instance, local);
+			final Map<String, Object> one = new HashMap<>();
+
+			one.put(out[0], value);
+			storeParameterValues(instance, element, one);
+		}
+	}
+
+	/** Parse the stored ioMappings JSON into a list of {name, source} pairs for the given side ("inputs"/"outputs"). */
+	private List<String[]> parseIoParams(final NodeInterface element, final String side) throws FrameworkException {
+
+		final List<String[]> result = new LinkedList<>();
+		final String json           = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.IO_MAPPINGS_PROPERTY));
+
+		if (StringUtils.isBlank(json)) {
+
+			return result;
+		}
+
+		final com.google.gson.JsonElement root;
+
+		try {
+
+			root = com.google.gson.JsonParser.parseString(json);
+
+		} catch (final com.google.gson.JsonSyntaxException ex) {
+
+			logger.warn("Malformed ioMappings on {}: {}", getBpmnIdSafe(element), ex.getMessage());
+
+			return result;
+		}
+
+		if (root == null || !root.isJsonObject()) {
+
+			return result;
+		}
+
+		final com.google.gson.JsonElement listEl = root.getAsJsonObject().get(side);
+		if (listEl == null || !listEl.isJsonArray()) {
+
+			return result;
+		}
+
+		for (final com.google.gson.JsonElement itemEl : listEl.getAsJsonArray()) {
+
+			if (!itemEl.isJsonObject()) {
+
+				continue;
+			}
+
+			final com.google.gson.JsonObject item     = itemEl.getAsJsonObject();
+			final com.google.gson.JsonElement nameEl   = item.get("name");
+
+			if (nameEl == null || nameEl.isJsonNull()) {
+
+				continue;
+			}
+
+			final com.google.gson.JsonElement srcEl = item.get("source");
+			final String source                     = (srcEl != null && !srcEl.isJsonNull()) ? srcEl.getAsString() : null;
+
+			result.add(new String[] { nameEl.getAsString(), source });
+		}
+
+		return result;
+	}
+
+	/**
+	 * Evaluate an inputOutput parameter source against a given scope: a
+	 * {@code ${...}} expression runs as JavaScript (bare names -- both process
+	 * variables and, when present, local-scope names -- rewritten to
+	 * {@code $.process.<name>}); anything else is a literal. {@code localScope} is
+	 * null for inputs (evaluated in the parent scope) and the activity's local map
+	 * for outputs (so they can read what the body produced).
+	 */
+	private Object evaluateSource(final String source, final NodeInterface element, final NodeInterface instance, final Map<String, Object> localScope) {
+
+		if (source == null || source.isBlank()) {
+
+			return null;
+		}
+
+		final String s = source.trim();
+		if (!(s.startsWith("${") && s.endsWith("}"))) {
+
+			return s; // literal
+		}
+
+		try {
+
+			final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+			installProcessContext(ctx, instance, element, localScope);
+
+			final String inner            = s.substring(2, s.length() - 1).trim();
+			final java.util.Set<String> names = new java.util.HashSet<>(loadProcessVariables(instance).keySet());
+
+			if (localScope != null) {
+
+				names.addAll(localScope.keySet());
+			}
+
+			final String rewritten        = rewriteConditionExpression(inner, names);
+
+			return Scripting.evaluate(ctx, element, "${js{" + rewritten + "}}", "ioMapping");
+
+		} catch (final Exception ex) {
+
+			logger.warn("ioMapping expression '{}' on {} failed (non-fatal): {}", source, getBpmnIdSafe(element), ex.getMessage());
+
+			return null;
+		}
+	}
+
+	/** getBpmnId without the checked exception, for logging. */
+	private String getBpmnIdSafe(final NodeInterface element) {
+
+		try {
+
+			return getBpmnId(element);
+
+		} catch (final Exception ex) {
+
+			return "?";
+		}
+	}
+
+	/**
+	 * How a script task's {@code scriptFormat} is interpreted:
+	 * <ul>
+	 *   <li>{@code FOREIGN_JAVASCRIPT} -- Camunda/Flowable JavaScript, transpiled
+	 *       to Structr JS before evaluation ({@code "javascript"} / {@code "js"}).</li>
+	 *   <li>{@code STRUCTR_JAVASCRIPT} -- Structr-native JavaScript, run as-is
+	 *       ({@code "structr-javascript"} / {@code "structr-js"}).</li>
+	 *   <li>{@code STRUCTR_SCRIPT} -- anything else (including no format), run as
+	 *       StructrScript.</li>
+	 * </ul>
+	 */
+	enum ScriptLanguage { FOREIGN_JAVASCRIPT, STRUCTR_JAVASCRIPT, STRUCTR_SCRIPT }
+
+	/**
+	 * Classify a {@code scriptFormat} attribute value. Package-private and static
+	 * so the (deliberately narrow) matching rules can be unit-tested directly.
+	 */
+	static ScriptLanguage detectScriptLanguage(final String scriptFormat) {
+
+		if ("javascript".equalsIgnoreCase(scriptFormat) || "js".equalsIgnoreCase(scriptFormat)) {
+
+			return ScriptLanguage.FOREIGN_JAVASCRIPT;
+		}
+
+		if ("structr-javascript".equalsIgnoreCase(scriptFormat) || "structr-js".equalsIgnoreCase(scriptFormat)) {
+
+			return ScriptLanguage.STRUCTR_JAVASCRIPT;
+		}
+
+		return ScriptLanguage.STRUCTR_SCRIPT;
 	}
 
 	/**
@@ -877,19 +1183,22 @@ public class ProcessEngine {
 	 *
 	 * Supported transformations:
 	 *   execution.getVariable("x")      -> $.process.x
-	 *   execution.setVariable("x", val) -> (removed, assignment sufficient)
+	 *   execution.setVariable("x", val) -> $.process.x = val
 	 *
 	 * Lines that cannot be transpiled are kept as-is (best effort).
 	 */
-	private String transpileForeignScript(final String script) {
+	public static String transpileForeignScript(final String script) {
 
 		final StringBuilder out = new StringBuilder();
 
 		// Preserve original as block comment
 		out.append("/*\n");
+
 		for (final String line : script.split("\n")) {
+
 			out.append(line).append("\n");
 		}
+
 		out.append("*/\n");
 
 		// Transpile line by line
@@ -899,23 +1208,27 @@ public class ProcessEngine {
 
 			// Skip empty lines
 			if (trimmed.isEmpty()) {
+
 				out.append("\n");
 				continue;
 			}
 
-			// execution.setVariable("x", expr); -> drop entirely
-			// (the variable was already assigned via getVariable, and
-			// mutations on the object are in-place in JS)
-			if (trimmed.matches("execution\\.setVariable\\(.*\\);")) {
-				continue;
-			}
+			// execution.setVariable("x", expr) -> $.process.x = expr;  (paren-depth aware,
+			// so a value containing parentheses -- e.g. now() -- survives intact)
+			// execution.getVariable("x")       -> $.process.x
+			String transpiled = rewriteSetVariable(line);
+			transpiled = transpiled.replaceAll("execution\\.getVariable\\([\"']([^\"']+)[\"']\\)", "\\$.process.$1");
 
-			// execution.getVariable("x") -> $.process.x
-			String transpiled = line;
-			transpiled = transpiled.replaceAll(
-				"execution\\.getVariable\\([\"']([^\"']+)[\"']\\)",
-				"\\$.process.$1"
-			);
+			// Bare function calls map onto Structr's function namespace by prefixing
+			// "$." -- e.g. now() -> $.now(). Member calls, already-prefixed calls and
+			// JS keywords / built-ins are left untouched.
+			transpiled = prefixStructrFunctions(transpiled);
+
+			// Camunda bean/service calls (receiver.method(...)) bind to a Structr service
+			// class of the same (capitalized) name: notificationService.notify() ->
+			// $.NotificationService.notify(). The importer scaffolds that service class and a
+			// static stub method so the process runs; the user fills in the body.
+			transpiled = rewriteServiceCalls(transpiled);
 
 			out.append(transpiled).append("\n");
 		}
@@ -923,70 +1236,454 @@ public class ProcessEngine {
 		return out.toString();
 	}
 
-	private void createTaskInstance(final App app, final NodeInterface instance,
-									final NodeInterface userTaskElement) throws FrameworkException {
+	/**
+	 * Rewrite every {@code execution.setVariable("name", <expr>)} call on a line to
+	 * {@code $.process.name = <expr>;}. The value expression is delimited by the
+	 * setVariable call's OWN closing parenthesis, found with a paren-depth scan
+	 * (quotes honored), so nested calls such as {@code now()} or {@code foo(bar())}
+	 * survive intact -- unlike a non-greedy regex, which stops at the first {@code )}
+	 * and corrupts the output (e.g. {@code now(;)}).
+	 */
+	static String rewriteSetVariable(final String line) {
 
-		final NodeInterface task = app.create(ProcessTraits.TASK_INSTANCE, (String) null);
-		final Traits taskTraits = task.getTraits();
+		final String marker = "execution.setVariable";
+		final StringBuilder out = new StringBuilder();
+		int i = 0;
 
-		task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CREATED_TIME_PROPERTY), new Date());
-		task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY), instance);
-		task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY), userTaskElement);
+		while (true) {
+
+			final int hit = line.indexOf(marker, i);
+			if (hit < 0) {
+
+				out.append(line, i, line.length());
+				break;
+			}
+
+			// Must be a call: "execution.setVariable" then (optional ws) '('.
+			int p = hit + marker.length();
+
+			while (p < line.length() && Character.isWhitespace(line.charAt(p))) {
+
+				p++;
+			}
+
+			if (p >= line.length() || line.charAt(p) != '(') {
+
+				out.append(line, i, hit + marker.length());
+				i = hit + marker.length();
+				continue;
+			}
+
+			final int close = matchingParenIndex(line, p);
+			if (close < 0) {
+
+				// Unbalanced parentheses: keep the remainder verbatim (best effort).
+				out.append(line.substring(i));
+				break;
+			}
+
+			final String[] nv = splitFirstStringArg(line.substring(p + 1, close));
+			out.append(line, i, hit);
+
+			if (nv == null) {
+
+				// Not a ("name", value) shape we understand -- keep the original call.
+				out.append(line, hit, close + 1);
+				i = close + 1;
+
+			} else {
+
+				out.append("$.process.").append(nv[0]).append(" = ").append(nv[1].trim()).append(";");
+				i = close + 1;
+				// Absorb an existing trailing ';' so we don't emit ';;'.
+				if (i < line.length() && line.charAt(i) == ';') {
+
+					i++;
+				}
+			}
+		}
+
+		return out.toString();
+	}
+
+	/** Index of the ')' closing the '(' at {@code openIdx}, honoring quoted strings; -1 if unbalanced. */
+	static int matchingParenIndex(final String s, final int openIdx) {
+
+		int depth = 0;
+		char quote = 0;
+
+		for (int i = openIdx; i < s.length(); i++) {
+
+			final char c = s.charAt(i);
+
+			if (quote != 0) {
+
+				if (c == quote) {
+
+					quote = 0;
+				}
+
+				continue;
+			}
+
+			if (c == '\'' || c == '"') {
+
+				quote = c;
+
+			} else if (c == '(') {
+
+				depth++;
+
+			} else if (c == ')') {
+
+				depth--;
+
+				if (depth == 0) {
+
+					return i;
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Split an argument list of the form {@code "name", <expr>} into {@code [name, expr]}.
+	 * The first argument must be a single- or double-quoted string literal (the variable
+	 * name); everything after the first top-level comma is the value. Returns null if the
+	 * shape doesn't match.
+	 */
+	static String[] splitFirstStringArg(final String args) {
+
+		final String a = args.trim();
+		if (a.isEmpty()) {
+
+			return null;
+		}
+
+		final char q = a.charAt(0);
+		if (q != '\'' && q != '"') {
+
+			return null;
+		}
+
+		final int endQuote = a.indexOf(q, 1);
+		if (endQuote < 0) {
+
+			return null;
+		}
+
+		final String name = a.substring(1, endQuote);
+		int c = endQuote + 1;
+
+		while (c < a.length() && Character.isWhitespace(a.charAt(c))) {
+
+			c++;
+		}
+
+		if (c >= a.length() || a.charAt(c) != ',') {
+
+			return null;
+		}
+
+		final String value = a.substring(c + 1).trim();
+		if (name.isEmpty() || value.isEmpty()) {
+
+			return null;
+		}
+
+		return new String[] { name, value };
+	}
+
+	// JS keywords and common built-ins that look like calls but must NOT be
+	// rewritten to Structr functions ($.<name>).
+	private static final Set<String> NON_STRUCTR_CALLS = Set.of(
+		"if", "else", "for", "while", "do", "switch", "case", "catch", "try", "finally",
+		"return", "function", "var", "let", "const", "new", "typeof", "instanceof",
+		"void", "delete", "in", "of", "throw", "this", "super", "yield", "await",
+		"async", "break", "continue", "with", "class", "extends", "default",
+		"true", "false", "null", "undefined",
+		"Array", "Object", "String", "Number", "Boolean", "Date", "Math", "JSON",
+		"RegExp", "Error", "Map", "Set", "Promise", "Symbol",
+		"parseInt", "parseFloat", "isNaN", "isFinite", "eval",
+		"encodeURIComponent", "decodeURIComponent", "execution"
+	);
+
+	// A bare function call: an identifier followed by '(' that is NOT a member
+	// access (preceded by '.'), NOT already prefixed ('$.'), and NOT part of a
+	// longer identifier.
+	private static final Pattern BARE_FUNCTION_CALL = Pattern.compile("(?<![\\w.$])([A-Za-z_]\\w*)\\s*\\(");
+
+	/**
+	 * Prefix bare function calls with Structr's {@code $.} namespace, e.g.
+	 * {@code now()} -> {@code $.now()}. Member calls ({@code obj.foo()}),
+	 * already-prefixed calls ({@code $.foo()}) and JS keywords / built-ins
+	 * (see {@link #NON_STRUCTR_CALLS}) are left untouched. Best effort: a name that
+	 * isn't a real Structr function becomes {@code $.<name>()} and fails at run time,
+	 * but the original source is retained in the block comment above the transpiled body.
+	 */
+	static String prefixStructrFunctions(final String line) {
+
+		final Matcher m = BARE_FUNCTION_CALL.matcher(line);
+		final StringBuffer sb = new StringBuffer();
+
+		while (m.find()) {
+
+			final String name = m.group(1);
+			final String replacement = NON_STRUCTR_CALLS.contains(name) ? m.group() : "$." + name + "(";
+
+			m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+		}
+
+		m.appendTail(sb);
+
+		return sb.toString();
+	}
+
+	// Receivers that are NOT foreign services (script context / JS built-ins) and so
+	// must never be rewritten to a $.<Type> service-class call.
+	private static final Set<String> NON_SERVICE_RECEIVERS = Set.of(
+		"$", "execution", "this", "process", "task", "Math", "JSON", "Object", "Array",
+		"String", "Number", "Boolean", "Date", "RegExp", "console", "window", "document"
+	);
+
+	// Suffixes that mark a receiver as a service/bean by naming convention. We only
+	// treat a receiver as a foreign service when it ends with one of these (on a
+	// CamelCase boundary), so an ordinary variable like `task.complete()` or
+	// `order.total()` is NOT minted into a service class. False negatives (an
+	// unconventionally-named bean) just fall back to manual handling; false positives
+	// (scaffolding a real variable) were the harmful case, so we err conservative.
+	private static final String[] SERVICE_RECEIVER_SUFFIXES = {
+		"Service", "Delegate", "Gateway", "Bean", "Client", "Manager", "Repository", "Facade", "Provider", "Dao", "Api", "Connector", "Adapter", "Endpoint"
+	};
+
+	// A bean/service call: receiver.method( ... ) where receiver is a bare identifier
+	// (not itself a member access: negative lookbehind on '.', word char, '$').
+	private static final Pattern SERVICE_CALL = Pattern.compile("(?<![\\w.$])([A-Za-z_]\\w*)\\.([A-Za-z_]\\w*)\\s*\\(");
+
+	/** Upper-case the first character (service receiver -> service-class type name). */
+	static String capitalize(final String s) {
+
+		return (s == null || s.isEmpty()) ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+	}
+
+	/**
+	 * True if {@code receiver} should be treated as a foreign service/bean: not a known
+	 * script-context / built-in object, and named by a service convention (ends with one
+	 * of {@link #SERVICE_RECEIVER_SUFFIXES}). Shared by the rewrite and detection passes so
+	 * they always agree on what is a service.
+	 */
+	static boolean isForeignServiceReceiver(final String receiver) {
+
+		if (receiver == null || NON_SERVICE_RECEIVERS.contains(receiver)) {
+
+			return false;
+		}
+
+		for (final String suffix : SERVICE_RECEIVER_SUFFIXES) {
+
+			// Require a real prefix before the suffix so the receiver isn't just the bare word.
+			if (receiver.length() > suffix.length() && receiver.endsWith(suffix)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Rewrite Camunda bean/service calls to Structr service-class calls:
+	 * {@code notificationService.notify(x)} -> {@code $.NotificationService.notify(x)}.
+	 * Receivers in {@link #NON_SERVICE_RECEIVERS} are left alone. Idempotent: an
+	 * already-rewritten call ({@code $.Type.method(}) has '.' before the type name, so
+	 * the negative lookbehind skips it on a second pass.
+	 */
+	static String rewriteServiceCalls(final String line) {
+
+		final Matcher m = SERVICE_CALL.matcher(line);
+		final StringBuffer sb = new StringBuffer();
+
+		while (m.find()) {
+
+			final String receiver = m.group(1);
+			final String method   = m.group(2);
+			final String replacement = isForeignServiceReceiver(receiver)
+				? "$." + capitalize(receiver) + "." + method + "("
+				: m.group();
+
+			m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+		}
+
+		m.appendTail(sb);
+
+		return sb.toString();
+	}
+
+	/**
+	 * Detect the foreign bean/service calls in a script. Returns a map of
+	 * service-class name (capitalized receiver) -> method name -> argument count
+	 * (the maximum seen across call sites). Powers the importer's service-class
+	 * scaffolding. Receivers in {@link #NON_SERVICE_RECEIVERS} are ignored.
+	 */
+	public static Map<String, Map<String, Integer>> detectServiceCalls(final String script) {
+
+		final Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
+
+		if (script == null) {
+
+			return result;
+		}
+
+		final Matcher m = SERVICE_CALL.matcher(script);
+
+		while (m.find()) {
+
+			final String receiver = m.group(1);
+			if (!isForeignServiceReceiver(receiver)) {
+
+				continue;
+			}
+
+			final String method = m.group(2);
+			final int open  = m.end() - 1;           // index of the '(' the match ended on
+			final int close = matchingParenIndex(script, open);
+			final int argc  = (close < 0) ? 0 : countTopLevelArgs(script.substring(open + 1, close));
+
+			result.computeIfAbsent(capitalize(receiver), k -> new LinkedHashMap<>())
+				.merge(method, argc, Math::max);
+		}
+
+		return result;
+	}
+
+	/** Count comma-separated top-level arguments (0 for an empty list), honoring nesting and quotes. */
+	static int countTopLevelArgs(final String args) {
+
+		final String a = args.trim();
+		if (a.isEmpty()) {
+
+			return 0;
+		}
+
+		int depth = 0;
+		int count = 1;
+		char quote = 0;
+
+		for (int i = 0; i < a.length(); i++) {
+
+			final char c = a.charAt(i);
+
+			if (quote != 0) {
+
+				if (c == quote) {
+
+					quote = 0;
+				}
+
+				continue;
+			}
+
+			if (c == '\'' || c == '"') {
+
+				quote = c;
+
+			} else if (c == '(' || c == '[' || c == '{') {
+
+				depth++;
+
+			} else if (c == ')' || c == ']' || c == '}') {
+				depth--;
+
+			} else if (c == ',' && depth == 0) {
+
+				count++;
+			}
+		}
+
+		return count;
+	}
+
+	private void createTaskInstance(final NodeInterface instance, final NodeInterface userTaskElement) throws FrameworkException {
+
+		final App app                   = StructrApp.getInstance();
+		final NodeInterface task        = app.create(ProcessTraits.TASK_INSTANCE);
+		final TaskInstance taskInstance = task.as(TaskInstance.class);
+
+		taskInstance.setCreatedTime(new Date());
+		taskInstance.setProcessInstance(instance);
+		taskInstance.setDefinedBy(userTaskElement);
 
 		// Set display name from the BPMN element name
-		final Traits elemTraits = userTaskElement.getTraits();
-		final String taskName = userTaskElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_NAME_PROPERTY));
-		task.setProperty(taskTraits.key("name"), taskName != null ? taskName : "User Task");
+		final String taskName = userTaskElement.as(BpmnElement.class).getBpmnName();
+
+		task.setProperty(task.getTraits().key("name"), taskName != null ? taskName : "User Task");
 
 		// Resolve performers declared on the BPMN element via standard
 		// <bpmn:humanPerformer> / <bpmn:potentialOwner> sub-elements
 		// (parsed by the importer into BpmnPerformer nodes linked via HAS_PERFORMER).
 		final PrincipalExpressionResolver resolver = new PrincipalExpressionResolver(app, instance);
-		final Iterable<NodeInterface> performers = userTaskElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.PERFORMERS_PROPERTY));
-
+		final Iterable<BpmnPerformer> performers = userTaskElement.as(BpmnElement.class).getPerformers();
 		NodeInterface assigneeNode = null;
-		final List<NodeInterface> candidateAssignees = new ArrayList<>();
+		final List<NodeInterface> candidateAssignees = new LinkedList<>();
 
 		if (performers != null) {
-			final Traits perfTraits = Traits.of(ProcessTraits.BPMN_PERFORMER);
-			for (final NodeInterface performer : performers) {
 
-				final String kind       = performer.getProperty(perfTraits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY));
+			for (final BpmnPerformer performer : performers) {
+
+				final String kind         = performer.getKind();
 				final String contextLabel = "task '" + taskName + "' (" + kind + ")";
 
 				// Typed Principal binding takes priority over the expression
 				// string. When the editor's Principal picker has populated the
 				// HAS_PRINCIPAL relationship the linked nodes ARE the resolved
 				// performers; expression evaluation is skipped entirely.
-				final Iterable<NodeInterface> linkedPrincipals = performer.getProperty(perfTraits.key(BpmnPerformerTraitDefinition.PRINCIPALS_PROPERTY));
-				final List<NodeInterface> linkedList = new ArrayList<>();
-				if (linkedPrincipals != null) {
-					for (final NodeInterface p : linkedPrincipals) if (p != null) linkedList.add(p);
+				final List<NodeInterface> linkedList = new LinkedList<>();
+
+				for (final NodeInterface p : performer.getPrincipals()) {
+
+					if (p != null) {
+
+						linkedList.add(p);
+					}
 				}
 
 				if (!linkedList.isEmpty()) {
 
 					if (BpmnPerformerTraitDefinition.KIND_POTENTIAL_OWNER.equals(kind)) {
+
 						candidateAssignees.addAll(linkedList);
+
 					} else {
+
 						// humanPerformer / generic performer: take the first
 						// linked principal as the assignee. Multi-link on a
 						// human performer is unusual but tolerated.
-						if (assigneeNode == null) assigneeNode = linkedList.get(0);
+						if (assigneeNode == null) {
+
+							assigneeNode = linkedList.get(0);
+						}
 					}
+
 					continue;
 				}
 
 				// No typed binding: fall back to evaluating the expression.
-				final String expression = performer.getProperty(perfTraits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY));
-				if (expression == null || expression.isEmpty()) {
+				final String expression = performer.getExpression();
+				if (StringUtils.isBlank(expression)) {
+
 					continue;
 				}
 
 				if (BpmnPerformerTraitDefinition.KIND_POTENTIAL_OWNER.equals(kind)) {
+
 					candidateAssignees.addAll(resolver.resolveAll(expression, contextLabel));
+
 				} else {
+
 					if (assigneeNode == null) {
+
 						assigneeNode = resolver.resolveOne(expression.trim(), contextLabel);
 					}
 				}
@@ -995,13 +1692,16 @@ public class ProcessEngine {
 
 		if (assigneeNode != null) {
 
-			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY),        assigneeNode);
-			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_RESERVED);
-			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), TaskInstanceTraitDefinition.SET_BY_BPMN);
+			taskInstance.setAssignee(assigneeNode);
+			taskInstance.setStatus(TaskInstanceTraitDefinition.STATUS_RESERVED);
+			taskInstance.setAssigneeSetBy(TaskInstanceTraitDefinition.SET_BY_BPMN);
+
 			// Direct assignment via <humanPerformer>: claimedTime equals createdTime,
 			// i.e. the assignee was established at task-creation time, no separate claim event.
-			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CLAIMED_TIME_PROPERTY),    new Date());
+			taskInstance.setClaimedTime(new Date());
+
 			grant(task, assigneeNode.as(Principal.class), Permission.read, Permission.write);
+
 			// Generic participant grant: read on the parent ProcessInstance and
 			// its subject (when attached). Read propagation on TASK_OF /
 			// HAS_PARAMETER_VALUE then extends visibility to the instance's
@@ -1011,15 +1711,17 @@ public class ProcessEngine {
 
 		} else if (!candidateAssignees.isEmpty()) {
 
-			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY), candidateAssignees);
-			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),           TaskInstanceTraitDefinition.STATUS_AVAILABLE);
+			taskInstance.setCandidateAssignees(candidateAssignees);
+			taskInstance.setStatus(TaskInstanceTraitDefinition.STATUS_AVAILABLE);
 
 			// Grant read+write on the task to each candidate, plus read on the
 			// parent ProcessInstance and its subject so propagation extends
 			// visibility to the rest of the instance (sibling tasks, parameter
 			// history) and the domain data the page renders.
 			for (final NodeInterface owner : candidateAssignees) {
+
 				final Principal ownerPrincipal = owner.as(Principal.class);
+
 				grant(task, ownerPrincipal, Permission.read, Permission.write);
 				grantParticipantReadAccess(instance, ownerPrincipal);
 			}
@@ -1032,38 +1734,48 @@ public class ProcessEngine {
 			// authored processes where humanPerformer hasn't been wired up;
 			// off by default so imported BPMN keeps spec semantics.
 			NodeInterface fallbackAssignee = null;
-			final NodeInterface defForFlag = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-			if (defForFlag != null) {
-				final Traits defTraitsForFlag = defForFlag.getTraits();
-				final Boolean flag = defForFlag.getProperty(defTraitsForFlag.key(BpmnProcessTraitDefinition.DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY));
-				if (Boolean.TRUE.equals(flag)) {
-					fallbackAssignee = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY));
-				}
+			final ProcessInstance inst     = instance.as(ProcessInstance.class);
+			final BpmnProcess def          = inst.getProcess();
+
+			if (def != null && def.isDefaultAssigneeFromInitiator()) {
+
+				fallbackAssignee = inst.getInitiator();
 			}
 
 			if (fallbackAssignee != null) {
-				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY),        fallbackAssignee);
-				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_RESERVED);
-				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), TaskInstanceTraitDefinition.SET_BY_BPMN);
-				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CLAIMED_TIME_PROPERTY),    new Date());
+
+				taskInstance.setAssignee(fallbackAssignee);
+				taskInstance.setStatus(TaskInstanceTraitDefinition.STATUS_RESERVED);
+				taskInstance.setAssigneeSetBy(TaskInstanceTraitDefinition.SET_BY_BPMN);
+				taskInstance.setClaimedTime(new Date());
 				grant(task, fallbackAssignee.as(Principal.class), Permission.read, Permission.write);
 				grantParticipantReadAccess(instance, fallbackAssignee.as(Principal.class));
+
 			} else {
-				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY), TaskInstanceTraitDefinition.STATUS_CREATED);
+
+				taskInstance.setStatus(TaskInstanceTraitDefinition.STATUS_CREATED);
 			}
 		}
 
-		logger.info("Created task instance '{}' for process {} (status={})", taskName, instance.getUuid(),
-			task.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY)));
+		logger.info("Created task instance '{}' for process {} (status={})", taskName, instance.getUuid(), taskInstance.getStatus());
 
 		// Lifecycle events: 'created' always; 'assigned' or 'available' depending on
 		// the initial state we just established.
 		fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_CREATED, task);
-		final String createStatus = task.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (TaskInstanceTraitDefinition.STATUS_RESERVED.equals(createStatus)) {
-			fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_ASSIGNED, task);
-		} else if (TaskInstanceTraitDefinition.STATUS_AVAILABLE.equals(createStatus)) {
-			fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_AVAILABLE, task);
+
+		final String createStatus = taskInstance.getStatus();
+		if (createStatus != null) {
+
+			switch (createStatus) {
+
+				case TaskInstanceTraitDefinition.STATUS_RESERVED:
+					fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_ASSIGNED, task);
+					break;
+
+				case TaskInstanceTraitDefinition.STATUS_AVAILABLE:
+					fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_AVAILABLE, task);
+					break;
+			}
 		}
 	}
 
@@ -1074,75 +1786,81 @@ public class ProcessEngine {
 	public void claimTask(final NodeInterface callerTaskNode) throws FrameworkException {
 
 		if (caller == null) {
+
 			throw new FrameworkException(401, "Cannot claim task without an authenticated caller");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
 		// Re-fetch under superuser context so the candidateAssignees traversal
 		// reflects the engine's view of the graph, not the caller's filter.
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final Traits taskTraits = taskNode.getTraits();
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final TaskInstance task      = taskNode.as(TaskInstance.class);
 
-		if (!TaskInstanceTraitDefinition.STATUS_AVAILABLE.equals(status)) {
+		if (!task.isAvailable()) {
+
 			// Common authoring trap: action mapping resolves idExpression to a sibling
 			// task in the same instance instead of the active one. Since participants
 			// have read on every task of their instance (engine grants + propagation),
 			// expressions like ${first(current.tasks).id} are unstable -- they may pick
 			// a completed task. Configure the action's "step" so the engine resolves
 			// the active task at that step, or use a step-scoped expression.
-			throw new FrameworkException(422, "Task is not available for claim (status=" + status + "). "
+			throw new FrameworkException(422, "Task is not available for claim (status=" + task.getStatus() + "). "
 				+ "Hint: check that the action mapping resolves to the active TaskInstance "
 				+ "at the intended step -- prefer Control-process action with idExpression=${current.id} and step=<the user task>.");
 		}
 
 		// Collect the UUIDs of the caller's groups (privileged so we see groups regardless of ACLs).
 		final Set<String> callerGroupIds = new HashSet<>();
+
 		for (final NodeInterface g : caller.getParentsPrivileged()) {
+
 			callerGroupIds.add(g.getUuid());
 		}
 
 		// The caller is eligible if they are a direct candidate assignee or if one of their groups is.
-		final Iterable<NodeInterface> candidateAssignees = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY));
 		boolean eligible = false;
-		if (candidateAssignees != null) {
-			for (final NodeInterface owner : candidateAssignees) {
-				if (owner.getUuid().equals(caller.getUuid()) || callerGroupIds.contains(owner.getUuid())) {
-					eligible = true;
-					break;
-				}
+
+		for (final NodeInterface owner : task.getCandidateAssignees()) {
+
+			if (owner.getUuid().equals(caller.getUuid()) || callerGroupIds.contains(owner.getUuid())) {
+
+				eligible = true;
+				break;
 			}
 		}
 
 		if (!eligible) {
+
 			throw new FrameworkException(403, "Caller is not a candidate assignee of this task");
 		}
 
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY),        caller);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_RESERVED);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), TaskInstanceTraitDefinition.SET_BY_SELF);
+		task.setAssignee(caller);
+		task.setStatus(TaskInstanceTraitDefinition.STATUS_RESERVED);
+		task.setAssigneeSetBy(TaskInstanceTraitDefinition.SET_BY_SELF);
+
 		// Record the claim moment for audit: the gap between createdTime and
 		// claimedTime tells operators how long the task waited for a claimer,
 		// and a reserved task with no completedTime tells them the claimer is
 		// still on it (or stalled).
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CLAIMED_TIME_PROPERTY),    new Date());
+		task.setClaimedTime(new Date());
 
 		// Claim supersedes a prior decline: remove caller from declinedBy if present.
-		final List<NodeInterface> currentDeclined = collect(taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY)));
+		final List<NodeInterface> currentDeclined = Iterables.toList(task.getDeclinedBy());
 		boolean wasDeclined = currentDeclined.removeIf(d -> d.getUuid().equals(caller.getUuid()));
+
 		if (wasDeclined) {
-			taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY), currentDeclined);
+
+			task.setDeclinedBy(currentDeclined);
 		}
 
 		// Ensure the claimer has read+write on the task (may already be granted via candidate assignee).
 		grant(taskNode, caller, Permission.read, Permission.write);
+
 		// Generic participant grant: also ensure read on the parent
 		// ProcessInstance and its subject. Idempotent if the candidate-
 		// assignee path already granted them; defensive for claim flows where
 		// the caller's eligibility came from group membership but no direct
 		// instance grant exists.
-		final NodeInterface claimedInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		grantParticipantReadAccess(claimedInstance, caller);
+		grantParticipantReadAccess(task.getProcessInstance(), caller);
 
 		logger.info("Task '{}' claimed by '{}'", taskNode.getName(), caller.getName());
 
@@ -1174,44 +1892,45 @@ public class ProcessEngine {
 	public void assignTask(final NodeInterface callerTaskNode, final NodeInterface callerAssignee) throws FrameworkException {
 
 		if (callerAssignee == null) {
+
 			throw new FrameworkException(422, "assignee must not be null");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final NodeInterface assignee = elevate(app, callerAssignee);
-		final Traits taskTraits = taskNode.getTraits();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final NodeInterface assignee = elevate(callerAssignee);
+		final TaskInstance task      = taskNode.as(TaskInstance.class);
 
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)) {
+		if (task.isCompleted()) {
+
 			throw new FrameworkException(422, "Cannot assign a completed task");
 		}
-		if (TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
+
+		if (task.isCancelled()) {
+
 			throw new FrameworkException(422, "Cannot assign a cancelled task");
 		}
 
 		// Capture the previous assignee BEFORE overwriting, so we can revoke
 		// their grant if it came from an assignment (not from being a candidate).
-		final NodeInterface previousAssignee = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
+		final NodeInterface previousAssignee = task.getAssignee();
 
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY),        assignee);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_RESERVED);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), TaskInstanceTraitDefinition.SET_BY_ADMIN);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CLAIMED_TIME_PROPERTY),    new Date());
+		task.setAssignee(assignee);
+		task.setStatus(TaskInstanceTraitDefinition.STATUS_RESERVED);
+		task.setAssigneeSetBy(TaskInstanceTraitDefinition.SET_BY_ADMIN);
+		task.setClaimedTime(new Date());
 
 		// Revoke previous assignee's R+W if (a) it's a real reassignment (different
 		// principal) AND (b) they're not a current candidate assignee. Candidate-assignee
 		// membership keeps their grant; non-candidate admin-grants are removed cleanly.
-		revokePreviousAssigneeGrantIfApplicable(taskNode, taskTraits, previousAssignee, assignee);
+		revokePreviousAssigneeGrantIfApplicable(taskNode, previousAssignee, assignee);
 
 		grant(taskNode, assignee.as(Principal.class), Permission.read, Permission.write);
+
 		// Generic participant grant on the parent ProcessInstance and its
 		// subject for the new assignee.
-		final NodeInterface assignedInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		grantParticipantReadAccess(assignedInstance, assignee.as(Principal.class));
+		grantParticipantReadAccess(task.getProcessInstance(), assignee.as(Principal.class));
 
-		logger.info("Task '{}' assigned to '{}' by admin caller '{}'",
-			taskNode.getName(), assignee.getName(), (caller != null ? caller.getName() : "<system>"));
+		logger.info("Task '{}' assigned to '{}' by admin caller '{}'", taskNode.getName(), assignee.getName(), (caller != null ? caller.getName() : "<system>"));
 
 		fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_ASSIGNED, taskNode);
 	}
@@ -1227,32 +1946,41 @@ public class ProcessEngine {
 	 * Only revoke for principals whose grant came purely from being assigned,
 	 * i.e. not in candidateAssignees.
 	 */
-	private void revokePreviousAssigneeGrantIfApplicable(final NodeInterface taskNode, final Traits taskTraits,
-														 final NodeInterface previousAssignee, final NodeInterface newAssignee) throws FrameworkException {
-		if (previousAssignee == null) return;
-		if (newAssignee != null && previousAssignee.getUuid().equals(newAssignee.getUuid())) return;
+	private void revokePreviousAssigneeGrantIfApplicable(final NodeInterface taskNode, final NodeInterface previousAssignee, final NodeInterface newAssignee) throws FrameworkException {
+
+		if (previousAssignee == null){
+
+			return;
+		}
+
+		if (newAssignee != null && previousAssignee.getUuid().equals(newAssignee.getUuid())) {
+
+			return;
+		}
 
 		// Membership check against direct candidateAssignees only. Group membership
 		// is a separate inheritance path and we don't revoke at the user level
 		// for group-derived grants: we don't have one to revoke.
-		final Iterable<NodeInterface> candidates = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY));
-		if (candidates != null) {
-			for (final NodeInterface candidate : candidates) {
-				if (candidate.getUuid().equals(previousAssignee.getUuid())) {
-					return; // still a candidate, keep their grant
-				}
+		for (final NodeInterface candidate : taskNode.as(TaskInstance.class).getCandidateAssignees()) {
+
+			if (candidate.getUuid().equals(previousAssignee.getUuid())) {
+
+				return; // still a candidate, keep their grant
 			}
 		}
 
 		try {
+
 			final AccessControllable ac = taskNode.as(AccessControllable.class);
+
 			ac.revoke(Permission.read,  previousAssignee.as(Principal.class));
 			ac.revoke(Permission.write, previousAssignee.as(Principal.class));
-			logger.info("Revoked R+W on task '{}' for previous assignee '{}'",
-				taskNode.getName(), previousAssignee.getName());
+
+			logger.info("Revoked R+W on task '{}' for previous assignee '{}'", taskNode.getName(), previousAssignee.getName());
+
 		} catch (Exception ex) {
-			logger.warn("Could not revoke previous assignee's grant on task '{}': {}",
-				taskNode.getName(), ex.getMessage());
+
+			logger.warn("Could not revoke previous assignee's grant on task '{}': {}", taskNode.getName(), ex.getMessage());
 		}
 	}
 
@@ -1270,26 +1998,27 @@ public class ProcessEngine {
 	public void releaseTask(final NodeInterface callerTaskNode) throws FrameworkException {
 
 		if (caller == null) {
+
 			throw new FrameworkException(401, "Cannot release task without an authenticated caller");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final Traits taskTraits = taskNode.getTraits();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final TaskInstance task      = taskNode.as(TaskInstance.class);
 
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (!TaskInstanceTraitDefinition.STATUS_RESERVED.equals(status)) {
-			throw new FrameworkException(422, "Task is not assigned (status=" + status + "); cannot release");
+		if (!task.isReserved()) {
+
+			throw new FrameworkException(422, "Task is not assigned (status=" + task.getStatus() + "); cannot release");
 		}
 
-		final NodeInterface currentAssignee = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
+		final NodeInterface currentAssignee = task.getAssignee();
 		if (currentAssignee == null || !caller.getUuid().equals(currentAssignee.getUuid())) {
+
 			throw new FrameworkException(403, "Only the current assignee can release this task");
 		}
 
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY),        null);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_AVAILABLE);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), null);
+		task.setAssignee(null);
+		task.setStatus(TaskInstanceTraitDefinition.STATUS_AVAILABLE);
+		task.setAssigneeSetBy(null);
 
 		logger.info("Task '{}' released by '{}'", taskNode.getName(), caller.getName());
 
@@ -1309,39 +2038,45 @@ public class ProcessEngine {
 	public void declineTask(final NodeInterface callerTaskNode) throws FrameworkException {
 
 		if (caller == null) {
+
 			throw new FrameworkException(401, "Cannot decline task without an authenticated caller");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final Traits taskTraits = taskNode.getTraits();
+		final App app                = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final TaskInstance task      = taskNode.as(TaskInstance.class);
 
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)
-			|| TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
-			throw new FrameworkException(422, "Cannot decline a task in terminal status (" + status + ")");
+		if (task.isTerminal()) {
+
+			throw new FrameworkException(422, "Cannot decline a task in terminal status (" + task.getStatus() + ")");
 		}
 
 		// Authorization: caller must be among the effective candidate assignees
 		// (directly or via group membership). Refusing decline from arbitrary
 		// users keeps the audit signal meaningful -- only candidates can decline.
-		if (!isCallerEffectivePotentialOwner(taskNode, taskTraits)) {
+		if (!isCallerEffectivePotentialOwner(taskNode)) {
+
 			throw new FrameworkException(403, "Caller is not a candidate assignee of this task; cannot decline");
 		}
 
 		// Add caller to declinedBy (idempotent).
-		final List<NodeInterface> currentDeclined = collect(taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY)));
-		final NodeInterface callerNode = app.getNodeById(caller.getUuid());
-		boolean alreadyDeclined = false;
+		final List<NodeInterface> currentDeclined = Iterables.toList(task.getDeclinedBy());
+		final NodeInterface callerNode            = app.getNodeById(caller.getUuid());
+		boolean alreadyDeclined                   = false;
+
 		for (final NodeInterface d : currentDeclined) {
+
 			if (d.getUuid().equals(caller.getUuid())) {
+
 				alreadyDeclined = true;
 				break;
 			}
 		}
+
 		if (!alreadyDeclined && callerNode != null) {
+
 			currentDeclined.add(callerNode);
-			taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY), currentDeclined);
+			task.setDeclinedBy(currentDeclined);
 		}
 
 		logger.info("Task '{}' declined by '{}'", taskNode.getName(), caller.getName());
@@ -1364,58 +2099,65 @@ public class ProcessEngine {
 	public void delegateTask(final NodeInterface callerTaskNode, final NodeInterface callerDelegate) throws FrameworkException {
 
 		if (caller == null) {
+
 			throw new FrameworkException(401, "Cannot delegate task without an authenticated caller");
 		}
+
 		if (callerDelegate == null) {
+
 			throw new FrameworkException(422, "delegate must not be null");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final NodeInterface delegate = elevate(app, callerDelegate);
-		final Traits taskTraits = taskNode.getTraits();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final NodeInterface delegate = elevate(callerDelegate);
+		final TaskInstance task      = taskNode.as(TaskInstance.class);
 
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)
-			|| TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
-			throw new FrameworkException(422, "Cannot delegate a task in terminal status (" + status + ")");
+		if (task.isTerminal()) {
+
+			throw new FrameworkException(422, "Cannot delegate a task in terminal status (" + task.getStatus() + ")");
 		}
 
 		// Authorization: assigned -> caller must be the assignee. available ->
 		// caller must be a candidate assignee.
-		if (TaskInstanceTraitDefinition.STATUS_RESERVED.equals(status)) {
-			final NodeInterface currentAssignee = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
+		if (task.isReserved()) {
+
+			final NodeInterface currentAssignee = task.getAssignee();
 			if (currentAssignee == null || !caller.getUuid().equals(currentAssignee.getUuid())) {
+
 				throw new FrameworkException(403, "Only the current assignee can delegate an assigned task");
 			}
-		} else if (TaskInstanceTraitDefinition.STATUS_AVAILABLE.equals(status)) {
-			if (!isCallerEffectivePotentialOwner(taskNode, taskTraits)) {
+
+		} else if (task.isAvailable()) {
+
+			if (!isCallerEffectivePotentialOwner(taskNode)) {
+
 				throw new FrameworkException(403, "Caller is not a candidate assignee of this task; cannot delegate");
 			}
+
 		} else {
-			throw new FrameworkException(422, "Task cannot be delegated in status=" + status);
+
+			throw new FrameworkException(422, "Task cannot be delegated in status=" + task.getStatus());
 		}
 
 		// Capture previous assignee (if any) for grant cleanup.
-		final NodeInterface previousAssignee = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
+		final NodeInterface previousAssignee = task.getAssignee();
 
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY),        delegate);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_RESERVED);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), TaskInstanceTraitDefinition.SET_BY_DELEGATION);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CLAIMED_TIME_PROPERTY),    new Date());
+		task.setAssignee(delegate);
+		task.setStatus(TaskInstanceTraitDefinition.STATUS_RESERVED);
+		task.setAssigneeSetBy(TaskInstanceTraitDefinition.SET_BY_DELEGATION);
+		task.setClaimedTime(new Date());
 
 		// Same revocation rules as admin assignTask: revoke previous assignee's
 		// grant if they're not also a candidate assignee.
-		revokePreviousAssigneeGrantIfApplicable(taskNode, taskTraits, previousAssignee, delegate);
+		revokePreviousAssigneeGrantIfApplicable(taskNode, previousAssignee, delegate);
 
 		grant(taskNode, delegate.as(Principal.class), Permission.read, Permission.write);
+
 		// Generic participant grant on the parent ProcessInstance and its
 		// subject for the delegate.
-		final NodeInterface delegatedInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		grantParticipantReadAccess(delegatedInstance, delegate.as(Principal.class));
+		grantParticipantReadAccess(task.getProcessInstance(), delegate.as(Principal.class));
 
-		logger.info("Task '{}' delegated to '{}' by '{}'",
-			taskNode.getName(), delegate.getName(), caller.getName());
+		logger.info("Task '{}' delegated to '{}' by '{}'", taskNode.getName(), delegate.getName(), caller.getName());
 
 		fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_ASSIGNED, taskNode);
 	}
@@ -1431,44 +2173,45 @@ public class ProcessEngine {
 	 */
 	public void cancelTask(final NodeInterface callerTaskNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final Traits taskTraits = taskNode.getTraits();
+		final App app                = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final TaskInstance task      = taskNode.as(TaskInstance.class);
 
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)) {
+		if (task.isCompleted()) {
+
 			throw new FrameworkException(422, "Task is already completed");
 		}
-		if (TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
+
+		if (task.isCancelled()) {
+
 			throw new FrameworkException(422, "Task is already cancelled");
 		}
 
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),         TaskInstanceTraitDefinition.STATUS_CANCELLED);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CANCELLED_TIME_PROPERTY), new Date());
+		task.setStatus(TaskInstanceTraitDefinition.STATUS_CANCELLED);
+		task.setCancelledTime(new Date());
 
 		// Find and complete the waiting token at the task's element so the
 		// instance no longer carries an active token here. Process advancement
 		// is intentionally not triggered -- admin must explicitly act on the
 		// instance afterwards.
-		final NodeInterface instance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		final NodeInterface element  = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
+		final NodeInterface instance = task.getProcessInstance();
+		final NodeInterface element  = task.getDefinedBy();
+
 		if (instance != null && element != null) {
+
 			final NodeInterface waitingToken = findWaitingToken(instance, element);
 			if (waitingToken != null) {
-				final Traits tokenTraits = waitingToken.getTraits();
-				waitingToken.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_COMPLETED);
+
+				waitingToken.as(ProcessToken.class).markCompleted();
 			}
 		}
 
-		logger.info("Task '{}' cancelled by admin caller '{}'",
-			taskNode.getName(), (caller != null ? caller.getName() : "<system>"));
+		logger.info("Task '{}' cancelled by admin caller '{}'", taskNode.getName(), (caller != null ? caller.getName() : "<system>"));
 
 		fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_CANCELLED, taskNode);
 
 		// Cancel pending boundary timers on this activity.
-		final NodeInterface inst = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		final NodeInterface elem = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
-		cancelTimersForActivity(app, elem, inst);
+		cancelTimersForActivity(element, instance);
 	}
 
 	/**
@@ -1498,51 +2241,49 @@ public class ProcessEngine {
 	 */
 	public void makeTaskAvailable(final NodeInterface callerTaskNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final Traits taskTraits = taskNode.getTraits();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final TaskInstance task = taskNode.as(TaskInstance.class);
 
-		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-		if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)) {
+		if (task.isCompleted()) {
+
 			throw new FrameworkException(422, "Cannot make a completed task available");
 		}
-		if (TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
+
+		if (task.isCancelled()) {
+
 			throw new FrameworkException(422, "Cannot make a cancelled task available");
 		}
-		if (TaskInstanceTraitDefinition.STATUS_AVAILABLE.equals(status)) {
-			final NodeInterface existingAssignee = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
-			if (existingAssignee == null) {
-				// Already available with no assignee: still useful to re-grant
-				// candidate access in case a previous admin tweak removed grants.
-				logger.info("Task '{}' already available; re-applying candidate-assignee grants",
-					taskNode.getName());
-			}
+
+		if (task.isAvailable() && task.getAssignee() == null) {
+
+			// Already available with no assignee: still useful to re-grant
+			// candidate access in case a previous admin tweak removed grants.
+			logger.info("Task '{}' already available; re-applying candidate-assignee grants", taskNode.getName());
 		}
 
-		final NodeInterface previousAssignee = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
+		final NodeInterface previousAssignee = task.getAssignee();
 
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY),        null);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_AVAILABLE);
-		taskNode.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), null);
+		task.setAssignee(null);
+		task.setStatus(TaskInstanceTraitDefinition.STATUS_AVAILABLE);
+		task.setAssigneeSetBy(null);
 
 		// Revoke previous assignee's R+W if they're not a current candidate assignee.
-		revokePreviousAssigneeGrantIfApplicable(taskNode, taskTraits, previousAssignee, null);
+		revokePreviousAssigneeGrantIfApplicable(taskNode, previousAssignee, null);
 
 		// Re-grant R+W to every current candidate assignee, plus read on the
 		// parent ProcessInstance and its subject. Idempotent for those who
 		// already hold the grants; restores access where it was missing.
-		final Iterable<NodeInterface> candidateAssignees = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY));
-		if (candidateAssignees != null) {
-			final NodeInterface availInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-			for (final NodeInterface candidate : candidateAssignees) {
-				final Principal candidatePrincipal = candidate.as(Principal.class);
-				grant(taskNode, candidatePrincipal, Permission.read, Permission.write);
-				grantParticipantReadAccess(availInstance, candidatePrincipal);
-			}
+		final NodeInterface availInstance = task.getProcessInstance();
+
+		for (final NodeInterface candidate : task.getCandidateAssignees()) {
+
+			final Principal candidatePrincipal = candidate.as(Principal.class);
+
+			grant(taskNode, candidatePrincipal, Permission.read, Permission.write);
+			grantParticipantReadAccess(availInstance, candidatePrincipal);
 		}
 
-		logger.info("Task '{}' returned to available pool by admin caller '{}'",
-			taskNode.getName(), (caller != null ? caller.getName() : "<system>"));
+		logger.info("Task '{}' returned to available pool by admin caller '{}'", taskNode.getName(), (caller != null ? caller.getName() : "<system>"));
 
 		fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_AVAILABLE, taskNode);
 	}
@@ -1568,6 +2309,7 @@ public class ProcessEngine {
 	 * @param taskNode  the TaskInstance the event is about
 	 */
 	private void fireTaskEvent(final String eventName, final NodeInterface taskNode) throws FrameworkException {
+
 		fireTaskEvent(eventName, taskNode, null);
 	}
 
@@ -1583,22 +2325,37 @@ public class ProcessEngine {
 		// Collect the listeners matching this event up front. Enumeration
 		// failures are non-fatal (the transition stands); per-listener dispatch
 		// is handled below so an 'on'-phase exception can propagate.
-		final List<NodeInterface> matching = new ArrayList<>();
-		final Traits listenerTraits = Traits.of(ProcessTraits.BPMN_TASK_LISTENER);
+		final List<NodeInterface> matching = new LinkedList<>();
+		final Traits listenerTraits        = Traits.of(ProcessTraits.BPMN_TASK_LISTENER);
+
 		try {
+
 			final NodeInterface element = taskNode.getProperty(taskNode.getTraits().key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
-			if (element == null) return;
+			if (element == null) {
+
+				return;
+			}
+
 			final Iterable<NodeInterface> listeners = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.TASK_LISTENERS_PROPERTY));
-			if (listeners == null) return;
+			if (listeners == null) {
+
+				return;
+			}
+
 			final PropertyKey<String> eventKey = listenerTraits.key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY);
+
 			for (final NodeInterface listener : listeners) {
+
 				if (eventName.equals(listener.getProperty(eventKey))) {
+
 					matching.add(listener);
 				}
 			}
+
 		} catch (Exception ex) {
-			logger.warn("Task listener enumeration for event '{}' on task '{}' failed: {}",
-				eventName, safeName(taskNode), ex.getMessage());
+
+			logger.warn("Task listener enumeration for event '{}' on task '{}' failed: {}", eventName, safeName(taskNode), ex.getMessage());
+
 			return;
 		}
 
@@ -1606,15 +2363,21 @@ public class ProcessEngine {
 		final PropertyKey<NodeInterface> methodKey = listenerTraits.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY);
 
 		for (final NodeInterface listener : matching) {
+
 			final NodeInterface method = listener.getProperty(methodKey);
 			if (method == null) {
+
 				continue; // handler declared for the event but no method body yet
 			}
+
 			final String phase = listener.getProperty(phaseKey);
 			if (BpmnTaskListenerTraitDefinition.PHASE_ON.equals(phase)) {
+
 				// pre-commit: exceptions propagate and roll back the transition.
 				runTaskListenerMethod(taskNode, method, eventName, submittedParams);
+
 			} else {
+
 				// after (default): run post-commit, side-effects only.
 				queueAfterCommitTaskListener(taskNode, method, eventName, submittedParams);
 			}
@@ -1627,11 +2390,26 @@ public class ProcessEngine {
 	 * caught: they propagate so the surrounding engine transaction rolls back,
 	 * giving the method true veto power over the transition.
 	 */
-	private void runTaskListenerMethod(final NodeInterface taskNode, final NodeInterface method,
-									   final String eventName, final Map<String, Object> submittedParams) throws FrameworkException {
-		final ActionContext ctx = new ActionContext(securityContext);
-		final Arguments args     = buildTaskListenerArgs(taskNode, eventName, submittedParams);
-		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, taskNode, args);
+	private void runTaskListenerMethod(final NodeInterface taskNode, final NodeInterface method, final String eventName, final Map<String, Object> submittedParams) throws FrameworkException {
+
+		final Arguments args    = buildTaskListenerArgs(taskNode, eventName, submittedParams);
+		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
+
+		installTaskProcessContext(ctx, taskNode);
+		runMethodWithContext(ctx, taskNode, method, "taskListener");
+	}
+
+	/** Install the $.process context for a task listener: scoped to the task's instance and defining element. */
+	private void installTaskProcessContext(final ActionContext ctx, final NodeInterface taskNode) throws FrameworkException {
+
+		final NodeInterface instance = taskNode.as(TaskInstance.class).getProcessInstance();
+		if (instance == null) {
+
+			return;
+		}
+
+		final NodeInterface element = taskNode.getProperty(taskNode.getTraits().key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
+		installProcessContext(ctx, instance, element);
 	}
 
 	/**
@@ -1641,24 +2419,34 @@ public class ProcessEngine {
 	 * sees a half-built state and can't roll the transition back. Failures are
 	 * logged, not propagated (the transition has already committed).
 	 */
-	private void queueAfterCommitTaskListener(final NodeInterface taskNode, final NodeInterface method,
-											  final String eventName, final Map<String, Object> submittedParams) {
+	private void queueAfterCommitTaskListener(final NodeInterface taskNode, final NodeInterface method, final String eventName, final Map<String, Object> submittedParams) {
+
 		final String taskId   = taskNode.getUuid();
 		final String methodId = method.getUuid();
+
 		TransactionCommand.queuePostProcessProcedure(() -> {
-			final App app = StructrApp.getInstance(securityContext);
+
+			final App app = StructrApp.getInstance();
+
 			try (final Tx tx = app.tx()) {
+
 				final NodeInterface freshTask   = app.getNodeById(taskId);
 				final NodeInterface freshMethod = app.getNodeById(methodId);
+
 				if (freshTask != null && freshMethod != null) {
-					final ActionContext ctx = new ActionContext(securityContext);
-					final Arguments args     = buildTaskListenerArgs(freshTask, eventName, submittedParams);
-					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshTask, args);
+
+					final Arguments args    = buildTaskListenerArgs(freshTask, eventName, submittedParams);
+					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
+
+					installTaskProcessContext(ctx, freshTask);
+					runMethodWithContext(ctx, freshTask, freshMethod, "taskListener");
 				}
+
 				tx.success();
+
 			} catch (Throwable t) {
-				logger.warn("After-commit task listener for event '{}' on task '{}' failed: {}",
-					eventName, taskId, t.getMessage());
+
+				logger.warn("After-commit task listener for event '{}' on task '{}' failed: {}", eventName, taskId, t.getMessage());
 			}
 		});
 	}
@@ -1678,36 +2466,51 @@ public class ProcessEngine {
 	 * carries the form fields that have not yet been persisted -- the listener
 	 * gets to see them before {@code storeParameterValues} routes them.</p>
 	 */
-	private Arguments buildTaskListenerArgs(final NodeInterface taskNode, final String eventName,
-											final Map<String, Object> submittedParams) {
+	private Arguments buildTaskListenerArgs(final NodeInterface taskNode, final String eventName, final Map<String, Object> submittedParams) {
+
 		final Map<String, Object> args = new LinkedHashMap<>();
+
 		try {
+
 			final NodeInterface instance = taskNode.getProperty(taskNode.getTraits().key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
 			if (instance != null) {
+
 				args.putAll(loadParameterValues(instance));
+
 				if (submittedParams != null) {
+
 					args.putAll(submittedParams);
 				}
+
 				args.put("processInstance", instance);
+
 				final NodeInterface subject = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 				if (subject != null) {
+
 					args.put("subject", subject);
 				}
 			}
+
 		} catch (Exception ignore) {
+
 			// Best-effort enrichment. If processInstance / subject / params can't
 			// be read for any reason, the listener still gets task + eventName.
 		}
+
 		args.put("task", taskNode);
 		args.put("eventName", eventName);
+
 		return NamedArguments.fromMap(args);
 	}
 
-
 	private String safeName(final NodeInterface node) {
+
 		try {
+
 			return node != null ? node.getName() : "<null>";
+
 		} catch (Exception ex) {
+
 			return "<unnamed>";
 		}
 	}
@@ -1741,22 +2544,37 @@ public class ProcessEngine {
 	 */
 	public void fireProcessEvent(final String eventName, final NodeInterface instance) throws FrameworkException {
 
-		final List<NodeInterface> matching = new ArrayList<>();
-		final Traits listenerTraits = Traits.of(ProcessTraits.BPMN_PROCESS_LISTENER);
+		final List<NodeInterface> matching = new LinkedList<>();
+		final Traits listenerTraits        = Traits.of(ProcessTraits.BPMN_PROCESS_LISTENER);
+
 		try {
+
 			final NodeInterface defNode = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-			if (defNode == null) return;
+			if (defNode == null) {
+
+				return;
+			}
+
 			final Iterable<NodeInterface> listeners = defNode.getProperty(defNode.getTraits().key(BpmnProcessTraitDefinition.PROCESS_LISTENERS_PROPERTY));
-			if (listeners == null) return;
+			if (listeners == null) {
+
+				return;
+			}
+
 			final PropertyKey<String> eventKey = listenerTraits.key(BpmnProcessListenerTraitDefinition.EVENT_PROPERTY);
+
 			for (final NodeInterface listener : listeners) {
+
 				if (eventName.equals(listener.getProperty(eventKey))) {
+
 					matching.add(listener);
 				}
 			}
+
 		} catch (Exception ex) {
-			logger.warn("Process listener enumeration for event '{}' on instance '{}' failed: {}",
-				eventName, safeName(instance), ex.getMessage());
+
+			logger.warn("Process listener enumeration for event '{}' on instance '{}' failed: {}", eventName, safeName(instance), ex.getMessage());
+
 			return;
 		}
 
@@ -1764,14 +2582,20 @@ public class ProcessEngine {
 		final PropertyKey<NodeInterface> methodKey = listenerTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY);
 
 		for (final NodeInterface listener : matching) {
+
 			final NodeInterface method = listener.getProperty(methodKey);
 			if (method == null) {
+
 				continue; // handler declared for the event but no method body yet
 			}
+
 			final String phase = listener.getProperty(phaseKey);
 			if (BpmnProcessListenerTraitDefinition.PHASE_ON.equals(phase)) {
+
 				runProcessListenerMethod(instance, method, eventName);
+
 			} else {
+
 				queueAfterCommitProcessListener(instance, method, eventName);
 			}
 		}
@@ -1782,11 +2606,13 @@ public class ProcessEngine {
 	 * instance as {@code this}. Exceptions propagate so the surrounding
 	 * transition rolls back.
 	 */
-	private void runProcessListenerMethod(final NodeInterface instance, final NodeInterface method,
-										  final String eventName) throws FrameworkException {
-		final ActionContext ctx = new ActionContext(securityContext);
-		final Arguments args     = buildProcessListenerArgs(instance, eventName);
-		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, instance, args);
+	private void runProcessListenerMethod(final NodeInterface instance, final NodeInterface method, final String eventName) throws FrameworkException {
+
+		final Arguments args    = buildProcessListenerArgs(instance, eventName);
+		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
+
+		installProcessContext(ctx, instance, null);
+		runMethodWithContext(ctx, instance, method, "processListener");
 	}
 
 	/**
@@ -1794,24 +2620,34 @@ public class ProcessEngine {
 	 * transaction commits ({@code after} phase). Re-fetches instance and method
 	 * by id and runs in its own transaction; failures are logged, not propagated.
 	 */
-	private void queueAfterCommitProcessListener(final NodeInterface instance, final NodeInterface method,
-												 final String eventName) {
+	private void queueAfterCommitProcessListener(final NodeInterface instance, final NodeInterface method, final String eventName) {
+
 		final String instanceId = instance.getUuid();
 		final String methodId   = method.getUuid();
+
 		TransactionCommand.queuePostProcessProcedure(() -> {
-			final App app = StructrApp.getInstance(securityContext);
+
+			final App app = StructrApp.getInstance();
+
 			try (final Tx tx = app.tx()) {
+
 				final NodeInterface freshInstance = app.getNodeById(instanceId);
 				final NodeInterface freshMethod   = app.getNodeById(methodId);
+
 				if (freshInstance != null && freshMethod != null) {
-					final ActionContext ctx = new ActionContext(securityContext);
-					final Arguments args     = buildProcessListenerArgs(freshInstance, eventName);
-					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshInstance, args);
+
+					final Arguments args    = buildProcessListenerArgs(freshInstance, eventName);
+					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
+
+					installProcessContext(ctx, freshInstance, null);
+					runMethodWithContext(ctx, freshInstance, freshMethod, "processListener");
 				}
+
 				tx.success();
+
 			} catch (Throwable t) {
-				logger.warn("After-commit process listener for event '{}' on instance '{}' failed: {}",
-					eventName, instanceId, t.getMessage());
+
+				logger.warn("After-commit process listener for event '{}' on instance '{}' failed: {}", eventName, instanceId, t.getMessage());
 			}
 		});
 	}
@@ -1825,19 +2661,28 @@ public class ProcessEngine {
 	 * single task associated with them.
 	 */
 	private Arguments buildProcessListenerArgs(final NodeInterface instance, final String eventName) {
+
 		// Order matters: see buildTaskListenerArgs for the rationale.
 		final Map<String, Object> args = new LinkedHashMap<>();
+
 		try {
+
 			args.putAll(loadParameterValues(instance));
+
 			final NodeInterface subject = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 			if (subject != null) {
+
 				args.put("subject", subject);
 			}
+
 		} catch (Exception ignore) {
+
 			// Best-effort enrichment.
 		}
+
 		args.put("processInstance", instance);
 		args.put("eventName", eventName);
+
 		return NamedArguments.fromMap(args);
 	}
 
@@ -1846,35 +2691,29 @@ public class ProcessEngine {
 	 * i.e. directly listed in {@code candidateAssignees}, or a member of a Group
 	 * that is listed.
 	 */
-	private boolean isCallerEffectivePotentialOwner(final NodeInterface taskNode, final Traits taskTraits) throws FrameworkException {
+	private boolean isCallerEffectivePotentialOwner(final NodeInterface taskNode) throws FrameworkException {
 
 		if (caller == null) {
+
 			return false;
 		}
-		final Iterable<NodeInterface> candidateAssignees = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY));
-		if (candidateAssignees == null) {
-			return false;
-		}
+
 		final Set<String> callerGroupIds = new HashSet<>();
+
 		for (final NodeInterface g : caller.getParentsPrivileged()) {
+
 			callerGroupIds.add(g.getUuid());
 		}
-		for (final NodeInterface owner : candidateAssignees) {
+
+		for (final NodeInterface owner : taskNode.as(TaskInstance.class).getCandidateAssignees()) {
+
 			if (owner.getUuid().equals(caller.getUuid()) || callerGroupIds.contains(owner.getUuid())) {
+
 				return true;
 			}
 		}
-		return false;
-	}
 
-	private List<NodeInterface> collect(final Iterable<NodeInterface> iter) {
-		final List<NodeInterface> out = new ArrayList<>();
-		if (iter != null) {
-			for (final NodeInterface n : iter) {
-				out.add(n);
-			}
-		}
-		return out;
+		return false;
 	}
 
 	// -----------------------------------------------------------------------
@@ -1899,38 +2738,63 @@ public class ProcessEngine {
 	 * @param expression the BPMN timer expression body
 	 * @return the absolute fire time, or null if unparseable / unsupported
 	 */
-	private Date computeFireAt(final String timerType, final String expression) {
+	static Date computeFireAt(final String timerType, final String expression) {
 
-		if (expression == null || expression.isEmpty()) {
+		if (StringUtils.isBlank(expression)) {
+
 			return null;
 		}
+
 		final String body = expression.trim();
 
 		try {
+
 			if ("timeDate".equals(timerType)) {
-				// ISO 8601 instant
-				return Date.from(Instant.parse(body));
+
+				// ISO 8601 instant; if no zone/offset is given, interpret in the system zone.
+				try {
+
+					return Date.from(Instant.parse(body));
+
+				} catch (final DateTimeParseException ex) {
+
+					return Date.from(java.time.LocalDateTime.parse(body).atZone(java.time.ZoneId.systemDefault()).toInstant());
+				}
 			}
+
 			if ("timeDuration".equals(timerType)) {
-				// ISO 8601 duration. Java's Duration.parse handles PT-style; for P-style
-				// (P1D, P2W) we fall through to a small fallback parser.
+
+				// ISO 8601 duration. Only the time-only PT... form is delegated to
+				// Duration.parse; every other P-form (P1D, P1W, P1M, P1Y, ...) is routed
+				// to the small fallback parser below, which also supports the week /
+				// month / year components that Duration.parse rejects.
 				if (body.startsWith("PT")) {
+
 					return Date.from(Instant.now().plus(Duration.parse(body)));
 				}
+
 				// Handle "PnDTm..." forms -- split at "T" and combine day-component + time-component.
 				final long millis = parseIso8601DurationMillis(body);
-				if (millis > 0) {
+				if (millis >= 0) {
+
 					return new Date(System.currentTimeMillis() + millis);
 				}
 			}
+
 			if ("timeCycle".equals(timerType)) {
+
 				logger.warn("timeCycle timer expressions are not yet supported (got '{}'); timer not scheduled", body);
+
 				return null;
 			}
+
 		} catch (DateTimeParseException ex) {
+
 			logger.warn("Invalid timer expression '{}' (type={}): {}", body, timerType, ex.getMessage());
+
 			return null;
 		}
+
 		return null;
 	}
 
@@ -1939,13 +2803,20 @@ public class ProcessEngine {
 	 * Supports P[nY][nM][nW][nD][T[nH][nM][nS]] with year/month treated as approximations
 	 * (year=365d, month=30d). Returns total milliseconds, or -1 if unparseable.
 	 */
-	private long parseIso8601DurationMillis(final String s) {
-		if (s == null || !s.startsWith("P")) return -1;
-		long millis = 0;
-		final int tIdx = s.indexOf('T');
+	static long parseIso8601DurationMillis(final String s) {
+
+		if (s == null || !s.startsWith("P")) {
+
+			return -1;
+		}
+
+		long millis           = 0;
+		final int tIdx        = s.indexOf('T');
 		final String datePart = (tIdx >= 0) ? s.substring(1, tIdx) : s.substring(1);
 		final String timePart = (tIdx >= 0) ? s.substring(tIdx + 1) : "";
+
 		try {
+
 			millis += parseDurationComponent(datePart, 'Y', 365L * 24 * 60 * 60 * 1000);
 			millis += parseDurationComponent(datePart, 'M',  30L * 24 * 60 * 60 * 1000);
 			millis += parseDurationComponent(datePart, 'W',   7L * 24 * 60 * 60 * 1000);
@@ -1953,22 +2824,37 @@ public class ProcessEngine {
 			millis += parseDurationComponent(timePart, 'H',              60L * 60 * 1000);
 			millis += parseDurationComponent(timePart, 'M',                   60L * 1000);
 			millis += parseDurationComponent(timePart, 'S',                         1000L);
+
 		} catch (NumberFormatException ex) {
+
 			return -1;
 		}
+
 		return millis;
 	}
 
-	private long parseDurationComponent(final String s, final char unit, final long unitMillis) {
+	static long parseDurationComponent(final String s, final char unit, final long unitMillis) {
+
 		final int idx = s.indexOf(unit);
-		if (idx < 0) return 0;
+		if (idx < 0) {
+
+			return 0;
+		}
+
 		// scan backwards to find the start of the number
 		int start = idx - 1;
+
 		while (start >= 0 && (Character.isDigit(s.charAt(start)) || s.charAt(start) == '.')) {
+
 			start--;
 		}
+
 		final String num = s.substring(start + 1, idx);
-		if (num.isEmpty()) return 0;
+		if (num.isEmpty()) {
+
+			return 0;
+		}
+
 		return (long) (Double.parseDouble(num) * unitMillis);
 	}
 
@@ -1976,7 +2862,6 @@ public class ProcessEngine {
 	 * Create and persist a new ProcessTimer. The timer is fired by ProcessTimerService
 	 * once {@code fireAt} elapses.
 	 *
-	 * @param app             superuser App
 	 * @param fireAt          when to fire (UTC; computed via computeFireAt)
 	 * @param timerType       intermediateTimer / boundaryTimer / timerStart
 	 * @param expression      original BPMN expression (for audit / re-compute)
@@ -1986,12 +2871,12 @@ public class ProcessEngine {
 	 * @param cancelActivity  for boundary events: interrupting (true) or non-interrupting (false)
 	 * @return the created ProcessTimer node
 	 */
-	private NodeInterface createTimer(final App app, final Date fireAt, final String timerType, final String expression,
-									  final NodeInterface instance, final NodeInterface token, final NodeInterface element,
-									  final boolean cancelActivity) throws FrameworkException {
+	private NodeInterface createTimer(final Date fireAt, final String timerType, final String expression, final NodeInterface instance, final NodeInterface token, final NodeInterface element, final boolean cancelActivity) throws FrameworkException {
 
-		final NodeInterface timer = app.create(ProcessTraits.PROCESS_TIMER, (String) null);
-		final Traits t = timer.getTraits();
+		final App app             = StructrApp.getInstance();
+		final NodeInterface timer = app.create(ProcessTraits.PROCESS_TIMER);
+		final Traits t            = timer.getTraits();
+
 		timer.setProperty(t.key(ProcessTimerTraitDefinition.FIRE_AT_PROPERTY),           fireAt);
 		timer.setProperty(t.key(ProcessTimerTraitDefinition.TIMER_TYPE_PROPERTY),        timerType);
 		timer.setProperty(t.key(ProcessTimerTraitDefinition.TIMER_EXPRESSION_PROPERTY),  expression);
@@ -1999,35 +2884,30 @@ public class ProcessEngine {
 		timer.setProperty(t.key(ProcessTimerTraitDefinition.CANCEL_ACTIVITY_PROPERTY),   cancelActivity);
 
 		if (instance != null) {
+
 			timer.setProperty(t.key(ProcessTimerTraitDefinition.INSTANCE_PROPERTY), instance);
 		}
+
 		if (token != null) {
+
 			timer.setProperty(t.key(ProcessTimerTraitDefinition.TOKEN_PROPERTY), token);
 		}
+
 		if (element != null) {
+
 			timer.setProperty(t.key(ProcessTimerTraitDefinition.ELEMENT_PROPERTY), element);
 		}
 
 		// Name for human readability in the Admin UI
-		final String elemId = (element != null)
-			? (String) element.getProperty(element.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY))
-			: "?";
+		final String elemId = (element != null) ? (String) element.getProperty(element.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)) : "?";
+
 		timer.setProperty(t.key("name"), timerType + "@" + elemId + " fires at " + fireAt);
 
 		logger.info("Scheduled {} for element '{}' fireAt={} (expression='{}')", timerType, elemId, fireAt, expression);
+
 		return timer;
 	}
 
-	/**
-	 * Cancel any pending timers attached to the given activity element.
-	 * Called when a userTask completes / cancels / is reassigned -- boundary
-	 * timers are tied to the activity's lifecycle.
-	 *
-	 * For boundary events on a userTask, the timer's element is the boundary
-	 * event, but the boundary event's {@code attachedToRef} (or its parent
-	 * relationship) points to the userTask. We find timers whose element is
-	 * a boundary event attached to this activity.
-	 */
 	/**
 	 * Cancel a single pending boundary timer attached to the given task,
 	 * identified by the boundary event's BPMN id.
@@ -2044,12 +2924,19 @@ public class ProcessEngine {
 	 * regardless of caller permissions; the timer system is engine-managed.</p>
 	 */
 	public int cancelBoundaryTimerByBpmnId(final NodeInterface taskNode, final String boundaryBpmnId) throws FrameworkException {
-		if (taskNode == null || boundaryBpmnId == null || boundaryBpmnId.isEmpty()) return 0;
 
-		final App app = StructrApp.getInstance(securityContext);
-		final Traits taskTraits = taskNode.getTraits();
-		final NodeInterface instance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		if (instance == null) return 0;
+		if (taskNode == null || StringUtils.isBlank(boundaryBpmnId)) {
+
+			return 0;
+		}
+
+		final App app = StructrApp.getInstance();
+		final NodeInterface instance = taskNode.as(TaskInstance.class).getProcessInstance();
+
+		if (instance == null) {
+
+			return 0;
+		}
 
 		final Traits timerTraits = Traits.of(ProcessTraits.PROCESS_TIMER);
 		final Traits elemTraits  = Traits.of(ProcessTraits.BPMN_ELEMENT);
@@ -2060,45 +2947,69 @@ public class ProcessEngine {
 				.getResultStream()) {
 
 			final NodeInterface tInstance = timer.getProperty(timerTraits.key(ProcessTimerTraitDefinition.INSTANCE_PROPERTY));
-			if (tInstance == null || !tInstance.getUuid().equals(instance.getUuid())) continue;
+			if (tInstance == null || !tInstance.getUuid().equals(instance.getUuid())) {
+
+				continue;
+			}
 
 			final NodeInterface elem = timer.getProperty(timerTraits.key(ProcessTimerTraitDefinition.ELEMENT_PROPERTY));
-			if (elem == null) continue;
+			if (elem == null) {
+
+				continue;
+			}
 
 			final String elemBpmnId = elem.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-			if (!boundaryBpmnId.equals(elemBpmnId)) continue;
+			if (!boundaryBpmnId.equals(elemBpmnId)) {
+
+				continue;
+			}
 
 			timer.setProperty(timerTraits.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), ProcessTimerTraitDefinition.STATUS_CANCELLED);
 			cancelled++;
+
 			logger.info("Cancelled boundary timer '{}' on task '{}' (explicit cancellation)", boundaryBpmnId, safeName(taskNode));
 		}
 
 		return cancelled;
 	}
 
-	void cancelTimersForActivity(final App app, final NodeInterface activityElement, final NodeInterface instance) throws FrameworkException {
-		if (activityElement == null || instance == null) return;
+	void cancelTimersForActivity(final NodeInterface activityElement, final NodeInterface instance) throws FrameworkException {
 
+		if (activityElement == null || instance == null) {
+
+			return;
+		}
+
+		final App app            = StructrApp.getInstance();
 		final Traits timerTraits = Traits.of(ProcessTraits.PROCESS_TIMER);
 		final Iterable<NodeInterface> timers = app.nodeQuery(ProcessTraits.PROCESS_TIMER)
 			.key(timerTraits.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), ProcessTimerTraitDefinition.STATUS_PENDING)
 			.getResultStream();
 
-		final String activityId = activityElement.getUuid();
 		for (final NodeInterface timer : timers) {
+
 			final NodeInterface tInstance = timer.getProperty(timerTraits.key(ProcessTimerTraitDefinition.INSTANCE_PROPERTY));
-			if (tInstance == null || !tInstance.getUuid().equals(instance.getUuid())) continue;
+			if (tInstance == null || !tInstance.getUuid().equals(instance.getUuid())) {
+
+				continue;
+			}
 
 			final NodeInterface elem = timer.getProperty(timerTraits.key(ProcessTimerTraitDefinition.ELEMENT_PROPERTY));
-			if (elem == null) continue;
+			if (elem == null) {
+
+				continue;
+			}
 
 			// Boundary timers: element is the boundaryEvent, attached to our activity.
 			final String elemType = elem.getProperty(elem.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-			if ("boundaryEvent".equals(elemType)) {
+			if (BpmnElementType.BOUNDARY_EVENT.matches(elemType)) {
+
 				final String attachedTo = getAttachedToBpmnId(elem);
 				if (attachedTo != null) {
+
 					final String activityBpmnId = activityElement.getProperty(activityElement.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 					if (attachedTo.equals(activityBpmnId)) {
+
 						timer.setProperty(timerTraits.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), ProcessTimerTraitDefinition.STATUS_CANCELLED);
 						logger.info("Cancelled boundary timer on element '{}' (parent activity completed/cancelled)", attachedTo);
 					}
@@ -2121,119 +3032,164 @@ public class ProcessEngine {
 	 */
 	public void fireTimer(final NodeInterface callerTimer) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface timer = elevate(app, callerTimer);
-		final Traits t = timer.getTraits();
+		final App app            = StructrApp.getInstance();
+		final ProcessTimer timer = elevate(callerTimer).as(ProcessTimer.class);
 
-		final String status = timer.getProperty(t.key(ProcessTimerTraitDefinition.STATUS_PROPERTY));
-		if (!ProcessTimerTraitDefinition.STATUS_PENDING.equals(status)) {
+		if (!timer.isPending()) {
+
 			return; // already fired/cancelled
 		}
 
-		final String timerType = timer.getProperty(t.key(ProcessTimerTraitDefinition.TIMER_TYPE_PROPERTY));
-		final NodeInterface instance = timer.getProperty(t.key(ProcessTimerTraitDefinition.INSTANCE_PROPERTY));
-		final NodeInterface token    = timer.getProperty(t.key(ProcessTimerTraitDefinition.TOKEN_PROPERTY));
-		final NodeInterface element  = timer.getProperty(t.key(ProcessTimerTraitDefinition.ELEMENT_PROPERTY));
+		final String timerType       = timer.getTimerType();
+		final NodeInterface instance = timer.getInstance();
+		final NodeInterface token    = timer.getToken();
+		final NodeInterface element  = timer.getElement();
+
+		// Enforce suspend: do not advance a non-running instance. For a suspended
+		// instance the timer is left pending so it fires once the instance resumes.
+		if (instance != null && !instance.as(ProcessInstance.class).isRunning()) {
+
+			return;
+		}
 
 		try {
+
+			// Claim the timer up-front: writing FIRED now acquires the database write
+			// lock on the timer node at the START of this transaction. In a clustered
+			// deployment two service instances can both read the timer as PENDING, but
+			// only one can commit the claim -- the other's transaction conflicts on the
+			// timer node and rolls back (RetryException), so the timer AND the token
+			// advancement below (which shares this transaction) fire exactly once.
+			// Single-node operation was already safe via the isPending guard; this
+			// closes the multi-node window.
+			timer.setStatus(ProcessTimerTraitDefinition.STATUS_FIRED);
+			timer.setFiredAt(new Date());
+
 			if (ProcessTimerTraitDefinition.TIMER_INTERMEDIATE.equals(timerType)) {
-				fireIntermediateTimer(app, instance, token, element);
+
+				fireIntermediateTimer(instance, token, element);
+
 			} else if (ProcessTimerTraitDefinition.TIMER_BOUNDARY.equals(timerType)) {
-				final Boolean cancelActivity = timer.getProperty(t.key(ProcessTimerTraitDefinition.CANCEL_ACTIVITY_PROPERTY));
-				fireBoundaryTimer(app, instance, token, element, Boolean.TRUE.equals(cancelActivity));
+
+				fireBoundaryTimer(instance, token, element, Boolean.TRUE.equals(timer.getCancelActivity()));
+
 			} else {
+
 				logger.warn("Timer type '{}' not yet supported -- timer {} marked as error", timerType, timer.getUuid());
-				timer.setProperty(t.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), ProcessTimerTraitDefinition.STATUS_ERROR);
-				timer.setProperty(t.key(ProcessTimerTraitDefinition.ERROR_MESSAGE_PROPERTY), "timerType not implemented: " + timerType);
+
+				timer.setStatus(ProcessTimerTraitDefinition.STATUS_ERROR);
+				timer.setErrorMessage("timerType not implemented: " + timerType);
+
 				return;
 			}
 
-			timer.setProperty(t.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), ProcessTimerTraitDefinition.STATUS_FIRED);
-			timer.setProperty(t.key(ProcessTimerTraitDefinition.FIRED_AT_PROPERTY), new Date());
-
 		} catch (Exception ex) {
+
 			logger.error("Timer {} failed to fire: {}", timer.getUuid(), ex.getMessage(), ex);
-			timer.setProperty(t.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), ProcessTimerTraitDefinition.STATUS_ERROR);
-			timer.setProperty(t.key(ProcessTimerTraitDefinition.ERROR_MESSAGE_PROPERTY), ex.getMessage());
+			timer.setStatus(ProcessTimerTraitDefinition.STATUS_ERROR);
+			timer.setErrorMessage(ex.getMessage());
 		}
 	}
 
-	private void fireIntermediateTimer(final App app, final NodeInterface instance, final NodeInterface token,
-									   final NodeInterface element) throws FrameworkException {
+	private void fireIntermediateTimer(final NodeInterface instance, final NodeInterface token, final NodeInterface element) throws FrameworkException {
+
 		if (token == null || element == null) {
+
 			logger.warn("Intermediate timer fire: missing token or element -- skipping");
+
 			return;
 		}
 
 		// Reactivate the waiting token and advance past the catch event.
-		final Traits tokenTraits = token.getTraits();
-		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_ACTIVE);
+		token.as(ProcessToken.class).markActive();
 
-		completeTokenAndMoveToNext(app, instance, token, element);
+		completeTokenAndMoveToNext(instance, token, element);
 	}
 
-	private void fireBoundaryTimer(final App app, final NodeInterface instance, final NodeInterface parentToken,
-								   final NodeInterface boundaryElement, final boolean cancelActivity) throws FrameworkException {
+	private void fireBoundaryTimer(final NodeInterface instance, final NodeInterface parentToken, final NodeInterface boundaryElement, final boolean cancelActivity) throws FrameworkException {
+
 		if (boundaryElement == null) {
+
 			logger.warn("Boundary timer fire: missing boundary element -- skipping");
+
 			return;
 		}
 
 		// Find the boundary event's outgoing sequence flow.
-		final Iterable<NodeInterface> outgoingFlows = boundaryElement.getProperty(
-			boundaryElement.getTraits().key(BpmnElementTraitDefinition.OUTGOING_FLOWS_PROPERTY));
+		final Iterable<NodeInterface> outgoingFlows = boundaryElement.getProperty(boundaryElement.getTraits().key(BpmnElementTraitDefinition.OUTGOING_FLOWS_PROPERTY));
 		NodeInterface targetElement = null;
+
 		if (outgoingFlows != null) {
+
 			for (final NodeInterface flow : outgoingFlows) {
+
 				final String targetId = flow.getProperty(flow.getTraits().key(BpmnSequenceFlowTraitDefinition.TARGET_REF_ID_PROPERTY));
 				if (targetId != null) {
-					targetElement = findElementByBpmnId(app, instance, targetId);
-					if (targetElement != null) break;
+
+					targetElement = findElementByBpmnId(instance, targetId);
+
+					if (targetElement != null) {
+
+						break;
+					}
 				}
 			}
 		}
+
 		if (targetElement == null) {
+
 			final String boundaryId = boundaryElement.getProperty(boundaryElement.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+
 			logger.warn("Boundary timer on element '{}' has no resolvable outgoing flow -- timer fired but no token routed", boundaryId);
+
 			return;
 		}
 
 		// For interrupting boundary events: consume the parent activity's token.
 		if (cancelActivity && parentToken != null) {
-			final Traits ptTraits = parentToken.getTraits();
-			parentToken.setProperty(ptTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_COMPLETED);
+
+			parentToken.as(ProcessToken.class).markCompleted();
 
 			// Cancel any TaskInstance that was created for the parent userTask.
-			cancelTaskInstanceFor(app, instance, parentToken);
+			cancelTaskInstanceFor(instance, parentToken);
 		}
 
 		// Spawn a fresh token at the boundary event's target element and advance.
-		final NodeInterface newToken = createToken(app, instance, targetElement);
-		advanceToken(app, instance, newToken);
+		final NodeInterface newToken = createToken(instance, targetElement);
+
+		advanceToken(instance, newToken);
 	}
 
 	/**
 	 * If the parent token had an associated TaskInstance, mark it cancelled so
 	 * the audit trail reflects the boundary-driven interruption.
 	 */
-	private void cancelTaskInstanceFor(final App app, final NodeInterface instance, final NodeInterface token) throws FrameworkException {
-		if (instance == null || token == null) return;
-		final NodeInterface element = token.getProperty(token.getTraits().key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
-		if (element == null) return;
+	private void cancelTaskInstanceFor(final NodeInterface instance, final NodeInterface token) throws FrameworkException {
 
-		final Traits taskTraits = Traits.of(ProcessTraits.TASK_INSTANCE);
-		final Iterable<NodeInterface> tasks = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.TASKS_PROPERTY));
-		if (tasks == null) return;
-		for (final NodeInterface task : tasks) {
-			final String tStatus = task.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
-			if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(tStatus)
-				|| TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(tStatus)) {
+		if (instance == null || token == null) {
+
+			return;
+		}
+
+		final NodeInterface element = token.as(ProcessToken.class).getAtElement();
+		if (element == null) {
+
+			return;
+		}
+
+		for (final TaskInstance task : instance.as(ProcessInstance.class).getTasks()) {
+
+			if (task.isTerminal()) {
+
 				continue;
 			}
-			final NodeInterface tElement = task.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
+
+			final NodeInterface tElement = task.getDefinedBy();
 			if (tElement != null && tElement.getUuid().equals(element.getUuid())) {
-				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),         TaskInstanceTraitDefinition.STATUS_CANCELLED);
-				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CANCELLED_TIME_PROPERTY), new Date());
+
+				task.setStatus(TaskInstanceTraitDefinition.STATUS_CANCELLED);
+				task.setCancelledTime(new Date());
+
 				fireTaskEvent(BpmnTaskListenerTraitDefinition.EVENT_CANCELLED, task);
 			}
 		}
@@ -2245,18 +3201,20 @@ public class ProcessEngine {
 	 * BPMN versions, so a global lookup would return the first match in the index
 	 * (typically v1) and route the engine into a stale, foreign-version element.
 	 */
-	private NodeInterface findElementByBpmnId(final App app, final NodeInterface instance, final String bpmnId) throws FrameworkException {
-		if (instance == null || bpmnId == null) return null;
-		final NodeInterface defNode = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-		if (defNode == null) return null;
-		final Iterable<NodeInterface> elements = defNode.getProperty(defNode.getTraits().key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
-		if (elements == null) return null;
-		final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
-		final PropertyKey<String> bpmnIdKey = elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY);
-		for (final NodeInterface el : elements) {
-			if (bpmnId.equals(el.getProperty(bpmnIdKey))) return el;
+	private NodeInterface findElementByBpmnId(final NodeInterface instance, final String bpmnId) throws FrameworkException {
+
+		if (instance == null || bpmnId == null) {
+
+			return null;
 		}
-		return null;
+
+		final NodeInterface defNode = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
+		if (defNode == null) {
+
+			return null;
+		}
+
+		return defNode.as(BpmnProcess.class).getElementByBpmnId(bpmnId);
 	}
 
 	/**
@@ -2265,42 +3223,67 @@ public class ProcessEngine {
 	 * to find boundary events with timerEventDefinition that target this
 	 * activity, and creates a ProcessTimer for each.
 	 */
-	void scheduleBoundaryTimers(final App app, final NodeInterface instance, final NodeInterface token,
-								final NodeInterface activityElement) throws FrameworkException {
+	void scheduleBoundaryTimers(final NodeInterface instance, final NodeInterface token, final NodeInterface activityElement) throws FrameworkException {
 
-		if (instance == null || activityElement == null) return;
+		if (instance == null || activityElement == null) {
+
+			return;
+		}
 
 		final NodeInterface defNode = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-		if (defNode == null) return;
+		if (defNode == null) {
+
+			return;
+		}
 
 		final String activityBpmnId = activityElement.getProperty(activityElement.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-		if (activityBpmnId == null) return;
+		if (activityBpmnId == null) {
+
+			return;
+		}
 
 		// Iterate the definition's elements, find boundaryEvents attached to this activity.
 		final Iterable<NodeInterface> elements = defNode.getProperty(defNode.getTraits().key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
-		if (elements == null) return;
+		if (elements == null) {
+
+			return;
+		}
 
 		for (final NodeInterface el : elements) {
+
 			final Traits elemTraits = el.getTraits();
-			final String elType = el.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-			if (!"boundaryEvent".equals(elType)) continue;
+			final String elType     = el.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
+
+			if (!BpmnElementType.BOUNDARY_EVENT.matches(elType)) {
+
+				continue;
+			}
 
 			final String attachedTo = getAttachedToBpmnId(el);
-			if (attachedTo == null || !attachedTo.equals(activityBpmnId)) continue;
+			if (attachedTo == null || !attachedTo.equals(activityBpmnId)) {
+
+				continue;
+			}
 
 			final String timerType  = el.getProperty(elemTraits.key(BpmnElementTraitDefinition.TIMER_TYPE_PROPERTY));
 			final String timerValue = el.getProperty(elemTraits.key(BpmnElementTraitDefinition.TIMER_VALUE_PROPERTY));
-			if (timerType == null || timerValue == null) continue; // non-timer boundary event
+
+			if (timerType == null || timerValue == null) {
+
+				continue; // non-timer boundary event
+			}
 
 			final Date fireAt = computeFireAt(timerType, timerValue);
-			if (fireAt == null) continue;
+			if (fireAt == null) {
+
+				continue;
+			}
 
 			// Interrupting unless cancelActivity="false"
 			final String cancelAttr = getAttributeValue(el, "cancelActivity");
 			final boolean interrupting = !"false".equalsIgnoreCase(cancelAttr);
 
-			createTimer(app, fireAt, ProcessTimerTraitDefinition.TIMER_BOUNDARY, timerValue,
-				instance, token, el, interrupting);
+			createTimer(fireAt, ProcessTimerTraitDefinition.TIMER_BOUNDARY, timerValue, instance, token, el, interrupting);
 		}
 	}
 
@@ -2308,251 +3291,319 @@ public class ProcessEngine {
 	// Token management helpers
 	// -----------------------------------------------------------------------
 
-	private NodeInterface createToken(final App app, final NodeInterface instance,
-									  final NodeInterface element) throws FrameworkException {
+	private NodeInterface createToken(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
 
-		final NodeInterface token = app.create(ProcessTraits.PROCESS_TOKEN, (String) null);
-		final Traits tokenTraits = token.getTraits();
+		final App app                 = StructrApp.getInstance();
+		final NodeInterface tokenNode = app.create(ProcessTraits.PROCESS_TOKEN);
+		final ProcessToken token      = tokenNode.as(ProcessToken.class);
 
-		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_ACTIVE);
-		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.PROCESS_INSTANCE_PROPERTY), instance);
-		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY), element);
+		token.markActive();
+		token.setProcessInstance(instance);
+		token.setAtElement(element);
 
-		final String elemName = element.getProperty(element.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-		token.setProperty(tokenTraits.key("name"), "Token@" + elemName);
+		tokenNode.setProperty(token.getTraits().key("name"), tokenName(element));
 
-		return token;
+		return tokenNode;
 	}
 
-	private void moveTokenToElement(final NodeInterface token, final NodeInterface element) throws FrameworkException {
+	private void moveTokenToElement(final NodeInterface tokenNode, final NodeInterface element) throws FrameworkException {
 
-		final Traits tokenTraits = token.getTraits();
-		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY), element);
+		final ProcessToken token = tokenNode.as(ProcessToken.class);
 
-		final String elemName = element.getProperty(element.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-		token.setProperty(tokenTraits.key("name"), "Token@" + elemName);
+		// Record the element (bpmnId) the token is leaving, so a parallel join can
+		// tell which incoming edge each waiting token arrived on.
+		final NodeInterface from = tokenNode.getProperty(token.getTraits().key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
+		if (from != null) {
+
+			tokenNode.setProperty(token.getTraits().key(ProcessTokenTraitDefinition.ARRIVED_FROM_BPMN_ID_PROPERTY),
+				from.getProperty(from.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
+		}
+
+		token.setAtElement(element);
+
+		tokenNode.setProperty(token.getTraits().key("name"), tokenName(element));
 	}
 
-	private void completeToken(final NodeInterface token, final Traits tokenTraits) throws FrameworkException {
-		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_COMPLETED);
+	private String tokenName(final NodeInterface element) throws FrameworkException {
+
+		return "Token@" + element.as(BpmnElement.class).getBpmnId();
+	}
+
+	private void completeToken(final NodeInterface token) throws FrameworkException {
+
+		token.as(ProcessToken.class).markCompleted();
+	}
+
+	/** True if the token currently sits on the given element. */
+	private boolean isAtElement(final ProcessToken token, final NodeInterface element) {
+
+		final NodeInterface at = token.getAtElement();
+
+		return at != null && element != null && at.getUuid().equals(element.getUuid());
 	}
 
 	/**
 	 * Complete the current token, find the single outgoing flow, move to its target, advance.
 	 */
-	private void completeTokenAndMoveToNext(final App app, final NodeInterface instance,
-											final NodeInterface token, final NodeInterface element) throws FrameworkException {
+	private void completeTokenAndMoveToNext(final NodeInterface instance, final NodeInterface token, final NodeInterface element) throws FrameworkException {
 
-		final List<NodeInterface> outgoingFlows = getOutgoingFlows(element);
-		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
+		final BpmnElement current                  = element.as(BpmnElement.class);
+		final List<BpmnSequenceFlow> outgoingFlows = Iterables.toList(current.getOutgoingFlows());
 
 		if (outgoingFlows.isEmpty()) {
 
-			// No outgoing flow -- check if this is inside a sub-process
-			final Traits elemTraits = element.getTraits();
-			final String elementType = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
+			// No outgoing flow -- check if this is a sub-process end event
+			if (current.isType(BpmnElementType.END_EVENT)) {
 
-			if ("endEvent".equals(elementType)) {
-				final NodeInterface parentElement = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
-				if (parentElement != null) {
-					final String parentType = parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-					if ("subProcess".equals(parentType)) {
-						// Sub-process end: complete this token, resume the parent
-						completeToken(token, token.getTraits());
-						resumeSubProcessParent(app, instance, parentElement);
-						return;
-					}
+				final BpmnElement parent = current.getParentElement();
+				if (parent != null && isSubProcessLike(parent)) {
+
+					// Sub-process end: complete this token, resume the parent
+					completeToken(token);
+					resumeSubProcessParent(instance, parent);
+
+					return;
 				}
 			}
 
 			// Truly terminal
-			completeToken(token, token.getTraits());
-			checkProcessCompletion(app, instance);
+			completeToken(token);
+			checkProcessCompletion(instance);
+
 			return;
 		}
 
 		if (outgoingFlows.size() == 1) {
-			final NodeInterface target = outgoingFlows.get(0).getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-			moveTokenToElement(token, target);
-			advanceToken(app, instance, token);
+
+			moveTokenToElement(token, outgoingFlows.get(0).getTargetElement());
+			advanceToken(instance, token);
+
 		} else {
+
 			// Multiple outgoing flows on a non-gateway -- implicit exclusive gateway
-			for (final NodeInterface flow : outgoingFlows) {
-				final String condition = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_PROPERTY));
-				if (condition == null || condition.isEmpty() || evaluateCondition(condition, element, instance)) {
-					final NodeInterface target = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
-					moveTokenToElement(token, target);
-					advanceToken(app, instance, token);
+			for (final BpmnSequenceFlow flow : outgoingFlows) {
+
+				final String condition = flow.getConditionExpression();
+				if (StringUtils.isBlank(condition) || evaluateCondition(condition, element, instance)) {
+
+					moveTokenToElement(token, flow.getTargetElement());
+					advanceToken(instance, token);
+
 					return;
 				}
 			}
-			throw new FrameworkException(422, "No outgoing path matched at element: " + getBpmnId(element));
+
+			throw new FrameworkException(422, "No outgoing path matched at element: " + current.getBpmnId());
 		}
 	}
 
-	private void resumeSubProcessParent(final App app, final NodeInterface instance,
-										final NodeInterface subProcessElement) throws FrameworkException {
+	private void resumeSubProcessParent(final NodeInterface instance, final NodeInterface subProcessElement) throws FrameworkException {
+
+		// A sub-process completes only when ALL of its internal tokens have been
+		// consumed. If any branch is still live inside it -- e.g. a parallel fork
+		// where one branch reached an internal end event first -- leave the parent
+		// token waiting; resuming now would abandon the still-running branch and
+		// advance the outer flow prematurely.
+		if (hasActiveTokensInsideSubProcess(instance, subProcessElement)) {
+
+			return;
+		}
 
 		final NodeInterface waitingToken = findWaitingToken(instance, subProcessElement);
 		if (waitingToken != null) {
-			final Traits tokenTraits = waitingToken.getTraits();
-			waitingToken.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_ACTIVE);
-			completeTokenAndMoveToNext(app, instance, waitingToken, subProcessElement);
+
+			waitingToken.as(ProcessToken.class).markActive();
+
+			completeTokenAndMoveToNext(instance, waitingToken, subProcessElement);
 		}
+	}
+
+	/**
+	 * True if any non-completed token in the instance is currently sitting on an
+	 * element nested (transitively) inside {@code subProcessElement}. The parent
+	 * token itself waits <em>at</em> the sub-process element (not inside it), so it
+	 * is correctly excluded; only tokens on the sub-process's own descendants count.
+	 */
+	private boolean hasActiveTokensInsideSubProcess(final NodeInterface instance, final NodeInterface subProcessElement) throws FrameworkException {
+
+		for (final ProcessToken token : instance.as(ProcessInstance.class).getTokens()) {
+
+			if (token.isCompleted()) {
+
+				continue;
+			}
+
+			final NodeInterface at = token.getAtElement();
+			if (at == null) {
+
+				continue;
+			}
+
+			// Walk the parent-element chain upward; if we reach the sub-process,
+			// this token is executing inside it.
+			NodeInterface ancestor = at.getProperty(at.getTraits().key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
+
+			while (ancestor != null) {
+
+				if (ancestor.getUuid().equals(subProcessElement.getUuid())) {
+
+					return true;
+				}
+
+				ancestor = ancestor.getProperty(ancestor.getTraits().key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
+			}
+		}
+
+		return false;
 	}
 
 	// -----------------------------------------------------------------------
 	// Process completion
 	// -----------------------------------------------------------------------
+	private void checkProcessCompletion(final NodeInterface instanceNode) throws FrameworkException {
 
-	private void checkProcessCompletion(final App app, final NodeInterface instance) throws FrameworkException {
+		final ProcessInstance instance = instanceNode.as(ProcessInstance.class);
 
-		final Traits instTraits = instance.getTraits();
-		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
+		for (final ProcessToken token : instance.getTokens()) {
 
-		if (tokens != null) {
-			for (final NodeInterface t : tokens) {
-				final String status = t.getProperty(t.getTraits().key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
-				if (ProcessTokenTraitDefinition.STATUS_ACTIVE.equals(status) || ProcessTokenTraitDefinition.STATUS_WAITING.equals(status)) {
-					return; // Still active tokens
-				}
+			if (token.isActive() || token.isWaiting()) {
+
+				return; // Still active tokens
 			}
 		}
 
 		// All tokens completed
-		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), ProcessInstanceTraitDefinition.STATUS_COMPLETED);
-		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.END_TIME_PROPERTY), new Date());
+		instance.setStatus(ProcessInstanceTraitDefinition.STATUS_COMPLETED);
+		instance.setEndTime(new Date());
 
-		logger.info("Process instance {} completed", instance.getUuid());
-	}
-
-	// -----------------------------------------------------------------------
-	// Flow graph navigation
-	// -----------------------------------------------------------------------
-
-	private List<NodeInterface> getOutgoingFlows(final NodeInterface element) throws FrameworkException {
-
-		final Traits elemTraits = element.getTraits();
-		final Iterable<NodeInterface> flows = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.OUTGOING_FLOWS_PROPERTY));
-
-		final List<NodeInterface> result = new ArrayList<>();
-		if (flows != null) {
-			for (final NodeInterface flow : flows) {
-				result.add(flow);
-			}
-		}
-		return result;
-	}
-
-	private List<NodeInterface> getIncomingFlows(final NodeInterface element) throws FrameworkException {
-
-		final Traits elemTraits = element.getTraits();
-		final Iterable<NodeInterface> flows = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.INCOMING_FLOWS_PROPERTY));
-
-		final List<NodeInterface> result = new ArrayList<>();
-		if (flows != null) {
-			for (final NodeInterface flow : flows) {
-				result.add(flow);
-			}
-		}
-		return result;
-	}
-
-	private NodeInterface findStartEvent(final NodeInterface defNode, final Traits defTraits) throws FrameworkException {
-
-		final Iterable<NodeInterface> elements = defNode.getProperty(defTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
-		if (elements != null) {
-			final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
-			for (final NodeInterface elem : elements) {
-				final String type = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-				if ("startEvent".equals(type)) {
-					return elem;
-				}
-			}
-		}
-		return null;
+		logger.info("Process instance {} completed", instanceNode.getUuid());
 	}
 
 	private NodeInterface findWaitingToken(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
 
-		final Traits instTraits = instance.getTraits();
-		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+		for (final ProcessToken token : instance.as(ProcessInstance.class).getTokens()) {
 
-		if (tokens != null) {
-			for (final NodeInterface t : tokens) {
-				final String status = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
-				final NodeInterface atElement = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
+			if (token.isWaiting() && isAtElement(token, element)) {
 
-				if (ProcessTokenTraitDefinition.STATUS_WAITING.equals(status) && atElement != null && atElement.getUuid().equals(element.getUuid())) {
-					return t;
-				}
+				return token;
 			}
 		}
+
 		return null;
 	}
 
-	private int countTokensAtElement(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
+	/**
+	 * True when, for every incoming sequence flow of {@code element}, at least one
+	 * non-completed token is waiting at {@code element} that arrived from that
+	 * flow's source (tracked via {@code arrivedFromBpmnId}). This enforces the
+	 * parallel-join semantics of one token per distinct incoming edge, rather than
+	 * a plain total count that two tokens from the same edge could satisfy.
+	 */
+	private boolean allIncomingEdgesDelivered(final NodeInterface instance, final NodeInterface element, final List<BpmnSequenceFlow> incomingFlows) throws FrameworkException {
 
-		final Traits instTraits = instance.getTraits();
-		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+		final Set<String> arrivedFrom = new HashSet<>();
+		int waiting                   = 0;
+		boolean unknownArrival        = false;
 
-		int count = 0;
-		if (tokens != null) {
-			for (final NodeInterface t : tokens) {
-				final String status = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
-				final NodeInterface atElement = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
+		for (final ProcessToken t : instance.as(ProcessInstance.class).getTokens()) {
 
-				if (!ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(status) && atElement != null && atElement.getUuid().equals(element.getUuid())) {
-					count++;
+			if (!t.isCompleted() && isAtElement(t, element)) {
+
+				waiting++;
+
+				final String from = t.getProperty(t.getTraits().key(ProcessTokenTraitDefinition.ARRIVED_FROM_BPMN_ID_PROPERTY));
+				if (from != null) {
+
+					arrivedFrom.add(from);
+
+				} else {
+
+					unknownArrival = true;
 				}
 			}
 		}
-		return count;
+
+		// Fallback: a token created directly at the join (e.g. a fork whose flow
+		// targets the join) has no recorded arrival edge -- use the plain count so
+		// such topologies never deadlock.
+		if (unknownArrival) {
+
+			return waiting >= incomingFlows.size();
+		}
+
+		for (final BpmnSequenceFlow f : incomingFlows) {
+
+			final String src = f.getSourceRefId();
+			if (src == null || !arrivedFrom.contains(src)) {
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
-	 * Count active or waiting tokens in this instance that are NOT at the given element.
-	 * Used by inclusive gateway join to determine if more tokens are still in flight.
+	 * True if any non-completed token (other than one already at {@code gateway})
+	 * can still reach {@code gateway} by following outgoing sequence flows. Used by
+	 * the inclusive-gateway join to decide whether more tokens may yet arrive: an
+	 * unrelated parallel branch that cannot flow into the join does not block it.
 	 */
-	private int countActiveTokensNotAtElement(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
+	private boolean anyActiveTokenCanReach(final NodeInterface instance, final NodeInterface gateway) throws FrameworkException {
 
-		final Traits instTraits = instance.getTraits();
-		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+		for (final ProcessToken token : instance.as(ProcessInstance.class).getTokens()) {
 
-		int count = 0;
-		if (tokens != null) {
-			for (final NodeInterface t : tokens) {
-				final String status = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
-				if (ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(status)) {
-					continue;
-				}
-				final NodeInterface atElement = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
-				if (atElement == null || !atElement.getUuid().equals(element.getUuid())) {
-					count++;
-				}
+			if (token.isCompleted() || isAtElement(token, gateway)) {
+
+				continue;
+			}
+
+			final NodeInterface at = token.getAtElement();
+			if (at != null && canReachElement(at, gateway, new HashSet<>())) {
+
+				return true;
 			}
 		}
-		return count;
+
+		return false;
 	}
 
-	private void consumeAllTokensAtElement(final App app, final NodeInterface instance,
-										   final NodeInterface element) throws FrameworkException {
+	/**
+	 * Depth-first search along outgoing sequence flows: can {@code from} reach
+	 * {@code target}? The {@code visited} set (by UUID) makes this safe on cyclic
+	 * (looping) process graphs.
+	 */
+	private boolean canReachElement(final NodeInterface from, final NodeInterface target, final Set<String> visited) throws FrameworkException {
 
-		final Traits instTraits = instance.getTraits();
-		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+		if (from == null || !visited.add(from.getUuid())) {
 
-		if (tokens != null) {
-			for (final NodeInterface t : tokens) {
-				final NodeInterface atElement = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
-				final String status = t.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
+			return false;
+		}
 
-				if (!ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(status) && atElement != null && atElement.getUuid().equals(element.getUuid())) {
-					completeToken(t, tokenTraits);
-				}
+		if (from.getUuid().equals(target.getUuid())) {
+
+			return true;
+		}
+
+		for (final BpmnSequenceFlow out : from.as(BpmnElement.class).getOutgoingFlows()) {
+
+			final NodeInterface next = out.getTargetElement();
+			if (next != null && canReachElement(next, target, visited)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void consumeAllTokensAtElement(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
+
+		for (final ProcessToken token : instance.as(ProcessInstance.class).getTokens()) {
+
+			if (!token.isCompleted() && isAtElement(token, element)) {
+
+				token.markCompleted();
 			}
 		}
 	}
@@ -2579,30 +3630,37 @@ public class ProcessEngine {
 	 * <p>When no subject is attached to the instance, every submitted field becomes
 	 * a PV (current behaviour for processes without a domain object).</p>
 	 */
-	private void storeParameterValues(final App app, final NodeInterface instance,
-									  final NodeInterface element, final Map<String, Object> parameters) throws FrameworkException {
+	private void storeParameterValues(final NodeInterface instance, final NodeInterface element, final Map<String, Object> parameters) throws FrameworkException {
 
-		final Traits pvTraits   = Traits.of(ProcessTraits.PROCESS_PARAMETER_VALUE);
-		final Traits instTraits = instance.getTraits();
-		final Date now = new Date();
-
+		final App app               = StructrApp.getInstance();
+		final Traits pvTraits       = Traits.of(ProcessTraits.PROCESS_PARAMETER_VALUE);
+		final Traits instTraits     = instance.getTraits();
+		final Date now              = new Date();
 		final NodeInterface subject = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 		final Traits subjectTraits  = subject != null ? subject.getTraits() : null;
 
 		// Split submitted fields by name-match against the subject's schema.
-		final Map<String, Object> subjectFields  = new LinkedHashMap<>();
+		final Map<String, Object> subjectFields   = new LinkedHashMap<>();
 		final Map<String, Object> parameterFields = new LinkedHashMap<>();
+
 		for (final Map.Entry<String, Object> entry : parameters.entrySet()) {
+
 			final String name = entry.getKey();
+
 			// Reserved fields never go to the subject -- "id" and "type" are
 			// framework-managed and would corrupt subject identity / typing.
 			if ("id".equals(name) || "type".equals(name)) {
+
 				parameterFields.put(name, entry.getValue());
 				continue;
 			}
+
 			if (subjectTraits != null && subjectTraits.hasKey(name)) {
+
 				subjectFields.put(name, entry.getValue());
+
 			} else {
+
 				parameterFields.put(name, entry.getValue());
 			}
 		}
@@ -2610,9 +3668,10 @@ public class ProcessEngine {
 		// Subject fields: convert form-string inputs to typed values via the
 		// schema's property converters, then write under engine privileges.
 		if (subject != null && !subjectFields.isEmpty()) {
-			final NodeInterface elevatedSubject = elevate(app, subject);
-			final PropertyMap typed = PropertyMap.inputTypeToJavaType(
-				SecurityContext.getSuperUserInstance(), subject.getType(), subjectFields);
+
+			final NodeInterface elevatedSubject = elevate(subject);
+			final PropertyMap typed             = PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), subject.getType(), subjectFields);
+
 			elevatedSubject.setProperties(SecurityContext.getSuperUserInstance(), typed);
 		}
 
@@ -2623,13 +3682,11 @@ public class ProcessEngine {
 
 			final String paramName  = entry.getKey();
 			final Object paramValue = entry.getValue();
-
-			final NodeInterface pvNode = app.create(ProcessTraits.PROCESS_PARAMETER_VALUE, (String) null);
+			final NodeInterface pvNode = app.create(ProcessTraits.PROCESS_PARAMETER_VALUE);
 
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_NAME_PROPERTY), paramName);
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_TYPE_PROPERTY), inferParameterType(paramValue));
-			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY),
-				paramValue != null ? paramValue.toString() : null);
+			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY), stringValueOf(paramValue));
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.SET_AT_PROPERTY), now);
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PROCESS_INSTANCE_PROPERTY), instance);
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.SET_BY_ELEMENT_PROPERTY), element);
@@ -2644,11 +3701,60 @@ public class ProcessEngine {
 	 * string unchanged). The non-String branches are forward-compat for
 	 * programmatic invocations that pass typed values.
 	 */
-	private String inferParameterType(final Object paramValue) {
-		if (paramValue instanceof Boolean)                              return ProcessParameterValueTraitDefinition.TYPE_BOOLEAN;
-		if (paramValue instanceof Integer || paramValue instanceof Long) return ProcessParameterValueTraitDefinition.TYPE_INTEGER;
-		if (paramValue instanceof Double  || paramValue instanceof Float) return ProcessParameterValueTraitDefinition.TYPE_DOUBLE;
-		if (paramValue instanceof Date)                                  return ProcessParameterValueTraitDefinition.TYPE_DATE;
+	/** Largest magnitude at which a double still represents every integer exactly (2^53). */
+	private static final double MAX_EXACT_INTEGER_DOUBLE = 9007199254740992d;
+
+	/**
+	 * The string form to persist for a parameter value. A whole-valued Double / Float is
+	 * written without its fractional part: JavaScript has no integer type, so a service task
+	 * doing {@code $.process.amount = 25000} hands the engine a Double, and a plain
+	 * {@code toString()} persists "25000.0" -- which is then what REST clients, the UI and any
+	 * string comparison see. Values with an actual fractional part, and magnitudes beyond the
+	 * range where a double represents integers exactly, are left alone. Read-back is
+	 * unaffected: the value is parsed by parameterType, and "25000" parses as a Double just as
+	 * well.
+	 */
+	static String stringValueOf(final Object paramValue) {
+
+		if (paramValue == null) {
+
+			return null;
+		}
+
+		if (paramValue instanceof Double || paramValue instanceof Float) {
+
+			final double value = ((Number) paramValue).doubleValue();
+			if (Double.isFinite(value) && value == Math.rint(value) && Math.abs(value) <= MAX_EXACT_INTEGER_DOUBLE) {
+
+				return Long.toString((long) value);
+			}
+		}
+
+		return paramValue.toString();
+	}
+
+	static String inferParameterType(final Object paramValue) {
+
+		if (paramValue instanceof Boolean) {
+
+			return ProcessParameterValueTraitDefinition.TYPE_BOOLEAN;
+		}
+
+		if (paramValue instanceof Integer || paramValue instanceof Long) {
+
+			return ProcessParameterValueTraitDefinition.TYPE_INTEGER;
+		}
+
+		if (paramValue instanceof Double  || paramValue instanceof Float) {
+
+			return ProcessParameterValueTraitDefinition.TYPE_DOUBLE;
+		}
+
+		if (paramValue instanceof Date) {
+
+			return ProcessParameterValueTraitDefinition.TYPE_DATE;
+		}
+
 		return null;
 	}
 
@@ -2659,33 +3765,25 @@ public class ProcessEngine {
 	 */
 	private Map<String, Object> loadParameterValues(final NodeInterface instance) throws FrameworkException {
 
-		final Traits instTraits = instance.getTraits();
-		final Iterable<NodeInterface> pvNodes = instance.getProperty(
-			instTraits.key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY));
-
-		if (pvNodes == null) {
-			return Collections.emptyMap();
-		}
-
-		final Traits pvTraits = Traits.of(ProcessTraits.PROCESS_PARAMETER_VALUE);
-
 		// Collect all values, keeping only the most recent per parameter name
 		// (by comparing setAt timestamps)
 		final Map<String, Object> values = new LinkedHashMap<>();
 		final Map<String, Date> timestamps = new LinkedHashMap<>();
 
-		for (final NodeInterface pvNode : pvNodes) {
+		for (final ProcessParameterValue pv : instance.as(ProcessInstance.class).getParameterValues()) {
 
-			final String paramName = pvNode.getProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_NAME_PROPERTY));
-			if (paramName == null) continue;
+			final String paramName = pv.getParameterName();
+			if (paramName == null) {
 
-			final Date setAt = pvNode.getProperty(pvTraits.key(ProcessParameterValueTraitDefinition.SET_AT_PROPERTY));
+				continue;
+			}
+
+			final Date setAt    = pv.getSetAt();
 			final Date existing = timestamps.get(paramName);
 
 			if (existing == null || (setAt != null && setAt.after(existing))) {
-				final String stringValue = pvNode.getProperty(pvTraits.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY));
-				final String paramType   = pvNode.getProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_TYPE_PROPERTY));
-				values.put(paramName, convertParameterValue(stringValue, paramType));
+
+				values.put(paramName, convertParameterValue(pv.getStringValue(), pv.getParameterType()));
 				timestamps.put(paramName, setAt);
 			}
 		}
@@ -2698,21 +3796,30 @@ public class ProcessEngine {
 	 * the raw String when no type was declared (the common case for form-driven
 	 * processes) or when parsing fails.
 	 */
-	private Object convertParameterValue(final String stringValue, final String paramType) {
+	static Object convertParameterValue(final String stringValue, final String paramType) {
 
-		if (stringValue == null) return null;
+		if (stringValue == null) {
+
+			return null;
+		}
+
 		if (paramType == null || ProcessParameterValueTraitDefinition.TYPE_STRING.equals(paramType)) {
+
 			return stringValue;
 		}
 
 		try {
+
 			return switch (paramType) {
+
 				case ProcessParameterValueTraitDefinition.TYPE_BOOLEAN -> Boolean.parseBoolean(stringValue);
 				case ProcessParameterValueTraitDefinition.TYPE_INTEGER -> Integer.parseInt(stringValue);
 				case ProcessParameterValueTraitDefinition.TYPE_DOUBLE  -> Double.parseDouble(stringValue);
 				default -> stringValue;
 			};
+
 		} catch (NumberFormatException e) {
+
 			return stringValue;
 		}
 	}
@@ -2727,46 +3834,57 @@ public class ProcessEngine {
 	 * Process parameter values are loaded from the graph and injected as JavaScript
 	 * variables before evaluation.
 	 */
-	private boolean evaluateCondition(final String condition, final NodeInterface contextElement,
-									  final NodeInterface instance) {
+	private boolean evaluateCondition(final String condition, final NodeInterface contextElement, final NodeInterface instance) {
 
 		try {
 
-			final ActionContext ctx = new ActionContext(securityContext);
-			installProcessContext(ctx, instance, contextElement);
-
+			final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
 			final String expression;
 
+			installProcessContext(ctx, instance, contextElement);
+
 			if (condition.startsWith("${") && condition.endsWith("}") && !condition.startsWith("${{")) {
+
 				// BPMN-style ${...} expression -- evaluate as JavaScript
 				// because BPMN uses JUEL syntax (==, !=, &&, ||) which is
 				// compatible with JS but not with StructrScript.
 				// Process parameters are available via $.process.<n>.
 				final String inner = condition.substring(2, condition.length() - 1).trim();
+
 				// Rewrite bare variable references to $.process.<n>
 				final String rewritten = rewriteConditionExpression(inner, instance);
 				expression = "${js{" + rewritten + "}}";
+
 			} else if (condition.startsWith("${")) {
+
 				// Already a Structr expression (e.g. ${{...}} for JS)
 				expression = condition;
+
 			} else {
+
 				// Bare expression -- wrap as JavaScript
 				final String rewritten = rewriteConditionExpression(condition, instance);
 				expression = "${js{" + rewritten + "}}";
 			}
 
 			final Object result = Scripting.evaluate(ctx, contextElement, expression, "conditionExpression");
-
 			if (result instanceof Boolean) {
+
 				return (Boolean) result;
+
 			} else if (result instanceof String) {
+
 				return "true".equalsIgnoreCase((String) result);
+
 			} else {
+
 				return result != null;
 			}
 
 		} catch (Exception ex) {
+
 			logger.warn("Error evaluating condition '{}': {}", condition, ex.getMessage());
+
 			return false;
 		}
 	}
@@ -2786,14 +3904,59 @@ public class ProcessEngine {
 	 * which side of the storage split the data lives on -- the BPMN author
 	 * doesn't need to know whether {@code days} is a domain field or a PV.</p>
 	 */
-	private void installProcessContext(final ActionContext ctx, final NodeInterface instance,
-									   final NodeInterface element) throws FrameworkException {
+	/**
+	 * Run a SchemaMethod's body against the ActionContext prepared by the caller, so the
+	 * constants installed on it -- {@code $.process} above all -- are visible to the script.
+	 *
+	 * <p>{@code ScriptMethod#execute} cannot be used for this: it forwards only
+	 * {@code actionContext.getSecurityContext()} to {@code Actions#execute}, which builds a
+	 * FRESH ActionContext. Everything installed on the context the engine just prepared is
+	 * silently dropped, so a listener body doing {@code $.process.x = y} saw {@code $.process}
+	 * as null and died with "Cannot set property 'x' of null". The automatic-task, io-mapping
+	 * and condition paths never hit this because they already call
+	 * {@code Scripting.evaluate(ctx, ...)} directly, which is what this does.</p>
+	 *
+	 * <p>{@code wrapJsInMain} is taken from the method itself, as ScriptMethod does, so
+	 * user-authored handlers keep their configured wrapping.</p>
+	 */
+	private Object runMethodWithContext(final ActionContext ctx, final GraphObject entity, final NodeInterface method, final String label) throws FrameworkException {
 
-		final Traits instTraits = instance.getTraits();
-		final NodeInterface definition = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
+		final SchemaMethod schemaMethod = method.as(SchemaMethod.class);
+		final String source             = schemaMethod.getSource();
+
+		if (StringUtils.isBlank(source)) {
+
+			return null; // handler declared but no body yet
+		}
+
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+			.wrapJsInMain(schemaMethod.wrapJsInMain())
+			.build();
+
+		return Scripting.evaluate(ctx, entity, "${" + source.trim() + "}", label, method.getUuid(), scriptConfig);
+	}
+
+	private void installProcessContext(final ActionContext ctx, final NodeInterface instance, final NodeInterface element) throws FrameworkException {
+
+		installProcessContext(ctx, instance, element, null);
+	}
+
+	private void installProcessContext(final ActionContext ctx, final NodeInterface instance, final NodeInterface element, final Map<String, Object> localScope) throws FrameworkException {
+
+		final Traits instTraits             = instance.getTraits();
+		final NodeInterface definition      = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
 		final Map<String, Object> variables = loadProcessVariables(instance);
 
-		ctx.setConstant("process", new ProcessContext(instance, element, definition, variables));
+		// Write sink: $.process.x = y (and transpiled execution.setVariable(...)) persist
+		// through the same auto-routing storeParameterValues used by task/start params.
+		// Ignored while a localScope is active -- there writes stay local.
+		final ProcessContext.VariableSink sink = (name, value) -> {
+			final Map<String, Object> one = new HashMap<>();
+			one.put(name, value);
+			storeParameterValues(instance, element, one);
+		};
+
+		ctx.setConstant("process", new ProcessContext(instance, element, definition, variables, sink, localScope));
 	}
 
 	/**
@@ -2805,22 +3968,33 @@ public class ProcessEngine {
 	private Map<String, Object> loadProcessVariables(final NodeInterface instance) throws FrameworkException {
 
 		final Map<String, Object> merged = new LinkedHashMap<>();
+		final NodeInterface subject      = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 
-		final NodeInterface subject = instance.getProperty(
-			instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 		if (subject != null) {
+
 			final Traits subjectTraits = subject.getTraits();
+
 			for (final PropertyKey<?> key : subjectTraits.getAllPropertyKeys()) {
+
 				final String name = key.jsonName();
+
 				// Skip framework-managed identity / type / system fields. Domain
 				// fields keep their natural names.
-				if ("id".equals(name) || "type".equals(name) || "internalEntityContextPath".equals(name)) continue;
+				if ("id".equals(name) || "type".equals(name) || "internalEntityContextPath".equals(name)) {
+
+					continue;
+				}
+
 				try {
+
 					final Object value = subject.getProperty(key);
 					if (value != null) {
+
 						merged.put(name, value);
 					}
+
 				} catch (Exception ignore) {
+
 					// Best-effort: a property reader that throws shouldn't break gateway eval.
 				}
 			}
@@ -2828,6 +4002,7 @@ public class ProcessEngine {
 
 		// PVs override subject on name collision.
 		merged.putAll(loadParameterValues(instance));
+
 		return merged;
 	}
 
@@ -2844,15 +4019,28 @@ public class ProcessEngine {
 	 */
 	private String rewriteConditionExpression(final String expression, final NodeInterface instance) throws FrameworkException {
 
-		final Map<String, Object> variables = loadProcessVariables(instance);
-		if (variables.isEmpty()) {
+		return rewriteConditionExpression(expression, loadProcessVariables(instance).keySet());
+	}
+
+	/**
+	 * Pure rewrite step: given the set of known process-variable names, rewrite
+	 * their bare occurrences in the expression to {@code $.process.<name>}.
+	 * Package-private and static so the JUEL-to-JavaScript rewriting can be
+	 * unit-tested without a process instance.
+	 */
+	static String rewriteConditionExpression(final String expression, final Set<String> variableNames) {
+
+		if (expression == null || variableNames == null || variableNames.isEmpty()) {
+
 			return expression;
 		}
 
 		String result = expression;
-		for (final String name : variables.keySet()) {
+
+		for (final String name : variableNames) {
+
 			// Replace word-boundary occurrences of the variable name with $.process.<name>
-			// Negative lookbehind for '.' prevents double-rewriting
+			// Negative lookbehind for '.' prevents double-rewriting.
 			result = result.replaceAll("(?<!\\.)\\b" + name + "\\b", "\\$.process." + name);
 		}
 
@@ -2864,48 +4052,205 @@ public class ProcessEngine {
 	// -----------------------------------------------------------------------
 
 	private String getBpmnId(final NodeInterface element) throws FrameworkException {
+
 		return element.getProperty(element.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	/**
-	 * Append a Java value as a JavaScript literal to the StringBuilder.
+	 * The element(s) this instance is currently at: the {@code atElement} of each of
+	 * its non-completed (waiting/active) tokens. Normally one, but a parallel split
+	 * can put an instance at several steps at once. Empty once the instance has
+	 * finished. De-duplicated by element, preserving first-seen order.
+	 *
+	 * <p>Returns the {@code BpmnElement} nodes themselves so callers stay flexible --
+	 * read {@code bpmnName}, {@code bpmnElementType}, {@code bpmnId}, etc.</p>
 	 */
-	private void appendJsLiteral(final StringBuilder sb, final Object value) {
+	public static List<NodeInterface> currentStepElements(final NodeInterface instance) throws FrameworkException {
 
-		if (value == null) {
-			sb.append("null");
-		} else if (value instanceof Boolean) {
-			sb.append(value);
-		} else if (value instanceof Number) {
-			sb.append(value);
-		} else {
-			// String: escape quotes and wrap
-			sb.append('"').append(value.toString().replace("\\", "\\\\").replace("\"", "\\\"")).append('"');
+		final Traits tokTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+		final PropertyKey<Iterable<NodeInterface>> tokensKey = instance.getTraits().key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY);
+		final PropertyKey<String> statusKey                  = tokTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY);
+		final PropertyKey<NodeInterface> atElementKey        = tokTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY);
+		final List<NodeInterface> steps      = new LinkedList<>();
+		final Set<String> seen               = new LinkedHashSet<>();
+		final Iterable<NodeInterface> tokens = instance.getProperty(tokensKey);
+
+		if (tokens != null) {
+
+			for (final NodeInterface token : tokens) {
+
+				if (ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(token.getProperty(statusKey))) {
+
+					continue;
+				}
+
+				final NodeInterface at = token.getProperty(atElementKey);
+				if (at != null && seen.add(at.getUuid())) {
+
+					steps.add(at);
+				}
+			}
 		}
+
+		return steps;
 	}
 
 	/**
-	 * Get an attribute value from the bpmnAttributes JSON map.
+	 * Count the non-completed (waiting or active) tokens currently sitting at each
+	 * element, aggregated across every instance of {@code process}. Returns a map of
+	 * element {@code bpmnId -> count}; elements with no live token are absent.
+	 *
+	 * <p>Powers the editor's live instance-count overlay (Camunda-Cockpit-style
+	 * activity badges). Callers should pass a super-user {@code app} so the count
+	 * reflects all instances, not just those the current user may read.</p>
+	 */
+	public static Map<String, Integer> computeLiveTokenCounts(final App app, final NodeInterface process) throws FrameworkException {
+
+		return computeTokenCountsByElement(app, process, false);
+	}
+
+	/**
+	 * Count the completed tokens that passed through each element, aggregated across
+	 * every instance of {@code process}. Returns a map of element {@code bpmnId ->
+	 * count}; elements no token has finished at are absent.
+	 *
+	 * <p>Companion to {@link #computeLiveTokenCounts}: powers the editor's "finished"
+	 * badge (Camunda-Cockpit-style historic activity-instance count), shown alongside
+	 * the live/active badge. Callers should pass a super-user {@code app} so the count
+	 * reflects all instances, not just those the current user may read.</p>
+	 */
+	public static Map<String, Integer> computeCompletedTokenCounts(final App app, final NodeInterface process) throws FrameworkException {
+
+		return computeTokenCountsByElement(app, process, true);
+	}
+
+	/**
+	 * Shared implementation for the live / completed per-element token counts.
+	 * When {@code completed} is false, counts tokens still sitting at an element
+	 * (status != completed); when true, counts tokens that have completed there.
+	 */
+	private static Map<String, Integer> computeTokenCountsByElement(final App app, final NodeInterface process, final boolean completed) throws FrameworkException {
+
+		final Traits piTraits  = Traits.of(ProcessTraits.PROCESS_INSTANCE);
+		final Traits tokTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+		final Traits elTraits  = Traits.of(ProcessTraits.BPMN_ELEMENT);
+		final PropertyKey<NodeInterface> processKey          = piTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY);
+		final PropertyKey<Iterable<NodeInterface>> tokensKey = piTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY);
+		final PropertyKey<String> tokenStatusKey             = tokTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY);
+		final PropertyKey<NodeInterface> atElementKey        = tokTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY);
+		final PropertyKey<String> bpmnIdKey                  = elTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY);
+		final Map<String, Integer> counts = new LinkedHashMap<>();
+
+		for (final NodeInterface instance : app.nodeQuery(ProcessTraits.PROCESS_INSTANCE).key(processKey, process).getResultStream()) {
+
+			final Iterable<NodeInterface> tokens = instance.getProperty(tokensKey);
+			if (tokens == null) {
+
+				continue;
+			}
+
+			for (final NodeInterface token : tokens) {
+
+				final boolean isCompleted = ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(token.getProperty(tokenStatusKey));
+				// live overlay: only tokens still sitting somewhere; completed overlay: only finished tokens
+				if (completed != isCompleted) {
+
+					continue;
+				}
+
+				final NodeInterface at = token.getProperty(atElementKey);
+				if (at == null) {
+
+					continue;
+				}
+
+				final String bpmnId = at.getProperty(bpmnIdKey);
+				if (bpmnId != null) {
+
+					counts.merge(bpmnId, 1, Integer::sum);
+				}
+			}
+		}
+
+		return counts;
+	}
+
+	/**
+	 * Get an attribute value from an element's bpmnAttributes JSON map.
+	 * Delegates to {@link #getJsonAttributeValue(String, String)} for the actual
+	 * parsing; this wrapper only reads the property off the node.
 	 */
 	private String getAttributeValue(final NodeInterface element, final String attrName) {
 
 		try {
+
 			final String json = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
-			if (json != null) {
-				final int idx = json.indexOf("\"" + attrName + "\"");
-				if (idx >= 0) {
-					final int colonIdx = json.indexOf(':', idx);
-					final int startQuote = json.indexOf('"', colonIdx + 1);
-					final int endQuote = json.indexOf('"', startQuote + 1);
-					if (startQuote >= 0 && endQuote > startQuote) {
-						return json.substring(startQuote + 1, endQuote);
-					}
-				}
-			}
+
+			return getJsonAttributeValue(json, attrName);
+
 		} catch (Exception ex) {
+
 			logger.warn("Error reading attribute '{}': {}", attrName, ex.getMessage());
+
+			return null;
 		}
-		return null;
+	}
+
+	/**
+	 * Extract a single named attribute from a {@code bpmnAttributes} JSON object
+	 * string. The importer builds this JSON with Gson from a
+	 * {@code Map<String,String>}, so every value is a string; this returns that
+	 * string, or {@code null} when the JSON is {@code null} / blank / not a JSON
+	 * object, the key is absent, or the value is JSON {@code null}.
+	 *
+	 * <p>Uses a real JSON parser rather than string scanning so that values
+	 * containing quotes, colons or braces, keys that are substrings of other
+	 * keys, and keys whose name also occurs inside a value, are all handled
+	 * correctly (the previous {@code indexOf}-based extractor got these wrong).</p>
+	 *
+	 * <p>Package-private and static so it can be unit-tested in isolation.</p>
+	 */
+	static String getJsonAttributeValue(final String json, final String attrName) {
+
+		if (json == null || attrName == null) {
+
+			return null;
+		}
+
+		final String trimmed = json.trim();
+		if (trimmed.isEmpty()) {
+
+			return null;
+		}
+
+		final com.google.gson.JsonElement root;
+
+		try {
+
+			root = com.google.gson.JsonParser.parseString(trimmed);
+
+		} catch (final com.google.gson.JsonSyntaxException ex) {
+
+			return null;
+		}
+
+		if (root == null || !root.isJsonObject()) {
+
+			return null;
+		}
+
+		final com.google.gson.JsonObject obj = root.getAsJsonObject();
+		final com.google.gson.JsonElement value = obj.get(attrName);
+
+		if (value == null || value.isJsonNull()) {
+
+			return null;
+		}
+
+		// String values (the only kind the importer emits) and other primitives
+		// return their string form; nested objects/arrays return compact JSON.
+
+		return value.isJsonPrimitive() ? value.getAsString() : value.toString();
 	}
 
 	/**
@@ -2916,16 +4261,26 @@ public class ProcessEngine {
 	 * {@code null} when neither is set.
 	 */
 	private String getAttachedToBpmnId(final NodeInterface element) {
+
 		try {
+
 			final NodeInterface host = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.ATTACHED_TO_PROPERTY));
 			if (host != null) {
+
 				final String hostBpmnId = host.getProperty(host.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-				if (hostBpmnId != null && !hostBpmnId.isEmpty()) return hostBpmnId;
+				if (StringUtils.isNotBlank(hostBpmnId)) {
+
+					return hostBpmnId;
+				}
 			}
+
 		} catch (Exception ex) {
+
 			logger.warn("Error reading attachedTo relationship: {}", ex.getMessage());
 		}
+
 		// Legacy fallback: attachedToRef in bpmnAttributes JSON.
+
 		return getAttributeValue(element, "attachedToRef");
 	}
 }

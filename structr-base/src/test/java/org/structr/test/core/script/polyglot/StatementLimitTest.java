@@ -48,16 +48,22 @@ public class StatementLimitTest {
 		// swallow that close-time exception explicitly after asserting on
 		// the eval-time one.
 		final Context ctx = Context.newBuilder("js").resourceLimits(limits).build();
+
 		try {
+
 			ctx.eval("js", "while (true) {}");
 			fail("Expected PolyglotException after statement limit was exceeded");
+
 		} catch (final PolyglotException ex) {
+
 			assertTrue(
 				"Exception should indicate resource exhaustion; got: " + ex.getMessage(),
 				ex.isCancelled() || ex.isResourceExhausted()
 					|| (ex.getMessage() != null && ex.getMessage().contains("Statement count limit"))
 			);
+
 		} finally {
+
 			try { ctx.close(); } catch (final PolyglotException ignored) { /* cancelled context */ }
 		}
 	}

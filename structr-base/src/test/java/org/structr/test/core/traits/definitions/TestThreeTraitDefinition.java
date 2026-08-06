@@ -35,6 +35,7 @@ import java.util.Set;
 public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestThreeTraitDefinition() {
+
 		super("TestThree");
 	}
 
@@ -42,27 +43,23 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final String TEST_THREE_CUSTOM_DATE_FORMAT = "dd.MM.yyyy";
-
 		final Property<NodeInterface> testOne          = new StartNode(traitsInstance, "testOne",         "OneThreeOneToOne");
 		final Property<NodeInterface> oneToOneTestSix  = new StartNode(traitsInstance, "oneToOneTestSix", "SixThreeOneToOne");
 		final Property<NodeInterface> oneToManyTestSix = new StartNode(traitsInstance, "oneToManyTestSix", "SixThreeOneToMany");
 		final Property<Date> aDateWithFormat           = new ISO8601DateProperty("aDateWithFormat").format(TEST_THREE_CUSTOM_DATE_FORMAT).indexed().indexedWhenEmpty();
 
-		return newSet(
-			testOne,
-			oneToOneTestSix,
-			oneToManyTestSix,
-			aDateWithFormat
-		);
+		return newSet(testOne, oneToOneTestSix, oneToManyTestSix, aDateWithFormat);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

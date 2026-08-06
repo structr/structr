@@ -43,11 +43,13 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "createRelationship";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("from, to, relType [, parameterMap ]");
 	}
 
@@ -61,7 +63,6 @@ public class CreateRelationshipFunction extends CoreFunction {
 			final Object source = sources[0];
 			final Object target = sources[1];
 			final String relType = (String)sources[2];
-
 			NodeInterface sourceNode = null;
 			NodeInterface targetNode = null;
 
@@ -73,6 +74,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 			} else {
 
 				logger.warn("Error: entities are not nodes. Parameters: {}", getParametersAsString(sources));
+
 				return "Error: entities are not nodes.";
 			}
 
@@ -81,6 +83,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 				final String relationshipTypeName     = traits.getName();
 				final SecurityContext securityContext = ctx.getSecurityContext();
+
 				PropertyMap propertyMap;
 
 				// extension for native javascript objects
@@ -96,7 +99,6 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 					propertyMap               = new PropertyMap();
 					final int parameterCount = sources.length;
-
 					if (parameterCount % 2 == 0) {
 
 						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -105,7 +107,6 @@ public class CreateRelationshipFunction extends CoreFunction {
 					for (int c = 3; c < parameterCount; c += 2) {
 
 						final PropertyKey key = traits.key(sources[c].toString());
-
 						if (key != null) {
 
 							final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
@@ -126,23 +127,27 @@ public class CreateRelationshipFunction extends CoreFunction {
 			} else {
 
 				logger.warn("Error: Unknown relationship type. Parameters: {}", getParametersAsString(sources));
+
 				return "Error: Unknown relationship type";
 			}
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${createRelationship(fromNode, toNode, relationshipType)}"),
 			Usage.javaScript("Usage: ${{ $.createRelationship(fromNode, toNode, relationshipType) }}")
@@ -151,11 +156,13 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates and returns relationship of the given type between two entities.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
@@ -172,9 +179,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-				Example.structrScript("${createRelationship(me, user, 'FOLLOWS')}")
-		);
+		return List.of(Example.structrScript("${createRelationship(me, user, 'FOLLOWS')}"));
 	}
 
 	@Override
@@ -189,6 +194,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }
