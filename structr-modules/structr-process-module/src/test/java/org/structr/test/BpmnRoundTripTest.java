@@ -644,6 +644,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			for (final Element ln : exportedLanes) {
 
 				if ("Lane_Customer".equals(ln.getAttribute("id"))) {
+
 					customerEl = ln;
 				}
 				if ("Lane_Service".equals(ln.getAttribute("id"))) {
@@ -856,6 +857,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	}
 
 	private NodeInterface createOrphanMethod(final String name) throws FrameworkException {
+
 		final NodeInterface m = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
 		m.setProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 		return m;
@@ -873,7 +875,10 @@ public class BpmnRoundTripTest extends StructrUiTest {
 
 			return null;
 		}
-		for (final NodeInterface p : processes) return p;
+		for (final NodeInterface p : processes) {
+
+			return p;
+		}
 		return null;
 	}
 
@@ -922,17 +927,22 @@ public class BpmnRoundTripTest extends StructrUiTest {
 		final List<NodeInterface> out = new LinkedList<>();
 		if (it != null) {
 
-			for (final NodeInterface n : it) out.add(n);
+			for (final NodeInterface n : it) {
+
+				out.add(n);
+			}
 		}
 		return out;
 	}
 
 	private void cleanupOrphanMethods() throws FrameworkException {
+
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface m : app.nodeQuery(StructrTraits.SCHEMA_METHOD).getAsList()) {
 
 				if (m.getProperty(m.getTraits().key(org.structr.core.traits.definitions.SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY)) == null) {
+
 					app.delete(m);
 				}
 			}
@@ -965,6 +975,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			for (final String type : types) {
 
 				for (final NodeInterface node : app.nodeQuery(type).getAsList()) {
+
 					app.delete(node);
 				}
 			}

@@ -133,11 +133,17 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			assertEquals("body should hold a single process wrapper", 1, bodyChildren.size());
 
 			final DOMNode wrapper = bodyChildren.get(0);
-			assertEquals("bpmn-process", htmlClass(wrapper));
+			assertEquals("bpmn-process sw-group", htmlClass(wrapper));
 			assertEquals("insurance-claim-handling", htmlId(wrapper));
 
-			// one empty div per human-facing step, in flow order
-			final List<DOMNode> stepDivs = children(wrapper);
+			// the running-instance metadata header is the wrapper's first child (visible only on an
+			// instance page); the human-facing step divs follow it
+			final DOMNode detailsBlock = children(wrapper).get(0);
+			assertEquals("process-details", htmlId(detailsBlock));
+			assertEquals("bpmn-process-details sw-card sw-card-content", htmlClass(detailsBlock));
+
+			// one card per human-facing step, in flow order
+			final List<DOMNode> stepDivs = humanStepDivs(wrapper);
 			final List<String> actualIds = new ArrayList<>();
 
 			assertEquals("one div per human-facing step", EXPECTED_IDS.size(), stepDivs.size());
@@ -153,7 +159,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 				final DOMNode heading = children(div).get(0);
 				assertEquals("h2", heading.getProperty(heading.getTraits().key(DOMElementTraitDefinition.TAG_PROPERTY)));
 				assertEquals("bpmn-step-title sw-card-heading", htmlClass(heading));
-				assertEquals("bpmn-step sw-card", htmlClass(div));
+				assertEquals("bpmn-step sw-card sw-card-content", htmlClass(div));
 
 				// the heading reads the step's CURRENT name via localize(), so renaming the step
 				// in the editor updates the page instead of leaving a stale literal behind
@@ -182,7 +188,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			assertMappings(stepDivs.get(2), "Task_ManualAssessment", Set.of(
 				VisibilityMappingTraitDefinition.STATE_TASK_AVAILABLE,
 				VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME));
-			assertMappings(stepDivs.get(3), "Event_WaitForResponse", Set.of(VisibilityMappingTraitDefinition.STATE_PROCESS_AWAITING_ACTION));
+			assertMappings(stepDivs.get(3), "Event_WaitForResponse", Set.of(VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE));
 
 			// the descriptive name is the BPMN name, so the Pages tree reads like the model
 			assertEquals("Initial review", stepDivs.get(1).getName());
@@ -292,8 +298,8 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			assertEquals("the slot should hold the process wrapper", 1, slotChildren.size());
 
 			final DOMNode wrapper = slotChildren.get(0);
-			assertEquals("bpmn-process", htmlClass(wrapper));
-			assertEquals(EXPECTED_IDS.size(), children(wrapper).size());
+			assertEquals("bpmn-process sw-group", htmlClass(wrapper));
+			assertEquals(EXPECTED_IDS.size(), humanStepDivs(wrapper).size());
 
 			tx.success();
 
@@ -332,7 +338,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page  = app.getNodeById(pageId);
 			final DOMNode wrapper     = children(children(children(page).get(0)).get(1)).get(0);
-			final DOMNode startDiv    = children(wrapper).get(0);
+			final DOMNode startDiv    = humanStepDivs(wrapper).get(0);
 
 			assertEquals("the launch partial belongs to the start event's div", "start-claim-submitted", htmlId(startDiv));
 
@@ -413,7 +419,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
-			final DOMNode startDiv   = children(wrapper).get(0);
+			final DOMNode startDiv   = humanStepDivs(wrapper).get(0);
 
 			final PropertyKey<Iterable<NodeInterface>> vmKey = startDiv.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY);
 			final List<NodeInterface> mappings               = collect(startDiv.getProperty(vmKey));
@@ -442,7 +448,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			// and a step-scoped mapping still carries the id, where it is needed to check that
 			// a context instance belongs to this process
-			final DOMNode taskDiv                       = children(wrapper).get(1);
+			final DOMNode taskDiv                       = humanStepDivs(wrapper).get(1);
 			final List<NodeInterface> taskMappings      = collect(taskDiv.getProperty(taskDiv.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY)));
 			assertEquals("Process_ClaimHandling",
 				taskMappings.get(0).getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_ID_PROPERTY)));
@@ -513,7 +519,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			// the step that declares a subject gets a form (alongside its heading and the
 			// imported <documentation> help paragraph -- so the form is found by its
 			// ComponentConfiguration, not a fixed child index)
-			final DOMNode reviewDiv = children(wrapper).get(1);
+			final DOMNode reviewDiv = humanStepDivs(wrapper).get(1);
 			assertEquals("task-initial-review", htmlId(reviewDiv));
 
 			final DOMNode form = formChildOf(reviewDiv);
@@ -542,7 +548,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			// the subject type is process-level, so EVERY user task gets a form -- not just the
 			// one that set a form view. The second user task binds to the same process type.
-			final DOMNode assessmentDiv = children(wrapper).get(2);
+			final DOMNode assessmentDiv = humanStepDivs(wrapper).get(2);
 			assertEquals("task-manual-assessment", htmlId(assessmentDiv));
 
 			final DOMNode assessmentForm = formChildOf(assessmentDiv);
@@ -553,8 +559,61 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 				"Claim", assessmentForm.getComponentConfiguration().getExpectedDataType());
 
 			// a non-user-task human step (the message catch event) still gets no subject form
-			final DOMNode waitDiv = children(wrapper).get(3);
+			final DOMNode waitDiv = humanStepDivs(wrapper).get(3);
 			assertNull("a non-user-task human step must not get a subject form", formChildOf(waitDiv));
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected verification failure: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * When no bespoke "Process Subject Form" widget is installed, the generator falls back to the
+	 * standard "Edit Form" widget (which ships with every widget set), so form generation works
+	 * after a plain widget-set import instead of hard-failing on a missing bespoke widget.
+	 */
+	@Test
+	public void testFallsBackToEditFormWidgetWhenBespokeIsAbsent() {
+
+		final String procId;
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_NODE, "Claim");
+
+			// ONLY the fallback widget exists -- no "Process Subject Form".
+			final NodeInterface fallback = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.FALLBACK_SUBJECT_FORM_WIDGET);
+			fallback.setProperty(fallback.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
+				"<div data-structr-meta-name=\"Test Form\" config=\"{ displayMode: 'input' }\"></div>");
+			fallback.setProperty(fallback.getTraits().key(WidgetTraitDefinition.DIMENSIONS_PROPERTY), 1);
+
+			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+			final BpmnProcess process   = firstProcess(defNode).as(BpmnProcess.class);
+			process.setProperty(process.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), "Claim");
+
+			procId = process.getUuid();
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected setup failure: " + fex.getMessage());
+			return;
+		}
+
+		final String pageId = generateSkeletonFor(procId);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page = app.getNodeById(pageId);
+			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
+
+			final DOMNode form = formChildOf(humanStepDivs(wrapper).get(1));
+			assertNotNull("a subject form is inserted via the Edit Form fallback", form);
+			assertEquals("fallback form binds to the current instance", "channel:current",
+				form.getComponentConfiguration().getDataSourceName());
 
 			tx.success();
 
@@ -615,7 +674,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
-			final DOMNode reviewDiv  = children(wrapper).get(1);
+			final DOMNode reviewDiv  = humanStepDivs(wrapper).get(1);
 
 			// find the submit ActionMapping anywhere in the inserted form's subtree
 			final NodeInterface mapping = findSubmitActionMapping(reviewDiv);
@@ -700,7 +759,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
-			final DOMNode form       = formChildOf(children(wrapper).get(1));
+			final DOMNode form       = formChildOf(humanStepDivs(wrapper).get(1));
 
 			assertNotNull("the inserted form should exist", form);
 			final ComponentConfiguration config = form.getComponentConfiguration();
@@ -752,7 +811,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page = app.getNodeById(result.pageId());
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
-			final DOMNode reviewDiv  = children(wrapper).get(1);
+			final DOMNode reviewDiv  = humanStepDivs(wrapper).get(1);
 
 			assertEquals("task-initial-review", htmlId(reviewDiv));
 			assertNull("a user task gets no form when the process declares no subject", formChildOf(reviewDiv));
@@ -835,8 +894,8 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
 
-			final DOMNode reviewForm = formChildOf(children(wrapper).get(1));
-			final DOMNode assessForm = formChildOf(children(wrapper).get(2));
+			final DOMNode reviewForm = formChildOf(humanStepDivs(wrapper).get(1));
+			final DOMNode assessForm = formChildOf(humanStepDivs(wrapper).get(2));
 			assertNotNull("the review step should have a form",     reviewForm);
 			assertNotNull("the assessment step should have a form", assessForm);
 
@@ -910,6 +969,18 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * The wrapper's step divs: its children minus the leading process-details header block
+	 * (created before the step loop, so it is deterministically the first child). Lets the
+	 * step-structure assertions stay 0-based instead of accounting for the header everywhere.
+	 */
+	private List<DOMNode> humanStepDivs(final DOMNode wrapper) {
+
+		final List<DOMNode> all = children(wrapper);
+		assertFalse("wrapper should hold the details header plus step divs", all.isEmpty());
+		return all.subList(1, all.size());
 	}
 
 	/** The first triggered ActionMapping found anywhere in {@code root}'s subtree, or null. */

@@ -141,6 +141,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.claimTask((NodeInterface) entity);
@@ -157,6 +158,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext callerContext = actionContext.getSecurityContext();
 					final NodeInterface task            = (NodeInterface) entity;
 
@@ -196,6 +198,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					final java.util.Map<String, Object> params = arguments.toMap();
@@ -318,6 +321,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final NodeInterface task              = (NodeInterface) entity;
 
@@ -341,6 +345,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.releaseTask((NodeInterface) entity);
@@ -357,6 +362,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.declineTask((NodeInterface) entity);
@@ -373,6 +379,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final NodeInterface task              = (NodeInterface) entity;
 
@@ -398,6 +405,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext callerContext = actionContext.getSecurityContext();
 					final NodeInterface task            = (NodeInterface) entity;
 
@@ -423,6 +431,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext callerContext = actionContext.getSecurityContext();
 					final NodeInterface task            = (NodeInterface) entity;
 

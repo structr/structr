@@ -197,6 +197,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					final java.util.Map<String, Object> params = arguments.toMap();
@@ -219,6 +220,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					// The BpmnElement node(s) this instance is currently at (elements of its
 					// non-completed tokens). Returns the nodes so callers can read bpmnName /
 					// bpmnElementType / bpmnId / etc. as needed.
@@ -235,6 +237,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.terminateProcess((NodeInterface) entity);
@@ -251,6 +254,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.suspendProcess((NodeInterface) entity);
@@ -267,6 +271,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.resumeProcess((NodeInterface) entity);

@@ -71,6 +71,7 @@ public class NotifyFunction extends Function<Object, Object> {
 	private static final Logger logger = LoggerFactory.getLogger(NotifyFunction.class.getName());
 
 	private enum TemplateKey {
+
 		PROCESS_NOTIFICATION_SENDER_NAME,
 		PROCESS_NOTIFICATION_SENDER_ADDRESS,
 		PROCESS_NOTIFICATION_SUBJECT,

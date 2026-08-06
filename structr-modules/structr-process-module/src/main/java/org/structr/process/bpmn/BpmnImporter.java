@@ -38,6 +38,10 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.process.traits.definitions.*;
+import org.structr.process.bpmn.interop.BpmnVendorAdapter;
+import org.structr.process.bpmn.interop.BpmnVendorAdapters;
+import org.structr.process.bpmn.interop.SubjectTypeSynthesizer;
+import org.structr.process.bpmn.interop.VendorTaskForm;
 import org.structr.process.engine.ProcessEngine;
 import org.structr.process.entity.BpmnElement;
 import org.structr.process.entity.BpmnSequenceFlow;
@@ -324,6 +328,20 @@ public class BpmnImporter {
 
 			// Process-level lifecycle listeners.
 			importProcessListeners(app, procNode, processEl);
+
+			// Structr-native process/UI contract: <structr:subject type="..."/> at the process and
+			// <structr:subjectContract formView=".." writableView=".." instructions=".."/> per user
+			// task. This is the canonical round-trip form (BpmnExporter emits it); it references
+			// existing schema views by name rather than defining fields. Runs BEFORE vendor-form
+			// synthesis so an explicit subject type wins and synthesis skips.
+			importStructrContract(app, procNode, processEl, elementMap);
+
+			// Foreign-vendor forms (Camunda, ...): translate any vendor form definitions on this
+			// process's user tasks into a synthesized Structr subject type + per-step views, so a
+			// BPMN authored for another engine still renders. No-op when the process declares its
+			// own subjectType, or when no vendor forms are present. See the interop package
+			// (BpmnVendorAdapter) for the design pillars.
+			importVendorForms(app, procNode, processEl, elementMap, namespaces);
 
 			// methodRef extension elements when no previous version exists.
 			if (previousProc == null) {
@@ -754,7 +772,7 @@ public class BpmnImporter {
 				body = body.substring(2, body.length() - 1).trim();
 			}
 
-			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY), body);
+			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY), bpmnSourceComment(procNode, el, elementType) + stripBpmnSourceComment(body));
 			attrs.put("scriptFormat", "javascript"); // run via the foreign-JS path at execution time
 			scaffoldServiceClasses(app, body); // create service-class stubs for any bean/service calls
 
@@ -787,8 +805,8 @@ public class BpmnImporter {
 		final Element scriptEl = getFirstChildByLocalName(el, "script");
 		if (scriptEl != null) {
 
-			final String scriptBody = scriptEl.getTextContent();
-			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY), scriptBody);
+			final String scriptBody = stripBpmnSourceComment(scriptEl.getTextContent());
+			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY), bpmnSourceComment(procNode, el, elementType) + scriptBody);
 			scaffoldServiceClasses(app, scriptBody); // create service-class stubs for any bean/service calls
 		}
 
@@ -1433,6 +1451,65 @@ public class BpmnImporter {
 		return (StringUtils.isEmpty(s)) ? null : s;
 	}
 
+	private static final String BPMN_SRC_HEADER_START = "// ---- generated from BPMN ----";
+	private static final String BPMN_SRC_HEADER_END   = "// ------------------------------";
+
+	/**
+	 * A provenance header prepended to JavaScript generated from a BPMN element (script tasks and
+	 * {@code camunda:expression} service tasks), so the origin of imported code is visible when
+	 * editing it: the source process (name + id, and version when set) and the source element.
+	 * Deterministic (no timestamp) so re-imports don't churn the body, and delimited so
+	 * {@link #stripBpmnSourceComment} can remove a prior header before a fresh one is prepended
+	 * (the exporter writes scriptContent -- header included -- back into {@code <bpmn:script>}, so a
+	 * re-import would otherwise stack headers). Never throws.
+	 */
+	private String bpmnSourceComment(final NodeInterface procNode, final Element el, final String elementType) {
+
+		try {
+
+			final Traits pt      = procNode.getTraits();
+			final String name    = procNode.getProperty(pt.key(BpmnProcessTraitDefinition.PROCESS_NAME_PROPERTY));
+			final String procId  = procNode.getProperty(pt.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY));
+			final Object version = pt.hasKey(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY)
+				? procNode.getProperty(pt.key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY)) : null;
+
+			final StringBuilder sb = new StringBuilder();
+			sb.append(BPMN_SRC_HEADER_START).append('\n');
+			sb.append("// process: ").append(StringUtils.defaultIfBlank(name, procId));
+			if (StringUtils.isNotBlank(procId)) {
+				sb.append(" (id: ").append(procId).append(')');
+			}
+			if (version != null) {
+				sb.append(", version: ").append(version);
+			}
+			sb.append('\n');
+			sb.append("// element: ").append(nullIfEmpty(el.getAttribute("id"))).append(" (").append(elementType).append(")\n");
+			sb.append(BPMN_SRC_HEADER_END).append('\n');
+			return sb.toString();
+
+		} catch (final Exception e) {
+			return "";
+		}
+	}
+
+	/**
+	 * Remove a previously prepended {@link #bpmnSourceComment} header (the delimited block from
+	 * {@value #BPMN_SRC_HEADER_START} to {@value #BPMN_SRC_HEADER_END}) so re-imports don't stack
+	 * duplicate headers. Leaves any other content untouched.
+	 */
+	private String stripBpmnSourceComment(final String body) {
+
+		if (body == null || !body.startsWith(BPMN_SRC_HEADER_START)) {
+			return body;
+		}
+		final int end = body.indexOf(BPMN_SRC_HEADER_END);
+		if (end < 0) {
+			return body;
+		}
+		final int nl = body.indexOf('\n', end);
+		return nl < 0 ? "" : body.substring(nl + 1);
+	}
+
 	// --- Task listener parsing ---
 
 	/**
@@ -1766,6 +1843,113 @@ public class BpmnImporter {
 	 * {@code suspended} / {@code resumed}; if such an event name is encountered,
 	 * it is imported as-is with a warning.</p>
 	 */
+	/**
+	 * Import the Structr-native process/UI contract from {@code structr:} extension elements -- the
+	 * canonical round-trip form written by {@link BpmnExporter}. Unlike the vendor adapters this
+	 * references existing schema views by name (no synthesis): {@code <structr:subject type="..."/>}
+	 * at the process sets {@code subjectType}; {@code <structr:subjectContract formView=".."
+	 * writableView=".." instructions=".."/>} on a user task sets that step's contract properties.
+	 */
+	private void importStructrContract(final App app, final NodeInterface procNode, final Element processEl,
+	                                   final Map<String, NodeInterface> elementMap) throws FrameworkException {
+
+		final Traits procTraits = procNode.getTraits();
+
+		// Process-level subject type.
+		final Element procExt = getFirstChildByLocalName(processEl, "extensionElements");
+		if (procExt != null) {
+
+			final Element subjectEl = firstStructrChild(procExt, "subject");
+			if (subjectEl != null) {
+
+				final String type = nullIfEmpty(subjectEl.getAttribute("type"));
+				if (type != null) {
+					procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), type);
+				}
+			}
+		}
+
+		// Per user-task contract.
+		final NodeList userTasks = processEl.getElementsByTagNameNS(BPMN_NS, "userTask");
+		for (int i = 0; i < userTasks.getLength(); i++) {
+
+			final Element userTaskEl = (Element) userTasks.item(i);
+			final String  taskId     = nullIfEmpty(userTaskEl.getAttribute("id"));
+			if (taskId == null) {
+				continue;
+			}
+
+			final NodeInterface element = elementMap.get(taskId);
+			if (element == null) {
+				continue;
+			}
+
+			final Element ext = getFirstChildByLocalName(userTaskEl, "extensionElements");
+			if (ext == null) {
+				continue;
+			}
+
+			final Element contractEl = firstStructrChild(ext, "subjectContract");
+			if (contractEl == null) {
+				continue;
+			}
+
+			final Traits elemTraits    = element.getTraits();
+			final String formView      = nullIfEmpty(contractEl.getAttribute("formView"));
+			final String writableView  = nullIfEmpty(contractEl.getAttribute("writableView"));
+			final String instructions  = nullIfEmpty(contractEl.getAttribute("instructions"));
+
+			if (formView != null) {
+				element.setProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY), formView);
+			}
+			if (writableView != null) {
+				element.setProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY), writableView);
+			}
+			if (instructions != null) {
+				element.setProperty(elemTraits.key(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY), instructions);
+			}
+		}
+	}
+
+	/** First direct child of {@code parent} in the Structr namespace with the given local name. */
+	private Element firstStructrChild(final Element parent, final String localName) {
+
+		final NodeList children = parent.getChildNodes();
+		for (int i = 0; i < children.getLength(); i++) {
+
+			final Node child = children.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE && STRUCTR_NS.equals(child.getNamespaceURI()) && localName.equals(child.getLocalName())) {
+				return (Element) child;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Run every applicable vendor adapter over this process, collect the translated user-task
+	 * forms, and hand them to {@link SubjectTypeSynthesizer} to manufacture a subject type + views.
+	 * Detection is by declared namespace; a file mixing dialects is handled by several adapters at
+	 * once. No graph work happens here -- adapters only read XML; synthesis owns the mutation.
+	 */
+	private void importVendorForms(final App app, final NodeInterface procNode, final Element processEl,
+	                               final Map<String, NodeInterface> elementMap, final Map<String, String> namespaces) throws FrameworkException {
+
+		final Set<String> namespaceUris          = new HashSet<>(namespaces.values());
+		final List<BpmnVendorAdapter> adapters   = BpmnVendorAdapters.applicableTo(namespaceUris);
+		if (adapters.isEmpty()) {
+			return;
+		}
+
+		final List<VendorTaskForm> forms = new ArrayList<>();
+		for (final BpmnVendorAdapter adapter : adapters) {
+			forms.addAll(adapter.extractForms(processEl));
+		}
+
+		if (!forms.isEmpty()) {
+			SubjectTypeSynthesizer.synthesize(app, procNode, forms, elementMap);
+		}
+	}
+
 	private void importProcessListeners(final App app, final NodeInterface procNode, final Element processEl) throws FrameworkException {
 
 		final Element extEl = getFirstChildByLocalName(processEl, "extensionElements");

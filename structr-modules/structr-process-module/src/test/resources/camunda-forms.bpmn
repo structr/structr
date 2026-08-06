@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  targetNamespace="http://structr.org/test">
+  <bpmn:process id="procurement" name="Beschaffungsanforderung" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Antrag" name="Antragsformular ausfuellen">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="title" label="Titel" type="string">
+            <camunda:validation><camunda:constraint name="required"/></camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="amount" label="Betrag" type="long"/>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_Approval" name="Genehmigung">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="amount" label="Betrag" type="long">
+            <camunda:validation><camunda:constraint name="readonly"/></camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="approved" label="Genehmigt" type="boolean">
+            <camunda:validation><camunda:constraint name="required"/></camunda:validation>
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" name="End">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"     targetRef="Task_Antrag"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Antrag" targetRef="Task_Approval"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Approval" targetRef="End_1"/>
+
+  </bpmn:process>
+</bpmn:definitions>

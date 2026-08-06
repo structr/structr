@@ -2838,6 +2838,12 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			// Fold triangle in the top-right corner of the page glyph.
 			this._appendDataObjectFold(g, shape);
 		}
+		// Task type marker: a large version of the sidebar palette's task badge
+		// (user / gear / script / hand / rule / send / receive) in the task's
+		// top-left corner. Self-guards: plain tasks and non-task shapes draw
+		// nothing. Sits just below/right of the top-left count badge, which is
+		// centred on the corner (r=8), so the two don't collide.
+		this._renderTaskMarker(g, shape, elementType);
 
 		// Label: BPMN name if present, falls back to bpmnId. Tasks and gateways
 		// render their label *inside* the shape; events render *below*.
@@ -3271,6 +3277,58 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			default:
 				return;  // unknown gateway type -> no marker
 		}
+		parent.appendChild(wrap);
+	}
+
+	/**
+	 * Draw the task-type marker in the top-left corner of a task rectangle:
+	 * a large version of the sidebar palette's task badge (userTask -> person,
+	 * serviceTask -> gear, scriptTask -> lines, manualTask -> hand,
+	 * businessRuleTask -> table, sendTask -> filled envelope, receiveTask ->
+	 * open envelope). Plain tasks and non-task shapes get no marker.
+	 *
+	 * The glyph strings are the SAME ones the palette draws in processes.js
+	 * (`_ProcessDiagram._paletteGlyph`), authored in that palette's 28x28
+	 * space where the task rect sits at (3,6). We reuse them verbatim so the
+	 * canvas marker matches the toolbar icon exactly, then map the palette
+	 * rect-origin (3,6) onto this task's top-left corner and scale up so the
+	 * marker reads as a "large" version. Keep these in sync with the palette.
+	 */
+	_renderTaskMarker(parent, shape, elementType) {
+		// Badge markup keyed by BPMN task type -- copied verbatim from the
+		// sidebar palette (processes.js _paletteGlyph). Coordinates are in the
+		// palette's 28x28 space (task rect at x=3, y=6, w=22, h=16).
+		const BADGES = {
+			userTask:         '<circle cx="8" cy="11" r="2.5" fill="none" stroke="#333" stroke-width="1"/><path d="M5 17 Q8 13 11 17" fill="none" stroke="#333" stroke-width="1" stroke-linecap="round"/>',
+			serviceTask:      '<circle cx="8" cy="14" r="2.5" fill="none" stroke="#333" stroke-width="1"/><path d="M8 10.5 L8 12 M8 16 L8 17.5 M5.5 14 L4 14 M12 14 L10.5 14" stroke="#333" stroke-width="1" stroke-linecap="round"/>',
+			scriptTask:       '<path d="M5 10 L11 10 M5 12.5 L11 12.5 M5 15 L9 15 M5 17.5 L11 17.5" stroke="#333" stroke-width="1" stroke-linecap="round"/>',
+			manualTask:       '<path d="M6 12 L6 17 M8 11 L8 17 M10 12 L10 17" stroke="#333" stroke-width="1" stroke-linecap="round" fill="none"/>',
+			businessRuleTask: '<rect x="5" y="11" width="6" height="6" fill="none" stroke="#333" stroke-width="1"/><line x1="5" y1="13" x2="11" y2="13" stroke="#333" stroke-width="1"/><line x1="7.5" y1="11" x2="7.5" y2="17" stroke="#333" stroke-width="1"/>',
+			sendTask:         '<rect x="5" y="11" width="7" height="5" fill="#333" stroke="#333" stroke-width="1"/>',
+			receiveTask:      '<rect x="5" y="11" width="7" height="5" fill="none" stroke="#333" stroke-width="1"/>',
+		};
+		const badge = BADGES[elementType];
+		if (!badge) return;   // plain task / sub-process / unknown -> no marker
+
+		const s   = 2.6;      // palette-unit -> canvas-px scale ("large")
+		const pad = 5;        // desired margin from the task's top and left edges
+		// The palette anchors these glyphs left-of-centre inside its 28x28 task
+		// rect (origin 3,6): horizontally they hug the left edge, but vertically
+		// they sit ~2.5 units below the rect top. Mapping the rect origin
+		// straight to the corner would leave a larger top margin than left, so
+		// we lift the glyph by that ~2.5-unit content offset (6 -> 8.5) to make
+		// the top and left margins equal.
+		const tx  = shape.boundsX + pad - 3   * s;
+		const ty  = shape.boundsY + pad - 8.5 * s;
+
+		const wrap = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'g');
+		wrap.setAttribute('class', `bpmn-task-marker bpmn-task-marker-${elementType}`);
+		wrap.setAttribute('pointer-events', 'none');
+		wrap.setAttribute('transform', `translate(${tx} ${ty}) scale(${s})`);
+		// innerHTML on an SVG element parses the fragment in the SVG namespace
+		// (foreign-content mode) in evergreen browsers, so these palette glyph
+		// strings become real SVG nodes without per-primitive createElementNS.
+		wrap.innerHTML = badge;
 		parent.appendChild(wrap);
 	}
 

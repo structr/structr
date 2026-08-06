@@ -2065,6 +2065,11 @@ let _ProcessDiagram = {
 			// an import offer rather than an empty dropdown.
 			const SHELL_OPTION = '<option value="">— Bare html/head/body shell —</option>';
 
+			// Once the widget set has been imported, the import offer must not come back even if
+			// the set brought no page-template widgets (a bare shell is still a valid choice) --
+			// re-showing the button after a successful import reads as "the import did nothing".
+			let widgetSetImported = false;
+
 			const loadPageTemplates = async () => {
 				if (!templateSel) return;
 				let templates = [];
@@ -2073,16 +2078,20 @@ let _ProcessDiagram = {
 				} catch (e) {
 					console.error('fetching page templates failed', e);
 				}
+				const hasTemplates = templates.length > 0;
 				templateSel.innerHTML = SHELL_OPTION + templates.map(w => pageOption(w.id, w.name ?? w.id)).join('');
-				templateSel.hidden    = (templates.length === 0);
-				noTemplates.hidden    = (templates.length > 0);
-				if (templates.length === 0) {
+				// Show the template picker once there is anything to pick OR the set was imported
+				// (at least the shell option); hide the import offer in the same cases.
+				templateSel.hidden = !(hasTemplates || widgetSetImported);
+				noTemplates.hidden =   hasTemplates || widgetSetImported;
+				if (!hasTemplates && !widgetSetImported) {
 					noTemplates.innerHTML = 'No page templates yet — they come with the widget set. '
 						+ '<button class="btn-import-widget-set">Import widget set</button> '
 						+ 'or generate a bare page shell now.';
 					noTemplates.querySelector('.btn-import-widget-set').addEventListener('click', async (e) => {
 						e.currentTarget.disabled = true;
 						if (await _Widgets.importDefaultWidgetSet()) {
+							widgetSetImported = true;
 							new SuccessMessage().text('Widget set imported.').show();
 							await loadPageTemplates();
 						} else {

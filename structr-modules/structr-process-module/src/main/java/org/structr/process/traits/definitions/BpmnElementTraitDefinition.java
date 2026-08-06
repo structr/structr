@@ -284,6 +284,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	 * right behaviour.
 	 */
 	private static List<NodeInterface> resolvePrincipalIds(final App app, final Object arg) throws FrameworkException {
+
 		final List<NodeInterface> out = new LinkedList<>();
 		if (arg == null) {
 
@@ -309,6 +310,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		for (final Object item : source) {
 
 			if (!(item instanceof String)) {
+
 				continue;
 			}
 			final String id = ((String) item).trim();
@@ -348,7 +350,10 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					ofKind.add(p);
 				}
-				else                    others.add(p);
+				else {
+
+					others.add(p);
+				}
 			}
 		}
 
@@ -358,7 +363,10 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		if (!hasExpr && !hasPrincipals) {
 
 			// Remove all performers of this kind.
-			for (final NodeInterface p : ofKind) app.delete(p);
+			for (final NodeInterface p : ofKind) {
+
+				app.delete(p);
+			}
 			return;
 		}
 

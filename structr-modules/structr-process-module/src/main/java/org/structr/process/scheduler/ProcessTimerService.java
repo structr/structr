@@ -186,6 +186,7 @@ public class ProcessTimerService extends Thread implements RunnableService {
 
 	@Override
 	public void startService() throws Exception {
+
 		this.doRun = true;
 		this.start();
 	}

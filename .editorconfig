@@ -1,0 +1,18 @@
+# Structr editor conventions. Honored natively by IntelliJ, Eclipse and VS Code.
+# These cover only the mechanical rules; the semantic blank-line rules (see CODE_STYLE.md)
+# are deliberately NOT enforced here, as no formatter can reproduce them.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.java]
+indent_style = tab
+indent_size = 4
+
+# Markdown can carry intentional trailing whitespace (hard line breaks).
+[*.md]
+trim_trailing_whitespace = false

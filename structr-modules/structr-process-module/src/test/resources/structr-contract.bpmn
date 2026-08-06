@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:structr="http://structr.org/schema/process/1.0"
+                  targetNamespace="http://structr.org/test">
+  <bpmn:process id="claim_process" name="ClaimProcess" isExecutable="true">
+
+    <bpmn:extensionElements>
+      <structr:subject type="Claim"/>
+    </bpmn:extensionElements>
+
+    <bpmn:startEvent id="Start_1" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_A" name="Capture">
+      <bpmn:extensionElements>
+        <structr:subjectContract formView="v_a" writableView="w_a" instructions="Fill A"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_B" name="Review">
+      <bpmn:extensionElements>
+        <structr:subjectContract formView="v_b"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" name="End">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_A"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_A"  targetRef="Task_B"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_B"  targetRef="End_1"/>
+
+  </bpmn:process>
+</bpmn:definitions>

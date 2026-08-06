@@ -115,8 +115,8 @@ public class BpmnPageSkeletonLogicTest {
 				VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME),
 
 			BpmnElementType.START_EVENT, Set.of(VisibilityMappingTraitDefinition.STATE_NO_INSTANCE),
-			BpmnElementType.MANUAL_TASK, Set.of(VisibilityMappingTraitDefinition.STATE_PROCESS_AWAITING_ACTION),
-			BpmnElementType.INTERMEDIATE_CATCH_EVENT, Set.of(VisibilityMappingTraitDefinition.STATE_PROCESS_AWAITING_ACTION)
+			BpmnElementType.MANUAL_TASK, Set.of(VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE),
+			BpmnElementType.INTERMEDIATE_CATCH_EVENT, Set.of(VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE)
 		);
 
 		final Map<BpmnElementType, String> prefixes = Map.of(

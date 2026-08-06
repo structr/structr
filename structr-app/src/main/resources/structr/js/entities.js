@@ -4645,10 +4645,18 @@ let _Entities = {
 
 				const options = async () => {
 					if (config.type === 'page') {
-						// the page NAME, not its id: render templates interpolate it into the URL
-						// path, e.g. href="/${field.config.detailPage}/${data.id}"
-						return (await Command.queryPromise('Page', 1000, 1, 'name', 'asc', { hidden: false }, true, null, 'id,name') ?? [])
-							.map(p => ({ name: p.name, value: p.name }));
+						// Store the page's UUID (stable across renames), NOT its name. The render
+						// side (DataField) resolves the UUID back to the page's *current* name, so
+						// `${field.config.detailPage}` still yields a working URL path even after the
+						// page is renamed. Label shows the name, value is the id.
+						const pages = (await Command.queryPromise('Page', 1000, 1, 'name', 'asc', { hidden: false }, true, null, 'id,name') ?? [])
+							.map(p => ({ name: p.name, value: p.id }));
+						// Preserve an already-stored value not in the list (a legacy page NAME from
+						// before this change, or a page not returned) so saving can't silently drop it.
+						if (config.value && !pages.some(p => p.value === config.value)) {
+							pages.unshift({ name: `${config.value} (unresolved)`, value: config.value });
+						}
+						return pages;
 					}
 					// declared by the template itself: ["a","b"] or [{name,value}]
 					return (config.options ?? []).map(o => (typeof o === 'string') ? { name: o, value: o } : o);

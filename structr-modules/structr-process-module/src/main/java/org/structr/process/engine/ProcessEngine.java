@@ -1083,6 +1083,7 @@ public class ProcessEngine {
 
 	/** getBpmnId without the checked exception, for logging. */
 	private String getBpmnIdSafe(final NodeInterface element) {
+
 		try {
 			return getBpmnId(element);
 		} catch (final Exception ex) {

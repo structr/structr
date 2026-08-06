@@ -82,14 +82,16 @@ import java.util.function.Predicate;
  *           Bound to its step (the heading reads its name from there) but deliberately to NO
  *           process -- binding a process changes what no-instance means; see
  *           {@code createVisibilityMapping}.</td></tr>
- *   <tr><td>{@code manualTask}</td><td>{@code process-awaiting-action}</td>
- *       <td>Work performed outside the system. The engine passes straight through these and
- *           never creates a task, so a task-* mapping would never match; the instance-level
- *           "running, nothing for you to do" state is the closest honest predicate.</td></tr>
+ *   <tr><td>{@code manualTask}</td><td>{@code token-waiting-here}</td>
+ *       <td>Work performed outside the system. Step-scoped: shows only while a token of the
+ *           instance is parked at this step. The engine passes straight through manual tasks (no
+ *           token rests there), so in practice this div stays hidden -- correct, and strictly
+ *           better than the old instance-level state that lit every manual/catch div at once.</td></tr>
  *   <tr><td>{@code intermediateCatchEvent} with a message definition</td>
- *       <td>{@code process-awaiting-action}</td>
- *       <td>Waiting on an external message. Same reasoning as manualTask; timer and other
- *           catch events are not human-facing and are skipped.</td></tr>
+ *       <td>{@code token-waiting-here}</td>
+ *       <td>Waiting on an external message. Step-scoped, so it shows only while the token actually
+ *           waits at this catch event; timer and other catch events are not human-facing and are
+ *           skipped.</td></tr>
  * </table>
  *
  * <p>Everything else -- service/script tasks, gateways, end events, boundary timers -- is
@@ -103,9 +105,14 @@ import java.util.function.Predicate;
  * content.</p>
  *
  * <p>Generated markup carries both {@code bpmn-*} marker classes and the widget theme's
- * classes ({@code sw-card}, {@code sw-card-heading}, {@code sw-button sw-button-primary} --
- * see {@code structr/themes/style.css}), so a page built from a page-template widget is
- * styled on arrival. On a bare shell, which has no stylesheet, the theme classes are inert.</p>
+ * classes ({@code sw-card}, {@code sw-card-heading}, {@code sw-card-content},
+ * {@code sw-button sw-button-primary} -- see {@code structr/themes/style.css}), so a page
+ * built from a page-template widget is styled on arrival. On a bare shell, which has no
+ * stylesheet, the theme classes are inert. Each step is a padded card ({@code sw-card
+ * sw-card-content}, matching the details header) with an {@code sw-card-heading}; the help
+ * text and subject form are direct children, so a form widget that is itself a card sits inset
+ * within the card's padding rather than flush against its edge. The wrapper is an
+ * {@code sw-group} so the step cards are spaced apart.</p>
  *
  * <h3>Launching an instance</h3>
  * <p>On top of the step divs the skeleton gets one named "Start Process" div holding a button
@@ -149,10 +156,20 @@ public class BpmnPageSkeletonGenerator {
 	private static final String MESSAGE_EVENT_DEFINITION = "messageEventDefinition";
 
 	/**
-	 * Name of the canonical form Widget inserted for a subject-bearing user task. Provided
-	 * externally in the widget set; the generator only looks it up and configures it per step.
+	 * Name of the preferred form Widget inserted for a subject-bearing user task. A site can ship
+	 * a customized one under this name; the generator only looks it up and configures it per step.
 	 */
 	public static final String PROCESS_SUBJECT_FORM_WIDGET = "Process Subject Form";
+
+	/**
+	 * Fallback form Widget when {@link #PROCESS_SUBJECT_FORM_WIDGET} is absent. "Edit Form" ships
+	 * with the standard widget set and is structurally everything the generator needs -- a
+	 * {@code [dataSource]} placeholder, a ComponentConfiguration, and a submit ActionMapping (its
+	 * {@code update} verb is normalised to {@code completeWithSubject} like any other). Falling
+	 * back to it means the feature works after a plain widget-set import, instead of hard-failing
+	 * on a bespoke widget that no standard set provides.
+	 */
+	public static final String FALLBACK_SUBJECT_FORM_WIDGET = "Edit Form";
 
 	/** What a scaffolded step div looks like: its id prefix and the states it renders in. */
 	private record StepKind(String idPrefix, Set<String> visibleWhen) {}
@@ -172,10 +189,10 @@ public class BpmnPageSkeletonGenerator {
 			VisibilityMappingTraitDefinition.STATE_NO_INSTANCE)),
 
 		BpmnElementType.MANUAL_TASK, new StepKind("manual-", Set.of(
-			VisibilityMappingTraitDefinition.STATE_PROCESS_AWAITING_ACTION)),
+			VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE)),
 
 		BpmnElementType.INTERMEDIATE_CATCH_EVENT, new StepKind("event-", Set.of(
-			VisibilityMappingTraitDefinition.STATE_PROCESS_AWAITING_ACTION))
+			VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE))
 	);
 
 	/**
@@ -285,7 +302,9 @@ public class BpmnPageSkeletonGenerator {
 		final DOMElement wrapper = page.createElement("div");
 
 		stepParent.appendChild(wrapper);
-		describe(wrapper, processLabel, processSlug, "bpmn-process");
+		// sw-group so the details block, step containers and start-process div are spaced
+		// apart (mt-8 between siblings) instead of butting up against each other.
+		describe(wrapper, processLabel, processSlug, "bpmn-process sw-group");
 
 		// boundProcessId caches the BPMN processId, which is process-level: read once.
 		final String bpmnProcessId  = StringUtils.defaultIfEmpty(process.getProcessId(), process.getUuid());
@@ -297,6 +316,10 @@ public class BpmnPageSkeletonGenerator {
 		int formCount               = 0;
 		int stepsMissingSubject     = 0;
 
+		// Process-details header: the running instance's metadata, shown only on an instance page
+		// (has-active-instance = the page's current object is a ProcessInstance).
+		createProcessDetailsBlock(app, page, wrapper, process, processLabel, bpmnProcessId, usedIds);
+
 		for (final BpmnElement step : steps) {
 
 			final StepKind kind  = HUMAN_STEPS.get(step.getElementType());
@@ -306,7 +329,7 @@ public class BpmnPageSkeletonGenerator {
 			final DOMElement div = page.createElement("div");
 
 			wrapper.appendChild(div);
-			describe(div, label, htmlId, "bpmn-step sw-card");
+			describe(div, label, htmlId, "bpmn-step sw-card sw-card-content");
 			usedIds.add(htmlId);
 
 			// A heading rather than an empty div: an empty div renders as nothing, so there is
@@ -517,17 +540,30 @@ public class BpmnPageSkeletonGenerator {
 	}
 
 	/**
-	 * The canonical {@value #PROCESS_SUBJECT_FORM_WIDGET} widget, or null when it is not
-	 * installed. Looked up once per page. A null means no subject forms are inserted -- logged
-	 * once, so a missing widget is diagnosable rather than a silent absence of forms.
+	 * The form widget to expand for subject-bearing user tasks: the site's
+	 * {@value #PROCESS_SUBJECT_FORM_WIDGET} when present, otherwise the standard
+	 * {@value #FALLBACK_SUBJECT_FORM_WIDGET}. Null only when neither exists -- logged once, so a
+	 * missing widget is diagnosable rather than a silent absence of forms. Looked up once per page.
 	 */
 	private static Widget findProcessSubjectForm(final App app) throws FrameworkException {
 
-		final NodeInterface widget = app.nodeQuery(StructrTraits.WIDGET).name(PROCESS_SUBJECT_FORM_WIDGET).getFirst();
+		NodeInterface widget = app.nodeQuery(StructrTraits.WIDGET).name(PROCESS_SUBJECT_FORM_WIDGET).getFirst();
 
 		if (widget == null) {
 
-			logger.warn("BPMN page skeleton: widget '{}' not found; user-task steps will get no subject form. Import the widget set that provides it.", PROCESS_SUBJECT_FORM_WIDGET);
+			widget = app.nodeQuery(StructrTraits.WIDGET).name(FALLBACK_SUBJECT_FORM_WIDGET).getFirst();
+
+			if (widget != null) {
+
+				logger.info("BPMN page skeleton: widget '{}' not found; falling back to the standard '{}' widget.",
+					PROCESS_SUBJECT_FORM_WIDGET, FALLBACK_SUBJECT_FORM_WIDGET);
+			}
+		}
+
+		if (widget == null) {
+
+			logger.warn("BPMN page skeleton: neither the '{}' nor the fallback '{}' widget is installed; user-task steps will get no subject form. Import the widget set.",
+				PROCESS_SUBJECT_FORM_WIDGET, FALLBACK_SUBJECT_FORM_WIDGET);
 			return null;
 		}
 
@@ -745,6 +781,14 @@ public class BpmnPageSkeletonGenerator {
 				mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.TARGETS_ELEMENT_PROPERTY), step);
 				mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), subjectType);
 
+				// Completing a step flips which SIBLING step div is visible, so the form must reload
+				// the WHOLE page -- re-evaluating every step's VisibilityMapping -- not just its own
+				// component. A 'component-based' reload (the standalone-form default) refreshes only
+				// the submitted form and never reveals the next step's form, which reads as "the
+				// process ran but the page didn't update". Force full-page-reload regardless of the
+				// source widget's default.
+				mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "full-page-reload");
+
 				if (amTraits.hasKey(ActionMappingTraitDefinition.TARGETS_ELEMENT_BPMN_ID_PROPERTY)) {
 
 					mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.TARGETS_ELEMENT_BPMN_ID_PROPERTY), step.getBpmnId());
@@ -935,6 +979,52 @@ public class BpmnPageSkeletonGenerator {
 		mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_PROPERTY), bpmnProcessId);
 
 		button.setProperty(button.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY), List.of(mapping));
+	}
+
+	/**
+	 * Header block with the running instance's metadata (status, timestamps, initiator), shown only
+	 * on an instance page (has-active-instance = the page's current object is a ProcessInstance).
+	 * Values are scripts reading {@code current} (the ProcessInstance), so they stay live. A UI dev
+	 * restyles / extends this like any other generated block.
+	 */
+	private static void createProcessDetailsBlock(final App app, final Page page, final DOMElement wrapper,
+	                                              final BpmnProcess process, final String processLabel,
+	                                              final String bpmnProcessId, final Set<String> usedIds) throws FrameworkException {
+
+		final DOMElement container = page.createElement("div");
+		wrapper.appendChild(container);
+
+		final String htmlId = firstFree("process-details", usedIds::contains);
+		describe(container, "Process Details", htmlId, "bpmn-process-details sw-card sw-card-content");
+		usedIds.add(htmlId);
+
+		// only on an instance page (current is a ProcessInstance); hidden on the bare launch page
+		createVisibilityMapping(app, container, process, null, VisibilityMappingTraitDefinition.STATE_HAS_ACTIVE_INSTANCE, bpmnProcessId);
+
+		final DOMElement heading = page.createElement("h3");
+		container.appendChild(heading);
+		heading.appendChild(page.createTextNode("${localize('" + escapeForSingleQuotedLiteral(processLabel) + "')}"));
+		final String headingId = firstFree(htmlId + "-heading", usedIds::contains);
+		describe(heading, "Process Details Heading", headingId, "bpmn-process-details-title sw-card-heading");
+		usedIds.add(headingId);
+
+		detailRow(page, container, "Status",    "${current.status}",         usedIds);
+		detailRow(page, container, "Started",   "${current.startTime}",      usedIds);
+		detailRow(page, container, "Completed", "${current.endTime}",        usedIds);
+		detailRow(page, container, "Initiator", "${current.initiator.name}", usedIds);
+	}
+
+	/** One "label: value" row of the process-details block; the value is a live script (e.g. current.status). */
+	private static void detailRow(final Page page, final DOMElement parent, final String label,
+	                              final String valueScript, final Set<String> usedIds) throws FrameworkException {
+
+		final DOMElement row = page.createElement("div");
+		parent.appendChild(row);
+		row.appendChild(page.createTextNode("${localize('" + escapeForSingleQuotedLiteral(label) + "')}: " + valueScript));
+
+		final String id = firstFree("detail-" + slug(label, "row"), usedIds::contains);
+		describe(row, label, id, "bpmn-detail-row sw-text");
+		usedIds.add(id);
 	}
 
 	private static void createVisibilityMapping(final App app, final DOMElement domNode, final BpmnProcess process, final BpmnElement step,

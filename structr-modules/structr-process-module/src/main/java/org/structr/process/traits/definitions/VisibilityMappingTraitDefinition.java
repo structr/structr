@@ -20,6 +20,7 @@ package org.structr.process.traits.definitions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -128,12 +129,18 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String STATE_PROCESS_AWAITING_ACTION = "process-awaiting-action";
 	public static final String STATE_NO_INSTANCE             = "no-instance";
 	public static final String STATE_HAS_ACTIVE_INSTANCE     = "has-active-instance";
+	// Step-scoped: a token of this instance is parked (waiting) at the bound step. Unlike
+	// process-awaiting-action (instance-level, "somewhere / nothing for me"), this identifies the
+	// exact step the token rests at, so a manual / message-catch div shows only when the token is
+	// actually there -- one at a time, not all of them whenever the instance is between tasks.
+	public static final String STATE_TOKEN_WAITING_HERE      = "token-waiting-here";
 
 	private static final Set<String> ALL_STATES = Set.of(
 		STATE_TASK_AVAILABLE, STATE_TASK_RESERVED_BY_ME, STATE_TASK_RESERVED_BY_OTHER,
 		STATE_TASK_COMPLETED, STATE_TASK_CANCELLED,
 		STATE_PROCESS_COMPLETED, STATE_PROCESS_TERMINATED, STATE_PROCESS_FAILED,
-		STATE_PROCESS_AWAITING_ACTION, STATE_NO_INSTANCE, STATE_HAS_ACTIVE_INSTANCE
+		STATE_PROCESS_AWAITING_ACTION, STATE_NO_INSTANCE, STATE_HAS_ACTIVE_INSTANCE,
+		STATE_TOKEN_WAITING_HERE
 	);
 
 	public VisibilityMappingTraitDefinition() {
@@ -286,7 +293,8 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 					//   * ProcessInstance -> use directly
 					//   * TaskInstance    -> walk to its parent processInstance
 					//   * anything else   -> no instance scope (only no-instance can match)
-					final NodeInterface contextObject = unwrapToProcessInstance((NodeInterface) arguments.get("contextObject"));
+					final NodeInterface rawContext    = (NodeInterface) arguments.get("contextObject");
+					final NodeInterface contextObject = unwrapToProcessInstance(rawContext);
 					final Principal currentUser       = actionContext.getSecurityContext().getUser(false);
 
 					// Engine state queries run as superuser. Engine grants determine
@@ -294,12 +302,23 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 					// state.
 					final App suApp = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
 
+					// VERBOSE DEBUG (gated by log.process.visibilitymappings, default off): one line per
+					// evaluation with everything needed to see why a mapping does or does not match --
+					// the raw context object the page passed, how it resolved to a ProcessInstance (null
+					// means the URL/current object was not an instance -> only no-instance can match),
+					// the bound process/step, and the user.
+					if (vmDebug()) {
+						logger.info("VisibilityMapping[{}] evaluate: state='{}' boundProcessId='{}' boundStepBpmnId='{}' rawContext={} resolvedInstance={} user={}",
+							mapping.getUuid(), state, boundProcessId, boundStepBpmnId,
+							rawContext == null ? "null" : (rawContext.getType() + ":" + rawContext.getUuid()),
+							contextObject == null ? "null" : contextObject.getUuid(),
+							currentUser == null ? "anonymous" : currentUser.getName());
+					}
+
 					final boolean result = evaluatePredicate(suApp, state, contextObject, boundProcessId, boundStepBpmnId, currentUser);
-					logger.debug("VM[{}] state={} boundProcess={} boundStep={} ctxInstance={} user={} -> {}",
-						mapping.getUuid(), state, boundProcessId, boundStepBpmnId,
-						contextObject == null ? "null" : contextObject.getUuid(),
-						currentUser == null ? "anonymous" : currentUser.getName(),
-						result);
+					if (vmDebug()) {
+						logger.info("VisibilityMapping[{}] evaluate: state='{}' => VISIBLE={}", mapping.getUuid(), state, result);
+					}
 					return Boolean.valueOf(result);
 				}
 
@@ -362,6 +381,106 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	/**
+	 * Whether verbose VisibilityMapping evaluation logging is enabled. Gated by the
+	 * {@code log.process.visibilitymappings} setting (Settings.LogProcessVisibilityMappings),
+	 * default false, because the output is one block per mapping per page render. Turn it on in
+	 * structr.conf (or the config UI, General &gt; Logging) only to diagnose why a process page
+	 * shows the wrong step / no step.
+	 */
+	private static boolean vmDebug() {
+		return Boolean.TRUE.equals(Settings.LogProcessVisibilityMappings.getValue());
+	}
+
+	/**
+	 * Verbose-debug helper: a compact one-line dump of an instance's tasks and tokens as
+	 * {@code task[status@stepBpmnId]} / {@code token[status@stepBpmnId]}, so a mapping that fails to
+	 * match is explainable against the instance's actual state. Never throws (best-effort logging).
+	 */
+	private static String dumpInstanceState(final NodeInterface instance) {
+
+		try {
+
+			final Traits it        = instance.getTraits();
+			final Traits tt        = Traits.of(ProcessTraits.TASK_INSTANCE);
+			final Traits kt        = Traits.of(ProcessTraits.PROCESS_TOKEN);
+			final StringBuilder sb = new StringBuilder();
+
+			final Iterable<NodeInterface> tasks = instance.getProperty(it.key(ProcessInstanceTraitDefinition.TASKS_PROPERTY));
+			if (tasks != null) {
+				for (final NodeInterface t : tasks) {
+					// explicit (String) cast: without it, String.valueOf infers the getProperty
+					// return type as char[] and inserts a bogus cast (String -> char[] at runtime).
+					final String status                     = (String) t.getProperty(tt.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
+					final NodeInterface definedBy           = t.getProperty(tt.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
+					final NodeInterface assignee            = t.getProperty(tt.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
+					final Iterable<NodeInterface> candidates = t.getProperty(tt.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY));
+					sb.append(" task[").append(status).append('@').append(bpmnIdOf(definedBy))
+						.append(" assignee=").append(nameOf(assignee))
+						.append(" candidates=").append(namesOf(candidates)).append(']');
+				}
+			}
+
+			final Iterable<NodeInterface> tokens = instance.getProperty(it.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
+			if (tokens != null) {
+				for (final NodeInterface k : tokens) {
+					final String status         = (String) k.getProperty(kt.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
+					final NodeInterface atElement = k.getProperty(kt.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
+					sb.append(" token[").append(status).append('@').append(bpmnIdOf(atElement)).append(']');
+				}
+			}
+
+			return sb.length() == 0 ? "(no tasks/tokens)" : sb.toString().trim();
+
+		} catch (final Exception e) {
+			return "(state dump failed: " + e.getMessage() + ")";
+		}
+	}
+
+	/** The bpmnId of a BpmnElement, or {@code ?} when absent -- for verbose-debug dumps only. */
+	private static String bpmnIdOf(final NodeInterface element) {
+
+		if (element == null) {
+			return "?";
+		}
+		try {
+			final String id = element.getProperty(element.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+			return id != null ? id : "?";
+		} catch (final Exception e) {
+			return "?";
+		}
+	}
+
+	/** A node's name, or {@code -} when null -- for verbose-debug dumps only. */
+	private static String nameOf(final NodeInterface node) {
+
+		if (node == null) {
+			return "-";
+		}
+		try {
+			final String name = node.getName();
+			return name != null ? name : node.getUuid();
+		} catch (final Exception e) {
+			return "?";
+		}
+	}
+
+	/** Comma-joined names of an iterable of nodes (candidate assignees), or {@code -} when empty. */
+	private static String namesOf(final Iterable<NodeInterface> nodes) {
+
+		if (nodes == null) {
+			return "-";
+		}
+		final StringBuilder sb = new StringBuilder();
+		for (final NodeInterface n : nodes) {
+			if (sb.length() > 0) {
+				sb.append(',');
+			}
+			sb.append(nameOf(n));
+		}
+		return sb.length() == 0 ? "-" : sb.toString();
+	}
+
+	/**
 	 * Evaluate a state against the given ProcessInstance. The instance defines
 	 * the scope: tasks belong to it, status is read from it. Cross-version safety
 	 * is automatic because tasks belong to one instance and one definition;
@@ -415,6 +534,11 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 		}
 
 		if (instance == null) {
+			if (vmDebug()) {
+				logger.info("VisibilityMapping.evaluatePredicate: state='{}' -> FALSE: no ProcessInstance in context "
+					+ "(the page's current object did not resolve to a ProcessInstance/TaskInstance). "
+					+ "Check that the URL carries the ProcessInstance UUID and that 'current' resolves to it.", state);
+			}
 			return false;
 		}
 
@@ -433,6 +557,11 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 			final String procId = proc.getProperty(proc.getTraits().key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY));
 			if (!boundProcessId.equals(procId)) {
 
+				if (vmDebug()) {
+					logger.info("VisibilityMapping.evaluatePredicate: state='{}' -> FALSE: boundProcessId='{}' does not match "
+						+ "the instance's processId='{}'. (Common after a re-import: the mapping still points at the old "
+						+ "process id. Regenerate the page or re-point boundProcess.)", state, boundProcessId, procId);
+				}
 				return false;
 			}
 		}
@@ -452,7 +581,19 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 
 		final PropertyKey<String>        instStatusKey    = instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY);
 		final PropertyKey<NodeInterface> instInitiatorKey = instTraits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY);
-		final PropertyKey<Iterable<NodeInterface>> instTasksKey = instTraits.key(ProcessInstanceTraitDefinition.TASKS_PROPERTY);
+		final PropertyKey<Iterable<NodeInterface>> instTasksKey  = instTraits.key(ProcessInstanceTraitDefinition.TASKS_PROPERTY);
+		final PropertyKey<Iterable<NodeInterface>> instTokensKey = instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY);
+
+		// VERBOSE DEBUG: dump what the instance actually holds -- each task as [status@stepBpmnId]
+		// and each token as [status@stepBpmnId] -- so a state that should match but doesn't is
+		// immediately explainable (e.g. boundStep='Task_X' but the only waiting token is @'Event_Y').
+		// Guarded so the (non-trivial) dump is only computed when the flag is on.
+		if (vmDebug()) {
+			logger.info("VisibilityMapping.evaluatePredicate: state='{}' boundStep='{}' instance='{}' status='{}' -- {}",
+				state, boundStepBpmnId, instance.getUuid(),
+				instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY)),
+				dumpInstanceState(instance));
+		}
 
 		switch (state) {
 
@@ -558,6 +699,35 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 					}
 				}
 				return true;
+			}
+
+			case STATE_TOKEN_WAITING_HERE: {
+				// Step-scoped counterpart to process-awaiting-action: a token of THIS instance is
+				// parked (status=waiting) at the bound step. Lights up only the div whose step the
+				// token actually rests at, so manual / message-catch steps show one at a time
+				// instead of all together. Pass-through steps (no token ever waits there) never show.
+				if (boundStepBpmnId == null || boundStepBpmnId.isEmpty()) {
+					return false;
+				}
+				final Iterable<NodeInterface> tokens = instance.getProperty(instTokensKey);
+				if (tokens != null) {
+
+					final Traits tokenTraits                       = Traits.of(ProcessTraits.PROCESS_TOKEN);
+					final PropertyKey<String> tokenStatusKey       = tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY);
+					final PropertyKey<NodeInterface> atElementKey  = tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY);
+
+					for (final NodeInterface token : tokens) {
+
+						if (!ProcessTokenTraitDefinition.STATUS_WAITING.equals(token.getProperty(tokenStatusKey))) {
+							continue;
+						}
+						final NodeInterface el = token.getProperty(atElementKey);
+						if (el != null && boundStepBpmnId.equals(el.getProperty(el.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)))) {
+							return true;
+						}
+					}
+				}
+				return false;
 			}
 
 			default:

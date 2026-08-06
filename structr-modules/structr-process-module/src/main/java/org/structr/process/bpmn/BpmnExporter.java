@@ -27,6 +27,9 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.process.traits.definitions.BpmnElementTraitDefinition;
+import org.structr.process.traits.definitions.BpmnProcessTraitDefinition;
 import org.structr.process.entity.BpmnCollaboration;
 import org.structr.process.entity.BpmnDefinitions;
 import org.structr.process.entity.BpmnDiDiagram;
@@ -231,7 +234,17 @@ public class BpmnExporter {
 		final boolean hasPerformers                     = hasAny(performersIter);
 		final boolean hasListeners                      = hasAny(listenersIter);
 		final boolean hasMethods                        = hasAny(methodsIter);
-		final boolean hasContent                        = documentation != null || scriptContent != null || eventDefType != null || hasGraphChildren || hasPerformers || hasListeners || hasMethods;
+
+		// Structr-native process/UI contract (round-trips via <structr:subjectContract>). The
+		// subject *type* is process-level (emitted by exportProcessExtensionElements); a step only
+		// carries which views it shows / may write, plus its instructions.
+		final Traits elemTraits                         = elem.getTraits();
+		final String subjectFormView                    = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY));
+		final String subjectWritableView                = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY));
+		final String subjectInstructions                = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY));
+		final boolean hasContract                       = subjectFormView != null || subjectWritableView != null || subjectInstructions != null;
+
+		final boolean hasContent                        = documentation != null || scriptContent != null || eventDefType != null || hasGraphChildren || hasPerformers || hasListeners || hasMethods || hasContract;
 
 		w.writeStartElement(BPMN_NS, elemType);
 
@@ -296,8 +309,8 @@ public class BpmnExporter {
 			w.writeEndElement();
 		}
 
-		// extensionElements: task listeners and method refs.
-		if (hasListeners || hasMethods) {
+		// extensionElements: task listeners, method refs and the structr: subject contract.
+		if (hasListeners || hasMethods || hasContract) {
 
 			w.writeCharacters("\n" + spaces(indent + 2));
 			w.writeStartElement(BPMN_NS, "extensionElements");
@@ -318,6 +331,15 @@ public class BpmnExporter {
 					w.writeCharacters("\n" + spaces(indent + 4));
 					exportMethodRef(w, method);
 				}
+			}
+
+			if (hasContract) {
+
+				w.writeCharacters("\n" + spaces(indent + 4));
+				w.writeEmptyElement("structr", "subjectContract", STRUCTR_NS);
+				writeAttrIfNotNull(w, "formView",     subjectFormView);
+				writeAttrIfNotNull(w, "writableView", subjectWritableView);
+				writeAttrIfNotNull(w, "instructions", subjectInstructions);
 			}
 
 			w.writeCharacters("\n" + spaces(indent + 2));
@@ -631,12 +653,23 @@ public class BpmnExporter {
 		final boolean hasListeners                        = hasAny(listenersIter);
 		final boolean hasMethods                          = hasAny(methodsIter);
 
-		if (!hasListeners && !hasMethods) {
+		// Structr-native process-level subject type (round-trips via <structr:subject>).
+		final String subjectType                          = proc.getProperty(proc.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY));
+		final boolean hasSubject                          = subjectType != null && !subjectType.isEmpty();
+
+		if (!hasListeners && !hasMethods && !hasSubject) {
 			return;
 		}
 
 		w.writeCharacters("\n    ");
 		w.writeStartElement(BPMN_NS, "extensionElements");
+
+		if (hasSubject) {
+
+			w.writeCharacters("\n      ");
+			w.writeEmptyElement("structr", "subject", STRUCTR_NS);
+			w.writeAttribute("type", subjectType);
+		}
 
 		if (hasListeners) {
 

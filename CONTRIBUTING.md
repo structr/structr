@@ -70,6 +70,10 @@ Pull requests should:
 - Add documentation where appropriate
 - Avoid breaking backward compatibility unless discussed beforehand
 
+Formatting conventions (indentation, the semantic blank-line rules) and the style tooling
+(`.editorconfig`, Checkstyle, the semantic linter, the review-need scorer) live in
+**[CODE_STYLE.md](CODE_STYLE.md)**.
+
 ---
 
 ## Running Tests

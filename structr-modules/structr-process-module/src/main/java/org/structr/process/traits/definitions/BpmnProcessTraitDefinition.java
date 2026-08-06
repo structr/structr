@@ -102,7 +102,11 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>  processId                          = new StringProperty(PROCESS_ID_PROPERTY).indexed();
 		final Property<String>  processName                        = new StringProperty(PROCESS_NAME_PROPERTY).indexed();
 		final Property<Boolean> processIsExecutable                = new BooleanProperty(PROCESS_IS_EXECUTABLE_PROPERTY);
-		final Property<Boolean> defaultAssigneeFromInitiator       = new BooleanProperty(DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY);
+		// Default TRUE: out of the box, user tasks whose humanPerformer / candidateGroups don't
+		// resolve (e.g. groups not created yet) fall back to the initiator, so a freshly imported
+		// process is walkable end-to-end by a single user -- no group setup needed. Speeds up test
+		// and demo workflows; can be turned off per process for strict BPMN spec semantics.
+		final Property<Boolean> defaultAssigneeFromInitiator       = new BooleanProperty(DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY).defaultValue(true);
 		final Property<String>  subjectType                        = new StringProperty(SUBJECT_TYPE_PROPERTY).indexed();
 
 		// Parent reference: which BpmnDefinitions hosts this process.

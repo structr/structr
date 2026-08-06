@@ -661,6 +661,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 	/** A started candidate-task instance with its group and one member. */
 	private static final class Ctx {
+
 		final String instId;
 		final NodeInterface group;
 		final NodeInterface member;
@@ -670,6 +671,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	}
 
 	private Ctx startCandidateTask() throws FrameworkException {
+
 		final NodeInterface group  = createGroup("Reviewers");
 		final NodeInterface member = createUser("reviewer");
 		addToGroup(group, member);
@@ -685,6 +687,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	}
 
 	private Set<String> candidateAssigneeIds(final NodeInterface task) throws FrameworkException {
+
 		final Set<String> ids = new HashSet<>();
 		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY)))) {
 
@@ -694,6 +697,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	}
 
 	private Set<String> declinedByIds(final NodeInterface task) throws FrameworkException {
+
 		final Set<String> ids = new HashSet<>();
 		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY)))) {
 

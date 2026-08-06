@@ -329,6 +329,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 	}
 
 	private void setMethodSource(final String methodName, final String source) throws Exception {
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getFirst();
@@ -339,11 +340,13 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 	}
 
 	private void assertMarker(final String name) throws Exception {
+
 		assertEquals("expected exactly one '" + name + "' marker from a listener",
 			1, app.nodeQuery("TestOne").name(name).getAsList().size());
 	}
 
 	private void assertNoMarker(final String name) throws Exception {
+
 		assertTrue("did not expect a '" + name + "' marker yet",
 			app.nodeQuery("TestOne").name(name).getAsList().isEmpty());
 	}
