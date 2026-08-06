@@ -34,11 +34,13 @@ public class MD5Function extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "md5";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str");
 	}
 
@@ -54,43 +56,44 @@ public class MD5Function extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.md5(string); }}. Example: ${{ $.md5(this.email); }}"),
-			Usage.structrScript("Usage: ${md5(string)}. Example: ${md5(this.email)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.md5(string); }}. Example: ${{ $.md5(this.email); }}"), Usage.structrScript("Usage: ${md5(string)}. Example: ${md5(this.email)}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the MD5 hash of a given object.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function converts its argument into a string, creates the 32-character alphanumeric MD5 hash of that string and returns the resulting hash string.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("input", "input object to hash")
-		);
+		return List.of(Parameter.mandatory("input", "input object to hash"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

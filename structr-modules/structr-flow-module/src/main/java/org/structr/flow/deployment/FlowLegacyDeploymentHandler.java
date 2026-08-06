@@ -115,6 +115,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 				@Override
 				public String getKey (final Map<String, String> map) {
+
 					return map.get("sourceId").concat(map.get("targetId"));
 				}
 			});
@@ -124,12 +125,12 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 			tx.success();
 		}
 
-
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(flowEngineFile.toFile()))) {
 
 			gson.toJson(flowElements, fos);
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}
@@ -148,8 +149,8 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 			try (final Reader reader = Files.newBufferedReader(flowPath, Charset.forName("utf-8"))) {
 
 				final List<Map<String, Object>> flowElements = gson.fromJson(reader, List.class);
-
 				final SecurityContext context = SecurityContext.getSuperUserInstance();
+
 				context.setDoTransactionNotifications(false);
 
 				final App app                 = StructrApp.getInstance(context);
@@ -170,7 +171,6 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 						app.delete(toDelete);
 					}
 
-
 					for (final String c : relsToExport) {
 
 						for (final RelationshipInterface toDelete : app.relationshipQuery(c).getAsList()) {
@@ -188,7 +188,6 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 					for (final Map<String, Object> entry : flowElements) {
 
 						final Object rawType = entry.get("type");
-
 						if (rawType != null ) {
 
 							final String type = (String)rawType;
@@ -212,6 +211,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 				}
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 		}

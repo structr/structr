@@ -87,6 +87,7 @@ public class TimeBasedOneTimePasswordHelper {
 	 * to generate the QR image to be shared with the user. Other lengths should use {@link #generateBase32Secret(int)}.
 	 */
 	public static String generateBase32Secret() {
+
 		return generateBase32Secret(16);
 	}
 
@@ -94,26 +95,34 @@ public class TimeBasedOneTimePasswordHelper {
 	 * Similar to {@link #generateBase32Secret()} but specifies a character length.
 	 */
 	public static String generateBase32Secret(int length) {
+
 		StringBuilder sb = new StringBuilder(length);
 		Random random = new SecureRandom();
+
 		for (int i = 0; i < length; i++) {
+
 			int val = random.nextInt(32);
 			if (val < 26) {
+
 				sb.append((char) ('A' + val));
+
 			} else {
+
 				sb.append((char) ('2' + (val - 26)));
 			}
 		}
+
 		return sb.toString();
 	}
 
 	public static String generateCurrentNumberString(String base32Secret, String cryptoAlgorithm, int timeStepSeconds, Integer length) throws GeneralSecurityException {
 
 		byte[] key = decodeBase32(base32Secret);
-
 		byte[] data = new byte[8];
 		long value = System.currentTimeMillis() / 1000 / timeStepSeconds;
+
 		for (int i = 7; value > 0; i--) {
+
 			data[i] = (byte) (value & 0xFF);
 			value >>= 8;
 		}
@@ -130,11 +139,14 @@ public class TimeBasedOneTimePasswordHelper {
 
 		// We're using a long because Java hasn't got unsigned int.
 		long truncatedHash = 0;
+
 		for (int i = offset; i < offset + 4; ++i) {
+
 			truncatedHash <<= 8;
 			// get the 4 bytes at the offset
 			truncatedHash |= (hash[i] & 0xFF);
 		}
+
 		// cut off the top bit
 		truncatedHash &= 0x7FFFFFFF;
 
@@ -148,10 +160,14 @@ public class TimeBasedOneTimePasswordHelper {
 	 * Return the string prepended with 0s.
 	 */
 	static String zeroPrepend(long num, int digits) {
+
 		String numStr = Long.toString(num);
 		if (numStr.length() >= digits) {
+
 			return numStr;
+
 		} else {
+
 			return String.format("%0" + digits + "d", num);
 		}
 	}
@@ -161,28 +177,42 @@ public class TimeBasedOneTimePasswordHelper {
 	 * testing.
 	 */
 	static byte[] decodeBase32(String str) {
+
 		// each base-32 character encodes 5 bits
 		int numBytes = ((str.length() * 5) + 7) / 8;
 		byte[] result = new byte[numBytes];
 		int resultIndex = 0;
 		int which = 0;
 		int working = 0;
+
 		for (int i = 0; i < str.length(); i++) {
+
 			char ch = str.charAt(i);
 			int val;
+
 			if (ch >= 'a' && ch <= 'z') {
+
 				val = ch - 'a';
+
 			} else if (ch >= 'A' && ch <= 'Z') {
+
 				val = ch - 'A';
+
 			} else if (ch >= '2' && ch <= '7') {
+
 				val = 26 + (ch - '2');
+
 			} else if (ch == '=') {
+
 				// special case
 				which = 0;
 				break;
+
 			} else {
+
 				throw new IllegalArgumentException("Invalid base-32 character: " + ch);
 			}
+
 			/*
 			 * There are probably better ways to do this but this seemed the most straightforward.
 			 */
@@ -242,12 +272,17 @@ public class TimeBasedOneTimePasswordHelper {
 					break;
 			}
 		}
+
 		if (which != 0) {
+
 			result[resultIndex++] = (byte) working;
 		}
+
 		if (resultIndex != result.length) {
+
 			result = Arrays.copyOf(result, resultIndex);
 		}
+
 		return result;
 	}
 }

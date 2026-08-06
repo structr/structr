@@ -32,24 +32,30 @@ public class PathPropertySortOrder implements SortOrder {
 	final PathResolvingComparator comparator;
 
 	public PathPropertySortOrder(final ActionContext actionContext, final String pathSortKey, final boolean sortDescending) {
+
 		this.comparator = new PathResolvingComparator(actionContext, pathSortKey, sortDescending);
 	}
 
 	@Override
 	public List<SortSpec> getSortElements() {
+
 		return Collections.EMPTY_LIST;
 	}
 
 	@Override
 	public boolean isEmpty() {
+
 		return false;
 	}
 
 	@Override
 	public int compare(Object o1, Object o2) {
+
 		if (o1 instanceof GraphObject && o2 instanceof GraphObject) {
+
 			return this.comparator.compare((GraphObject) o1, (GraphObject) o2);
 		}
+
 		return 0;
 	}
 }

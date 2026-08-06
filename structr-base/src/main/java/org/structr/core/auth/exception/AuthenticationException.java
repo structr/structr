@@ -27,10 +27,12 @@ package org.structr.core.auth.exception;
 public class AuthenticationException extends UnauthorizedException {
 
 	public AuthenticationException(final String msg) {
+
 		super(msg);
 	}
 
 	public AuthenticationException(final Throwable cause) {
+
 		super(cause.getMessage());
 	}
 }

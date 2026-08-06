@@ -35,11 +35,13 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
+
 		return Multiplicity.One;
 	}
 
 	@Override
 	public Multiplicity getTargetMultiplicity() {
+
 		return Multiplicity.One;
 	}
 
@@ -113,6 +115,7 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 
 	@Override
 	public Direction getDirectionForType(final String type) {
+
 		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 

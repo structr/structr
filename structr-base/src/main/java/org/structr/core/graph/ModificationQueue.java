@@ -69,6 +69,7 @@ public class ModificationQueue {
 	private long indexingTime                                                                   = 0L;
 
 	public ModificationQueue(final long transactionId, final String threadName) {
+
 		this.counter = new CallbackCounter(logger, transactionId, threadName);
 	}
 
@@ -79,10 +80,12 @@ public class ModificationQueue {
 	 * @return the types
 	 */
 	public Set<String> getSynchronizationKeys() {
+
 		return synchronizationKeys;
 	}
 
 	public int getSize() {
+
 		return nodeModifications.size() + relModifications.size();
 	}
 
@@ -102,6 +105,7 @@ public class ModificationQueue {
 
 					// do callback according to entry state
 					if (!state.doInnerCallback(this, securityContext, errorBuffer, counter)) {
+
 						return false;
 					}
 
@@ -111,7 +115,9 @@ public class ModificationQueue {
 		}
 
 		innerCallbacksTime = System.currentTimeMillis() - t0;
+
 		if (innerCallbacksTime > 1000) {
+
 			logger.info("{} ms ({} modifications)", innerCallbacksTime, getSize());
 		}
 
@@ -132,6 +138,7 @@ public class ModificationQueue {
 			indexingTime += state.getIndexingTime();
 
 			if (!res) {
+
 				return false;
 			}
 		}
@@ -152,12 +159,15 @@ public class ModificationQueue {
 		for (final TransactionPostProcess process : postProcesses.values()) {
 
 			if (!process.execute(securityContext, errorBuffer)) {
+
 				return false;
 			}
 		}
 
 		postProcessingTime = System.currentTimeMillis() - t0;
+
 		if (postProcessingTime > 1000) {
+
 			logger.info("doPostProcessing: {} ms", postProcessingTime);
 		}
 
@@ -170,16 +180,20 @@ public class ModificationQueue {
 
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : nodeModifications.values()) {
+
 			state.doOuterCallback(securityContext, counter);
 		}
 
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : relModifications.values()) {
+
 			state.doOuterCallback(securityContext, counter);
 		}
 
 		outerCallbacksTime = System.currentTimeMillis() - t0;
+
 		if (outerCallbacksTime > 3000) {
+
 			logger.info("doOutCallbacks: {} ms ({} modifications)", outerCallbacksTime, getSize());
 		}
 	}
@@ -206,7 +220,6 @@ public class ModificationQueue {
 
 							final String uuid           = ev.isDeleted() ? ev.getUuid() : obj.getUuid();
 							final String typeFolderName = obj.isNode() ? "n" : "r";
-
 							java.io.File file = ChangelogFunction.getChangeLogFileOnDisk(typeFolderName, uuid, true);
 
 							FileUtils.write(file, newLog, "utf-8", true);
@@ -224,8 +237,11 @@ public class ModificationQueue {
 					}
 
 				} catch (IOException ioex) {
+
 					logger.error("Unable to write changelog to file: {}", ioex.getMessage());
+
 				} catch (Throwable t) {
+
 					logger.warn("", t);
 				}
 			}
@@ -307,6 +323,7 @@ public class ModificationQueue {
 		getState(node).modify(user, key, previousValue, newValue);
 
 		if (key != null&& key.requiresSynchronization()) {
+
 			synchronizationKeys.add(key.getSynchronizationKey());
 		}
 	}
@@ -319,6 +336,7 @@ public class ModificationQueue {
 		getState(relationship).modify(user, key, previousValue, newValue);
 
 		if (key != null && key.requiresSynchronization()) {
+
 			synchronizationKeys.add(key.getSynchronizationKey());
 		}
 	}
@@ -347,10 +365,12 @@ public class ModificationQueue {
 		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
 
 		if (sourceNode != null) {
+
 			sourceNode.setSecurityContext(relationship.getSecurityContext());
 		}
 
 		if (targetNode != null) {
+
 			targetNode.setSecurityContext(relationship.getSecurityContext());
 		}
 
@@ -367,6 +387,7 @@ public class ModificationQueue {
 	}
 
 	public Collection<ModificationEvent> getModificationEvents() {
+
 		return modificationEvents;
 	}
 
@@ -401,10 +422,12 @@ public class ModificationQueue {
 	}
 
 	public void registerNodeCallback(final NodeInterface node, final String callbackId) {
+
 		getState(node).setCallbackId(callbackId);
 	}
 
 	public void registerRelCallback(final RelationshipInterface rel, final String callbackId) {
+
 		getState(rel).setCallbackId(callbackId);
 	}
 
@@ -535,7 +558,6 @@ public class ModificationQueue {
 		final GraphObjectMap before = new GraphObjectMap();
 		final GraphObjectMap after  = new GraphObjectMap();
 
-
 		addLocalProperties(before, state.getRemovedProperties());
 
 		addLocalProperties(after, state.getModifiedProperties());
@@ -554,12 +576,14 @@ public class ModificationQueue {
 		data.getRawMap().forEach((key, value) -> {
 
 			if ( !(key instanceof RelationProperty) ) {
+
 				map.put(key, value);
 			}
 		});
 	}
 
 	public void disableChangelog() {
+
 		this.doUpateChangelogIfEnabled = false;
 	}
 
@@ -579,10 +603,12 @@ public class ModificationQueue {
 	}
 
 	public boolean hasChanges() {
+
 		return this.hasChanges;
 	}
 
 	public Set<Object> getIds() {
+
 		return this.ids;
 	}
 
@@ -593,7 +619,6 @@ public class ModificationQueue {
 		if (startNode != null && endNode != null) {
 
 			final RelationshipType relType = rel.getRelType();
-
 			if ("OWNS".equals(relType.name())) {
 
 				modifyOwner(startNode);
@@ -627,7 +652,6 @@ public class ModificationQueue {
 
 					} else {
 
-
 						// update added properties
 						getState(startNode).add(target, endNode);
 						getState(endNode).add(source, startNode);
@@ -643,6 +667,7 @@ public class ModificationQueue {
 	}
 
 	private GraphObjectModificationState getState(final NodeInterface node) {
+
 		return getState(node, false);
 	}
 
@@ -662,6 +687,7 @@ public class ModificationQueue {
 	}
 
 	private GraphObjectModificationState getState(final RelationshipInterface rel) {
+
 		return getState(rel, true);
 	}
 
@@ -693,10 +719,12 @@ public class ModificationQueue {
 			final long t2 = b.getTimestamp();
 
 			if (t1 < t2) {
+
 				return -1;
 			}
 
 			if (t1 > t2) {
+
 				return 1;
 			}
 
@@ -707,10 +735,12 @@ public class ModificationQueue {
 	}
 
 	public boolean transactionWasSuccessful() {
+
 		return transactionWasSuccessful;
 	}
 
 	public void setTransactionWasSuccessful(final boolean transactionWasSuccessful) {
+
 		this.transactionWasSuccessful = transactionWasSuccessful;
 	}
 }

@@ -67,6 +67,7 @@ public class XMLStructureAnalyzer {
 		while (reader.hasNext() && analysisCount < threshold && exceptionCount < XML_MAX_EXCEPTIONS) {
 
 			try {
+
 				final XMLEvent event = reader.nextEvent();
 				final String tagName = getTagName(event);
 
@@ -90,16 +91,19 @@ public class XMLStructureAnalyzer {
 							analyze(current, structure);
 							analysisCount++;
 						}
+
 						break;
 				}
 
 			} catch (XMLStreamException strex) {
+
 				logger.warn(strex.getMessage());
 				exceptionCount++;
 			}
 		}
 
 		if (exceptionCount == XML_MAX_EXCEPTIONS) {
+
 			logger.info("Stopping XML processing at error threshold ({})", XML_MAX_EXCEPTIONS);
 		}
 
@@ -110,16 +114,17 @@ public class XMLStructureAnalyzer {
 	private String getTagName(final XMLEvent event) {
 
 		if (event.isStartElement()) {
+
 			return event.asStartElement().getName().toString();
 		}
 
 		if (event.isEndElement()) {
+
 			return event.asEndElement().getName().toString();
 		}
 
 		return null;
 	}
-
 
 	private void analyze(final Element parent, final Map<String, Object> map) {
 
@@ -146,6 +151,7 @@ public class XMLStructureAnalyzer {
 
 		// recurse
 		for (Element child : parent.children) {
+
 			analyze(child, currentObject);
 		}
 	}
@@ -180,6 +186,7 @@ public class XMLStructureAnalyzer {
 			this.level   = level;
 
 			if (parent != null) {
+
 				parent.children.add(this);
 			}
 		}

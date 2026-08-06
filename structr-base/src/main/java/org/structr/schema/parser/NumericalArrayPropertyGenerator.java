@@ -23,6 +23,7 @@ import org.structr.common.error.ErrorBuffer;
 public abstract class NumericalArrayPropertyGenerator<T> extends NumericalPropertyGenerator<T[]> {
 
 	public NumericalArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 }

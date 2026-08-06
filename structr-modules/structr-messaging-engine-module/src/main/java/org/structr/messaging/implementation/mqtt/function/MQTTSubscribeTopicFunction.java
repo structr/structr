@@ -30,11 +30,13 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 
 	@Override
 	public String getName() {
+
 		return "mqttSubscribe";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("client, topic");
 	}
 
@@ -44,13 +46,16 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
 
 			MQTTClient client = null;
+
 			if(sources[0] instanceof MQTTClient){
+
 				client = (MQTTClient)sources[0];
 			}
 
 			if(client == null){
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return null;
 			}
 
@@ -66,19 +71,19 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mqttSubscribe(client, topic)}"),
-			Usage.javaScript("Usage: ${{ $.mqttSubscribe(client, topic) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mqttSubscribe(client, topic)}"), Usage.javaScript("Usage: ${{ $.mqttSubscribe(client, topic) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Subscribes given topic on given mqtt client.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

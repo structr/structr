@@ -66,7 +66,6 @@ public class DeleteNodeCommand extends AbstractCommand {
 	protected static void deleteNode(final StructrWebSocket ws, final NodeInterface obj, final Boolean recursive) {
 
 		final SecurityContext securityContext = ws.getSecurityContext();
-
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
@@ -116,6 +115,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 				}
 
 				for (final NodeInterface node : filteredResults) {
+
 					app.delete(node);
 				}
 
@@ -143,6 +143,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "DELETE";
 	}
 }

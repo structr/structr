@@ -44,6 +44,7 @@ import java.nio.charset.Charset;
 public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content {
 
 	public ContentTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -61,6 +62,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 	@Override
 	public final String getContentType() {
+
 		return wrappedObject.getProperty(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
@@ -72,6 +74,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			return getData();
 
 		} catch (FrameworkException e) {
+
 			e.printStackTrace();
 		}
 
@@ -129,6 +132,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 		this.checkWriteAccess();
 
 		try {
+
 			final String text = this.getContent();
 
 			this.setContent(text.concat(data));
@@ -149,7 +153,6 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset);
-
 			String buf = leftPart +
 				data +
 				rightPart;
@@ -194,7 +197,6 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset + count);
-
 			String buf = leftPart +
 				data +
 				rightPart;
@@ -239,30 +241,39 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 						break;
 
 					case '\'':
+
 						if (inTemplate && !inDoubleQuotes && !hasBackslash && !inComment) {
+
 							inSingleQuotes = !inSingleQuotes;
 						}
+
 						hasDollar = false;
 						hasBackslash = false;
 						break;
 
 					case '\"':
+
 						if (inTemplate && !inSingleQuotes && !hasBackslash && !inComment) {
+
 							inDoubleQuotes = !inDoubleQuotes;
 						}
+
 						hasDollar = false;
 						hasBackslash = false;
 						break;
 
 					case '$':
+
 						if (!inComment) {
 
 							hasDollar    = true;
 							hasBackslash = false;
 						}
+
 						break;
 
 					case '{':
+
 						if (!inTemplate && hasDollar && !inComment) {
 
 							startRow   = row;
@@ -284,6 +295,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 							handler.possibleStartOfScript(row, column-1);
 
 						} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inComment) {
+
 							level++;
 						}
 
@@ -309,6 +321,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 							ignoreNext = true;
 						}
+
 						hasDollar    = false;
 						hasBackslash = false;
 						hasSlash = false;
@@ -328,6 +341,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 								hasSlash = true;
 							}
 						}
+
 						break;
 
 					case '\r':
@@ -377,12 +391,14 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 	}
 
 	public void setTextContent(final String value) throws FrameworkException {
+
 		setData(value);
 	}
 
 	public String getData() throws FrameworkException {
 
 		checkReadAccess();
+
 		return getContent();
 	}
 
@@ -402,18 +418,22 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 		}
 
 		public void setConverter(final Adapter<String, String> converter) {
+
 			this.converter = converter;
 		}
 
 		public void setReplaceNewlines(final boolean replaceNewlines) {
+
 			this.replaceNewlines = replaceNewlines;
 		}
 
 		public void setEscapeForHtml(final boolean escapeForHtml) {
+
 			this.escapeForHtml = escapeForHtml;
 		}
 
 		public boolean isEmpty() {
+
 			return isEmpty;
 		}
 
@@ -487,6 +507,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 		public void handleText(final String text) throws FrameworkException {
 
 			if (!text.isEmpty()) {
+
 				isEmpty = false;
 			}
 
@@ -502,14 +523,17 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			String content = src;
 
 			if (escapeForHtml) {
+
 				content = DOMNode.escapeForHtml(content);
 			}
 
 			if (converter != null) {
+
 				content = converter.adapt(content);
 			}
 
 			if (replaceNewlines) {
+
 				content = content.replaceAll("[\\n]{1}", "<br>");
 			}
 

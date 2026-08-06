@@ -46,20 +46,24 @@ public enum ParameterType implements Documentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.EventAction;
 	}
 
 	public String getName() {
+
 		return identifier;
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return displayName;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 
@@ -74,6 +78,7 @@ public enum ParameterType implements Documentable {
 		for (final ParameterType type : ParameterType.values()) {
 
 			if (type.getName().equals(identifier)) {
+
 				return type;
 			}
 		}

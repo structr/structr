@@ -39,46 +39,55 @@ import org.structr.process.ProcessTraits;
 public class VisibilityMappingFORBpmnProcess extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public VisibilityMappingFORBpmnProcess() {
+
 		super(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return ProcessTraits.VISIBILITY_MAPPING;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return ProcessTraits.BPMN_PROCESS;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "FOR";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

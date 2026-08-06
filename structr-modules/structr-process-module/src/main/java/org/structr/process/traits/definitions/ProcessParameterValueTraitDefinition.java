@@ -69,12 +69,11 @@ public class ProcessParameterValueTraitDefinition extends AbstractNodeTraitDefin
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ProcessParameterValue.class, (traits, node) -> new ProcessParameterValueTraitWrapper(traits, node)
-		);
+		return Map.of(ProcessParameterValue.class, (traits, node) -> new ProcessParameterValueTraitWrapper(traits, node));
 	}
 
 	public ProcessParameterValueTraitDefinition() {
+
 		super(ProcessTraits.PROCESS_PARAMETER_VALUE);
 	}
 
@@ -102,6 +101,7 @@ public class ProcessParameterValueTraitDefinition extends AbstractNodeTraitDefin
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

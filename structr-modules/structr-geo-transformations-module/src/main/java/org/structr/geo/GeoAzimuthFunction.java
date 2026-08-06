@@ -39,11 +39,13 @@ public class GeoAzimuthFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "azimuth";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("point1, point2");
 	}
 
@@ -79,28 +81,32 @@ public class GeoAzimuthFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the azimuth between two geometries.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

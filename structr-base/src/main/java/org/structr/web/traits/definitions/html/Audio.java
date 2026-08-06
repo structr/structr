@@ -41,6 +41,7 @@ public class Audio extends GenericHtmlElementTraitDefinition {
 	public static final String CONTROLS_PROPERTY    = getPrefixedHTMLAttributeName("controls");
 
 	public Audio() {
+
 		super(StructrTraits.AUDIO);
 	}
 
@@ -55,19 +56,12 @@ public class Audio extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> mutedProperty       = new StringProperty(MUTED_PROPERTY);
 		final PropertyKey<String> controlsProperty    = new StringProperty(CONTROLS_PROPERTY);
 
-		return newSet(
-			srcProperty, crossoriginProperty, preloadProperty, autoplayProperty, loopProperty, mutedProperty, controlsProperty
-		);
+		return newSet(srcProperty, crossoriginProperty, preloadProperty, autoplayProperty, loopProperty, mutedProperty, controlsProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					SRC_PROPERTY, CROSSORIGIN_PROPERTY, PRELOAD_PROPERTY, AUTOPLAY_PROPERTY, LOOP_PROPERTY, MUTED_PROPERTY, CONTROLS_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(SRC_PROPERTY, CROSSORIGIN_PROPERTY, PRELOAD_PROPERTY, AUTOPLAY_PROPERTY, LOOP_PROPERTY, MUTED_PROPERTY, CONTROLS_PROPERTY));
 	}
 }

@@ -37,11 +37,13 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "getSource";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("element, editMode");
 	}
 
@@ -68,6 +70,7 @@ public class GetSourceFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -76,6 +79,7 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getSource(element, editMode)}. Example: ${getSource(this, 1)}"),
 			Usage.javaScript("Usage: ${{ $.getSource(element, editMode) }}. Example: ${{ $.getSource(this, 1)}}")
@@ -84,16 +88,19 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the rendered HTML content for the given element.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

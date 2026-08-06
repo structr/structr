@@ -115,6 +115,7 @@ public class ZeebeFormAdapterTest {
 	}
 
 	private static String xmlEscape(final String s) {
+
 		return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 
@@ -123,6 +124,7 @@ public class ZeebeFormAdapterTest {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		final Document doc = factory.newDocumentBuilder().parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+
 		return (Element) doc.getElementsByTagNameNS("http://www.omg.org/spec/BPMN/20100524/MODEL", "process").item(0);
 	}
 }

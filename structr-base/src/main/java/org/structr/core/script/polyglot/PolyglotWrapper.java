@@ -47,7 +47,6 @@ public abstract class PolyglotWrapper {
 	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
 	public static Object wrap(final ActionContext actionContext, final Object obj) {
 
-
 		try {
 
 			actionContext.level++;
@@ -58,6 +57,7 @@ public abstract class PolyglotWrapper {
 			}
 
 			if (obj instanceof Value) {
+
 				return obj;
 			}
 
@@ -87,7 +87,6 @@ public abstract class PolyglotWrapper {
 			}
 
 			if (obj instanceof Map) {
-
 
 				return new PolyglotProxyMap(actionContext, (Map<String, Object>) obj);
 			}
@@ -159,6 +158,7 @@ public abstract class PolyglotWrapper {
 
 				// Is value is a host object, return it's original type
 				if (value.isHostObject()) {
+
 					return unwrap(actionContext, value.asHostObject());
 				}
 
@@ -236,33 +236,38 @@ public abstract class PolyglotWrapper {
 				}
 
 				if (value.isDate() && value.isTime()) {
+
 					return LocalDateTime.of(value.asDate(), value.asTime());
 				}
 
 				if (value.isDate()) {
+
 					return value.asDate();
 				}
 
 				if (value.isTime()) {
+
 					return value.asTime();
 				}
 
 				if (value.isInstant()) {
+
 					return value.asInstant();
 				}
 
 				if (value.isDuration()) {
+
 					return value.asDuration();
 				}
 
 				if (value.isTimeZone()) {
+
 					return value.asTimeZone();
 				}
 
 				if (value.isProxyObject() && value.hasMembers()) {
 
 					ProxyObject proxy = value.asProxyObject();
-
 					if (proxy instanceof GraphObjectWrapper) {
 
 						return ((GraphObjectWrapper) proxy).getOriginalObject();
@@ -300,6 +305,7 @@ public abstract class PolyglotWrapper {
 
 					PromiseConsumer consumer = new PromiseConsumer();
 					value.invokeMember("then", consumer);
+
 					return consumer.getResult();
 				}
 
@@ -309,6 +315,7 @@ public abstract class PolyglotWrapper {
 				}
 
 				// Even if we can't successfully unwrap the value, we can't return the raw value, since it's bound to it's original context.
+
 				return null;
 			}
 
@@ -329,10 +336,12 @@ public abstract class PolyglotWrapper {
 			}
 
 			if (obj instanceof PolyglotProxyArray pa) {
+
 				return unwrapProxyArray(actionContext, pa);
 			}
 
 			if (obj instanceof PolyglotProxyMap pm) {
+
 				return pm.getOriginalObject();
 			}
 
@@ -403,9 +412,11 @@ public abstract class PolyglotWrapper {
 	}
 
 	protected static List<Object> unwrapProxyArray(final ActionContext actionContext, final PolyglotProxyArray proxyArray) {
+
 		final List<Object> unwrappedList = new ArrayList<>();
 
 		for (int i = 0; i < proxyArray.getSize(); i++) {
+
 			unwrappedList.add(PolyglotWrapper.unwrap(actionContext, proxyArray.get(i)));
 		}
 
@@ -438,6 +449,7 @@ public abstract class PolyglotWrapper {
 			final Value it = value.getIterator();
 
 			while (it.hasIteratorNextElement()) {
+
 				resultSet.add(unwrap(actionContext, it.getIteratorNextElement()));
 			}
 		}
@@ -469,12 +481,14 @@ public abstract class PolyglotWrapper {
 			Value keyIterator = value.getHashKeysIterator();
 
 			while (keyIterator.isIterator() && keyIterator.hasIteratorNextElement()) {
+
 				Value hashKey = keyIterator.getIteratorNextElement();
 				Value hashValue = value.getHashValue(hashKey);
-
 				String unwrappedKey = (String)unwrap(actionContext, hashKey);
 				Object unwrappedValue = unwrap(actionContext, hashValue);
+
 				if (unwrappedKey != null) {
+
 					resultMap.put(unwrappedKey, unwrappedValue);
 				}
 			}
@@ -501,6 +515,7 @@ public abstract class PolyglotWrapper {
 				ContextHelper.incrementReferenceCount(func.getContext());
 
 				this.lockedContext = determineLockedContextFromFunction(func);
+
 			} else {
 
 				throw new FrameworkException(422, "Could not initialize FunctionWrapper, because given value was not executable.");
@@ -508,10 +523,12 @@ public abstract class PolyglotWrapper {
 		}
 
 		public void setActionContext(final ActionContext actionContext) {
+
 			this.actionContext = actionContext;
 		}
 
 		public ContextFactory.LockedContext getLockedContext() {
+
 			return this.lockedContext;
 		}
 
@@ -530,16 +547,19 @@ public abstract class PolyglotWrapper {
 		public Object execute(Value... arguments) {
 
 			if (func == null) {
+
 				throw new IllegalStateException("FunctionWrapper: Function cannot be null.");
 			}
 
 			if (lockedContext == null) {
+
 				throw new IllegalStateException("Could not execute function within PolyglotWrapper.FunctionWrapper, because the attached context is null.");
 			}
 
 			Object result = null;
 
 			lockedContext.getLock().lock();
+
 			try {
 
 				lockedContext.getContext().enter();
@@ -560,7 +580,9 @@ public abstract class PolyglotWrapper {
 
 					result = unwrap(actionContext, func.execute(processedArgs.toArray()));
 					hasRun = true;
+
 				} finally {
+
 					// Handle context reference counter and close current context if thread is the last one referencing it
 					ContextHelper.decrementReferenceCount(lockedContext.getContext());
 
@@ -574,6 +596,7 @@ public abstract class PolyglotWrapper {
 				}
 
 			} finally {
+
 				lockedContext.getLock().unlock();
 			}
 
@@ -587,15 +610,18 @@ public abstract class PolyglotWrapper {
 	}
 
 	public static class PromiseConsumer implements Consumer<Object> {
+
 		private Object result;
 
 		@HostAccess.Export
 		@Override
 		public void accept(Object o) {
+
 			result = o;
 		}
 
 		public Object getResult() {
+
 			return result;
 		}
 	}

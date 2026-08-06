@@ -29,6 +29,7 @@ import org.structr.web.entity.dom.Comment;
 public class CommentTraitWrapper extends ContentTraitWrapper implements NonIndexed, Comment {
 
 	public CommentTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

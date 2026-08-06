@@ -44,44 +44,54 @@ import java.util.List;
 public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements MQTTClient {
 
 	public MQTTClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public boolean getEnabled() {
+
 		return wrappedObject.getProperty(traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY));
 	}
 
 	@Override
 	public void setEnabled(final boolean enabled) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY), enabled);
 	}
 
 	public boolean getIsConnected() {
+
 		return getProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY));
 	}
 
 	public int getQos() {
+
 		return getProperty(traits.key(MQTTClientTraitDefinition.QOS_PROPERTY));
 	}
 
 	public String getUsername() {
+
 		return getProperty(traits.key(MQTTClientTraitDefinition.USERNAME_PROPERTY));
 	}
 
 	public String getPassword() {
+
 		return getProperty(traits.key(MQTTClientTraitDefinition.PASSWORD_PROPERTY));
 	}
 
 	public void setIsConnected(boolean connected) throws FrameworkException {
+
 		setProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY), connected);
 	}
 
 	public String getMainBrokerURL() {
+
 		return getProperty(traits.key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY));
 	}
 
 	public String[] getFallbackBrokerURLs() {
+
 		return getProperty(traits.key(MQTTClientTraitDefinition.FALLBACK_BROKER_URLS_PROPERTY));
 	}
 
@@ -89,6 +99,7 @@ public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements
 	public void connectionStatusCallback(boolean connected) {
 
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx()) {
 
 			if (!this.getIsConnected() && connected) {
@@ -109,6 +120,7 @@ public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements
 	public String[] getTopics() {
 
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx()) {
 
 			List<MessageSubscriber> subs = Iterables.toList(this.getSubscribers());
@@ -127,12 +139,14 @@ public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements
 
 			final Logger logger = LoggerFactory.getLogger(MQTTClientTraitWrapper.class);
 			logger.error("Couldn't retrieve client topics for MQTT subscription.");
+
 			return null;
 		}
 	}
 
 	@Override
 	public void messageCallback(String topic, String message) throws FrameworkException {
+
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			MessageClientOperations operations = TraitsManager.getCurrentInstance().getTrait(StructrTraits.MESSAGE_CLIENT).getFrameworkMethod(MessageClientOperations.class);

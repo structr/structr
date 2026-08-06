@@ -24,16 +24,19 @@ public class TemplateHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "template";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the closest Template element in the current page.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `template` keyword allows you to access the closest Template object in the current page.";
 	}
 }

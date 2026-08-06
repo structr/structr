@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -46,17 +45,20 @@ import java.util.Set;
 public class MeResource extends ExactMatchEndpoint {
 
     public MeResource() {
+
         super(RESTParameter.forStaticString("me", true, StructrTraits.USER));
     }
 
     @Override
     public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
         return new MeResourceHandler(call);
     }
 
     private class MeResourceHandler extends RESTCallHandler {
 
         public MeResourceHandler(final RESTCall call) {
+
             super(call);
         }
 
@@ -76,26 +78,31 @@ public class MeResource extends ExactMatchEndpoint {
 
         @Override
         public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
             return genericPut(securityContext, propertySet);
         }
 
         @Override
         public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+
             return genericDelete(securityContext);
         }
 
         @Override
         public boolean isCollection() {
+
             return false;
         }
 
         @Override
         public String getTypeName(final SecurityContext securityContext) {
+
             return StructrTraits.USER;
         }
 
         @Override
         public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
             return Set.of("DELETE", "GET", "OPTIONS", "PUT");
         }
     }

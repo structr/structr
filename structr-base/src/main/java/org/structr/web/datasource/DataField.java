@@ -70,42 +70,52 @@ public class DataField extends LinkedHashMap<String, Object> {
 	}
 
 	public String getName() {
+
 		return (String) get("name");
 	}
 
 	public String getLabel() {
+
 		return (String) get("label");
 	}
 
 	public String getValue() {
+
 		return (String)	get("value");
 	}
 
 	public String getTemplate() {
+
 		return (String)	get("template");
 	}
 
 	public String getEditTemplate() {
+
 		return (String)	get("editTemplate");
 	}
 
 	public String getPropertyName() {
+
 		return (String)	get("propertyName");
 	}
 
 	public Set<String> getSlots() {
+
 		return (Set<String>) get("slots");
 	}
 
 	public Map<String, Object> getOptions() {
+
 		return (Map<String, Object>) get("options");
 	}
 
 	public Map<String, Object> getConfig() {
+
 		return (Map<String, Object>) get("config");
 	}
 
 	public Boolean showLabel() {
+
 		return (Boolean) get("showLabel");
 	}
 
@@ -118,6 +128,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 		}
 
 		// default number of columns is 6 for now...
+
 		return 6;
 	}
 
@@ -130,6 +141,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 		}
 
 		// default number of rows is 8 for now
+
 		return 8;
 	}
 
@@ -158,10 +170,12 @@ public class DataField extends LinkedHashMap<String, Object> {
 	public String getSortKey() {
 
 		if (containsKey("sortKey")) {
+
 			return (String) get("sortKey");
 		}
 
 		if (containsKey("propertyName")) {
+
 			return (String) get("propertyName");
 		}
 
@@ -171,6 +185,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 	public String getSearchKey() {
 
 		if (containsKey("propertyName")) {
+
 			return (String) get("propertyName");
 		}
 
@@ -178,14 +193,17 @@ public class DataField extends LinkedHashMap<String, Object> {
 	}
 
 	public String getColumnDataSource() {
+
 		return (String) get("columnDataSource");
 	}
 
 	public String getColumnKey() {
+
 		return (String) get("columnKey");
 	}
 
 	public String getEditModeCondition() {
+
 		return (String) get("editModeCondition");
 	}
 
@@ -229,7 +247,6 @@ public class DataField extends LinkedHashMap<String, Object> {
 		if (traits.hasKey(searchKey)) {
 
 			final PropertyKey key = traits.key(searchKey);
-
 			if (String.class.equals(key.valueType())) {
 
 				query.key(traits.key(searchKey), filterString, false);
@@ -316,6 +333,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 			// don't overwrite default with null
 			if (fieldDefinition.renderTemplate() != null) {
+
 				field.put("template", fieldDefinition.renderTemplate());
 			}
 
@@ -334,6 +352,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 				if (options != null && !options.isEmpty()) {
 
 					if (options.containsKey("label")) {
+
 						label = (String) options.get("label");
 					}
 
@@ -376,12 +395,15 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 		final Object configObj = field.get("config");
 		if (!(configObj instanceof Map)) {
+
 			return;
 		}
 
 		final Map<String, Object> config = (Map<String, Object>) configObj;
 		final String templateName         = augmentation.getRenderTemplate();
+
 		if (config.isEmpty() || StringUtils.isBlank(templateName)) {
+
 			return;
 		}
 
@@ -389,17 +411,21 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 			final NodeInterface widget = StructrApp.getInstance(renderContext.getSecurityContext())
 				.nodeQuery("Widget").name(templateName).getFirst();
+
 			if (widget == null) {
+
 				return;
 			}
 
 			final String schemaJson = widget.getProperty(widget.getTraits().key("configuration"));
 			if (StringUtils.isBlank(schemaJson)) {
+
 				return;
 			}
 
 			final JsonElement parsed = JsonParser.parseString(schemaJson);
 			if (!parsed.isJsonObject()) {
+
 				return;
 			}
 
@@ -411,11 +437,13 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 				final JsonElement entry = schema.get(key);
 				if (entry == null || !entry.isJsonObject()) {
+
 					continue;
 				}
 
 				final JsonElement type = entry.getAsJsonObject().get("type");
 				if (type == null || !type.isJsonPrimitive() || !"page".equals(type.getAsString())) {
+
 					continue;
 				}
 
@@ -427,6 +455,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 						final String name = page.getProperty(page.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 						if (StringUtils.isNotBlank(name)) {
+
 							resolved.put(key, name);
 							changed = true;
 						}
@@ -435,10 +464,12 @@ public class DataField extends LinkedHashMap<String, Object> {
 			}
 
 			if (changed) {
+
 				field.put("config", resolved);
 			}
 
 		} catch (final Exception e) {
+
 			LoggerFactory.getLogger(DataField.class).warn("Could not resolve page-typed render-template config for '{}': {}", templateName, e.getMessage());
 		}
 	}
@@ -447,6 +478,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 	private static void putIfNotEmpty(final DataField field, final String key, final Object value) {
 
 		if (value != null && StringUtils.isNotBlank(value.toString())) {
+
 			field.put(key, value);
 		}
 	}
@@ -469,11 +501,13 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 				// some corrections for edge cases
 				if (field == Calendar.DAY_OF_YEAR && calendar.get(Calendar.YEAR) == 1970) {
+
 					// pattern dd.MM. causes the year to be set to 1970
 					calendar.set(Calendar.YEAR, now.get(Calendar.YEAR));
 				}
 
 				if (field == Calendar.HOUR_OF_DAY && calendar.get(Calendar.YEAR) == 1970) {
+
 					// pattern HH:mm causes year, month and date to be set to 1970
 					calendar.set(Calendar.YEAR, now.get(Calendar.YEAR));
 					calendar.set(Calendar.MONTH, now.get(Calendar.MONTH));
@@ -489,6 +523,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 				query.range(key, rangeStart, rangeEnd);
 
 				// first match wins
+
 				return;
 
 			} catch (Throwable ignore) {}

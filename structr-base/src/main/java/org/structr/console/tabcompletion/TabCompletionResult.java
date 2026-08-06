@@ -38,6 +38,7 @@ public class TabCompletionResult implements Comparable<TabCompletionResult> {
 	 * @return the full command
 	 */
 	public String getCommand() {
+
 		return command;
 	}
 
@@ -45,6 +46,7 @@ public class TabCompletionResult implements Comparable<TabCompletionResult> {
 	 * @return the part of the command that completes the command
 	 */
 	public String getCompletion() {
+
 		return completion;
 	}
 
@@ -52,12 +54,14 @@ public class TabCompletionResult implements Comparable<TabCompletionResult> {
 	 * @return the suffix that is to be appended after the command
 	 */
 	public String getSuffix() {
+
 		return suffix;
 	}
 
 	// ----- interface Comparable<TabCompletionResult> -----
 	@Override
 	public int compareTo(final TabCompletionResult o) {
+
 		return getCommand().compareTo(o.getCommand());
 	}
 }

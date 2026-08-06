@@ -46,6 +46,7 @@ public class ValueExpression extends Expression {
 	}
 
 	public String getKeyword() {
+
 		return keyword;
 	}
 
@@ -58,8 +59,10 @@ public class ValueExpression extends Expression {
 		buf.append("(");
 
 		for (final Expression expr : expressions) {
+
 			buf.append(expr.toString());
 		}
+
 		buf.append(")");
 
 		return buf.toString();
@@ -111,12 +114,12 @@ public class ValueExpression extends Expression {
 		if (keyword.startsWith(".")) {
 
 			Object extractedValue = value;
-
 			final String[] keys = keyword.split("\\.");
 
 			for (final String key : keys) {
 
 				if (key.length() == 0) {
+
 					continue;
 				}
 
@@ -137,7 +140,6 @@ public class ValueExpression extends Expression {
 					extractedValue = ((Map)extractedValue).get(key);
 				}
 			}
-
 
 			return extractedValue;
 		}
@@ -179,6 +181,7 @@ public class ValueExpression extends Expression {
 
 		// allow single parameters
 		if (key != null) {
+
 			dest.put(key.toString(), true);
 		}
 	}
@@ -186,46 +189,55 @@ public class ValueExpression extends Expression {
 	// ----- documentation (unused) -----
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return null;
 	}
 }

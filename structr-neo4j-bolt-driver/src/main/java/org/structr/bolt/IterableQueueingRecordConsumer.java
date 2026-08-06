@@ -64,6 +64,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		final String statement = query.getStatement();
 
 		if (queryTimer != null) {
+
 			queryTimer.started(statement);
 		}
 
@@ -75,12 +76,14 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		started.set(true);
 
 		if (queryTimer != null) {
+
 			queryTimer.querySent();
 		}
 	}
 
 	@Override
 	public Iterator<Record> iterator() {
+
 		return this;
 	}
 
@@ -90,6 +93,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		if (!isClosed) {
 
 			if (queryTimer != null) {
+
 				queryTimer.closed();
 			}
 
@@ -97,6 +101,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			cursor.consumeAsync();
 
 			if (queryTimer != null) {
+
 				queryTimer.consumed();
 			}
 		}
@@ -107,6 +112,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	public void finish() {
 
 		if (queryTimer != null) {
+
 			queryTimer.finishReceived();
 		}
 
@@ -129,6 +135,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			started.set(false);
 
 			if (queryTimer != null) {
+
 				queryTimer.nextPage();
 			}
 
@@ -138,6 +145,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			added.set(true);
 
 			if (queryTimer != null) {
+
 				queryTimer.finished();
 			}
 		}
@@ -198,6 +206,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 	@Override
 	public Record next() {
+
 		return queue.poll();
 	}
 
@@ -205,6 +214,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	public void accept(final Record t) {
 
 		if (aborted.get()) {
+
 			return;
 		}
 
@@ -215,12 +225,16 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	}
 
 	public CompletionStage<ResultCursor> start(final ResultCursor cursor) {
+
 		this.cursor = cursor;
+
 		return CompletableFuture.completedFuture(cursor);
 	}
 
 	public Void exception(final Throwable t) {
+
 		this.throwable = t;
+
 		return null;
 	}
 }

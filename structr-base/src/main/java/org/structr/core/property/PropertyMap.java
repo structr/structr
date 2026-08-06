@@ -51,43 +51,53 @@ public class PropertyMap {
 	}
 
 	public PropertyMap(final PropertyMap source) {
+
 		putAll(source);
 	}
 
 	public <T> PropertyMap(final PropertyKey<T> key, final T value) {
+
 		properties.put(key, value);
 	}
 
 	@Override
 	public String toString() {
+
 		return properties.toString();
 	}
 
 	public int size() {
+
 		return properties.size();
 	}
 
 	public boolean isEmpty() {
+
 		return properties.isEmpty();
 	}
 
 	public boolean containsKey(final PropertyKey key) {
+
 		return properties.containsKey(key);
 	}
 
 	public boolean containsValue(final Object value) {
+
 		return properties.containsValue(value);
 	}
 
 	public <T> T get(final PropertyKey<T> key) {
+
 		return (T)properties.get(key);
 	}
 
 	public <T> T put(final PropertyKey<T> key, final T value) {
+
 		return (T)properties.put(key, value);
 	}
 
 	public <T> T putIfAbsent(final PropertyKey<T> key, final T value) {
+
 		return (T)properties.putIfAbsent(key, value);
 	}
 
@@ -96,32 +106,39 @@ public class PropertyMap {
 		if (source != null) {
 
 			for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+
 				properties.put(entry.getKey(), entry.getValue());
 			}
 		}
 	}
 
 	public <T> T remove(final PropertyKey<T> key) {
+
 		return (T)properties.remove(key);
 	}
 
 	public void clear() {
+
 		properties.clear();
 	}
 
 	public Set<PropertyKey> keySet() {
+
 		return properties.keySet();
 	}
 
 	public Collection<Object> values() {
+
 		return properties.values();
 	}
 
 	public Set<Entry<PropertyKey, Object>> entrySet() {
+
 		return properties.entrySet();
 	}
 
 	public Map<PropertyKey, Object> getRawMap() {
+
 		return properties;
 	}
 
@@ -167,7 +184,6 @@ public class PropertyMap {
 			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
 
 				PropertyKey key = entry.getKey();
-
 				if (comparableKeys.contains(key)) {
 
 					if (includeSystemProperties || !key.isUnvalidated()) {
@@ -177,7 +193,6 @@ public class PropertyMap {
 				}
 			}
 		}
-
 
 		return hashCode;
 	}
@@ -204,6 +219,7 @@ public class PropertyMap {
 					if (converter != null) {
 
 						try {
+
 							Object propertyValue = converter.convert(value);
 							resultMap.put(propertyKey, propertyValue);
 
@@ -244,6 +260,7 @@ public class PropertyMap {
 					if (converter != null) {
 
 						try {
+
 							Object propertyValue = converter.revert(value);
 							resultMap.put(propertyKey, propertyValue);
 
@@ -283,6 +300,7 @@ public class PropertyMap {
 					if (converter != null) {
 
 						try {
+
 							Object propertyValue = converter.revert(value);
 							resultMap.put(propertyKey, propertyValue);
 
@@ -372,7 +390,6 @@ public class PropertyMap {
 				if (key != null) {
 
 					final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new GenericProperty(key);
-
 					if (propertyKey instanceof GenericProperty) {
 
 						if (traits.contains(StructrTraits.DOM_NODE)) {
@@ -410,7 +427,6 @@ public class PropertyMap {
 					if (propertyKey != null) {
 
 						final PropertyConverter converter = propertyKey.inputConverter(securityContext, false);
-
 						if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
 
 							try {
@@ -449,6 +465,7 @@ public class PropertyMap {
 			if (converter != null) {
 
 				try {
+
 					Object propertyValue = converter.convert(entry.getValue());
 					databaseTypedProperties.put(propertyKey.jsonName(), propertyValue);
 
@@ -478,6 +495,7 @@ public class PropertyMap {
 			if (converter != null) {
 
 				try {
+
 					Object propertyValue = converter.revert(entry.getValue());
 					inputTypedProperties.put(propertyKey.jsonName(), propertyValue);
 
@@ -504,7 +522,6 @@ public class PropertyMap {
 
 		if (source != null) {
 
-
 			for (Entry<String, Object> entry : source.entrySet()) {
 
 				String key   = entry.getKey();
@@ -524,6 +541,7 @@ public class PropertyMap {
 
 		@Override
 		public int compare(final PropertyKey o1, final PropertyKey o2) {
+
 			return o1.jsonName().compareTo(o2.jsonName());
 		}
 	}

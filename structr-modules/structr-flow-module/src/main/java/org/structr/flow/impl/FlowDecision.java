@@ -27,6 +27,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowDecision extends FlowNode implements DeployableEntity {
 
 	public FlowDecision(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -42,6 +43,7 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 	}
 
 	public void setCondition(final FlowDataSource condition) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.CONDITION_PROPERTY), condition);
 	}
 
@@ -68,10 +70,12 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 	}
 
 	public void setTrueElement(final FlowNode trueElement) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.TRUE_ELEMENT_PROPERTY), trueElement);
 	}
 
 	public void setFalseElement(final FlowNode falseElement) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.FALSE_ELEMENT_PROPERTY), falseElement);
 	}
 }

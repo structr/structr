@@ -35,11 +35,13 @@ public class StartsWithFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "startsWith";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str, prefix");
 	}
 
@@ -60,6 +62,7 @@ public class StartsWithFunction extends CoreFunction {
 				} else if (sources[0] != null && sources[0] instanceof Collection) {
 
 					final Collection collection = (Collection) sources[0];
+
 					return collection.size() > 0 && collection.iterator().next().equals(sources[1]);
 
 				} else if (sources[0] != null && sources[0].getClass().isArray() && ((Object[]) sources[0]).length > 0) {
@@ -83,32 +86,32 @@ public class StartsWithFunction extends CoreFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}."),
-			Usage.structrScript("Usage: ${startsWith(string, prefix)}.")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}."), Usage.structrScript("Usage: ${startsWith(string, prefix)}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given string starts with the given prefix.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
-
-
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${startsWith('Hello World!', 'Hello')}
@@ -117,21 +120,18 @@ public class StartsWithFunction extends CoreFunction {
 						> false
 						"""),
 
-				Example.javaScript("${{ $.startsWith('Hello World!', 'Hello') }}")
-		);
+				Example.javaScript("${{ $.startsWith('Hello World!', 'Hello') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("string", "string to check"),
-				Parameter.mandatory("prefix", "given start prefix")
-				);
+		return List.of(Parameter.mandatory("string", "string to check"), Parameter.mandatory("prefix", "given start prefix"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

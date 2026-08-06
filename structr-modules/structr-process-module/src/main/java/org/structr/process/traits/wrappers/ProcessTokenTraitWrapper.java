@@ -29,56 +29,67 @@ import org.structr.process.traits.definitions.ProcessTokenTraitDefinition;
 public class ProcessTokenTraitWrapper extends AbstractNodeTraitWrapper implements ProcessToken {
 
 	public ProcessTokenTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getStatus() {
+
 		return wrappedObject.getProperty(traits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
 	}
 
 	@Override
 	public void setStatus(final String status) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), status);
 	}
 
 	@Override
 	public boolean isActive() {
+
 		return ProcessTokenTraitDefinition.STATUS_ACTIVE.equals(getStatus());
 	}
 
 	@Override
 	public boolean isWaiting() {
+
 		return ProcessTokenTraitDefinition.STATUS_WAITING.equals(getStatus());
 	}
 
 	@Override
 	public boolean isCompleted() {
+
 		return ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(getStatus());
 	}
 
 	@Override
 	public void markActive() throws FrameworkException {
+
 		setStatus(ProcessTokenTraitDefinition.STATUS_ACTIVE);
 	}
 
 	@Override
 	public void markWaiting() throws FrameworkException {
+
 		setStatus(ProcessTokenTraitDefinition.STATUS_WAITING);
 	}
 
 	@Override
 	public void markCompleted() throws FrameworkException {
+
 		setStatus(ProcessTokenTraitDefinition.STATUS_COMPLETED);
 	}
 
 	@Override
 	public NodeInterface getAtElement() {
+
 		return wrappedObject.getProperty(traits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
 	}
 
 	@Override
 	public void setAtElement(final NodeInterface element) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY), element);
 	}
 
@@ -86,11 +97,13 @@ public class ProcessTokenTraitWrapper extends AbstractNodeTraitWrapper implement
 	public ProcessInstance getProcessInstance() {
 
 		final NodeInterface instance = wrappedObject.getProperty(traits.key(ProcessTokenTraitDefinition.PROCESS_INSTANCE_PROPERTY));
+
 		return instance != null ? instance.as(ProcessInstance.class) : null;
 	}
 
 	@Override
 	public void setProcessInstance(final NodeInterface instance) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessTokenTraitDefinition.PROCESS_INSTANCE_PROPERTY), instance);
 	}
 }

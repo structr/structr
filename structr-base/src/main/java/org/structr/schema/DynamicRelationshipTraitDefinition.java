@@ -57,75 +57,91 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 
 	@Override
 	public String getSourceType() {
+
 		return sourceType;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return targetType;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return relationshipType;
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return sourceMultiplicity;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return targetMultiplicity;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return cascadingDeleteFlag;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return autocreationFlag;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return true;
 	}
 
 	@Override
 	public int compareTo(final TraitDefinition o) {
+
 		return getName().compareTo(o.getName());
 	}
 
 	public PropagationDirection getPropagationDirection() {
+
 		return propagationDirection;
 	}
 
 	public PropagationMode getReadPropagation() {
+
 		return readPropagation;
 	}
 
 	public PropagationMode getWritePropagation() {
+
 		return writePropagation;
 	}
 
 	public PropagationMode getDeletePropagation() {
+
 		return deletePropagation;
 	}
 
 	public PropagationMode getAccessControlPropagation() {
+
 		return accessControlPropagation;
 	}
 
 	public String getDeltaProperties() {
+
 		return deltaProperties;
 	}
 
@@ -172,7 +188,6 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 	}
 
 	protected void initializeFlags(final SchemaRelationshipNode schemaNode) {
-
 
 		final Long cascadingDeleteFlag = schemaNode.getCascadingDeleteFlag();
 		if (cascadingDeleteFlag != null) {

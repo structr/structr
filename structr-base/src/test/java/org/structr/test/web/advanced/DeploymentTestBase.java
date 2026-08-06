@@ -59,6 +59,7 @@ import static org.testng.AssertJUnit.fail;
 public abstract class DeploymentTestBase extends StructrUiTest {
 
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory) {
+
 		compare(sourceHash, deleteTestDirectory, true);
 	}
 
@@ -67,7 +68,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		doImportExportRoundtrip(deleteTestDirectory, null, cleanDatabase);
 
 		final String actual = calculateHash();
-
 		if (!expected.equals(actual)) {
 
 			System.out.println(actual);
@@ -90,7 +90,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 					final String[] tokens1 = line1.split(";");
 					final String[] tokens2 = line2.split(";");
-
 					final Set<String> set1 = new HashSet<>(Arrays.asList(tokens1));
 					final Set<String> set2 = new HashSet<>(Arrays.asList(tokens2));
 					final Set<String> diff1 = new HashSet<>(set1);
@@ -112,10 +111,12 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	}
 
 	protected void doImportExportRoundtrip(final boolean deleteTestDirectory) {
+
 		doImportExportRoundtrip(deleteTestDirectory, null, true);
 	}
 
 	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final Function callback) {
+
 		doImportExportRoundtrip(deleteTestDirectory, callback, true);
 	}
 
@@ -135,11 +136,13 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			cmd.execute(firstExportParams);
 
 			if (cleanDatabase) {
+
 				cleanDatabase();
 			}
 
 			// apply callback if present
 			if (callback != null) {
+
 				callback.apply(null);
 			}
 
@@ -162,6 +165,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			if (deleteTestDirectory) {
 
 				try {
+
 					// clean directories
 					Files.walkFileTree(tmp, new DeletingFileVisitor());
 					Files.delete(tmp);
@@ -201,6 +205,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	}
 
 	protected void deleteExportAt(final Path path) throws IOException{
+
 		Files.walkFileTree(path, new DeletingFileVisitor());
 	}
 
@@ -214,6 +219,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 				// skip shadow document
 				if (page.is(StructrTraits.SHADOW_DOCUMENT)) {
+
 					continue;
 				}
 
@@ -428,6 +434,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		);
 
 		if (parent != null) {
+
 			parent.appendChild(template.as(DOMNode.class));
 		}
 
@@ -453,10 +460,12 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	}
 
 	protected DOMNode createComponent(final DOMNode node) throws FrameworkException {
+
 		return new CreateComponentCommand().create(node);
 	}
 
 	protected DOMNode cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
+
 		return new CloneComponentCommand().cloneComponent(node, parentNode);
 	}
 
@@ -481,6 +490,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	}
 
 	protected void assertFalse(final String message, final boolean value) {
+
 		assertTrue(message, !value);
 	}
 
@@ -489,6 +499,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		@Override
 		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+
 			return FileVisitResult.CONTINUE;
 		}
 
@@ -502,6 +513,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		@Override
 		public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+
 			return FileVisitResult.CONTINUE;
 		}
 

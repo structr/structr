@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
@@ -31,16 +30,17 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
 public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "setResponseCode";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("code");
 	}
 
@@ -73,6 +73,7 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException iae) {
 
 			logParameterError(caller, sources, iae.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -81,40 +82,37 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${setResponseCode(int)}."),
-			Usage.javaScript("Usage: ${{ $.setResponseCode(int) }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${setResponseCode(int)}."), Usage.javaScript("Usage: ${{ $.setResponseCode(int) }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the response code of the current rendering run.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Very useful in conjunction with `setResponseHeader()` for redirects.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${setResponseCode(302)}"),
-			Example.javaScript("${{ $.setResponseCode(302) }}")
-		);
+
+		return List.of(Example.structrScript("${setResponseCode(302)}"), Example.javaScript("${{ $.setResponseCode(302) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("code", "HTTP response code")
-		);
+		return List.of(Parameter.mandatory("code", "HTTP response code"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

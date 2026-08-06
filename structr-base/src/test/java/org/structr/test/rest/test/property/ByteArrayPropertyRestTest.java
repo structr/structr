@@ -30,7 +30,6 @@ public class ByteArrayPropertyRestTest extends StructrRestTestBase {
 	public void testByteArrayViaRest() {
 
 		String testString = "structr is great";
-
 		String location = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'byteArrayProperty' : '" + testString + "' } ")

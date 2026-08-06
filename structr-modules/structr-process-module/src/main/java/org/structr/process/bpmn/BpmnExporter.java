@@ -81,6 +81,7 @@ public class BpmnExporter {
 	private final Gson gson;
 
 	public BpmnExporter() {
+
 		this.gson = new GsonBuilder().create();
 	}
 
@@ -122,8 +123,8 @@ public class BpmnExporter {
 			for (final Map.Entry<String, String> ns : namespaces.entrySet()) {
 
 				final String key = ns.getKey();
-
 				if (key.startsWith("xmlns:")) {
+
 					w.setPrefix(key.substring(6), ns.getValue());
 
 				} else if ("xmlns".equals(key)) {
@@ -140,8 +141,8 @@ public class BpmnExporter {
 			for (final Map.Entry<String, String> ns : namespaces.entrySet()) {
 
 				final String key = ns.getKey();
-
 				if (key.startsWith("xmlns:")) {
+
 					w.writeNamespace(key.substring(6), ns.getValue());
 
 				} else if ("xmlns".equals(key)) {
@@ -224,7 +225,6 @@ public class BpmnExporter {
 		final String documentation = elem.getDocumentation();
 		final String scriptContent = elem.getScriptContent();
 		final String eventDefType  = elem.getEventDefinitionType();
-
 		final Iterable<BpmnElement> childElements       = elem.getChildElements();
 		final Iterable<BpmnSequenceFlow> childFlows     = elem.getChildFlows();
 		final Iterable<BpmnPerformer> performersIter    = elem.getPerformers();
@@ -243,7 +243,6 @@ public class BpmnExporter {
 		final String subjectWritableView                = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY));
 		final String subjectInstructions                = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY));
 		final boolean hasContract                       = subjectFormView != null || subjectWritableView != null || subjectInstructions != null;
-
 		final boolean hasContent                        = documentation != null || scriptContent != null || eventDefType != null || hasGraphChildren || hasPerformers || hasListeners || hasMethods || hasContract;
 
 		w.writeStartElement(BPMN_NS, elemType);
@@ -292,6 +291,7 @@ public class BpmnExporter {
 				// happen if a re-import wrote the rel but didn't run the
 				// stripping pass).
 				if ("attachedToRef".equals(a.getKey()) && attachedToRefEmitted) {
+
 					continue;
 				}
 
@@ -395,6 +395,7 @@ public class BpmnExporter {
 		}
 
 		if (hasContent) {
+
 			w.writeCharacters("\n" + spaces(indent));
 		}
 
@@ -430,9 +431,11 @@ public class BpmnExporter {
 			if (linkedPrincipals != null) {
 
 				final List<String> tokens = new LinkedList<>();
+
 				for (final NodeInterface principal : linkedPrincipals) {
 
 					if (principal == null) {
+
 						continue;
 					}
 
@@ -443,6 +446,7 @@ public class BpmnExporter {
 					}
 
 					if (principal.getTraits().contains(StructrTraits.GROUP)) {
+
 						tokens.add("group(" + name + ")");
 
 					} else {
@@ -453,6 +457,7 @@ public class BpmnExporter {
 				}
 
 				if (!tokens.isEmpty()) {
+
 					expression = String.join(", ", tokens);
 				}
 			}
@@ -471,10 +476,12 @@ public class BpmnExporter {
 
 			w.writeCharacters("\n" + spaces(indent + 4));
 			w.writeStartElement(BPMN_NS, "formalExpression");
+
 			if (language != null && !language.isEmpty()) {
 
 				w.writeAttribute("language", language);
 			}
+
 			w.writeCharacters(expression);
 			w.writeEndElement(); // formalExpression
 
@@ -498,6 +505,7 @@ public class BpmnExporter {
 		writeAttrIfNotNull(w, sw, "name", proc.getProcessName());
 
 		if (proc.isExecutable()) {
+
 			w.writeAttribute("isExecutable", "true");
 		}
 
@@ -658,6 +666,7 @@ public class BpmnExporter {
 		final boolean hasSubject                          = subjectType != null && !subjectType.isEmpty();
 
 		if (!hasListeners && !hasMethods && !hasSubject) {
+
 			return;
 		}
 
@@ -707,6 +716,7 @@ public class BpmnExporter {
 		// Method is now a relationship to a SchemaMethod; emit its name.
 		String methodName = null;
 		final NodeInterface method = listener.getMethod();
+
 		if (method != null) {
 
 			methodName = method.getName();
@@ -751,6 +761,7 @@ public class BpmnExporter {
 		// Method is now a relationship to a SchemaMethod; emit its name.
 		String methodName = null;
 		final NodeInterface method = listener.getMethod();
+
 		if (method != null) {
 
 			methodName = method.getName();
@@ -773,7 +784,6 @@ public class BpmnExporter {
 		final String eventDefRef = elem.getEventDefinitionRef();
 		final String timerType   = elem.getTimerType();
 		final String timerValue  = elem.getTimerValue();
-
 		final boolean hasTimerChild = (timerType != null && timerValue != null);
 
 		if (!hasTimerChild && eventDefRef == null) {
@@ -792,6 +802,7 @@ public class BpmnExporter {
 		if (eventDefRef != null) {
 
 			if ("errorEventDefinition".equals(eventDefType)) {
+
 				w.writeAttribute("errorRef", eventDefRef);
 
 			} else if ("messageEventDefinition".equals(eventDefType)) {
@@ -826,6 +837,7 @@ public class BpmnExporter {
 		}
 
 		if (hasTimerChild || eventDefRef != null) {
+
 			w.writeEndElement();
 		}
 	}
@@ -845,10 +857,12 @@ public class BpmnExporter {
 		writeAttrIfNotNull(w, "name", gdNode.getBpmnName());
 
 		if (errorCode != null && !errorCode.isEmpty()) {
+
 			w.writeAttribute("errorCode", errorCode);
 		}
 
 		if (structureRef != null && !structureRef.isEmpty()) {
+
 			w.writeAttribute("structureRef", structureRef);
 		}
 	}
@@ -859,6 +873,7 @@ public class BpmnExporter {
 		final boolean hasCondition = (condExpr != null && !condExpr.isEmpty());
 
 		if (!hasCondition) {
+
 			w.writeEmptyElement(BPMN_NS, "sequenceFlow");
 
 		} else {
@@ -876,6 +891,7 @@ public class BpmnExporter {
 		if (attrsJson != null) {
 
 			final Map<String, String> attrs = safeMap(attrsJson);
+
 			for (final Map.Entry<String, String> a : attrs.entrySet()) {
 
 				w.writeAttribute(a.getKey(), a.getValue());
@@ -945,14 +961,17 @@ public class BpmnExporter {
 		writeAttrIfNotNull(w, "bpmnElement", shapeNode.getBpmnElementRef());
 
 		if (shapeNode.isMarkerVisible()) {
+
 			w.writeAttribute("isMarkerVisible", "true");
 		}
 
 		if (shapeNode.isExpanded()) {
+
 			w.writeAttribute("isExpanded", "true");
 		}
 
 		if (shapeNode.isHorizontal()) {
+
 			w.writeAttribute("isHorizontal", "true");
 		}
 
@@ -960,6 +979,7 @@ public class BpmnExporter {
 		if (diAttrsJson != null) {
 
 			final Map<String, String> diAttrs = safeMap(diAttrsJson);
+
 			for (final Map.Entry<String, String> a : diAttrs.entrySet()) {
 
 				w.writeAttribute(a.getKey(), a.getValue());
@@ -975,6 +995,7 @@ public class BpmnExporter {
 
 		final String labelJson = shapeNode.getLabelBounds();
 		final boolean hasLabel = shapeNode.hasLabel();
+
 		if (labelJson != null) {
 
 			final Map<String, String> lb = safeMap(labelJson);
@@ -1010,6 +1031,7 @@ public class BpmnExporter {
 		if (diAttrsJson != null) {
 
 			final Map<String, String> diAttrs = safeMap(diAttrsJson);
+
 			for (final Map.Entry<String, String> a : diAttrs.entrySet()) {
 
 				w.writeAttribute(a.getKey(), a.getValue());
@@ -1020,6 +1042,7 @@ public class BpmnExporter {
 		if (wpJson != null) {
 
 			final List<Map<String, String>> waypoints = safeList(wpJson);
+
 			for (final Map<String, String> wp : waypoints) {
 
 				w.writeCharacters("\n        ");
@@ -1072,6 +1095,7 @@ public class BpmnExporter {
 	private void writeAttrIfNotNull(final XMLStreamWriter w, final String name, final Object value) throws XMLStreamException {
 
 		if (value != null) {
+
 			w.writeAttribute(name, value.toString());
 		}
 	}
@@ -1087,6 +1111,7 @@ public class BpmnExporter {
 		if (value != null) {
 
 			if (value == Math.floor(value) && !Double.isInfinite(value)) {
+
 				w.writeAttribute(name, String.valueOf((int) Math.floor(value)));
 
 			} else {
@@ -1103,6 +1128,7 @@ public class BpmnExporter {
 			for (final Map.Entry<String, String> entry : ns.entrySet()) {
 
 				if (uri.equals(entry.getValue())) {
+
 					return;
 				}
 			}
@@ -1118,6 +1144,7 @@ public class BpmnExporter {
 			if (uri.equals(entry.getValue())) {
 
 				if (entry.getKey().startsWith("xmlns:")) {
+
 					return entry.getKey().substring(6);
 				}
 
@@ -1128,6 +1155,7 @@ public class BpmnExporter {
 					// that default namespace; forcing a "bpmn" prefix here would emit an
 					// unbound prefix (no matching xmlns:bpmn is written), producing
 					// namespace-ill-formed XML.
+
 					return "";
 				}
 			}
@@ -1137,6 +1165,7 @@ public class BpmnExporter {
 	}
 
 	private String spaces(final int count) {
+
 		return " ".repeat(count);
 	}
 
@@ -1153,6 +1182,7 @@ public class BpmnExporter {
 
 				final Map<String, String> parsed = gson.fromJson(json, MAP_TYPE);
 				if (parsed != null) {
+
 					return parsed;
 				}
 
@@ -1174,6 +1204,7 @@ public class BpmnExporter {
 
 				final List<Map<String, String>> parsed = gson.fromJson(json, LIST_TYPE);
 				if (parsed != null) {
+
 					return parsed;
 				}
 
@@ -1187,6 +1218,7 @@ public class BpmnExporter {
 	}
 
 	private boolean hasAny(final Iterable<?> iterable) {
+
 		return iterable != null && iterable.iterator().hasNext();
 	}
 }

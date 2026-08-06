@@ -86,10 +86,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		// build reverse mapping
 		for (Entry<Class, Byte> entry : typeMap.entrySet()) {
+
 			classMap.put(entry.getValue(), entry.getKey());
 		}
 	}
-
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -133,11 +133,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
@@ -145,6 +147,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	private Boolean toStringOrBoolean(final Object value) {
 
 		if (value != null) {
+
 			return Boolean.valueOf(value.toString());
 		}
 
@@ -181,8 +184,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
+
 						nodes.add(obj.getSyncNode());
+
 					} else {
+
 						rels.add(obj.getSyncRelationship());
 					}
 				}
@@ -252,6 +258,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		try (final ZipOutputStream zos = new ZipOutputStream(outputStream)) {
 
 			final Set<String> filesToInclude = new LinkedHashSet<>();
+
 			if (filePaths != null) {
 
 				for (String file : filePaths) {
@@ -290,6 +297,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	}
 
 	public static void importFromFile(final DatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation) throws FrameworkException {
+
 		importFromFile(graphDb, securityContext, fileName, doValidation, 400L);
 	}
 
@@ -300,6 +308,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			importFromStream(graphDb, securityContext, fis, doValidation, batchSize);
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 			throw new FrameworkException(500, t.getMessage());
 		}
@@ -367,6 +376,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 					// serialize array
 					for (Object o : (Object[])obj) {
+
 						serialize(outputStream, o);
 					}
 
@@ -434,9 +444,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			logger.warn("Unsupported type \"{}\" in input", type);
 		}
 
-
-
-
 		return serializedObject;
 	}
 
@@ -444,6 +451,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		final String nestedPath = path + dir.getName() + "/";
 		final ZipEntry dirEntry = new ZipEntry(nestedPath);
+
 		zos.putNextEntry(dirEntry);
 
 		final File[] contents = dir.listFiles();
@@ -505,6 +513,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			// skip schema
 			if (nodeObject.is(StructrTraits.SCHEMA_RELOADING_NODE)) {
+
 				continue;
 			}
 
@@ -577,7 +586,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		// Fix ZIP slip security problem
 		final Path checkPath = Path.of(entry.getName());
-
 		if (!checkPath.normalize().equals(checkPath) || checkPath.isAbsolute()) {
 
 			throw new RuntimeException("Refusing to extract unsafe ZIP entry " + entry.getName());
@@ -638,6 +646,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		// add tenant identifier to all nodes
 		if (graphDb.getTenantIdentifier() != null) {
+
 			labels.add(graphDb.getTenantIdentifier());
 		}
 
@@ -662,6 +671,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 						// skip newlines
 						if (objectType == '\n') {
+
 							continue;
 						}
 
@@ -669,6 +679,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 							// break loop after 200 objects, commit and restart afterwards
 							if (nodeCount + relCount >= internalBatchSize) {
+
 								dis.reset();
 								break;
 							}
@@ -685,6 +696,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 							// break look after 200 objects, commit and restart afterwards
 							if (nodeCount + relCount >= internalBatchSize) {
+
 								dis.reset();
 								break;
 							}
@@ -710,9 +722,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 							if (currentKey == null) {
 
 								try {
+
 									currentKey = (String)deserialize(dis);
 
 								} catch (Throwable t) {
+
 									logger.warn("", t);
 								}
 
@@ -752,6 +766,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						}
 
 					} catch (EOFException eofex) {
+
 						finished = true;
 					}
 
@@ -780,6 +795,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 
@@ -791,8 +807,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		double t1   = System.nanoTime();
 		double time = ((t1 - t0) / 1000000000.0);
-
 		DecimalFormat decimalFormat  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+
 		logger.info("Import done in {} s", decimalFormat.format(time));
 	}
 
@@ -802,34 +818,42 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case  0:
 			case  1:
+
 				return inputStream.readByte();
 
 			case  2:
 			case  3:
+
 				return inputStream.readShort();
 
 			case  4:
 			case  5:
+
 				return inputStream.readInt();
 
 			case  6:
 			case  7:
+
 				return inputStream.readLong();
 
 			case  8:
 			case  9:
+
 				return inputStream.readFloat();
 
 			case 10:
 			case 11:
+
 				return inputStream.readDouble();
 
 			case 12:
 			case 13:
+
 				return inputStream.readChar();
 
 			case 14:
 			case 15:
+
 				return new String(deserializeData(inputStream), StandardCharsets.UTF_8);
 
 				// this doesn't work with very long strings
@@ -837,6 +861,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case 16:
 			case 17:
+
 				return inputStream.readBoolean();
 		}
 
@@ -900,56 +925,67 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getName() {
+
 		return "";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 
@@ -958,6 +994,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		private final Set<String> labels = new LinkedHashSet<>();
 
 		public NodeCreation(final Set<String> labels) {
+
 			this.labels.addAll(labels);
 		}
 
@@ -973,6 +1010,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		}
 
 		void addLabel(final String label) {
+
 			this.labels.add(label);
 		}
 	}
@@ -1010,10 +1048,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		abstract void create(final DatabaseService db, final Map<String, Node> nodeMap);
 
 		public void setId(final String id) {
+
 			this.id = id;
 		}
 
 		public String getId() {
+
 			return id;
 		}
 	}

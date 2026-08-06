@@ -55,6 +55,7 @@ public class DocumentationIndexProcessor extends AbstractProcessor {
 
 	@Override
 	public SourceVersion getSupportedSourceVersion() {
+
 		return SourceVersion.latestSupported();
 	}
 
@@ -78,6 +79,7 @@ public class DocumentationIndexProcessor extends AbstractProcessor {
 		}
 
 		// do not claim the annotations: other processors may want to see them too
+
 		return false;
 	}
 
@@ -85,11 +87,7 @@ public class DocumentationIndexProcessor extends AbstractProcessor {
 
 		final ElementKind kind = element.getKind();
 
-		return kind == ElementKind.CLASS
-			|| kind == ElementKind.INTERFACE
-			|| kind == ElementKind.ENUM
-			|| kind == ElementKind.RECORD
-			|| kind == ElementKind.ANNOTATION_TYPE;
+		return kind == ElementKind.CLASS || kind == ElementKind.INTERFACE || kind == ElementKind.ENUM || kind == ElementKind.RECORD || kind == ElementKind.ANNOTATION_TYPE;
 	}
 
 	private void writeIndex() {

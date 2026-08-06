@@ -66,7 +66,6 @@ public class ForkHandler implements FlowHandler {
 		return flowElement.next();
 	}
 
-
 	private class ForkTask implements Callable<Object> {
 
 		private final Context context;

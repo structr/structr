@@ -60,15 +60,18 @@ public class EnumSourceToken extends NamedConceptListToken {
 
 							final DocumentableType documentableType = documentable.getDocumentableType();
 							final Concept concept = ontology.getOrCreateConcept(this, documentableType.getConcept(), name, false);
+
 							if (concept != null) {
 
 								if (documentable.getShortDescription() != null) {
+
 									concept.setShortDescription(documentable.getShortDescription());
 								}
 
 								final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
 
 								if (documentable.getTableHeaders() != null) {
+
 									System.out.println(concept);
 								}
 
@@ -85,6 +88,7 @@ public class EnumSourceToken extends NamedConceptListToken {
 							if (concept != null) {
 
 								if (category.getShortDescription() != null) {
+
 									concept.setShortDescription(category.getShortDescription());
 								}
 
@@ -97,6 +101,7 @@ public class EnumSourceToken extends NamedConceptListToken {
 			}
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -105,6 +110,7 @@ public class EnumSourceToken extends NamedConceptListToken {
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 }

@@ -55,6 +55,7 @@ public class FeedsTest extends StructrUiTest {
 			createAdminUser();
 
 			try (final InputStream is = FeedsTest.class.getResourceAsStream("/rss.xml")) {
+
 				NodeInterface file = FileHelper.createFile(securityContext, is, "text/xml", StructrTraits.FILE, "rss.xml");
 				file.setVisibility(true, true);
 			}
@@ -62,6 +63,7 @@ public class FeedsTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -77,6 +79,7 @@ public class FeedsTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -118,19 +121,19 @@ public class FeedsTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(type,
-				new NodeAttribute<>(remoteDocumentTraits.key("url"), "https://download.structr.com/blog")
-			);
+			app.create(type, new NodeAttribute<>(remoteDocumentTraits.key("url"), "https://download.structr.com/blog"));
 
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}

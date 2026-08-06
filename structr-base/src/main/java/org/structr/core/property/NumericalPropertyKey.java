@@ -25,5 +25,6 @@ package org.structr.core.property;
  *
  */
 public interface NumericalPropertyKey<T> {
+
 	T convertToNumber(final Double source);
 }

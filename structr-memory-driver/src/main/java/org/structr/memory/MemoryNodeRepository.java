@@ -47,10 +47,12 @@ public class MemoryNodeRepository extends EntityRepository {
 	final Map<String, Set<MemoryIdentity>> typeCache  = new ConcurrentSkipListMap<>();
 
 	MemoryNode get(final MemoryIdentity id) {
+
 		return masterData.get(id);
 	}
 
 	public void clear() {
+
 		masterData.clear();
 		labelCache.clear();
 		typeCache.clear();
@@ -85,12 +87,14 @@ public class MemoryNodeRepository extends EntityRepository {
 	}
 
 	boolean contains(final MemoryIdentity id) {
+
 		return masterData.containsKey(id);
 	}
 
 	void add(final Iterable<MemoryNode> newData) {
 
 		for (final MemoryNode node : newData) {
+
 			add(node);
 		}
 	}
@@ -118,10 +122,12 @@ public class MemoryNodeRepository extends EntityRepository {
 			masterData.keySet().removeAll(ids);
 
 			for (final Set<MemoryIdentity> cache : labelCache.values()) {
+
 				cache.removeAll(ids);
 			}
 
 			for (final Set<MemoryIdentity> cache : typeCache.values()) {
+
 				cache.removeAll(ids);
 			}
 		}
@@ -132,18 +138,20 @@ public class MemoryNodeRepository extends EntityRepository {
 		final MemoryIdentity id = node.getIdentity();
 		final String type       = (String)node.getProperty("type");
 
-
 		// remove identity from all caches
 		for (final Set<MemoryIdentity> cache : labelCache.values()) {
+
 			cache.remove(id);
 		}
 
 		for (final Set<MemoryIdentity> cache : typeCache.values()) {
+
 			cache.remove(id);
 		}
 
 		// add identity to all label caches
 		for (final String label : node.getLabels()) {
+
 			getCacheForLabel(label).add(id);
 		}
 
@@ -154,13 +162,11 @@ public class MemoryNodeRepository extends EntityRepository {
 	void loadFromStorage(final MemoryDatabaseService db, final File storageDirectory) {
 
 		final File nodesFile = getNodeStorageFile(storageDirectory);
-
 		if (nodesFile.exists()) {
 
 			try (final ObjectInputStream in = new ObjectInputStream(getZipInputStream(nodesFile))) {
 
 				final int formatVersion = in.readInt();
-
 				if (STORAGE_FORMAT_VERSION == formatVersion) {
 
 					final int nodeCount = in.readInt();
@@ -180,6 +186,7 @@ public class MemoryNodeRepository extends EntityRepository {
 				}
 
 			} catch (final Throwable t) {
+
 				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
@@ -208,11 +215,13 @@ public class MemoryNodeRepository extends EntityRepository {
 			out.flush();
 
 		} catch (final IOException ex) {
+
 			logger.error(ExceptionUtils.getStackTrace(ex));
 		}
 	}
 
 	Map<MemoryIdentity, MemoryNode> getMasterData() {
+
 		return masterData;
 	}
 
@@ -242,6 +251,7 @@ public class MemoryNodeRepository extends EntityRepository {
 	}
 
 	private File getNodeStorageFile(final File storageDirectory) {
+
 		return storageDirectory.toPath().resolve("nodes.bin.zip").toFile();
 	}
 }

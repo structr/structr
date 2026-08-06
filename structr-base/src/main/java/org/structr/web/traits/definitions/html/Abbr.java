@@ -27,6 +27,7 @@ import java.util.Map;
 public class Abbr extends GenericHtmlElementTraitDefinition {
 
 	public Abbr() {
+
 		super(StructrTraits.ABBR);
 	}
 
@@ -37,11 +38,11 @@ public class Abbr extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return false;
 				}
 			}

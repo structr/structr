@@ -45,23 +45,27 @@ public class RestMethodResult {
 	private Integer overriddenResultCount             = null;
 
 	public RestMethodResult(final int responseCode) {
+
 		this.headers      = new HashMap<>();
 		this.responseCode = responseCode;
 	}
 
 	public RestMethodResult(final int responseCode, final String message) {
+
 		headers           = new HashMap<>();
 		this.message      = message;
 		this.responseCode = responseCode;
 	}
 
 	public void addHeader(final String key, final String value) {
+
 		headers.put(key, value);
 	}
 
 	public void addContent(final Object graphObject) {
 
 		if (this.content == null) {
+
 			this.content = new LinkedList<>();
 		}
 
@@ -69,43 +73,53 @@ public class RestMethodResult {
 	}
 
 	public void setNonGraphObjectResult(final Object result) {
+
 		this.nonGraphObjectResult = result;
 	}
 
 	public Map<String, String> getHeaders() {
+
 		return headers;
 	}
 
 	public List<Object> getContent() {
+
 		return content;
 	}
 
 	public int getResponseCode() {
+
 		return responseCode;
 	}
 
 	public String getMessage() {
+
 		return message;
 	}
 
 	public Object getNonGraphObjectResult() {
+
 		return nonGraphObjectResult;
 	}
 
 	public void setOverriddenResultCount(final int resultCount) {
+
 		this.overriddenResultCount = resultCount;
 	}
 
 	public Integer getOverriddenResultCount() {
+
 		return this.overriddenResultCount;
 	}
 
 	// ----- public static methods -----
 	public static String jsonError(final int code, final String message) {
+
 		return jsonMessage(code, message, "error");
 	}
 
 	public static String jsonMessage(final int code, final String message) {
+
 		return jsonMessage(code, message, "message");
 	}
 

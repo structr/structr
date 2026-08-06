@@ -30,11 +30,13 @@ class IdRelationshipMapper implements Function<String, Relationship> {
 	private EmbeddedDatabaseService db = null;
 
 	public IdRelationshipMapper(final EmbeddedDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Relationship apply(final String id) {
+
 		return db.getCurrentTransaction().getRelationshipWrapper(id);
 	}
 }

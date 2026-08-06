@@ -38,11 +38,13 @@ public class FormUrlEncodeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "formurlencode";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("object");
 	}
 
@@ -57,6 +59,7 @@ public class FormUrlEncodeFunction extends CoreFunction {
 			final Object obj        = sources[0];
 
 			try {
+
 				recursivelyEncodeObject(buf, null, obj, 0);
 
 			} catch (UnsupportedEncodingException uex) {
@@ -69,17 +72,20 @@ public class FormUrlEncodeFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.formurlencode(object); }}. Example: ${{ $.formurlencode(data); }}"),
 			Usage.structrScript("Usage: ${formurlencode(object)}. Example: ${formurlencode(data)}")
@@ -88,20 +94,20 @@ public class FormUrlEncodeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Encodes the given object to an application/x-www-form-urlencoded string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function encodes the given object for use in an URL, replacing invalid characters with their valid URL equivalent and joining the key/value pairs with an ampersand.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("object", "object to encode")
-		);
+		return List.of(Parameter.mandatory("object", "object to encode"));
 	}
 
 	@Override
@@ -115,13 +121,12 @@ public class FormUrlEncodeFunction extends CoreFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This function is best used in a JavaScript context."
-		);
+		return List.of("This function is best used in a JavaScript context.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 

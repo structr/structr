@@ -28,31 +28,37 @@ import org.structr.process.traits.definitions.BpmnGlobalDefinitionTraitDefinitio
 public class BpmnGlobalDefinitionTraitWrapper extends AbstractNodeTraitWrapper implements BpmnGlobalDefinition {
 
 	public BpmnGlobalDefinitionTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getBpmnName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.BPMN_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getDefinitionType() {
+
 		return wrappedObject.getProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.DEFINITION_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getErrorCode() {
+
 		return wrappedObject.getProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.ERROR_CODE_PROPERTY));
 	}
 
 	@Override
 	public String getStructureRef() {
+
 		return wrappedObject.getProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.STRUCTURE_REF_PROPERTY));
 	}
 }

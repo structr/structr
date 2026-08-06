@@ -45,25 +45,22 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String KEY_PROPERTY  = "key";
 
 	public FlowParameterInputTraitDefinition() {
+
 		super(StructrTraits.FLOW_PARAMETER_INPUT);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowParameterInput.class, (traits, node) -> new FlowParameterInput(traits, node)
-		);
+		return Map.of(FlowParameterInput.class, (traits, node) -> new FlowParameterInput(traits, node));
 	}
-
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -88,30 +85,20 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<Iterable<NodeInterface>> call = new EndNodes(traitsInstance, CALL_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
 		final Property<String> key                   = new StringProperty(KEY_PROPERTY);
 
-		return newSet(
-			call,
-			key
-		);
+		return newSet(call, key);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				KEY_PROPERTY, CALL_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(KEY_PROPERTY, CALL_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				KEY_PROPERTY, CALL_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(KEY_PROPERTY, CALL_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

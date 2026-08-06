@@ -56,6 +56,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	private static final Pattern ValidKeyPattern = Pattern.compile("[a-zA-Z_]+");
 
 	public SchemaRelationshipNodeTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 
@@ -111,6 +112,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 				// remove FQCN from class name (if present)
 				buf.append(StringUtils.substringAfterLast(_targetType, "."));
+
 			} else {
 
 				buf.append(_targetType);
@@ -119,9 +121,11 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 			name = buf.toString();
 
 			try {
+
 				wrappedObject.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 			} catch (FrameworkException fex) {
+
 				logger.warn("Unable to set relationship name to {}.", name);
 			}
 		}
@@ -131,11 +135,13 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public String getSourceNotion() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_NOTION_PROPERTY));
 	}
 
 	@Override
 	public String getTargetNotion() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_NOTION_PROPERTY));
 	}
 
@@ -149,7 +155,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		final String _targetMultiplicity  = getTargetMultiplicity();
 		final String _sourceJsonName      = getSourceJsonName();
 		final String _sourceMultiplicity  = getSourceMultiplicity();
-
 		final String propertyName = SchemaProperty.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 
 		return propertyName;
@@ -157,31 +162,37 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public String getSourceMultiplicity() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY));
 	}
 
 	@Override
 	public String getTargetMultiplicity() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY));
 	}
 
 	@Override
 	public String getSourceJsonName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getTargetJsonName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
 	}
 
@@ -258,6 +269,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 					boolean create = key.startsWith("+");
 
 					if (create) {
+
 						key = key.substring(1);
 					}
 
@@ -371,36 +383,43 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public void setAutocreationFlag(final Long flag) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.AUTOCREATION_FLAG_PROPERTY), flag);
 	}
 
 	@Override
 	public void setCascadingDeleteFlag(final Long flag) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY), flag);
 	}
 
 	@Override
 	public void setRelationshipType(final String relType) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), relType);
 	}
 
 	@Override
 	public void setSourceMultiplicity(final String sourceMultiplicity) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), sourceMultiplicity);
 	}
 
 	@Override
 	public void setTargetMultiplicity(final String targetMultiplicity) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), targetMultiplicity);
 	}
 
 	@Override
 	public void setSourceJsonName(final String sourcePropertyName) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), sourcePropertyName);
 	}
 
 	@Override
 	public void setTargetJsonName(final String targetPropertyName) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), targetPropertyName);
 	}
 
@@ -460,11 +479,13 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public Long getAutocreationFlag() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.AUTOCREATION_FLAG_PROPERTY));
 	}
 
 	@Override
 	public Long getCascadingDeleteFlag() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY));
 	}
 
@@ -530,31 +551,37 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public String getPropertyMask() {
+
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PROPERTY_MASK_PROPERTY));
 	}
 
 	@Override
 	public void setSourceNode(final SchemaNode sourceSchemaNode) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), sourceSchemaNode);
 	}
 
 	@Override
 	public void setTargetNode(final SchemaNode targetSchemaNode) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), targetSchemaNode);
 	}
 
 	@Override
 	public void setSourceType(final String sourceType) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY), sourceType);
 	}
 
 	@Override
 	public void setTargetType(final String targetType) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY), targetType);
 	}
 
 	@Override
 	public TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance) {
+
 		return new DynamicRelationshipTraitDefinition(traitsInstance, this);
 	}
 
@@ -596,6 +623,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public List<IsValid> createValidators(SchemaNode entity) throws FrameworkException {
+
 		return List.of();
 	}
 

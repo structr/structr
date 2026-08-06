@@ -47,6 +47,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 	public static final String SCOPED_PROPERTY = getPrefixedHTMLAttributeName("scoped");
 
 	public Style() {
+
 		super(StructrTraits.STYLE);
 	}
 
@@ -57,8 +58,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 
 		methods.put(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -67,6 +67,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 					final String value            = graphObject.getProperty(key);
 
 					if (StringUtils.isBlank(value)) {
+
 						graphObject.setProperty(key, "text/css");
 					}
 				}
@@ -83,8 +84,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			HandleNewChild.class,
-			new HandleNewChild() {
+			HandleNewChild.class, new HandleNewChild() {
 
 				@Override
 				public void handleNewChild(final DOMNode node, final DOMNode newChild) throws FrameworkException {
@@ -125,19 +125,12 @@ public class Style extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> typeProperty   = new StringProperty(TYPE_PROPERTY);
 		final PropertyKey<String> scopedProperty = new StringProperty(SCOPED_PROPERTY);
 
-		return newSet(
-			mediaProperty, typeProperty, scopedProperty
-		);
+		return newSet(mediaProperty, typeProperty, scopedProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					MEDIA_PROPERTY, TYPE_PROPERTY, SCOPED_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(MEDIA_PROPERTY, TYPE_PROPERTY, SCOPED_PROPERTY));
 	}
 }

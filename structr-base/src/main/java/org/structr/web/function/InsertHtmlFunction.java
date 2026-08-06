@@ -35,11 +35,13 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "insertHtml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("parent, html");
 	}
 
@@ -56,6 +58,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${insertHtml(parent, html)}. Example: ${insertHtml(this, html)}"),
 			Usage.javaScript("Usage: ${{ $.insertHtml(parent, html) }}. Example: ${{ $.insertHtml(this, html) }}")
@@ -64,16 +67,19 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Inserts a new HTML subtree into the DOM.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 

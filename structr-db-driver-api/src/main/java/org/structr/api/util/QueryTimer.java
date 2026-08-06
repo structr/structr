@@ -30,6 +30,7 @@ public class QueryTimer {
 	QueryTimer() {}
 
 	public String getStatement() {
+
 		return statement;
 	}
 
@@ -47,10 +48,12 @@ public class QueryTimer {
 		}
 
 		// return milliseconds
+
 		return (max - min) / 1000000000.0;
 	}
 
 	public boolean isEmpty() {
+
 		return timestamps.isEmpty();
 	}
 
@@ -62,31 +65,38 @@ public class QueryTimer {
 	}
 
 	public void querySent() {
+
 		recordTime("querySent");
 	}
 
 	public void closed() {
+
 		recordTime("closed");
 	}
 
 	public void consumed() {
+
 		recordTime("consumed");
 	}
 
 	public void finishReceived() {
+
 		recordTime("finishReceived");
 	}
 
 	public void nextPage() {
+
 		recordTime("nextPage");
 	}
 
 	public void finished() {
+
 		recordTime("finished");
 	}
 
 	// ----- private methods -----
 	private void recordTime(final String key) {
+
 		timestamps.put(key, Double.valueOf(System.nanoTime()));
 	}
 

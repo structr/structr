@@ -36,11 +36,13 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "exportBpmn";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -54,6 +56,7 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 			if (sources[0] instanceof NodeInterface defNode) {
 
 				final BpmnExporter exporter = new BpmnExporter();
+
 				return exporter.exportBpmn(defNode.as(BpmnDefinitions.class));
 			}
 
@@ -67,34 +70,32 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("bpmnDefinitionsNode");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.structrScript("Usage: ${export_bpmn(node)}"),
-			Usage.javaScript("Usage: ${{S.exportBpmn(node)}}")
-		);
+		return List.of(Usage.structrScript("Usage: ${export_bpmn(node)}"), Usage.javaScript("Usage: ${{S.exportBpmn(node)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Exports a BpmnDefinitions graph structure to BPMN 2.0.2 XML.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Reads the process definition graph from the given BpmnDefinitions node and produces a valid BPMN 2.0.2 XML string including all process elements, sequence flows, and DI diagram data.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("bpmnDefinitionsNode", "BpmnDefinitions node to export")
-		);
+		return List.of(Parameter.mandatory("bpmnDefinitionsNode", "BpmnDefinitions node to export"));
 	}
 
 	@Override
@@ -108,6 +109,7 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

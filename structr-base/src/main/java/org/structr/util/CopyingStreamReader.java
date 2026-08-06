@@ -61,6 +61,7 @@ public class CopyingStreamReader extends Thread {
 				Thread.sleep(10);
 
 			} catch (Throwable t) {
+
 				logger.warn("", t);
 			}
 		}

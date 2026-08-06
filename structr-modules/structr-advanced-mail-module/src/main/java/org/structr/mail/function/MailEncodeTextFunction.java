@@ -33,16 +33,19 @@ import java.util.List;
 public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 
 	public MailEncodeTextFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailEncodeText";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("text");
 	}
 
@@ -60,31 +63,33 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 			} catch (UnsupportedEncodingException ex) {
 
 				logger.warn("Unable to encode text '{}', returning original value", sources[0].toString());
+
 				return sources[0].toString();
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailEncodeText(text)}"),
-			Usage.javaScript("Usage: ${{ $.mailEncodeText(text) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailEncodeText(text)}"), Usage.javaScript("Usage: ${{ $.mailEncodeText(text) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Encodes RFC 822 \"text\" token into mail-safe form as per RFC 2047.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			The given Unicode string is examined for non US-ASCII characters. If the string contains only US-ASCII characters, it is returned as-is. If the string contains non US-ASCII characters, it is first character-encoded using the platform's default charset, then transfer-encoded using either the B or Q encoding. The resulting bytes are then returned as a Unicode string containing only ASCII characters.
 			Note that this method should be used to encode only "unstructured" RFC 822 headers.
@@ -93,15 +98,13 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("text", "text to encode")
-		);
+
+		return List.of(Parameter.mandatory("text", "text to encode"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
-		);
+
+		return List.of(Example.structrScript("${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters"));
 	}
 }

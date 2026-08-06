@@ -64,96 +64,118 @@ public class DistanceSearchAttribute extends SearchAttribute implements SpatialQ
 
 	@Override
 	public String toString() {
+
 		return "DistanceSearchAttribute(" + street + ", " + house + ", " + postalCode + ", " + city + ", " + state + ", " + country + ", " + distance + ")";
 	}
 
 	@Override
 	public Double getValue() {
+
 		return distance;
 	}
 
 	public void setDistance(Double distance) {
+
 		this.distance = distance;
 	}
 
 	public String getStreet() {
+
 		return street;
 	}
 
 	public void setStreet(String street) {
+
 		this.street = street;
 	}
 
 	public String getHouse() {
+
 		return house;
 	}
 
 	public void setHouse(String house) {
+
 		this.house = house;
 	}
 
 	public String getPostalCode() {
+
 		return postalCode;
 	}
 
 	public void setPostalCode(String postalCode) {
+
 		this.postalCode = postalCode;
 	}
 
 	public String getCity() {
+
 		return city;
 	}
 
 	public void setCity(String city) {
+
 		this.city = city;
 	}
 
 	public String getState() {
+
 		return state;
 	}
 
 	public void setState(String state) {
+
 		this.state = state;
 	}
 
 	public String getCountry() {
+
 		return country;
 	}
 
 	public void setCountry(String country) {
+
 		this.country = country;
 	}
 
 	public boolean needsGeocoding() {
+
 		return needsGeocoding;
 	}
 
 	@Override
 	public boolean isExactMatch() {
+
 		return true;	// ignored
 	}
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
+
 		return true;
 	}
 
 	public void setCoords(final Double[] coords) {
+
 		this.coords = coords;
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return SpatialQuery.class;
 	}
 
 	@Override
 	public Double[] getCoords() {
+
 		return coords;
 	}
 
 	@Override
 	public Double getDistance() {
+
 		return distance;
 	}
 }

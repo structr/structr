@@ -38,11 +38,13 @@ public class ContainsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "contains";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("stringOrList, wordOrObject");
 	}
 
@@ -70,6 +72,7 @@ public class ContainsFunction extends CoreFunction {
 			} else if (sources[0] instanceof Collection) {
 
 				final Collection collection = (Collection)sources[0];
+
 				return collection.contains(sources[1]);
 
 			} else if (sources[0].getClass().isArray()) {
@@ -84,6 +87,7 @@ public class ContainsFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -92,6 +96,7 @@ public class ContainsFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.contains(string, word)}} or ${{$.contains(collection, element)}}. Example: ${{$.contains($.this.name, \"the\")}} or ${{$.contains($.find('Page'), page)}}"),
 			Usage.structrScript("Usage: ${contains(string, word)} or ${contains(collection, element)}. Example: ${contains(this.name, \"the\")} or ${contains(find('Page'), page)}")
@@ -100,24 +105,25 @@ public class ContainsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given string or collection contains a given element.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns a boolean value that indicates whether the given string contains the given word or the given collection contains the given element.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("stringOrCollection", "string or collection to check"),
-			Parameter.mandatory("wordOrObject", "word or object to check")
-		);
+
+		return List.of(Parameter.mandatory("stringOrCollection", "string or collection to check"), Parameter.mandatory("wordOrObject", "word or object to check"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${contains(request.inputString, 'test')}", "Check if a given string contains the word \"test\""),
 			Example.structrScript("${contains(project.members, me)}", "Check if the given collection contains a node"),
@@ -127,13 +133,13 @@ public class ContainsFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"In JavaScript, this function is **not** the `contains` predicate to be used in `$.find()`, please use `$.predicate.contains()` for that."
-		);
+
+		return List.of("In JavaScript, this function is **not** the `contains` predicate to be used in `$.find()`, please use `$.predicate.contains()` for that.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

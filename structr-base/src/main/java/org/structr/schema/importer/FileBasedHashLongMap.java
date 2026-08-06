@@ -34,18 +34,22 @@ public class FileBasedHashLongMap<K> {
 	private String basePath                                     = null;
 
 	public FileBasedHashLongMap(final String basePath) {
+
 		this(basePath, true);
 	}
 
 	public FileBasedHashLongMap(final String basePath, final boolean clearOnOpen) {
+
 		this.basePath = basePath;
 	}
 
 	public void add(final K key, final Long value) {
+
 		getCollectionForKey(key).add(value);
 	}
 
 	public Collection<Long> get(final K key) {
+
 		return getCollectionForKey(key);
 	}
 

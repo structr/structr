@@ -27,21 +27,25 @@ public class SSHServiceDocumentable extends AbstractServiceDocumentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Service;
 	}
 
 	@Override
 	public String getName() {
+
 		return "SSHService";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "A service that provides access to Structr via SSH.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 

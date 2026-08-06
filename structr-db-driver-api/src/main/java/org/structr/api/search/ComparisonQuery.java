@@ -21,6 +21,7 @@ package org.structr.api.search;
 public interface ComparisonQuery<T> extends QueryPredicate {
 
 	enum Comparison {
+
 		equal,
 		notEqual,
 		greater,

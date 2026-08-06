@@ -53,6 +53,7 @@ public class HelpConsoleCommand extends AdminConsoleCommand {
 			int maxCommandNameLength = 0;
 
 			for (final String key : AdminConsoleCommand.commandNames()) {
+
 				maxCommandNameLength = Math.max(maxCommandNameLength, key.length());
 			}
 
@@ -69,11 +70,13 @@ public class HelpConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void commandHelp(final Writable writable) throws IOException {
+
 		writable.println("Prints a list of all commands and a short help text. Use 'help <command> to get more details.");
 	}
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
+
 		commandHelp(writable);
 	}
 }

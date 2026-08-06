@@ -28,10 +28,12 @@ import org.structr.module.api.DeployableEntity;
 public class FlowCollectionDataSource extends FlowDataSource implements DeployableEntity {
 
 	public FlowCollectionDataSource(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowCollectionDataSourceTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
 	}
 

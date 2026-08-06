@@ -69,6 +69,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 	@Override
 	public void failure() {
+
 		forcedFailure = true;
 	}
 
@@ -81,6 +82,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 	@Override
 	public boolean isSuccessful() {
+
 		return success && !forcedFailure;
 	}
 
@@ -92,19 +94,29 @@ class AsyncSessionTransaction extends SessionTransaction {
 		if (forcedFailure || !success) {
 
 			try {
+
 				resolveImmediately(tx.rollbackAsync());
 
 			} catch (TransientException tex) {
+
 				closed = true;
 				throw new RetryException(tex);
+
 			} catch (NoSuchRecordException nex) {
+
 				throw new NotFoundException(nex);
+
 			} catch (ServiceUnavailableException ex) {
+
 				throw new NetworkException(ex.getMessage(), ex);
+
 			} catch (DatabaseException dex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 			} catch (ClientException cex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(cex);
 			}
@@ -116,16 +128,25 @@ class AsyncSessionTransaction extends SessionTransaction {
 				resolveImmediately(tx.commitAsync());
 
 			} catch (TransientException tex) {
+
 				closed = true;
 				throw new RetryException(tex);
+
 			} catch (NoSuchRecordException nex) {
+
 				throw new NotFoundException(nex);
+
 			} catch (ServiceUnavailableException ex) {
+
 				throw new NetworkException(ex.getMessage(), ex);
+
 			} catch (DatabaseException dex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 			} catch (ClientException cex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(cex);
 			}
@@ -153,10 +174,12 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 	@Override
 	public boolean isClosed() {
+
 		return closed;
 	}
 
 	public void setClosed(final boolean closed) {
+
 		this.closed = closed;
 	}
 
@@ -169,7 +192,6 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			final String statement        = query.getStatement();
 			final Map<String, Object> map = query.getParameters();
-
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final boolean value       = resolveImmediately(cursor.peekAsync()).get(0).asBoolean();
 
@@ -178,16 +200,25 @@ class AsyncSessionTransaction extends SessionTransaction {
 			return value;
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
@@ -202,7 +233,6 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			final String statement        = query.getStatement();
 			final Map<String, Object> map = query.getParameters();
-
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final long value          = resolveImmediately(cursor.peekAsync()).get(0).asLong();
 
@@ -211,16 +241,25 @@ class AsyncSessionTransaction extends SessionTransaction {
 			return value;
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
@@ -235,13 +274,13 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			final String statement        = query.getStatement();
 			final Map<String, Object> map = query.getParameters();
-
 			final ResultCursor cursor          = resolveImmediately(tx.runAsync(statement, map));
 			final CompletionStage<Record> peek = cursor.peekAsync();
 			final Record record                = resolveImmediately(peek);
 			Node node                          = null;
 
 			if (record != null) {
+
 				node = record.get(0).asNode();
 			}
 
@@ -250,16 +289,25 @@ class AsyncSessionTransaction extends SessionTransaction {
 			return node;
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
@@ -274,13 +322,13 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			final String statement        = query.getStatement();
 			final Map<String, Object> map = query.getParameters();
-
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final CompletionStage<Record> peek = cursor.peekAsync();
 			final Record record                = resolveImmediately(peek);
 			Relationship relationship          = null;
 
 			if (record != null) {
+
 				relationship = record.get(0).asRelationship();
 			}
 
@@ -289,16 +337,25 @@ class AsyncSessionTransaction extends SessionTransaction {
 			return relationship;
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
@@ -342,16 +399,25 @@ class AsyncSessionTransaction extends SessionTransaction {
 			return Iterables.toList(Iterables.map(new RecordMapMapper(db), records));
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
@@ -370,16 +436,25 @@ class AsyncSessionTransaction extends SessionTransaction {
 			logSummary(summary);
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
@@ -392,10 +467,12 @@ class AsyncSessionTransaction extends SessionTransaction {
 		final QueryContext context                    = query.getQueryContext();
 
 		if (context != null && !context.isDeferred()) {
+
 			consumer.start();
 		}
 
 		// return mapped result
+
 		return consumer;
 	}
 
@@ -403,9 +480,11 @@ class AsyncSessionTransaction extends SessionTransaction {
 	private <T> T resolveImmediately(final CompletionStage<T> stage) {
 
 		try {
+
 			return stage.toCompletableFuture().get();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -418,11 +497,13 @@ class AsyncSessionTransaction extends SessionTransaction {
 		private Iterator<T> iterator = null;
 
 		public IteratorWrapper(final Iterator<T> iterator) {
+
 			this.iterator = iterator;
 		}
 
 		@Override
 		public Iterator<T> iterator() {
+
 			return new CloseableIterator<>(iterator);
 		}
 	}
@@ -432,6 +513,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 		private Iterator<T> iterator = null;
 
 		public CloseableIterator(final Iterator<T> iterator) {
+
 			this.iterator = iterator;
 		}
 
@@ -439,12 +521,16 @@ class AsyncSessionTransaction extends SessionTransaction {
 		public boolean hasNext() {
 
 			try {
+
 				return iterator.hasNext();
 
 			} catch (ClientException dex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(dex);
+
 			} catch (DatabaseException dex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}
@@ -458,9 +544,12 @@ class AsyncSessionTransaction extends SessionTransaction {
 				return iterator.next();
 
 			} catch (ClientException dex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(dex);
+
 			} catch (DatabaseException dex) {
+
 				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}

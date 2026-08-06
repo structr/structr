@@ -30,6 +30,7 @@ import org.structr.embedded.AdvancedCypherQuery;
 public class UuidQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public UuidQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

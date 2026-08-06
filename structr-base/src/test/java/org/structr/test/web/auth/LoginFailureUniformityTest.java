@@ -89,18 +89,14 @@ public class LoginFailureUniformityTest extends StructrUiTest {
 			);
 
 			// an external account, from LDAP or single sign-on, has no stored hash at all
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "nopassworduser")
-			);
+			app.create(StructrTraits.USER, new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "nopassworduser"));
 
 			/* An account left on a pre-Argon2id hash. It has to be planted on the database node
 			   directly, because setting the password property is precisely what replaces a legacy
 			   hash with an Argon2id one. */
-			final NodeInterface legacyUser = app.create(StructrTraits.USER,
-				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "legacyuser")
-			);
-
+			final NodeInterface legacyUser = app.create(StructrTraits.USER, new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "legacyuser"));
 			final Node legacyNode = legacyUser.getNode();
+
 			legacyNode.setProperty(PrincipalTraitDefinition.SALT_PROPERTY,     LEGACY_SALT);
 			legacyNode.setProperty(PrincipalTraitDefinition.PASSWORD_PROPERTY, HashHelper.getHash(CORRECT_PASSWORD, LEGACY_SALT));
 
@@ -148,8 +144,7 @@ public class LoginFailureUniformityTest extends StructrUiTest {
 				+ " instead of the generic AuthenticationException, which tells the caller the account exists");
 		}
 
-		assertEquals("Signing in with " + label + " must cost exactly one password verification",
-			1L, HashHelper.getVerificationCount());
+		assertEquals("Signing in with " + label + " must cost exactly one password verification", 1L, HashHelper.getVerificationCount());
 	}
 
 	private void assertFixture() {
@@ -165,8 +160,7 @@ public class LoginFailureUniformityTest extends StructrUiTest {
 			assertNotNull("lockedoutuser must have a failed attempt count", attempts);
 			assertTrue("lockedoutuser must be over the configured threshold", attempts > Settings.PasswordAttempts.getValue());
 
-			assertNull("nopassworduser must have no stored hash",
-				user("nopassworduser").getNode().getProperty(PrincipalTraitDefinition.PASSWORD_PROPERTY));
+			assertNull("nopassworduser must have no stored hash", user("nopassworduser").getNode().getProperty(PrincipalTraitDefinition.PASSWORD_PROPERTY));
 
 			final String legacyHash = (String) user("legacyuser").getNode().getProperty(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 			assertNotNull("legacyuser must have a stored hash", legacyHash);

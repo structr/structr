@@ -98,6 +98,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		if (processingMailboxes.contains(mb)) {
 
 			return;
+
 		} else {
 
 			processingMailboxes.add(mb);
@@ -112,12 +113,12 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		if (mb.getHost() != null && mb.getMailProtocol() != null && mb.getUser() != null && mb.getPassword() != null && mb.getFolders() != null) {
 
 			final Store store = connectToStore(mb);
-
 			List<String> folders = new ArrayList<>();
 
 			if (store.isConnected()) {
 
 				try {
+
 					final Folder defaultFolder = store.getDefaultFolder();
 					if (defaultFolder != null) {
 
@@ -144,12 +145,14 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		} else {
 
 			logger.warn("Could not retrieve folders for mailbox[" + mb.getUuid() + "] since not all required attributes were specified.");
+
 			return new ArrayList<>();
 		}
 	}
 
 	@Override
 	public void run() {
+
 		logger.info("MailService started");
 
 		Date lastUpdate = new Date();
@@ -171,27 +174,32 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 	@Override
 	public void startService() throws Exception {
+
 		this.run = true;
 		this.start();
 	}
 
 	@Override
 	public void stopService() {
+
 		this.run = false;
 	}
 
 	@Override
 	public boolean runOnStartup() {
+
 		return true;
 	}
 
 	@Override
 	public void injectArguments(Command command) {
+
 		command.setArgument("mailService", this);
 	}
 
 	@Override
 	public ServiceResult initialize(StructrServices services, String serviceName) throws ReflectiveOperationException {
+
 		return new ServiceResult(true);
 	}
 
@@ -203,21 +211,25 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 	@Override
 	public boolean isRunning() {
+
 		return this.run;
 	}
 
 	@Override
 	public boolean isVital() {
+
 		return false;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return false;
 	}
 
 	@Override
 	public String getModuleName() {
+
 		return "advanced-mail";
 	}
 
@@ -225,7 +237,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	public NodeInterface saveOutgoingMessage(final SecurityContext securityContext, final AdvancedMailContainer amc, final String messageId) {
 
 		NodeInterface outgoingMessage = null;
-
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
@@ -249,7 +260,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			props.put(traits.key(EMailMessageTraitDefinition.REPLY_TO_PROPERTY),        amc.getCombinedDisplayNames(amc.getReplyTo()));
 			props.put(traits.key(EMailMessageTraitDefinition.BCC_PROPERTY),            amc.getCombinedDisplayNames(amc.getBcc()));
 
-
 			if (amc.getAttachments().size() > 0) {
 
 				final ArrayList concreteAttachedFiles = new ArrayList();
@@ -257,8 +267,8 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 				for (final DynamicMailAttachment attachment : amc.getAttachments()) {
 
 					final NodeInterface savedFile = handleOutgoingMailAttachment(securityContext, attachment);
-
 					if (savedFile != null) {
+
 						concreteAttachedFiles.add(savedFile);
 					}
 				}
@@ -285,16 +295,13 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	private NodeInterface handleOutgoingMailAttachment(final SecurityContext securityContext, final DynamicMailAttachment dma) {
 
 		NodeInterface file = null;
-
 		final DataSource ds   = dma.getDataSource();
 		final String fileType = ds.getContentType().toLowerCase().startsWith("image/") ? StructrTraits.IMAGE : StructrTraits.FILE;
-
 		final App app = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			final String path = getStoragePath("/outgoing", new Date());
-
 			NodeInterface fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
 
 			file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), ds.getInputStream(), ds.getContentType(), fileType, dma.getName(), fileFolder.as(org.structr.web.entity.Folder.class));
@@ -337,7 +344,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		try {
 
 			final String fileType = p.getContentType().toLowerCase().startsWith("image/") ? StructrTraits.IMAGE : StructrTraits.FILE;
-
 			final App app = StructrApp.getInstance();
 
 			try (final Tx tx = app.tx()) {
@@ -347,7 +353,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 				try {
 
 					String fileName = p.getFileName();
-
 					if (fileName == null) {
 
 						fileName = NodeServiceCommand.getNextUuid();
@@ -373,7 +378,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 				logger.error("Exception while extracting file attachment: ", ex);
 			}
 
-
 		} catch (MessagingException ex) {
 
 			logger.error("Exception while extracting file attachment: ", ex);
@@ -392,25 +396,24 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				final String htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) : "";
 				final String content     = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) : "";
-
 				BodyPart part = (BodyPart) p.getBodyPart(i);
+
 				if (part.getContent() instanceof Multipart) {
 
 					final Map<String,String> subResult = handleMultipart(mb, message, (Multipart)part.getContent(), attachments);
-
 					if (subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null) {
+
 						result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY)));
 					}
 
 					if (subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null) {
+
 						result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY)));
 					}
-
 
 				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition())) || part.getContentType().toLowerCase().contains("application/pdf")) {
 
 					final NodeInterface file = extractFileAttachment(mb, message, part);
-
 					if (file != null) {
 
 						attachments.add(file);
@@ -436,6 +439,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			return result;
 
 		} catch (MessagingException | IOException ex) {
+
 			logger.error("Error while handling multipart message: ", ex);
 		}
 
@@ -447,15 +451,16 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		if (p.isMimeType("text/plain") || p.isMimeType("text/html")) {
 
 			final Object content = p.getContent();
-
 			if (!(content instanceof BASE64DecoderStream)) {
 
 				return (String)p.getContent();
+
 			} else if(p.getContentType().equals("base64")) {
 
 				BASE64DecoderStream contentStream = (BASE64DecoderStream)content;
 
 				return contentStream.toString();
+
 			} else {
 
 				return null;
@@ -476,6 +481,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.error("Exception while trying to fetch mails for all mailboxes: " + ex.getMessage());
 		}
 	}
@@ -495,6 +501,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				logger.warn("MailService::fetchMails: Could not retrieve mails from mailbox[" + mailbox.getUuid() + "], because not all required attributes were specified.");
 				processingMailboxes.remove(mailbox);
+
 				return null;
 			}
 
@@ -514,14 +521,14 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			}
 
 			if (port != null) {
+
 				properties.put("mail." + mailProtocol + ".port", port);
 			}
 
-
 			final Session emailSession = Session.getDefaultInstance(properties);
 			final Store store          = emailSession.getStore(mailProtocol);
-
 			int retries = 0;
+
 			while (retries < maxConnectionRetries && !store.isConnected()) {
 
 				try {
@@ -532,11 +539,15 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 					logger.warn("Could not authenticate mailbox[" + mailbox.getUuid() + "]: " + ex.getMessage());
 					break;
+
 				} catch (MailConnectException ex) {
+
 					// silently catch connection exception
 					retries++;
 					Thread.sleep(100);
+
 					if (retries >= maxConnectionRetries) {
+
 						throw ex;
 					}
 				}
@@ -545,12 +556,19 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			return store;
 
 		} catch (AuthenticationFailedException ex) {
+
 			logger.warn("Authentication failed for Mailbox[" + mailbox.getUuid() + "].");
+
 		} catch (MailConnectException ex) {
+
 			logger.error("Could not connect to mailbox [" + mailbox.getUuid() + "]: " + ex.getMessage());
+
 		} catch (MessagingException ex) {
+
 			logger.error("Error while updating Mails: ", ex);
+
 		} catch (InterruptedException ex) {
+
 			logger.error("Interrupted while trying to connect to email store.", ex);
 		}
 
@@ -566,15 +584,18 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		} catch (UnsupportedEncodingException ex) {
 
 			logger.warn("UnsupportedEncodingException for input '{}'. Returning as is.", text);
+
 			return text;
 		}
 	}
 
 	//////////////////////////////////////////////////////////////// Nested classes
 	private class MailFetchTask implements Runnable {
+
 		private final Mailbox mailbox;
 
 		public MailFetchTask(final Mailbox mailbox) {
+
 			this.mailbox = mailbox;
 		}
 
@@ -584,13 +605,12 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				String[] folders = mailbox.getFolders();
-
 				if (folders == null) {
+
 					folders = new String[]{};
 				}
 
 				final Store store = connectToStore(mailbox);
-
 				if (store != null && store.isConnected()) {
 
 					for (final String folder : folders) {
@@ -604,8 +624,11 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 				tx.success();
 
 			} catch (MessagingException ex) {
+
 				logger.error("Error while updating Mails: ", ex);
+
 			} catch (Throwable ex) {
+
 				logger.error("Error while updating Mails: ", ex);
 			}
 
@@ -632,12 +655,12 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 						// Limit fetched emails
 						if (i >= maxEmails.getValue(25)) {
+
 							break;
 						}
 
 						final Message message = messages[i];
 						final PropertyMap pm  = new PropertyMap();
-
 						final String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 						final String to   = message.getRecipients(Message.RecipientType.TO) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.TO)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 						final String cc   = message.getRecipients(Message.RecipientType.CC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.CC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
@@ -659,19 +682,23 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 							}
 						}
 
-
 						String messageId = null;
 						String inReplyTo = null;
-
 						Enumeration en = message.getAllHeaders();
 						Map<String, String> headers = new HashMap<>();
+
 						while (en.hasMoreElements()) {
+
 							Header header = (Header) en.nextElement();
 							if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
+
 								messageId = header.getValue();
+
 							} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
+
 								inReplyTo = header.getValue();
 							}
+
 							headers.put(header.getName(), header.getValue());
 						}
 
@@ -680,10 +707,13 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 						// Try to match via messageId first
 						if (messageId != null) {
+
 							existingEMailMessage = app.nodeQuery(entityType).key(traits.key(EMailMessageTraitDefinition.MESSAGE_ID_PROPERTY), messageId).getFirst();
 						}
+
 						// If messageId can't be matched, use fallback
 						if (existingEMailMessage == null) {
+
 							existingEMailMessage = app.nodeQuery(entityType)
 									.key(traits.key(EMailMessageTraitDefinition.SUBJECT_PROPERTY), message.getSubject())
 									.key(traits.key(EMailMessageTraitDefinition.FROM_PROPERTY), from)
@@ -697,12 +727,15 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 							pm.put(traits.key(EMailMessageTraitDefinition.SUBJECT_PROPERTY), message.getSubject());
 							pm.put(traits.key(EMailMessageTraitDefinition.FROM_PROPERTY), from);
 
-
 							final Pattern pattern = Pattern.compile(".* <(.*)>");
 							final Matcher matcher = pattern.matcher(from);
+
 							if (matcher.matches()) {
+
 								pm.put(traits.key(EMailMessageTraitDefinition.FROM_MAIL_PROPERTY), matcher.group(1));
+
 							} else {
+
 								pm.put(traits.key(EMailMessageTraitDefinition.FROM_MAIL_PROPERTY), from);
 							}
 
@@ -716,10 +749,12 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 							pm.put(traits.key(EMailMessageTraitDefinition.HEADER_PROPERTY), gson.toJson(headers));
 
 							if (messageId != null) {
+
 								pm.put(traits.key(EMailMessageTraitDefinition.MESSAGE_ID_PROPERTY), messageId);
 							}
 
 							if (inReplyTo != null) {
+
 								pm.put(traits.key(EMailMessageTraitDefinition.IN_REPLY_TO_PROPERTY), inReplyTo);
 							}
 
@@ -727,7 +762,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 							String content = null;
 							String htmlContent = null;
 							final Object contentObj = message.getContent();
-
 							final List<NodeInterface> attachments = new ArrayList<>();
 
 							if (message.getContentType().contains("multipart")) {
@@ -757,10 +791,15 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 					folder.close(false);
 
 				} catch (MessagingException ex) {
+
 					logger.error("Error while updating Mails: ", ex);
+
 				} catch (FrameworkException | IOException ex) {
+
 					logger.error("Error while updating Mails: ", ex);
+
 				} catch (Throwable ex) {
+
 					logger.error("Error while updating Mails: ", ex);
 				}
 			}

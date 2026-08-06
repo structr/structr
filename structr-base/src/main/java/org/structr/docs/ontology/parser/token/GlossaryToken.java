@@ -26,6 +26,7 @@ import java.util.List;
 public class GlossaryToken extends NamedConceptToken {
 
 	public GlossaryToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
+
 		super(conceptToken, identifierToken);
 	}
 
@@ -34,8 +35,8 @@ public class GlossaryToken extends NamedConceptToken {
 
 		final List<AnnotatedConcept> concepts = new LinkedList<>();
 		final String identifier               = identifierToken.resolve(ontology);
-
 		final Concept glossary = ontology.getOrCreateConcept(this, ConceptType.Glossary, identifier, true);
+
 		if (glossary != null) {
 
 			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(glossary);
@@ -78,6 +79,7 @@ public class GlossaryToken extends NamedConceptToken {
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 }

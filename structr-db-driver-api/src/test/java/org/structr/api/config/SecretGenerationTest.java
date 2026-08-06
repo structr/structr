@@ -117,6 +117,7 @@ public class SecretGenerationTest {
 		// test may have created so it does not pollute the build tree
 		final File conf = new File(Settings.ConfigFileName);
 		if (conf.isFile()) {
+
 			conf.delete();
 		}
 	}

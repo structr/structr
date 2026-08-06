@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.search.SortOrder;
@@ -81,6 +80,7 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 		}
 
 		// only return a handler if there is actually a type with the requested name
+
 		return null;
 	}
 
@@ -118,14 +118,12 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 						relationships = Iterables.toList(node.getIncomingRelationships());
 						break;
 
-
 					case OUTGOING:
 
 						relationships = Iterables.toList(node.getOutgoingRelationships());
 						break;
 
 				}
-
 
 				if (relationships != null) {
 
@@ -147,6 +145,7 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 						for (final RelationshipInterface rel : relationships) {
 
 							if (!rel.getRelation().isInternal()) {
+
 								resultList.add(rel);
 							}
 						}
@@ -163,16 +162,19 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS");
 		}
 	}

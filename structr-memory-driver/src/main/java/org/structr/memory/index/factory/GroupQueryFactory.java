@@ -31,6 +31,7 @@ import org.structr.memory.index.predicate.Conjunction;
 public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public GroupQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -63,6 +64,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			}
 
 			if (newGroup) {
+
 				query.endGroup();
 			}
 

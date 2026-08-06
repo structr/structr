@@ -31,6 +31,7 @@ class PrefetchNodeMapper implements Function<org.neo4j.driver.Record, Node<Long>
 	private BoltDatabaseService db = null;
 
 	public PrefetchNodeMapper(final BoltDatabaseService db) {
+
 		this.db = db;
 	}
 

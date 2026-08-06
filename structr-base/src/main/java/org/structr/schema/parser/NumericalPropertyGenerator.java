@@ -63,6 +63,7 @@ public abstract class NumericalPropertyGenerator<T> extends PropertyGenerator<T>
 					upperBound = parseNumber(getErrorBuffer(), name, parts[1].trim(), "upper");
 
 					if (lowerBound == null || upperBound == null) {
+
 						error = true;
 					}
 
@@ -87,18 +88,22 @@ public abstract class NumericalPropertyGenerator<T> extends PropertyGenerator<T>
 	}
 
 	public Number getLowerBound() {
+
 		return lowerBound;
 	}
 
 	public Number getUpperBound() {
+
 		return upperBound;
 	}
 
 	public boolean isLowerExclusive() {
+
 		return lowerExclusive;
 	}
 
 	public boolean isUpperExclusive() {
+
 		return upperExclusive;
 	}
 }

@@ -32,11 +32,13 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "setEncryptionKey";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("secretKey");
 	}
 
@@ -61,48 +63,44 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${setEncryptionKey(secret)}"),
-			Usage.javaScript("Usage: ${{$.setEncryptionKey(secret)}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${setEncryptionKey(secret)}"), Usage.javaScript("Usage: ${{$.setEncryptionKey(secret)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
-
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${setEncryptionKey('MyNewSecret')}"),
-				Example.javaScript("${{ $.setEncryptionKey('MyNewSecret') }}")
-		);
+
+		return List.of(Example.structrScript("${setEncryptionKey('MyNewSecret')}"), Example.javaScript("${{ $.setEncryptionKey('MyNewSecret') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("secret", "new secret key")
-				);
+		return List.of(Parameter.mandatory("secret", "new secret key"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Please note that this function overwrites the encryption key that is stored in structr.conf.",
 				"The overwritten key can be restored by using `null` as a parameter to this function, as shown in the example below."
@@ -111,6 +109,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

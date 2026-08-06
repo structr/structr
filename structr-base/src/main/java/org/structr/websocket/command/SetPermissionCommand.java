@@ -67,11 +67,11 @@ public class SetPermissionCommand extends AbstractCommand {
 		String action         = webSocketData.getNodeDataStringValue(ACTION_KEY);
 		final String syncMode = webSocketData.getNodeDataStringValue(UpdateCommand.SHARED_COMPONENT_SYNC_MODE_KEY);
 
-
 		if (principalId == null) {
 
 			logger.error("This command needs a principalId");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+
 			return;
 		}
 
@@ -79,6 +79,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			logger.error("This command needs a permissions value");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+
 			return;
 		}
 
@@ -87,6 +88,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			logger.error("No principal found with id {}", principalId);
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+
 			return;
 		}
 
@@ -100,6 +102,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			securityContext.disablePreventDuplicateRelationships();
 
 			final App app = StructrApp.getInstance(securityContext);
+
 			try (final Tx nestedTx = app.tx()) {
 
 				if (!obj.isGranted(Permission.accessControl, securityContext)) {
@@ -121,7 +124,6 @@ public class SetPermissionCommand extends AbstractCommand {
 			try {
 
 				final Value<Tx> value = new StaticValue<>(null);
-
 				final Set<Permission> permissionSet = new HashSet();
 				final String[] parts = permissions.split("[,]+");
 
@@ -152,8 +154,11 @@ public class SetPermissionCommand extends AbstractCommand {
 				if (tx != null) {
 
 					try {
+
 						tx.success();
+
 					} finally {
+
 						tx.close();
 					}
 
@@ -180,11 +185,13 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "SET_PERMISSION";
 	}
 
@@ -224,8 +231,11 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			// commit and close old transaction
 			try {
+
 				tx.success();
+
 			} finally {
+
 				tx.close();
 			}
 
@@ -264,7 +274,6 @@ public class SetPermissionCommand extends AbstractCommand {
 			try {
 
 				DOMNode.SHARED_COMPONENT_SYNC_MODE mode = DOMNode.SHARED_COMPONENT_SYNC_MODE.valueOf(syncMode);
-
 				if (DOMNode.SHARED_COMPONENT_SYNC_MODE.ALL.equals(mode) || DOMNode.SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
 
 					final List<DOMNode> syncedNodes = Iterables.toList(obj.as(DOMNode.class).getSyncedNodes());

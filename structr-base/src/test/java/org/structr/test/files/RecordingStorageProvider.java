@@ -51,10 +51,12 @@ public class RecordingStorageProvider extends AbstractStorageProvider implements
 	public static final List<VirtualChangeEvent> RECORDED_EVENTS = new CopyOnWriteArrayList<>();
 
 	public RecordingStorageProvider(final AbstractFile file, final StorageConfiguration config) {
+
 		super(file, config);
 	}
 
 	public static void reset() {
+
 		RECORDED_EVENTS.clear();
 	}
 
@@ -65,11 +67,13 @@ public class RecordingStorageProvider extends AbstractStorageProvider implements
 
 			@Override
 			public SyncTarget getTarget() {
+
 				return target;
 			}
 
 			@Override
 			public boolean supportsWatching() {
+
 				return false;
 			}
 
@@ -79,11 +83,13 @@ public class RecordingStorageProvider extends AbstractStorageProvider implements
 
 			@Override
 			public Iterator<ExternalEntry> enumerate(final String relativePath) {
+
 				return Collections.emptyIterator();
 			}
 
 			@Override
 			public void onVirtualChange(final VirtualChangeEvent event) {
+
 				RECORDED_EVENTS.add(event);
 			}
 
@@ -95,31 +101,37 @@ public class RecordingStorageProvider extends AbstractStorageProvider implements
 
 	@Override
 	public InputStream getInputStream() {
+
 		return new ByteArrayInputStream(new byte[0]);
 	}
 
 	@Override
 	public OutputStream getOutputStream() {
+
 		return new ByteArrayOutputStream();
 	}
 
 	@Override
 	public OutputStream getOutputStream(final boolean append) {
+
 		return new ByteArrayOutputStream();
 	}
 
 	@Override
 	public String getContentType() {
+
 		return null;
 	}
 
 	@Override
 	public String getName() {
+
 		return getAbstractFile() != null ? getAbstractFile().getName() : null;
 	}
 
 	@Override
 	public SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options) {
+
 		return null;
 	}
 
@@ -129,6 +141,7 @@ public class RecordingStorageProvider extends AbstractStorageProvider implements
 
 	@Override
 	public long size() {
+
 		return 0;
 	}
 }

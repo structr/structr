@@ -48,21 +48,25 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 	private String multiplicity          = null;
 
 	public NotionPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return relatedType;
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Notion;
 	}
 
@@ -89,6 +93,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 			baseProperty = parts[0];
 
 			multiplicity = source.getMultiplicity(baseProperty);
+
 			if (multiplicity != null) {
 
 				// determine related type from relationship
@@ -96,6 +101,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase()) || "false".equals(parts[2].toLowerCase())));
 				Notion notion           = null;
+
 				isAutocreate            = isBoolean;
 
 				// use PropertyNotion when only a single element is given
@@ -164,6 +170,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 			}
 
 			if (properties.isEmpty()) {
+
 				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(source.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + ", notion must define at least one property."));
 			}
 		}
@@ -181,7 +188,6 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 		if (StringUtils.contains(extendedPropertyName, ".")) {
 
 			String[] parts = StringUtils.split(extendedPropertyName, ".");
-
 			if (StringUtils.startsWith(parts[1], "_")) {
 
 				extendedPropertyName = parts[0] + "." + parts[1].substring(1);
@@ -213,22 +219,27 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 	}
 
 	public boolean isPropertySet() {
+
 		return isPropertySet;
 	}
 
 	public Set<String> getProperties() {
+
 		return properties;
 	}
 
 	public boolean isAutocreate() {
+
 		return isAutocreate;
 	}
 
 	public String getBaseProperty() {
+
 		return baseProperty;
 	}
 
 	public String getMultiplicity() {
+
 		return multiplicity;
 	}
 }

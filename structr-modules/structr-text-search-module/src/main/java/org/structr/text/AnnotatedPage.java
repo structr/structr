@@ -29,13 +29,14 @@ public class AnnotatedPage {
 	private final List<AnnotatedLine> lines = new LinkedList<>();
 
 	public List<AnnotatedLine> getLines() {
+
 		return lines;
 	}
 
 	public void addLine(final AnnotatedLine line) {
+
 		lines.add(line);
 	}
-
 
 	void transformAndAnalyze() {
 

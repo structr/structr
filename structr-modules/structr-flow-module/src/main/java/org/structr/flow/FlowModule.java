@@ -202,31 +202,37 @@ public class FlowModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "flows";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 
 	@Override
 	public boolean hasDeploymentData () {
+
 		return true;
 	}
 
 	@Override
 	public void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
+
 		FlowDeploymentHandler.exportDeploymentData(target, gson);
 	}
 
 	@Override
 	public void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
+
 		FlowDeploymentHandler.importDeploymentData(source, gson);
 	}
 }

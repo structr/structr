@@ -33,6 +33,7 @@ public class LocationPredicate extends AbstractPredicate {
 	private double distance  = 0.0;
 
 	public LocationPredicate(final double latitude, final double longitude, final double distance) {
+
 		this.latitude  = latitude;
 		this.longitude = longitude;
 		this.distance  = distance;
@@ -40,6 +41,7 @@ public class LocationPredicate extends AbstractPredicate {
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
+
 		query.location(latitude, longitude, distance);
 	}
 }

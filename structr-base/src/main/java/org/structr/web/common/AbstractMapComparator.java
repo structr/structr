@@ -25,6 +25,7 @@ public abstract class AbstractMapComparator<T> implements Comparator<Map<String,
 
 	@Override
 	public int compare(Map<String, T> o1, Map<String, T> o2) {
+
 		return getKey(o1).compareTo(getKey(o2));
 	}
 

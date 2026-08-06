@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FolderCONTAINSImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FolderCONTAINSImage() {
+
 		super(StructrTraits.FOLDER_CONTAINS_IMAGE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.FOLDER;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONTAINS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

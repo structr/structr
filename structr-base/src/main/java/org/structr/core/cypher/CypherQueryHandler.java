@@ -58,7 +58,9 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 
 		// construct query from varargs
 		StringBuilder buffer = new StringBuilder();
+
 		for(Object obj : query) {
+
 			buffer.append(obj);
 		}
 
@@ -66,10 +68,12 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	}
 
 	public String getQuery() {
+
 		return query;
 	}
 
 	public void setSecurityContext(SecurityContext securityContext) {
+
 		this.securityContext = securityContext;
 		this.nodeFactory     = new NodeFactory(securityContext);
 		this.relFactory      = new RelationshipFactory(securityContext);
@@ -82,35 +86,43 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 
 	@Override
 	public CypherQueryHandler get(SecurityContext securityContext) {
+
 		return this;
 	}
 
 	// ----- protected methods -----
 	protected List getAsList(Map<String, Object> row, String columnName) {
+
 		return (List)row.get(columnName);
 	}
 
 	protected Set getAsSet(Map<String, Object> row, String columnName) {
+
 		return (Set)row.get(columnName);
 	}
 
 	protected Collection getAsCollection(Map<String, Object> row, String columnName) {
+
 		return (Collection)row.get(columnName);
 	}
 
 	protected Node getAsNode(Map<String, Object> row, String columnName) {
+
 		return (Node)row.get(columnName);
 	}
 
 	protected Relationship getAsRelationship(Map<String, Object> row, String columnName) {
+
 		return (Relationship)row.get(columnName);
 	}
 
 	protected NodeInterface getAsNodeInterface(Map<String, Object> row, String columnName) throws FrameworkException {
+
 		return nodeFactory.instantiate((Node)row.get(columnName));
 	}
 
 	protected RelationshipInterface getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
+
 		return relFactory.instantiate((Relationship)row.get(columnName));
 	}
 

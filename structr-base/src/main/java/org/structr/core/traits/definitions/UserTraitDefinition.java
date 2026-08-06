@@ -62,6 +62,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_USER_PROPERTY                     = "isUser";
 
 	public UserTraitDefinition() {
+
 		super(StructrTraits.USER);
 	}
 
@@ -70,29 +71,29 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					onCreateAndModify(graphObject.as(User.class), securityContext);
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 					onCreateAndModify(graphObject.as(User.class), securityContext);
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
 					checkAndRemoveHomeDirectory(graphObject.as(User.class));
 				}
 			}
@@ -110,15 +111,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed().description("When true, excludes this user from relationship-based permission checks. Useful for system users or service accounts that should bypass normal access control evaluation.");
 		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty(IS_USER_PROPERTY, true);
 
-		return Set.of(
-			homeDirectoryProperty,
-			workingDirectoryProperty,
-			imgProperty,
-			confirmationKeyProperty,
-			localStorageProperty,
-			skipSecurityRelationshipsProperty,
-			isUserProperty
-		);
+		return Set.of(homeDirectoryProperty, workingDirectoryProperty, imgProperty, confirmationKeyProperty, localStorageProperty, skipSecurityRelationshipsProperty, isUserProperty);
 	}
 
 	@Override
@@ -126,10 +119,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PropertyView.Public,
-			Set.of(
-					IS_USER_PROPERTY
-			),
+			PropertyView.Public, Set.of(IS_USER_PROPERTY),
 
 			PropertyView.Ui,
 			Set.of(
@@ -150,15 +140,14 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			User.class, (traits, node) -> new UserTraitWrapper(traits, node)
-		);
+		return Map.of(User.class, (traits, node) -> new UserTraitWrapper(traits, node));
 	}
 
 	public void onCreateAndModify(final User user, final SecurityContext securityContext) throws FrameworkException {
@@ -237,6 +226,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 			} catch (Throwable ignore) {
+
 			} finally {
 
 				// restore previous context
@@ -248,6 +238,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

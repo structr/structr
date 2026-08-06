@@ -30,21 +30,25 @@ public class JsonMultiInput implements IJsonInput {
 	
 	@Override
 	public boolean isSingle() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isMulti() {
+
 		return true;
 	}
 
 	@Override
 	public void add(JsonInput jsonInput) {
+
 		jsonInputs.add(jsonInput);
 	}
 
 	@Override
 	public List<JsonInput> getJsonInputs() {
+
 		return jsonInputs;
 	}
 

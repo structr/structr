@@ -40,16 +40,19 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 
 	@Override
 	public Class getQueryType() {
+
 		return ExactQuery.class;
 	}
 
 	@Override
 	public boolean isExactMatch() {
+
 		return isExactMatch;
 	}
 
 	@Override
 	public void setExactMatch(final boolean exact) {
+
 		this.isExactMatch = exact;
 	}
 
@@ -75,12 +78,14 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 			}
 
 			if (compare(nodeValue, searchValue) != 0) {
+
 				return false;
 			}
 
 		} else {
 
 			if (searchValue != null && StringUtils.isNotBlank(searchValue.toString())) {
+
 				return false;
 			}
 		}
@@ -93,8 +98,11 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 		if (nodeValue instanceof Comparable n && searchValue instanceof Comparable s) {
 
 			if (nodeValue instanceof Enum && searchValue instanceof String) {
+
 				return nodeValue.toString().compareTo((String)searchValue);
+
 			} else if (searchValue instanceof Enum && nodeValue instanceof String) {
+
 				return ((Comparable)nodeValue).compareTo(searchValue.toString());
 			}
 

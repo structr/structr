@@ -62,16 +62,19 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
 		NodeInterface admin = null;
+
 		try (final Tx tx = app.tx()) {
 
 			admin = createAdminUser();
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -98,8 +101,8 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			// Add schema method "testFileMethod" to built-in File class
 			final NodeInterface fooFileDef = app.create(StructrTraits.SCHEMA_NODE, customTypeName);
-
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
+
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      schemaMethodName);
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),    "(log('test02SchemaMethodOnCustomType successful'))");
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), fooFileDef);
@@ -110,6 +113,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -119,6 +123,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -150,14 +155,15 @@ public class SchemaMethodsTest extends FrontendTest {
 
 		final String builtinTypeName = StructrTraits.FILE;
 		final String schemaMethodName = "testFileMethodOnEntity";
-
 		NodeInterface admin = null;
+
 		try (final Tx tx = app.tx()) {
 
 			admin = createAdminUser();
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -174,10 +180,12 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
 		NodeInterface testFile = null;
+
 		try (final Tx tx = app.tx()) {
 
 			// Create File instance
@@ -187,6 +195,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -223,8 +232,8 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			// Add schema method "testFooFileMethodOnEntity" to built-in File class
 			final NodeInterface fooFileDef = app.create(StructrTraits.SCHEMA_NODE, customTypeName);
-
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
+
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaMethodName);
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(log('test04SchemaMethodOnEntityOfCustomType successful'))");
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), fooFileDef);
@@ -234,6 +243,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -243,6 +253,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -276,14 +287,15 @@ public class SchemaMethodsTest extends FrontendTest {
 
 		final String builtinTypeName = StructrTraits.FILE;
 		final String schemaMethodName = "testFileMethodOnInheritingType";
-
 		NodeInterface admin = null;
+
 		try (final Tx tx = app.tx()) {
 
 			admin = createAdminUser();
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -301,6 +313,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -333,14 +346,15 @@ public class SchemaMethodsTest extends FrontendTest {
 
 		final String builtinTypeName = StructrTraits.FILE;
 		final String schemaMethodName = "testFileMethodOnInheritingEntity";
-
 		NodeInterface admin = null;
+
 		try (final Tx tx = app.tx()) {
 
 			admin = createAdminUser();
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -357,11 +371,11 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
 		String id = createEntityAsAdmin(StructrTraits.IMAGE, "{'name': 'Test Image'}");
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -414,6 +428,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			fail("Unexpected exception");
 			t.printStackTrace();
 		}
@@ -429,6 +444,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			fail("Unexpected exception");
 			t.printStackTrace();
 		}
@@ -490,6 +506,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			fail("Unexpected exception");
 			t.printStackTrace();
 		}
@@ -533,6 +550,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 
@@ -542,6 +560,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			logger.error("", ex);
 		}
 

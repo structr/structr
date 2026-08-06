@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ODFExporterGETS_TRANSFORMATION_FROMVirtualType extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ODFExporterGETS_TRANSFORMATION_FROMVirtualType() {
+
 		super(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.ODF_EXPORTER;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.VIRTUAL_TYPE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "GETS_TRANSFORMATION_FROM";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

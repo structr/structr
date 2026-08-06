@@ -54,20 +54,24 @@ public class PropertyInfo {
 	}
 
 	public boolean isAbstract() {
+
 		return this.isAbstract;
 	}
 
 	public String getPropertyName() {
+
 		return propertyName;
 	}
 
 	public String getPropertyType() {
+
 		return propertyType;
 	}
 
 	public boolean canOverride(final PropertyInfo other) {
 
 		if (this.isAbstract || other.isAbstract) {
+
 			return true;
 		}
 

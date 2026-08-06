@@ -46,6 +46,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public boolean initialize(final String serviceName, final String version, final String instance) {
+
 		return true;
 	}
 
@@ -62,15 +63,20 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public Transaction<Long> beginTx(boolean forceNew) {
+
 		if (!forceNew) {
+
 			return beginTx();
+
 		} else {
+
 			return new MemoryTransaction(this);
 		}
 	}
 
 	@Override
 	public Transaction<Long> beginTx() {
+
 		return beginTx(-1);
 	}
 
@@ -129,8 +135,8 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 		final Node newNode         = createNode(type, labels, nodeProperties);
 		final Node owner           = getNodeById(ownerId);
-
 		final Relationship ownsRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("OWNS"));
+
 		ownsRelationship.setProperties(ownsProperties);
 
 		final Relationship securityRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("SECURITY"));
@@ -157,6 +163,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public Iterable<Node<Long>> getAllNodes() {
+
 		return Iterables.map(n -> n, getFilteredNodes(null));
 	}
 
@@ -164,6 +171,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	public Iterable<Node<Long>> getNodesByLabel(final String label) {
 
 		if (label == null) {
+
 			return getAllNodes();
 		}
 
@@ -174,6 +182,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	public Iterable<Node<Long>> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
+
 			return getAllNodes();
 		}
 
@@ -182,6 +191,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public Iterable<Relationship<Long>> getAllRelationships() {
+
 		return Iterables.map(r -> r, getFilteredRelationships(null));
 	}
 
@@ -189,6 +199,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	public Iterable<Relationship<Long>> getRelationshipsByType(final String type) {
 
 		if (type == null) {
+
 			return getAllRelationships();
 		}
 
@@ -219,11 +230,13 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList) {
+
 		// no indexes here..
 	}
 
 	@Override
 	public boolean isIndexUpdateFinished() {
+
 		return true;
 	}
 
@@ -231,7 +244,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	public CountResult getNodeAndRelationshipCount() {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-
 		final long nodeCount       = Iterables.count(tx.getNodes(null));
 		final long relCount        = Iterables.count(tx.getRelationships(null));
 		final long userCount       = Iterables.count(tx.getNodes(new MemoryLabelFilter<>("User")));
@@ -241,21 +253,25 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString) {
+
 		throw new UnsupportedOperationException("In-memory database does not support global search");
 	}
 
 	@Override
 	public <T> T execute(final NativeQuery<T> nativeQuery) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction<Long> tx) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -264,6 +280,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 		return new LazyAccessor<>(() -> {
 
 			final MemoryTransaction tx = getCurrentTransaction();
+
 			return Iterables.map(n -> n, tx.getNodes(filter));
 		});
 	}
@@ -273,6 +290,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 		return new LazyAccessor<>(() -> {
 
 			final MemoryTransaction tx = getCurrentTransaction();
+
 			return Iterables.map(n -> n, tx.getRelationships(filter));
 
 		});
@@ -284,15 +302,19 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 		switch (feature) {
 
 			case LargeStringIndexing:
+
 				return true;
 
 			case QueryLanguage:
+
 				return false;
 
 			case SpatialQueries:
+
 				return false;
 
 			case AuthenticationRequired:
+
 				return false;
 		}
 
@@ -301,11 +323,13 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	@Override
 	public String getErrorMessage() {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
+
 		return Map.of();
 	}
 
@@ -347,12 +371,15 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 		switch (direction) {
 
 			case BOTH:
+
 				return getRelationships(node);
 
 			case INCOMING:
+
 				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getTargetNodeIdentity())), tx.getRelationships(null)));
 
 			case OUTGOING:
+
 				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity())), tx.getRelationships(null)));
 		}
 
@@ -368,12 +395,15 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 		switch (direction) {
 
 			case BOTH:
+
 				return getRelationships(node);
 
 			case INCOMING:
+
 				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getTargetNodeIdentity())), tx.getRelationships(new TargetNodeFilter<>(id))));
 
 			case OUTGOING:
+
 				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getSourceNodeIdentity())), tx.getRelationships(new SourceNodeFilter<>(id))));
 		}
 
@@ -391,7 +421,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 		for (final Iterator<MemoryRelationship> it = tx.getRelationships(null).iterator(); it.hasNext();) {
 
 			final MemoryRelationship rel = it.next();
-
 			if (id.equals(rel.getSourceNodeIdentity()) || id.equals(rel.getTargetNodeIdentity())) {
 
 				tx.delete(rel);
@@ -406,14 +435,17 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	}
 
 	public boolean logQueries() {
+
 		return Settings.CypherDebugLogging.getValue();
 	}
 
 	public boolean logPingQueries() {
+
 		return Settings.CypherDebugLoggingPing.getValue();
 	}
 
 	MemoryTransaction getCurrentTransaction() throws NotInTransactionException {
+
 		return getCurrentTransaction(true);
 	}
 
@@ -442,22 +474,27 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	}
 
 	void rollbackTransaction() {
+
 		transactions.remove();
 	}
 
 	Iterable<MemoryNode> getNodes(final Filter<MemoryNode> filter) {
+
 		return nodes.values(filter);
 	}
 
 	Iterable<MemoryRelationship> getRelationships(final Filter<MemoryRelationship> filter) {
+
 		return relationships.values(filter);
 	}
 
 	MemoryNode getNodeFromRepository(final MemoryIdentity id) {
+
 		return nodes.get(id);
 	}
 
 	MemoryRelationship getRelationshipFromRepository(final MemoryIdentity id) {
+
 		return relationships.get(id);
 	}
 
@@ -472,10 +509,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	}
 
 	void updateCache(final MemoryNode node) {
+
 		nodes.updateCache(node);
 	}
 
 	void updateCache(final MemoryRelationship relationship) {
+
 		relationships.updateCache(relationship);
 	}
 
@@ -485,17 +524,20 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 		private Accessor<Iterable<T>> accessor = null;
 
 		public LazyAccessor(final Accessor<Iterable<T>> source) {
+
 			this.accessor = source;
 		}
 
 		@Override
 		public Iterator<T> iterator() {
+
 			return accessor.get().iterator();
 		}
 	}
 
 	@FunctionalInterface
 	private interface Accessor<T> {
+
 		T get();
 	}
 }

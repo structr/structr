@@ -36,11 +36,13 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "splitRegex";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str [, regex ]");
 	}
 
@@ -55,6 +57,7 @@ public class SplitRegexFunction extends CoreFunction {
 			String splitExpr = "[,;\\s]+";
 
 			if (sources.length >= 2) {
+
 				splitExpr = sources[1].toString();
 			}
 
@@ -67,6 +70,7 @@ public class SplitRegexFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -75,19 +79,19 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.splitRegex(str[, regex]) }}."),
-			Usage.structrScript("Usage: ${splitRegex(str[, regex])}.")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.splitRegex(str[, regex]) }}."), Usage.structrScript("Usage: ${splitRegex(str[, regex])}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Splits the given string by given regex.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Uses the given separator to split the given string into a collection of strings. This is the opposite of `join()`.
 		The default separator is a regular expression which splits the string at any of the following characters: `,;(whitespace)`
@@ -97,6 +101,7 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${splitRegex('one,two,three,four')}"),
 				Example.structrScript("${splitRegex('one;two;three;four')}"),
@@ -111,14 +116,12 @@ public class SplitRegexFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("string", "string to split"),
-				Parameter.optional("separator", "separator regex")
-		);
+		return List.of(Parameter.mandatory("string", "string to split"), Parameter.optional("separator", "separator regex"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

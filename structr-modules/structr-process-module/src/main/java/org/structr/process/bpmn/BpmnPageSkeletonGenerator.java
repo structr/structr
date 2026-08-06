@@ -181,19 +181,13 @@ public class BpmnPageSkeletonGenerator {
 	 */
 	private static final Map<BpmnElementType, StepKind> HUMAN_STEPS = Map.of(
 
-		BpmnElementType.USER_TASK, new StepKind("task-", Set.of(
-			VisibilityMappingTraitDefinition.STATE_TASK_AVAILABLE,
-			VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME)),
+		BpmnElementType.USER_TASK, new StepKind("task-", Set.of(VisibilityMappingTraitDefinition.STATE_TASK_AVAILABLE, VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME)),
 
-		BpmnElementType.START_EVENT, new StepKind("start-", Set.of(
-			VisibilityMappingTraitDefinition.STATE_NO_INSTANCE)),
+		BpmnElementType.START_EVENT, new StepKind("start-", Set.of(VisibilityMappingTraitDefinition.STATE_NO_INSTANCE)),
 
-		BpmnElementType.MANUAL_TASK, new StepKind("manual-", Set.of(
-			VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE)),
+		BpmnElementType.MANUAL_TASK, new StepKind("manual-", Set.of(VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE)),
 
-		BpmnElementType.INTERMEDIATE_CATCH_EVENT, new StepKind("event-", Set.of(
-			VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE))
-	);
+		BpmnElementType.INTERMEDIATE_CATCH_EVENT, new StepKind("event-", Set.of(VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE)));
 
 	/**
 	 * What {@link #createSkeleton} produced, for the caller's reply and for tests.
@@ -204,8 +198,7 @@ public class BpmnPageSkeletonGenerator {
 	 *                            0 or every user task) -- reported so "nothing happened" is
 	 *                            explainable instead of silent
 	 */
-	public record Result(String pageId, String pageName, int stepCount, boolean boundAsInstancePage,
-	                     int formCount, int stepsMissingSubject) {}
+	public record Result(String pageId, String pageName, int stepCount, boolean boundAsInstancePage, int formCount, int stepsMissingSubject) {}
 
 	/**
 	 * Human-facing steps of {@code process} in flow order. Exposed so a caller can check
@@ -227,7 +220,6 @@ public class BpmnPageSkeletonGenerator {
 			}
 
 			final BpmnElementType type = current.getElementType();
-
 			if (isHumanFacing(current, type)) {
 
 				ordered.add(current);
@@ -289,11 +281,9 @@ public class BpmnPageSkeletonGenerator {
 	                                    final List<BpmnElement> steps, final String requestedName, final Widget templateWidget) throws FrameworkException {
 
 		final Widget formWidget = findProcessSubjectForm(app);
-
 		final String processLabel = processLabel(process);
 		final String processSlug  = slug(processLabel, "process");
 		final String pageName     = firstFree(StringUtils.isNotEmpty(requestedName) ? requestedName : processSlug, name -> pageExists(app, name));
-
 		final Page page          = Page.createNewPage(securityContext, pageName);
 		final DOMNode stepParent = templateWidget != null
 			? expandTemplate(app, page, templateWidget)
@@ -403,6 +393,7 @@ public class BpmnPageSkeletonGenerator {
 	private static boolean isHumanFacing(final BpmnElement element, final BpmnElementType type) {
 
 		if (!HUMAN_STEPS.containsKey(type)) {
+
 			return false;
 		}
 
@@ -441,6 +432,7 @@ public class BpmnPageSkeletonGenerator {
 		// Deliberately more permissive than BpmnProcess.getStartEvent(), which demands
 		// exactly one: a skeleton for a half-built model is still useful, so every element
 		// becomes a walk seed rather than an error.
+
 		return starts.isEmpty() ? elements : starts;
 	}
 
@@ -530,7 +522,6 @@ public class BpmnPageSkeletonGenerator {
 		}
 
 		final DOMNode body = findFirst(page, node -> "body".equals(node.getProperty(node.getTraits().key(DOMElementTraitDefinition.TAG_PROPERTY))));
-
 		if (body == null) {
 
 			logger.info("Page template '{}' declares neither a '{}' node nor a body element -- appending steps to the page root", widget.getName(), MAIN_CONTENT_SLOT);
@@ -548,15 +539,13 @@ public class BpmnPageSkeletonGenerator {
 	private static Widget findProcessSubjectForm(final App app) throws FrameworkException {
 
 		NodeInterface widget = app.nodeQuery(StructrTraits.WIDGET).name(PROCESS_SUBJECT_FORM_WIDGET).getFirst();
-
 		if (widget == null) {
 
 			widget = app.nodeQuery(StructrTraits.WIDGET).name(FALLBACK_SUBJECT_FORM_WIDGET).getFirst();
 
 			if (widget != null) {
 
-				logger.info("BPMN page skeleton: widget '{}' not found; falling back to the standard '{}' widget.",
-					PROCESS_SUBJECT_FORM_WIDGET, FALLBACK_SUBJECT_FORM_WIDGET);
+				logger.info("BPMN page skeleton: widget '{}' not found; falling back to the standard '{}' widget.", PROCESS_SUBJECT_FORM_WIDGET, FALLBACK_SUBJECT_FORM_WIDGET);
 			}
 		}
 
@@ -564,6 +553,7 @@ public class BpmnPageSkeletonGenerator {
 
 			logger.warn("BPMN page skeleton: neither the '{}' nor the fallback '{}' widget is installed; user-task steps will get no subject form. Import the widget set.",
 				PROCESS_SUBJECT_FORM_WIDGET, FALLBACK_SUBJECT_FORM_WIDGET);
+
 			return null;
 		}
 
@@ -597,6 +587,7 @@ public class BpmnPageSkeletonGenerator {
 			// the process designer has not declared what these tasks operate on yet; a form bound
 			// to nothing would be worse than no form, so skip and say so
 			logger.info("BPMN page skeleton: process declares no subjectType, inserting no form for step '{}'", step.getBpmnId());
+
 			return false;
 		}
 
@@ -604,6 +595,7 @@ public class BpmnPageSkeletonGenerator {
 		if (StringUtils.isBlank(source)) {
 
 			logger.warn("BPMN page skeleton: form widget '{}' has no source, skipping form for step '{}'", formWidget.getName(), step.getBpmnId());
+
 			return false;
 		}
 
@@ -636,21 +628,21 @@ public class BpmnPageSkeletonGenerator {
 		if (formRoot == null) {
 
 			logger.warn("BPMN page skeleton: form widget '{}' expanded to nothing for step '{}'", formWidget.getName(), step.getBpmnId());
+
 			return false;
 		}
 
 		final ComponentConfiguration config = WidgetAutoVisibilityMappingHelper.findComponentConfiguration(formRoot);
 		if (config == null) {
 
-			logger.warn("BPMN page skeleton: form widget '{}' has no ComponentConfiguration, so it cannot be bound to step '{}'",
-				formWidget.getName(), step.getBpmnId());
+			logger.warn("BPMN page skeleton: form widget '{}' has no ComponentConfiguration, so it cannot be bound to step '{}'", formWidget.getName(), step.getBpmnId());
+
 			return true;
 		}
 
 		final Traits configTraits = config.getTraits();
 
-		config.setProperty(configTraits.key(ComponentConfigurationTraitDefinition.BINDING_MODE_PROPERTY),
-			ComponentConfigurationTraitDefinition.BINDING_MODE_PROCESS_BOUND);
+		config.setProperty(configTraits.key(ComponentConfigurationTraitDefinition.BINDING_MODE_PROPERTY), ComponentConfigurationTraitDefinition.BINDING_MODE_PROCESS_BOUND);
 
 		if (configTraits.hasKey(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY)) {
 
@@ -681,11 +673,9 @@ public class BpmnPageSkeletonGenerator {
 	 * person doing the work. Text is emitted through {@code localize()} so it can be translated
 	 * without touching the page.</p>
 	 */
-	private static void appendHelpText(final Page page, final DOMElement stepDiv, final BpmnElement step,
-	                                   final String htmlId, final Set<String> usedIds) throws FrameworkException {
+	private static void appendHelpText(final Page page, final DOMElement stepDiv, final BpmnElement step, final String htmlId, final Set<String> usedIds) throws FrameworkException {
 
 		final Traits traits = step.getTraits();
-
 		final String instructions = traits.hasKey(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY)
 			? step.getProperty(traits.key(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY))
 			: null;
@@ -758,6 +748,7 @@ public class BpmnPageSkeletonGenerator {
 				: null;
 
 			if (actionsKey == null) {
+
 				continue;
 			}
 
@@ -770,6 +761,7 @@ public class BpmnPageSkeletonGenerator {
 				seenActions.add(String.valueOf(widgetAction));
 
 				if (!"create".equals(widgetAction) && !"update".equals(widgetAction) && !"control-process".equals(widgetAction)) {
+
 					continue;
 				}
 
@@ -796,8 +788,7 @@ public class BpmnPageSkeletonGenerator {
 
 				retargeted++;
 
-				logger.info("BPMN page skeleton: form submit '{}' wired to completeWithSubject at step '{}'",
-					widgetAction, step.getBpmnId());
+				logger.info("BPMN page skeleton: form submit '{}' wired to completeWithSubject at step '{}'", widgetAction, step.getBpmnId());
 			}
 		}
 
@@ -843,6 +834,7 @@ public class BpmnPageSkeletonGenerator {
 
 		final List<DOMNode> nodes = new ArrayList<>();
 		nodes.add(root);
+
 		for (final NodeInterface descendant : root.getAllChildNodes()) {
 
 			if (descendant.is(StructrTraits.DOM_ELEMENT)) {
@@ -854,6 +846,7 @@ public class BpmnPageSkeletonGenerator {
 		for (final DOMNode node : nodes) {
 
 			if (!node.getTraits().hasKey(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY)) {
+
 				continue;
 			}
 
@@ -1015,8 +1008,7 @@ public class BpmnPageSkeletonGenerator {
 	}
 
 	/** One "label: value" row of the process-details block; the value is a live script (e.g. current.status). */
-	private static void detailRow(final Page page, final DOMElement parent, final String label,
-	                              final String valueScript, final Set<String> usedIds) throws FrameworkException {
+	private static void detailRow(final Page page, final DOMElement parent, final String label, final String valueScript, final Set<String> usedIds) throws FrameworkException {
 
 		final DOMElement row = page.createElement("div");
 		parent.appendChild(row);
@@ -1051,8 +1043,7 @@ public class BpmnPageSkeletonGenerator {
 		// Step-scoped states are the opposite: they need both, the id being what verifies the
 		// context instance actually belongs to this process, and both are what the importer's
 		// re-import rewire pass matches on.
-		final boolean contextScoped = VisibilityMappingTraitDefinition.STATE_NO_INSTANCE.equals(state)
-			|| VisibilityMappingTraitDefinition.STATE_HAS_ACTIVE_INSTANCE.equals(state);
+		final boolean contextScoped = VisibilityMappingTraitDefinition.STATE_NO_INSTANCE.equals(state) || VisibilityMappingTraitDefinition.STATE_HAS_ACTIVE_INSTANCE.equals(state);
 
 		// The STEP is always recorded when there is one: it says which step the partial belongs
 		// to, it is what the step heading reads its live name from, and no predicate consults it
@@ -1144,7 +1135,6 @@ public class BpmnPageSkeletonGenerator {
 	static String slug(final String raw, final String fallback) {
 
 		final String slug = trimDashes(Functions.cleanString(raw));
-
 		if (!slug.isEmpty()) {
 
 			return slug;
@@ -1156,6 +1146,7 @@ public class BpmnPageSkeletonGenerator {
 	}
 
 	private static String trimDashes(final String s) {
+
 		return s.replaceAll("(^-+)|(-+$)", "");
 	}
 
@@ -1189,6 +1180,7 @@ public class BpmnPageSkeletonGenerator {
 			// failing the whole generation, and a colliding page name would be caught by
 			// the Page uniqueness constraint anyway.
 			logger.warn("BPMN page skeleton: could not check whether page '{}' exists, assuming it does", name, fex);
+
 			return true;
 		}
 	}

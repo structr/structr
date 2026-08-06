@@ -29,6 +29,7 @@ class RecordLongMapper implements Function<Record, Long> {
 
 	@Override
 	public Long apply(final Record t) {
+
 		return t.get(0).asLong();
 	}
 }

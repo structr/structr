@@ -30,11 +30,13 @@ class RelationshipRelationshipMapper implements Function<org.neo4j.graphdb.Relat
 	private EmbeddedDatabaseService db = null;
 
 	public RelationshipRelationshipMapper(final EmbeddedDatabaseService db) {
+
 		this.db = db;
 	}
 
 	@Override
 	public Relationship<String> apply(final org.neo4j.graphdb.Relationship t) {
+
 		return db.getCurrentTransaction().getRelationshipWrapper(t);
 	}
 }

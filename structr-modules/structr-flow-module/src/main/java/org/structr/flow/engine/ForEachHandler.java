@@ -46,11 +46,12 @@ public class ForEachHandler implements FlowHandler {
 
 				// Special handling for FlowAggregate to ensure it's properly reset for nested loops.
 				FlowNode element = loopBody;
-
 				final Context cleanedLoopContext = new Context(context);
+
 				traverseAndEvaluate(element, (el) -> {
 
 					if (el instanceof FlowAggregate) {
+
 						cleanedLoopContext.setData(((FlowAggregate) el).getUuid(), null);
 					}
 				});
@@ -63,22 +64,27 @@ public class ForEachHandler implements FlowHandler {
 
 						// Provide current element data for loop context and write evaluation result into main context data for this loop element
 						loopContext.setData(flowElement.getUuid(), o);
+
 						try {
 
 							final FlowResult result = engine.execute(loopContext, loopBody);
 							final FlowError error = result.getError();
+
 							if (error != null) {
 
 								if (error.getCause() != null) {
 
 									loopContext.clearError();
+
 									if (error.getCause() instanceof FlowException) {
 
 										throw (FlowException)error.getCause();
+
 									} else {
 
 										throw new FrameworkException(422, "Unexpected exception in FlowForEach loop body.", error.getCause());
 									}
+
 								} else {
 
 									loopContext.clearError();
@@ -104,6 +110,7 @@ public class ForEachHandler implements FlowHandler {
 									}
 
 									continue;
+
 								} catch (FrameworkException handlingException) {
 
 									throw new FlowException(handlingException, flowElement);
@@ -113,10 +120,12 @@ public class ForEachHandler implements FlowHandler {
 							throw flowException;
 
 						}
+
 						loopContext = openNewContext(context, loopContext, flowElement);
 
 						// Break when an intermediate result or error occurs
 						if (context.hasResult() || context.hasError()) {
+
 							break;
 						}
 					}
@@ -129,6 +138,7 @@ public class ForEachHandler implements FlowHandler {
 					try {
 
 						engine.execute(loopContext, loopBody);
+
 					} catch (FrameworkException ex) {
 
 						throw new FlowException(ex, flowElement);
@@ -136,8 +146,10 @@ public class ForEachHandler implements FlowHandler {
 				}
 
 				for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
+
 					context.setData(entry.getKey(), entry.getValue());
 				}
+
 				context.setData(flowElement.getUuid(), data);
 
 			}
@@ -148,8 +160,8 @@ public class ForEachHandler implements FlowHandler {
 	}
 
 	private Map<String,Object> getAggregationData(final Context context, final FlowNode flowElement) {
-		Map<String,Object> aggregateData = new HashMap<>();
 
+		Map<String,Object> aggregateData = new HashMap<>();
 		FlowNode currentElement = ((FlowForEach)flowElement).getLoopBody();
 
 		traverseAndEvaluate(currentElement, (el) -> {
@@ -163,6 +175,7 @@ public class ForEachHandler implements FlowHandler {
 	}
 
 	private Context openNewContext(final Context context, Context loopContext, final FlowNode flowElement) {
+
 		final Context newContext = new Context(context);
 
 		for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
@@ -182,14 +195,15 @@ public class ForEachHandler implements FlowHandler {
 			if (element instanceof FlowDecision) {
 
 				final FlowDecision decision = (FlowDecision)element;
-
 				FlowNode decisionElement = decision.getTrueElement();
+
 				if (decisionElement != null) {
 
 					traverseAndEvaluate(decisionElement, consumer);
 				}
 
 				decisionElement = decision.getFalseElement();
+
 				if (decisionElement != null) {
 
 					traverseAndEvaluate(decisionElement, consumer);

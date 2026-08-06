@@ -33,10 +33,12 @@ public class IsAToken extends AbstractToken<AnnotatedConcept> {
 	public IsAToken(final NamedConceptToken namedConceptToken, final ConceptToken conceptToken) {
 
 		if (namedConceptToken != null) {
+
 			namedConceptToken.setParent(this);
 		}
 
 		if (conceptToken != null) {
+
 			conceptToken.setParent(this);
 		}
 
@@ -64,21 +66,25 @@ public class IsAToken extends AbstractToken<AnnotatedConcept> {
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
 	@Override
 	public Token getToken() {
+
 		return null;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 }

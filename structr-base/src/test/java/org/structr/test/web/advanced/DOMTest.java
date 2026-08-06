@@ -33,13 +33,11 @@ import java.util.List;
 
 public abstract class DOMTest extends StructrUiTest {
 	
-	
 	protected NodeInterface getDocument() {
 		
 		try {
 			
 			List<NodeInterface> pages = this.createTestNodes(StructrTraits.PAGE, 1);
-
 			if (!pages.isEmpty()) {
 				
 				return pages.get(0);
@@ -52,7 +50,6 @@ public abstract class DOMTest extends StructrUiTest {
 
 		return null;
 		
-		
 	}
 	
 	protected NodeInterface getContentNode() {
@@ -60,7 +57,6 @@ public abstract class DOMTest extends StructrUiTest {
 		try {
 			
 			List<NodeInterface> contents = this.createTestNodes(StructrTraits.CONTENT, 1);
-
 			if (!contents.isEmpty()) {
 				
 				return contents.get(0);
@@ -77,6 +73,7 @@ public abstract class DOMTest extends StructrUiTest {
 	protected void printNode(final DOMNode node, final int depth) throws FrameworkException {
 		
 		for (int i=0; i<depth; i++) {
+
 			System.out.print("    ");
 		}
 		
@@ -85,6 +82,7 @@ public abstract class DOMTest extends StructrUiTest {
 		DOMNode child = node.getFirstChild();
 
 		while (child != null) {
+
 			printNode(child, depth + 1);
 			child = child.getNextSibling();
 		}

@@ -69,6 +69,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_CONTENT_PROPERTY   = "isContent";
 
 	public ContentTraitDefinition() {
+
 		super(StructrTraits.CONTENT);
 	}
 
@@ -77,15 +78,14 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 					final Content content = obj.as(Content.class);
-
 					if (content.getContentType() == null) {
+
 						content.setContentType("text/plain");
 					}
 				}
@@ -101,8 +101,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			UpdateFromNode.class,
-			new UpdateFromNode() {
+			UpdateFromNode.class, new UpdateFromNode() {
 				@Override
 				public void updateFromNode(final NodeInterface node, final DOMNode otherNode) throws FrameworkException {
 
@@ -116,17 +115,16 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			DoImport.class,
-			new DoImport() {
+			DoImport.class, new DoImport() {
 
 				@Override
 				public DOMNode doImport(final DOMNode node, final Page page) {
+
 					return page.createTextNode(node.as(Content.class).getContent());
 				}
 			},
 
-			GetContextName.class,
-			new GetContextName() {
+			GetContextName.class, new GetContextName() {
 
 				@Override
 				public String getContextName(final NodeInterface node) {
@@ -137,8 +135,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			RenderContent.class,
-			new RenderContent() {
+			RenderContent.class, new RenderContent() {
 
 				@Override
 				public void renderContent(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -160,11 +157,13 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 							buf.append(DOMNode.escapeForHtml(content.getContent()));
 
 							return;
+
 						} else if (EditMode.CONTENT.equals(edit)) {
 
 						}
 
 						if (!node.shouldBeRendered(renderContext)) {
+
 							return;
 						}
 
@@ -275,17 +274,16 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			GetNodeValue.class,
-			new GetNodeValue() {
+			GetNodeValue.class, new GetNodeValue() {
 
 				@Override
 				public String getNodeValue(final NodeInterface node) {
+
 					return node.getProperty(node.getTraits().key(CONTENT_PROPERTY));
 				}
 			},
 
-			ContentEquals.class,
-			new ContentEquals() {
+			ContentEquals.class, new ContentEquals() {
 
 				@Override
 				public boolean contentEquals(final DOMNode thisNode, final DOMNode otherNode) {
@@ -296,6 +294,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						final String content2 = otherNode.as(Content.class).getContent();
 
 						if (content1 == null && content2 == null) {
+
 							return true;
 						}
 
@@ -314,19 +313,19 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Content.class, (traits, node) -> new ContentTraitWrapper(traits, node)
-		);
+		return Map.of(Content.class, (traits, node) -> new ContentTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
@@ -337,11 +336,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> contentTypeProperty = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
 		final Property<Boolean> isContentProperty  = new ConstantBooleanProperty(IS_CONTENT_PROPERTY, true);
 
-		return Set.of(
-			contentProperty,
-			contentTypeProperty,
-			isContentProperty
-		);
+		return Set.of(contentProperty, contentTypeProperty, isContentProperty);
 	}
 
 	@Override
@@ -373,6 +368,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -408,30 +404,39 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						break;
 
 					case '\'':
+
 						if (inTemplate && !inDoubleQuotes && !hasBackslash && !inComment) {
+
 							inSingleQuotes = !inSingleQuotes;
 						}
+
 						hasDollar = false;
 						hasBackslash = false;
 						break;
 
 					case '\"':
+
 						if (inTemplate && !inSingleQuotes && !hasBackslash && !inComment) {
+
 							inDoubleQuotes = !inDoubleQuotes;
 						}
+
 						hasDollar = false;
 						hasBackslash = false;
 						break;
 
 					case '$':
+
 						if (!inComment) {
 
 							hasDollar    = true;
 							hasBackslash = false;
 						}
+
 						break;
 
 					case '{':
+
 						if (!inTemplate && hasDollar && !inComment) {
 
 							startRow   = row;
@@ -453,6 +458,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 							handler.possibleStartOfScript(row, column-1);
 
 						} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inComment) {
+
 							level++;
 						}
 
@@ -478,6 +484,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 							ignoreNext = true;
 						}
+
 						hasDollar    = false;
 						hasBackslash = false;
 						hasSlash = false;
@@ -497,6 +504,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 								hasSlash = true;
 							}
 						}
+
 						break;
 
 					case '\r':
@@ -569,18 +577,22 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		public void setConverter(final Adapter<String, String> converter) {
+
 			this.converter = converter;
 		}
 
 		public void setReplaceNewlines(final boolean replaceNewlines) {
+
 			this.replaceNewlines = replaceNewlines;
 		}
 
 		public void setEscapeForHtml(final boolean escapeForHtml) {
+
 			this.escapeForHtml = escapeForHtml;
 		}
 
 		public boolean isEmpty() {
+
 			return isEmpty;
 		}
 
@@ -653,6 +665,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 		public void handleText(final String text) throws FrameworkException {
 
 			if (!text.isEmpty()) {
+
 				isEmpty = false;
 			}
 
@@ -668,14 +681,17 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 			String content = src;
 
 			if (escapeForHtml) {
+
 				content = DOMNode.escapeForHtml(content);
 			}
 
 			if (converter != null) {
+
 				content = converter.adapt(content);
 			}
 
 			if (replaceNewlines) {
+
 				content = content.replaceAll("[\\n]{1}", "<br>");
 			}
 

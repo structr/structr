@@ -45,11 +45,13 @@ public class FindRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "findRelationship";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type [, parameterMap ]");
 	}
 
@@ -76,6 +78,7 @@ public class FindRelationshipFunction extends CoreFunction {
 				} else {
 
 					logger.warn("Error in findRelationship(): type \"{}\" not found.", typeString);
+
 					return ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND + typeString;
 				}
 			}
@@ -84,6 +87,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			if (traits == null) {
 
 				logger.warn("Error in findRelationship(): no type specified. Parameters: {}", getParametersAsString(sources));
+
 				return ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED;
 			}
 
@@ -109,7 +113,6 @@ public class FindRelationshipFunction extends CoreFunction {
 			} else {
 
 				final int parameterCount = sources.length;
-
 				if (parameterCount % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -118,11 +121,11 @@ public class FindRelationshipFunction extends CoreFunction {
 				for (int c = 1; c < parameterCount; c += 2) {
 
 					if (sources[c] == null) {
+
 						throw new IllegalArgumentException();
 					}
 
 					final PropertyKey key = traits.key(sources[c].toString());
-
 					if (key != null) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
@@ -150,6 +153,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.findRelationship(type, key, value); }}. Example: ${{ $.findRelationship('PersonRELATED_TOPerson'); }}"),
 			Usage.structrScript("Usage: ${findRelationship(type, key, value)}. Example: ${findRelationship('PersonRELATED_TOPerson')}")
@@ -158,11 +162,13 @@ public class FindRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a collection of relationship entities of the given type from the database, takes optional key/value pairs.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
@@ -178,6 +184,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return super.getExamples();
 	}
 
@@ -193,6 +200,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

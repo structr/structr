@@ -35,16 +35,19 @@ import org.structr.schema.SchemaHelper.Type;
 public class EnumArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
 	public EnumArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return String.class.getName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.EnumArray;
 	}
 
@@ -75,7 +78,6 @@ public class EnumArrayPropertyGenerator extends PropertyGenerator<String[]> {
 	public String[] getDefaultValue() {
 
 		final String val = source.getDefaultValue();
-
 		if (StringUtils.isNotBlank(val)) {
 
 			return val.split("[, ]+");

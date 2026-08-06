@@ -33,16 +33,19 @@ import org.structr.schema.SchemaHelper.Type;
 public class StringArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
 	public StringArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String entity, final PropertyDefinition params) {
+
 		super(errorBuffer, entity, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return String[].class.getSimpleName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.StringArray;
 	}
 
@@ -51,7 +54,9 @@ public class StringArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
 		final String expression = source.getFormat();
 		if ("[]".equals(expression)) {
+
 			reportError(new InvalidPropertySchemaToken(StructrTraits.SCHEMA_NODE, source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+
 			return null;
 		}
 
@@ -60,6 +65,7 @@ public class StringArrayPropertyGenerator extends PropertyGenerator<String[]> {
 
 	@Override
 	public String[] getDefaultValue() {
+
 		return null;
 	}
 }

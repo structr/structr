@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
@@ -31,16 +30,17 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
 public class GetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "getCookie";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name");
 	}
 
@@ -60,10 +60,12 @@ public class GetCookieFunction extends UiAdvancedFunction {
 				if (request != null) {
 
 					Cookie[] cookies = request.getCookies();
-
 					if (cookies != null) {
+
 						for (Cookie c : cookies) {
+
 							if (c.getName().equals(name)) {
+
 								return c.getValue();
 							}
 						}
@@ -72,6 +74,7 @@ public class GetCookieFunction extends UiAdvancedFunction {
 			}
 
 			if (ctx.isJavaScriptContext()) {
+
 				return null;
 			}
 
@@ -80,17 +83,20 @@ public class GetCookieFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getCookie(name)}. Example: ${getCookie('cartId')}"),
 			Usage.javaScript("Usage: ${{ $.getCookie(name) }}. Example: ${{ $.getCookie('cartId') }}")
@@ -99,16 +105,19 @@ public class GetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the requested cookie if it exists.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

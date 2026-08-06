@@ -29,6 +29,7 @@ import org.structr.core.entity.Principal;
 public class CronTestTask<T> extends AbstractTask<T> {
 
 	public CronTestTask(final String type, final Principal user, final T node) {
+
 		super(type, user, node);
 	}
 }

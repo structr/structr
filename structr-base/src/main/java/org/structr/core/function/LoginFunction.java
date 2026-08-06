@@ -37,11 +37,13 @@ public class LoginFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "login";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("user, password");
 	}
 
@@ -49,12 +51,14 @@ public class LoginFunction extends AdvancedScriptingFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
+
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			Principal user  = ((AbstractNode) sources[0]).as(Principal.class);
 			String password =                 sources[1].toString();
 
 			if (AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("id"), user.getUuid(), password) != null) {
+
 				AuthHelper.doLogin(ctx.getSecurityContext().getRequest(), user);
 			}
 
@@ -65,6 +69,7 @@ public class LoginFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentCountException pe) {
@@ -72,30 +77,32 @@ public class LoginFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${login(user, password)}"),
-			Usage.javaScript("Usage: ${{$.login(user, password)}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${login(user, password)}"), Usage.javaScript("Usage: ${{$.login(user, password)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Logs the given user in if the given password is correct. Returns true on successful login.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

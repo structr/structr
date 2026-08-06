@@ -91,14 +91,17 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 	// ----- public static methods -----
 	static String getDefaultRelationshipType(final SchemaRelationshipNode rel) {
+
 		return getDefaultRelationshipType(rel.getSourceNode(), rel.getTargetNode());
 	}
 
 	static String getDefaultRelationshipType(final SchemaNode sourceNode, final SchemaNode targetNode) {
+
 		return getDefaultRelationshipType(sourceNode.getName(), targetNode.getName());
 	}
 
 	static String getDefaultRelationshipType(final String sourceType, final String targetType) {
+
 		return sourceType + "_" + targetType;
 	}
 
@@ -111,7 +114,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _targetMultiplicity  = node.getTargetMultiplicity();
 		final String _sourceJsonName      = node.getSourceJsonName();
 		final String _sourceMultiplicity  = node.getSourceMultiplicity();
-
 		final String propertyName = SchemaRelationshipNode.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 
 		return propertyName;
@@ -167,6 +169,7 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 			// New name still exists: Add number
 			while (existingPropertyNames.contains(propertyName)) {
+
 				propertyName += ++i;
 			}
 

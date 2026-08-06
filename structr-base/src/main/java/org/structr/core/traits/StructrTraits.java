@@ -262,7 +262,6 @@ public class StructrTraits {
 	public static final String VIDEO            = "Video";
 	public static final String WBR              = "Wbr";
 
-
 	// relationship types
 	public static final String SECURITY                                                       = "Security";
 	public static final String PRINCIPAL_OWNS_NODE                                            = "PrincipalOwnsNode";
@@ -363,7 +362,6 @@ public class StructrTraits {
 	public static final String FLOW_SCRIPT_CONDITION_SOURCE                                   = "FlowScriptConditionSource";
 	public static final String FLOW_SWITCH_CASES                                              = "FlowSwitchCases";
 	public static final String FLOW_VALUE_INPUT                                               = "FlowValueInput";
-
 
 	public static void registerTrait(final TraitDefinition definition) {
 

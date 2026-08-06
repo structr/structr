@@ -48,6 +48,7 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 	public static final String KEY_PROPERTY         = "key";
 
 	public FlowParameterDataSourceTraitDefinition() {
+
 		super(StructrTraits.FLOW_PARAMETER_DATA_SOURCE);
 	}
 
@@ -56,8 +57,7 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -82,6 +82,7 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 									return null;
 								}
 							}
+
 							return context.getParameter(_key);
 						}
 
@@ -89,8 +90,7 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -112,9 +112,7 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowParameterDataSource.class, (traits, node) -> new FlowParameterDataSource(traits, node)
-		);
+		return Map.of(FlowParameterDataSource.class, (traits, node) -> new FlowParameterDataSource(traits, node));
 	}
 
 	@Override
@@ -123,30 +121,20 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 		final Property<String> key                         = new StringProperty(KEY_PROPERTY);
 
-		return newSet(
-			dataTarget,
-			key
-		);
+		return newSet(dataTarget, key);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				KEY_PROPERTY, DATA_TARGET_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(KEY_PROPERTY, DATA_TARGET_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				KEY_PROPERTY, DATA_TARGET_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(KEY_PROPERTY, DATA_TARGET_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -62,11 +62,13 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 	@Override
 	public String toString() {
+
 		return type + " " + name;
 	}
 
 	@Override
 	public int hashCode() {
+
 		return name.hashCode();
 	}
 
@@ -88,10 +90,13 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		if (parentId != null) {
 
 			try {
+
 				final URI containerURI = new URI(parentId.toString() + "/");
+
 				return containerURI.resolve("properties/" + getName());
 
 			} catch (URISyntaxException urex) {
+
 				logger.warn("", urex);
 			}
 		}
@@ -101,11 +106,13 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 	@Override
 	public JsonMethod getParent() {
+
 		return parent;
 	}
 
 	@Override
 	public String getName() {
+
 		return name;
 	}
 
@@ -113,11 +120,13 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	public JsonParameter setName(String name) {
 
 		this.name = name;
+
 		return this;
 	}
 
 	@Override
 	public String getDescription() {
+
 		return description;
 	}
 
@@ -125,49 +134,61 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	public JsonParameter setDescription(final String description) {
 
 		this.description = description;
+
 		return this;
 	}
 
 	@Override
 	public String getType() {
+
 		return type;
 	}
 
 	@Override
 	public JsonParameter setType(final String type) {
+
 		this.type = type;
+
 		return this;
 	}
 
 	@Override
 	public String getExampleValue() {
+
 		return exampleValue;
 	}
 
 	@Override
 	public JsonParameter setExampleValue(final String exampleValue) {
+
 		this.exampleValue = exampleValue;
+
 		return this;
 	}
 
 	@Override
 	public int getIndex() {
+
 		return index;
 	}
 
 	@Override
 	public JsonParameter setIndex(final int index) {
+
 		this.index = index;
+
 		return this;
 	}
 
 	@Override
 	public int compareTo(final JsonParameter o) {
+
 		return getName().compareTo(o.getName());
 	}
 
 	@Override
 	public StructrDefinition resolveJsonPointerKey(final String key) {
+
 		return null;
 	}
 
@@ -198,9 +219,9 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		parameter.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// return modified property
+
 		return parameter;
 	}
-
 
 	void deserialize(final Map<String, Object> source) {
 

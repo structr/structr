@@ -24,6 +24,7 @@ package org.structr.common.error;
 public class PropertyInputParsingException extends FrameworkException {
 
 	public PropertyInputParsingException(final String propertyName, final ErrorToken errorToken) {
+
 		super(422, "Cannot parse input for property '" + propertyName + "'", errorToken);
 	}
 }

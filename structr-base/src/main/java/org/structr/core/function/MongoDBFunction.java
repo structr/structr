@@ -41,11 +41,13 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "mongodb";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("url, database, collection");
 	}
 
@@ -78,17 +80,20 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${mongodb(url, database, collection)}. Example: ${mongodb('mongodb://localhost:27017', 'database1', 'collection1')}"),
 			Usage.javaScript("Usage: ${{ $.mongodb(url, database, collection) }}. Example: ${{ $.mongodb('mongodb://localhost:27017', 'database1', 'collection1') }}")
@@ -97,16 +102,19 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Opens a connection to a MongoDB source and returns a MongoCollection which can be used to further query the Mongo database.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("url", "connection URL to MongoDB"),
 			Parameter.mandatory("database", "name of the database to connect to"),
@@ -174,6 +182,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

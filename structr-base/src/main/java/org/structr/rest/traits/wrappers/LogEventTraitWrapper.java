@@ -29,11 +29,13 @@ import java.util.Date;
 public class LogEventTraitWrapper extends AbstractNodeTraitWrapper implements LogEvent {
 
 	public LogEventTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
@@ -51,21 +53,25 @@ public class LogEventTraitWrapper extends AbstractNodeTraitWrapper implements Lo
 
 	@Override
 	public String getAction() {
+
 		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.ACTION_PROPERTY));
 	}
 
 	@Override
 	public String getMessage() {
+
 		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.MESSAGE_PROPERTY));
 	}
 
 	@Override
 	public String getSubjectId() {
+
 		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY));
 	}
 
 	@Override
 	public String getObjectId() {
+
 		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY));
 	}
 }

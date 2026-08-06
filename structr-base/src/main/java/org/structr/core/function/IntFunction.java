@@ -27,16 +27,17 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
 public class IntFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "int";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
@@ -48,11 +49,11 @@ public class IntFunction extends CoreFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (sources[0] instanceof Number) {
+
 				return ((Number)sources[0]).intValue();
 			}
 
 			final Double dbl = getDoubleOrNull(sources[0]);
-
 			if (dbl != null) {
 
 				return dbl.intValue();
@@ -60,63 +61,63 @@ public class IntFunction extends CoreFunction {
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (Throwable t) {
 
 			logException(caller, t, sources);
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${int(parameter)}"),
-				Usage.javaScript("Usage: ${{ $.int(parameter) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${int(parameter)}"), Usage.javaScript("Usage: ${{ $.int(parameter) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Tries to convert the given object into an integer value.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("input", "input value to convert to an integer, can be string or floating-point number")
-		);
+		return List.of(Parameter.mandatory("input", "input value to convert to an integer, can be string or floating-point number"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${int(5.8)}", "Convert a floating-point value into an integer"),
-			Example.structrScript("${int('35.8')}", "Convert a string into an integer")
-		);
+		return List.of(Example.structrScript("${int(5.8)}", "Convert a floating-point value into an integer"), Example.structrScript("${int('35.8')}", "Convert a string into an integer"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

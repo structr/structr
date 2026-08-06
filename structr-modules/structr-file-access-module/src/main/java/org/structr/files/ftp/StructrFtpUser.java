@@ -45,15 +45,19 @@ public class StructrFtpUser implements User {
 	private SecurityContext securityContext;
 
 	public StructrFtpUser(final SecurityContext securityContext, final Principal structrUser) {
+
 		this.securityContext = securityContext;
 		this.structrUser     = structrUser;
 	}
 
 	@Override
 	public String getName() {
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			final String name = structrUser.getName();
 			tx.success();
+
 			return name;
 		} catch (Exception fex) { }
 
@@ -62,11 +66,13 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public String getPassword() {
+
 		throw new UnsupportedOperationException("We don't disclose user passwords ever.");
 	}
 
 	@Override
 	public List<Authority> getAuthorities() {
+
 		List<Authority> auths = new ArrayList<>();
 
 		auths.add(new ConcurrentLoginPermission(10, 10));
@@ -77,6 +83,7 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public List<Authority> getAuthorities(Class<? extends Authority> type) {
+
 		return getAuthorities();
 	}
 
@@ -87,11 +94,14 @@ public class StructrFtpUser implements User {
 
 		// check for no authorities at all
 		if (authorities == null) {
+
 			return null;
 		}
 
 		boolean someoneCouldAuthorize = false;
+
 		for (Authority authority : authorities) {
+
 			if (authority.canAuthorize(request)) {
 
 				logger.info("Authority {} can authorize {}", new Object[]{authority, request});
@@ -104,31 +114,39 @@ public class StructrFtpUser implements User {
 				if (request == null) {
 
 					logger.info("Authorization of request {} failed", new Object[]{request});
+
 					return null;
 				}
 			}
 
 		}
 
-
 		if (someoneCouldAuthorize) {
+
 			logger.info("Request {} successfully authorized", new Object[]{request});
+
 			return request;
+
 		} else {
+
 			return null;
 		}
 	}
 
 	@Override
 	public int getMaxIdleTime() {
+
 		return 3000;
 	}
 
 	@Override
 	public boolean getEnabled() {
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			final boolean blocked = structrUser.isBlocked();
 			tx.success();
+
 			return !blocked;
 		} catch (Exception fex) { }
 
@@ -152,6 +170,7 @@ public class StructrFtpUser implements User {
 	}
 
 	public Principal getStructrUser() {
+
 		return structrUser;
 	}
 

@@ -56,10 +56,12 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 	public abstract void preprocess();
 
 	public StringBuilder getLogLine() {
+
 		return getCommandLine();
 	}
 
 	private boolean shouldLogCommandWhenExecuting() {
+
 		return (getLogBehaviour() != Settings.SCRIPT_PROCESS_LOG_STYLE.NOTHING);
 	}
 
@@ -101,6 +103,7 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 
 		// debugging output
 		if (exitCode() != 0) {
+
 			logger.warn("Process '{}' exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode(), stdErr.getBuffer());
 		}
 
@@ -108,22 +111,27 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 	}
 
 	protected String errorStream() {
+
 		return stdErr.getBuffer();
 	}
 
 	private int exitCode() {
+
 		return exitCode;
 	}
 
 	private void setExitCode(final int exitCode) {
+
 		this.exitCode = exitCode;
 	}
 
 	public void setLogBehaviour(final int logBehaviour) {
+
 		this.logBehaviour = Settings.SCRIPT_PROCESS_LOG_STYLE.get(logBehaviour);
 	}
 
 	public Settings.SCRIPT_PROCESS_LOG_STYLE getLogBehaviour() {
+
 		return this.logBehaviour;
 	}
 }

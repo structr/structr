@@ -32,6 +32,7 @@ public class Slot extends GenericHtmlElementTraitDefinition {
 	public static final String NAME_PROPERTY = getPrefixedHTMLAttributeName("name");
 
 	public Slot() {
+
 		super(StructrTraits.SLOT);
 	}
 
@@ -40,19 +41,12 @@ public class Slot extends GenericHtmlElementTraitDefinition {
 
 		final PropertyKey<String> nameProperty = new StringProperty(NAME_PROPERTY);
 
-		return newSet(
-			nameProperty
-		);
+		return newSet(nameProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					NAME_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(NAME_PROPERTY));
 	}
 }

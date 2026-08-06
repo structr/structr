@@ -57,11 +57,13 @@ public class StructrFilesRootPath extends StructrPath {
 
 	@Override
 	public String toString() {
+
 		return "/";
 	}
 
 	@Override
 	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
+
 		throw new AccessDeniedException(toString());
 	}
 
@@ -98,6 +100,7 @@ public class StructrFilesRootPath extends StructrPath {
 						tx.success();
 
 					} catch (FrameworkException fex) {
+
 						logger.warn("", fex);
 					}
 
@@ -110,6 +113,7 @@ public class StructrFilesRootPath extends StructrPath {
 
 			@Override
 			public void close() throws IOException {
+
 				closed = true;
 			}
 		};
@@ -118,51 +122,61 @@ public class StructrFilesRootPath extends StructrPath {
 
 	@Override
 	public void createDirectory(final FileAttribute<?>... attrs) throws IOException {
+
 		throw new FileAlreadyExistsException(this.toString());
 	}
 
 	@Override
 	public void delete() throws IOException {
+
 		throw new AccessDeniedException(toString());
 	}
 
 	@Override
 	public StructrPath resolveStructrPath(final String pathComponent) {
+
 		return new StructrFilePath(fs, this, pathComponent);
 	}
 
 	@Override
 	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) {
+
 		return rootAttributes.toMap(attributes);
 	}
 
 	@Override
 	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) {
+
 		return (T)rootAttributes;
 	}
 
 	@Override
 	public <V extends FileAttributeView> V getFileAttributeView(final Class<V> type, final LinkOption... options) throws IOException {
+
 		return (V)getAttributes((Class)null, options);
 	}
 
 	@Override
 	public void copy(final Path target, final CopyOption... options) throws IOException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void move(final Path target, final CopyOption... options) throws IOException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void setAttribute(final String attribute, final Object value, final LinkOption... options) throws IOException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean isSameFile(final Path path2) throws IOException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 }

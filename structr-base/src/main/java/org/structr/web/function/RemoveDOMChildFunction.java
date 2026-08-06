@@ -36,11 +36,13 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "removeDomChild";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("parent, child");
 	}
 
@@ -66,6 +68,7 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${removeDomChild(parent, child)}. Example: ${removeDomChild(this, child)}"),
 			Usage.javaScript("Usage: ${{ $.removeDomChild(parent, child) }}. Example: ${{ $.removeDomChild(this, child) }}")
@@ -74,16 +77,19 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes a node from the DOM.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 

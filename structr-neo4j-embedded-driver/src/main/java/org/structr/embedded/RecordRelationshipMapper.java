@@ -32,6 +32,7 @@ class RecordRelationshipMapper implements Function<Map<String, Object>, Relation
 	private EmbeddedDatabaseService db = null;
 
 	public RecordRelationshipMapper(final EmbeddedDatabaseService db) {
+
 		this.db = db;
 	}
 
@@ -63,6 +64,7 @@ class RecordRelationshipMapper implements Function<Map<String, Object>, Relation
 
 		// "n" is the alias this driver gives the entity being queried, on the relationship
 		// side as much as the node side, so it is looked up by key and not by position
+
 		return (Relationship) record.get("n");
 	}
 }

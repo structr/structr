@@ -27,6 +27,7 @@ import org.structr.common.error.SemanticErrorToken;
 public class NotConnectedToken extends SemanticErrorToken {
 
 	public NotConnectedToken(final String type) {
+
 		super(type, null, "not_connected");
 	}
 }

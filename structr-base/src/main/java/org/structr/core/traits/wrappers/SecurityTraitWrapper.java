@@ -47,61 +47,73 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 
 	@Override
 	public RelationshipInterface getRelationship() {
+
 		return wrappedObject;
 	}
 
 	@Override
 	public Principal getSourceNode() {
+
 		return wrappedObject.getSourceNode().as(Principal.class);
 	}
 
 	@Override
 	public NodeInterface getTargetNode() {
+
 		return wrappedObject.getTargetNode();
 	}
 
 	@Override
 	public boolean isAllowed(final Permission permission) {
+
 		return isAllowed(wrappedObject, allowedKey, permission);
 	}
 
 	@Override
 	public void setAllowed(final Set<String> allowed) {
+
 		setAllowed(wrappedObject, allowedKey, allowed);
 	}
 
 	@Override
 	public void setAllowed(final Permission... allowed) {
+
 		setAllowed(wrappedObject, allowedKey, allowed);
 	}
 
 	@Override
 	public Set<String> getPermissions() {
+
 		return getPermissions(wrappedObject, allowedKey);
 	}
 
 	@Override
 	public void addPermission(final Permission permission) {
+
 		addPermission(wrappedObject, allowedKey, permission);
 	}
 
 	@Override
 	public void addPermissions(final Set<Permission> permissions) {
+
 		addPermissions(wrappedObject, allowedKey, permissions);
 	}
 
 	@Override
 	public void removePermission(final Permission permission) {
+
 		removePermission(wrappedObject, allowedKey, permission);
 	}
 
 	@Override
 	public void removePermissions(final Set<Permission> permissions) {
+
 		removePermissions(wrappedObject, allowedKey, permissions);
 	}
 
 	// ----- private methods -----
 	private boolean isAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
+
 		return getPermissions(graphObject, key).contains(permission.name());
 	}
 
@@ -140,6 +152,7 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 	private Set<String> getPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key) {
 
 		final PropertyContainer propertyContainer = graphObject.getPropertyContainer();
+
 		return getPermissionSet(propertyContainer, key);
 	}
 
@@ -151,7 +164,6 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 	private void addPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
-
 		boolean change = false;
 
 		for (final Permission p : permissions) {
@@ -164,6 +176,7 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 		};
 
 		if (change) {
+
 			setAllowed(graphObject, key, permissionSet);
 		}
 	}
@@ -171,7 +184,6 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 	private void removePermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
-
 		if (!permissionSet.contains(permission.name())) {
 
 			return;
@@ -184,7 +196,6 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 	private void removePermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
-
 		boolean change = false;
 
 		for (final Permission p : permissions) {
@@ -197,6 +208,7 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 		};
 
 		if (change) {
+
 			setAllowed(graphObject, key, permissionSet);
 		}
 	}

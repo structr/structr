@@ -20,7 +20,6 @@ package org.structr.common;
 
 import org.structr.api.Predicate;
 
-
 /**
  *
  *
@@ -29,6 +28,7 @@ public class NotNullPredicate implements Predicate {
 
 	@Override
 	public boolean accept(Object item) {
+
 		return item != null;
 	}
 }

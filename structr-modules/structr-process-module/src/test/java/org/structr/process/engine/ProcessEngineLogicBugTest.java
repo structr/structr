@@ -47,8 +47,7 @@ public class ProcessEngineLogicBugTest {
 		// the executable code emitted AFTER that comment block.
 		final String executable = out.substring(out.indexOf("*/") + 2);
 
-		assertTrue("A first-write execution.setVariable must survive transpilation, not be silently dropped; got:\n" + out,
-			executable.contains("result"));
+		assertTrue("A first-write execution.setVariable must survive transpilation, not be silently dropped; got:\n" + out, executable.contains("result"));
 	}
 
 	/**

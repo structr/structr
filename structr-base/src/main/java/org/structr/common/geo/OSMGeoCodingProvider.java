@@ -51,13 +51,14 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
                 (StringUtils.isNotBlank(postalCode) ? postalCode : " " +
                 (StringUtils.isNotBlank(city) ? city : "") + " " +
                 (StringUtils.isNotBlank(state) ? state : "") + " " +
-                (StringUtils.isNotBlank(country) ? country : "") + " "
-        );
+                (StringUtils.isNotBlank(country) ? country : "") + " ");
 
 		String encodedAddress;
 
 		try {
+
 			encodedAddress = URLEncoder.encode(address, "UTF-8");
+
 		} catch (UnsupportedEncodingException ex) {
 
 			logger.warn("Unsupported Encoding", ex);
@@ -68,6 +69,7 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 		Document xmlDoc;
 
 		try {
+
 			final String protocol              = "xml";
 			final URL mapsUrl                  = new URL("https://nominatim.openstreetmap.org/search?q=" + encodedAddress + "&format=" + protocol + "&accept-language=" + language + "&addressdetails=1&limit=1");
 			final HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
@@ -122,7 +124,6 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 		return null;
 	}
 
-
 	private static class OSMGeoCodingResult implements GeoCodingResult {
 
 		private List <AddressComponent> addressComponents = new LinkedList<>();
@@ -139,31 +140,51 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 			String curData = null;
 
 			curData = data.get("postalCode");
+
 			if(curData != null){
+
 				this.addressComponents.add(new OSMAddressComponent(curData, Type.postal_code));
 			}
+
 			curData = data.get("state");
+
 			if(curData != null){
+
 				this.addressComponents.add(new OSMAddressComponent(curData, Type.administrative_area_level_1));
 			}
+
 			curData = data.get("state_district");
+
 			if(curData != null){
+
 				this.addressComponents.add(new OSMAddressComponent(curData, Type.administrative_area_level_3));
 			}
+
 			curData = data.get("countryRegion");
+
 			if(curData != null){
+
 				this.addressComponents.add(new OSMAddressComponent(curData, Type.country));
 			}
+
 			curData = data.get("city");
+
 			if(curData != null){
+
 				this.addressComponents.add(new OSMAddressComponent(curData, Type.locality));
 			}
+
 			curData = data.get("road");
+
 			if(curData != null){
+
 				this.addressComponents.add(new OSMAddressComponent(curData, Type.route));
 			}
+
 			curData = data.get("house_number");
+
 			if(curData != null){
+
 				this.addressComponents.add(new OSMAddressComponent(curData, Type.street_number));
 			}
 
@@ -175,9 +196,9 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 			this.longitude = longitude;
 		}
 
-
 		@Override
 		public String getAddress() {
+
 			return address;
 		}
 
@@ -187,6 +208,7 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 			for(AddressComponent addressComponent : addressComponents) {
 
 				if(addressComponent.getType() == type) {
+
 					return addressComponent;
 				}
 			}
@@ -196,36 +218,43 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 
 		@Override
 		public List<AddressComponent> getAddressComponents() {
+
 			return addressComponents;
 		}
 
 		@Override
 		public double getLatitude() {
+
 			return latitude;
 		}
 
 		@Override
 		public double getLongitude() {
+
 			return longitude;
 		}
 
 		@Override
 		public void setAddress(String address) {
+
 			this.address = address;
 		}
 
 		@Override
 		public void setLatitude(double latitude) {
+
 			this.latitude = latitude;
 		}
 
 		@Override
 		public void setLongitude(double longitude) {
+
 			this.longitude = longitude;
 		}
 
 		@Override
 		public Double[] toArray() {
+
 			return new Double[]{latitude, longitude};
 		}
 	}
@@ -243,11 +272,13 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 
 		@Override
 		public String getValue() {
+
 			return value;
 		}
 
 		@Override
 		public GeoCodingResult.Type getType() {
+
 			return type;
 		}
 	}

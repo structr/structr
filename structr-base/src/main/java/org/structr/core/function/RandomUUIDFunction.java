@@ -32,35 +32,39 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "randomUuid";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
 		return NodeServiceCommand.getNextUuid();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${randomUuid()}."),
-			Usage.javaScript("Usage: ${{ $.randomUuid() }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${randomUuid()}."), Usage.javaScript("Usage: ${{ $.randomUuid() }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a new random UUID (v4).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			The output format depends on `application.uuid.allowedformats`:
 
@@ -76,8 +80,8 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${random_uuid()}"),
+
+		return List.of(Example.structrScript("${random_uuid()}"),
 				Example.javaScript("""
 						${{
 						    const newId = $.randomUuid();
@@ -89,6 +93,7 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

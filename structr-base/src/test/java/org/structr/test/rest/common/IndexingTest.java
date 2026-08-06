@@ -72,6 +72,7 @@ public abstract class IndexingTest extends StructrRestTestBase {
 
 		// wait for service layer to be initialized
 		do {
+
 			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());

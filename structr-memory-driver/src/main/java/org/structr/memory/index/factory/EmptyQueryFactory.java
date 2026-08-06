@@ -27,6 +27,7 @@ import org.structr.memory.index.predicate.NullPredicate;
 public class EmptyQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public EmptyQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

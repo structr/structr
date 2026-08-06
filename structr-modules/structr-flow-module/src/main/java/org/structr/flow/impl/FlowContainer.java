@@ -50,6 +50,7 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 
 	public FlowContainer(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -79,22 +80,27 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	}
 
 	public String getEffectiveName() {
+
 		return wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY));
 	}
 
 	public void setEffectiveName(final String effectiveName) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), effectiveName);
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), b);
 	}
 
 	public void setStartNode(final FlowNode next) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.START_NODE_PROPERTY), next);
 	}
 
 	public void setRepeaterNodes(final Iterable<DOMNode> repeaterNodes) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.REPEATER_NODES_PROPERTY), repeaterNodes);
 	}
 
@@ -114,6 +120,7 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 			if (flowResult.getError().getCause() != null) {
 
 				logger.error("Unexpected exception in flow [" + getEffectiveName() + "]:" , flowResult.getError().getCause());
+
 			} else {
 
 				logger.error("Unexpected exception in flow [" + getEffectiveName() + "]:" + flowResult.getError().getMessage());
@@ -148,7 +155,6 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	public Iterable<RelationshipInterface> getFlowRelationships(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
-
 		List<RelationshipInterface> rels = null;
 
 		try (Tx tx = app.tx()) {
@@ -161,8 +167,10 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 				 rels.addAll(StreamSupport.stream(node.getRelationships().spliterator(), false).filter(rel -> {
 					final RelationshipType relType = rel.getRelType();
 					if (!"SECURITY".equals(relType.name()) && !"OWNS".equals(relType.name())) {
+
 						return true;
 					}
+
 					return false;
 				}).collect(Collectors.toList()));
 
@@ -185,6 +193,7 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	}
 
 	public Map<String, Object> exportData() {
+
 		return traits.getMethod(GetExportData.class).getExportData(this.as(FlowBaseNode.class));
 	}
 
@@ -197,16 +206,19 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 		try (Tx tx = app.tx()) {
 
 			for (final FlowBaseNode node: nodes) {
+
 				app.delete(node);
 			}
 
 			for (final FlowContainerConfiguration conf: configs) {
+
 				app.delete(conf);
 			}
 
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("Could not handle onDelete for FlowContainer: " + ex.getMessage());
 		}
 	}

@@ -37,13 +37,11 @@ public class ObjectNotion extends Notion {
 
 	public ObjectNotion() {
 
-		this(
-			new ObjectSerializationStrategy(),
-			new IdDeserializationStrategy()
-		);
+		this(new ObjectSerializationStrategy(), new IdDeserializationStrategy());
 	}
 
 	public ObjectNotion(final SerializationStrategy serializationStrategy, final DeserializationStrategy deserializationStrategy) {
+
 		super(serializationStrategy, deserializationStrategy);
 	}
 
@@ -54,17 +52,20 @@ public class ObjectNotion extends Notion {
 
 		@Override
 		public Object serialize(final SecurityContext securityContext, final String type, final GraphObject source) {
+
 			return source;
 		}
 
 		@Override
 		public void setRelationProperty(final RelationProperty relationProperty) {
+
 			// not interested yet..
 		}
 	}
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
+
 		return Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 	}
 }

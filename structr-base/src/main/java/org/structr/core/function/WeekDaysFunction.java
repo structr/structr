@@ -38,11 +38,13 @@ public class WeekDaysFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "weekDays";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("from, to");
 	}
 
@@ -50,7 +52,9 @@ public class WeekDaysFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length != 2) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -62,13 +66,14 @@ public class WeekDaysFunction extends CoreFunction {
 			final LocalDate toDate   = ((Date) sources[1]).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
 			try {
+
 				final DayOfWeek startWeek = fromDate.getDayOfWeek();
 				final DayOfWeek endWeek   = toDate.getDayOfWeek();
-
 				final long days = ChronoUnit.DAYS.between(fromDate, toDate);
 				final long daysWithoutWeekends = days - 2 * ((days + startWeek.getValue())/7);
 
 				//adjust for starting and ending on a Sunday:
+
 				return daysWithoutWeekends + (startWeek == DayOfWeek.SUNDAY ? 1 : 0) + (endWeek == DayOfWeek.SUNDAY ? 1 : 0);
 
 			} catch (Exception ex) {
@@ -79,11 +84,13 @@ public class WeekDaysFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -92,24 +99,25 @@ public class WeekDaysFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${weekDays(from, to)}"),
-			Usage.javaScript("Usage: ${{ $.weekDays(from, to) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${weekDays(from, to)}"), Usage.javaScript("Usage: ${{ $.weekDays(from, to) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Calculates the number of week days (working days) between given dates.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${weekDays(parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}"),
 				Example.javaScript("${{ $.weekDays($.parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), $.parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}}")
@@ -118,6 +126,7 @@ public class WeekDaysFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

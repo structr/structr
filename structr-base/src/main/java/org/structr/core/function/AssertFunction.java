@@ -33,11 +33,13 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "assert";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("condition, statusCode, message");
 	}
 
@@ -78,11 +80,13 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Aborts the current request if the given condition evaluates to false.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function allows you to check a precondition and abort the execution flow immediately if the condition is not satisfied, sending a customized error code and error message to the caller, along with all the error tokens that have accumulated in the error buffer.
 		
@@ -102,22 +106,19 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.javaScript("$.assert(($.me?.isAdmin === true), 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here")
-		);
+
+		return List.of(Example.javaScript("$.assert(($.me?.isAdmin === true), 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also `getErrors()`, `clearError()`, `clearErrors()` and `error()`.",
-			"Only works in schema methods, not in page rendering."
-		);
+		return List.of("See also `getErrors()`, `clearError()`, `clearErrors()` and `error()`.", "Only works in schema methods, not in page rendering.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 
@@ -125,11 +126,11 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	private boolean toBoolean(final Object[] args, final int index) {
 
 		if (index >= args.length) {
+
 			return false;
 		}
 
 		final Object value = args[index];
-
 		if (value != null && value instanceof Boolean) {
 
 			return ((Boolean)value);
@@ -141,11 +142,11 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	private int toInteger(final Object[] args, final int index) {
 
 		if (index >= args.length) {
+
 			return 422;
 		}
 
 		final Object value = args[index];
-
 		if (value != null && value instanceof Number) {
 
 			return ((Number)value).intValue();
@@ -157,11 +158,11 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	private String toString(final Object[] args, final int index) {
 
 		if (index >= args.length) {
+
 			return "Unspecified assertion error";
 		}
 
 		final Object value = args[index];
-
 		if (value != null) {
 
 			return value.toString();

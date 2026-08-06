@@ -41,11 +41,13 @@ import java.util.Map;
 public class StructrStringProperty extends StructrPropertyDefinition implements JsonStringProperty {
 
 	public StructrStringProperty(final StructrTypeDefinition parent, final String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "string";
 	}
 
@@ -55,6 +57,7 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 		super.deserialize(source);
 
 		if (source.containsKey(JsonSchema.KEY_FORMAT)) {
+
 			this.format = (String) source.get(JsonSchema.KEY_FORMAT);
 		}
 	}
@@ -73,6 +76,7 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 		final Map<String, Object> map = super.serialize();
 
 		if (format != null) {
+
 			map.put(JsonSchema.KEY_FORMAT, format);
 		}
 
@@ -96,6 +100,7 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 
 	// ----- protected methods -----
 	protected Type getTypeToSerialize() {
+
 		return Type.String;
 	}
 }

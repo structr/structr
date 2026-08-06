@@ -45,10 +45,12 @@ public class FlowEngine {
 	private Context context                           	= null;
 
 	public FlowEngine() {
+
 		this((GraphObject)null);
 	}
 
 	public FlowEngine(final GraphObject thisObject) {
+
 		this(new Context(thisObject));
 	}
 
@@ -60,6 +62,7 @@ public class FlowEngine {
 	}
 
 	public FlowResult execute(final FlowNode step) throws FrameworkException {
+
 		return this.execute(this.context,step);
 	}
 
@@ -104,6 +107,7 @@ public class FlowEngine {
 
 			// check for return or error values and break early
 			if (context.hasResult() || context.hasError()) {
+
 				return new FlowResult(context);
 			}
 		}
@@ -134,10 +138,10 @@ public class FlowEngine {
 		if (throwingElement != null) {
 
 			FlowExceptionHandler exceptionHandler = throwingElement.getExceptionHandler(context);
-
 			if (exceptionHandler != null) {
 
 				context.setData(exceptionHandler.getUuid(), exception);
+
 				return this.execute(context, exceptionHandler);
 
 			}
@@ -146,10 +150,12 @@ public class FlowEngine {
 
 		// No linked FlowExceptionHandler was found, try to find an eligible global one
 		final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
-		try {
-			FlowContainer container = current.getFlowContainer();
 
+		try {
+
+			FlowContainer container = current.getFlowContainer();
 			Iterable<FlowBaseNode> flowNodes = container.getFlowNodes();
+
 			if (flowNodes != null) {
 
 				for (final FlowBaseNode node : flowNodes) {
@@ -162,6 +168,7 @@ public class FlowEngine {
 						if (handledNodes == null || handledNodes.isEmpty()) {
 
 							context.setData(exceptionHandler.getUuid(), exception);
+
 							return this.execute(context, exceptionHandler);
 
 						}
@@ -176,10 +183,12 @@ public class FlowEngine {
 
 		// In case no handler is present at all, print the stack trace and return the intermediate result
 		if (exception.getRootCause() instanceof FrameworkException) {
+
 			FrameworkException fex = (FrameworkException)exception.getRootCause();
 			if (fex.getErrorBuffer() != null && fex.getErrorBuffer().hasError()) {
 
 				throw fex;
+
 			} else {
 
 				context.error(new FlowError(exception.getMessage(), exception));

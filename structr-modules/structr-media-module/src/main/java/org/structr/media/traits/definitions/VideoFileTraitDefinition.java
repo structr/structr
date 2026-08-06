@@ -70,6 +70,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String HEIGHT_PROPERTY           = "height";
 
 	public VideoFileTraitDefinition() {
+
 		super(StructrTraits.VIDEO_FILE);
 	}
 
@@ -84,11 +85,11 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnUploadCompletion.class,
-			new OnUploadCompletion() {
+			OnUploadCompletion.class, new OnUploadCompletion() {
 
 				@Override
 				public void onUploadCompletion(final File file, final SecurityContext securityContext) {
+
 					updateVideoInfo(file.as(VideoFile.class), securityContext);
 				}
 			}
@@ -98,9 +99,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			VideoFile.class, (traits, node) -> new VideoFileTraitWrapper(traits, node)
-		);
+		return Map.of(VideoFile.class, (traits, node) -> new VideoFileTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -179,6 +178,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -190,6 +190,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 			if (info != null && info.containsKey("streams")) {
 
 				final List<Map<String, Object>> streams = (List<Map<String, Object>>)info.get("streams");
+
 				for (final Map<String, Object> stream : streams) {
 
 					final String codecType = (String)stream.get("codec_type");
@@ -220,6 +221,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			final Logger logger = LoggerFactory.getLogger(VideoFile.class);
 			logger.warn("", fex);
 		}
@@ -228,6 +230,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	static void setIfNotNull(final VideoFile thisVideo, final PropertyKey key, final Object value) throws FrameworkException {
 
 		if (value != null) {
+
 			thisVideo.setProperty(key, value);
 		}
 	}
@@ -235,15 +238,18 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	static Integer toInt(final Object value) {
 
 		if (value instanceof Number) {
+
 			return ((Number)value).intValue();
 		}
 
 		if (value instanceof String) {
 
 			try {
+
 				return Integer.valueOf((String)value);
 
 			} catch (Throwable t) {
+
 				return null;
 			}
 		}
@@ -254,15 +260,18 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	static Double toDouble(final Object value) {
 
 		if (value instanceof Number) {
+
 			return ((Number)value).doubleValue();
 		}
 
 		if (value instanceof String) {
 
 			try {
+
 				return Double.valueOf((String)value);
 
 			} catch (Throwable t) {
+
 				return null;
 			}
 		}

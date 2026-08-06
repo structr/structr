@@ -27,21 +27,25 @@ public class RequestHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "request";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the current set of HTTP request parameters.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `request` keyword allows you to access the URL parameters that were sent with the current HTTP request. This keyword is available in all custom methods and user-defined functions, as well as in Structr Pages and Dynamic Files.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.html("""
 			<!DOCTYPE html>
@@ -59,8 +63,7 @@ public class RequestHint extends GeneralKeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
-		);
+
+		return List.of("Only available in a context where Structr is responding to an HTTP request from the outside.");
 	}
 }

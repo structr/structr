@@ -63,15 +63,14 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String AVAILABLE_FOLDERS_ON_SERVER_PROPERTY = "availableFoldersOnServer";
 
 	public MailboxTraitDefinition() {
+
 		super(StructrTraits.MAILBOX);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
-		return Map.of(
-			IsValid.class,
-			(IsValid) (obj, errorBuffer) -> {
+		return Map.of(IsValid.class, (IsValid) (obj, errorBuffer) -> {
 
 				final Traits traits = obj.getTraits();
 				final Mailbox node = obj.as(Mailbox.class);
@@ -90,21 +89,22 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
 
-		return Set.of(
-			new JavaMethod("getAvailableFoldersOnServer", false, false) {
+		return Set.of(new JavaMethod("getAvailableFoldersOnServer", false, false) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return getAvailableFoldersOnServer(securityContext, entity.as(Mailbox.class));
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Returns a list of folder names available on the configured mail server. Use this to discover which folders can be added to the folders property for fetching.";
 				}
-			},
-			new JavaMethod("fetchMails", false, false) {
+			}, new JavaMethod("fetchMails", false, false) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) {
@@ -124,6 +124,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Triggers an immediate fetch of emails from this mailbox, bypassing the regular MailService interval. Creates EMailMessage objects for new messages and extracts attachments.";
 				}
 			}
@@ -169,13 +170,12 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Mailbox.class, MailboxTraitWrapper::new
-		);
+		return Map.of(Mailbox.class, MailboxTraitWrapper::new);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -194,6 +194,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

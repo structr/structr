@@ -186,6 +186,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
 	public DOMElementTraitDefinition() {
+
 		super(StructrTraits.DOM_ELEMENT);
 	}
 
@@ -194,20 +195,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					updateReloadTargets(graphObject.as(DOMElement.class));
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 					updateReloadTargets(graphObject.as(DOMElement.class));
 				}
 			}
@@ -219,8 +220,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetPropertyKeys.class,
-			new GetPropertyKeys() {
+			GetPropertyKeys.class, new GetPropertyKeys() {
 
 				@Override
 				public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
@@ -229,6 +229,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final Set<PropertyKey> allProperties = new LinkedHashSet<>();
 
 					for (final PropertyKey attr : htmlAttrs) {
+
 						allProperties.add(attr);
 					}
 
@@ -240,8 +241,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			GetContextName.class,
-			new GetContextName() {
+			GetContextName.class, new GetContextName() {
 
 				@Override
 				public String getContextName(final NodeInterface node) {
@@ -260,8 +260,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			GetCssClass.class,
-			new GetCssClass() {
+			GetCssClass.class, new GetCssClass() {
 
 				@Override
 				public String getCssClass(final NodeInterface node) {
@@ -272,8 +271,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			UpdateFromNode.class,
-			new UpdateFromNode() {
+			UpdateFromNode.class, new UpdateFromNode() {
 
 				@Override
 				public void updateFromNode(final NodeInterface thisNode, final DOMNode node2) throws FrameworkException {
@@ -284,6 +282,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final Traits traits = wrapped.getTraits();
 
 					for (final PropertyKey htmlProp : newNode.getHtmlAttributes()) {
+
 						properties.put(htmlProp, wrapped.getProperty(htmlProp));
 					}
 
@@ -294,10 +293,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-
-
-			DoImport.class,
-			new DoImport() {
+			DoImport.class, new DoImport() {
 
 				@Override
 				public DOMElement doImport(final DOMNode node, final Page newPage) throws FrameworkException {
@@ -317,15 +313,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			RenderContent.class,
-			new RenderContent() {
+			RenderContent.class, new RenderContent() {
 
 				@Override
 				public void renderContent(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 					final DOMElement elem = node.as(DOMElement.class);
-
 					if (!elem.shouldBeRendered(renderContext)) {
+
 						return;
 					}
 
@@ -358,6 +353,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 								// restore indentation
 								if (depth > 0 && !elem.avoidWhitespace()) {
+
 									out.append(DOMNode.indent(depth, renderContext));
 								}
 							}
@@ -369,6 +365,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 							// in body?
 							if (lowercaseBodyName.equals(elem.getTag())) {
+
 								renderContext.setInBody(true);
 							}
 
@@ -379,6 +376,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 							// disable lazy rendering in deployment mode
 							if (EditMode.DEPLOYMENT.equals(editMode)) {
+
 								lazyRendering = false;
 							}
 
@@ -408,8 +406,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 								for (final RelationshipInterface rel : rels) {
 
 									final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
-
 									if (subNode.is(StructrTraits.DOM_ELEMENT)) {
+
 										anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
 									}
 
@@ -432,7 +430,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 							// only insert a newline + indentation before the closing tag if any child-element used a newline
 							final boolean isTemplate = synced != null && EditMode.DEPLOYMENT.equals(editMode);
-
 							if (anyChildNodeCreatesNewLine || isTemplate) {
 
 								out.append(DOMNode.indent(depth, renderContext));
@@ -455,8 +452,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OpeningTag.class,
-			new OpeningTag() {
+			OpeningTag.class, new OpeningTag() {
 
 				@Override
 				public void openingTag(final DOMElement node, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -486,16 +482,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						out.append("<").append(tag);
 
 						final String uuid = node.getUuid();
-
 						final List<PropertyKey> htmlAttributes = new ArrayList<>();
 
 						wrappedNode.getNode().getPropertyKeys().forEach((key) -> {
 							if (key.startsWith(PropertyView.Html) && traits.hasKey(key)) {
+
 								htmlAttributes.add(traits.key(key));
 							}
 						});
 
 						if (EditMode.DEPLOYMENT.equals(editMode)) {
+
 							Collections.sort(htmlAttributes);
 						}
 
@@ -549,7 +546,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 								if (depth == 0) {
 
 									String pageId = renderContext.getPageId();
-
 									if (pageId != null) {
 
 										out.append(" data-structr-page=\"").append(pageId).append("\"");
@@ -572,6 +568,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml4(eventMapping)).append("\"");
 								}
+
 								break;
 
 							case NONE:
@@ -595,12 +592,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									// support for configuration options
 									if (StringUtils.isNotBlank(options)) {
+
 										out.append(" data-structr-options=\"").append(StringEscapeUtils.escapeJson(options)).append("\"");
 									}
 
 									String eventsString = null;
 									final Map<String, Object> mapping = node.getMappedEvents();
+
 									if (mapping != null) {
+
 										eventsString = StringUtils.join(mapping.keySet(), ",");
 									}
 
@@ -615,6 +615,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									// only exists if process engine is available
 									if (eamTraits.hasKey(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY)) {
+
 										// Dynamic process-definition UUID for the control-process / start
 										// operation. Evaluated server-side here (variable replacement
 										// against the render context) and emitted as data-structr-controls-
@@ -667,6 +668,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 
 									if (eventsString != null) {
+
 										out.append(" data-structr-events=\"").append(eventsString).append("\"");
 									}
 
@@ -696,7 +698,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									final PropertyKey<String> parameterNameKey    = parameterMappingTraits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY);
 									final PropertyKey<String> htmlIdKey           = traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 
-
 									// **************************************************************************+
 									// parameters
 									// **************************************************************************+
@@ -711,6 +712,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										final String parameterName               = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, parameterNameKey);
 
 										if (parameterTypeString == null || parameterName == null) {
+
 											// Ignore incomplete parameter mapping
 											continue;
 										}
@@ -726,7 +728,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												if (element != null) {
 
 													final String elementCssId = element.getPropertyWithVariableReplacement(renderContext, htmlIdKey);
-
 													if (elementCssId != null) {
 
 														out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(elementCssId).append(")\"");
@@ -737,6 +738,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 													}
 
 												}
+
 												break;
 
 											case ParameterType.ConstantValue:
@@ -855,6 +857,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 								// output data-structr-id only once
 								if (outputStructrId) {
+
 									out.append(" data-structr-id=\"").append(uuid).append("\"");
 								}
 
@@ -866,11 +869,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			GetAttributes.class,
-			new GetAttributes() {
+			GetAttributes.class, new GetAttributes() {
 
 				@Override
 				public Iterable<PropertyKey> getHtmlAttributes(final DOMElement element) {
+
 					return element.getTraits().getPropertyKeysForView(PropertyView.Html);
 				}
 
@@ -898,15 +901,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			DOMElement.class, (traits, node) -> new DOMElementTraitWrapper(traits, node)
-		);
+		return Map.of(DOMElement.class, (traits, node) -> new DOMElementTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -922,7 +924,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					// if we're called from within a page, we get a render context, otherwise we get a (new) action context
 					final RenderContext renderContext = actionContext instanceof  RenderContext ? (RenderContext) actionContext : new RenderContext(actionContext.getSecurityContext());
 					final EventContext  eventContext  = new EventContext();
-
 					final NodeInterface domElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
 					final DOMElement domElement        = domElementNode.as(DOMElement.class);
 					final String actionString          = getActionMapping(domElement).getAction();
@@ -937,6 +938,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						// they are not migrated accidentally.
 
 						case EventAction.Create:
+
 							return handleCreateAction(renderContext, domElementNode, parameters, eventContext);
 
 						case EventAction.Update:
@@ -956,9 +958,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							break;
 
 						case EventAction.InsertHtml:
+
 							return handleInsertHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
 						case EventAction.ReplaceHtml:
+
 							return handleReplaceHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
 						/*
@@ -970,27 +974,33 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						*/
 
 						case EventAction.SignIn:
+
 							return handleSignInAction(renderContext, domElementNode, parameters, eventContext);
 
 						case EventAction.SignOut:
+
 							return handleSignOutAction(renderContext, domElementNode, parameters, eventContext);
 
 						case EventAction.SignUp:
+
 							return handleSignUpAction(renderContext, domElementNode, parameters, eventContext);
 
 						case EventAction.ResetPassword:
+
 							return handleResetPasswordAction(renderContext, domElementNode, parameters, eventContext);
 
 						case EventAction.Flow:
 							// Prefer the FlowContainer relationship target's name (refactor-safe);
 							// fall back to the string when the relationship is not set.
 							final String flow = getActionMapping(entity.as(DOMElement.class)).getResolvedFlowName();
+
 							return handleFlowAction(renderContext, domElementNode, parameters, eventContext, flow);
 
 						case EventAction.Method:
 						case EventAction.Unknown:
 							// execute custom method (and return the result directly)
 							final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
+
 							return handleCustomAction(renderContext, domElementNode, parameters, eventContext, method);
 
 						case EventAction.ControlProcess:
@@ -999,6 +1009,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							// relationship (for 'start') or from idExpression (for instance- /
 							// task-scoped operations). Generic dispatch via Methods.resolveMethod
 							// keeps the structr-base layer agnostic of process-module specifics.
+
 							return handleControlProcessAction(renderContext, domElementNode, parameters, eventContext);
 					}
 
@@ -1018,7 +1029,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		ActionMapping triggeredAction;
 		final List<ActionMapping> triggeredActions = Iterables.toList(domElementNode.getTriggeredActions());
-
 		if (triggeredActions != null && !triggeredActions.isEmpty()) {
 
 			triggeredAction = triggeredActions.get(0);
@@ -1040,17 +1050,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// FIXME ? why does DOMElement have parameter mappings? they are/should be attached to ActionMapping nodes (it is also not defined on ParameterMapping...)
 		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes(traitsInstance, PARAMETER_MAPPINGS_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
-
 		final Property<String> tagProperty                  = new StringProperty(TAG_PROPERTY).indexed().category(PAGE_CATEGORY);
 		final Property<String> pathProperty                 = new StringProperty(PATH_PROPERTY).indexed();
 		final Property<String> partialUpdateKeyProperty     = new StringProperty(PARTIAL_UPDATE_KEY_PROPERTY).indexed();
-
 		final Property<Boolean> manualReloadTargetProperty  = new BooleanProperty(DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
 		final Property<Boolean> fromWidgetProperty          = new BooleanProperty(FROM_WIDGET_PROPERTY);
 		final Property<Boolean> dataInsertProperty          = new BooleanProperty(DATA_STRUCTR_INSERT_PROPERTY);
 		final Property<Boolean> dataFromWidgetProperty      = new BooleanProperty(DATA_STRUCTR_FROM_WIDGET_PROPERTY);
-
 		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY);//.description("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+
 		// probably useless ATM because EAM does not support trees yet
 		final Property<String> dataTreeChildrenProperty    = new StringProperty(DATA_STRUCTR_TREE_CHILDREN_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
 		final Property<String> dataReloadTargetProperty    = new StringProperty(DATA_STRUCTR_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("CSS selector that specifies which partials to reload.");
@@ -1268,14 +1276,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				_HTML_ACCESSKEY_PROPERTY, _HTML_CLASS_PROPERTY, _HTML_CONTENTEDITABLE_PROPERTY, _HTML_CONTEXTMENU_PROPERTY, _HTML_DIR_PROPERTY, _HTML_DRAGGABLE_PROPERTY, _HTML_DROPZONE_PROPERTY,
 				_HTML_HIDDEN_PROPERTY, _HTML_ID_PROPERTY, _HTML_LANG_PROPERTY, _HTML_SPELLCHECK_PROPERTY, _HTML_STYLE_PROPERTY, _HTML_TABINDEX_PROPERTY, _HTML_TITLE_PROPERTY, _HTML_TRANSLATE_PROPERTY,
 
-				_HTML_ROLE_PROPERTY, _HTML_IS_PROPERTY, _HTML_PROPERTIES_PROPERTY
-			)
-		);
+				_HTML_ROLE_PROPERTY, _HTML_IS_PROPERTY, _HTML_PROPERTIES_PROPERTY));
 
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -1297,6 +1304,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, dataType, parameters);
 
 		// create entity
+
 		return StructrApp.getInstance(securityContext).create(dataType, properties);
 	}
 
@@ -1416,8 +1424,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final String dataTarget               = getDataTargetFromParameters(parameters, "insert-html", true);
-
 		final String sourceObjectId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
+
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
@@ -1653,6 +1661,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		if (flowName != null) {
 
 			return Actions.execute(renderContext.getSecurityContext(), entity, "${{$.flow('" + flowName.trim() + "', $.methodParameters)}}", parameters, "flow:" + flowName.trim(), flowName.trim());
+
 		} else {
 
 			throw new FrameworkException(422, "Cannot execute Flow because no or empty name was provided.");
@@ -1678,6 +1687,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			final Logger logger             = LoggerFactory.getLogger(getClass());
 
 			if (targets.size() > 1) {
+
 				logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
 			}
 
@@ -1689,6 +1699,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				if (method != null) {
 
 					if (method.shouldReturnRawResult()) {
+
 						renderContext.getSecurityContext().enableReturnRawResult();
 					}
 
@@ -1713,6 +1724,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					if (method != null) {
 
 						if (method.shouldReturnRawResult()) {
+
 							renderContext.getSecurityContext().enableReturnRawResult();
 						}
 
@@ -1767,6 +1779,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String operation = triggeredAction.getProcessOperation();
 
 		if (StringUtils.isBlank(operation)) {
+
 			throw new FrameworkException(422, "control-process action has no processOperation set");
 		}
 
@@ -1796,21 +1809,32 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			// itself).
 			final String dynamicProcessId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRCONTROLSPROCESSIDEXPRESSION);
 			NodeInterface candidate = null;
+
 			if (StringUtils.isNotBlank(dynamicProcessId)) {
+
 				if (!Settings.isValidUuid(dynamicProcessId)) {
+
 					throw new FrameworkException(422, "control-process operation 'start': dynamic process expression resolved to '" + dynamicProcessId + "' which is not a valid UUID");
 				}
+
 				candidate = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(dynamicProcessId);
+
 				if (candidate == null) {
+
 					throw new FrameworkException(422, "control-process operation 'start': dynamic process UUID '" + dynamicProcessId + "' did not resolve to any node");
 				}
 			}
+
 			if (candidate == null) {
+
 				candidate = triggeredAction.getControlsProcess();
 			}
+
 			if (candidate == null) {
+
 				throw new FrameworkException(422, "control-process operation 'start' requires either the controlsProcess relationship or a controlsProcessIdExpression that resolves to a BpmnDefinitions or BpmnProcess UUID");
 			}
+
 			target = resolveStartProcessTarget(candidate);
 			methodName = "startProcess";
 
@@ -1822,29 +1846,43 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			// walk to its parent ProcessInstance.
 			final String dataTarget = getDataTargetFromParameters(parameters, "control-process", false);
 			if (!Settings.isValidUuid(dataTarget)) {
+
 				throw new FrameworkException(422, "control-process operation 'signal' requires idExpression to resolve to a UUID");
 			}
+
 			final NodeInterface resolved = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(dataTarget);
 			if (resolved == null) {
+
 				throw new FrameworkException(422, "control-process operation 'signal': target not found for id '" + dataTarget + "'");
 			}
+
 			if (resolved.getTraits().contains("ProcessInstance")) {
+
 				target = resolved;
+
 			} else if (resolved.getTraits().contains("TaskInstance")) {
+
 				final NodeInterface processInstance = resolved.getProperty(resolved.getTraits().key("processInstance"));
 				if (processInstance == null) {
+
 					throw new FrameworkException(422, "control-process operation 'signal': TaskInstance has no associated ProcessInstance");
 				}
+
 				target = processInstance;
+
 			} else {
+
 				throw new FrameworkException(422, "control-process operation 'signal': idExpression must resolve to a ProcessInstance or TaskInstance, got '" + resolved.getType() + "'");
 			}
+
 			methodName = "signalEvent";
 
 			final NodeInterface targetEl = triggeredAction.getTargetsElement();
 			if (targetEl != null) {
+
 				final String bpmnId = targetEl.getProperty(targetEl.getTraits().key("bpmnId"));
 				if (StringUtils.isNotBlank(bpmnId)) {
+
 					parameters.put("eventBpmnId", bpmnId);
 				}
 			}
@@ -1859,10 +1897,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			// directly.
 			final String dataTarget = getDataTargetFromParameters(parameters, "control-process", false);
 			if (!Settings.isValidUuid(dataTarget)) {
+
 				throw new FrameworkException(422, "control-process operation '" + operation + "' requires idExpression to resolve to a UUID");
 			}
+
 			final NodeInterface resolved = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(dataTarget);
 			if (resolved == null) {
+
 				throw new FrameworkException(422, "control-process operation '" + operation + "': target not found for id '" + dataTarget + "'");
 			}
 
@@ -1872,14 +1913,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				// (the typical ${current.id} on a process page). Walk to the active
 				// TaskInstance for the current user at the configured step.
 				if (!resolved.getTraits().contains("ProcessInstance")) {
+
 					throw new FrameworkException(422, "control-process operation '" + operation + "': idExpression must resolve to a TaskInstance or ProcessInstance, got '" + resolved.getType() + "'");
 				}
+
 				final NodeInterface targetEl = triggeredAction.getTargetsElement();
 				if (targetEl == null) {
+
 					throw new FrameworkException(422, "control-process operation '" + operation + "': idExpression resolved to a ProcessInstance, but no Step is set on the action. Either set the Step on the action or use an idExpression that resolves directly to the TaskInstance.");
 				}
+
 				target = findActiveTaskForCurrentUser(renderContext, resolved, targetEl);
+
 				if (target == null) {
+
 					// Most likely causes (in order of frequency):
 					//  1. Wrong step configured on the action mapping (e.g. partial is
 					//     rendered for both Task_Review and Task_SeniorReview, but the
@@ -1900,12 +1947,16 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				// Instance-level operation but idExpression resolved to a TaskInstance:
 				// walk to the parent ProcessInstance.
 				if (!resolved.getTraits().contains("TaskInstance")) {
+
 					throw new FrameworkException(422, "control-process operation '" + operation + "': idExpression must resolve to a ProcessInstance or TaskInstance, got '" + resolved.getType() + "'");
 				}
+
 				final NodeInterface processInstance = resolved.getProperty(resolved.getTraits().key("processInstance"));
 				if (processInstance == null) {
+
 					throw new FrameworkException(422, "control-process operation '" + operation + "': TaskInstance has no associated ProcessInstance");
 				}
+
 				target = processInstance;
 
 			} else {
@@ -1935,11 +1986,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			// alone would surface that expression as a literal type name
 			// and the SchemaNode lookup would fail.
 			if ("completeWithSubject".equals(operation)) {
+
 				String subjectType = getDataTypeFromParameters(parameters, "completeWithSubject", false);
 				if (StringUtils.isBlank(subjectType)) {
+
 					subjectType = triggeredAction.getResolvedDataTypeName();
 				}
+
 				if (StringUtils.isBlank(subjectType) || subjectType.startsWith("${")) {
+
 					throw new FrameworkException(422, "control-process operation 'completeWithSubject' requires a Data type to resolve to a SchemaNode name (got: '" + subjectType + "'). For process-bound widgets, ensure the form renders 'data-structr-data-type' to a concrete type name; for static actions, set Data type on the action mapping.");
 				}
 				parameters.put("subjectType", subjectType);
@@ -1952,6 +2007,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final AbstractMethod m = Methods.resolveMethod(target.getTraits(), methodName);
 		if (m == null) {
+
 			throw new FrameworkException(422, "control-process: method '" + methodName + "' not found on target type '" + target.getType() + "'");
 		}
 
@@ -1984,22 +2040,30 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		//   3. BpmnProcess.name slugified, as a last-ditch fallback.
 		// Other operations return their engine method's result unmodified.
 		if ("start".equals(operation) && result instanceof NodeInterface) {
+
 			final NodeInterface instance = (NodeInterface) result;
 			final org.structr.core.traits.Traits procTraits = target.getTraits();
-
 			final String processName = target.getProperty(procTraits.key("processName"));
 			final NodeInterface boundPage = target.getProperty(procTraits.key("instancePage"));
+
 			String pageName;
+
 			if (boundPage != null) {
+
 				pageName = boundPage.getProperty(boundPage.getTraits().key("name"));
+
 			} else if (StringUtils.isNotBlank(processName)) {
+
 				pageName = org.structr.core.function.Functions.cleanString(processName);
+
 			} else {
+
 				pageName = org.structr.core.function.Functions.cleanString(target.getProperty(procTraits.key("name")));
 			}
-			final String url = "/" + pageName + "/" + instance.getUuid();
 
+			final String url = "/" + pageName + "/" + instance.getUuid();
 			final java.util.Map<String, Object> response = new java.util.LinkedHashMap<>();
+
 			response.put("id",          instance.getUuid());
 			response.put("type",        instance.getType());
 			response.put("processName", processName);
@@ -2008,27 +2072,35 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			// templates already written against {result.slug} keep working.
 			response.put("slug",        pageName);
 			response.put("url",         url);
+
 			return response;
 		}
+
 		return result;
 	}
 
 	private static boolean isTaskLevelOperation(final String op) {
+
 		switch (op) {
 			case "claim": case "release": case "decline": case "delegate":
 			case "complete": case "completeWithSubject":
 			case "cancel": case "makeAvailable": case "assignTask":
+
 				return true;
 			default:
+
 				return false;
 		}
 	}
 
 	private static boolean isInstanceLevelOperation(final String op) {
+
 		switch (op) {
 			case "terminate": case "suspend": case "resume":
+
 				return true;
 			default:
+
 				return false;
 		}
 	}
@@ -2073,7 +2145,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String targetBpmnId = (bpmnElement != null && bpmnElement.getTraits().hasKey("bpmnId"))
 			? bpmnElement.getProperty(bpmnElement.getTraits().key("bpmnId"))
 			: null;
+
 		if (StringUtils.isBlank(targetBpmnId)) {
+
 			return null;
 		}
 
@@ -2083,32 +2157,40 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				.getResultStream()) {
 
 			final NodeInterface definedBy = task.getProperty(definedByKey);
-			if (definedBy == null || !definedBy.getTraits().hasKey("bpmnId")
-					|| !targetBpmnId.equals(definedBy.getProperty(definedBy.getTraits().key("bpmnId")))) {
+			if (definedBy == null || !definedBy.getTraits().hasKey("bpmnId") || !targetBpmnId.equals(definedBy.getProperty(definedBy.getTraits().key("bpmnId")))) {
+
 				continue;
 			}
 
 			final String status = task.getProperty(statusKey);
 			if (!"completed".equals(status) && !"cancelled".equals(status)) {
+
 				return task;
 			}
+
 			seenButTerminal++;
 		}
 		// Authoring-trace: log once when the lookup found tasks at this step but
 		// they were all terminal. Helps distinguish "step is wrong" from "step is
 		// right, the active task already moved on (claim race / completion race)".
 		if (seenButTerminal > 0) {
+
 			LoggerFactory.getLogger(DOMElementTraitDefinition.class)
 				.info("findActiveTaskForCurrentUser: {} terminal task(s) at step '{}' on instance '{}', no active match. Authoring hint: confirm the partial only renders while the step is active (visibility predicate) and the page isn't stale.",
 					seenButTerminal, safeName(bpmnElement), processInstance.getUuid());
 		}
+
 		return null;
 	}
 
 	private String safeName(final NodeInterface node) {
+
 		try {
+
 			return node != null ? (node.getName() != null ? node.getName() : node.getUuid()) : "<null>";
+
 		} catch (Exception ex) {
+
 			return "<unnamed>";
 		}
 	}
@@ -2143,7 +2225,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private String getDataTypeFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
 
 		final String dataType  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
-
 		if (StringUtils.isBlank(dataType) && throwExceptionIfEmpty) {
 
 			throw new FrameworkException(422, "Cannot execute " + action + " action without target UUID (data-structr-target attribute).");
@@ -2174,15 +2255,18 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	 * rather than importing process-module classes from structr-base.</p>
 	 */
 	private NodeInterface resolveStartProcessTarget(final NodeInterface candidate) throws FrameworkException {
+
 		if (candidate == null) return null;
 
 		final org.structr.core.traits.Traits traits = candidate.getTraits();
 		if (traits.contains("BpmnProcess")) {
+
 			return candidate;
 		}
+
 		if (!traits.contains("BpmnDefinitions")) {
-			throw new FrameworkException(422,
-				"control-process operation 'start': target must be a BpmnDefinitions or BpmnProcess, got '" + candidate.getType() + "'");
+
+			throw new FrameworkException(422, "control-process operation 'start': target must be a BpmnDefinitions or BpmnProcess, got '" + candidate.getType() + "'");
 		}
 
 		// BpmnDefinitions -> walk to its BpmnProcess children. Property name
@@ -2191,33 +2275,42 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// the process-module class graph.
 		final Iterable<NodeInterface> processes = candidate.getProperty(traits.key("processes"));
 		if (processes == null) {
-			throw new FrameworkException(422,
-				"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' has no processes");
+
+			throw new FrameworkException(422, "control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' has no processes");
 		}
+
 		final List<NodeInterface> all  = new ArrayList<>();
 		final List<NodeInterface> exec = new ArrayList<>();
+
 		for (final NodeInterface p : processes) {
+
 			all.add(p);
 			final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
 			if (Boolean.TRUE.equals(isExec)) exec.add(p);
 		}
+
 		if (all.isEmpty()) {
-			throw new FrameworkException(422,
-				"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' has no BpmnProcess children");
+
+			throw new FrameworkException(422, "control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' has no BpmnProcess children");
 		}
+
 		if (all.size() == 1) {
+
 			return all.get(0);
 		}
+
 		if (exec.size() == 1) {
+
 			return exec.get(0);
 		}
+
 		if (exec.isEmpty()) {
-			throw new FrameworkException(422,
-				"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' contains "
+
+			throw new FrameworkException(422, "control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' contains "
 					+ all.size() + " processes but none is marked executable. Set processIsExecutable=true on the entry-point BpmnProcess, or point controlsProcessIdExpression at a specific BpmnProcess UUID.");
 		}
-		throw new FrameworkException(422,
-			"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' contains "
+
+		throw new FrameworkException(422, "control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' contains "
 				+ exec.size() + " executable processes; cannot pick one. Point controlsProcessIdExpression at a specific BpmnProcess UUID instead.");
 	}
 
@@ -2259,8 +2352,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<String> nameKey = paramTraits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY);
 
 		for (final ParameterMapping pm : mappings) {
+
 			final NodeInterface pmNode = pm;
 			final String type = pmNode.getProperty(typeKey);
+
 			if (!"constant-value".equals(type)) continue;
 			final String name = pmNode.getPropertyWithVariableReplacement(renderContext, nameKey);
 			if (StringUtils.isBlank(name) || !parameters.containsKey(name)) continue;
@@ -2280,6 +2375,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	 * the caller). Used by {@link #coerceConstantValueParameters}.
 	 */
 	private static Object coerceJsonLiteral(final String raw) {
+
 		if (raw == null) return null;
 		final String trimmed = raw.trim();
 		if (trimmed.isEmpty()) return raw;
@@ -2290,11 +2386,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// Strict patterns so we don't swallow strings like "1abc" or
 		// "1.2.3" that happen to start with digits.
 		if (trimmed.matches("-?\\d+")) {
+
 			try { return Long.parseLong(trimmed); } catch (NumberFormatException ignored) { /* overflow -- fall through */ }
 		}
+
 		if (trimmed.matches("-?\\d+\\.\\d+([eE][+-]?\\d+)?")) {
+
 			try { return Double.parseDouble(trimmed); } catch (NumberFormatException ignored) { }
 		}
+
 		return raw;
 	}
 
@@ -2317,8 +2417,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		int namePosition = -1;
 		int index = 0;
-
 		List<String> keys = Iterables.toList(entity.getNode().getPropertyKeys());
+
 		Collections.sort(keys);
 
 		List<String> names = new ArrayList<>(10);
@@ -2329,7 +2429,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			if (key.startsWith(PropertyView.Html)) {
 
 				String htmlName = key.substring(DOMElement.HtmlPrefixLength);
-
 				if (name.equals(htmlName)) {
 
 					namePosition = index;
@@ -2353,13 +2452,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public static void renderDialogAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
 
 		final String dialogType = triggeredAction.getDialogType();
-
 		if (dialogType != null && !dialogType.equals("none")) {
 
 			final Traits traits                = triggeredAction.getTraits();
 			final PropertyKey<String> titleKey = traits.key(ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY);
 			final PropertyKey<String> textKey  = traits.key(ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY);
-
 			final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, titleKey);
 			final String dialogText  = triggeredAction.getPropertyWithVariableReplacement(renderContext, textKey);
 
@@ -2373,7 +2470,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
 		final String successNotificationsString = triggeredAction.getSuccessNotifications();
-
 		if (StringUtils.isNotBlank(successNotificationsString)) {
 
 			out.append(" data-structr-success-notifications=\"").append(successNotificationsString).append("\"");
@@ -2454,7 +2550,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String successURL               = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY));
 		final String successEvent             = triggeredAction.getSuccessEvent();
 		final EventBehaviour successBehaviour = EventBehaviour.forName(successBehaviourString);
-
 		String successTargetString = null;
 
 		switch (successBehaviour) {
@@ -2505,6 +2600,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// expression -- the action handler treats this attribute as a UUID / type name.
 		final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY));
 		if (StringUtils.isNotBlank(idExpression)) {
+
 			out.append(" data-structr-target=\"").append(idExpression).append("\"");
 		}
 
@@ -2515,11 +2611,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			// fall back to the string when the relationship is not set.
 			final String dataType = triggeredAction.getResolvedDataTypeName();
 			if (StringUtils.isNotBlank(dataType)) {
+
 				out.append(" data-structr-target=\"").append(dataType).append("\"");
 			}
 		}
 
 		if (StringUtils.isNotBlank(successTargetString)) {
+
 			out.append(" data-structr-success-target=\"").append(successTargetString).append("\"");
 		}
 	}
@@ -2534,7 +2632,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String failureURL               = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY));
 		final String failureEvent             = triggeredAction.getFailureEvent();
 		final EventBehaviour failureBehaviour = EventBehaviour.forName(failureBehaviourString);
-
 		String failureTargetString = null;
 
 		switch (failureBehaviour) {
@@ -2580,6 +2677,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		if (StringUtils.isNotBlank(failureTargetString)) {
+
 			out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
 		}
 	}
@@ -2608,6 +2706,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		if (StringUtils.isNotBlank(scope)) { parts.add("scope=" + scope.trim()); }
 
 		if (parts.isEmpty()) {
+
 			return null;
 		}
 
@@ -2654,6 +2753,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					for (final Object o : (Iterable)result) {
 
 						if (o instanceof GraphObject) {
+
 							targets.add((GraphObject)o);
 						}
 					}
@@ -2753,8 +2853,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			// Create CSS selector for data-structr-id
 			String selector = "[data-structr-id='" + node.getUuid() + "']";
-
 			final String dataKey = node.as(DOMNode.class).getDataKey();
+
 			if (dataKey != null) {
 
 				final GraphObject obj = renderContext.getDataNode(dataKey);
@@ -2783,9 +2883,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					return "[data-channel]";
 
 				case "page":
+
 					return "url:";
 
 				default:
+
 					return reloadBehaviour;
 			}
 		}

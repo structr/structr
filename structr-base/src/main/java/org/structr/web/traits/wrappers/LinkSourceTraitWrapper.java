@@ -32,11 +32,13 @@ import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
 public class LinkSourceTraitWrapper extends AbstractNodeTraitWrapper implements LinkSource {
 
 	public LinkSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
@@ -52,6 +54,7 @@ public class LinkSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	public Object setLinkable(final Linkable linkable) throws FrameworkException {
+
 		return wrappedObject.setProperty(traits.key(LinkSourceTraitDefinition.LINKABLE_PROPERTY), linkable);
 	}
 }

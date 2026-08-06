@@ -39,11 +39,13 @@ public class FromJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "fromJson";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source");
 	}
 
@@ -53,6 +55,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 		if (sources != null && sources.length > 0) {
 
 			if (sources[0] == null) {
+
 				return null;
 			}
 
@@ -61,8 +64,8 @@ public class FromJsonFunction extends UiCommunityFunction {
 			try {
 
 				final Object parsed = parseJson(source);
-
 				if (parsed != null) {
+
 					return parsed;
 				}
 
@@ -124,12 +127,12 @@ public class FromJsonFunction extends UiCommunityFunction {
 			}
 
 		} catch (JsonSyntaxException jse) {
+
 			// Exception while parsing as Map - try default as object next
 		}
 
 		// Fallback on default behavior (works for primitives and arrays of primitives or mixed content)
 		final Object value = gson.fromJson(source, Object.class);
-
 		if (value != null) {
 
 			return UiFunction.toGraphObject(value, 3);
@@ -140,48 +143,43 @@ public class FromJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${fromJson(src)}"),
-			Usage.javaScript("Usage: ${{ $.fromJson(src) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${fromJson(src)}"), Usage.javaScript("Usage: ${{ $.fromJson(src) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Parses the given JSON string and returns an object.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function is the inverse of the `toJson()` function.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("src", "JSON source to parse")
-		);
+		return List.of(Parameter.mandatory("src", "JSON source to parse"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${fromJson('{ \"name\": \"John Doe\", \"value\": 123}')}")
-		);
+		return List.of(Example.structrScript("${fromJson('{ \"name\": \"John Doe\", \"value\": 123}')}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"In a JavaScript scripting context the `JSON.parse()` function is available."
-		);
+		return List.of("In a JavaScript scripting context the `JSON.parse()` function is available.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

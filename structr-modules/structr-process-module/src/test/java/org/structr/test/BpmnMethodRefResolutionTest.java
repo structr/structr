@@ -67,6 +67,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 			final NodeInterface otherDef  = new BpmnImporter(securityContext).importBpmn(loadResource("/methodref-other-process.bpmn"));
 			final NodeInterface otherProc = firstProcess(otherDef);
 			final NodeInterface otherTask = elementByBpmnId(otherProc, "UserTask_2");
+
 			assertNotNull("UserTask_2 not imported", otherTask);
 
 			final NodeInterface refMethod = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
@@ -82,6 +83,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected setup failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -91,6 +93,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-methods-clobber.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
 			final NodeInterface userTask = elementByBpmnId(procNode, "UserTask_1");
+
 			assertNotNull("UserTask_1 not imported", userTask);
 
 			final List<String> names = methodNames(userTask);
@@ -110,6 +113,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 
 			final NodeInterface owner  = app.getNodeById(ownerElementId);
 			final NodeInterface method = app.getNodeById(stolenMethodId);
+
 			assertNotNull("the referenced method must not have been deleted", method);
 			assertTrue("the original owner must keep its method; found: " + methodNames(owner), methodNames(owner).contains("refMethod"));
 
@@ -133,8 +137,8 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface type = app.create(StructrTraits.SCHEMA_NODE, "MethodRefTestType");
-
 			final NodeInterface typedMethod = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
+
 			typedMethod.setProperty(typedMethod.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "refMethod");
 			typedMethod.setProperty(typedMethod.getTraits().key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), type);
 
@@ -143,6 +147,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected setup failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -151,6 +156,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-methods-clobber.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
 			final NodeInterface userTask = elementByBpmnId(procNode, "UserTask_1");
+
 			assertNotNull("UserTask_1 not imported", userTask);
 
 			final List<String> names = methodNames(userTask);
@@ -181,6 +187,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-methods-clobber.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
 			final NodeInterface userTask = elementByBpmnId(procNode, "UserTask_1");
+
 			assertNotNull("UserTask_1 not imported", userTask);
 
 			final List<String> names = methodNames(userTask);
@@ -212,6 +219,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected import failure for the first process: " + fex.getMessage());
+
 			return;
 		}
 
@@ -220,6 +228,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-methods-clobber.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
 			final NodeInterface userTask = elementByBpmnId(procNode, "UserTask_1");
+
 			assertNotNull("UserTask_1 not imported", userTask);
 
 			assertTrue("the second process must get its own 'onCreate' handler; found: " + methodNames(userTask), methodNames(userTask).contains("onCreate"));
@@ -249,6 +258,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-methods-clobber.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
 			final NodeInterface userTask = elementByBpmnId(procNode, "UserTask_1");
+
 			assertNotNull("UserTask_1 not imported", userTask);
 			assertTrue("expected the task-listener handler to be attached; found: " + methodNames(userTask), methodNames(userTask).contains("onCreate"));
 
@@ -259,6 +269,7 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected import failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -270,13 +281,13 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected deletion failure: " + fex.getMessage());
+
 			return;
 		}
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("deleting the process must not leave its handler method behind as a user-defined function",
-				0, methodsNamed("onCreate").size());
+			assertEquals("deleting the process must not leave its handler method behind as a user-defined function", 0, methodsNamed("onCreate").size());
 
 			tx.success();
 

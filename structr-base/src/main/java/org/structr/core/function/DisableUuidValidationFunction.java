@@ -33,12 +33,15 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "disableUuidValidation";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,31 +55,31 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${disableUuidValidation()}"),
-			Usage.javaScript("Usage: ${{ $.disableUuidValidation() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${disableUuidValidation()}"), Usage.javaScript("Usage: ${{ $.disableUuidValidation() }}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This is a performance optimization for large imports, use at your own risk!"
-		);
+
+		return List.of("This is a performance optimization for large imports, use at your own risk!");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Disables the validation of user-supplied UUIDs when creating objects.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

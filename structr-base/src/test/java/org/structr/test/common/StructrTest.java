@@ -69,11 +69,13 @@ public class StructrTest {
 
 	@BeforeMethod
 	protected void starting(Method method) {
+
 		System.out.println("##### Starting " + this.getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@AfterMethod
 	protected void finished(Method method) {
+
 		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
@@ -131,6 +133,7 @@ public class StructrTest {
 
 		// wait for service layer to be initialized
 		while (!services.isInitialized()) {
+
 			try { Thread.sleep(100); } catch (Throwable t) {}
 		}
 
@@ -217,6 +220,7 @@ public class StructrTest {
 		Services.getInstance().shutdown();
 
 		try {
+
 			final File testDir = new File(basePath);
 			if (testDir.isDirectory()) {
 
@@ -228,6 +232,7 @@ public class StructrTest {
 			}
 
 		} catch (Throwable t) {
+
 			logger.warn("", t);
 		}
 	}
@@ -253,7 +258,9 @@ public class StructrTest {
 				nodes.add(node);
 
 				try {
+
 					Thread.sleep(delay);
+
 				} catch (InterruptedException ex) {
 				}
 			}
@@ -330,6 +337,7 @@ public class StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -349,6 +357,7 @@ public class StructrTest {
 	}
 
 	protected NodeInterface createTestNode(final String type, final Principal owner) throws FrameworkException {
+
 		return createTestNode(type, new PropertyMap(), owner);
 	}
 
@@ -366,14 +375,17 @@ public class StructrTest {
 	}
 
 	protected <T> List<T> toList(T... elements) {
+
 		return Arrays.asList(elements);
 	}
 
 	protected Map<String, Object> toMap(final String key1, final Object value1) {
+
 		return toMap(key1, value1, null, null);
 	}
 
 	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2) {
+
 		return toMap(key1, value1, key2, value2, null, null);
 	}
 
@@ -382,14 +394,17 @@ public class StructrTest {
 		final Map<String, Object> map = new LinkedHashMap<>();
 
 		if (key1 != null && value1 != null) {
+
 			map.put(key1, value1);
 		}
 
 		if (key2 != null && value2 != null) {
+
 			map.put(key2, value2);
 		}
 
 		if (key3 != null && value3 != null) {
+
 			map.put(key3, value3);
 		}
 
@@ -412,11 +427,16 @@ public class StructrTest {
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin123");
+
 		if (StringUtils.isBlank(testDatabaseConnection)) {
+
 			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
 		} else {
+
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
+
 		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
@@ -424,16 +444,20 @@ public class StructrTest {
 	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS) {
 
 		if (workload != null && timeoutInMS >= 0) {
+
 			final long startTime = System.currentTimeMillis();
 
 			do {
+
 				if (workload.get()) {
+
 					return;
 				}
 			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
 		}
 
 		if (onTimeout != null) {
+
 			onTimeout.run();
 		}
 	}
@@ -443,14 +467,18 @@ public class StructrTest {
 		final long startTime = System.currentTimeMillis();
 
 		if (workload != null && onTimeout != null && timeoutInMS >= 0 && retryDelayInMS > 0) {
+
 			do {
+
 				if (workload.get()) {
+
 					return;
 				}
 
 				try {
 
 					Thread.sleep(retryDelayInMS);
+
 				} catch (InterruptedException ex) {
 
 					return;
@@ -470,6 +498,7 @@ public class StructrTest {
 		}
 
 		if (throwIfNotExists) {
+
 			throw new FrameworkException(400, "Method " + methodName + " not found in type " + node.getType());
 		}
 

@@ -37,14 +37,17 @@ public class EnumArrayProperty extends ArrayProperty<String> {
 	private final Set<String> enumConstants = new LinkedHashSet<>();
 
 	public EnumArrayProperty(final String name, final Class<? extends Enum> enumType) {
+
 		this(name, EnumProperty.trimAndFilterEmptyStrings(EnumProperty.extractConstants(enumType)), null);
 	}
 
 	public EnumArrayProperty(final String name, final Set<String> constants) {
+
 		this(name, constants, null);
 	}
 
 	public EnumArrayProperty(final String name, final Set<String> constants, final String[] defaultValue) {
+
 		this(name, name, constants, defaultValue);
 	}
 
@@ -81,6 +84,7 @@ public class EnumArrayProperty extends ArrayProperty<String> {
 		if (value != null) {
 
 			if (value instanceof String) {
+
 				return value;
 			}
 		}
@@ -89,17 +93,20 @@ public class EnumArrayProperty extends ArrayProperty<String> {
 	}
 
 	public Set<String> getEnumConstants() {
+
 		return enumConstants;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return "a,b,c";
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -114,6 +121,7 @@ public class EnumArrayProperty extends ArrayProperty<String> {
 		map.put("items", items);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -133,6 +141,7 @@ public class EnumArrayProperty extends ArrayProperty<String> {
 		map.put("items", items);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 

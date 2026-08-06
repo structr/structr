@@ -31,6 +31,7 @@ class PrefetchNodeMapper implements Function<Map<String, Object>, Node<String>> 
 	private EmbeddedDatabaseService db = null;
 
 	public PrefetchNodeMapper(final EmbeddedDatabaseService db) {
+
 		this.db = db;
 	}
 
@@ -46,6 +47,7 @@ class PrefetchNodeMapper implements Function<Map<String, Object>, Node<String>> 
 		if (nodesValue instanceof Iterable iterable) {
 
 			for (final Object o : iterable) {
+
 				tx.getNodeWrapper((org.neo4j.graphdb.Node) o);
 			}
 		}
@@ -57,6 +59,7 @@ class PrefetchNodeMapper implements Function<Map<String, Object>, Node<String>> 
 		if (relsValue instanceof Iterable iterable) {
 
 			for (final Object r : iterable) {
+
 				tx.getRelationshipWrapper((org.neo4j.graphdb.Relationship) r);
 			}
 		}

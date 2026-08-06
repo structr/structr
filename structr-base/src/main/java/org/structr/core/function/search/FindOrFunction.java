@@ -32,16 +32,19 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.or";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.or";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.or";
 	}
 
@@ -67,6 +70,7 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.or(predicate, ...)}} Example: ${{ $.find('Group', $.predicate.or($.predicate.equals('name', 'Test1'), $.predicate.equals('name', 'Test2')))}}"),
 			Usage.structrScript("Usage: ${or(predicate, ...). Example: ${find('Group', or(equals('name', 'Test1'), equals('name', 'Test2')))}")
@@ -75,16 +79,19 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Combines the given predicates using logical OR, returning a predicate usable with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The predicates can be passed as a single list or as a list of parameters.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -98,6 +105,7 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("predicates");
 	}
 
@@ -123,6 +131,7 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

@@ -50,6 +50,7 @@ public abstract class StructrPath implements Path {
 	protected String name          = null;
 
 	public StructrPath(final StructrFilesystem fs) {
+
 		this(fs, null, null);
 	}
 
@@ -79,6 +80,7 @@ public abstract class StructrPath implements Path {
 	}
 
 	public boolean dontCache() {
+
 		return false;
 	}
 
@@ -100,6 +102,7 @@ public abstract class StructrPath implements Path {
 		}
 
 		if (name != null) {
+
 			buf.append(name);
 		}
 
@@ -108,6 +111,7 @@ public abstract class StructrPath implements Path {
 
 	@Override
 	public FileSystem getFileSystem() {
+
 		return fs;
 	}
 
@@ -116,6 +120,7 @@ public abstract class StructrPath implements Path {
 
 		// ask parent
 		if (parent != null) {
+
 			return parent.isAbsolute();
 		}
 
@@ -138,6 +143,7 @@ public abstract class StructrPath implements Path {
 
 	@Override
 	public Path getParent() {
+
 		return parent;
 	}
 
@@ -145,6 +151,7 @@ public abstract class StructrPath implements Path {
 	public Path getFileName() {
 
 		if (name != null) {
+
 			return new StructrFilePath(fs, null, name);
 		}
 
@@ -155,10 +162,12 @@ public abstract class StructrPath implements Path {
 	public int getNameCount() {
 
 		if (parent != null) {
+
 			return parent.getNameCount() + 1;
 		}
 
 		if (name != null) {
+
 			return 1;
 		}
 
@@ -175,6 +184,7 @@ public abstract class StructrPath implements Path {
 
 		// find root
 		while (path.getParent() != null) {
+
 			path = path.getParent();
 			paths.add(0, path);
 		}
@@ -184,36 +194,42 @@ public abstract class StructrPath implements Path {
 
 	@Override
 	public Path subpath(int beginIndex, int endIndex) {
+
 		logger.info("{}, {}", new Object[] { beginIndex, endIndex });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean startsWith(Path other) {
+
 		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean startsWith(String other) {
+
 		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean endsWith(Path other) {
+
 		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean endsWith(String other) {
+
 		logger.info("{}, {}", new Object[] { other });
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Path normalize() {
+
 		return this;
 	}
 
@@ -221,6 +237,7 @@ public abstract class StructrPath implements Path {
 	public Path resolve(Path other) {
 
 		if (other.isAbsolute()) {
+
 			return other;
 		}
 
@@ -233,16 +250,19 @@ public abstract class StructrPath implements Path {
 	public Path resolve(final String other) {
 
 		if (other.startsWith(ROOT_DIRECTORY)) {
+
 			return fs.getPath(other);
 		}
 
 		if (CURRENT_DIRECTORY.equals(other)) {
+
 			return this;
 		}
 
 		logger.info("{}", new Object[] { other });
 
 		// fallback
+
 		return fs.getPath(toString(), other);
 	}
 
@@ -277,6 +297,7 @@ public abstract class StructrPath implements Path {
 	public Path toAbsolutePath() {
 
 		if (isAbsolute()) {
+
 			return this;
 		}
 
@@ -310,7 +331,6 @@ public abstract class StructrPath implements Path {
 	@Override
 	public Iterator<Path> iterator() {
 
-		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -363,30 +383,37 @@ public abstract class StructrPath implements Path {
 		private final Set<String> names        = new LinkedHashSet<>();
 
 		public void add(final String name) {
+
 			names.add(name);
 		}
 
 		public boolean has(final String name) {
+
 			return names.contains(name);
 		}
 
 		public void remove(final String name) {
+
 			names.remove(name);
 		}
 
 		public boolean isEmpty() {
+
 			return names.isEmpty();
 		}
 
 		public void addDynamicWithValue(final String name) {
+
 			dynamicNames.add(name);
 		}
 
 		public boolean hasDynamicWithValue(final String name) {
+
 			return dynamicNames.contains(name);
 		}
 
 		public void removeDynamicWithValue(final String name) {
+
 			dynamicNames.remove(name);
 		}
 	}

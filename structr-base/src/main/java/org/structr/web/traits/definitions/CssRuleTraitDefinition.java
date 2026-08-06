@@ -43,30 +43,32 @@ public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String RULE_TYPE_PROPERTY   = "ruleType";
 
 	public CssRuleTraitDefinition() {
+
 		super(StructrTraits.CSS_RULE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			CssRule.class, (traits, node) -> new CssRuleTraitWrapper(traits, node)
-		);
+		return Map.of(CssRule.class, (traits, node) -> new CssRuleTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -78,17 +80,12 @@ public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> cssTextProperty                     = new StringProperty(CSS_TEXT_PROPERTY).indexed();
 		final Property<Integer>  ruleTypeProperty                  = new IntProperty(RULE_TYPE_PROPERTY).indexed();
 
-		return Set.of(
-			childRulesProperty,
-			parentRuleProperty,
-			selectorsProperty,
-			cssTextProperty,
-			ruleTypeProperty
-		);
+		return Set.of(childRulesProperty, parentRuleProperty, selectorsProperty, cssTextProperty, ruleTypeProperty);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

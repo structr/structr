@@ -18,7 +18,6 @@
  */
 package org.structr.rest.service;
 
-
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -116,11 +115,10 @@ public class HttpService implements RunnableService, StatsCallback {
 						Arrays.stream(UriCompliance.Violation.values())
 								.sorted(Comparator.comparing(UriCompliance.Violation::getName))
 								.map(v -> "<dt><a href=\"%s\">%s</a></dt><dd>%s</dd>".formatted(v.getURL(), v.getName(), v.getDescription()))
-								.collect(Collectors.joining("\n"))
-				)
-	);
+								.collect(Collectors.joining("\n"))));
 
 	private enum LifecycleEvent {
+
 		Started, Stopped
 	}
 
@@ -141,6 +139,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		Services.getInstance().registerInitializationCallback(() -> {
 
 			if (Settings.ClearSessionsOnStartup.getValue()) {
+
 				SessionHelper.clearAllSessions();
 			}
 		});
@@ -163,6 +162,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				server.start();
 
 				if (maintenanceServer != null) {
+
 					maintenanceServer.start();
 				}
 
@@ -170,6 +170,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				exception = null;
 
 			} catch (Exception e) {
+
 				logger.warn("Error, retrying {} more times after 10s - Caught: {} ", maxAttempts, e.getMessage());
 				Thread.sleep(10000);
 				exception = e;
@@ -178,16 +179,19 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		// if exception is set, don't continue and throw it
 		if (exception != null) {
+
 			throw exception;
 		}
 
 		try {
 
 			while (!server.isStarted() || (maintenanceServer != null && !maintenanceServer.isStarted()) ) {
+
 				Thread.sleep(100);
 			}
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
@@ -204,14 +208,17 @@ public class HttpService implements RunnableService, StatsCallback {
 		if (server != null) {
 
 			try {
+
 				server.stop();
 
 				while (server.isStopping() && !server.isStopped()) {
+
 					// wait until server is stopped
 					Thread.sleep(100);
 				}
 
 			} catch (Exception ex) {
+
 				logger.warn("Exception while stopping Jetty: {}", ex.getMessage());
 			}
 		}
@@ -219,14 +226,17 @@ public class HttpService implements RunnableService, StatsCallback {
 		if (maintenanceServer != null) {
 
 			try {
+
 				maintenanceServer.stop();
 
 				while (maintenanceServer.isStopping() && !maintenanceServer.isStopped()) {
+
 					// wait until server is stopped
 					Thread.sleep(100);
 				}
 
 			} catch (Exception ex) {
+
 				logger.warn("Exception while stopping temporary maintenance server: {}", ex.getMessage());
 			}
 		}
@@ -234,11 +244,13 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	@Override
 	public boolean runOnStartup() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isRunning() {
+
 		return server != null && server.isRunning();
 	}
 
@@ -247,10 +259,12 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	public Server getServer() {
+
 		return server;
 	}
 
 	public ResourceHandler getExportedResourceHandler() {
+
 		return exportedResourceHandler;
 	}
 
@@ -265,10 +279,12 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			String jarFile = System.getProperty("jarFile");
 			if (StringUtils.isEmpty(jarFile)) {
+
 				throw new IllegalArgumentException(getClass().getName() + " was started in an environment where the classloader cannot determine the JAR file containing the main class.\n"
 					+ "Please specify the path to the JAR file in the parameter -DjarFile.\n"
 					+ "Example: -DjarFile=${project.build.directory}/${project.artifactId}-${project.version}.jar");
 			}
+
 			sourceJarName = jarFile;
 		}
 
@@ -276,6 +292,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		requestHeaderSize = Services.parseInt(System.getProperty("requestHeaderSize"), 8192);
 
 		if (Settings.Async.getValue()) {
+
 			logger.info("Running in asynchronous mode");
 		}
 
@@ -304,13 +321,13 @@ public class HttpService implements RunnableService, StatsCallback {
 		// create base directory if it does not exist
 		final File baseDir = new File(basePath);
 		if (!baseDir.exists()) {
+
 			baseDir.mkdirs();
 		}
 
 		server = new Server(httpPort);
 
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
-
 		final ServletContextHandler servletContext = new ServletContextHandler(contextPath, true, true);
 		final ErrorHandler errorHandler = new ErrorHandler();
 
@@ -322,6 +339,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		servletContext.insertHandler(WebSocketUpgradeHandler.from(server, servletContext, new WebSocketConfigurator("WebSocketServlet")));
 
 		if (enableGzipCompression) {
+
 			gzipHandler = new GzipHandler();
 			gzipHandler.setIncludedMimeTypes("text/html", "text/xml", "text/plain", "text/css", "text/javascript", "application/javascript", "application/json", "image/svg+xml");
 			gzipHandler.setInflateBufferSize(32768);
@@ -342,6 +360,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				if ("TRACE".equalsIgnoreCase(((HttpServletRequest) request).getMethod())) {
 
 					((HttpServletResponse) response).sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+
 					return;
 				}
 
@@ -414,6 +433,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			final ResourceFactory factory = ResourceFactory.of(resourceHandler);
 			final Path devResources       = Paths.get("src/main/resources/structr");
 			final Path localResources     = Paths.get("structr");
+
 			final Resource baseResource;
 
 			if (Files.isRegularFile(devResources.resolve("index.html"))) {
@@ -433,6 +453,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			}
 
 			if (baseResource == null) {
+
 				logger.error("Unable to locate static UI resources (no source dir, no ./structr override, and no 'structr' resources on the class path).");
 			}
 
@@ -466,8 +487,8 @@ public class HttpService implements RunnableService, StatsCallback {
 		if (licenseManager != null) {
 
 			final String hardwareId = licenseManager.getHardwareFingerprint();
-
 			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server, new SecureRandom(hardwareId.getBytes()));
+
 			idManager.setWorkerName(hardwareId);
 
 			sessionCache.getSessionManager().setSessionIdManager(idManager);
@@ -506,9 +527,9 @@ public class HttpService implements RunnableService, StatsCallback {
 			}
 
 			Slf4jRequestLogWriter requestLogWriter = new Slf4jRequestLogWriter();
-
 			final String request_format = "%t \"%r\" %s %{ms}T";
 			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
+
 			server.setRequestLog(requestLog);
 		}
 
@@ -516,6 +537,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		// add servlet elements
 		int position = 1;
+
 		for (Map.Entry<String, ServletHolder> servlet : servlets.entrySet()) {
 
 			final ServletHolder servletHolder = servlet.getValue();
@@ -530,6 +552,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		// only add metrics filter if metrics servlet is enabled
 		if (Settings.Servlets.getValue("").contains(MetricsServlet.class.getSimpleName())) {
+
 			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 		}
 
@@ -580,6 +603,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			try {
 
 				UriCompliance.Violation.valueOf(str);
+
 				return true;
 
 			} catch (IllegalArgumentException iae) {
@@ -587,6 +611,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				logger.error("Unable to start HTTP Service because of unsupported URI compliance violation: '{}'.\nPossible values are: {}", str, String.join(" ", UriComplianceAllowedViolations.getAvailableOptions()));
 
 				System.exit(1);
+
 				return false;
 			}
 
@@ -644,6 +669,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 						logger.info("HTTPS enabled with default settings of disabled SNI enforcement.");
 					}
+
 					logger.info("SNI settings: httpservice.sni.required = {}, httpservice.sni.hostcheck = {}", Settings.SNIRequired.getValue(), Settings.SNIHostCheck.getValue());
 
 					httpsConfig.addCustomizer(secureRequestCustomizer);
@@ -657,25 +683,30 @@ public class HttpService implements RunnableService, StatsCallback {
 					String disabledCiphers = Settings.disabledCipherSuites.getValue();
 
 					if (disabledCiphers.length() > 0) {
+
 						disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
 						sslContextFactory.setExcludeCipherSuites(disabledCiphers.split(","));
 					}
 
 					if (excludedProtocols.length() > 0) {
+
 						excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
 						sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
 					}
 
 					if (includedProtocols.length() > 0) {
+
 						includedProtocols = includedProtocols.replaceAll("\\s+", "");
 						sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
 					}
 
 					final HttpConnectionFactory http11 = new HttpConnectionFactory(httpsConfig);
 					final HTTP2ServerConnectionFactory http2 = new HTTP2ServerConnectionFactory(httpsConfig);
+
 					http2.setRateControlFactory(new WindowRateControl.Factory(Settings.HttpConnectionRateLimit.getValue()));
 
 					if (forceHttps) {
+
 						sessionHandler.setSecureRequestOnly(true);
 					}
 
@@ -683,7 +714,6 @@ public class HttpService implements RunnableService, StatsCallback {
 					alpn.setDefaultProtocol(http11.getProtocol());
 
 					final SslConnectionFactory tls = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
-
 					final ServerConnector httpsConnector = new ServerConnector(server, tls, alpn, http2, http11);
 
 					httpsConnector.setIdleTimeout(500000);
@@ -691,12 +721,14 @@ public class HttpService implements RunnableService, StatsCallback {
 					httpsConnector.setPort(httpsPort);
 
 					if (Settings.dumpJettyStartupConfig.getValue()) {
+
 						logger.info(httpsConnector.dump());
 					}
 
 					connectors.add(httpsConnector);
 
 				} catch (Throwable t) {
+
 					logger.warn("Unable to start SSL connector: {}", t.getMessage());
 				}
 
@@ -705,9 +737,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				httpsActive = false;
 
 				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
-					Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getKey(),
-					Settings.KeystorePath.getKey(),
-					Settings.KeystorePassword.getKey()
+					Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getKey(), Settings.KeystorePath.getKey(), Settings.KeystorePassword.getKey()
 				});
 			}
 		}
@@ -745,15 +775,17 @@ public class HttpService implements RunnableService, StatsCallback {
 			maintenanceServer = new Server(Settings.HttpPort.getValue());
 
 			final String resourceBase = Settings.MaintenanceResourcePath.getValue();
-
 			boolean useDefaultHandler = true;
 
 			if (!StringUtils.isEmpty(resourceBase)) {
 
 				final Path maintenanceResourceBase = Paths.get(resourceBase);
 				if (Files.exists(maintenanceResourceBase) && Files.isDirectory(maintenanceResourceBase)) {
+
 					useDefaultHandler = false;
+
 				} else {
+
 					logger.warn("Falling back to default maintenance handler. Given path does not exist or is not a directory. {}: {}", Settings.MaintenanceResourcePath.getKey(), resourceBase);
 				}
 			}
@@ -765,12 +797,13 @@ public class HttpService implements RunnableService, StatsCallback {
 					public boolean handle(final Request request, final Response response, final Callback callback) throws Exception {
 
 						if (response.isCommitted()) {
+
 							callback.succeeded();
+
 							return true;
 						}
 
 						final String method = request.getMethod();
-
 						if (!HttpMethod.GET.is(method)) {
 
 							response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -798,6 +831,7 @@ public class HttpService implements RunnableService, StatsCallback {
 						responseHeaders.add(HttpHeader.CONTENT_LENGTH, maintenanceHTML.length());
 
 						try (OutputStream out = Response.asBufferedOutputStream(request, response)) {
+
 							out.write(maintenanceHTML.toString().getBytes());
 						}
 
@@ -839,6 +873,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 				final ResourceFactory factory = ResourceFactory.of(resourceHandler);
 				final Resource baseResource   = factory.newResource(URI.create(resourceBase).normalize());
+
 				resourceHandler.setWelcomeFiles("index.html");
 				resourceHandler.setDirAllowed(false);
 
@@ -937,6 +972,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 				logger.error("Unable to reload SSL certificate.", e);
 			}
+
 		} else {
 
 			logger.warn("Server started without SSL. Need to restart service.");
@@ -949,13 +985,14 @@ public class HttpService implements RunnableService, StatsCallback {
 	@Override
 	public void shutdown() {
 
-
 		if (server != null) {
 
 			try {
+
 				server.stop();
 
 				if (Settings.ClearSessionsOnShutdown.getValue()) {
+
 					SessionHelper.clearAllSessions();
 				}
 
@@ -971,20 +1008,24 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	@Override
 	public String getName() {
+
 		return HttpService.class.getName();
 	}
 
 	@Override
 	public boolean isVital() {
+
 		return true;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return false;
 	}
 
 	public boolean isHttpsActive() {
+
 		return httpsActive;
 	}
 
@@ -1002,6 +1043,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	// ----- interface StatsCallback -----
 	public void recordStatsValue(final String key, final String source, final long value) {
+
 		recordStatsValue(key, source, value, true);
 	}
 
@@ -1019,14 +1061,15 @@ public class HttpService implements RunnableService, StatsCallback {
 		stats.value(value, aggregateOnly);
 	}
 
-
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "rest";
 	}
 
 	public SessionCache getSessionCache() {
+
 		return sessionCache;
 	}
 
@@ -1050,12 +1093,15 @@ public class HttpService implements RunnableService, StatsCallback {
 	private void installRateLimiting(final Server server) {
 
 		if (!Settings.RateLimiting.getValue()) {
+
 			return;
 		}
 
 		final Handler wrapped = server.getHandler();
 		if (wrapped == null) {
+
 			logger.warn("Rate limiting is enabled but no handler is installed, skipping.");
+
 			return;
 		}
 
@@ -1063,6 +1109,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		// general limiter still sees (and counts) those requests
 		Handler current = wrapped;
 		final int authRate = Settings.RateLimitAuthRequestsPerSec.getValue();
+
 		if (authRate > 0) {
 
 			/* Its own, deliberately SMALL bucket: the burst is what an attacker gets for free before
@@ -1071,6 +1118,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			final DoSHandler authLimiter = newRateLimiter(current, authRate, Settings.RateLimitAuthBucketSize.getValue());
 
 			for (final String path : authPathSpecs()) {
+
 				authLimiter.includePath(path);
 			}
 
@@ -1080,6 +1128,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		final DoSHandler limiter = newRateLimiter(current, Settings.RateLimitRequestsPerSec.getValue(), Settings.RateLimitBucketSize.getValue());
 
 		for (final String path : splitConfigList(Settings.RateLimitExcludePaths.getValue())) {
+
 			limiter.excludePath(path);
 		}
 
@@ -1128,6 +1177,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			final int maxMemory = Settings.LowResourcesMaxMemory.getValue();
 			if (maxMemory > 0) {
+
 				monitor.setMaxMemory(maxMemory * 1024L * 1024L);
 			}
 
@@ -1158,11 +1208,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	 */
 	private DoSHandler newRateLimiter(final Handler next, final int requestsPerSecond, final int bucketSize) {
 
-		final DoSHandler.Tracker.Factory trackers = new DoSHandler.LeakingBucketTrackerFactory(
-			requestsPerSecond,
-			bucketSize,
-			Duration.ofMillis(Settings.RateLimitIdleTimeout.getValue())
-		);
+		final DoSHandler.Tracker.Factory trackers = new DoSHandler.LeakingBucketTrackerFactory(requestsPerSecond, bucketSize, Duration.ofMillis(Settings.RateLimitIdleTimeout.getValue()));
 
 		/* Wrapped so Structr logs the refusal itself, WITH the remote address: DoSHandler logs
 		   nothing above DEBUG, and the address is what is needed to block a source at firewall
@@ -1177,6 +1223,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			Settings.RateLimitMaxTrackers.getValue(), Settings.RateLimitRejectUntracked.getValue());
 
 		for (final String address : splitConfigList(Settings.RateLimitExcludeAddresses.getValue())) {
+
 			limiter.excludeInetAddressPattern(address);
 		}
 
@@ -1295,6 +1342,7 @@ public class HttpService implements RunnableService, StatsCallback {
 								}
 
 							} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException nfex) {
+
 								logger.warn("Unable to instantiate servlet class {} for servlet {}", servletClassName, servletName);
 							}
 
@@ -1348,11 +1396,13 @@ public class HttpService implements RunnableService, StatsCallback {
 		if (listeners != null) {
 
 			final String[] listenerClasses = listeners.split("[\\s ,;]+");
+
 			for (String listenerClass : listenerClasses) {
 
 				if (StringUtils.isNotBlank(listenerClass)) {
 
 					try {
+
 						final HttpServiceLifecycleListener listener = (HttpServiceLifecycleListener) Class.forName(listenerClass).getDeclaredConstructor().newInstance();
 						switch (event) {
 
@@ -1366,6 +1416,7 @@ public class HttpService implements RunnableService, StatsCallback {
 						}
 
 					} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+
 						logger.error("Unable to send lifecycle event to listener " + listenerClass, ex);
 					}
 				}

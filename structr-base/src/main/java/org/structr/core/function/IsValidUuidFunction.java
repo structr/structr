@@ -33,11 +33,13 @@ public class IsValidUuidFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "isValidUuid";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
@@ -54,6 +56,7 @@ public class IsValidUuidFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${isValidUuid(string)}. Example: ${isValidUuid(retrieve('requestParameterId'))}"),
 			Usage.javaScript("Usage: ${{ $.isValidUuid(string); }}. Example: ${{ $.isValidUuid(retrieve('requestParameterId')); }}")
@@ -62,23 +65,25 @@ public class IsValidUuidFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Tests if a given string is a valid UUID.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns true if the provided string is a valid UUID according to the configuration (see `%s`). Returns false otherwise, including when the argument is not a string.".formatted(Settings.UUIDv4AllowedFormats.getKey());
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("string", "Input string to be evaluated as a valid UUID")
-		);
+
+		return List.of(Parameter.mandatory("string", "Input string to be evaluated as a valid UUID"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 					${{
@@ -108,6 +113,7 @@ public class IsValidUuidFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 }

@@ -78,6 +78,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY = "excludeSubtreeFromExport";
 
 	public FolderTraitDefinition() {
+
 		super(StructrTraits.FOLDER);
 	}
 
@@ -86,8 +87,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -106,8 +106,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -121,8 +120,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 
@@ -188,6 +186,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 							}
 
 							if (!sortOrder.isEmpty()) {
+
 								comparator.addComparator(sortOrder);
 							}
 
@@ -218,6 +217,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// hide some internal properties
 						if (!SchemaNodeTraitDefinition.PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+
 							output.put(key.jsonName(), key.getFieldDefinition());
 						}
 					}
@@ -227,11 +227,13 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
+
 					return StructrTraits.FILE;
 				}
 
 				@Override
 				public int getDimension(final DataSource provider) {
+
 					return 1;
 				}
 			}
@@ -240,6 +242,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -248,8 +251,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			Folder.class, (traits, node) -> new FolderTraitWrapper(traits, node)
-		);
+			Folder.class, (traits, node) -> new FolderTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -321,11 +323,13 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 

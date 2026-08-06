@@ -28,18 +28,22 @@ import org.structr.api.util.html.Tag;
 public class PasswordSetting extends Setting<String> {
 
 	public PasswordSetting(final SettingsGroup group, final String key) {
+
 		this(group, key, null);
 	}
 
 	public PasswordSetting(final SettingsGroup group, final String key, final String value) {
+
 		this(group, null, key, value);
 	}
 
 	public PasswordSetting(final SettingsGroup group, final String categoryName, final String key, final String value) {
+
 		super(group, categoryName, key, value);
 	}
 
 	public PasswordSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 	}
 
@@ -51,12 +55,12 @@ public class PasswordSetting extends Setting<String> {
 		renderLabel(group);
 
 		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
-
 		final Tag input    = settingInputContainer.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final String value = getValue();
 
 		// display value if non-empty
 		if (value != null) {
+
 			input.attr(new Attr("value", value));
 		}
 
@@ -65,6 +69,7 @@ public class PasswordSetting extends Setting<String> {
 
 	@Override
 	public void fromString(final String source) {
+
 		setValue(source);
 	}
 
@@ -81,6 +86,7 @@ public class PasswordSetting extends Setting<String> {
 
 	@Override
 	protected Setting<String> copy(final String key) {
+
 		return new PasswordSetting(group, category, key, value);
 	}
 }

@@ -29,6 +29,7 @@ import java.io.OutputStream;
 public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 
 	public XTermTerminalEmulator(final InputStream in, final OutputStream out, final TerminalHandler handler) {
+
 		super(in, out, handler);
 	}
 
@@ -48,6 +49,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 	public void handleHome() throws IOException {
 
 		final int offset = lineLength;
+
 		for (int i=0; i<offset; i++) {
 
 			handleCursorLeft();
@@ -58,6 +60,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 	public void handleEnd() throws IOException {
 
 		final int offset = lineLength - cursorPosition;
+
 		for (int i=0; i<offset; i++) {
 
 			handleCursorRight();
@@ -171,17 +174,20 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 
 	@Override
 	public void println() throws IOException {
+
 		writer.write(10);
 		writer.write(13);
 	}
 
 	@Override
 	public void handleTab(final int tabCount) throws IOException {
+
 		terminalHandler.handleTab(tabCount);
 	}
 
 	@Override
 	public void handleShiftTab() throws IOException {
+
 		terminalHandler.handleShiftTab();
 	}
 
@@ -223,6 +229,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		final int len = text.length();
 
 		for (int i=0; i<len; i++) {
+
 			handleCharacter(text.codePointAt(i));
 		}
 	}
@@ -243,6 +250,7 @@ public class XTermTerminalEmulator extends AbstractTerminalEmulator {
 		}
 
 		if (echo) {
+
 			writer.write(c);
 		}
 

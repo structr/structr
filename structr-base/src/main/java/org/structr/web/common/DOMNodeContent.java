@@ -57,10 +57,12 @@ public class DOMNodeContent {
 
 			// store data properties for slots
 			for (final PropertyKey key : source.getDataPropertyKeys()) {
+
 				dataProperties.put(key, source.getProperty(key));
 			}
 
 			if (!dataProperties.isEmpty()) {
+
 				data.putDataAttributes(dataProperties);
 			}
 
@@ -81,19 +83,23 @@ public class DOMNodeContent {
 			final String value3            = source.getProperty(key3);
 
 			if (value1 != null) {
+
 				map.put(key1, value1);
 			}
 
 			if (value2 != null) {
+
 				map.put(key2, value2);
 			}
 
 			if (value3 != null) {
+
 				map.put(key3, value3);
 			}
 		}
 
 		if (!map.isEmpty()) {
+
 			data.putSlotAttributes(map);
 		}
 
@@ -144,7 +150,6 @@ public class DOMNodeContent {
 			}
 
 		}
-
 
 		final SlotData data   = getAttributeSlotData(uuid, "attributes", false);
 		final PropertyMap map = data.getNextSlotAttributes();
@@ -243,14 +248,15 @@ public class DOMNodeContent {
 			for (final String part : parts) {
 
 				String trimmed = part.trim();
-
 				if (StringUtils.isNotBlank(trimmed)) {
 
 					if ("slot".equals(trimmed)) {
+
 						isSlot = true;
 					}
 
 					if (whitelist.contains(trimmed)) {
+
 						names.add(trimmed);
 					}
 				}
@@ -262,6 +268,7 @@ public class DOMNodeContent {
 			}
 
 			// node is not a slot => no data to copy
+
 			return null;
 		}
 

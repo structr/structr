@@ -55,6 +55,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		super(name);
 
 		if (componentType.isArray()) {
+
 			throw new IllegalArgumentException("Component type of ArrayProperty must be the non-array base type, e.g. String.class, not String[].class!");
 		}
 
@@ -69,22 +70,26 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		if (value != null && value instanceof String) {
 
 			String[] fixedValue = null;
-
 			final String stringValue = (String)value;
 
 			if (stringValue.contains(",")) {
+
 				fixedValue = stringValue.split(",");
 			}
 
 			if (stringValue.contains(" ")) {
+
 				fixedValue = stringValue.split(" ");
 			}
 
 			if (securityContext != null && entity != null) {
 
 				try {
+
 					setProperty(securityContext, entity, (T[])fixedValue);
+
 				} catch (FrameworkException ex) {
+
 					logger.warn("", ex);
 				}
 			}
@@ -98,6 +103,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public String typeName() {
+
 		return componentType.getSimpleName().concat("[]");
 	}
 
@@ -105,8 +111,10 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	public Class valueType() {
 
 		try {
+
 			// This trick results in returning the proper array class for array properties.
 			// Necessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
+
 			return Class.forName(componentType.getName());
 
 		} catch (ClassNotFoundException e) {}
@@ -116,23 +124,28 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext) {
+
 		return new ArrayDatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		this.securityContext = securityContext;
 		this.entity = entity;
+
 		return databaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<?, T[]> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new ArrayInputConverter(securityContext, fromString);
 	}
 
@@ -141,12 +154,14 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		private final boolean fromString;
 
 		public ArrayInputConverter(final SecurityContext securityContext, final boolean fromString) {
+
 			super(securityContext, null);
 			this.fromString = fromString;
 		}
 
 		@Override
 		public Object revert(Object[] source) throws FrameworkException {
+
 			return source != null ? Arrays.asList(source) : null;
 		}
 
@@ -154,14 +169,17 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		public T[] convert(Object source) throws FrameworkException {
 
 			if (source == null) {
+
 				return null;
 			}
 
 			if (source instanceof List) {
+
 				return ArrayProperty.this.convert((List)source);
 			}
 
 			if (source.getClass().isArray()) {
+
 				return convert(Arrays.asList((T[])source));
 			}
 
@@ -185,6 +203,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				final T value    = ArrayProperty.this.fromString(source.toString());
 
 				if (value != null) {
+
 					result[0] = value;
 				}
 
@@ -197,6 +216,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	private class ArrayDatabaseConverter extends PropertyConverter<T[], Object> {
 
 		public ArrayDatabaseConverter(SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
@@ -204,14 +224,17 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		public T[] revert(Object source) throws FrameworkException {
 
 			if (source == null) {
+
 				return null;
 			}
 
 			if (source instanceof List) {
+
 				return ArrayProperty.this.convert((List)source);
 			}
 
 			if (source.getClass().isArray()) {
+
 				return revert(Arrays.asList((T[])source));
 			}
 
@@ -229,6 +252,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			final T value    = ArrayProperty.this.fromString(source.toString());
 
 			if (value != null) {
+
 				result[0] = value;
 			}
 
@@ -238,6 +262,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		@Override
 		public Object[] convert(T[] source) throws FrameworkException {
+
 			return source;
 		}
 	}
@@ -285,9 +310,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		if (conv != null) {
 
 			try {
+
 				searchValue = (T[])conv.convert(valueInput);
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 			}
 
@@ -298,12 +325,14 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
+
 			return new ArraySearchAttribute(this, "", exactMatch);
 		}
 
 		if (!exactMatch) {
 
 			final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, query.getParent(), Operation.AND);
+
 			for (T value : searchValue) {
 
 				group.add(new ArraySearchAttribute(this, value, false));
@@ -317,22 +346,26 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return true;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -348,6 +381,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		map.put("items", items);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -366,6 +400,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		map.put("items", items);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -375,11 +410,13 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property that stores arrays of primitive values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
@@ -401,13 +438,9 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			} else if (o != null) {
 
 				final T value = fromString(o.toString());
-
 				if (value == null) {
 
-					throw new PropertyInputParsingException(
-						this.jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), this.jsonName(), source)
-					);
+					throw new PropertyInputParsingException(this.jsonName(), new NumberFormatToken(declaringTrait.getLabel(), this.jsonName(), source));
 				}
 
 				result.add(value);
@@ -427,9 +460,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		if (valueOfMethod != null) {
 
 			try {
+
 				return (T)valueOfMethod.invoke(null, source);
 
 			} catch (Throwable t) {
+
 				return null;
 			}
 		}
@@ -455,7 +490,6 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		for (final String part : input) {
 
 			final String trimmedString = part.trim();
-
 			if (StringUtils.isNotBlank(trimmedString)) {
 
 				trimmed.add(convertSearchValue(securityContext, trimmedString));

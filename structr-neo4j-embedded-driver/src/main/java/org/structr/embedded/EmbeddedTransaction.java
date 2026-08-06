@@ -91,6 +91,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	}
 
 	public boolean isClosed() {
+
 		return closed;
 	}
 
@@ -99,10 +100,12 @@ public class EmbeddedTransaction implements Transaction<String> {
 		final List<Label> labelObjects = new LinkedList<>();
 
 		if (db.getTenantIdentifier() != null) {
+
 			labelObjects.add(Label.label(db.getTenantIdentifier()));
 		}
 
 		for (final String label : labels) {
+
 			labelObjects.add(Label.label(label));
 		}
 
@@ -214,20 +217,24 @@ public class EmbeddedTransaction implements Transaction<String> {
 	}
 
 	public Iterable<Map<String, Object>> newIterable(final EmbeddedDatabaseService db, final CypherQuery query) {
+
 		return new QueryIterable(db, query);
 	}
 
 	public void setIsPing(final boolean isPing) {
+
 		this.isPing = isPing;
 	}
 
 	@Override
 	public long getTransactionId() {
+
 		return this.transactionId;
 	}
 
 	@Override
 	public boolean isRolledBack() {
+
 		return isRolledBack;
 	}
 
@@ -265,6 +272,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	public NodeWrapper getNodeWrapper(final String id) {
 
 		if (nodes.containsKey(id)) {
+
 			return nodes.get(id);
 		}
 
@@ -290,6 +298,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	public RelationshipWrapper getRelationshipWrapper(final String id) {
 
 		if (rels.containsKey(id)) {
+
 			return rels.get(id);
 		}
 
@@ -305,6 +314,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 			}
 
 		} catch (org.neo4j.graphdb.NotFoundException t) {
+
 			throw new org.structr.api.NotFoundException("Relationship with ID " + id + " not found.");
 		}
 
@@ -313,36 +323,43 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 	@Override
 	public org.structr.api.graph.Node getNode(final Identity<String> id) {
+
 		return getNodeWrapper(id.getId());
 	}
 
 	@Override
 	public org.structr.api.graph.Relationship getRelationship(Identity<String> id) {
+
 		return getRelationshipWrapper(id.getId());
 	}
 
 	@Override
 	public void setNodeIsCreated(final String id) {
+
 		createdNodes.add(id);
 	}
 
 	@Override
 	public boolean isNodeCreated(final String id) {
+
 		return createdNodes.contains(id);
 	}
 
 	@Override
 	public boolean isNodeDeleted(final String id) {
+
 		return deletedNodes.contains(id);
 	}
 
 	@Override
 	public boolean isRelationshipDeleted(final String id) {
+
 		return deletedRels.contains(id);
 	}
 
 	@Override
 	public void failure() {
+
 		forcedFailure = true;
 	}
 
@@ -355,6 +372,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 	@Override
 	public boolean isSuccessful() {
+
 		return success && !forcedFailure;
 	}
 
@@ -379,6 +397,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 	// ----- protected methods -----
 	protected void logQuery(final CypherQuery query) {
+
 		logQuery(query.getStatement(), query.getParameters());
 	}
 
@@ -391,8 +410,11 @@ public class EmbeddedTransaction implements Transaction<String> {
 				if (map != null && !map.isEmpty()) {
 
 					if (query.contains("extractedContent")) {
+
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), query);
+
 					} else {
+
 						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId, query, stringify(map));
 					}
 
@@ -416,9 +438,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 			if (sum > 0) {
 
-				logger.info("Query summary: {} / {} nodes created / deleted, {} / {} rels created / deleted",
-					nodesCreated, nodesDeleted, relsCreated, relsDeleted
-				);
+				logger.info("Query summary: {} / {} nodes created / deleted, {} / {} rels created / deleted", nodesCreated, nodesDeleted, relsCreated, relsDeleted);
 			}
 		}
 	}
@@ -439,7 +459,6 @@ public class EmbeddedTransaction implements Transaction<String> {
 		if (result != null && result.hasNext()) {
 
 			final Map<String, Object> next = result.next();
-
 			if (!next.keySet().isEmpty()) {
 
 				final Object value = next.values().toArray()[0];
@@ -529,16 +548,19 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 			@Override
 			public void close() throws Exception {
+
 				iterator.close();
 			}
 
 			@Override
 			public boolean hasNext() {
+
 				return iterator.hasNext();
 			}
 
 			@Override
 			public Map<String, Object> next() {
+
 				return iterator.next();
 			}
 		};

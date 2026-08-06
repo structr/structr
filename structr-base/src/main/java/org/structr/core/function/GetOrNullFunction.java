@@ -38,11 +38,13 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "getOrNull";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("entity, propertyName");
 	}
 
@@ -58,6 +60,7 @@ public class GetOrNullFunction extends CoreFunction {
 			GraphObject dataObject = null;
 
 			if (sources[0] instanceof GraphObject) {
+
 				dataObject = (GraphObject) sources[0];
 			}
 
@@ -81,6 +84,7 @@ public class GetOrNullFunction extends CoreFunction {
 					Object value = dataObject.getProperty(key);
 
 					if (inputConverter != null) {
+
 						return inputConverter.revert(value);
 					}
 
@@ -97,6 +101,7 @@ public class GetOrNullFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -105,19 +110,19 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${getOrNull(entity, propertyKey)}"),
-				Usage.javaScript("Usage: ${{ $.getOrNull(entity, propertyKey) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${getOrNull(entity, propertyKey)}"), Usage.javaScript("Usage: ${{ $.getOrNull(entity, propertyKey) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the value with the given name of the given entity, or null.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Returns the value for the given property key from the given entity, but doesn't print an error message when the given entity is not accessible.
 			See `get()` for the equivalent method that prints an error if the first argument is null.
@@ -126,22 +131,19 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getOrNull(page, 'name')}"),
-				Example.javaScript("${{ $.getOrNull(page, 'name') }}")
-		);
+
+		return List.of(Example.structrScript("${getOrNull(page, 'name')}"), Example.javaScript("${{ $.getOrNull(page, 'name') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("entity", "node or object"),
-				Parameter.mandatory("propertyKey", "requested property name")
-		);
+
+		return List.of(Parameter.mandatory("entity", "node or object"), Parameter.mandatory("propertyKey", "requested property name"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

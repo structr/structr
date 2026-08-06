@@ -28,16 +28,19 @@ public class PredicateHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "predicate";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the set of query predicates for advanced `find()`.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `$.predicate` keyword allows you to access a set of query predicates for advanced `find()`.
 
@@ -56,6 +59,7 @@ public class PredicateHint extends GeneralKeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			${{
@@ -67,13 +71,13 @@ public class PredicateHint extends GeneralKeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This keyword is defined in JavaScript only."
-		);
+
+		return List.of("This keyword is defined in JavaScript only.");
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.JavaScript);
 	}
 }

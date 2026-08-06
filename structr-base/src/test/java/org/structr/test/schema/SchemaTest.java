@@ -87,7 +87,6 @@ public class SchemaTest extends StructrTest {
 			customer.addByteArrayProperty("byteArray", "public", "ui");
 
 			final String schema = sourceSchema.toString();
-
 			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
 
 			mapPathValue(map, "definitions.Customer.type",                                          "object");
@@ -197,7 +196,6 @@ public class SchemaTest extends StructrTest {
 			sourceSchema.addType("Customer").addTrait("Contact");
 
 			final String schema = sourceSchema.toString();
-
 			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
 
 			mapPathValue(map, "definitions.Contact.type",        "object");
@@ -206,11 +204,11 @@ public class SchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.type",       "object");
 			mapPathValue(map, "definitions.Customer.traits.0", "Contact");
 
-
 			// advanced: test schema roundtrip
 			compareSchemaRoundtrip(sourceSchema);
 
 		} catch (Exception t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -223,7 +221,6 @@ public class SchemaTest extends StructrTest {
 		try {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType project = sourceSchema.addType("Project");
 			final JsonObjectType task    = sourceSchema.addType("Task");
 
@@ -272,16 +269,15 @@ public class SchemaTest extends StructrTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 			final String instanceId       = app.getInstanceId();
-
 			final JsonObjectType task = sourceSchema.addType("Task");
 			final JsonProperty title  = task.addStringProperty("title", "public", "ui").setRequired(true);
 			final JsonProperty desc   = task.addStringProperty("description", "public", "ui").setRequired(true);
+
 			task.addDateProperty("description", "public", "ui").setDatePattern("dd.MM.yyyy").setRequired(true);
 
 			// test function property
 			task.addFunctionProperty("displayName", "public", "ui").setReadFunction("this.name");
 			task.addFunctionProperty("javascript", "public", "ui").setReadFunction("{ var x = 'test'; return x; }");
-
 
 			// a project
 			final JsonObjectType project = sourceSchema.addType("Project");
@@ -299,31 +295,27 @@ public class SchemaTest extends StructrTest {
 			// a worker
 			final JsonObjectType worker = sourceSchema.addType("Worker");
 			final JsonReferenceType workerTasks = worker.relate(task, "HAS", Cardinality.OneToMany, "worker", "tasks");
-			workerTasks.setCascadingDelete(Cascade.sourceToTarget);
 
+			workerTasks.setCascadingDelete(Cascade.sourceToTarget);
 
 			// reference Worker -> Task
 			final JsonReferenceProperty workerProperty = workerTasks.getSourceProperty();
 			final JsonReferenceProperty tasksProperty  = workerTasks.getTargetProperty();
-			tasksProperty.setName("renamedTasks");
 
+			tasksProperty.setName("renamedTasks");
 
 			worker.addReferenceProperty("taskNames",  tasksProperty, "public", "ui").setProperties("name");
 			worker.addReferenceProperty("taskInfos",  tasksProperty, "public", "ui").setProperties("id", "name");
 			worker.addReferenceProperty("taskErrors", tasksProperty, "public", "ui").setProperties("id");
 
-
 			task.addReferenceProperty("workerName",   workerProperty, "public", "ui").setProperties("name");
 			task.addReferenceProperty("workerNotion", workerProperty, "public", "ui").setProperties("id");
-
 
 			// test date properties..
 			project.addDateProperty("startDate", "public", "ui");
 
 			// methods
 			project.addMethod("onCreate", "set(this, 'name', 'wurst')").setIsPrivate(true);
-
-
 
 			// test URIs
 			assertEquals("Invalid schema URI", "https://structr.org/schema/" + instanceId + "/#", sourceSchema.getId().toString());
@@ -368,6 +360,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(StructrSchema.createFromDatabase(app).toString());
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -388,6 +381,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(schema.toString());
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -409,6 +403,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(schema.toString());
 
 		} catch (FrameworkException t) {
+
 			t.printStackTrace();
 		}
 
@@ -446,6 +441,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -479,6 +475,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -495,6 +492,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -519,6 +517,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -539,16 +538,14 @@ public class SchemaTest extends StructrTest {
 			type.addStringProperty("descBefore");
 			type.addStringProperty("descAfter");
 
-			type.addMethod("onSave",
-				"{"
+			type.addMethod("onSave", "{"
 					+ " var self = Structr.this;"
 					+ " var mod = Structr.retrieve('modifications');"
 					+ " self.nameBefore = mod.before.name;"
 					+ " self.nameAfter  = mod.after.name;"
 					+ " self.descBefore = mod.before.desc;"
 					+ " self.descAfter  = mod.after.desc;"
-				+ " }"
-			);
+				+ " }");
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -556,12 +553,12 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		String uuid = null;
-
 		final String type = "Test";
 
 		// create test object
@@ -576,6 +573,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -594,6 +592,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -610,6 +609,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -628,6 +628,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -712,7 +713,6 @@ public class SchemaTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType project    = schema.addType("Project");
 			final JsonObjectType task       = schema.addType("Task");
 			final JsonReferenceType rel     = project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
@@ -963,12 +963,10 @@ public class SchemaTest extends StructrTest {
 			final String ext1Type  = "Extended1";
 			final String ext11Type = "Extended11";
 			final String ext2Type  = "Extended2";
-
 			final GraphObject base  = app.create(baseType,  "base");
 			final GraphObject ext1  = app.create(ext1Type,  "ext1");
 			final GraphObject ext11 = app.create(ext11Type, "ext11");
 			final GraphObject ext2  = app.create(ext2Type,  "ext2");
-
 			final ActionContext ctx = new ActionContext(securityContext);
 
 			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ $.this.doTest(); }}", "test1")));
@@ -1015,8 +1013,8 @@ public class SchemaTest extends StructrTest {
 
 			tx.success();
 
-
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Uniqueness validation should not be active any more");
 		}
@@ -1030,8 +1028,8 @@ public class SchemaTest extends StructrTest {
 
 			tx.success();
 
-
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Uniqueness validation should not be active any more");
 		}
@@ -1054,7 +1052,6 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 
 		// test 1: check that uniqueness is correctly configured
 		try (final Tx tx = app.tx()) {
@@ -1111,6 +1108,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Uniqueness validation should not be active any more");
 		}
@@ -1145,7 +1143,6 @@ public class SchemaTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Traits methodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
-
 			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, "Test");
 
 			// create instance method
@@ -1567,8 +1564,8 @@ public class SchemaTest extends StructrTest {
 	private void checkSchemaString(final String source) {
 
 		final Gson gson = new GsonBuilder().create();
-
 		final Map<String, Object> map  = gson.fromJson(source, Map.class);
+
 		assertNotNull("Invalid schema serialization", map);
 
 		final Map<String, Object> defs = (Map)map.get("definitions");
@@ -1607,6 +1604,7 @@ public class SchemaTest extends StructrTest {
 			if (StringUtils.isNumeric(part)) {
 
 				int index = Integer.valueOf(part);
+
 				if (current instanceof List) {
 
 					current = ((List)current).get(index);

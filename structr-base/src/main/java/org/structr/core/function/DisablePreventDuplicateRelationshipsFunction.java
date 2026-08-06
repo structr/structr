@@ -33,12 +33,15 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 
 	@Override
 	public String getName() {
+
 		return "disablePreventDuplicateRelationships";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,36 +55,37 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${disablePreventDuplicateRelationships()}"),
-			Usage.javaScript("Usage: ${{ $.disablePreventDuplicateRelationships() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${disablePreventDuplicateRelationships()}"), Usage.javaScript("Usage: ${{ $.disablePreventDuplicateRelationships() }}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"USE AT YOUR OWN RISK!"
-		);
+
+		return List.of("USE AT YOUR OWN RISK!");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Disables the check that prevents the creation of duplicate relationships in the Structr Backend for the current transaction.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return true;
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

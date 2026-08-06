@@ -68,6 +68,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	 * @param type
 	 */
 	public EndNodes(final TraitsInstance traitsInstance, final String name, final String type) {
+
 		this(traitsInstance, name, type, new ObjectNotion());
 	}
 
@@ -95,31 +96,37 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public String typeName() {
+
 		return "collection";
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Iterable<NodeInterface>> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
 	public Iterable<NodeInterface> getProperty(final SecurityContext securityContext, final GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -144,6 +151,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 		final ManyEndpoint endpoint = relation.getTarget();
 
 		if (updateCallback != null) {
+
 			updateCallback.notifyUpdated(obj, collection);
 		}
 
@@ -152,52 +160,62 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public String relatedType() {
+
 		return destType;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return true;
 	}
 
 	@Override
 	public Property<Iterable<NodeInterface>> indexed() {
+
 		return this;
 	}
 
 	@Override
 	public Property<Iterable<NodeInterface>> passivelyIndexed() {
+
 		return this;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isIndexed() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isPassivelyIndexed() {
+
 		return false;
 	}
 
 	// ----- interface RelationProperty -----
 	@Override
 	public Notion getNotion() {
+
 		return notion;
 	}
 
@@ -213,11 +231,13 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public String getSourceType() {
+
 		return sourceType;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return destType;
 	}
 
@@ -228,9 +248,11 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 		if (inputConverter != null) {
 
 			final List<String> sources = new LinkedList<>();
+
 			if (requestParameter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {
+
 					sources.add(part);
 				}
 			}
@@ -247,9 +269,9 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
-
 	@Override
 	public Relation getRelation() {
+
 		return relation;
 	}
 
@@ -262,6 +284,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 				case Relation.ALWAYS:
 				case Relation.SOURCE_TO_TARGET:
+
 					return true;
 			}
 		}
@@ -273,6 +296,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	public String getAutocreateFlagName() {
 
 		if (relation != null) {
+
 			return Relation.CASCADING_DESCRIPTIONS[relation.getAutocreationFlag()];
 		}
 
@@ -281,17 +305,20 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public String getDirectionKey() {
+
 		return "out";
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -334,6 +361,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		if (level > 4) {
+
 			return Collections.EMPTY_MAP;
 		}
 
@@ -346,6 +374,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 			map.put("items", items);
 
 			if (this.isReadOnly()) {
+
 				map.put("readOnly", true);
 			}
 
@@ -362,12 +391,14 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public FieldDefinition getFieldDefinition() {
+
 		return this;
 	}
 
 	// ----- interface FieldDefinition -----
 	@Override
 	public boolean hasOptions() {
+
 		return true;
 	}
 
@@ -382,21 +413,25 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public String renderTemplate() {
+
 		return null;
 	}
 
 	@Override
 	public String editTemplate() {
+
 		return null;
 	}
 
 	@Override
 	public String dataType() {
+
 		return "node";
 	}
 
 	@Override
 	public String nodeType() {
+
 		return relatedType();
 	}
 }

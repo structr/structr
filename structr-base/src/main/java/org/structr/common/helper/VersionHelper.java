@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
  * Helper class to gather and provide information about the running Structr version.
  */
 public class VersionHelper {
+
 	private static final Logger logger = LoggerFactory.getLogger(VersionHelper.class);
 
 	private static final String classPath;
@@ -70,6 +71,7 @@ public class VersionHelper {
 				final String jarName = jarFile.getName();
 
 				if (jarName.startsWith("structr-") && jarName.endsWith(".jar")) {
+
 					readModuleManifest(jarFile);
 				}
 			}
@@ -90,12 +92,14 @@ public class VersionHelper {
 					final String jarName  = fileName != null ? fileName.toString() : "";
 
 					if (jarName.startsWith("structr-") && jarName.endsWith(".jar")) {
+
 						readModuleManifest(path.toFile());
 					}
 				}
 			}
 
 		} catch (Exception e) {
+
 			logger.error("Error enumerating Structr modules from the module path: {}", e.getMessage());
 		}
 	}
@@ -113,20 +117,27 @@ public class VersionHelper {
 					if (manifest != null) {
 
 						final Attributes attrs = manifest.getMainAttributes();
-
 						final Map<String, String> module = new HashMap<>();
+
 						module.put("version", attrs.getValue("Implementation-Version"));
 						module.put("date", attrs.getValue("Build-Timestamp"));
 						module.put("build", attrs.getValue("Build-Number"));
 
 						final String moduleName = attrs.getValue("Implementation-Title");
 						if ("structr-app-enterprise".equals(moduleName)) {
+
 							components.put("structr", module);
+
 						} else if ("structr-app".equals(moduleName)) {
+
 							components.putIfAbsent("structr", module);
+
 						} else if (StringUtils.isNotBlank(moduleName)) {
+
 							components.put(moduleName, module);
+
 						} else {
+
 							logger.warn("Missing build information in manifest for {}", jarFile.getName());
 						}
 					}
@@ -134,22 +145,22 @@ public class VersionHelper {
 			}
 
 		} catch (Exception e) {
+
 			logger.error("Error parsing module manifest \"{}\".", e.getMessage());
 		}
 	}
 
-
 	public static String getFullVersionInfo() {
 
 		Map<String, String> structrModule = components.get("structr");
-
 		if (structrModule != null) {
+
 			return VersionHelper.getFullVersionInfoFromModule(structrModule);
 		}
 
 		Map<String, String> structrBaseModule = components.get("structr-base");
-
 		if (structrBaseModule != null) {
+
 			return VersionHelper.getFullVersionInfoFromModule(structrBaseModule);
 		}
 
@@ -163,6 +174,7 @@ public class VersionHelper {
 	}
 
 	public static String getClassPath() {
+
 		return classPath;
 	}
 
@@ -178,10 +190,12 @@ public class VersionHelper {
 	}
 
 	public static String getInstanceName() {
+
 		return Settings.InstanceName.getValue();
 	}
 
 	public static String getInstanceStage() {
+
 		return Settings.InstanceStage.getValue();
 	}
 
@@ -197,10 +211,12 @@ public class VersionHelper {
 			map.put("source", module.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
 
 			if (module.getDependencies() != null) {
+
 				map.put("dependencies", module.getDependencies());
 			}
 
 			if (module.getFeatures() != null) {
+
 				map.put("features", module.getFeatures());
 			}
 
@@ -211,6 +227,7 @@ public class VersionHelper {
 	public static Map<String, Map<String, Object>> getModules() {
 
 		if (!modulesUpdatedAfterSystemInitComplete) {
+
 			updateModuleList();
 		}
 
@@ -220,6 +237,7 @@ public class VersionHelper {
 	}
 
 	public static Map<String, Map<String, String>> getComponents() {
+
 		return components;
 	}
 

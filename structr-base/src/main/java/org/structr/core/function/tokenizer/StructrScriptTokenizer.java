@@ -70,9 +70,12 @@ public class StructrScriptTokenizer {
 				currentToken.add(chars[i]);
 
 				if (chars[i] == '\n') {
+
 					column = 1;
 					row++;
+
 				} else {
+
 					column++;
 				}
 
@@ -95,6 +98,7 @@ public class StructrScriptTokenizer {
 				} else {
 
 					if (!isSilent) {
+
 						logger.warn("Unexpected character {} ({}) in string \"{}\". Tokens: {}", (int) chars[i], Character.toString(chars[i]), expression, tokens);
 					}
 
@@ -129,6 +133,7 @@ public class StructrScriptTokenizer {
 	}
 
 	public void setIsSilent(final boolean isSilent) {
+
 		this.isSilent = isSilent;
 	}
 }

@@ -32,6 +32,7 @@ public class Dialog extends GenericHtmlElementTraitDefinition {
 	public static final String OPEN_PROPERTY = getPrefixedHTMLAttributeName("open");
 
 	public Dialog() {
+
 		super(StructrTraits.DIALOG);
 	}
 
@@ -40,19 +41,12 @@ public class Dialog extends GenericHtmlElementTraitDefinition {
 
 		final PropertyKey<String> openProperty = new StringProperty(OPEN_PROPERTY);
 
-		return newSet(
-			openProperty
-		);
+		return newSet(openProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					OPEN_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(OPEN_PROPERTY));
 	}
 }

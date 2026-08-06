@@ -80,6 +80,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -107,6 +108,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -175,6 +177,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -195,6 +198,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -215,6 +219,7 @@ public class Deployment5Test extends DeploymentTestBase {
 					tx.success();
 
 				} catch (FrameworkException fex) {
+
 					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
@@ -239,6 +244,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -258,6 +264,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			final List<NodeInterface> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
+
 				groups.add(app.create(StructrTraits.GROUP, "group0" + i));
 			}
 
@@ -273,6 +280,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			final Page page1 = Page.createNewPage(securityContext,   "test52_1");
 			final DOMElement html1 = createElement(page1, page1, "html");
 			final DOMElement head1 = createElement(page1, html1, "head");
+
 			createElement(page1, head1, "title", "test52_1");
 
 			final DOMElement body1 =  createElement(page1, html1, "body");
@@ -293,6 +301,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -333,6 +342,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			final List<NodeInterface> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
+
 				groups.add(app.create(StructrTraits.GROUP, "group0" + i));
 			}
 
@@ -347,6 +357,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -391,6 +402,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -398,17 +410,15 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page shadowPage = CreateComponentCommand.getOrCreateHiddenDocument();
-
 			final Page page = Page.createNewPage(securityContext, "test52");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test52");
 
 			final DOMElement body       = createElement(page, html, "body");
-
 			final DOMElement div1        = createElement(page, body, "div");
 			final DOMElement div2        = createElement(page, body, "div");
-
 			final DOMNode comp1   = createComponent(div1);
 			final DOMNode comp2   = createComponent(div2);
 
@@ -451,6 +461,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -469,6 +480,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -494,6 +506,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -513,7 +526,6 @@ public class Deployment5Test extends DeploymentTestBase {
 
 		final String v1FolderName = "rezources";
 		final String v2FolderName = "resources";
-
 		final String v1FileName   = "app.mun.js";
 		final String v2FileName   = "app.min.js";
 
@@ -594,6 +606,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -618,6 +631,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -661,6 +675,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -695,6 +710,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			final Page page1 = Page.createNewPage(securityContext,   "test59");
 			final DOMElement html1 = createElement(page1, page1, "html");
 			final DOMElement head1 = createElement(page1, html1, "head");
+
 			createElement(page1, head1, "title", "test59");
 
 			final DOMElement body1 = createElement(page1, html1, "body");
@@ -707,6 +723,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -763,6 +780,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

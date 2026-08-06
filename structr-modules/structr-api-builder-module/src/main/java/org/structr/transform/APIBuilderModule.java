@@ -64,7 +64,6 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 		StructrTraits.registerTrait(new VirtualTypeTraitDefinition());
 		StructrTraits.registerTrait(new VirtualPropertyTraitDefinition());
 
-
 		StructrTraits.registerNodeType(StructrTraits.VIRTUAL_TYPE,     StructrTraits.VIRTUAL_TYPE);
 		StructrTraits.registerNodeType(StructrTraits.VIRTUAL_PROPERTY, StructrTraits.VIRTUAL_PROPERTY);
 	}
@@ -75,21 +74,25 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 	@Override
 	public String getName() {
+
 		return "api-builder";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 
 	@Override
 	public boolean hasDeploymentData () {
+
 		return true;
 	}
 
@@ -106,6 +109,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 				final VirtualType virtualType   = virtualTypeNode.as(VirtualType.class);
 				final Map<String, Object> entry = new TreeMap<>();
+
 				virtualTypes.add(entry);
 
 				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         virtualType.getName());
@@ -122,6 +126,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 					final VirtualProperty virtualProperty = node.as(VirtualProperty.class);
 					final Map<String, Object> virtualPropEntry = new TreeMap<>();
+
 					properties.add(virtualPropEntry);
 
 					virtualPropEntry.put(VirtualPropertyTraitDefinition.SOURCE_NAME_PROPERTY,                virtualProperty.getSourceName());
@@ -142,6 +147,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 			gson.toJson(virtualTypes, fos);
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
 		}
 	}
@@ -157,8 +163,8 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 			try (final Reader reader = Files.newBufferedReader(virtualTypesConf, Charset.forName("utf-8"))) {
 
 				final List<Map<String, Object>> virtualTypes = gson.fromJson(reader, List.class);
-
 				final SecurityContext context = SecurityContext.getSuperUserInstance();
+
 				context.setDoTransactionNotifications(false);
 
 				final App app                 = StructrApp.getInstance(context);
@@ -166,10 +172,12 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 				try (final Tx tx = app.tx()) {
 
 					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.VIRTUAL_TYPE).getAsList()) {
+
 						app.delete(toDelete);
 					}
 
 					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.VIRTUAL_PROPERTY).getAsList()) {
+
 						app.delete(toDelete);
 					}
 
@@ -184,6 +192,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 				}
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 		}
@@ -197,7 +206,6 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 			final Traits typeTraits = Traits.of(StructrTraits.VIRTUAL_TYPE);
 			final Traits propTraits = Traits.of(StructrTraits.VIRTUAL_PROPERTY);
-
 			final NodeInterface type = app.create(StructrTraits.VIRTUAL_TYPE,
 				new NodeAttribute<>(typeTraits.key(VirtualTypeTraitDefinition.SOURCE_TYPE_PROPERTY), sourceType),
 				new NodeAttribute<>(typeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      targetType)

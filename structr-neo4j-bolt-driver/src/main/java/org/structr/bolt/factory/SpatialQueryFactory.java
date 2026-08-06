@@ -32,6 +32,7 @@ import org.structr.bolt.AdvancedCypherQuery;
 public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public SpatialQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -46,6 +47,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 			// to select the correct index
 			final String label = predicate.getLabel();
 			if (label != null) {
+
 				query.indexLabel(label);
 			}
 
@@ -54,6 +56,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 			final Double[] coords      = spatial.getCoords();
 
 			if (coords == null || coords.length != 2)  {
+
 				return false;
 			}
 

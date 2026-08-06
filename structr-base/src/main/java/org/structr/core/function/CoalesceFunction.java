@@ -28,23 +28,23 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
 public class CoalesceFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "coalesce";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("values...", "list of objects to coalesce")
-		);
+
+		return List.of(Parameter.mandatory("values...", "list of objects to coalesce"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null"),
 			Example.javaScript("$.coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null")
@@ -53,6 +53,7 @@ public class CoalesceFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2, ...");
 	}
 
@@ -62,34 +63,37 @@ public class CoalesceFunction extends CoreFunction {
 		for (Object source : sources) {
 
 			if (source != null) {
+
 				return source;
 			}
 		}
 
 		// no non-null value was supplied
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${coalesce(value1, value2, ...)}"),
-				Usage.javaScript("Usage: ${{ $.coalesce(value1, value2, ...) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${coalesce(value1, value2, ...)}"), Usage.javaScript("Usage: ${{ $.coalesce(value1, value2, ...) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

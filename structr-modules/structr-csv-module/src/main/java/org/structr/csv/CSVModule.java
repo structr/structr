@@ -43,16 +43,19 @@ public class CSVModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "csv";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui", "api-builder");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

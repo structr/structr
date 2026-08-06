@@ -56,6 +56,7 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String ENABLED_PROPERTY  = "enabled";
 
 	public PulsarClientTraitDefinition() {
+
 		super(StructrTraits.PULSAR_CLIENT);
 	}
 
@@ -64,17 +65,16 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					graphObject.as(org.structr.messaging.implementation.pulsar.PulsarClient.class).setup();
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -93,11 +93,11 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
 					graphObject.as(org.structr.messaging.implementation.pulsar.PulsarClient.class).close();
 				}
 			}
@@ -109,8 +109,7 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			MessageClientOperations.class,
-			new MessageClientOperations() {
+			MessageClientOperations.class, new MessageClientOperations() {
 
 				@Override
 				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient messageClient, final String topic, final String message) throws FrameworkException {
@@ -120,19 +119,18 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 					getSuper().sendMessage(actionContext, client, topic, message);
 
 					if (client.getServers() == null || client.getServers().length == 0) {
+
 						return new RestMethodResult(400, "PulsarClient " + client.getUuid() + " has no servers specified");
 					}
 
 					try (PulsarClient pulsarClient = PulsarClient.builder()
 						.serviceUrl(String.join(",", client.getServers()))
-						.build()
-					) {
+						.build()) {
 
 						try (Producer<byte[]> producer = pulsarClient.newProducer()
 							.topic(topic)
 							.messageRoutingMode(MessageRoutingMode.SinglePartition)
-							.create()
-						) {
+							.create()) {
 
 							producer.send(message.getBytes());
 
@@ -142,17 +140,20 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 					} catch (PulsarClientException ex) {
 
 						LoggerFactory.getLogger(PulsarClientTraitDefinition.class).error("Exception in PulsarClient.sendMessage.", ex);
+
 						return new RestMethodResult(500);
 					}
 				}
 
 				@Override
 				public RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
+
 					return new RestMethodResult(200);
 				}
 
 				@Override
 				public RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
+
 					return new RestMethodResult(200);
 				}
 			}
@@ -164,8 +165,7 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			org.structr.messaging.implementation.pulsar.PulsarClient.class, (traits, node) -> new PulsarClientTraitWrapper(traits, node)
-		);
+			org.structr.messaging.implementation.pulsar.PulsarClient.class, (traits, node) -> new PulsarClientTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -174,29 +174,18 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String[]> serversProperty = new ArrayProperty(SERVERS_PROPERTY, String.class);
 		final Property<Boolean> enabledProperty = new BooleanProperty(ENABLED_PROPERTY).defaultValue(false);
 
-		return newSet(
-			serversProperty,
-			enabledProperty
-		);
+		return newSet(serversProperty, enabledProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				SERVERS_PROPERTY, ENABLED_PROPERTY
-			),
-			PropertyView.Ui,
-			newSet(
-				SERVERS_PROPERTY, ENABLED_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Public, newSet(SERVERS_PROPERTY, ENABLED_PROPERTY), PropertyView.Ui, newSet(SERVERS_PROPERTY, ENABLED_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

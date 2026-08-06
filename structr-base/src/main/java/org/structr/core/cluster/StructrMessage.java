@@ -33,6 +33,7 @@ public class StructrMessage implements Serializable {
 	private Object payload = null;
 
 	public StructrMessage(final String type) {
+
 		this(type, null);
 	}
 
@@ -43,14 +44,17 @@ public class StructrMessage implements Serializable {
 	}
 
 	public String getType() {
+
 		return this.type;
 	}
 
 	public Object getRawPayload() {
+
 		return this.payload;
 	}
 
 	public List getPayloadAsList() {
+
 		return (List)this.payload;
 	}
 }

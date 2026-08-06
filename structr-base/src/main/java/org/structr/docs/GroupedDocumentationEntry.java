@@ -41,8 +41,8 @@ public class GroupedDocumentationEntry extends DocumentationEntry {
 		if (additionalInfo.length > 0) {
 
 			final String category = additionalInfo[0];
-
 			List<String> list = linesPerCategory.get(category);
+
 			if (list == null) {
 
 				list = new LinkedList<>();
@@ -70,6 +70,7 @@ public class GroupedDocumentationEntry extends DocumentationEntry {
 		final List<String> result = new LinkedList<>(lines);
 
 		for (final List<String> lines : linesPerCategory.values()) {
+
 			result.addAll(lines);
 		}
 

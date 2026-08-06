@@ -210,7 +210,6 @@ public class PropertyViewTest extends StructrUiTest {
 		testDelete(resource, "", "",                                401);
 		testDelete(resource, username, password,                    401);
 
-
 	}
 
 	@Test
@@ -258,7 +257,6 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("Page/_Ui", 1, false);
 		grant("Page/_Html", 1, false);
 
-
 		// create entity
         final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
         final Date testDate = new Date(112, 9, 18, 0, 33, 2);
@@ -276,8 +274,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.statusCode(201)
 
 			.when()
-				.post(resource).getHeader("Location")
-		);
+				.post(resource).getHeader("Location"));
 
 		// test default view with properties in it
 		RestAssured
@@ -339,7 +336,6 @@ public class PropertyViewTest extends StructrUiTest {
 
 			.when()
 				.get(resource + "/all");
-
 
 		// test ui view
 		RestAssured

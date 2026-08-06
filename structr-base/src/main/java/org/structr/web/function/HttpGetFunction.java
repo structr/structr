@@ -52,6 +52,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "GET";
 	}
 
@@ -88,8 +89,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 						contentType = ct.getMimeType();
 
 						final Charset cs = ct.getCharset();
-
 						if (cs != null) {
+
 							charset = cs.toString();
 						}
 
@@ -104,18 +105,17 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				}
 
 				final Map<String, Object> responseData;
+
 				if ("text/html".equals(contentType)) {
 
 					responseData = HttpHelper.get(address, charset, ctx.getHeaders(), ctx.isValidateCertificates());
 
 					String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
-
 					final Document doc = Jsoup.parse(body);
 
 					if (sources.length > 2) {
 
 						Elements elements = doc.select(sources[2].toString());
-
 						if (elements.size() > 1) {
 
 							final List<String> parts = new ArrayList<>();
@@ -137,12 +137,14 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 						response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), doc.html());
 					}
+
 				} else if ("application/octet-stream".equals(contentType)) {
 
 					// Stream binary data instead of buffering into byte[] to avoid the 2 GB limit
 					responseData = getStreamFromUrl(ctx, address, charset, username, password);
 
 					response.setProperty(new GenericProperty<InputStream>(HttpHelper.FIELD_BODY), (InputStream) responseData.get(HttpHelper.FIELD_BODY));
+
 				} else {
 
 					responseData = getFromUrl(ctx, address, charset, username, password);
@@ -160,9 +162,11 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				}
 
 				return response;
+
 			} catch (IllegalArgumentException e) {
 
 				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 				return usage(ctx.isJavaScriptContext());
 			}
 			
@@ -199,6 +203,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${GET(URL[, contentType[, username, password]])}. Example: ${GET('http://structr.org', 'text/html')}"),
 			Usage.javaScript("Usage: ${{$.GET(URL[, contentType[, username, password]])}}. Example: ${{$.GET('http://structr.org', 'text/html')}}")
@@ -207,11 +212,13 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends an HTTP GET request to the given URL and returns the response headers and body.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function can be used in a script to make an HTTP GET request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
@@ -268,6 +275,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"From version 3.5 onwards, GET() supports binary content by setting the `contentType` parameter to `application/octet-stream`. (This is helpful when creating files - see examples.)",
 			"v4.0+: `contentType` can be used like the `Content-Type` header - to set the **expected** response mime type and to set the `charset` with which the response will be interpreted (**unless** the server sends provides a charset, then this charset will be used).",
@@ -280,6 +288,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

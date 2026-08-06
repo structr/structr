@@ -59,11 +59,13 @@ public class IncludeFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "include";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name [, collection, dataKey]");
 	}
 
@@ -81,7 +83,6 @@ public class IncludeFunction extends UiCommunityFunction {
 
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-
 			RenderContext innerCtx = null;
 			boolean useBuffer      = false;
 
@@ -97,6 +98,7 @@ public class IncludeFunction extends UiCommunityFunction {
 			}
 
 			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+
 				innerCtx.getBuffer().append("<structr:include data-caller-id=\"").append(caller.toString()).append("\">");
 			}
 
@@ -122,17 +124,20 @@ public class IncludeFunction extends UiCommunityFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${include(name [, collection, dataKey])}. Example: ${include('Main Template')}"),
 			Usage.javaScript("Usage: ${{ $.include(name); }}. Example: ${{ $.include('Main Template'); }}")
@@ -141,11 +146,13 @@ public class IncludeFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Loads the element with the given name and renders its HTML representation into the output buffer.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
 		
@@ -212,6 +219,7 @@ public class IncludeFunction extends UiCommunityFunction {
 				if (contentType == null || StringUtils.isBlank(extension)) {
 
 					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", name, getParametersAsString(sources));
+
 					return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
 				}
 
@@ -229,6 +237,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 						final byte[] buffer = new byte[Long.valueOf(StorageProviderFactory.getStorageProvider(file).size()).intValue()];
 						IOUtils.read(is, buffer);
+
 						return StringUtils.toEncodedString(buffer, Charset.forName(charset));
 
 					} catch (IOException ex) {
@@ -247,6 +256,7 @@ public class IncludeFunction extends UiCommunityFunction {
 				} else {
 
 					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", name, getParametersAsString(sources));
+
 					return "Don't know how to render content type or extension of  " + name + ".";
 
 				}
@@ -254,17 +264,20 @@ public class IncludeFunction extends UiCommunityFunction {
 		}
 
 		if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+
 			innerCtx.getBuffer().append("</structr:include>");
 		}
 
 		if (useBuffer) {
 
 			// output was written to RenderContext async buffer
+
 			return null;
 
 		} else {
 
 			// output needs to be returned as a function result
+
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 		}
 	}
@@ -303,6 +316,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 					// ERROR: we have found multiple DOMNodes with the same name
 					logger.warn(getName() + "(): Ambiguous node name '" + name + "' (" + StringUtils.join(nodeList, ", ") + ")");
+
 					return null;
 				}
 			}
@@ -313,6 +327,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

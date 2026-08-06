@@ -48,13 +48,13 @@ import java.io.IOException;
 
 import static org.testng.AssertJUnit.fail;
 
-
 public class BasicAuthTest extends StructrUiTest {
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
 	public void setup(@Optional String testDatabaseConnection) {
+
 		super.setup(testDatabaseConnection);
 		Settings.HttpBasicAuthEnabled.setValue(true);
 	}
@@ -90,6 +90,7 @@ public class BasicAuthTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -108,7 +109,6 @@ public class BasicAuthTest extends StructrUiTest {
 
 		// 5. Status Code + script realm + current object for page + request parameter
 		RestAssured.expect().statusCode(401).header("WWW-Authenticate", "BASIC realm=\"Enter password for test3\"").when().get("/test3/" + userUUID + "?hacks=areReal");
-
 
 		// test successful basic auth
 		RestAssured
@@ -136,9 +136,9 @@ public class BasicAuthTest extends StructrUiTest {
 
 			final NodeInterface file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", StructrTraits.FILE, "test1.txt", true);
 			final NodeInterface file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", StructrTraits.FILE, "test2.txt", true);
-
 			final NodeInterface folder1 = FileHelper.createFolderPath(securityContext, "/myFolder");
 			final NodeInterface file3 = FileHelper.createFile(securityContext, "test3".getBytes(), "text/plain", StructrTraits.FILE, "test3.txt", true);
+
 			file3.as(File.class).setParent(folder1.as(Folder.class));
 
 			final NodeInterface file4 = FileHelper.createFile(securityContext, "You said '${request.message}' and your name is '${me.name}'.".getBytes(), "text/plain", StructrTraits.FILE, "test4.txt", true);
@@ -165,6 +165,7 @@ public class BasicAuthTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -235,6 +236,7 @@ public class BasicAuthTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -247,7 +249,6 @@ public class BasicAuthTest extends StructrUiTest {
 		RestAssured
 			.expect().statusCode(401).header("WWW-Authenticate", "BASIC realm=\"realm\"").body("html.head.title", Matchers.equalTo("Error")).body("html.body.h1", Matchers.equalTo("Error")).body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when().get("/html/test2");
-
 
 		// test successful basic auth
 		RestAssured
@@ -287,6 +288,7 @@ public class BasicAuthTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException | IOException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -299,7 +301,6 @@ public class BasicAuthTest extends StructrUiTest {
 		RestAssured
 			.expect().statusCode(401).header("WWW-Authenticate", "BASIC realm=\"realm\"").body("html.head.title", Matchers.equalTo("Error")).body("html.body.h1", Matchers.equalTo("Error")).body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when().get("test2.txt");
-
 
 		// test successful basic auth
 		RestAssured
@@ -334,6 +335,7 @@ public class BasicAuthTest extends StructrUiTest {
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
+
 				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
@@ -354,6 +356,7 @@ public class BasicAuthTest extends StructrUiTest {
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
+
 				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			} catch (FrameworkException fex) {}

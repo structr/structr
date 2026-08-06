@@ -27,21 +27,24 @@ public class LogMessageSupplier implements Supplier<String> {
 	private final Object[] parameters;
 
 	public LogMessageSupplier (final String msg, final Object[] parameters) {
+
 		this.msg = msg;
 		this.parameters = parameters;
 	}
 
 	public static LogMessageSupplier create (final String msg, final Object[] parameters) {
+
 		return new LogMessageSupplier(msg, parameters);
 	}
 
 	public static LogMessageSupplier create (final String msg, final Object parameter1) {
+
 		return new LogMessageSupplier(msg, new Object[] { parameter1 });
 	}
 
-
 	@Override
 	public String get() {
+
 		return MessageFormat.format(this.msg, this.parameters);
 	}
 

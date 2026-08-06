@@ -43,11 +43,13 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "revoke";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("user, node, permissions");
 	}
 
@@ -94,12 +96,14 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 						} else {
 
 							logParameterError(caller, sources, "Unknown permission \"" + trimmedPart + "\"!", ctx.isJavaScriptContext());
+
 							return null;
 						}
 					}
 				}
 
 				if (permissions.size() > 0) {
+
 					node.as(AccessControllable.class).revoke(permissions, principal.as(Principal.class), ctx.getSecurityContext());
 				}
 			}
@@ -118,19 +122,19 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${revoke(principal, node, permissions)}"),
-			Usage.javaScript("Usage: ${{ $.revoke(principal, node, permissions) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${revoke(principal, node, permissions)}"), Usage.javaScript("Usage: ${{ $.revoke(principal, node, permissions) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Revokes the given permissions on the given entity from a user.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function modifies the security relationship between the first two parameters.
 		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`.
@@ -143,6 +147,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${revoke(user, node1, 'read')}
@@ -161,6 +166,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("principal", "User or Group node"),
 				Parameter.mandatory("node", "node to revoke permissions"),
@@ -170,6 +176,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

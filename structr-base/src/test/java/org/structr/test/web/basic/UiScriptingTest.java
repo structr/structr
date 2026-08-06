@@ -331,6 +331,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create list of 100 folders
 			final List<NodeInterface> folders = new LinkedList<>();
+
 			for (int i=0; i<100; i++) {
 
 				folders.add(createTestNode(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StructrTraits.FOLDER + i)));
@@ -387,6 +388,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create list of 100 folders
 			final List<NodeInterface> folders = new LinkedList<>();
+
 			for (int i=0; i<100; i++) {
 
 				folders.add(createTestNode(StructrTraits.FOLDER,
@@ -536,7 +538,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// setup shared component with name "table" to include
 			final ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
-
 			final DOMElement item = shadowDoc.createElement("div");
 			final Content txt     = shadowDoc.createTextNode("${test.name}");
 
@@ -707,7 +708,6 @@ public class UiScriptingTest extends StructrUiTest {
 			assertEquals("Result is of invalid type",                   ArrayList.class, result.getClass());
 			assertEquals("Script in user context should not see admin", 0, ((List)result).size());
 
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -830,7 +830,6 @@ public class UiScriptingTest extends StructrUiTest {
 			assertEquals("Invalid result for $.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
 			assertEquals("Invalid result for $.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"name\": \"admin\",\n\t\"isUser\": true\n}", result3);
 			assertEquals("Invalid result for $.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"name\": \"admin\",\n\t\t\"isUser\": true\n\t}\n]", result4);
-
 
 			// test parity with JSON.stringify
 			{
@@ -1074,9 +1073,7 @@ public class UiScriptingTest extends StructrUiTest {
 									+ "	if (b4) { log += 'b4 is true,'; }\n"
 									+ "	if (!b4) { log += 'b4 is false,'; }\n"
 									+ "	test.log = log;\n"
-									+ "}"
-					)
-			);
+									+ "}"));
 
 			tx.success();
 
@@ -1177,8 +1174,7 @@ public class UiScriptingTest extends StructrUiTest {
 							"${{ ($.eq($.tenantIdentifier,       $.get('tenantIdentifier')))  ? 'T' : 't'; }}" +
 							"${{ ($.eq($.tenant_identifier,      $.get('tenant_identifier'))) ? 'U' : 'u'; }}" +
 							"${{ ($.eq($.request.myParam,        'myValue'))                  ? 'V' : 'v'; }}" +
-							"${{ ($.eq($.get('request').myParam, 'myValue'))                  ? 'W' : 'w'; }}"
-			);
+							"${{ ($.eq($.get('request').myParam, 'myValue'))                  ? 'W' : 'w'; }}");
 
 			// create admin user
 			final User user = createAdminUser().as(User.class);
@@ -1220,7 +1216,6 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Object result = ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptQuirksDuckTypingNumericalMapIndexConversion.js"));
-
 			final String expectedResult = "{\n\t\"24\": \"jack bauer\"\n}";
 
 			assertEquals("Result should be a JSON string! Maps with numerical indexes should work.", expectedResult, result);
@@ -1241,6 +1236,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			for (int i=14; i>=0; i--) {
+
 				app.create("TestOne", new NodeAttribute<>(Traits.of("TestOne").key("aString"), "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
 			}
 
@@ -1280,6 +1276,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1325,6 +1322,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Object hasntValueWrapper = Actions.execute(securityContext, null, "${application_store_has('testHasnt')}","Probe missing key");
 			boolean hasValue   = ((Boolean) hasValueWrapper).booleanValue();
 			boolean hasntValue = ((Boolean) hasntValueWrapper).booleanValue();
+
 			assertTrue("ApplicationStore I/O failure, written key not present", hasValue);
 			assertFalse("ApplicationStore I/O failure, not written key present", hasntValue);
 
@@ -1339,11 +1337,13 @@ public class UiScriptingTest extends StructrUiTest {
 			Actions.execute(securityContext, null, "${application_store_put('testPut', 0)}","Store test value");
 			Object initialValueWrapper = Actions.execute(securityContext, null, "${application_store_get('testPut')}","Retrieve test key");
 			int initialValue = ((Double) initialValueWrapper).intValue();
+
 			assertEquals("ApplicationStore I/O failure, written key wrong value", initialValue, 0);
 
 			Actions.execute(securityContext, null, "${application_store_put('testPut', 1)}","Store test value");
 			Object overwrittenValueWrapper = Actions.execute(securityContext, null, "${application_store_get('testPut')}","Retrieve test key");
 			int overwrittenValue = ((Double) overwrittenValueWrapper).intValue();
+
 			assertEquals("ApplicationStore I/O failure, overwritten key wrong value", overwrittenValue, 1);
 
 		} catch (FrameworkException e) {
@@ -1359,6 +1359,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			Object deletedValueWrapper = Actions.execute(securityContext, null, "${application_store_has('testDelete')}","Probe deleted key");
 			boolean deletedValue = ((Boolean) deletedValueWrapper).booleanValue();
+
 			assertFalse("ApplicationStore I/O failure, deleted key present", deletedValue);
 
 		} catch (FrameworkException e) {
@@ -1375,7 +1376,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 			Object getKeysValueWrapper = Actions.execute(securityContext, null, "${application_store_get_keys('testDelete')}","Probe deleted key");
 			Set<String> getKeysValue = (Set<String>) getKeysValueWrapper;
-
 			Set<String> expectedKeySet = new HashSet<String>(Arrays.asList(new String[]{"getKeys1", "getKeys2"}));
 
 			assertTrue("ApplicationStore I/O failure, missing keys in key set", getKeysValue.containsAll(expectedKeySet));
@@ -1413,16 +1413,17 @@ public class UiScriptingTest extends StructrUiTest {
 				final Object readOne   = Scripting.evaluate(ctx, null, "${applicationStore.one}", "application store read one");
 				final Object readTwo   = Scripting.evaluate(ctx, null, "${applicationStore.two}", "application store read two");
 				final Object readThree = Scripting.evaluate(ctx, null, "${applicationStore.three}", "application store read three");
+
 				assertEquals("Application store i/o error, wrote 1, read " + readOne, readOne, 1);
 				assertEquals("Application store i/o error, wrote 2, read " + readTwo, readTwo, 2);
 				assertEquals("Application store i/o error, wrote 3, read " + readThree, readThree, 3);
 			}
 
-
 			{
 				final Object readOne   = Scripting.evaluate(ctx, null, "${application_store.one}", "application store read one");
 				final Object readTwo   = Scripting.evaluate(ctx, null, "${application_store.two}", "application store read two");
 				final Object readThree = Scripting.evaluate(ctx, null, "${application_store.three}", "application store read three");
+
 				assertEquals("Application store i/o error, wrote 1, read " + readOne, readOne, 1);
 				assertEquals("Application store i/o error, wrote 2, read " + readTwo, readTwo, 2);
 				assertEquals("Application store i/o error, wrote 3, read " + readThree, readThree, 3);
@@ -1447,8 +1448,8 @@ public class UiScriptingTest extends StructrUiTest {
 			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
 			Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 			Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
-
 			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } $.session['test']; }}";
+
 			template1.setContent(script);
 			template2.setContent(script);
 
@@ -1491,7 +1492,6 @@ public class UiScriptingTest extends StructrUiTest {
 		final String test2PageName = "test_javascript_output_order_print_include_child";
 		final String test3PageName = "test_structrscript_output_order_print_render";
 		final String test4PageName = "test_structrscript_output_order_print_include_child";
-
 		final PropertyKey<String> namePropertyKey             = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final PropertyKey<Boolean> visibleToPublicPropertyKey = Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 
@@ -1579,6 +1579,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 
@@ -1640,6 +1641,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 		}
 
@@ -1762,7 +1764,6 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType project    = schema.addType("Project");
 			final JsonObjectType task       = schema.addType("Task");
 
@@ -1795,6 +1796,7 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			for (int i=0; i<5; i++) {
+
 				app.create(taskType, "Task " + i);
 			}
 
@@ -1814,6 +1816,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1825,6 +1828,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -1838,6 +1842,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -1853,11 +1858,15 @@ public class UiScriptingTest extends StructrUiTest {
 			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
 
 			try {
+
 				System.out.println(Scripting.evaluate(ctx, null, "${python{Structr.print(Structr.get('me').id)}}", "test"));
+
 			} catch (FrameworkException ex) {
+
 				if (ex.getMessage().contains("Exception while trying to initialize new context for language: python. Cause: A language with id 'python' is not installed.")) {
 
 					logger.warn("Python not installed. Skipping python tests.");
+
 				} else {
 
 					throw ex;
@@ -1890,6 +1899,7 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			// Gives scheduled tasks a moment to process
 			Thread.sleep(1000);
 
@@ -1897,16 +1907,17 @@ public class UiScriptingTest extends StructrUiTest {
 			assertTrue(storeResult != null && (boolean)storeResult);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
+
 		} catch (InterruptedException ex) {
 
 			fail("Test was interrupted");
 		}
 
 	}
-
 
 	@Test
 	public void testMethodLookup() {
@@ -2027,6 +2038,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2051,7 +2063,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// wait some time
 		try {
+
 			Thread.sleep(1000);
+
 		} catch (Throwable t) {
 		}
 
@@ -2065,11 +2079,11 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
-
 
 	@Test
 	public void testSetPrivilegedInOnSave() {
@@ -2093,6 +2107,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2139,6 +2154,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2161,8 +2177,6 @@ public class UiScriptingTest extends StructrUiTest {
 			final String jsRetrieval = "{ return $.getSessionAttribute('KEY'); }";
 			// StructrScript retrieval
 			final String strsRetrieval = "getSessionAttribute('KEY')";
-
-
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.addType("SessionTest");
 
@@ -2175,6 +2189,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2244,7 +2259,9 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 	// ----- private methods -----
 	private String getEncodingInUse() {
+
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
+
 		return writer.getEncoding();
 	}
 
@@ -2265,7 +2282,6 @@ public class UiScriptingTest extends StructrUiTest {
 		// Creates a file with content, zips and unzips to root and to target folder and verify the content of the file.
 
 		final String content = "Example Test Content String";
-
 		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
 
 		try (final Tx tx = app.tx()) {
@@ -2290,10 +2306,10 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -2309,6 +2325,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2328,6 +2345,7 @@ public class UiScriptingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2337,171 +2355,205 @@ public class UiScriptingTest extends StructrUiTest {
 
 		@Override
 		public String getAuthType() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Cookie[] getCookies() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public long getDateHeader(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getHeader(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Enumeration<String> getHeaders(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Enumeration<String> getHeaderNames() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public int getIntHeader(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getMethod() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getPathInfo() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getPathTranslated() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getContextPath() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getQueryString() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getRemoteUser() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isUserInRole(String role) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public java.security.Principal getUserPrincipal() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getRequestedSessionId() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getRequestURI() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public StringBuffer getRequestURL() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getServletPath() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public HttpSession getSession(boolean create) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public HttpSession getSession() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String changeSessionId() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isRequestedSessionIdValid() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isRequestedSessionIdFromCookie() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isRequestedSessionIdFromURL() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean authenticate(HttpServletResponse httpServletResponse) throws IOException, ServletException {
+
 			return false;
 		}
 
 		@Override
 		public void login(String username, String password) throws ServletException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void logout() throws ServletException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Collection<Part> getParts() throws IOException, ServletException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Part getPart(String name) throws IOException, ServletException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass) throws IOException, ServletException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Object getAttribute(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Enumeration<String> getAttributeNames() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getCharacterEncoding() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
@@ -2512,176 +2564,211 @@ public class UiScriptingTest extends StructrUiTest {
 
 		@Override
 		public int getContentLength() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public long getContentLengthLong() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getContentType() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public ServletInputStream getInputStream() throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getParameter(String s) {
+
 			return null;
 		}
 
 		@Override
 		public Enumeration<String> getParameterNames() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String[] getParameterValues(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Map<String, String[]> getParameterMap() {
+
 			return new HashMap<>();
 		}
 
 		@Override
 		public String getProtocol() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getScheme() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getServerName() {
+
 			return "localhost";
 		}
 
 		@Override
 		public int getServerPort() {
+
 			return 12345;
 		}
 
 		@Override
 		public BufferedReader getReader() throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getRemoteAddr() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getRemoteHost() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setAttribute(String name, Object o) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void removeAttribute(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Locale getLocale() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Enumeration<Locale> getLocales() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isSecure() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public RequestDispatcher getRequestDispatcher(String path) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public int getRemotePort() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getLocalName() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getLocalAddr() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public int getLocalPort() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public ServletContext getServletContext() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public AsyncContext startAsync() throws IllegalStateException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isAsyncStarted() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isAsyncSupported() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public AsyncContext getAsyncContext() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public DispatcherType getDispatcherType() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getRequestId() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getProtocolRequestId() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public ServletConnection getServletConnection() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 	}
@@ -2690,171 +2777,205 @@ public class UiScriptingTest extends StructrUiTest {
 
 		@Override
 		public void addCookie(Cookie cookie) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean containsHeader(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String encodeURL(String url) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String encodeRedirectURL(String url) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void sendError(int sc, String msg) throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void sendError(int sc) throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void sendRedirect(String location) throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setDateHeader(String name, long date) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void addDateHeader(String name, long date) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setHeader(String name, String value) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void addHeader(String name, String value) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setIntHeader(String name, int value) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void addIntHeader(String name, int value) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setStatus(int sc) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public int getStatus() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getHeader(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Collection<String> getHeaders(String name) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Collection<String> getHeaderNames() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getCharacterEncoding() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public String getContentType() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public ServletOutputStream getOutputStream() throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public PrintWriter getWriter() throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setCharacterEncoding(String charset) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setContentLength(int len) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setContentLengthLong(long len) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setContentType(String type) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setBufferSize(int size) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public int getBufferSize() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void flushBuffer() throws IOException {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void resetBuffer() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public boolean isCommitted() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void reset() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public void setLocale(Locale loc) {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
 		@Override
 		public Locale getLocale() {
+
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 	}

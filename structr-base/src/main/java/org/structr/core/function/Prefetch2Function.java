@@ -36,16 +36,19 @@ public class Prefetch2Function extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "prefetch2";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Prefetches a subgraph using a query that returns explicit node and relationship collections.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				The cypher query must return a collection of nodes `AS nodes` and a list of relationships between them `AS rels`.
 				Optionally, an `$id` parameter can be used to make the query more specific.
@@ -60,6 +63,7 @@ public class Prefetch2Function extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("query, listOfOutgoingKeys, listOfIncomingKeys [, id]");
 	}
 
@@ -89,6 +93,7 @@ public class Prefetch2Function extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 						${{
@@ -118,6 +123,7 @@ public class Prefetch2Function extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

@@ -56,6 +56,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	public static String PARAMETER_SHADOWS_ORIGINAL_VALUE_WARNING     = "Parameter '_%s' conflicts with the original value of parameter '%s'. It is recommended to choose a different name.";
 
 	public PagePathTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -73,6 +74,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 	@Override
 	public Integer getPriority() {
+
 		return wrappedObject.getProperty(traits.key(PagePathTraitDefinition.PRIORITY_PROPERTY));
 	}
 
@@ -84,13 +86,12 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 		return Iterables.map(n -> n.as(PagePathParameter.class), wrappedObject.getProperty(key));
 	}
 
-
 	@Override
 	public String[] getWarnings() {
 
 		final String[] warnings = wrappedObject.getProperty(traits.key(PagePathTraitDefinition.WARNINGS_PROPERTY));
-
 		if (warnings == null) {
+
 			return new String[0];
 		}
 
@@ -125,7 +126,6 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 				if (pathParameterMatcher.find()) {
 
 					final String paramName = pathParameterMatcher.group(1);
-
 					if (names.contains(paramName)) {
 
 						warnings.add(DUPLICATE_PARAMETER_WARNING.formatted(paramName));
@@ -149,6 +149,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 			}
 
 			int count = 0;
+
 			for (final String parameterName : names) {
 
 				toRemove.remove(parameterName);
@@ -174,6 +175,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 			// remove parameters that are no longer present in the list
 			for (final String parameterName : toRemove) {
+
 				app.delete(parameters.get(parameterName));
 			}
 
@@ -182,7 +184,6 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 				// check for catch-all
 				{
 					final String staticPathElements = PATH_PARAMETER_PATTERN.matcher(path).replaceAll("").replaceAll("/", "");
-
 					final List<PagePathParameter> pathParameters = Iterables.toList(getParameters());
 					final boolean hasAnyMandatoryParameter       = pathParameters.stream().anyMatch(PagePathParameter::getIsRequired);
 
@@ -220,10 +221,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		this.setProperty(this.getTraits().key(PagePathTraitDefinition.WARNINGS_PROPERTY), warnings.toArray(new String[0]));
 
-		return Map.of(
-				"parameters", sortedParameters,
-				"warnings", warnings
-		);
+		return Map.of("parameters", sortedParameters, "warnings", warnings);
 	}
 
 	@Override
@@ -256,11 +254,12 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	public Map<String, Object> tryResolvePath(final SecurityContext securityContext, final String[] requestParts) {
 
 		final Map<String, Object> arguments = new LinkedHashMap<>();
-
 		String path = getName();
+
 		if (path != null) {
 
 			if (path.startsWith("/")) {
+
 				path = path.substring(1);
 			}
 
@@ -277,11 +276,11 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 				if (pathMatcher.find()) {
 
 					final String valueCapturePatternSource = PATH_PARAMETER_PATTERN.matcher(pathPart).replaceAll(result -> {
-
 						final String key                  = result.group(1);
 						final PagePathParameter parameter = parameters.get(key);
 
 						if (parameter != null && parameter.getIsRequired()) {
+
 							return "(.+)";
 						}
 
@@ -328,13 +327,11 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 								if (converted == null) {
 
 									boolean rawValueMissing = (rawValue == null || rawValue.isEmpty());
-
 									if (rawValueMissing || (inputInvalid && parameter.getUseDefaultIfInvalid())) {
 
 										try {
 
 											final String defaultValue = parameter.getDefaultValue();
-
 											if (defaultValue != null && !defaultValue.isEmpty()) {
 
 												converted = parameter.convert(securityContext, defaultValue);
@@ -365,6 +362,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 					if (!pathPart.equals(requestPart)) {
 
 						// no match, return early
+
 						return null;
 					}
 				}
@@ -400,7 +398,6 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 		if (array.length > index) {
 
 			final String value = array[index];
-
 			if (!value.isEmpty()) {
 
 				return value;

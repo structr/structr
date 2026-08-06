@@ -47,11 +47,13 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "importCss";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("file");
 	}
 
@@ -63,8 +65,8 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 			final File file = n.as(File.class);
-
 			if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
+
 				return null;
 			}
 
@@ -96,6 +98,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 			} catch (final Exception e) {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return usage(ctx.isJavaScriptContext());
 			}
 		}
@@ -105,6 +108,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${importCss(file)}. Example: ${importCss(cssFile)}"),
 			Usage.javaScript("Usage: ${{ $.importCss(file) }}. Example: ${{ $.importCss(cssFile) }}")
@@ -113,16 +117,19 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Imports CSS classes, media queries etc. from given CSS file.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 
@@ -133,9 +140,10 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		final String selectorsString = StringUtils.trim(StringUtils.substringBefore(cssText, "{"));
 		final Traits traits          = Traits.of(StructrTraits.CSS_RULE);
 		final App app                = StructrApp.getInstance();
-
 		final NodeInterface existingRuleNode = app.nodeQuery(StructrTraits.CSS_RULE).name(selectorsString).getFirst();
+
 		if (existingRuleNode != null) {
+
 			return existingRuleNode;
 		}
 

@@ -40,14 +40,10 @@ import java.util.Set;
 
 public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implements SchemaMethod {
 
-	private static final Set<String> DeprecatedLifecycleMethods = Set.of(
-		"onCreation",
-		"afterCreation",
-		"onModification",
-		"afterModification"
-	);
+	private static final Set<String> DeprecatedLifecycleMethods = Set.of("onCreation", "afterCreation", "onModification", "afterModification");
 
 	public SchemaMethodTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -73,96 +69,115 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public String getStaticSchemaNodeName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
 	@Override
 	public String getSource() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY));
 	}
 
 	@Override
 	public String getSummary() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SUMMARY_PROPERTY));
 	}
 
 	@Override
 	public String getDescription() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public String getCodeType() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getOpenAPIReturnType() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getVirtualFileName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.VIRTUAL_FILE_NAME_PROPERTY));
 	}
 
 	@Override
 	public String[] getExceptions() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.EXCEPTIONS_PROPERTY));
 	}
 
 	@Override
 	public String[] getTags() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY));
 	}
 
 	@Override
 	public void setSource(final String source) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), source);
 	}
 
 	@Override
 	public boolean callSuper() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.CALL_SUPER_PROPERTY));
 	}
 
 	@Override
 	public boolean overridesExisting() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.OVERRIDES_EXISTING_PROPERTY));
 	}
 
 	@Override
 	public boolean doExport() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.DO_EXPORT_PROPERTY));
 	}
 
 	@Override
 	public boolean includeInOpenAPI() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY));
 	}
 
 	@Override
 	public boolean isStaticMethod() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
 	}
 
 	@Override
 	public boolean isPrivateMethod() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 	}
 
 	@Override
 	public boolean returnRawResult() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY));
 	}
 
 	@Override
 	public String getHttpVerb() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY));
 	}
 
@@ -171,6 +186,7 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 		for (final SchemaMethodParameter param : getParameters()) {
 
 			if (name.equals(param.getName())) {
+
 				return param;
 			}
 		}
@@ -180,11 +196,13 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public boolean wrapJsInMain() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY));
 	}
 
 	@Override
 	public boolean isJava() {
+
 		return "java".equals(getCodeType());
 	}
 
@@ -206,6 +224,7 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public boolean isLifecycleMethod() {
+
 		return getMethodType() != null;
 	}
 
@@ -227,12 +246,14 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 			if (parent.isServiceClass()) {
 
 				// prevent service classes from having lifecycle methods
+
 				return null;
 			}
 
 			if (DeprecatedLifecycleMethods.contains(methodName)) {
 
 				LoggerFactory.getLogger(getClass()).warn("Deprecation warning: method {} will NOT be treated as a lifecycle method.", methodName);
+
 				return null;
 			}
 
@@ -249,8 +270,8 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 			for (final Map.Entry<String, Class<? extends LifecycleMethod>> entry : typeBasedLifecycleMethods.entrySet()) {
 
 				final String lifecycleMethodPrefix = entry.getKey();
-
 				if (methodName.startsWith(lifecycleMethodPrefix)) {
+
 					return (Class)entry.getValue();
 				}
 			}

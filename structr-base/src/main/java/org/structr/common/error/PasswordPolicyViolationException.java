@@ -23,6 +23,7 @@ import java.util.Iterator;
 public class PasswordPolicyViolationException extends FrameworkException {
 
     public PasswordPolicyViolationException(final int status, final String message, final ErrorBuffer errorBuffer) {
+
         super(status, message, errorBuffer);
     }
 
@@ -32,13 +33,14 @@ public class PasswordPolicyViolationException extends FrameworkException {
         final ErrorBuffer errorBuffer = getErrorBuffer();
         final int status              = getStatus();
         final String message          = getMessage();
-
         StringBuilder buf = new StringBuilder();
+
         buf.append("PasswordPolicyViolationException(").append(status).append("): ").append(message);
 
         if (errorBuffer != null && !errorBuffer.getErrorTokens().isEmpty()) {
 
             buf.append(" ErrorTokens: ");
+
             for (final Iterator<ErrorToken> it = errorBuffer.getErrorTokens().iterator(); it.hasNext();) {
 
                 final ErrorToken token = it.next();
@@ -46,6 +48,7 @@ public class PasswordPolicyViolationException extends FrameworkException {
                 buf.append(token);
 
                 if (it.hasNext()) {
+
                     buf.append(", ");
                 }
             }

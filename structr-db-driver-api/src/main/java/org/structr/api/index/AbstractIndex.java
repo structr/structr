@@ -44,6 +44,7 @@ public abstract class AbstractIndex<Q extends DatabaseQuery, R extends PropertyC
 
 	@Override
 	public Iterable<R> query(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage) {
+
 		return getResult(getQuery(context, predicate, requestedPageSize, requestedPage));
 	}
 

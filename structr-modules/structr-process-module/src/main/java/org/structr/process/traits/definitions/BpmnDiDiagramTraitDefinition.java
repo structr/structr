@@ -46,15 +46,14 @@ public class BpmnDiDiagramTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EDGES_PROPERTY       = "edges";
 
 	public BpmnDiDiagramTraitDefinition() {
+
 		super(ProcessTraits.BPMN_DI_DIAGRAM);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnDiDiagram.class, (traits, node) -> new BpmnDiDiagramTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnDiDiagram.class, (traits, node) -> new BpmnDiDiagramTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -81,6 +80,7 @@ public class BpmnDiDiagramTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

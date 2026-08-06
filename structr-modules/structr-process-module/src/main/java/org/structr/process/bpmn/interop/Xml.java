@@ -48,7 +48,6 @@ final class Xml {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName())) {
 
 				return (Element) child;
@@ -71,7 +70,6 @@ final class Xml {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (isElement(child, ns, localName)) {
 
 				return (Element) child;
@@ -83,6 +81,7 @@ final class Xml {
 
 	/** All direct child elements in namespace {@code ns} with the given local name. */
 	static List<Element> childrenNS(final Element parent, final String ns, final String localName) {
+
 		return childrenAnyNS(parent, Set.of(ns), localName);
 	}
 
@@ -90,6 +89,7 @@ final class Xml {
 	static List<Element> childrenAnyNS(final Element parent, final Set<String> namespaces, final String localName) {
 
 		final List<Element> result = new ArrayList<>();
+
 		if (parent == null) {
 
 			return result;
@@ -100,7 +100,6 @@ final class Xml {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName()) && namespaces.contains(child.getNamespaceURI())) {
 
 				result.add((Element) child);
@@ -111,6 +110,7 @@ final class Xml {
 	}
 
 	private static boolean isElement(final Node node, final String ns, final String localName) {
+
 		return node.getNodeType() == Node.ELEMENT_NODE && ns.equals(node.getNamespaceURI()) && localName.equals(node.getLocalName());
 	}
 }

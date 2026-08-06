@@ -91,14 +91,15 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 						// allow to set new type
 						if (key.equals("newType")) {
+
 							key = "type";
 						}
 
 						if (node.getTraits().hasKey(key)) {
 
 							final PropertyKey propertyKey = node.getTraits().key(key);
-
 							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
+
 							if (inputConverter != null) {
 
 								try {
@@ -106,6 +107,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 									val = inputConverter.convert(entry.getValue());
 
 								} catch (FrameworkException ex) {
+
 									logger.error(ExceptionUtils.getStackTrace(ex));
 								}
 
@@ -115,10 +117,12 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 							}
 
 							try {
+
 								node.unlockSystemPropertiesOnce();
 								node.setProperty(propertyKey, val);
 
 							} catch (FrameworkException fex) {
+
 								logger.warn("Unable to set node property {} of node {} to {}: {}", propertyKey, node.getUuid(), val, fex.getMessage());
 
 							}
@@ -131,15 +135,16 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 			@Override
 			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
+
 				logger.warn("Unable to set properties of node {}: {}", node.getUuid(), t.getMessage());
 			}
 
 			@Override
 			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
 				logger.warn("Unable to set node properties: {}", t.getMessage() );
 			}
 		});
-
 
 		logger.info("Fixed {} nodes ...", count);
 		logger.info("Done");
@@ -149,32 +154,38 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "setNodeProperties";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets property values on all nodes of a given type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         All parameters except `type` and `newType` are treated as property key-value pairs to set on matching nodes.
         """;
@@ -182,41 +193,43 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("type", "Node type to modify"),
-			Parameter.optional("newType", "New value for the `type` property")
-		);
+
+		return List.of(Parameter.mandatory("type", "Node type to modify"), Parameter.optional("newType", "New value for the `type` property"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Warning: After changing the `type` property, run `createLabels` to update node labels. Otherwise, nodes may not be accessible through their new type."
-		);
+
+		return List.of("Warning: After changing the `type` property, run `createLabels` to update node labels. Otherwise, nodes may not be accessible through their new type.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

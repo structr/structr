@@ -28,10 +28,7 @@ public interface GeoCodingResult {
 
 	public enum Type {
 
-		street_number,
-		route,
-		sublocality,
-		locality,
+		street_number, route, sublocality, locality,
 		/**
 		 * Bundesland
 		 */
@@ -43,10 +40,7 @@ public interface GeoCodingResult {
 		/**
 		 * Stadt
 		 */
-		administrative_area_level_3,
-		postal_code,
-		country,
-		political
+		administrative_area_level_3, postal_code, country, political
 	}
 
 	String getAddress();

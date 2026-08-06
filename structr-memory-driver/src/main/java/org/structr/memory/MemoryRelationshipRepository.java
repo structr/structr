@@ -52,18 +52,22 @@ public class MemoryRelationshipRepository extends EntityRepository {
 	boolean disableDuplicatesCheck                             = false;
 
 	public MemoryRelationshipRepository() {
+
 		this(false);
 	}
 
 	public MemoryRelationshipRepository(final boolean disableDuplicatesCheck) {
+
 		this.disableDuplicatesCheck = disableDuplicatesCheck;
 	}
 
 	MemoryRelationship get(final MemoryIdentity id) {
+
 		return masterData.get(id);
 	}
 
 	public void clear() {
+
 		masterData.clear();
 		typeCache.clear();
 		sourceCache.clear();
@@ -95,8 +99,8 @@ public class MemoryRelationshipRepository extends EntityRepository {
 
 				final SourceNodeFilter<MemoryRelationship> s = (SourceNodeFilter<MemoryRelationship>)filter;
 				final MemoryIdentity id                      = s.getIdentity();
-
 				final Set<MemoryIdentity> set = getCacheForSource(id, false);
+
 				if (set != null) {
 
 					return Iterables.filter(r -> r != null, Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set)));
@@ -109,8 +113,8 @@ public class MemoryRelationshipRepository extends EntityRepository {
 
 				final TargetNodeFilter<MemoryRelationship> s = (TargetNodeFilter<MemoryRelationship>)filter;
 				final MemoryIdentity id                      = s.getIdentity();
-
 				final Set<MemoryIdentity> set = getCacheForTarget(id, false);
+
 				if (set != null) {
 
 					return Iterables.filter(r -> r != null, Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set)));
@@ -124,12 +128,14 @@ public class MemoryRelationshipRepository extends EntityRepository {
 	}
 
 	boolean contains(final MemoryIdentity id) {
+
 		return masterData.containsKey(id);
 	}
 
 	void add(final Iterable<MemoryRelationship> newData) {
 
 		for (final MemoryRelationship relationship : newData) {
+
 			add(relationship);
 		}
 	}
@@ -142,6 +148,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 		if (!disableDuplicatesCheck) {
 
 			if (duplicatesCheckCache.contains(key)) {
+
 				throw new IllegalStateException("Duplicate relationship: " + key);
 			}
 
@@ -178,20 +185,24 @@ public class MemoryRelationshipRepository extends EntityRepository {
 			}
 
 			for (final Set<MemoryIdentity> cache : typeCache.values()) {
+
 				cache.removeAll(ids);
 			}
 
 			for (final Set<MemoryIdentity> cache : sourceCache.values()) {
+
 				cache.removeAll(ids);
 			}
 
 			for (final Set<MemoryIdentity> cache : targetCache.values()) {
+
 				cache.removeAll(ids);
 			}
 		}
 	}
 
 	void updateCache(final MemoryRelationship relationship) {
+
 		// relationship type cannot be changed => no-op
 	}
 
@@ -203,7 +214,6 @@ public class MemoryRelationshipRepository extends EntityRepository {
 			try (final ObjectInputStream in = new ObjectInputStream(getZipInputStream(dbFile))) {
 
 				final int formatVersion = in.readInt();
-
 				if (STORAGE_FORMAT_VERSION == formatVersion) {
 
 					final int relationshipCount = in.readInt();
@@ -223,6 +233,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 				}
 
 			} catch (final Throwable t) {
+
 				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
@@ -251,16 +262,19 @@ public class MemoryRelationshipRepository extends EntityRepository {
 			out.flush();
 
 		} catch (final IOException ex) {
+
 			logger.error(ExceptionUtils.getStackTrace(ex));
 		}
 	}
 
 	Map<MemoryIdentity, MemoryRelationship> getMasterData() {
+
 		return masterData;
 	}
 
 	// ----- private methods -----
 	private Set<MemoryIdentity> getCacheForType(final String type) {
+
 		return getCacheForType(type, true);
 	}
 
@@ -277,6 +291,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 	}
 
 	private Set<MemoryIdentity> getCacheForSource(final MemoryIdentity source) {
+
 		return getCacheForSource(source, true);
 	}
 
@@ -293,6 +308,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 	}
 
 	private Set<MemoryIdentity> getCacheForTarget(final MemoryIdentity target) {
+
 		return getCacheForTarget(target, true);
 	}
 
@@ -309,6 +325,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 	}
 
 	private File getRelationshipStorageFile(final File storageDirectory) {
+
 		return storageDirectory.toPath().resolve("relationships.bin.zip").toFile();
 	}
 }

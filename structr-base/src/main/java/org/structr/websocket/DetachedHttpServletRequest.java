@@ -113,7 +113,9 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 		// headers (preserve order and original names; lookups are case-insensitive)
 		final Enumeration<String> headerNames = source.getHeaderNames();
 		if (headerNames != null) {
+
 			while (headerNames.hasMoreElements()) {
+
 				final String name = headerNames.nextElement();
 				headers.put(name, Collections.list(source.getHeaders(name)));
 			}
@@ -122,7 +124,9 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 		// parameters (kept mutable: some commands add to the map, e.g. ListLocalizationsCommand)
 		final Map<String, String[]> sourceParameters = source.getParameterMap();
 		if (sourceParameters != null) {
+
 			for (final Map.Entry<String, String[]> entry : sourceParameters.entrySet()) {
+
 				parameters.put(entry.getKey(), entry.getValue() != null ? entry.getValue().clone() : null);
 			}
 		}
@@ -130,8 +134,11 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 		// cookies
 		final Cookie[] sourceCookies = source.getCookies();
 		if (sourceCookies != null) {
+
 			cookies = new Cookie[sourceCookies.length];
+
 			for (int i = 0; i < sourceCookies.length; i++) {
+
 				cookies[i] = (Cookie) sourceCookies[i].clone();
 			}
 		}
@@ -139,9 +146,12 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 		// locales
 		final Enumeration<Locale> sourceLocales = source.getLocales();
 		if (sourceLocales != null) {
+
 			locales.addAll(Collections.list(sourceLocales));
 		}
+
 		if (locales.isEmpty()) {
+
 			locales.add(Locale.getDefault());
 		}
 
@@ -184,7 +194,9 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	private List<String> findHeaders(final String name) {
 
 		for (final Map.Entry<String, List<String>> entry : headers.entrySet()) {
+
 			if (entry.getKey().equalsIgnoreCase(name)) {
+
 				return entry.getValue();
 			}
 		}
@@ -195,36 +207,43 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	// ----- ServletRequest -----
 	@Override
 	public Object getAttribute(final String s) {
+
 		return attributes.get(s);
 	}
 
 	@Override
 	public Enumeration<String> getAttributeNames() {
+
 		return Collections.enumeration(attributes.keySet());
 	}
 
 	@Override
 	public String getCharacterEncoding() {
+
 		return characterEncoding;
 	}
 
 	@Override
 	public void setCharacterEncoding(final String s) {
+
 		this.characterEncoding = s;
 	}
 
 	@Override
 	public int getContentLength() {
+
 		return (contentLength > Integer.MAX_VALUE) ? -1 : (int) contentLength;
 	}
 
 	@Override
 	public long getContentLengthLong() {
+
 		return contentLength;
 	}
 
 	@Override
 	public String getContentType() {
+
 		return contentType;
 	}
 
@@ -237,11 +256,13 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 
 			@Override
 			public boolean isFinished() {
+
 				return true;
 			}
 
 			@Override
 			public boolean isReady() {
+
 				return true;
 			}
 
@@ -251,6 +272,7 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 
 			@Override
 			public int read() throws IOException {
+
 				return in.read();
 			}
 		};
@@ -258,172 +280,209 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getParameter(final String key) {
+
 		final String[] values = parameters.get(key);
+
 		return (values != null && values.length > 0) ? values[0] : null;
 	}
 
 	@Override
 	public Enumeration<String> getParameterNames() {
+
 		return Collections.enumeration(parameters.keySet());
 	}
 
 	@Override
 	public String[] getParameterValues(final String s) {
+
 		return parameters.get(s);
 	}
 
 	@Override
 	public Map<String, String[]> getParameterMap() {
+
 		return parameters;
 	}
 
 	@Override
 	public String getProtocol() {
+
 		return protocol;
 	}
 
 	@Override
 	public String getScheme() {
+
 		return scheme;
 	}
 
 	@Override
 	public String getServerName() {
+
 		return serverName;
 	}
 
 	@Override
 	public int getServerPort() {
+
 		return serverPort;
 	}
 
 	@Override
 	public BufferedReader getReader() throws IOException {
+
 		return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(new byte[0]), StandardCharsets.UTF_8));
 	}
 
 	@Override
 	public String getRemoteAddr() {
+
 		return remoteAddr;
 	}
 
 	@Override
 	public String getRemoteHost() {
+
 		return remoteHost;
 	}
 
 	@Override
 	public void setAttribute(final String s, final Object o) {
+
 		if (o == null) {
+
 			attributes.remove(s);
+
 		} else {
+
 			attributes.put(s, o);
 		}
 	}
 
 	@Override
 	public void removeAttribute(final String s) {
+
 		attributes.remove(s);
 	}
 
 	@Override
 	public Locale getLocale() {
+
 		return locales.get(0);
 	}
 
 	@Override
 	public Enumeration<Locale> getLocales() {
+
 		return Collections.enumeration(locales);
 	}
 
 	@Override
 	public boolean isSecure() {
+
 		return secure;
 	}
 
 	@Override
 	public RequestDispatcher getRequestDispatcher(final String s) {
+
 		return null;
 	}
 
 	@Override
 	public int getRemotePort() {
+
 		return remotePort;
 	}
 
 	@Override
 	public String getLocalName() {
+
 		return localName;
 	}
 
 	@Override
 	public String getLocalAddr() {
+
 		return localAddr;
 	}
 
 	@Override
 	public int getLocalPort() {
+
 		return localPort;
 	}
 
 	@Override
 	public ServletContext getServletContext() {
+
 		return servletContext;
 	}
 
 	@Override
 	public AsyncContext startAsync() throws IllegalStateException {
+
 		throw new IllegalStateException("Async is not supported on a detached WebSocket request.");
 	}
 
 	@Override
 	public AsyncContext startAsync(final ServletRequest servletRequest, final ServletResponse servletResponse) throws IllegalStateException {
+
 		throw new IllegalStateException("Async is not supported on a detached WebSocket request.");
 	}
 
 	@Override
 	public boolean isAsyncStarted() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isAsyncSupported() {
+
 		return false;
 	}
 
 	@Override
 	public AsyncContext getAsyncContext() {
+
 		throw new IllegalStateException("Async is not supported on a detached WebSocket request.");
 	}
 
 	@Override
 	public DispatcherType getDispatcherType() {
+
 		return DispatcherType.REQUEST;
 	}
 
 	@Override
 	public String getRequestId() {
+
 		return "";
 	}
 
 	@Override
 	public String getProtocolRequestId() {
+
 		return "";
 	}
 
 	@Override
 	public ServletConnection getServletConnection() {
+
 		return null;
 	}
 
 	// ----- HttpServletRequest -----
 	@Override
 	public String getAuthType() {
+
 		return authType;
 	}
 
 	@Override
 	public Cookie[] getCookies() {
+
 		return cookies;
 	}
 
@@ -432,131 +491,161 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 
 		final String value = getHeader(s);
 		if (value == null) {
+
 			return -1;
 		}
 
 		try {
+
 			return ZonedDateTime.parse(value, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli();
+
 		} catch (final DateTimeParseException dpe) {
+
 			throw new IllegalArgumentException("Cannot parse date header: " + value);
 		}
 	}
 
 	@Override
 	public String getHeader(final String s) {
+
 		final List<String> values = findHeaders(s);
+
 		return (values != null && !values.isEmpty()) ? values.get(0) : null;
 	}
 
 	@Override
 	public Enumeration<String> getHeaders(final String s) {
+
 		final List<String> values = findHeaders(s);
+
 		return Collections.enumeration(values != null ? values : Collections.emptyList());
 	}
 
 	@Override
 	public Enumeration<String> getHeaderNames() {
+
 		return Collections.enumeration(headers.keySet());
 	}
 
 	@Override
 	public int getIntHeader(final String s) {
+
 		final String value = getHeader(s);
+
 		return (value != null) ? Integer.parseInt(value) : -1;
 	}
 
 	@Override
 	public String getMethod() {
+
 		return method;
 	}
 
 	@Override
 	public String getPathInfo() {
+
 		return pathInfo;
 	}
 
 	@Override
 	public String getPathTranslated() {
+
 		return pathTranslated;
 	}
 
 	@Override
 	public String getContextPath() {
+
 		return contextPath;
 	}
 
 	@Override
 	public String getQueryString() {
+
 		return queryString;
 	}
 
 	@Override
 	public String getRemoteUser() {
+
 		return remoteUser;
 	}
 
 	@Override
 	public boolean isUserInRole(final String s) {
+
 		return false;
 	}
 
 	@Override
 	public java.security.Principal getUserPrincipal() {
+
 		return userPrincipal;
 	}
 
 	@Override
 	public String getRequestedSessionId() {
+
 		return requestedSessionId;
 	}
 
 	@Override
 	public String getRequestURI() {
+
 		return requestURI;
 	}
 
 	@Override
 	public StringBuffer getRequestURL() {
+
 		return (requestURL != null) ? new StringBuffer(requestURL) : null;
 	}
 
 	@Override
 	public String getServletPath() {
+
 		return servletPath;
 	}
 
 	@Override
 	public HttpSession getSession(final boolean b) {
+
 		return null;
 	}
 
 	@Override
 	public HttpSession getSession() {
+
 		return null;
 	}
 
 	@Override
 	public String changeSessionId() {
+
 		throw new IllegalStateException("No session associated with a detached WebSocket request.");
 	}
 
 	@Override
 	public boolean isRequestedSessionIdValid() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isRequestedSessionIdFromCookie() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isRequestedSessionIdFromURL() {
+
 		return false;
 	}
 
 	@Override
 	public boolean authenticate(final HttpServletResponse httpServletResponse) {
+
 		return false;
 	}
 
@@ -570,16 +659,19 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public Collection<Part> getParts() {
+
 		return Collections.emptyList();
 	}
 
 	@Override
 	public Part getPart(final String s) {
+
 		return null;
 	}
 
 	@Override
 	public <T extends HttpUpgradeHandler> T upgrade(final Class<T> aClass) {
+
 		throw new UnsupportedOperationException("upgrade() is not supported on a detached WebSocket request.");
 	}
 }

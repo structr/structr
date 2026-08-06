@@ -83,6 +83,7 @@ public class CodeSourceToken extends NamedConceptListToken {
 
 				// fetch table header specification from Documentable if present
 				if (documentable.getTableHeaders() != null) {
+
 					mainConcept.getMetadata().put("table-headers", documentable.getTableHeaders());
 				}
 

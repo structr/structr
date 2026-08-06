@@ -38,6 +38,7 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 	private Property property = null;
 
 	public CustomPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 
 		final String fqcn = params.getFqcn();
@@ -57,6 +58,7 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 						if (constr != null) {
 
 							property = constr.newInstance(params.getPropertyName());
+
 							if (property != null) {
 
 								this.valueType = property.valueType().getName();
@@ -76,6 +78,7 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 							if (specialConstructor != null) {
 
 								property = specialConstructor.newInstance(params.getPropertyName(), params.getFormat());
+
 								if (property != null) {
 
 									this.valueType = property.valueType().getName();
@@ -95,21 +98,25 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 
 	@Override
 	public String getValueType() {
+
 		return valueType;
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return property;
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Custom;
 	}
 }

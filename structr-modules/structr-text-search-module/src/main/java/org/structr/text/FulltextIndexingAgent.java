@@ -76,7 +76,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 		detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 	}
 
-
 	@Override
 	public ReturnValue processTask(final Task<String> task) throws Throwable {
 
@@ -114,6 +113,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 			}
 
 			// retry
+
 			return ReturnValue.Retry;
 		}
 
@@ -122,11 +122,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 	@Override
 	public Class getSupportedTaskType() {
+
 		return FulltextIndexingTask.class;
 	}
 
 	@Override
 	protected boolean canHandleMore() {
+
 		return true;
 	}
 
@@ -179,6 +181,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 								// save raw extracted text
 								indexable.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), tokenizer.getRawText());
+
 								return true;
 							}
 						}
@@ -189,6 +192,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 				// File is not available yet because it was probably created
 				// in a separate transaction that is not yet committed.
+
 				return false;
 			}
 
@@ -203,6 +207,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 	}
 
 	private long getFileSize(final File file) {
+
 		return StorageProviderFactory.getStorageProvider(file).size();
 	}
 
@@ -219,8 +224,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 						final int langPos     = entryName.lastIndexOf("_") + 1;
 						final String language = entryName.substring(langPos, langPos + 2);
-
 						Set<String> stopwordSet = languageStopwordMap.get(language);
+
 						if (stopwordSet == null) {
 
 							stopwordSet = new LinkedHashSet<>();
@@ -229,6 +234,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 						// read stopword set
 						for (final String word : IOUtils.readLines(zis)) {
+
 							stopwordSet.add(word.trim());
 						}
 					}

@@ -44,6 +44,7 @@ public class ReviewNeedReporter extends AbstractMavenLifecycleParticipant {
 	public void afterSessionEnd(final MavenSession session) {
 
 		if (session != null && Boolean.parseBoolean(session.getUserProperties().getProperty("skipReviewNeed", "false"))) {
+
 			return;
 		}
 
@@ -51,23 +52,25 @@ public class ReviewNeedReporter extends AbstractMavenLifecycleParticipant {
 
 			final File root = session.getRequest().getMultiModuleProjectDirectory();
 			if (root == null) {
+
 				return;
 			}
 
 			final File script = new File(root, "config/style/ReviewNeed.java");
 			if (!script.isFile()) {
+
 				return;
 			}
 
 			final boolean windows = System.getProperty("os.name", "").toLowerCase().contains("win");
 			final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + (windows ? "java.exe" : "java");
+			final ProcessBuilder pb = new ProcessBuilder(javaBin, script.getAbsolutePath(), "--summary", "--main-only", root.getAbsolutePath());
 
-			final ProcessBuilder pb = new ProcessBuilder(
-				javaBin, script.getAbsolutePath(), "--summary", "--main-only", root.getAbsolutePath());
 			pb.inheritIO();
 			pb.start().waitFor();
 
 		} catch (final Exception e) {
+
 			System.out.println("[review-need] skipped (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
 		}
 	}

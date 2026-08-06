@@ -48,24 +48,29 @@ public abstract class SearchAttribute<T> implements Predicate<GraphObject>, Quer
 	public abstract boolean includeInResult(final GraphObject entity);
 
 	public SearchAttribute(final PropertyKey<T> key, final T value) {
+
 		this.key    = key;
 		this.value  = value;
 	}
 
 	@Override
 	public String toString() {
+
 		return key.dbName() + "=" + value;
 	}
 
 	public void setResult(final Set<GraphObject> result) {
+
 		this.result = result;
 	}
 
 	public Set<GraphObject> getResult() {
+
 		return result;
 	}
 
 	public void addToResult(final GraphObject graphObject) {
+
 		result.add(graphObject);
 	}
 
@@ -73,40 +78,48 @@ public abstract class SearchAttribute<T> implements Predicate<GraphObject>, Quer
 	};
 
 	public void setComparator(final Comparator<GraphObject> comparator) {
+
 		this.comparator = comparator;
 	}
 
 	public void setSortOrder(final SortOrder sortOrder) {
+
 		this.sortOrder = sortOrder;
 	}
 
 	public PropertyKey<T> getKey() {
+
 		return key;
 	}
 
 	public void setValue(final T value) {
+
 		this.value = value;
 	}
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
 	public boolean accept(final GraphObject obj) {
+
 		return includeInResult(obj);
 	}
 
 	@Override
 	public Comparator<GraphObject> comparator() {
+
 		return comparator;
 	}
 
 	// ----- interface QueryPredicate -----
 	@Override
 	public String getName() {
+
 		return key.dbName();
 	}
 
 	@Override
 	public T getValue() {
+
 		return value;
 	}
 
@@ -127,11 +140,9 @@ public abstract class SearchAttribute<T> implements Predicate<GraphObject>, Quer
 		if (key != null) {
 
 			final Trait declaringTrait = key.getDeclaringTrait();
-
 			if (declaringTrait != null && !declaringTrait.isRelationship()) {
 
 				final String name = declaringTrait.getLabel();
-
 				if (!StructrTraits.GRAPH_OBJECT.equals(name)) {
 
 					return name;
@@ -144,6 +155,7 @@ public abstract class SearchAttribute<T> implements Predicate<GraphObject>, Quer
 
 	@Override
 	public SortOrder getSortOrder() {
+
 		return this.sortOrder;
 	}
 }

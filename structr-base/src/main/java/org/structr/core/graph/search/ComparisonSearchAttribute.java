@@ -79,21 +79,25 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 
 	@Override
 	public T getSearchValue() {
+
 		return this.searchValue;
 	}
 
 	@Override
 	public String toString() {
+
 		return "ComparisonSearchAttribute()";
 	}
 
 	@Override
 	public PropertyKey getKey() {
+
 		return searchKey;
 	}
 
 	@Override
 	public Comparison getComparison() {
+
 		return comparison;
 	}
 
@@ -101,14 +105,12 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 	public boolean includeInResult(GraphObject entity) {
 
 		final T value = entity.getProperty(searchKey);
-
 		if (value != null && searchValue != null) {
 
 			if (value instanceof Comparable && searchValue instanceof Comparable) {
 
 				final Comparable a = (Comparable)value;
 				final Comparable b = (Comparable)searchValue;
-
 				final String propertyStringValue = stringOrNull(value);
 				final String searchStringValue   = stringOrNull(searchValue);
 
@@ -182,11 +184,13 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 
 	@Override
 	public Class getQueryType() {
+
 		return ComparisonQuery.class;
 	}
 
 	@Override
 	public boolean isExactMatch() {
+
 		return true;
 	}
 
@@ -194,6 +198,7 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 	private String stringOrNull(final Object value) {
 
 		if (value instanceof String) {
+
 			return (String)value;
 		}
 

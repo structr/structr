@@ -44,11 +44,13 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "copyFileContents";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("sourceFile, destinationFile");
 	}
 
@@ -95,50 +97,52 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 				} catch (IOException | FrameworkException ex) {
 
 					logger.error("Error: Could not copy file due to exception.", ex);
+
 					return "Error: Could not copy file due to exception.";
 				}
 
 			} else {
 
 				logger.warn("Error: entities are not instances of File. Parameters: {}", getParametersAsString(sources));
+
 				return "Error: entities are not nodes.";
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${ copyFileContents(sourceFile, targetFile) }"),
-			Usage.javaScript("Usage: ${{ $.copyFileContents(sourceFile, targetFile) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${ copyFileContents(sourceFile, targetFile) }"), Usage.javaScript("Usage: ${{ $.copyFileContents(sourceFile, targetFile) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Copies the content of sourceFile to targetFile and updates the meta-data accordingly.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("sourceFile", "source file to copy content from"),
-			Parameter.mandatory("targetFile", "target file to copy content to")
-		);
+
+		return List.of(Parameter.mandatory("sourceFile", "source file to copy content from"), Parameter.mandatory("targetFile", "target file to copy content to"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

@@ -43,6 +43,7 @@ public abstract class ScheduledJob {
 	private static final Logger logger = LoggerFactory.getLogger(ScheduledJob.class.getName());
 
 	protected enum JobStatus {
+
 		QUEUED,		// the job is queued and will be started as soon as the queued ahead of it is empty
 		RUNNING,	// the job is running currently
 		PAUSED,		// the job was paused
@@ -92,23 +93,27 @@ public abstract class ScheduledJob {
 	public abstract Map<String, Object> getJobInfo ();
 
 	public void startJob() {
+
 		currentStatus = JobStatus.RUNNING;
 
 		startNewThread(getRunnable(), false);
 	}
 
 	public void pauseJob() {
+
 		// only allow if in RUNNING state
 		currentStatus = JobStatus.WAIT_PAUSE;
 		reportWaitingForPause();
 	}
 
 	public void resumeJob() {
+
 		currentStatus = JobStatus.RUNNING;
 		trySignal();
 	}
 
 	public void abortJob() {
+
 		currentStatus = JobStatus.WAIT_ABORT;
 		trySignal();
 		reportWaitingForAbort();
@@ -118,43 +123,56 @@ public abstract class ScheduledJob {
 	 * all actions that can be called while a job is in PAUSED state must call trySignal
 	 */
 	public void trySignal() {
+
 		lock.lock();
+
 		try {
+
 			paused.signal();
+
 		} finally {
+
 			lock.unlock();
 		}
 	}
 
 	public void cancelQueuedJob() {
+
 		if (currentStatus.equals(JobStatus.QUEUED)) {
 
 		} else {
+
 			// send warning?
 		}
 	}
 
 	public Long jobId() {
+
 		return jobId;
 	}
 
 	public void setJobId(final Long jobId) {
+
 		this.jobId = jobId;
 	}
 
 	public String getUsername () {
+
 		return username;
 	}
 
 	public JobStatus getCurrentStatus () {
+
 		return currentStatus;
 	}
 
 	public Map<String, Object> getConfiguration () {
+
 		return configuration;
 	}
 
 	public void waitForExit() throws InterruptedException {
+
 		jobThread.join();
 	}
 
@@ -166,6 +184,7 @@ public abstract class ScheduledJob {
 	}
 
 	protected void jobAborted() {
+
 		JobQueueManager.getInstance().jobAborted(this);
 	}
 
@@ -176,6 +195,7 @@ public abstract class ScheduledJob {
 		jobThread.start();
 
 		if (wait) {
+
 			try { jobThread.join(); } catch (InterruptedException ex) {}
 		}
 
@@ -184,19 +204,27 @@ public abstract class ScheduledJob {
 	protected void shouldPause() {
 
 		if (currentStatus.equals(JobStatus.WAIT_PAUSE)) {
+
 			logger.info("Pausing job {} ({})", jobId, jobName);
 
 			currentStatus = JobStatus.PAUSED;
 			reportPaused();
 
 			lock.lock();
+
 			try {
+
 				while (currentStatus.equals(JobStatus.PAUSED)) {
+
 					paused.await();
 				}
+
 			} catch (InterruptedException ex) {
+
 				logger.error("", ex);
+
 			} finally {
+
 				lock.unlock();
 				logger.info("Resuming job {} ({})", jobId, jobName);
 				reportResumed();
@@ -219,44 +247,54 @@ public abstract class ScheduledJob {
 	}
 
 	protected void reportStatus(final JobStatusMessageSubtype subtype) {
+
 		TransactionCommand.simpleBroadcastGenericMessage(getStatusData(subtype));
 	}
 
 	protected void reportQueued() {
+
 		reportStatus(JobStatusMessageSubtype.QUEUED);
 	}
 
 	protected void reportBegin() {
+
 		reportStatus(JobStatusMessageSubtype.BEGIN);
 	}
 
 	protected void reportWaitingForAbort() {
+
 		reportStatus(JobStatusMessageSubtype.WAIT_ABORT);
 	}
 
 	protected void reportAborted() {
+
 		reportStatus(JobStatusMessageSubtype.ABORTED);
 	}
 
 	protected void reportWaitingForPause() {
+
 		reportStatus(JobStatusMessageSubtype.WAIT_PAUSE);
 	}
 
 	protected void reportPaused() {
+
 		reportStatus(JobStatusMessageSubtype.PAUSED);
 	}
 
 	protected void reportResumed() {
+
 		reportStatus(JobStatusMessageSubtype.RESUMED);
 	}
 
 	protected void reportFinished() {
+
 		reportStatus(JobStatusMessageSubtype.END);
 	}
 
 	protected <T> T getOrDefault(final Object value, final T defaultValue) {
 
 		if (value != null) {
+
 			return (T)value;
 		}
 
@@ -269,6 +307,7 @@ public abstract class ScheduledJob {
 
 			// do not parse if it's already a number
 			if (input instanceof Number) {
+
 				return ((Number)input).intValue();
 			}
 
@@ -288,6 +327,7 @@ public abstract class ScheduledJob {
 
 		// reverse map
 		for (final Map.Entry<String, String> entry : input.entrySet()) {
+
 			output.put(entry.getValue(), entry.getKey());
 		}
 
@@ -295,10 +335,12 @@ public abstract class ScheduledJob {
 	}
 
 	public Object getOnFinishScript() {
+
 		return onFinishScript;
 	}
 
 	public void setOnFinishScript(final Object onFinishScript) {
+
 		this.onFinishScript = onFinishScript;
 	}
 
@@ -319,6 +361,7 @@ public abstract class ScheduledJob {
 				if (onFinishScript instanceof PolyglotWrapper.FunctionWrapper) {
 
 					((PolyglotWrapper.FunctionWrapper)onFinishScript).execute();
+
 				} else if (onFinishScript instanceof String) {
 
 					Scripting.evaluate(actionContext, null, (String)onFinishScript, jobName, null);
@@ -338,10 +381,12 @@ public abstract class ScheduledJob {
 	}
 
 	public Exception getEncounteredException () {
+
 		return encounteredException;
 	}
 
 	public void setEncounteredException (final Exception ex) {
+
 		this.encounteredException = ex;
 	}
 }

@@ -37,11 +37,13 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "getRelationships";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
@@ -56,7 +58,6 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 			final Object source = sources[0];
 			final Object target = sources[1];
-
 			NodeInterface sourceNode = null;
 			NodeInterface targetNode = null;
 
@@ -68,6 +69,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 			} else {
 
 				logger.warn("Error: entities are not nodes. Parameters: {}", getParametersAsString(sources));
+
 				return "Error: Entities are not nodes.";
 			}
 
@@ -79,8 +81,8 @@ public class GetRelationshipsFunction extends CoreFunction {
 					final NodeInterface t = rel.getTargetNode();
 
 					// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
-					if (s != null && t != null
-						&& ((s.equals(sourceNode) && t.equals(targetNode)) || (s.equals(targetNode) && t.equals(sourceNode)))) {
+					if (s != null && t != null && ((s.equals(sourceNode) && t.equals(targetNode)) || (s.equals(targetNode) && t.equals(sourceNode)))) {
+
 						list.add(rel);
 					}
 				}
@@ -99,6 +101,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 					if (s != null && t != null
 						&& rel.getRelType().name().equals(relType)
 						&& ((s.equals(sourceNode) && t.equals(targetNode)) || (s.equals(targetNode) && t.equals(sourceNode)))) {
+
 						list.add(rel);
 					}
 				}
@@ -112,6 +115,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -120,6 +124,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getRelationships(entity1, entity2 [, relType])}. Example: ${getRelationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)"),
 			Usage.javaScript("Usage: ${{$.getRelationships(entity1, entity2 [, relType])}}. Example: ${{$.getRelationships($.get('me'), user, 'FOLLOWS')}}  (ignores direction of the relationship)")
@@ -128,34 +133,31 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the relationships of the given entity with an optional relationship type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getRelationships(me, page)}"),
-				Example.javaScript("${{ $.getRelationships($.me, $.page) }}")
-		);
+
+		return List.of(Example.structrScript("${getRelationships(me, page)}"), Example.javaScript("${{ $.getRelationships($.me, $.page) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("from", "source node"),
-				Parameter.mandatory("to", "target node"),
-				Parameter.optional("relType", "relationship type")
-		);
+		return List.of(Parameter.mandatory("from", "source node"), Parameter.mandatory("to", "target node"), Parameter.optional("relType", "relationship type"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

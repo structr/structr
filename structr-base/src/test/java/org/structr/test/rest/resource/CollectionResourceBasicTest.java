@@ -183,7 +183,6 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 		final String id3 = response.jsonPath().getString("result[2]");
 		final String id5 = response.jsonPath().getString("result[3]");
 		final String id1 = response.jsonPath().getString("result[4]");
-
 		final String ct  = "application/json; charset=UTF-8";
 		final String rc  = "result_count";
 		final String rn  = "result.name";

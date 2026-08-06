@@ -38,6 +38,7 @@ public class Track extends GenericHtmlElementTraitDefinition {
 	public static final String DEFAULT_PROPERTY = getPrefixedHTMLAttributeName("default");
 
 	public Track() {
+
 		super(StructrTraits.TRACK);
 	}
 
@@ -48,11 +49,11 @@ public class Track extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -70,19 +71,12 @@ public class Track extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> labelProperty   = new StringProperty(LABEL_PROPERTY);
 		final PropertyKey<String> defaultProperty = new StringProperty(DEFAULT_PROPERTY);
 
-		return newSet(
-			kindProperty, srcProperty, srclangProperty, labelProperty, defaultProperty
-		);
+		return newSet(kindProperty, srcProperty, srclangProperty, labelProperty, defaultProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					KIND_PROPERTY, SRC_PROPERTY, SRCLANG_PROPERTY, LABEL_PROPERTY, DEFAULT_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(KIND_PROPERTY, SRC_PROPERTY, SRCLANG_PROPERTY, LABEL_PROPERTY, DEFAULT_PROPERTY));
 	}
 }

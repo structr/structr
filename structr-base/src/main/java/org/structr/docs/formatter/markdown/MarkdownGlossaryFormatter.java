@@ -60,17 +60,18 @@ public class MarkdownGlossaryFormatter extends Formatter {
 		for (final Concept c : concepts) {
 
 			final String name = clean(c.getName());
-
 			if (StringUtils.isNotBlank(name) && wordCount(name) < 4) {
 
 				final String first = name.substring(0, 1).toUpperCase();
 
 				// show duplicates only once
 				if (!visited.add(name.toLowerCase())) {
+
 					continue;
 				}
 
 				if (firstCharacter == null || !firstCharacter.equals(first)) {
+
 					firstCharacter = first;
 
 					lines.add(formatMarkdownHeading(firstCharacter, level + 2));
@@ -103,6 +104,7 @@ public class MarkdownGlossaryFormatter extends Formatter {
 	private void collectParents(final Concept concept, final Set<String> data, final int level) {
 
 		if (level > 3) {
+
 			return;
 		}
 
@@ -111,7 +113,6 @@ public class MarkdownGlossaryFormatter extends Formatter {
 			for (final Link link : parentList.getValue()) {
 
 				final Concept parent = link.getSource();
-
 				if (!"Structr".equals(parent.getName())) {
 
 					data.add(parent.getName());
@@ -123,12 +124,14 @@ public class MarkdownGlossaryFormatter extends Formatter {
 	}
 
 	private static int wordCount(final String name) {
+
 		return name.split(" ").length;
 	}
 
 	private static String clean(final String name) {
 
 		if (name.startsWith("\"") && name.endsWith("\"")) {
+
 			return name.substring(1, name.length() - 1);
 		}
 
@@ -136,18 +139,22 @@ public class MarkdownGlossaryFormatter extends Formatter {
 	}
 
 	private static String cleanStringForLink(String str) {
+
 		return str.replace("?", "")
 				.replaceAll("[\\W]+", "-")
 				.toLowerCase();
 	}
 
 	private static String createLinkForParentsString(final String input) {
+
 		long count = input.chars().filter(c -> c == '/').count();
 		if (count < 2) {
+
 			return "/structr/docs/ontology/"
 					+ input.replaceAll(" / ", "/")
 					.replaceAll(" ", "%20");
 		}
+
 		return "/structr/docs/ontology/"
 				+ (input.substring(0, input.lastIndexOf("/") + 2) + "#" + cleanStringForLink(input.substring(input.lastIndexOf("/") + 2)))
 				.replaceAll(" / ", "/")

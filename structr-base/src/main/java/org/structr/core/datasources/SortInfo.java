@@ -34,11 +34,13 @@ public class SortInfo {
 
 	@Override
 	public int hashCode() {
+
 		return Objects.hash(sortKey, descending, active);
 	}
 
 	@Override
 	public String toString() {
+
 		return sortKey + (descending ? ">" : "<");
 	}
 
@@ -51,16 +53,19 @@ public class SortInfo {
 			if (sortKey.endsWith(">")) {
 
 				// sort descending
+
 				return new SortInfo(sortKey.substring(0, length - 1), true);
 
 			} else if (sortKey.endsWith("<")) {
 
 				// sort ascending
+
 				return new SortInfo(sortKey.substring(0, length - 1), false);
 
 			} else {
 
 				// sort ascending
+
 				return new SortInfo(sortKey, false);
 			}
 		}

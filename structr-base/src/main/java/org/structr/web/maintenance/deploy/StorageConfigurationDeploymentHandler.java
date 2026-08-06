@@ -121,6 +121,7 @@ public abstract class StorageConfigurationDeploymentHandler {
 				if (folders != null) {
 
 					for (final NodeInterface file : folders) {
+
 						fileIds.add(file.getUuid());
 					}
 				}
@@ -138,6 +139,7 @@ public abstract class StorageConfigurationDeploymentHandler {
 			gson.toJson(configurations, fos);
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to write {}", confFile, ioex);
 		}
 	}
@@ -145,8 +147,8 @@ public abstract class StorageConfigurationDeploymentHandler {
 	public static void importDeploymentData(final Path source, final Gson gson) throws FrameworkException {
 
 		final Path confFile = source.resolve(STORAGE_CONFIGURATIONS_FILE);
-
 		if (!Files.exists(confFile)) {
+
 			return;
 		}
 
@@ -161,10 +163,12 @@ public abstract class StorageConfigurationDeploymentHandler {
 		} catch (IOException ioex) {
 
 			logger.warn("Unable to read {}", confFile, ioex);
+
 			return;
 		}
 
 		if (configurations == null) {
+
 			return;
 		}
 
@@ -178,15 +182,16 @@ public abstract class StorageConfigurationDeploymentHandler {
 			final Traits cfgTraits   = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
 			final Traits entryTraits = Traits.of(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
 			final Traits fileTraits  = Traits.of(StructrTraits.ABSTRACT_FILE);
-
 			final PropertyKey<NodeInterface> storageConfigKey = fileTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
 
 			// clean slate: entries first (they reference the configuration), then configurations
 			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION_ENTRY).getAsList()) {
+
 				app.delete(toDelete);
 			}
 
 			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION).getAsList()) {
+
 				app.delete(toDelete);
 			}
 
@@ -195,7 +200,6 @@ public abstract class StorageConfigurationDeploymentHandler {
 				final String id       = (String) data.get(KEY_ID);
 				final String name     = (String) data.get(KEY_NAME);
 				final String provider = (String) data.get(KEY_PROVIDER);
-
 				final PropertyMap props = new PropertyMap();
 
 				props.put(cfgTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                name);
@@ -203,14 +207,17 @@ public abstract class StorageConfigurationDeploymentHandler {
 
 				// preserve the uuid so the file/folder linkage can be restored by id
 				if (id != null) {
+
 					props.put(cfgTraits.key(GraphObjectTraitDefinition.ID_PROPERTY), id);
 				}
 
 				if (Boolean.TRUE.equals(data.get(KEY_VISIBLE_PUBLIC))) {
+
 					props.put(cfgTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 				}
 
 				if (Boolean.TRUE.equals(data.get(KEY_VISIBLE_AUTH))) {
+
 					props.put(cfgTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 				}
 
@@ -218,7 +225,6 @@ public abstract class StorageConfigurationDeploymentHandler {
 
 				// entries
 				final Map<String, Object> entries = (Map<String, Object>) data.get(KEY_ENTRIES);
-
 				if (entries != null) {
 
 					for (final Map.Entry<String, Object> configEntry : entries.entrySet()) {
@@ -235,13 +241,11 @@ public abstract class StorageConfigurationDeploymentHandler {
 
 				// restore the linkage to the files/folders (imported before module data)
 				final List<String> fileIds = (List<String>) data.get(KEY_FOLDERS);
-
 				if (fileIds != null) {
 
 					for (final String fileId : fileIds) {
 
 						final NodeInterface file = app.getNodeById(StructrTraits.ABSTRACT_FILE, fileId);
-
 						if (file != null) {
 
 							file.setProperty(storageConfigKey, configNode);

@@ -37,11 +37,13 @@ import java.util.Map;
 public class RemoteDocumentTraitWrapper extends AbstractNodeTraitWrapper implements RemoteDocument {
 
 	public RemoteDocumentTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getUrl() {
+
 		return wrappedObject.getProperty(traits.key(RemoteDocumentTraitDefinition.URL_PROPERTY));
 	}
 
@@ -63,31 +65,37 @@ public class RemoteDocumentTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public boolean indexingEnabled() {
+
 		return Settings.RemoteDocumentIndexingEnabled.getValue();
 	}
 
 	@Override
 	public Integer maximumIndexedWords() {
+
 		return Settings.RemoteDocumentIndexingLimit.getValue();
 	}
 
 	@Override
 	public Integer indexedWordMinLength() {
+
 		return Settings.RemoteDocumentIndexingMinLength.getValue();
 	}
 
 	@Override
 	public Integer indexedWordMaxLength() {
+
 		return Settings.RemoteDocumentIndexingMaxLength.getValue();
 	}
 
 	@Override
 	public String getExtractedContent() {
+
 		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
+
 		return wrappedObject.getProperty(traits.key(RemoteDocumentTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

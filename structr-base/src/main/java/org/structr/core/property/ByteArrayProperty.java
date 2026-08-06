@@ -46,55 +46,66 @@ import java.util.Map;
 public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 	public ByteArrayProperty(final String name) {
+
 		super(name);
 	}
 
 	public ByteArrayProperty(final String jsonName, final String dbName) {
+
 		super(jsonName, dbName);
 	}
 
 	public ByteArrayProperty(final String jsonName, final String dbName, final String format) {
+
 		super(jsonName);
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return value;
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Byte[]";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Byte[].class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, Byte[]> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return new ArrayInputConverter(securityContext);
 	}
 
 	private class ArrayDatabaseConverter extends PropertyConverter<Byte[], byte[]> {
 
 		public ArrayDatabaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 			super(securityContext, entity);
 		}
 
@@ -104,6 +115,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 			if (source != null) {
 
 				//return Base64.getEncoder().encodeToString(ArrayUtils.toPrimitive(source));
+
 				return ArrayUtils.toPrimitive(source);
 			}
 
@@ -118,9 +130,9 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 				if (source != null) {
 
 					//return ArrayUtils.toObject(Base64.getDecoder().decode(source));
+
 					return ArrayUtils.toObject(source);
 				}
-
 
 			} catch (final Exception e) {
 
@@ -135,6 +147,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	private class ArrayInputConverter extends PropertyConverter<Object, Byte[]> {
 
 		public ArrayInputConverter(final SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
@@ -157,12 +170,14 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		public Byte[] convert(final Object source) throws FrameworkException {
 
 			if (source == null) {
+
 				return null;
 			}
 
 			if (source instanceof String) {
 
 				//return ArrayUtils.toObject(Base64.getDecoder().decode(source.toString()));
+
 				return ArrayUtils.toObject(((String) source).getBytes());
 			}
 
@@ -174,11 +189,13 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 				if (firstElement instanceof Integer) {
 
 					((List<Integer>) source).forEach(i -> byteList.add(i.byteValue()));
+
 					return byteList.toArray(new Byte[byteList.size()]);
 
 				} else if (firstElement instanceof Long) {
 
 					((List<Long>) source).forEach(l -> byteList.add(l.byteValue()));
+
 					return byteList.toArray(new Byte[byteList.size()]);
 				}
 			}
@@ -193,6 +210,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
+
 			return new ArraySearchAttribute(this, "", exactMatch);
 		}
 
@@ -208,33 +226,39 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return true;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for byte array values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can use this property to store binary data on a node or relationship.";
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName) {
+
 		return null;
 	}
 

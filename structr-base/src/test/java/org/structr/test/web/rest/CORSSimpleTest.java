@@ -27,7 +27,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class CORSSimpleTest extends StructrUiTest {
 
-
     @Test
     public void test01NonCORSRequestWithDefaults() {
 
@@ -96,6 +95,7 @@ public class CORSSimpleTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -140,6 +140,7 @@ public class CORSSimpleTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -186,6 +187,7 @@ public class CORSSimpleTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -214,7 +216,6 @@ public class CORSSimpleTest extends StructrUiTest {
                 .options("/_env");
     }
 
-
     @Test
     public void test06PreflightCORSRequestWithSettingsObjects() {
 
@@ -233,6 +234,7 @@ public class CORSSimpleTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }
@@ -280,6 +282,7 @@ public class CORSSimpleTest extends StructrUiTest {
             assertNotNull(corsSettingsUuid);
 
         } catch (final Exception ex) {
+
             ex.printStackTrace();
             fail("Unexpected exception.");
         }

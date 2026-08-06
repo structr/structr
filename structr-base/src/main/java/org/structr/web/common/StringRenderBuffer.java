@@ -30,11 +30,14 @@ public class StringRenderBuffer extends AsyncBuffer {
 
 	@Override
 	public AsyncBuffer append(final String s) {
+
 		buf.append(s);
+
 		return this;
 	}
 
 	public StringBuilder getBuffer() {
+
 		return buf;
 	}
 }

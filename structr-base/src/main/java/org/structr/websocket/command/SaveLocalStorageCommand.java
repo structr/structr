@@ -37,7 +37,6 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
 		final String localStorageString = webSocketData.getNodeDataStringValue("localStorageString");
 
 		if (StringUtils.isNotBlank(localStorageString)) {

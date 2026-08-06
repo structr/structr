@@ -35,73 +35,87 @@ import java.util.Map;
 public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	public EndNodeProperty(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return new RelationshipEndNodeConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public String typeName() {
+
 		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

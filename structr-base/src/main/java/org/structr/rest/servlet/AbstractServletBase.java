@@ -18,7 +18,6 @@
  */
 package org.structr.rest.servlet;
 
-
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,6 +39,7 @@ public abstract class AbstractServletBase extends HttpServlet {
 	protected StatsCallback stats = null;
 
 	public void registerStatsCallback(final StatsCallback stats) {
+
 		this.stats = stats;
 	}
 
@@ -68,6 +68,7 @@ public abstract class AbstractServletBase extends HttpServlet {
 
 		final Services services = Services.getInstance();
 		if (!services.isInitialized()) {
+
 			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, services.getUnavailableMessage());
 		}
 	}
@@ -89,7 +90,6 @@ public abstract class AbstractServletBase extends HttpServlet {
 	protected boolean checkCsrfOrigin(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 
 		final String origin = request.getHeader("Origin");
-
 		if (origin != null) {
 
 			try {
@@ -104,6 +104,7 @@ public abstract class AbstractServletBase extends HttpServlet {
 
 					logger.warn("CSRF check failed: Origin '{}' does not match server '{}:{}'", origin, serverHost, serverPort);
 					response.sendError(HttpServletResponse.SC_FORBIDDEN, "Cross-origin request rejected");
+
 					return false;
 				}
 
@@ -111,6 +112,7 @@ public abstract class AbstractServletBase extends HttpServlet {
 
 				logger.warn("CSRF check failed: Invalid Origin header '{}'", origin);
 				response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid Origin header");
+
 				return false;
 			}
 		}

@@ -25,26 +25,26 @@ import java.util.List;
 public class OnUpload extends LifecycleBase {
 
 	public OnUpload() {
+
 		super("onUpload");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called after the upload of a File is complete.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `onUpload()` lifecycle method is called after a File is uploaded.";
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This method must be defined on the type `File` or its descendants.",
-			"See also: `onDownload()`."
-		);
+		return List.of("This method must be defined on the type `File` or its descendants.", "See also: `onDownload()`.");
 	}
 
 	@Override

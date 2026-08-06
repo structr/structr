@@ -44,6 +44,7 @@ public class XMPPTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -61,6 +62,7 @@ public class XMPPTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 

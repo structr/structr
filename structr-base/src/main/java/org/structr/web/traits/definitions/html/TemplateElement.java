@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 public class TemplateElement extends GenericHtmlElementTraitDefinition {
 
 	public TemplateElement() {
+
 		super(StructrTraits.TEMPLATE_ELEMENT);
 	}
 
@@ -48,9 +49,7 @@ public class TemplateElement extends GenericHtmlElementTraitDefinition {
 
 		final Map<Class, FrameworkMethod> frameworkMethods = super.getFrameworkMethods();
 
-		frameworkMethods.put(
-			RenderContent.class,
-			new RenderContent() {
+		frameworkMethods.put(RenderContent.class, new RenderContent() {
 
 				@Override
 				public void renderContent(final DOMNode thisElement, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -107,6 +106,7 @@ public class TemplateElement extends GenericHtmlElementTraitDefinition {
 	private static void handleJsonRequestData(final RenderContext renderContext) {
 
 		try {
+
 			final Gson gson                         = new GsonBuilder().create();
 			final Map<String, java.lang.Object> map = gson.fromJson(renderContext.getRequest().getReader(), java.util.Map.class);
 
@@ -139,6 +139,7 @@ public class TemplateElement extends GenericHtmlElementTraitDefinition {
 
 					// assume JSON
 					final java.util.Map<String, java.lang.Object> map = (java.util.Map)gson.fromJson(key, java.util.Map.class);
+
 					for (final Entry<String, java.lang.Object> entry : map.entrySet()) {
 
 						renderContext.setConstant(entry.getKey(), entry.getValue());

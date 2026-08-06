@@ -79,11 +79,13 @@ public class PageImporter extends HtmlFileImporter {
 			createPage(file, fileName);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Exception while importing page {}: {}", fileName, fex.toString());
 		}
 	}
 
 	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> data) {
+
 		this.deferredNodesAndTheirProperties = data;
 	}
 
@@ -105,6 +107,7 @@ public class PageImporter extends HtmlFileImporter {
 		if (page != null) {
 
 			for (final DOMNode child : page.getElements()) {
+
 				app.delete(child);
 			}
 
@@ -124,6 +127,7 @@ public class PageImporter extends HtmlFileImporter {
 				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.PAGE, (Map<String, Object>)data);
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("Unable to resolve properties for page: {}", ex.getMessage());
 			}
 		}
@@ -155,6 +159,7 @@ public class PageImporter extends HtmlFileImporter {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 	}
@@ -185,7 +190,6 @@ public class PageImporter extends HtmlFileImporter {
 				final String contentType = get(properties, traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY),                 "text/html");
 				boolean visibleToPublic  = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
 				boolean visibleToAuth    = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
-
 				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
 				// enable literal import of href attributes
@@ -260,7 +264,6 @@ public class PageImporter extends HtmlFileImporter {
 			final DOMNode head1  = heads.get(0);
 			final DOMNode head2  = heads.get(1);
 			final DOMNode parent = head1.getParent();
-
 			final boolean h1 = head1.hasChildNodes();
 			final boolean h2 = head2.hasChildNodes();
 

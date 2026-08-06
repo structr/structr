@@ -19,6 +19,7 @@
 package org.structr.core.script.polyglot.wrappers;
 
 public class NonWrappableObject {
+
 	private final Object obj;
 
 	public NonWrappableObject(final Object obj) {

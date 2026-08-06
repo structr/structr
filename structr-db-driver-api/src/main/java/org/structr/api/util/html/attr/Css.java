@@ -27,6 +27,7 @@ import org.structr.api.util.html.Attr;
 public class Css extends Attr {
 
 	public Css(final String css) {
+
 		super("class", css);
 	}
 }

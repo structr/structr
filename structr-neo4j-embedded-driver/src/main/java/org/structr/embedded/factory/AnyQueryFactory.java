@@ -27,6 +27,7 @@ import org.structr.embedded.AdvancedCypherQuery;
 public class AnyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public AnyQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -41,6 +42,7 @@ public class AnyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 			// to select the correct index
 			final String label = predicate.getLabel();
 			if (label != null) {
+
 				query.indexLabel(label);
 			}
 

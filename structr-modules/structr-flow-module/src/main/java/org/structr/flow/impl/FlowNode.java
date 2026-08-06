@@ -28,10 +28,12 @@ import org.structr.flow.traits.operations.GetFlowType;
 public class FlowNode extends FlowBaseNode {
 
 	public FlowNode(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final FlowType getFlowType() {
+
 		return traits.getMethod(GetFlowType.class).getFlowType(this);
 	}
 
@@ -47,6 +49,7 @@ public class FlowNode extends FlowBaseNode {
 	}
 
 	public void setNext(final FlowNode next) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowNodeTraitDefinition.NEXT_PROPERTY), next);
 	}
 }

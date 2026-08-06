@@ -87,12 +87,11 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnProcess.class, (traits, node) -> new BpmnProcessTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnProcess.class, (traits, node) -> new BpmnProcessTraitWrapper(traits, node));
 	}
 
 	public BpmnProcessTraitDefinition() {
+
 		super(ProcessTraits.BPMN_PROCESS);
 	}
 
@@ -102,6 +101,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>  processId                          = new StringProperty(PROCESS_ID_PROPERTY).indexed();
 		final Property<String>  processName                        = new StringProperty(PROCESS_NAME_PROPERTY).indexed();
 		final Property<Boolean> processIsExecutable                = new BooleanProperty(PROCESS_IS_EXECUTABLE_PROPERTY);
+
 		// Default TRUE: out of the box, user tasks whose humanPerformer / candidateGroups don't
 		// resolve (e.g. groups not created yet) fall back to the initiator, so a freshly imported
 		// process is walkable end-to-end by a single user -- no group setup needed. Speeds up test
@@ -117,6 +117,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> methods            = new EndNodes(traitsInstance,  METHODS_PROPERTY,           ProcessTraits.BPMN_PROCESS_HAS_METHOD);
 		final Property<Iterable<NodeInterface>> processListeners   = new EndNodes(traitsInstance,  PROCESS_LISTENERS_PROPERTY, ProcessTraits.BPMN_PROCESS_HAS_PROCESS_LISTENER);
 		final Property<Iterable<NodeInterface>> lanes              = new EndNodes(traitsInstance,  LANES_PROPERTY,             ProcessTraits.BPMN_PROCESS_HAS_LANE);
+
 		// Inverse: the BpmnParticipant (if any) that wraps this process in a
 		// collaboration. Optional -- single-process imports have no participant.
 		final Property<NodeInterface>           participant        = new StartNode(traitsInstance, PARTICIPANT_PROPERTY,       ProcessTraits.BPMN_PARTICIPANT_OF_PROCESS);
@@ -185,6 +186,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Starts a new process instance from this BpmnProcess. Pass an optional 'subject' parameter (node UUID or node object) to attach the domain object this instance operates on. Any other parameters are stored as initial process parameters (subject-matching fields populate the subject; the rest become ProcessParameterValues). Returns the created ProcessInstance node.";
 				}
 			},
@@ -197,11 +199,13 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 					// Super-user query so the overlay reflects ALL instances, not just
 					// those the current user is permitted to read.
 					final App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+
 					return ProcessEngine.computeLiveTokenCounts(app, (NodeInterface) entity);
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Returns a map of element bpmnId -> number of non-completed tokens currently sitting at that element, aggregated across all instances of this process. Powers the editor's live instance-count overlay.";
 				}
 			},
@@ -214,11 +218,13 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 					// Super-user query so the overlay reflects ALL instances, not just
 					// those the current user is permitted to read.
 					final App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+
 					return ProcessEngine.computeCompletedTokenCounts(app, (NodeInterface) entity);
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Returns a map of element bpmnId -> number of completed tokens that finished at that element, aggregated across all instances of this process. Powers the editor's finished-instance-count overlay (shown alongside the live/active badge).";
 				}
 			}
@@ -227,6 +233,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

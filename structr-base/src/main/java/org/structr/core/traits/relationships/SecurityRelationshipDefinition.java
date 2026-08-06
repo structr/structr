@@ -48,11 +48,13 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 	public static final String ALLOWED_PROPERTY                = "allowed";
 
 	public SecurityRelationshipDefinition() {
+
 		super(StructrTraits.SECURITY);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
@@ -61,8 +63,7 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 
 		return Map.of(
 
-			GetPropertyKeys.class,
-			new GetPropertyKeys() {
+			GetPropertyKeys.class, new GetPropertyKeys() {
 
 				@Override
 				public Set<PropertyKey> getPropertyKeys(final GraphObject graphObject, final String propertyView) {
@@ -96,63 +97,67 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of(
-			Security.class, (traits, rel) -> new SecurityTraitWrapper(traits, rel)
-		);
+
+		return Map.of(Security.class, (traits, rel) -> new SecurityTraitWrapper(traits, rel));
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		return newSet(
-			new SourceId(PRINCIPAL_ID_PROPERTY),
-			new TargetId(ACCESS_CONTROLLABLE_ID_PROPERTY),
-			new ArrayProperty(ALLOWED_PROPERTY, String.class)
-		);
+		return newSet(new SourceId(PRINCIPAL_ID_PROPERTY), new TargetId(ACCESS_CONTROLLABLE_ID_PROPERTY), new ArrayProperty(ALLOWED_PROPERTY, String.class));
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "SECURITY";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

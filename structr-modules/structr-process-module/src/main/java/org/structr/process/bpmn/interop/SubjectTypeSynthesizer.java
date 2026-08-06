@@ -108,12 +108,10 @@ public final class SubjectTypeSynthesizer {
 	 * @return the subject type name now on the process (existing or synthesized), or null when
 	 *         there was nothing to do
 	 */
-	public static String synthesize(final App app, final NodeInterface procNode, final List<VendorTaskForm> forms,
-	                                 final Map<String, NodeInterface> elementMap) throws FrameworkException {
+	public static String synthesize(final App app, final NodeInterface procNode, final List<VendorTaskForm> forms, final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
 		final Traits procTraits                  = procNode.getTraits();
 		final PropertyKey<String> subjectTypeKey = procTraits.key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY);
-
 		final String existing = procNode.getProperty(subjectTypeKey);
 
 		// Nothing to synthesize without vendor forms; return whatever subject type is already set.
@@ -131,11 +129,11 @@ public final class SubjectTypeSynthesizer {
 		if (typeName == null) {
 
 			logger.warn("BPMN import: could not derive a valid subject type name for process '{}'; skipping form synthesis.", procNode.getUuid());
+
 			return null;
 		}
 
 		final NodeInterface schemaNode = findOrCreateType(app, typeName);
-
 		final Map<String, String> unionFieldTypes = collectFieldTypes(forms, procNode);
 		final int createdProps                     = createProperties(app, schemaNode, unionFieldTypes);
 
@@ -160,6 +158,7 @@ public final class SubjectTypeSynthesizer {
 	private static Map<String, String> collectFieldTypes(final List<VendorTaskForm> forms, final NodeInterface procNode) {
 
 		final Map<String, String> unionFieldTypes = new LinkedHashMap<>();
+
 		for (final VendorTaskForm form : forms) {
 
 			for (final VendorFormField field : form.fields()) {
@@ -172,6 +171,7 @@ public final class SubjectTypeSynthesizer {
 				}
 			}
 		}
+
 		return unionFieldTypes;
 	}
 
@@ -179,6 +179,7 @@ public final class SubjectTypeSynthesizer {
 	private static int createProperties(final App app, final NodeInterface schemaNode, final Map<String, String> unionFieldTypes) throws FrameworkException {
 
 		int createdProps = 0;
+
 		for (final Map.Entry<String, String> entry : unionFieldTypes.entrySet()) {
 
 			if (!BASE_PROPERTY_NAMES.contains(entry.getKey())) {
@@ -189,6 +190,7 @@ public final class SubjectTypeSynthesizer {
 				}
 			}
 		}
+
 		return createdProps;
 	}
 
@@ -197,16 +199,15 @@ public final class SubjectTypeSynthesizer {
 	 * fields read-only, a writable view naming the editable subset). A step that already declares a
 	 * form view (hand-authored contract) is left untouched. Returns the number of steps wired.
 	 */
-	private static int wireStepViews(final App app, final NodeInterface schemaNode, final List<VendorTaskForm> forms,
-	                                 final Map<String, NodeInterface> elementMap) throws FrameworkException {
+	private static int wireStepViews(final App app, final NodeInterface schemaNode, final List<VendorTaskForm> forms, final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
 		// Guard against two task ids that sanitize to the same view name (e.g. "Task-A" / "Task_A"):
 		// the first keeps the plain name, later collisions get a deterministic "_n" suffix so no view
 		// silently overwrites another. The loop runs in stable document order, so re-imports stay
 		// idempotent (the same task always resolves to the same view name).
 		final Set<String> usedViewNames = new HashSet<>();
-
 		int viewCount = 0;
+
 		for (final VendorTaskForm form : forms) {
 
 			final NodeInterface element = elementMap.get(form.taskBpmnId());
@@ -244,6 +245,7 @@ public final class SubjectTypeSynthesizer {
 				element.setProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY), writeViewName);
 			}
 		}
+
 		return viewCount;
 	}
 
@@ -256,6 +258,7 @@ public final class SubjectTypeSynthesizer {
 
 			return existing;
 		}
+
 		return app.create(StructrTraits.SCHEMA_NODE, typeName);
 	}
 
@@ -265,8 +268,8 @@ public final class SubjectTypeSynthesizer {
 		final Traits pt                           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyKey<NodeInterface> nodeKey  = pt.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY);
 		final PropertyKey<String> nameKey         = pt.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
 		final NodeInterface found = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(nodeKey, schemaNode).key(nameKey, name).getFirst();
+
 		if (found != null) {
 
 			return false;
@@ -276,6 +279,7 @@ public final class SubjectTypeSynthesizer {
 			new NodeAttribute<>(nameKey, name),
 			new NodeAttribute<>(pt.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), structrType),
 			new NodeAttribute<>(nodeKey, schemaNode));
+
 		return true;
 	}
 
@@ -285,19 +289,17 @@ public final class SubjectTypeSynthesizer {
 		final PropertyKey<NodeInterface> nodeKey = vt.key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY);
 		final PropertyKey<String> nameKey        = vt.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final PropertyKey<String> ngpKey         = vt.key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY);
-
 		final NodeInterface found = app.nodeQuery(StructrTraits.SCHEMA_VIEW).key(nodeKey, schemaNode).key(nameKey, viewName).getFirst();
+
 		if (found != null) {
 
 			// keep the field list in sync when a newer version of the process is re-imported
 			found.setProperty(ngpKey, fieldsCsv);
+
 			return;
 		}
 
-		app.create(StructrTraits.SCHEMA_VIEW,
-			new NodeAttribute<>(nameKey, viewName),
-			new NodeAttribute<>(ngpKey, fieldsCsv),
-			new NodeAttribute<>(nodeKey, schemaNode));
+		app.create(StructrTraits.SCHEMA_VIEW, new NodeAttribute<>(nameKey, viewName), new NodeAttribute<>(ngpKey, fieldsCsv), new NodeAttribute<>(nodeKey, schemaNode));
 	}
 
 	// ----- name derivation -----
@@ -306,10 +308,12 @@ public final class SubjectTypeSynthesizer {
 
 		final Traits t    = procNode.getTraits();
 		final String name = procNode.getProperty(t.key(BpmnProcessTraitDefinition.PROCESS_NAME_PROPERTY));
+
 		if (StringUtils.isNotBlank(name)) {
 
 			return name;
 		}
+
 		return procNode.getProperty(t.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY));
 	}
 
@@ -322,6 +326,7 @@ public final class SubjectTypeSynthesizer {
 		}
 
 		final StringBuilder sb = new StringBuilder();
+
 		for (int i = 0; i < base.length(); i++) {
 
 			final char c = base.charAt(i);
@@ -330,15 +335,19 @@ public final class SubjectTypeSynthesizer {
 				sb.append(c);
 			}
 		}
+
 		if (sb.length() == 0) {
 
 			return null;
 		}
+
 		if (!Character.isLetter(sb.charAt(0))) {
 
 			sb.insert(0, 'T');
 		}
+
 		sb.setCharAt(0, Character.toUpperCase(sb.charAt(0)));
+
 		return sb.toString();
 	}
 
@@ -346,11 +355,13 @@ public final class SubjectTypeSynthesizer {
 	private static String viewName(final String prefix, final String taskBpmnId) {
 
 		final StringBuilder sb = new StringBuilder(prefix);
+
 		for (int i = 0; i < taskBpmnId.length(); i++) {
 
 			final char c = taskBpmnId.charAt(i);
 			sb.append(Character.isLetterOrDigit(c) ? c : '_');
 		}
+
 		return sb.toString();
 	}
 
@@ -359,10 +370,12 @@ public final class SubjectTypeSynthesizer {
 
 		String name = candidate;
 		int n       = 2;
+
 		while (!used.add(name)) {
 
 			name = candidate + "_" + n++;
 		}
+
 		return name;
 	}
 }

@@ -47,6 +47,7 @@ import java.util.Set;
 public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestEightTraitDefinition() {
+
 		super("TestEight");
 	}
 
@@ -59,8 +60,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -71,8 +71,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -83,8 +82,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -95,8 +93,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			AfterCreation.class,
-			new AfterCreation() {
+			AfterCreation.class, new AfterCreation() {
 
 				@Override
 				public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
@@ -107,8 +104,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			AfterModification.class,
-			new AfterModification() {
+			AfterModification.class, new AfterModification() {
 
 				@Override
 				public void afterModification(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
@@ -124,9 +120,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		return newSet(
-			new IntProperty("testProperty")
-		);
+		return newSet(new IntProperty("testProperty"));
 	}
 
 	@Override
@@ -134,21 +128,18 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet("testProperty")
-		);
+			PropertyView.Public, newSet("testProperty"));
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			TestEight.class, (traits, node) -> new TestEightTraitWrapper(traits, node)
-		);
+		return Map.of(TestEight.class, (traits, node) -> new TestEightTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

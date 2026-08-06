@@ -26,10 +26,12 @@ import org.structr.module.api.DeployableEntity;
 public class FlowSwitchCase extends FlowNode implements DeployableEntity {
 
 	public FlowSwitchCase(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getSwitchCase() {
+
 		return wrappedObject.getProperty(traits.key(FlowSwitchCaseTraitDefinition.CASE_PROPERTY));
 	}
 }

@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  *
  *
@@ -49,13 +48,13 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-
 		final DatabaseService<?> graphDb = StructrApp.getInstance().getService(NodeService.class).getDatabaseService();
 		final List<Node> toDelete        = new LinkedList<>();
 
 		for (final Node node: graphDb.getAllNodes()) {
 
 			try {
+
 				if (node.hasProperty("bbox") && node.hasProperty("gtype") && node.hasProperty(GraphObjectTraitDefinition.ID_PROPERTY) && node.hasProperty(LocationTraitDefinition.LATITUDE_PROPERTY) && node.hasProperty(LocationTraitDefinition.LONGITUDE_PROPERTY)) {
 
 					toDelete.add(node);
@@ -90,32 +89,38 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "deleteSpatialIndex";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes legacy spatial index nodes from the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         Deletes all nodes with `bbox` and `gtype` properties.
         """;
@@ -123,33 +128,37 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This is a legacy command for cleaning up old spatial indexes. You will probably never need it."
-		);
+
+		return List.of("This is a legacy command for cleaning up old spatial indexes. You will probably never need it.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 }

@@ -143,7 +143,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 				.patch("/TestOne");
 
-
 		// check result
 		RestAssured
 
@@ -190,7 +189,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.when()
 
 				.patch("/TestOne?_batchSize=3");
-
 
 		// check result
 		RestAssured
@@ -338,7 +336,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.body("result.aLong",    equalTo(13))
 			.when().get("/TestOne/" + id);
 
-
 		// do PATCH 2
 		RestAssured.given().contentType("application/json; charset=UTF-8").body("[ { name: 'moep2' }, { anInt: 43 }, { aLong: 14 } ]")
 			.expect().statusCode(200).when().patch("/TestOne/" + id);
@@ -368,7 +365,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.body("result.anInt",    equalTo(42))
 			.body("result.aLong",    equalTo(13))
 			.when().get("/TestOne/" + id);
-
 
 		// do PATCH 2
 		RestAssured.given().contentType("application/json; charset=UTF-8").body("[ { name: 'moep2' }, { anInt: 43 }, { aLong: 14 } ]")
@@ -418,6 +414,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 			// add quote for string values (to be able to test numerical values too)
 			if (id instanceof String) {
+
 				buf.append("'");
 			}
 
@@ -425,6 +422,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 			// add quote for string values
 			if (id instanceof String) {
+
 				buf.append("'");
 			}
 
@@ -457,6 +455,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	}
 
 	private List<NodeInterface> createNodes(final int count) {
+
 		return createNodes(count, null);
 	}
 
@@ -476,6 +475,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 			if (mapper != null) {
 
 				final List mapped = new LinkedList<>();
+
 				for (final NodeInterface node : nodes) {
 
 					mapped.add(mapper.apply(node));

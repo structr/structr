@@ -71,31 +71,37 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "flushCaches";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Clears all internal caches.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         Use this command to reduce memory consumption or resolve cache invalidation issues.
         """;
@@ -103,36 +109,43 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

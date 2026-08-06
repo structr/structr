@@ -25,7 +25,9 @@ import org.structr.common.error.FrameworkException;
  *
  */
 public class SystemException extends FrameworkException {
+
 	public SystemException(String msg) {
+
 		super(500, msg);
 	}
 }

@@ -27,21 +27,25 @@ public class FtpServiceDocumentable extends AbstractServiceDocumentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Service;
 	}
 
 	@Override
 	public String getName() {
+
 		return "FtpService";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "A service that provides access to the Structr filesystem via FTP.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 

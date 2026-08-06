@@ -39,6 +39,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "addToGroup";
 	}
 
@@ -84,37 +85,36 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("group", "group to add to"),
-			Parameter.mandatory("principal", "user or group to add to the given group")
-		);
+		return List.of(Parameter.mandatory("group", "group to add to"), Parameter.mandatory("principal", "user or group to add to the given group"));
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("group, user");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${addToGroup(group, user)}"),
-			Usage.javaScript("Usage: ${{$.addToGroup(group, user);}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${addToGroup(group, user)}"), Usage.javaScript("Usage: ${{$.addToGroup(group, user);}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds the given user as a member of the given group.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

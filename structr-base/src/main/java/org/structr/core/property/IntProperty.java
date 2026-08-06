@@ -39,40 +39,48 @@ import java.util.TreeMap;
 public class IntProperty extends AbstractPrimitiveProperty<Integer> implements NumericalPropertyKey<Integer> {
 
 	public IntProperty(final String name) {
+
 		super(name);
 	}
 
 	public IntProperty(final String jsonName, final String dbName) {
+
 		super(jsonName, dbName);
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Integer";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Integer.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Integer;
 	}
 
 	@Override
 	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<Integer, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return new DatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
@@ -80,6 +88,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	public Integer convertToNumber(Double source) {
 
 		if (source != null) {
+
 			return source.intValue();
 		}
 
@@ -89,6 +98,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	protected class DatabaseConverter extends PropertyConverter<Integer, Object> {
 
 		public DatabaseConverter(final SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
@@ -103,14 +113,12 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
 
 				try {
+
 					return Double.valueOf(source.toString()).intValue();
 
 				} catch (Throwable t) {
 
-					throw new PropertyInputParsingException(
-						IntProperty.this.jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), IntProperty.this.jsonName(), source)
-					);
+					throw new PropertyInputParsingException(IntProperty.this.jsonName(), new NumberFormatToken(declaringTrait.getLabel(), IntProperty.this.jsonName(), source));
 				}
 			}
 
@@ -119,6 +127,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 		@Override
 		public Object convert(final Integer source) throws FrameworkException {
+
 			return source;
 		}
 
@@ -127,11 +136,13 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	protected class InputConverter extends PropertyConverter<Object, Integer> {
 
 		public InputConverter(SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
 		@Override
 		public Object revert(Integer source) throws FrameworkException {
+
 			return source;
 		}
 
@@ -148,14 +159,12 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
 
 				try {
+
 					return Double.valueOf(source.toString()).intValue();
 
 				} catch (Throwable t) {
 
-					throw new PropertyInputParsingException(
-						IntProperty.this.jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), IntProperty.this.jsonName(), source)
-					);
+					throw new PropertyInputParsingException(IntProperty.this.jsonName(), new NumberFormatToken(declaringTrait.getLabel(), IntProperty.this.jsonName(), source));
 				}
 			}
 
@@ -170,10 +179,12 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		if (value != null) {
 
 			if (value instanceof Integer) {
+
 				return value;
 			}
 
 			if (value instanceof Number) {
+
 				return ((Number)value).intValue();
 			}
 
@@ -192,33 +203,39 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public Object getIndexValue(final Object value) {
+
 		return fixDatabaseProperty(value);
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for integer values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return index;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -232,6 +249,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		map.put("example", 1);
 
 		if (this.readOnly) {
+
 			map.put("readOnly", true);
 		}
 
@@ -248,6 +266,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		map.put("example", 1);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 

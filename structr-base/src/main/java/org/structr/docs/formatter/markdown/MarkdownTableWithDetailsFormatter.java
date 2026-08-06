@@ -39,10 +39,12 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 		final Concept concept             = link.getTarget();
 
 		if (settings.hasDetail(Details.name)) {
+
 			lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 		}
 
 		if (settings.hasDetail(Details.shortDescription) && concept.getShortDescription() != null) {
+
 			lines.add(concept.getShortDescription());
 		}
 
@@ -68,6 +70,7 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 
 				final Concept child             = childLink.getTarget();
 				final Documentable documentable = child.getDocumentable();
+
 				if (documentable != null) {
 
 					final String longDescription = documentable.getLongDescription();
@@ -131,6 +134,7 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 		for (final String string : strings) {
 
 			if (StringUtils.isNotBlank(string)) {
+
 				return string;
 			}
 		}

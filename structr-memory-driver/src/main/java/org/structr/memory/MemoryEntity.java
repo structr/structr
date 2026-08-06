@@ -45,6 +45,7 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 	private MemoryIdentity id                      = null;
 
 	protected MemoryEntity(final MemoryDatabaseService db) {
+
 		this.db = db;
 	}
 
@@ -60,20 +61,24 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 
 	@Override
 	public Identity<Long> getId() {
+
 		return id;
 	}
 
 	public MemoryIdentity getIdentity() {
+
 		return id;
 	}
 
 	@Override
 	public boolean hasProperty(final String name) {
+
 		return getData(true).containsKey(name);
 	}
 
 	@Override
 	public Object getProperty(String name) {
+
 		return getData(true).get(name);
 	}
 
@@ -91,37 +96,44 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 
 	@Override
 	public void setProperty(final String name, final Object value) {
+
 		lock();
 		getData(false).put(name, value);
 	}
 
 	@Override
 	public void setProperties(final Map<String, Object> values) {
+
 		lock();
 		getData(false).putAll(values);
 	}
 
 	@Override
 	public void removeProperty(final String name) {
+
 		lock();
 		getData(false).put(name, null);
 	}
 
 	@Override
 	public Iterable<String> getPropertyKeys() {
+
 		return getData(true).keySet();
 	}
 
 	@Override
 	public boolean isDeleted() {
+
 		return false;
 	}
 
 	public Map<String, Object> getCache() {
+
 		return dataCache;
 	}
 
 	public void addLabels(final Set<String> labels) {
+
 		addLabels(labels, true);
 	}
 
@@ -131,11 +143,13 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 		this.labels.addAll(labels);
 
 		if (updateCache) {
+
 			updateCache();
 		}
 	}
 
 	public void removeLabel(final String label) {
+
 		removeLabel(label, true);
 	}
 
@@ -145,15 +159,18 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 		labels.remove(label);
 
 		if (updateCache) {
+
 			updateCache();
 		}
 	}
 
 	public boolean hasLabel(final String label) {
+
 		return labels.contains(label);
 	}
 
 	public Iterable<String> getLabels() {
+
 		return labels;
 	}
 
@@ -183,6 +200,7 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 	}
 
 	void rollback(final long transactionId) {
+
 		txData.remove(transactionId);
 		unlock();
 	}
@@ -190,6 +208,7 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 	MemoryEntity lock() {
 
 		if (!lock.isHeldByCurrentThread()) {
+
 			lock.lock();
 		}
 
@@ -199,6 +218,7 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 	MemoryEntity unlock() {
 
 		if (lock.isHeldByCurrentThread()) {
+
 			lock.unlock();
 		}
 
@@ -259,7 +279,6 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 		}
 	}
 
-
 	// ----- private methods -----
 	private ChangeAwareMap getData(final boolean read) {
 
@@ -269,6 +288,7 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 
 			final long transactionId = tx.getTransactionId();
 			ChangeAwareMap copy      = txData.get(transactionId);
+
 			if (copy == null) {
 
 				copy = new ChangeAwareMap(data);

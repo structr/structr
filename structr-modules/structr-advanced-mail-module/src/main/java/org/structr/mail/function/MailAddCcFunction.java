@@ -31,16 +31,19 @@ import java.util.List;
 public class MailAddCcFunction extends AdvancedMailModuleFunction {
 
 	public MailAddCcFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailAddCc";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("address [, name ]");
 	}
 
@@ -61,45 +64,44 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailAddCc(address [, name])}"),
-			Usage.javaScript("Usage: ${{ $.mailAddCc(address [, name]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailAddCc(address [, name])}"), Usage.javaScript("Usage: ${{ $.mailAddCc(address [, name]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds a `Cc:` recipient to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("address", "address of the recipient"),
-				Parameter.optional("name", "name of the recipient")
-		);
+
+		return List.of(Parameter.mandatory("address", "address of the recipient"), Parameter.optional("name", "name of the recipient"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"can be called multiple times to add more recipients."
-		);
+
+		return List.of("can be called multiple times to add more recipients.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 						${{

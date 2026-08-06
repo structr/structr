@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
@@ -90,17 +89,20 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	@Override
 	public void configureServletHolder(final ServletHolder servletHolder) {
+
 		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", (long) MEGABYTE * Settings.UploadMaxFileSize.getValue(), (long) MEGABYTE * Settings.UploadMaxRequestSize.getValue(), MEGABYTE);
 		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
 	}
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
+
 		return config;
 	}
 
 	@Override
 	public String getModuleName() {
+
 		return "core";
 	}
 
@@ -110,6 +112,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			filesDir = new File(Settings.TmpPath.getValue()); // new File(Services.getInstance().getTmpPath());
+
 			if (!filesDir.exists()) {
 
 				filesDir.mkdir();
@@ -136,7 +139,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 		setCustomResponseHeaders(response);
 
-
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			try {
@@ -147,12 +149,15 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
 			if (!securityContext.isSuperUser()) {
+
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Download of export ZIP file only allowed for admins.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
@@ -169,7 +174,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			final String mode = StringUtils.defaultIfBlank(request.getParameter(MODE_PARAMETER), "app");
 
 			if ("test".equals(mode)) {
+
 				response.setStatus(HttpServletResponse.SC_OK);
+
 				return;
 			}
 
@@ -232,6 +239,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
@@ -243,12 +251,15 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
 			if (!securityContext.isSuperUser()) {
+
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Import of ZIP file only allowed for admins.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
@@ -257,6 +268,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		} catch (Throwable t) {
 
 			logger.error("Exception while processing request", t);
+
 			return;
 		}
 
@@ -274,6 +286,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			// don't continue on redirects
 			if (response.getStatus() == 302) {
+
 				return;
 			}
 
@@ -396,8 +409,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
 				try {
+
 					sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
+
 				} catch (IOException ex) {
+
 					logger.error("Unable to redirect to " + redirectUrl);
 				}
 
@@ -433,6 +449,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			attributes.put("target", exportTargetFolder);
 
 			if (types != null) {
+
 				attributes.put("types", types);
 			}
 
@@ -447,7 +464,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			final FileInputStream     in  = new FileInputStream(file);
 			final ServletOutputStream out = response.getOutputStream();
-
 			final long fileSize = IOUtils.copyLarge(in, out);
 			final int status    = response.getStatus();
 
@@ -482,14 +498,17 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				final Path requestedPath = rootPath.resolve(zipPath);
 
 				if (zipPath.isAbsolute()) {
+
 					throw new FrameworkException(422, "Absolute paths are not allowed");
 				}
 
 				if (!requestedPath.toFile().getCanonicalPath().startsWith(rootPath.toFile().getCanonicalPath())) {
+
 					throw new FrameworkException(422, "Directory traversal not allowed");
 				}
 
 				if (!requestedPath.toFile().exists()) {
+
 					throw new FrameworkException(422, "Given folder does not exist in provided zip file!");
 				}
 
@@ -509,11 +528,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				}
 			}
 
-			deployCommand.execute(Map.of(
-					"mode", "import",
-					"source", deploymentFolderSourcePath,
-					"quiet", "true"
-			));
+			deployCommand.execute(Map.of("mode", "import", "source", deploymentFolderSourcePath, "quiet", "true"));
 
 			response.setStatus(deployCommand.getCommandStatusCode());
 
@@ -540,8 +555,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	private File zip(final String sourceDirectoryPath) throws IOException {
 
 		final String zipFilePath   = StringUtils.stripEnd(sourceDirectoryPath, "/").concat(".zip");
-
 		final ZipFile zipFile = new ZipFile(zipFilePath);
+
 		zipFile.addFolder(new File(sourceDirectoryPath));
 
 		return zipFile.getFile();
@@ -555,9 +570,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws IOException
 	 */
 	private void unzip(final File file, final String outputDir) throws IOException {
+
 		new ZipFile(file).extractAll(outputDir);
 	}
-
 
 	/**
 	 * Initalize request.

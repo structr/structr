@@ -60,11 +60,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 
 	public AccessControllableTraitDefinition() {
+
 		super(StructrTraits.ACCESS_CONTROLLABLE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of(
 
 			OnModification.class,         new OnModificationActionVoid(AccessControllableTraitDefinition::clearCaches),
@@ -81,8 +83,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 		return Map.of(
 
-			GetOwnerNode.class,
-			new GetOwnerNode() {
+			GetOwnerNode.class, new GetOwnerNode() {
 
 				@Override
 				public Principal getOwnerNode(final NodeInterface nodeInterface) {
@@ -98,22 +99,24 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 				@Override
 				public void setOwner(final NodeInterface nodeInterface, final Principal principal) throws FrameworkException {
+
 					nodeInterface.setProperty(nodeInterface.getTraits().key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), principal);
 				}
 			},
 
-			IsGranted.class,
-			new IsGranted() {
+			IsGranted.class, new IsGranted() {
 
 				@Override
 				public boolean isGranted(final NodeInterface node, final Permission permission, final SecurityContext securityContext, final boolean isCreation) {
 
 					// super user can do everything
 					if (securityContext != null && securityContext.isSuperUser()) {
+
 						return true;
 					}
 
 					Principal accessingUser = null;
+
 					if (securityContext != null) {
 
 						accessingUser = securityContext.getUser(false);
@@ -123,6 +126,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 					final Boolean cached = isGrantedResultCache.get(cacheKey);
 
 					if (cached != null && cached == true) {
+
 						return true;
 					}
 
@@ -135,13 +139,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				}
 			},
 
-			Grant.class,
-			new Grant() {
+			Grant.class, new Grant() {
 
 				@Override
 				public void grant(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException {
 
 					if (!node.isGranted(Permission.accessControl, ctx, false)) {
+
 						throw new FrameworkException(403, getAccessControlNotPermittedExceptionString(node, "grant", permissions, principal, ctx));
 					}
 
@@ -186,13 +190,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				}
 			},
 
-			Revoke.class,
-			new Revoke() {
+			Revoke.class, new Revoke() {
 
 				@Override
 				public void revoke(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException {
 
 					if (!node.isGranted(Permission.accessControl, ctx, false)) {
+
 						throw new FrameworkException(403, getAccessControlNotPermittedExceptionString(node, "revoke", permissions, principal, ctx));
 					}
 
@@ -206,13 +210,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				}
 			},
 
-			SetAllowed.class,
-			new SetAllowed() {
+			SetAllowed.class, new SetAllowed() {
 
 				@Override
 				public void setAllowed(final NodeInterface node, final Set<Permission> permissions, final Principal principal, final SecurityContext ctx) throws FrameworkException {
 
 					if (!node.isGranted(Permission.accessControl, ctx, false)) {
+
 						throw new FrameworkException(403, getAccessControlNotPermittedExceptionString(node, "set", permissions, principal, ctx));
 					}
 
@@ -254,13 +258,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 						}
 
 					} else {
+
 						secRel.setAllowed(permissionSet);
 					}
 				}
 			},
 
-			GetSecurityRelationships.class,
-			new GetSecurityRelationships() {
+			GetSecurityRelationships.class, new GetSecurityRelationships() {
 
 				@Override
 				public List<Security> getSecurityRelationships(final NodeInterface node) {
@@ -276,6 +280,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 						final String n2 = p2 != null ? p2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)) : "empty";
 
 						if (n1 != null && n2 != null) {
+
 							return n1.compareTo(n2);
 
 						} else if (n1 != null) {
@@ -283,6 +288,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 							return 1;
 
 						} else if (n2 != null) {
+
 							return -1;
 						}
 
@@ -290,6 +296,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 					});
 
 					// wrap in Security trait
+
 					return grants.stream().map(g -> g.as(Security.class)).toList();
 				}
 
@@ -303,25 +310,26 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				}
 			},
 
-			GetAccessEntries.class,
-			new GetAccessEntries() {
+			GetAccessEntries.class, new GetAccessEntries() {
 
 				@Override
 				public List<AccessEntry> getDirectAccessEntries(final NodeInterface node) {
+
 					return AccessControllableTraitDefinition.computeDirectAccessEntries(node);
 				}
 
 				@Override
 				public List<AccessEntry> getEffectiveAccessEntries(final NodeInterface node) {
+
 					return AccessControllableTraitDefinition.computeEffectiveAccessEntries(node);
 				}
 			},
 
-			AllowedBySchema.class,
-			new AllowedBySchema() {
+			AllowedBySchema.class, new AllowedBySchema() {
 
 				@Override
 				public boolean allowedBySchema(final NodeInterface node, final Principal principal, final Permission permission) {
+
 					return false;
 				}
 			}
@@ -331,17 +339,17 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			AccessControllable.class, (traits, node) -> new AccessControllableTraitWrapper(traits, node)
-		);
+		return Map.of(AccessControllable.class, (traits, node) -> new AccessControllableTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	public static void clearCaches() {
+
 		globalPermissionResolutionCache.clear();
 		isGrantedResultCache.clear();
 	}
@@ -369,13 +377,16 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	}
 
 	private static boolean isGranted(final NodeInterface node, final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final boolean isCreation) {
+
 		return AccessControllableTraitDefinition.isGranted(node, permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null, isCreation);
 	}
 
 	private static boolean isGranted(final NodeInterface node, final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, Security> incomingSecurityRelationships, final boolean isCreation) {
 
 		if (level > 300) {
+
 			logger.warn("Aborting recursive permission resolution for {} on {} because of recursion level > 300, this is quite likely an infinite loop.", permission.name(), node.getType() + "(" + node.getUuid() + ")");
+
 			return false;
 		}
 
@@ -385,6 +396,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 			// this includes SuperUser
 			if (accessingUser.isAdmin()) {
+
 				return true;
 			}
 
@@ -392,6 +404,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			if (node.as(AccessControllable.class).allowedBySchema(accessingUser, permission)) {
 
 				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by schema configuration for {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
+
 				return true;
 			}
 		}
@@ -400,16 +413,19 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		final boolean hasOwner = (_owner != null);
 
 		if (isCreation && (accessingUser == null || accessingUser.equals(node) || accessingUser.equals(_owner) ) ) {
+
 			return true;
 		}
 
 		// allow accessingUser to access itself, but not parents etc.
 		if (node.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
+
 			return true;
 		}
 
 		// node has an owner, deny anonymous access
 		if (hasOwner && accessingUser == null) {
+
 			return false;
 		}
 
@@ -417,6 +433,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 			// owner is always allowed to do anything with its nodes
 			if (hasOwner && accessingUser.equals(_owner)) {
+
 				return true;
 			}
 
@@ -424,13 +441,16 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			final Security security                                        = AccessControllableTraitDefinition.getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
 
 			if (security != null && security.isAllowed(permission)) {
+
 				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by security relationship for {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
+
 				return true;
 			}
 
 			for (Principal parent : accessingUser.getParentsPrivileged()) {
 
 				if (isGranted(node, permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships, isCreation)) {
+
 					return true;
 				}
 			}
@@ -513,6 +533,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		}
 
 		if (doLog && level == 0) {
+
 			logger.info(buf.toString());
 		}
 	}
@@ -521,6 +542,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 		// check nodes here to avoid circles in permission-propagating relationships
 		if (alreadyTraversed.contains("Node", node.getUuid())) {
+
 			return false;
 		}
 
@@ -561,16 +583,19 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 									if (Permission.read.equals(permission)) {
 
 										if (principal != null && otherNode.isVisibleToAuthenticatedUsers()) {
+
 											isAllowed = true;
 										}
 
 										if (principal == null && otherNode.isVisibleToPublicUsers()) {
+
 											isAllowed = true;
 										}
 									}
 
 									// if visibility flag check was unsuccessful, do full check
 									if (!isAllowed) {
+
 										isAllowed = isGranted(otherNode, permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation);
 									}
 
@@ -579,6 +604,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 										storePermissionResolutionResult(otherNode, principal.getUuid(), permission, true);
 
 										// break early
+
 										return true;
 
 									} else {
@@ -626,11 +652,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 		// early exit
 		if (propagationDirection.equals(PropagationDirection.Both)) {
+
 			return true;
 		}
 
 		// early exit
 		if (propagationDirection.equals(PropagationDirection.None)) {
+
 			return false;
 		}
 
@@ -643,9 +671,11 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			switch (propagationDirection) {
 
 				case Out:
+
 					return false;
 
 				case In:
+
 					return true;
 			}
 
@@ -655,9 +685,11 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			switch (propagationDirection) {
 
 				case Out:
+
 					return true;
 
 				case In:
+
 					return false;
 			}
 		}
@@ -763,18 +795,22 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		if (result != null) {
 
 			if (permission.equals(Permission.read)) {
+
 				return result.read;
 			}
 
 			if (permission.equals(Permission.write)) {
+
 				return result.write;
 			}
 
 			if (permission.equals(Permission.delete)) {
+
 				return result.delete;
 			}
 
 			if (permission.equals(Permission.accessControl)) {
+
 				return result.accessControl;
 			}
 		}
@@ -799,18 +835,22 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		}
 
 		if (permission.equals(Permission.read) && (result.read == null || result.read == false)) {
+
 			result.read = value;
 		}
 
 		if (permission.equals(Permission.write) && (result.write == null || result.write == false)) {
+
 			result.write = value;
 		}
 
 		if (permission.equals(Permission.delete) && (result.delete == null || result.delete == false)) {
+
 			result.delete = value;
 		}
 
 		if (permission.equals(Permission.accessControl) && (result.accessControl == null || result.accessControl == false)) {
+
 			result.accessControl = value;
 		}
 	}
@@ -864,9 +904,12 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		if (owner != null) {
 
 			final Set<Permission> all = new LinkedHashSet<>();
+
 			for (final Permission p : Permission.allPermissions) {
+
 				all.add(p);
 			}
+
 			addRaw(byPrincipal, owner, all, "owner", 0);
 		}
 
@@ -875,6 +918,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 			final NodeInterface source = rel.getSourceNode();
 			if (source == null) {
+
 				continue;
 			}
 
@@ -883,6 +927,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			final Set<Permission> perms = parsePermissions(security.getPermissions());
 
 			if (perms.isEmpty()) {
+
 				continue;
 			}
 
@@ -901,10 +946,12 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 			final NodeInterface source = rel.getSourceNode();
 			if (source == null) {
+
 				continue;
 			}
 
 			if (!source.getTraits().contains(StructrTraits.GROUP)) {
+
 				continue;
 			}
 
@@ -913,6 +960,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			final Set<Permission> perms = parsePermissions(security.getPermissions());
 
 			if (perms.isEmpty()) {
+
 				continue;
 			}
 
@@ -929,12 +977,14 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	private static void expandGroup(final Group originatingGroup, final Group current, final Set<Permission> perms, final Map<String, RawEntry> byPrincipal, final Set<String> visited) {
 
 		if (!visited.add(current.getUuid())) {
+
 			return;
 		}
 
 		for (final Principal member : current.getMembers()) {
 
 			if (member == null) {
+
 				continue;
 			}
 
@@ -958,6 +1008,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		// Revisit once the trait-inheritance semantics are settled (diamond-problem discussion).
 		final String typeName = node.getType();
 		if (typeName == null) {
+
 			return;
 		}
 
@@ -969,20 +1020,20 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				.getFirst();
 
 			if (schemaNodeNode == null) {
+
 				return;
 			}
 
-			final Iterable<NodeInterface> grants = schemaNodeNode.getProperty(
-				Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.SCHEMA_GRANTS_PROPERTY)
-			);
-
+			final Iterable<NodeInterface> grants = schemaNodeNode.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.SCHEMA_GRANTS_PROPERTY));
 			if (grants == null) {
+
 				return;
 			}
 
 			for (final NodeInterface grantNode : grants) {
 
 				if (grantNode == null) {
+
 					continue;
 				}
 
@@ -990,6 +1041,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				final Principal principal = grant.getPrincipal();
 
 				if (principal == null) {
+
 					continue;
 				}
 
@@ -1000,6 +1052,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				if (grant.allowAccessControl()) { perms.add(Permission.accessControl); }
 
 				if (perms.isEmpty()) {
+
 					continue;
 				}
 
@@ -1015,12 +1068,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	private static void addRaw(final Map<String, RawEntry> byPrincipal, final Principal principal, final Set<Permission> perms, final String viaToken, final int viaOrder) {
 
 		if (principal == null || perms.isEmpty()) {
+
 			return;
 		}
 
 		final String uuid = principal.getUuid();
-
 		RawEntry existing = byPrincipal.get(uuid);
+
 		if (existing == null) {
 
 			existing = new RawEntry(uuid, nullSafe(principal.getName()), principal.getType());
@@ -1034,7 +1088,9 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	private static Set<Permission> parsePermissions(final Set<String> names) {
 
 		final Set<Permission> result = new LinkedHashSet<>();
+
 		if (names == null) {
+
 			return result;
 		}
 
@@ -1063,28 +1119,26 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			final List<ViaToken> tokens = new ArrayList<>(raw.viaTokens);
 			tokens.sort((a, b) -> {
 				if (a.order != b.order) {
+
 					return Integer.compare(a.order, b.order);
 				}
+
 				return a.token.compareTo(b.token);
 			});
 
 			final String via = tokens.stream().map(t -> t.token).collect(Collectors.joining("+"));
 
-			result.add(new AccessEntry(
-				raw.uuid,
-				raw.name,
-				raw.type,
-				new LinkedHashSet<>(raw.perms),
-				via
-			));
+			result.add(new AccessEntry(raw.uuid, raw.name, raw.type, new LinkedHashSet<>(raw.perms), via));
 		}
 
 		result.sort((a, b) -> {
 			final String n1 = a.granteeName();
 			final String n2 = b.granteeName();
+
 			if (n1 != null && n2 != null) { return n1.compareTo(n2); }
 			if (n1 != null) { return 1; }
 			if (n2 != null) { return -1; }
+
 			return 0;
 		});
 
@@ -1092,6 +1146,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	}
 
 	private static String nullSafe(final String s) {
+
 		return s != null ? s : "";
 	}
 
@@ -1105,6 +1160,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		final Set<ViaToken> viaTokens = new LinkedHashSet<>();
 
 		RawEntry(final String uuid, final String name, final String type) {
+
 			this.uuid = uuid;
 			this.name = name;
 			this.type = type;
@@ -1117,19 +1173,23 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		final int order;
 
 		ViaToken(final String token, final int order) {
+
 			this.token = token;
 			this.order = order;
 		}
 
 		@Override
 		public boolean equals(final Object o) {
+
 			if (this == o) return true;
 			if (!(o instanceof ViaToken other)) return false;
+
 			return this.order == other.order && this.token.equals(other.token);
 		}
 
 		@Override
 		public int hashCode() {
+
 			return token.hashCode() * 31 + order;
 		}
 	}
@@ -1140,6 +1200,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		final Set<Permission> perms;
 
 		GroupSeed(final Group group, final Set<Permission> perms) {
+
 			this.group = group;
 			this.perms = perms;
 		}
@@ -1174,6 +1235,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			this.node   = node;
 
 			if (parent != null) {
+
 				this.level  = parent.level+1;
 			}
 		}

@@ -67,11 +67,13 @@ public class KeycloakAuthClient extends AbstractOAuth2Client {
 		final DefaultApi20 api = new DefaultApi20() {
 			@Override
 			public String getAccessTokenEndpoint() {
+
 				return tokenUrl;
 			}
 
 			@Override
 			protected String getAuthorizationBaseUrl() {
+
 				return authUrl;
 			}
 		};
@@ -81,10 +83,14 @@ public class KeycloakAuthClient extends AbstractOAuth2Client {
 
 	@Override
 	protected String getDefaultUserDetailsUri() {
+
 		if (serverUrl != null && !serverUrl.isEmpty()) {
+
 			final String baseUrl = serverUrl.startsWith("http") ? serverUrl : "https://" + serverUrl;
+
 			return baseUrl + "/realms/" + realm + "/protocol/openid-connect/userinfo";
 		}
+
 		return "";
 	}
 }

@@ -44,8 +44,8 @@ public abstract class AccessProvider {
 	public static PolyglotAccess getPolyglotAccessConfig() {
 
 		final String configured = Settings.ScriptingPolyglotAccess.getValue("ALL");
-
 		if ("NONE".equalsIgnoreCase(configured)) {
+
 			return PolyglotAccess.NONE;
 		}
 
@@ -58,6 +58,7 @@ public abstract class AccessProvider {
 	}
 
 	public static IOAccess getIOAccessConfig() {
+
 		return IOAccess.newBuilder()
 				.fileSystem(new PolyglotFilesystem())
 				.build();

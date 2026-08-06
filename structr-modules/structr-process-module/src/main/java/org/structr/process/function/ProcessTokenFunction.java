@@ -52,11 +52,13 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "process_token";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -70,12 +72,12 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 			final String processInstanceId = sources[0].toString();
 			final String taskId            = sources[1].toString();
 			final String action            = sources[2].toString();
-
 			int expiryMinutes = ProcessJWTHelper.DEFAULT_EXPIRY_MINUTES;
 
 			if (sources.length >= 4) {
 
 				try {
+
 					expiryMinutes = Integer.parseInt(sources[3].toString());
 
 				} catch (NumberFormatException nfe) {
@@ -89,6 +91,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -97,6 +100,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("processInstanceId, taskId, action [, expiryMinutes]");
 	}
 
@@ -111,6 +115,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates a signed JWT for process-scoped, sessionless access.";
 	}
 
@@ -168,6 +173,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

@@ -25,16 +25,19 @@ import java.util.List;
 public class OnDelete extends LifecycleBase {
 
 	public OnDelete() {
+
 		super("onDelete");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called when an object of this type is deleted.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onDelete()` lifecycle method is called when an existing object of this type is deleted. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
 		
@@ -48,6 +51,7 @@ public class OnDelete extends LifecycleBase {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			{
@@ -68,9 +72,6 @@ public class OnDelete extends LifecycleBase {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `afterDelete()`, `error()` and `assert()`."
-		);
+		return List.of("This lifecycle method can be defined on any node type.", "See also: `afterDelete()`, `error()` and `assert()`.");
 	}
 }

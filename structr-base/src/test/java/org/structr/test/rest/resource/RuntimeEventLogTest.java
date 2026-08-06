@@ -22,8 +22,6 @@ import io.restassured.RestAssured;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
-
-
 /**
  */
 public class RuntimeEventLogTest extends StructrRestTestBase {

@@ -64,6 +64,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "changelog";
 	}
 
@@ -75,7 +76,6 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			final String changelog = getChangelogForObject(sources[0]);
-
 			if (changelog != null && !("".equals(changelog))) {
 
 				final ChangelogFilter changelogFilter = new ChangelogFilter();
@@ -94,17 +94,20 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 						for (int i = 2; (i + 2) <= maxLength; i += 2) {
 
 							if (sources[i] != null && sources[i+1] != null) {
+
 								changelogFilter.addFilterEntry(sources[i].toString(), sources[i+1]);
 							}
 						}
 
 						if (maxLength % 2 == 1 && sources[maxLength-1] != null) {
+
 							logger.warn("Ignoring dangling filterKey: {}", sources[maxLength-1]);
 						}
 					}
 				}
 
 				if (sources.length >= 2 && Boolean.TRUE.equals(sources[1])) {
+
 					changelogFilter.setResolveTargets(true);
 				}
 
@@ -116,27 +119,32 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		} catch (IOException ioex) {
 
 			logger.error("Unable to create changelog file: {}", ioex.getMessage());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (IllegalArgumentException iae) {
 
 			logger.warn(iae.getMessage());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}"),
 			Usage.javaScript("Usage: ${{ $.changelog(entity[, resolve=false[, filterObject]]); }}. Example: ${{ $.changelog($.current, false, {verb:'change', timeTo: new Date()})); }}")
@@ -145,11 +153,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the changelog for a given entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `resolve` parameter controls if remote entities are resolved. Every changelog entry which has a `target` will be resolved as `targetObj` (if the remote entity still exists in the database).
 
@@ -188,6 +198,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of(
 			Signature.structrScript("entity [, resolve=false [, filterKey, filterValue ]... ]"),
 			Signature.structrScript("uuid [, resolve=false [, filterKey, filterValue ]... ]"),
@@ -198,6 +209,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("entityOrUUID", "entity to fetch changelog for"),
 			Parameter.optional("resolve", "whether remote entities are resolved and returned"),
@@ -208,6 +220,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${changelog(node, false, 'verb', 'link')}", "Return all changelog entries with verb=link"),
 			Example.javaScript("${{ $.changelog(node, false, {verb: ['link', 'unlink']}); }}", "Return all changelog entries with verb=(link OR unlink)"),
@@ -218,6 +231,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The Changelog has to be enabled for this function to work properly. This can be done via the `application.changelog.enabled` key in configuration file structr.conf",
 			"The `prev` and `val` keys in the `change` event contain JSON encoded elements since they can be strings or arrays.",
@@ -228,6 +242,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 
@@ -259,8 +274,8 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		if (Settings.isValidUuid(inputString)) {
 
 			String changelog = getChangelogForUUID(inputString, "n");
-
 			if (changelog.equals("")) {
+
 				changelog = getChangelogForUUID(inputString, "r");
 			}
 
@@ -275,7 +290,6 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	protected String getChangelogForUUID (final String uuid, final String changelogType) throws IOException {
 
 		java.io.File file = getChangeLogFileOnDisk(changelogType, uuid, false);
-
 		if (file.exists()) {
 
 			return FileUtils.readFileToString(file, "utf-8");
@@ -332,6 +346,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			}
 
 			//return Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+
 			return Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
 
 		} catch (IOException ioex) {
@@ -351,6 +366,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	}
 
 	protected boolean isUserCentric () {
+
 		return false;
 	}
 
@@ -390,6 +406,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private final Property<String>  changelogType                        = new StringProperty("type");
 
 		public void setIsUserCentricChangelog(final boolean userCentric) {
+
 			_isUserCentricChangelog = userCentric;
 		}
 
@@ -449,6 +466,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			assignStringsIfPresent(javascriptConfigObject.get("relType"), _filterRelType);
 
 			if (javascriptConfigObject.get("relDir") != null) {
+
 				_filterRelDir = javascriptConfigObject.get("relDir").toString();
 			}
 
@@ -459,6 +477,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private void assignLongIfPresent (final Object possibleLong, Long targetLongReference) {
 
 			if (possibleLong != null) {
+
 				targetLongReference = ((Long)possibleLong);
 			}
 		}
@@ -466,15 +485,20 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private void assignStringsIfPresent (final Object possibleListOrString, ArrayList<String> targetListReference) {
 
 			if (possibleListOrString != null) {
+
 				if (possibleListOrString instanceof List) {
+
 					targetListReference.addAll((List)possibleListOrString);
+
 				} else if (possibleListOrString instanceof String) {
+
 					targetListReference.add((String)possibleListOrString);
 				}
 			}
 		}
 
 		public void setResolveTargets (final boolean resolve) {
+
 			_resolveTargets = resolve;
 		}
 
@@ -509,6 +533,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 					obj.put(changelogTime, time);
 
 					if (!_isUserCentricChangelog) {
+
 						obj.put(changelogUserId, userId);
 						obj.put(changelogUserName, userName);
 					}
@@ -520,6 +545,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							obj.put(changelogType, type);
 
 							if (_resolveTargets) {
+
 								obj.put(changelogTargetObj, resolveTarget(target));
 							}
 
@@ -535,6 +561,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							obj.put(changelogTarget, target);
 
 							if (_resolveTargets) {
+
 								obj.put(changelogTargetObj, resolveTarget(target));
 							}
 
@@ -550,7 +577,9 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							if (_isUserCentricChangelog) {
 
 								obj.put(changelogTarget, target);
+
 								if (_resolveTargets) {
+
 									obj.put(changelogTargetObj, resolveTarget(target));
 								}
 							}
@@ -572,8 +601,11 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private Object resolveTarget(final String targetId) throws FrameworkException {
 
 			if (Principal.SUPERUSER_ID.equals(targetId)) {
+
 				return null;
+
 			} else if (Principal.ANONYMOUS.equals(targetId)) {
+
 				return null;
 			}
 
@@ -611,10 +643,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			} else {
 
 				try {
+
 					// parse with format from IS
+
 					return (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(possibleLong.toString())).getTime();
 
 				} catch (ParseException ignore) {
+
 					// silently fail as this can be any string
 				}
 			}

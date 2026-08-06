@@ -49,16 +49,19 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return GraphObject.class;
 	}
 
 	@Override
 	public Iterable<GraphObject> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -75,10 +78,10 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 				parameters.put("id", obj.getUuid());
 				parameters.put("type", obj.getType());
 
-
 				return StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, parameters);
 
 			} catch (Throwable t) {
+
 				logger.warn("", t);
 			}
 		}
@@ -88,27 +91,32 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

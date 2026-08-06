@@ -39,11 +39,13 @@ public class ConcatFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "concat";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("values...");
 	}
 
@@ -79,6 +81,7 @@ public class ConcatFunction extends CoreFunction {
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		}
@@ -86,6 +89,7 @@ public class ConcatFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.concat(values...)}}. Example: ${{$.concat($.this.firstName, $.this.lastName)}}"),
 			Usage.structrScript("Usage: ${concat(values...)}. Example: ${concat(this.firstName, this.lastName)}")
@@ -94,38 +98,37 @@ public class ConcatFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Concatenates the given list of objects into a single string without a separator between them.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The objects can be of any type: string, number, entity, collection. If a collection is encountered, all elements of that collection are concatenated.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("objects...", "one or more objects to concatenate")
-		);
+
+		return List.of(Parameter.mandatory("objects...", "one or more objects to concatenate"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${concat('test', 1, me, ' a string')}", "Results in \"test1.04c8a42581fb74ea092552539d0b594f0 a string\"")
-		);
+
+		return List.of(Example.structrScript("${concat('test', 1, me, ' a string')}", "Results in \"test1.04c8a42581fb74ea092552539d0b594f0 a string\""));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"If nodes and relationships are among the parameters, their UUIDs will be written into the result.",
-			"`null` values are filtered and not concatenated."
-		);
+
+		return List.of("If nodes and relationships are among the parameters, their UUIDs will be written into the result.", "`null` values are filtered and not concatenated.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

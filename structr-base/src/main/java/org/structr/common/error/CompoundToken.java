@@ -39,6 +39,7 @@ public class CompoundToken extends ErrorToken {
 
 	@Override
 	public Object getValue() {
+
 		return data.get("keys");
 	}
 }

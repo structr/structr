@@ -37,11 +37,13 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "replace";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("template, entity");
 	}
 
@@ -54,10 +56,10 @@ public class ReplaceFunction extends CoreFunction {
 
 			final String template = sources[0].toString();
 			GraphObject node = null;
-
 			Object convertedInputNode = Function.toGraphObject(sources[1], 3);
 
 			if (convertedInputNode instanceof GraphObject) {
+
 				node = (GraphObject) convertedInputNode;
 			}
 
@@ -73,6 +75,7 @@ public class ReplaceFunction extends CoreFunction {
 			if (node != null) {
 
 				// recursive replacement call, be careful here
+
 				return Scripting.replaceVariables(ctx, node, template, "replace()");
 			}
 
@@ -81,37 +84,39 @@ public class ReplaceFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.replace(template, source)}}."),
-			Usage.structrScript("Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{$.replace(template, source)}}."), Usage.structrScript("Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Replaces script expressions in the given template with values from the given entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function can be used to evaluate template expressions in database objects, for example to create customized e-mails etc.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${replace('Welcome, ${this.name}!', me)}"),
+
+		return List.of(Example.structrScript("${replace('Welcome, ${this.name}!', me)}"),
 				Example.javaScript("""
 						${{ $.replace('Welcome, ${this.name}!', $.me) }}
 						> Welcome, admin!
@@ -121,22 +126,19 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"Allowing user input to be evaluated in a template expression poses a security risk. You have no control over what the user can do!"
-		);
+
+		return List.of("Allowing user input to be evaluated in a template expression poses a security risk. You have no control over what the user can do!");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("template", "template for replacement"),
-				Parameter.optional("entity", "target object")
-				);
+		return List.of(Parameter.mandatory("template", "template for replacement"), Parameter.optional("entity", "target object"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

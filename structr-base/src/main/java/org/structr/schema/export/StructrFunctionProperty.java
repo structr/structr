@@ -54,6 +54,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 
 	@Override
 	public String getType() {
+
 		return "function";
 	}
 
@@ -61,11 +62,13 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	public JsonFunctionProperty setReadFunction(final String readFunction) {
 
 		this.readFunction = readFunction;
+
 		return this;
 	}
 
 	@Override
 	public String getReadFunction() {
+
 		return readFunction;
 	}
 
@@ -73,33 +76,41 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	public JsonFunctionProperty setWriteFunction(String writeFunction) {
 
 		this.writeFunction = writeFunction;
+
 		return this;
 	}
 
 	@Override
 	public String getWriteFunction() {
+
 		return writeFunction;
 	}
 
 	@Override
 	public JsonFunctionProperty setWriteFunctionWrapJS(boolean wrap) {
+
 		this.writeFunctionWrapJS = wrap;
+
 		return this;
 	}
 
 	@Override
 	public Boolean getWriteFunctionWrapJS() {
+
 		return this.writeFunctionWrapJS;
 	}
 
 	@Override
 	public JsonFunctionProperty setReadFunctionWrapJS(boolean wrap) {
+
 		this.readFunctionWrapJS = wrap;
+
 		return this;
 	}
 
 	@Override
 	public Boolean getReadFunctionWrapJS() {
+
 		return this.readFunctionWrapJS;
 	}
 
@@ -107,22 +118,27 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	public JsonFunctionProperty setIsCachingEnabled(boolean enabled) {
 
 		this.cachingEnabled = enabled;
+
 		return this;
 	}
 
 	@Override
 	public Boolean getIsCachingEnabled() {
+
 		return this.cachingEnabled;
 	}
 
 	@Override
 	public JsonFunctionProperty setOpenAPIReturnType(String openAPIReturnType) {
+
 		this.openAPIReturnType = openAPIReturnType;
+
 		return this;
 	}
 
 	@Override
 	public String getOpenAPIReturnType() {
+
 		return this.openAPIReturnType;
 	}
 
@@ -134,10 +150,12 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		map.put(JsonSchema.KEY_IS_CACHING_ENABLED, cachingEnabled);
 
 		if (readFunction != null) {
+
 			map.put(JsonSchema.KEY_READ_FUNCTION, readFunction);
 		}
 
 		if (writeFunction != null) {
+
 			map.put(JsonSchema.KEY_WRITE_FUNCTION, writeFunction);
 		}
 
@@ -145,6 +163,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		map.put(JsonSchema.KEY_READ_FUNCTION_WRAP_JS, readFunctionWrapJS);
 
 		if (openAPIReturnType != null) {
+
 			map.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, openAPIReturnType);
 		}
 
@@ -201,6 +220,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 			if (cachingEnabledValue instanceof String) {
 
 				this.cachingEnabled = Boolean.valueOf((String)cachingEnabledValue);
+
 			} else if (cachingEnabledValue instanceof Boolean) {
 
 				this.cachingEnabled = (Boolean)cachingEnabledValue;

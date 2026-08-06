@@ -97,7 +97,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 	}
 
-
 	/**
 	 * Test a more complex object
 	 */
@@ -151,7 +150,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 			.when()
 				.get(resource + "?_sort=name&_pageSize=10&_page=1");
-
 
 		// sort by date, descending
 		RestAssured
@@ -220,6 +218,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -233,6 +232,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -251,7 +251,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[1].type",     equalTo(StructrTraits.SECURITY))
 			.when()
 				.get("/TestOne/in?_pageSize=2");
-
 
 	}
 
@@ -272,6 +271,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -285,6 +285,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -303,7 +304,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[1].type",     equalTo(StructrTraits.SECURITY))
 			.when()
 				.get("/TestUser/" + uuid + "/out?_pageSize=2");
-
 
 	}
 
@@ -325,6 +325,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -340,7 +341,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.body("result[7].name",    equalTo("name5"))
 			.body("result[8].name",    equalTo("name7"))
 			.when().get("/TestOne?_sort=aLong&_sort=name");
-
 
 		//final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong', true), sort('name'))}", "test2");
 		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
@@ -450,7 +450,6 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 				.when()
 					.get(resource + "?sort=name&pageSize=10&page=1");
-
 
 			// sort by date, descending
 			RestAssured

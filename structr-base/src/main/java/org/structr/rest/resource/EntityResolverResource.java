@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -33,7 +32,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  *
  *
@@ -41,17 +39,20 @@ import java.util.Set;
 public class EntityResolverResource extends ExactMatchEndpoint {
 
 	public EntityResolverResource() {
+
 		super(RESTParameter.forStaticString("resolver", true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new ResolverResourceHandler(call);
 	}
 
 	private class ResolverResourceHandler extends RESTCallHandler {
 
 		public ResolverResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
@@ -64,6 +65,7 @@ public class EntityResolverResource extends ExactMatchEndpoint {
 			if (src != null && src instanceof Collection) {
 
 				final Collection list = (Collection)src;
+
 				for (final Object obj : list) {
 
 					if (obj instanceof String) {
@@ -86,16 +88,19 @@ public class EntityResolverResource extends ExactMatchEndpoint {
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("OPTIONS", "POST");
 		}
 	}

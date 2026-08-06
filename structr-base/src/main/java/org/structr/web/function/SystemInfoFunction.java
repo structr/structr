@@ -45,6 +45,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "systemInfo";
 	}
 
@@ -58,10 +59,12 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 			if (systemInfo.containsKey(sources[0])) {
 
 				return systemInfo.get(sources[0]);
+
 			} else {
 
 				return usage(ctx.isJavaScriptContext());
 			}
+
 		} else if (sources.length > 1) {
 
 			return usage(ctx.isJavaScriptContext());
@@ -72,6 +75,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. "),
 			Usage.structrScript("Usage: ${systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.")
@@ -80,11 +84,13 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns information about the system.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		When called without parameters all info will be returned, otherwise specify a key to request specific info.
 		| Key | Value |
@@ -98,27 +104,23 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 		""";
 	}
 
-
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${ systemInfo()}"),
-				Example.javaScript("${{ $.systemInfo() }}")
-		);
+
+		return List.of(Example.structrScript("${ systemInfo()}"), Example.javaScript("${{ $.systemInfo() }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.optional("key", "info key")
-				);
+		return List.of(Parameter.optional("key", "info key"));
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -131,7 +133,6 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 		info.put("runtime", Runtime.version().toString());
 
 		final String activeNodeServiceName = Settings.getOrCreateStringSetting("NodeService.active").getValue();
-
 		if (activeNodeServiceName != null) {
 
 			final NodeService nodeService = Services.getInstance().getService(NodeService.class, activeNodeServiceName);
@@ -139,9 +140,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 				final Map<String, Number> counts                  = new LinkedHashMap<>();
 				final Map<String, Map<String, Integer>> cacheInfo = new LinkedHashMap<>();
-
 				final DatabaseService db = nodeService.getDatabaseService();
-
 				final CountResult cr = db.getNodeAndRelationshipCount();
 
 				counts.put("nodes", cr.getNodeCount());
@@ -159,16 +158,16 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 		info.put("maintenanceActive", Settings.MaintenanceModeEnabled.getValue());
 
 		final Map<String, Map> memoryInfo = new LinkedHashMap<>();
-
 		final Map<String, Long> memoryRuntimeInfo = new LinkedHashMap<>();
+
 		memoryRuntimeInfo.put("free", Runtime.getRuntime().freeMemory());
 		memoryRuntimeInfo.put("max", Runtime.getRuntime().maxMemory());
 		memoryRuntimeInfo.put("total", Runtime.getRuntime().totalMemory());
 		memoryInfo.put("runtimeInfo", memoryRuntimeInfo);
 
 		final Map<String, Map> memoryBeansInfo = new LinkedHashMap<>();
-
 		final List<MemoryPoolMXBean> beans = ManagementFactory.getMemoryPoolMXBeans();
+
 		for (final MemoryPoolMXBean bean : beans) {
 
 			final MemoryUsage usage = bean.getCollectionUsage();
@@ -193,6 +192,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

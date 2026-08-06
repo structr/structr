@@ -39,16 +39,19 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public boolean isHidden() {
+
 		return true;
 	}
 
 	@Override
 	public String getName() {
+
 		return "sendEvent";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("eventType, message, recipient(s)");
 	}
 
@@ -56,6 +59,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
+
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			final String name             = sources[0].toString();
@@ -80,6 +84,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 						targets.add(n.as(Principal.class));
 
 					} else {
+
 						logger.warn("{}: Ignoring non-principal {}", getName(), obj);
 					}
 				}
@@ -92,33 +97,32 @@ public class SendEventFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return false;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${sendEvent(eventType, message, recipient(s))}."),
-			Usage.javaScript("Usage: ${{ $.sendEvent(eventType, message, recipient(s))}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${sendEvent(eventType, message, recipient(s))}."), Usage.javaScript("Usage: ${{ $.sendEvent(eventType, message, recipient(s))}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Triggers the sending of a sever-sent event to a given list of recipients. The message will only be sent if they have an open connection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
-
-
-
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${sendEvent('message', 'Welcome!', find('User', 'name', 'Bob'))}"),
 				Example.javaScript("${{ $.sendEvent('message', 'Welcome!', $.find('User', 'name', 'Bob')) }}")
@@ -137,13 +141,13 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"Recipients can either be a single user, a single group or a mixed list of both."
-		);
+
+		return List.of("Recipients can either be a single user, a single group or a mixed list of both.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

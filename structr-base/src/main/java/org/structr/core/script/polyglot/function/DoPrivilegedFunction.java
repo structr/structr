@@ -39,6 +39,7 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 
 	@Override
 	public Object execute(Value... arguments) {
+
 		Object result = null;
 
 		if (arguments != null && arguments.length == 1) {
@@ -58,6 +59,7 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 					actionContext.setSecurityContext(superUserSecurityContext);
 
 					result = arguments[0].execute();
+
 				} finally {
 
 					// Overwrite context store with possibly changed context store
@@ -73,19 +75,21 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 		return result;
 	}
 
-
 	@Override
 	public String getName() {
+
 		return "doPrivileged";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Runs the given function in a privileged (superuser) context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
 
@@ -95,6 +99,7 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return null;
 	}
 
@@ -123,31 +128,31 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 
 	@Override
 	public List<String> getNotes() {
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.JavaScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.doPrivileged(function) }}. Example: ${{ $.doPrivileged(() => log($.me))}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.doPrivileged(function) }}. Example: ${{ $.doPrivileged(() => log($.me))}"));
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(
-			Signature.of("function", Language.values())
-		);
+		return List.of(Signature.of("function", Language.values()));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

@@ -46,6 +46,7 @@ public class ProcessContext implements ProxyObject {
 	/** Persists a process variable write (name/value) -- backed by the engine's storeParameterValues. */
 	@FunctionalInterface
 	public interface VariableSink {
+
 		void set(String name, Object value) throws FrameworkException;
 	}
 
@@ -63,14 +64,13 @@ public class ProcessContext implements ProxyObject {
 	// When null, writes persist to process scope via the sink (normal task behaviour).
 	private final Map<String, Object> localScope;
 
-	public ProcessContext(final NodeInterface instance, final NodeInterface element,
-						  final NodeInterface definition, final Map<String, Object> parameterValues) {
+	public ProcessContext(final NodeInterface instance, final NodeInterface element, final NodeInterface definition, final Map<String, Object> parameterValues) {
+
 		this(instance, element, definition, parameterValues, null, null);
 	}
 
-	public ProcessContext(final NodeInterface instance, final NodeInterface element,
-						  final NodeInterface definition, final Map<String, Object> parameterValues,
-						  final VariableSink sink) {
+	public ProcessContext(final NodeInterface instance, final NodeInterface element, final NodeInterface definition, final Map<String, Object> parameterValues, final VariableSink sink) {
+
 		this(instance, element, definition, parameterValues, sink, null);
 	}
 
@@ -103,6 +103,7 @@ public class ProcessContext implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
+
 		return new String[] { "instance", "element", "definition" };
 	}
 
@@ -112,8 +113,7 @@ public class ProcessContext implements ProxyObject {
 		return switch (key) {
 
 			case "instance", "element", "definition" -> true;
-			default -> (localScope != null && localScope.containsKey(key))
-						|| (parameterValues != null && parameterValues.containsKey(key));
+			default -> (localScope != null && localScope.containsKey(key)) || (parameterValues != null && parameterValues.containsKey(key));
 		};
 	}
 
@@ -133,11 +133,13 @@ public class ProcessContext implements ProxyObject {
 		if (localScope != null) {
 
 			localScope.put(key, javaValue);
+
 			return;
 		}
 
 		// Update the live view so subsequent reads in the same evaluation see the write.
 		if (parameterValues != null) {
+
 			parameterValues.put(key, javaValue);
 		}
 
@@ -161,17 +163,25 @@ public class ProcessContext implements ProxyObject {
 	private static Object toJavaValue(final Value value) {
 
 		if (value == null || value.isNull()) {
+
 			return null;
 		}
+
 		if (value.isBoolean()) {
+
 			return value.asBoolean();
 		}
+
 		if (value.isNumber()) {
+
 			return value.fitsInLong() ? value.asLong() : value.asDouble();
 		}
+
 		if (value.isString()) {
+
 			return value.asString();
 		}
+
 		return value.toString();
 	}
 }

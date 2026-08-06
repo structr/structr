@@ -49,6 +49,7 @@ public class CronEntry implements Delayed {
 	private long nextScheduledExecution = 0;
 
 	private CronEntry(String name) {
+
 		this.name = name;
 	}
 
@@ -74,22 +75,25 @@ public class CronEntry implements Delayed {
 	}
 
 	public boolean isRunning() {
+
 		return (runCount.intValue() > 0);
 	}
 
 	public void incrementRunCount() {
+
 		this.runCount.incrementAndGet();
 	}
 
 	public void decrementRunCount() {
+
 		this.runCount.decrementAndGet();
 	}
 
 	public boolean shouldExecuteNow() {
 
 		final boolean shouldExecute = (System.currentTimeMillis() > nextScheduledExecution);
-
 		if (shouldExecute) {
+
 			calculateNextExecutionTime();
 		}
 
@@ -100,7 +104,6 @@ public class CronEntry implements Delayed {
 	public static CronEntry parse(String task, String expression) {
 
 		String[] fields = expression.split("[ \\t]+");
-
 		if (fields.length == CronService.NUM_FIELDS) {
 
 			CronEntry cronEntry = new CronEntry(task);
@@ -165,7 +168,6 @@ public class CronEntry implements Delayed {
 		if (fieldValue.matches("[0-9]{1,2}")) {
 
 			int value = Integer.parseInt(fieldValue);
-
 			if ((value >= minValue) && (value <= maxValue)) {
 
 				return new CronField(value, value, 1);
@@ -182,7 +184,6 @@ public class CronEntry implements Delayed {
 		if (fieldValue.matches("[0-9]{1,2}-[0-9]{1,2}")) {
 
 			String[] rangeValues = fieldValue.split("[-]+");
-
 			if (rangeValues.length == 2) {
 
 				int start = Integer.parseInt(rangeValues[0]);
@@ -213,9 +214,11 @@ public class CronEntry implements Delayed {
 			for (final String value : listValues) {
 
 				try {
+
 					values.add(Integer.parseInt(value));
 
 				} catch (Throwable t) {
+
 					throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid list value: '" + value + "'");
 				}
 			}
@@ -252,6 +255,7 @@ public class CronEntry implements Delayed {
 			modified = false;
 
 			if (!modified && !months.isInside(nowMonths)) {
+
 				addAndResetLowerFields(now, Calendar.MONTH, 1);
 				modified = true;
 			}
@@ -260,6 +264,7 @@ public class CronEntry implements Delayed {
 			if (!dow.isIsWildcard() && !days.isIsWildcard()) {
 
 				if (!modified && !(dow.isInside(nowDow) || days.isInside(nowDays))) {
+
 					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
@@ -267,6 +272,7 @@ public class CronEntry implements Delayed {
 			} else if (!dow.isIsWildcard()) {
 
 				if (!modified && !dow.isInside(nowDow)) {
+
 					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
@@ -274,22 +280,26 @@ public class CronEntry implements Delayed {
 			} else if (!days.isIsWildcard()) {
 
 				if (!modified && !days.isInside(nowDays)) {
+
 					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 			}
 
 			if (!modified && !hours.isInside(nowHours)) {
+
 				addAndResetLowerFields(now, Calendar.HOUR_OF_DAY, 1);
 				modified = true;
 			}
 
 			if (!modified && !minutes.isInside(nowMinutes)) {
+
 				addAndResetLowerFields(now, Calendar.MINUTE, 1);
 				modified = true;
 			}
 
 			if (!modified && !seconds.isInside(nowSeconds)) {
+
 				addAndResetLowerFields(now, Calendar.SECOND, 1);
 				modified = true;
 			}
@@ -303,6 +313,7 @@ public class CronEntry implements Delayed {
 		}
 
 		if (numTries >= maxTries) {
+
 			throw new IllegalArgumentException("Unable to determine next cron date for task " + name + ", aborting.");
 		}
 
@@ -341,6 +352,7 @@ public class CronEntry implements Delayed {
 	public long getDelayToNextExecutionInMillis() {
 
 		if (nextScheduledExecution < System.currentTimeMillis()) {
+
 			calculateNextExecutionTime();
 		}
 
@@ -348,30 +360,37 @@ public class CronEntry implements Delayed {
 	}
 
 	public CronField getSeconds() {
+
 		return seconds;
 	}
 
 	public CronField getMinutes() {
+
 		return minutes;
 	}
 
 	public CronField getHours() {
+
 		return hours;
 	}
 
 	public CronField getDays() {
+
 		return days;
 	}
 
 	public CronField getWeeks() {
+
 		return dow;
 	}
 
 	public CronField getMonths() {
+
 		return months;
 	}
 
 	public String getName() {
+
 		return name;
 	}
 
@@ -387,30 +406,37 @@ public class CronEntry implements Delayed {
 	}
 
 	public void setSeconds(CronField seconds) {
+
 		this.seconds = seconds;
 	}
 
 	public void setMinutes(CronField minutes) {
+
 		this.minutes = minutes;
 	}
 
 	public void setHours(CronField hours) {
+
 		this.hours = hours;
 	}
 
 	public void setDays(CronField days) {
+
 		this.days = days;
 	}
 
 	public void setWeeks(CronField weeks) {
+
 		this.dow = weeks;
 	}
 
 	public void setMonths(CronField months) {
+
 		this.months = months;
 	}
 
 	public void setName(String name) {
+
 		this.name = name;
 	}
 }

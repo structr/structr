@@ -39,6 +39,7 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 	private Map<String, DataAdapterField> fields;
 
 	public DataAdapterTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 
@@ -95,6 +96,7 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public String getDataKey() {
+
 		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY));
 	}
 

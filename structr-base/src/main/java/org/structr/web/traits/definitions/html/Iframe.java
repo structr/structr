@@ -39,6 +39,7 @@ public class Iframe extends GenericHtmlElementTraitDefinition {
 	public static final String HEIGHT_PROPERTY          = getPrefixedHTMLAttributeName("height");
 
 	public Iframe() {
+
 		super(StructrTraits.IFRAME);
 	}
 
@@ -54,19 +55,12 @@ public class Iframe extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> widthProperty           = new StringProperty(WIDTH_PROPERTY);
 		final PropertyKey<String> heightProperty          = new StringProperty(HEIGHT_PROPERTY);
 
-		return newSet(
-			nameProperty, srcProperty, srcdocProperty, sandboxProperty, seamlessProperty, allowfullscreenProperty, widthProperty, heightProperty
-		);
+		return newSet(nameProperty, srcProperty, srcdocProperty, sandboxProperty, seamlessProperty, allowfullscreenProperty, widthProperty, heightProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					NAME_PROPERTY, SRC_PROPERTY, SRCDOC_PROPERTY, SANDBOX_PROPERTY, SEAMLESS_PROPERTY, ALLOWFULLSCREEN_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(NAME_PROPERTY, SRC_PROPERTY, SRCDOC_PROPERTY, SANDBOX_PROPERTY, SEAMLESS_PROPERTY, ALLOWFULLSCREEN_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY));
 	}
 }

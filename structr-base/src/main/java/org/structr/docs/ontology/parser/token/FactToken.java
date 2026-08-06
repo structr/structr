@@ -33,14 +33,17 @@ public class FactToken extends AbstractToken implements TokenCollection {
 	public FactToken(final NamedConceptToken subject, final VerbToken predicate, final NamedConceptToken object) {
 
 		if (subject != null) {
+
 			subject.setParent(this);
 		}
 
 		if (predicate != null) {
+
 			predicate.setParent(this);
 		}
 
 		if (object != null) {
+
 			object.setParent(this);
 		}
 
@@ -51,18 +54,22 @@ public class FactToken extends AbstractToken implements TokenCollection {
 
 	@Override
 	public String toString() {
+
 		return "FactToken(" + subjectToken + ", " + predicateToken + ", " + objectToken + ")";
 	}
 
 	public NamedConceptToken getObjectToken() {
+
 		return objectToken;
 	}
 
 	public VerbToken getVerbToken() {
+
 		return predicateToken;
 	}
 
 	public NamedConceptToken getSubjectToken() {
+
 		return subjectToken;
 	}
 
@@ -83,12 +90,16 @@ public class FactToken extends AbstractToken implements TokenCollection {
 		}
 
 		if (annotatedSubject == null) {
+
 			System.out.println(subjectToken + ": subject is null!");
+
 			return null;
 		}
 
 		if (annotatedObject == null) {
+
 			System.out.println(objectToken + ": object is null!");
+
 			return null;
 		}
 
@@ -100,12 +111,16 @@ public class FactToken extends AbstractToken implements TokenCollection {
 		ontology.setCurrentSubject(subject);
 
 		if (subject == null) {
+
 			System.out.println(subjectToken + ": subject is null!");
+
 			return null;
 		}
 
 		if (object == null) {
+
 			System.out.println(objectToken + ": object is null!");
+
 			return null;
 		}
 
@@ -129,21 +144,25 @@ public class FactToken extends AbstractToken implements TokenCollection {
 
 	@Override
 	public boolean isTerminal() {
+
 		return true;
 	}
 
 	@Override
 	public Token getToken() {
+
 		return null;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Cannot rename fact.");
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Cannot update fact.");
 	}
 

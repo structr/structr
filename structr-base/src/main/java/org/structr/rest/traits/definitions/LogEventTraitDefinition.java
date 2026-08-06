@@ -51,30 +51,32 @@ public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String OBJECT_PROPERTY    = "object";
 
 	public LogEventTraitDefinition() {
+
 		super(StructrTraits.LOG_EVENT);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			LogEvent.class, (traits, node) -> new LogEventTraitWrapper(traits, node)
-		);
+		return Map.of(LogEvent.class, (traits, node) -> new LogEventTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -86,28 +88,18 @@ public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> subjectProperty   = new StringProperty(SUBJECT_PROPERTY).indexed();
 		final Property<String> objectProperty    = new StringProperty(OBJECT_PROPERTY).indexed();
 
-		return newSet(
-			messageProperty,
-			actionProperty,
-			timestampProperty,
-			subjectProperty,
-			objectProperty
-		);
+		return newSet(messageProperty, actionProperty, timestampProperty, subjectProperty, objectProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				ACTION_PROPERTY, MESSAGE_PROPERTY, TIMESTAMP_PROPERTY, SUBJECT_PROPERTY, OBJECT_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Public, newSet(ACTION_PROPERTY, MESSAGE_PROPERTY, TIMESTAMP_PROPERTY, SUBJECT_PROPERTY, OBJECT_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

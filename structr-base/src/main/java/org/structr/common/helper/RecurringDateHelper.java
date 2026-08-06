@@ -51,13 +51,13 @@ public class RecurringDateHelper {
 
 		@Override
 		public String toString() {
+
 			return this.startDate + " - " + this.endDate;
 		}
 
 	}
 
 	public static List<Appointment> generateAppointments(final Date startDate, final Date endDate, final String weekdays, final String startTimeString, final String endTimeString) {
-
 
 		List<Appointment> appointments = new LinkedList();
 		//check if a Date is empty
@@ -66,6 +66,7 @@ public class RecurringDateHelper {
 			weekdays == null || weekdays.equals("") ||
 			startTimeString == null || startTimeString.equals("") ||
 			endTimeString == null || endTimeString.equals(""))
+
 			return appointments;
 
 		String[] wd      = StringUtils.split(weekdays, ",");
@@ -113,6 +114,7 @@ public class RecurringDateHelper {
 		cal.set(Calendar.DAY_OF_WEEK, getDayOfWeek(shortWeekday));
 
 		try {
+
 			cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hourMinute[0]));
 			cal.set(Calendar.MINUTE, Integer.parseInt(hourMinute[1]));
 
@@ -130,30 +132,39 @@ public class RecurringDateHelper {
 	private static int getDayOfWeek(final String shortWeekday) {
 
 		if (shortWeekday != null && !shortWeekday.equals(""))
+
 			try {
+
 				ShortWeekday wd = ShortWeekday.valueOf(shortWeekday);
 
 				switch (wd) {
 
 					case Mo :
+
 						return Calendar.MONDAY;
 
 					case Di :
+
 						return Calendar.TUESDAY;
 
 					case Mi :
+
 						return Calendar.WEDNESDAY;
 
 					case Do :
+
 						return Calendar.THURSDAY;
 
 					case Fr :
+
 						return Calendar.FRIDAY;
 
 					case Sa :
+
 						return Calendar.SATURDAY;
 
 					case So :
+
 						return Calendar.SUNDAY;
 
 				}
@@ -172,24 +183,31 @@ public class RecurringDateHelper {
 		switch (wd) {
 
 			case Calendar.MONDAY :
+
 				return ShortWeekday.Mo.name();
 
 			case Calendar.TUESDAY :
+
 				return ShortWeekday.Di.name();
 
 			case Calendar.WEDNESDAY :
+
 				return ShortWeekday.Mi.name();
 
 			case Calendar.THURSDAY :
+
 				return ShortWeekday.Do.name();
 
 			case Calendar.FRIDAY :
+
 				return ShortWeekday.Fr.name();
 
 			case Calendar.SATURDAY :
+
 				return ShortWeekday.Sa.name();
 
 			case Calendar.SUNDAY :
+
 				return ShortWeekday.So.name();
 
 		}

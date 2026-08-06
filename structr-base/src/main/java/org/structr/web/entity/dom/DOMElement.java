@@ -36,9 +36,7 @@ import java.util.Map;
 public interface DOMElement extends DOMNode  {
 
 	String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
-
 	String lowercaseBodyName = "body";
-
 	String EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT                        = "htmlEvent";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID                        = "structrId";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION              = "structrIdExpression";
@@ -112,6 +110,7 @@ public interface DOMElement extends DOMNode  {
 		if (source != null) {
 
 			if (source instanceof Number n) {
+
 				return n.intValue();
 			}
 
@@ -169,6 +168,7 @@ public interface DOMElement extends DOMNode  {
 
 			final String name = node.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			if (name != null) {
+
 				element.attr("name", name);
 			}
 

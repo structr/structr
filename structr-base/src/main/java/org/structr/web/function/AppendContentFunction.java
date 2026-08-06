@@ -41,6 +41,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "appendContent";
 	}
 
@@ -63,6 +64,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 						fos.write((byte[]) sources[1]);
 
 					} catch (IOException ioex) {
+
 						logger.warn("appendContent(): Unable to append binary data to file '{}'", file.getPath(), ioex);
 					}
 
@@ -73,8 +75,11 @@ public class AppendContentFunction extends UiAdvancedFunction {
 						IOUtils.copy(is, fos);
 
 					} catch (IOException ioex) {
+
 						logger.warn("appendContent(): Unable to stream content to file '{}'", file.getPath(), ioex);
+
 					} finally {
+
 						try { is.close(); } catch (IOException ignore) {}
 					}
 
@@ -83,12 +88,16 @@ public class AppendContentFunction extends UiAdvancedFunction {
 					try (final OutputStream fos = file.getOutputStream(true, true)) {
 
 						if (encoding != null) {
+
 							fos.write(content.getBytes(encoding));
+
 						} else {
+
 							fos.write(content.getBytes());
 						}
 
 					} catch (IOException ioex) {
+
 						logger.warn("appendContent(): Unable to append to file '{}'", file.getPath(), ioex);
 					}
 
@@ -116,29 +125,31 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Appends content to the given file. Content can be of type String, byte[] or InputStream.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("file, content [, encoding ]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${appendContent(file, content[, encoding ])}"),
-			Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding ]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${appendContent(file, content[, encoding ])}"), Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding ]) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("file", "Structr File entity to append the content to"),
 			Parameter.mandatory("content", "content to append"),
@@ -148,6 +159,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("""
 				${
@@ -162,6 +174,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If `content` is an InputStream (via $.GET), the stream is consumed and can not be used again afterwards",
 				"The `encoding` parameter is only used when writing **string** data to the file and ignored otherwise. By default the input is not encoded, but when given an encoding such as `UTF-8` the content is transformed before being written to the file."
@@ -170,6 +183,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

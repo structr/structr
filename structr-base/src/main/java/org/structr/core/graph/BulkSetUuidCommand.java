@@ -43,9 +43,9 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
+
 		executeWithCount(attributes);
 	}
-
 
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 
@@ -89,16 +89,19 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
+
 					logger.warn("Unable to set UUID of node {}", node, t);
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
 					logger.warn("Unable to set UUID on node", t);
 				}
 
 				@Override
 				public boolean doValidation() {
+
 					return false;
 				}
 			});
@@ -142,16 +145,19 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+
 					logger.warn("Unable to set UUID of relationship {}: {}", rel, t.getMessage());
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
 					logger.warn("Unable to set UUID on relationships {}", t.toString());
 				}
 
 				@Override
 				public boolean doValidation() {
+
 					return false;
 				}
 			});
@@ -162,42 +168,50 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 		}
 
 		info("Unable to determine entity type to set UUID.");
+
 		return 0;
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return true;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "setUuid";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Generates UUIDs for nodes and relationships that lack an `id` property.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.optional("type", "Limit to this node type"),
 			Parameter.optional("relType", "Limit to this relationship type"),
@@ -208,31 +222,37 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

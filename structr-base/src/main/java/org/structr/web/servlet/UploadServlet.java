@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -112,17 +111,20 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 	@Override
 	public void configureServletHolder(final ServletHolder servletHolder) {
+
 		MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
 		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
 	}
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
+
 		return config;
 	}
 
 	@Override
 	public String getModuleName() {
+
 		return "ui";
 	}
 
@@ -140,6 +142,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		} catch (FrameworkException fex) {
 
 			try {
+
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
@@ -157,11 +160,14 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		try {
 
 			if (!checkCsrfOrigin(request, response)) {
+
 				return;
 			}
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to send response", ioex);
+
 			return;
 		}
 
@@ -171,12 +177,15 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			final boolean isMultipart = contentType != null && contentType.regionMatches(true, 0, MULTIPART_FORM_DATA, 0, MULTIPART_FORM_DATA.length());
 
 			if (!isMultipart || request.getParts().size() <= 0) {
+
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to send response", ioex);
 		}
 
@@ -189,26 +198,33 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			try {
+
 				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
 			} catch (AuthenticationException ae) {
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to examine request", fex);
+
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to send response", ioex);
 		}
 
 		// something went wrong, but we don't know what...
 		if (securityContext == null) {
+
 			logger.warn("No SecurityContext, aborting.");
+
 			return;
 		}
 
@@ -239,6 +255,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			// don't continue on redirects
 			if (response.getStatus() == 302) {
+
 				return;
 			}
 
@@ -257,6 +274,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			// 1. Collect non-file parts
 			final Collection<Part> parts = request.getParts();
+
 			for (Part p : parts) {
 
 				if (p.getSubmittedFileName() == null) {
@@ -287,6 +305,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 							final IJsonInput jsonInput = cleanAndParseJsonString(app, "{" + fieldName + ":" + fieldValue + "}");
 
 							for (final JsonInput input : jsonInput.getJsonInputs()) {
+
 								params.put(fieldName, convertPropertySetToMap(input).get(fieldName));
 							}
 
@@ -304,8 +323,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				if (p.getSubmittedFileName() != null) {
 
 					final String contentType = p.getContentType();
-
 					Traits cls = null;
+
 					if (type != null) {
 
 						if (Traits.exists(type)) {
@@ -352,7 +371,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						if (cls.hasKey(propertyName)) {
 
 							final PropertyKey key = cls.key(propertyName);
-
 							if (!AllowedProperties.contains(propertyName) && !key.isDynamic()) {
 
 								forbiddenProperties.add(propertyName);
@@ -361,6 +379,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					}
 
 					if (!forbiddenProperties.isEmpty()) {
+
 						throw new FrameworkException(422, "Additional file properties found which are not allowed to be set during upload: '" + forbiddenProperties + "'. Only custom properties and the following properties may be set: '" + AllowedProperties + "'");
 					}
 
@@ -391,7 +410,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 							if (uploadFolderPathParameter != null) {
 
 								final boolean isUploadPathParameterAllowed = isUploadFolderPathParameterAllowed(securityContext, uploadFolderPathParameter);
-
 								if (isUploadPathParameterAllowed) {
 
 									uploadFolder = getOrCreateFolderPathInAllowedLocation(uploadFolderPathParameter);
@@ -467,7 +485,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				// Validate redirect URL to prevent open redirect attacks
 				final String safeRedirectUrl = HtmlServlet.filterMaliciousRedirects(redirectUrl);
-
 				if (StringUtils.isNotBlank(safeRedirectUrl)) {
 
 					if (appendUuidOnRedirect) {
@@ -508,8 +525,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			} else {
 
 				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
+
 				} else {
+
 					logger.error("Exception while processing upload request", t);
 				}
 
@@ -524,6 +544,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				IOUtils.write(content, out, "utf-8");
 
 			} catch (IOException ex) {
+
 				logger.error("Could not write to response", ex);
 			}
 		}
@@ -556,11 +577,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		try (final Tx tx = StructrApp.getInstance().tx(true, false, false)) {
 
 			final String uuid = PathHelper.getName(request.getPathInfo());
-
 			if (uuid == null) {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
@@ -568,6 +589,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes(StandardCharsets.UTF_8));
+
 				return;
 			}
 
@@ -583,6 +605,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			// don't continue on redirects
 			if (response.getStatus() == 302) {
+
 				return;
 			}
 
@@ -591,7 +614,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				try {
 
 					final GraphObject node = StructrApp.getInstance().getNodeById(uuid);
-
 					if (node == null) {
 
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -601,6 +623,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					if (node instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 						final File file = n.as(File.class);
+
 						if (n.isGranted(Permission.write, securityContext)) {
 
 							try (final InputStream is = p.getInputStream()) {
@@ -620,6 +643,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					}
 
 				} catch (IOException ex) {
+
 					logger.warn("Could not write to file", ex);
 				}
 			}
@@ -670,7 +694,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		} catch (Throwable t) {
 
 			logger.warn("Exception in UploadServlet OPTIONS", t);
-
 
 		} finally {
 
@@ -743,6 +766,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
 		if (propertySet != null) {
+
 			return propertySet.getAttributes();
 		}
 
@@ -761,6 +785,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			return folder;
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("", ex);
 		}
 
@@ -770,11 +795,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	private void checkUploadFolderRightsIfNecessary(final SecurityContext securityContext, final Folder targetFolder) throws FrameworkException, NotAllowedException {
 
 		final boolean requiredWriteRights = areWriteRightsRequiredForTargetFolder(securityContext, targetFolder);
-
 		if (requiredWriteRights) {
 
 			final boolean isAllowed = targetFolder.isGranted(Permission.write, securityContext);
-
 			if (!isAllowed) {
 
 				throw new NotAllowedException("User is not allowed to write to given folder.");
@@ -795,6 +818,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			final boolean isUnderneathConfiguredDefaultUploadFolder = targetFolderPath.startsWith(getDefaultUploadFolderPathValueFromSetting());
 			if (isUnderneathConfiguredDefaultUploadFolder) {
+
 				return false;
 			}
 
@@ -808,6 +832,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				final boolean isUnderneathHomeFolder = targetFolderPath.startsWith(homeFolderPath);
 
 				if (isUnderneathHomeFolder) {
+
 					return false;
 				}
 			}
@@ -819,6 +844,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	private boolean areWriteRightsRequiredForTargetFolder(final SecurityContext securityContext, final Folder targetFolder) throws FrameworkException {
 
 		final App privilegedApp = StructrApp.getInstance();
+
 		try (final Tx tx = privilegedApp.tx()) {
 
 			final Folder folder_privileged          = privilegedApp.getNodeById(StructrTraits.FOLDER, targetFolder.getUuid()).as(Folder.class);
@@ -836,8 +862,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		try (final Tx tx = app.tx()) {
 
 			NodeInterface node = app.getNodeById(parentId);
-
 			if (node == null) {
+
 				throw new NotFoundException("Upload folder not found: " + parentId);
 			}
 
@@ -859,8 +885,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			String path;
 
 			if (filesystemEnabled && user != null && !securityContext.isSuperUser()) {
+
 				path = addFinalSlash(user.as(User.class).getOrCreateHomeDirectory().getPath());
+
 			} else {
+
 				path = getDefaultUploadFolderPathValueFromSetting();
 			}
 
@@ -871,18 +900,22 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	}
 
 	private String getDefaultUploadFolderPathValueFromSetting() {
+
 		return addFinalSlash(Settings.DefaultUploadFolder.getValue());
 	}
 
 	private String addFinalSlash(final String path) {
+
 		return path + (path.endsWith("/") ? "" : "/");
 	}
 
 	private String errorPage(final FrameworkException t) {
+
 		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.toJSON() + "</p></body></html>";
 	}
 
 	private String errorPage(final Throwable t) {
+
 		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.getMessage() + "</p></body></html>";
 	}
 }

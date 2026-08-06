@@ -33,6 +33,7 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 
 	@Override
 	public String getName() {
+
 		return "unlockReadonlyPropertiesOnce";
 	}
 
@@ -46,28 +47,33 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 			if (sources[0] instanceof NodeInterface n) {
 
 				n.unlockReadOnlyPropertiesOnce();
+
 				return null;
 
 			} else {
 
 				logger.warn("Parameter 1 is not a node. Parameters: {}", getParametersAsString(sources));
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${unlockReadonlyPropertiesOnce(node)}. Example ${unlockReadonlyPropertiesOnce(this)}"),
 			Usage.javaScript("Usage: ${{$.unlockReadonlyPropertiesOnce(node)}}. Example ${{$.unlockReadonlyPropertiesOnce($.this)}}")
@@ -76,27 +82,33 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 
 	@Override
 	public String getShortDescription() {
+
 		return "Unlocks any read-only property for a single access.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return true;
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

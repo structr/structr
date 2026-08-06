@@ -24,10 +24,12 @@ package org.structr.api;
 public class RetryException extends RuntimeException {
 
 	public RetryException(final String message) {
+
 		super(message);
 	}
 
 	public RetryException(final Throwable cause) {
+
 		super(cause);
 	}
 }

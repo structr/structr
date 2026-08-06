@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeInterface;
 public class RelationshipStartNodeTypeConverter extends PropertyConverter {
 
 	public RelationshipStartNodeTypeConverter(SecurityContext securityContext, GraphObject entity) {
+
 		super(securityContext, entity);
 	}
 
@@ -53,6 +54,7 @@ public class RelationshipStartNodeTypeConverter extends PropertyConverter {
 
 	@Override
 	public Object convert(Object source) {
+
 		return null;
 	}
 }

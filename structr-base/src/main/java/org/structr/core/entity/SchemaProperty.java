@@ -52,7 +52,6 @@ public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 
 		if (outgoing) {
 
-
 			if (_targetJsonName != null) {
 
 				// FIXME: no automatic creation?
@@ -72,9 +71,10 @@ public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 
 		} else {
 
-
 			if (_sourceJsonName != null) {
+
 				propertyName = _sourceJsonName;
+
 			} else {
 
 				if ("1".equals(_sourceMultiplicity)) {
@@ -96,6 +96,7 @@ public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 
 			// New name still exists: Add number
 			while (existingPropertyNames.contains(propertyName)) {
+
 				propertyName += ++i;
 			}
 

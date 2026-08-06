@@ -48,21 +48,25 @@ public class FileDataProperty<T> extends StringProperty {
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return new FileDataConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 }

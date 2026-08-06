@@ -76,6 +76,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		if ("PATCH".equals(method)) {
 
 			doPatch(request, resp);
+
 			return;
 		}
 
@@ -84,6 +85,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	@Override
 	public String getModuleName() {
+
 		return "rest";
 	}
 
@@ -111,6 +113,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -133,6 +136,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate doDelete
 			boolean retry = true;
+
 			while (retry) {
 
 				try {
@@ -141,12 +145,14 @@ public class JsonRestServlet extends AbstractDataServlet {
 					retry = false;
 
 				} catch (RetryException ddex) {
+
 					retry = true;
 				}
 			}
 
 			// isolate write output
 			try (final Tx tx = app.tx()) {
+
 				commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 				tx.success();
 			}
@@ -176,6 +182,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
+
 				//response.getWriter().flush();
 				response.getWriter().close();
 
@@ -201,6 +208,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			doGetOrHead(request, response, returnContent);
 
 		} catch (FrameworkException fex) {
+
 			writeException(response, fex);
 		}
 	}
@@ -219,6 +227,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			doGetOrHead(request, response, returnContent);
 
 		} catch (FrameworkException fex) {
+
 			writeException(response, fex);
 		}
 	}
@@ -298,6 +307,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
+
 				//response.getWriter().flush();
 				response.getWriter().close();
 
@@ -335,6 +345,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -360,6 +371,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate doPost
 				boolean retry = true;
+
 				while (retry) {
 
 					if (handler.createPostTransaction()) {
@@ -377,6 +389,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 							retry = false;
 
 						} catch (RetryException ddex) {
+
 							retry = true;
 						}
 
@@ -392,6 +405,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 							retry = false;
 
 						} catch (RetryException ddex) {
+
 							retry = true;
 						}
 					}
@@ -490,6 +504,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
+
 				//response.getWriter().flush();
 				response.getWriter().close();
 
@@ -527,6 +542,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -553,6 +569,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate doPut
 				boolean retry = true;
+
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
@@ -564,6 +581,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 						retry = false;
 
 					} catch (RetryException ddex) {
+
 						retry = true;
 					}
 				}
@@ -616,6 +634,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
+
 				//response.getWriter().flush();
 				response.getWriter().close();
 
@@ -653,6 +672,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -688,6 +708,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate doPatch
 				boolean retry = true;
+
 				while (retry) {
 
 					try (final Tx tx = app.tx()) {
@@ -699,6 +720,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 						retry = false;
 
 					} catch (RetryException ddex) {
+
 						retry = true;
 					}
 				}
@@ -761,6 +783,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
+
 				//response.getWriter().flush();
 				response.getWriter().close();
 
@@ -775,7 +798,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
 
 		final long t0 = System.currentTimeMillis();
-
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RESTCallHandler handler          = null;
@@ -844,8 +866,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (Throwable t) {
 
 			if (t instanceof QuietException || t.getCause() instanceof QuietException || t instanceof UnknownClientException) {
+
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
+
 			} else {
+
 				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 				logger.warn(" => Error thrown: ", t);
 			}
@@ -855,6 +880,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} finally {
 
 			try {
+
 				response.getWriter().flush();
 				response.getWriter().close();
 
@@ -866,6 +892,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		}
 
 		if (handler != null) {
+
 			this.stats.recordStatsValue("json", handler.getResourceSignature(), System.currentTimeMillis() - t0);
 		}
 	}
@@ -911,6 +938,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
 		if (propertySet != null) {
+
 			return propertySet.getAttributes();
 		}
 

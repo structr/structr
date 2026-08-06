@@ -35,11 +35,13 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "encrypt";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value [, key]");
 	}
 
@@ -75,6 +77,7 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 			if (sources[0] == null) {
 
 				// silently ignore case which can happen for encrypt(current.propertyThatCanBeNull[, key])
+
 				return null;
 
 			} else if (sources.length <= 2) {
@@ -88,6 +91,7 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 				// only show the error message for wrong parameter count
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -96,35 +100,33 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${encrypt(value[, key])}"),
-			Usage.javaScript("Usage: ${{ $.encrypt(value[, key]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${encrypt(value[, key])}"), Usage.javaScript("Usage: ${{ $.encrypt(value[, key]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Encrypts the given string using AES and returns the ciphertext encoded in base 64.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function either uses the internal global encryption key from the '" + Settings.GlobalSecret.getKey() + "' setting in structr.conf, or the optional second parameter.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("text", "text to encrypt"),
-			Parameter.optional("secret", "secret key")
-		);
+		return List.of(Parameter.mandatory("text", "text to encrypt"), Parameter.optional("secret", "secret key"));
 	}
 
 	@Override
@@ -138,6 +140,7 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

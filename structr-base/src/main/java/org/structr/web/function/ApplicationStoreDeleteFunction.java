@@ -35,11 +35,13 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "applicationStoreDelete";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -57,17 +59,20 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${applicationStoreDelete(key)}. Example: ${applicationStoreDelete('doNoTrack')}"),
 			Usage.javaScript("Usage: ${{ $.applicationStoreDelete(key)}}. Example: ${{ $.applicationStoreDelete('doNotTrack')}}")
@@ -76,23 +81,25 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes a stored value from the application level store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The application store can be used to store data in-memory as long as the instance is running. You can use it to store primitive data and objects / arrays. Do NOT use the application store to store nodes or relationships since those are transaction-bound and cannot be cached.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("key", "key whose value should be removed from the store")
-		);
+
+		return List.of(Parameter.mandatory("key", "key whose value should be removed from the store"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

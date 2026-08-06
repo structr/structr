@@ -44,16 +44,20 @@ public class Token {
 
 	@Override
 	public String toString() {
+
 		// source is null when a script is tokenized inline (a property value, not a
 		// source file); guard so logging a tokenizer warning never throws an NPE
+
 		return (source != null ? source.getName() : "<inline>") + ":" + row + ":" + column;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 
 	public String getContent() {
+
 		return content;
 	}
 
@@ -68,58 +72,72 @@ public class Token {
 	}
 
 	public Token copy(final String newContent) {
+
 		return new Token(source, type, newContent, quote, row, column);
 	}
 
 	public String getQuote() {
+
 		return quote;
 	}
 
 	public int getRow() {
+
 		return row;
 	}
 
 	public int getColumn() {
+
 		return column;
 	}
 
 	public String getSource() {
+
 		return source != null ? source.getName() : null;
 	}
 
 	public boolean startsWith(final String prefix) {
+
 		return content.startsWith(prefix);
 	}
 
 	public boolean endsWith(final String suffix) {
+
 		return content.endsWith(suffix);
 	}
 
 	public String toLowerCase() {
+
 		return content.toLowerCase();
 	}
 
 	public Character charAt(int i) {
+
 		return content.charAt(i);
 	}
 
 	public boolean isNotBlank() {
+
 		return StringUtils.isNotBlank(content) || content.equals("\n");
 	}
 
 	public boolean isComment() {
+
 		return "comment".equals(type);
 	}
 
 	public void setContent(String newContent) {
+
 		this.content = newContent;
 	}
 
 	public List<Token> insertAfter(final String text) {
+
 		return source.insertAfter(this, text);
 	}
 
 	public void remove() {
+
 		source.remove(this);
 	}
 

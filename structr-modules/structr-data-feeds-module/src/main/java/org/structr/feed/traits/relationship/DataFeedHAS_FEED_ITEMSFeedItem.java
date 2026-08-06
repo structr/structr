@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DataFeedHAS_FEED_ITEMSFeedItem extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DataFeedHAS_FEED_ITEMSFeedItem() {
+
 		super(StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.DATA_FEED;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.FEED_ITEM;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_FEED_ITEMS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

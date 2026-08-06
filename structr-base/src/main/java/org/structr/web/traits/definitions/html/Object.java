@@ -37,6 +37,7 @@ public class Object extends GenericHtmlElementTraitDefinition {
 	public static final String HEIGHT_PROPERTY        = getPrefixedHTMLAttributeName("height");
 
 	public Object() {
+
 		super(StructrTraits.OBJECT);
 	}
 
@@ -50,19 +51,12 @@ public class Object extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> widthProperty         = new StringProperty(WIDTH_PROPERTY);
 		final PropertyKey<String> heightProperty        = new StringProperty(HEIGHT_PROPERTY);
 
-		return newSet(
-			typeProperty, typemustmatchProperty, usemapProperty, formProperty, widthProperty, heightProperty
-		);
+		return newSet(typeProperty, typemustmatchProperty, usemapProperty, formProperty, widthProperty, heightProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					TYPE_PROPERTY, TYPEMUSTMATCH_PROPERTY, USEMAP_PROPERTY, FORM_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(TYPE_PROPERTY, TYPEMUSTMATCH_PROPERTY, USEMAP_PROPERTY, FORM_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY));
 	}
 }

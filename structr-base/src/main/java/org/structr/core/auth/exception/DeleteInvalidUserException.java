@@ -26,11 +26,13 @@ public class DeleteInvalidUserException extends RuntimeException {
 	private String uuid = null;
 
 	public DeleteInvalidUserException(final String uuid) {
+
 		super("Invalid user " + uuid + ", deleting immediately.");
 		this.uuid = uuid;
 	}
 
 	public String getUuid() {
+
 		return uuid;
 	}
 }

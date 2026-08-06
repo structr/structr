@@ -60,7 +60,6 @@ public class InsertBeforeCommand extends AbstractCommand {
 
 		// check if parent node with given ID exists
 		final DOMNode parentNode = getDOMNode(parentId);
-
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
@@ -92,6 +91,7 @@ public class InsertBeforeCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "INSERT_BEFORE";
 	}
 }

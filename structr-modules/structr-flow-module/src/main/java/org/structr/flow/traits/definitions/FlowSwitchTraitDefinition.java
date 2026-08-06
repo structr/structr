@@ -44,18 +44,18 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CASES_PROPERTY   = "cases";
 
 	public FlowSwitchTraitDefinition() {
+
 		super(StructrTraits.FLOW_SWITCH);
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Map.of(
-			GetFlowType.class,
-			new GetFlowType() {
+		return Map.of(GetFlowType.class, new GetFlowType() {
 
 				@Override
 				public FlowType getFlowType(FlowNode flowNode) {
+
 					return FlowType.Switch;
 				}
 			}
@@ -65,9 +65,7 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowSwitch.class, (traits, node) -> new FlowSwitch(traits, node)
-		);
+		return Map.of(FlowSwitch.class, (traits, node) -> new FlowSwitch(traits, node));
 	}
 
 	@Override
@@ -76,30 +74,20 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> switchDefault          = new EndNode(traitsInstance, DEFAULT_PROPERTY, StructrTraits.FLOW_NODES);
 		final Property<Iterable<NodeInterface>> cases        = new EndNodes(traitsInstance, CASES_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
 
-		return newSet(
-			switchDefault,
-			cases
-		);
+		return newSet(switchDefault, cases);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-					FlowNodeTraitDefinition.PREV_PROPERTY, DEFAULT_PROPERTY, CASES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(FlowNodeTraitDefinition.PREV_PROPERTY, DEFAULT_PROPERTY, CASES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-					FlowNodeTraitDefinition.PREV_PROPERTY, DEFAULT_PROPERTY, CASES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(FlowNodeTraitDefinition.PREV_PROPERTY, DEFAULT_PROPERTY, CASES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

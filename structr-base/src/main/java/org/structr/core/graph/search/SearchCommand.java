@@ -70,7 +70,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public abstract boolean isRelationshipSearch();
 	public abstract Index<S> getIndex();
 
-
 	@Override
 	public void initialized() {
 
@@ -91,7 +90,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		final Principal user        = securityContext.getUser(false);
 		final Traits traits         = Traits.of(StructrTraits.NODE_INTERFACE);
 		final SearchConfig config   = new SearchConfig();
-
 
 		if (user == null) {
 
@@ -150,11 +148,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				// paging needs to be done AFTER instantiating all nodes
 				if (config.hasEmptySearchFields || comparator != null) {
+
 					factory.disablePaging();
 				}
 
 				// do query
 				try {
+
 					indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, pageSize, page));
 
 				} catch (UnknownClientException uclex) {
@@ -171,6 +171,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					Collections.sort(rawResult, comparator);
 
 					// return paging iterable
+
 					return new PagingIterable(description, rawResult, pageSize, page, queryContext.getSkipped());
 				}
 			}
@@ -241,6 +242,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			// no filtering
+
 			return new PagingIterable(description, indexHits, pageSize, page, queryContext.getSkipped());
 		}
 	}
@@ -251,7 +253,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		for (final Iterator<SearchAttribute> it = group.getSearchAttributes().iterator(); it.hasNext();) {
 
 			final SearchAttribute attr = it.next();
-
 			if (attr instanceof SearchAttributeGroup) {
 
 				handleSearchAttributeGroup(config, (SearchAttributeGroup)attr, sources);
@@ -282,14 +283,17 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 
 			if (attr instanceof GraphSearchAttribute) {
+
 				config.hasGraphSources = true;
 			}
 
 			if (attr instanceof EmptySearchAttribute) {
+
 				config.hasEmptySearchFields = true;
 			}
 
 			if (attr instanceof RelationshipVisibilitySearchAttribute) {
+
 				config.hasRelationshipVisibilitySearch = true;
 			}
 		}
@@ -334,17 +338,18 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			}
 		}
 
-
 		return mergedResult;
 	}
 
 	@Override
 	public ResultStream<T> getResultStream() throws FrameworkException {
+
 		return doSearch("getResultStream" + getQueryDescription());
 	}
 
 	@Override
 	public List<T> getAsList() throws FrameworkException {
+
 		return Iterables.toList(doSearch("getAsList" + getQueryDescription()));
 	}
 
@@ -361,23 +366,28 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public Traits getTraits() {
+
 		return traits;
 	}
 
 	@Override
 	public void setTraits(final Traits traits) {
+
 		this.traits = traits;
 	}
 
 	@Override
 	public void doNotSort(final boolean doNotSort) {
+
 		this.doNotSort = doNotSort;
 	}
 
 	// ----- builder methods -----
 	@Override
 	public org.structr.core.app.Query<T> disableSorting() {
+
 		this.doNotSort = true;
+
 		return this;
 	}
 
@@ -399,6 +409,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		this.doNotSort  = false;
 
 		if (sortOrder instanceof DefaultSortOrder) {
+
 			((DefaultSortOrder)sortOrder).addElement(sortKey, sortDescending);
 		}
 
@@ -416,37 +427,49 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public org.structr.core.app.Query<T> pageSize(final int pageSize) {
+
 		this.pageSize = pageSize;
+
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> page(final int page) {
+
 		this.page = page;
+
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> publicOnly() {
+
 		this.publicOnly = true;
+
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> publicOnly(final boolean publicOnly) {
+
 		this.publicOnly = publicOnly;
+
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> includeHidden() {
+
 		this.includeHidden = true;
+
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> includeHidden(final boolean includeHidden) {
+
 		this.includeHidden = includeHidden;
+
 		return this;
 	}
 
@@ -482,11 +505,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public Predicate<org.structr.core.GraphObject> toPredicate() {
+
 		return new AndPredicate(rootGroup.getSearchAttributes());
 	}
 
 	@Override
 	public QueryContext getQueryContext() {
+
 		return queryContext;
 	}
 
@@ -494,6 +519,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> isPing(final boolean isPing) {
 
 		getQueryContext().isPing(isPing);
+
 		return this;
 	}
 
@@ -509,6 +535,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private String getQueryDescription() {
+
 		return null;
 	}
 
@@ -530,7 +557,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 						// empty group? check occur (might be a "NOT")
 
-
 					} else {
 
 						for (final SearchAttribute groupAttr : group.getSearchAttributes()) {
@@ -538,6 +564,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 							// ignore type search attributes as the nodes will
 							// already have the correct type when arriving here
 							if (groupAttr instanceof TypeSearchAttribute) {
+
 								continue;
 							}
 
@@ -550,6 +577,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					// ignore type search attributes as the nodes will
 					// already have the correct type when arriving here
 					if (attr instanceof TypeSearchAttribute) {
+
 						continue;
 					}
 
@@ -571,7 +599,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return result;
 		}
 	}
-
 
 	private class SearchConfig {
 

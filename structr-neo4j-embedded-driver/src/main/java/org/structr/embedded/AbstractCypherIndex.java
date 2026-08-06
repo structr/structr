@@ -57,26 +57,31 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 
 	@Override
 	public AdvancedCypherQuery createQuery(final QueryContext context, final int requestedPageSize, final int requestedPage) {
+
 		return new AdvancedCypherQuery(context, this, requestedPageSize, requestedPage);
 	}
 
 	@Override
 	public QueryFactory getFactoryForType(final Class type) {
+
 		return factories.get(type);
 	}
 
 	@Override
 	public TypeConverter getConverterForType(final Class type) {
+
 		return converters.get(type);
 	}
 
 	@Override
 	public DatabaseService getDatabaseService() {
+
 		return db;
 	}
 
 	@Override
 	public boolean supports(final Class type) {
+
 		return INDEXABLE.contains(type);
 	}
 

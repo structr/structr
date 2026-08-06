@@ -72,6 +72,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STORAGE_KEY_PROPERTY                = "storageKey";
 
 	public AbstractFileTraitDefinition() {
+
 		super(StructrTraits.ABSTRACT_FILE);
 	}
 
@@ -80,8 +81,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -95,8 +95,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
@@ -110,7 +109,6 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 						final GraphObjectMap beforeProps = modificationQueue.getModifications(file).get(new GenericProperty<>("before"));
 						final String prevName            = beforeProps != null ? beforeProps.getProperty(new GenericProperty<>("name")) : null;
-
 						final boolean outbound = StorageSyncService.recordOutboundLocationChange(file, prevName);
 
 						if (!outbound && file.isExternal() && prevName != null) {
@@ -128,8 +126,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnNodeDeletion.class,
-			new OnNodeDeletion() {
+			OnNodeDeletion.class, new OnNodeDeletion() {
 
 				@Override
 				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
@@ -143,14 +140,12 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 				@Override
 
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					final PropertyKey<String> nameKey = obj.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
 					boolean valid = true;
 
 					// validations that are stored in the format attribute of a property must be implemented in IsValid, manually!
@@ -170,8 +165,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			SetProperty.class,
-			new SetProperty() {
+			SetProperty.class, new SetProperty() {
 
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
@@ -192,6 +186,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -199,12 +194,13 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	private static void captureLocationBeforeParentChange(final GraphObject graphObject, final PropertyKey key) {
 
 		final Traits traits = graphObject.getTraits();
-
 		if (!key.equals(traits.key(PARENT_PROPERTY)) && !key.equals(traits.key(PARENT_ID_PROPERTY))) {
+
 			return;
 		}
 
 		if (StorageSyncService.isSyncOrigin(graphObject.getSecurityContext())) {
+
 			return;
 		}
 
@@ -214,9 +210,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			AbstractFile.class, (traits, node) -> new AbstractFileTraitWrapper(traits, node)
-		);
+		return Map.of(AbstractFile.class, (traits, node) -> new AbstractFileTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -272,12 +266,14 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	// ----- protected methods -----
 
 	static void updateHasParent(final GraphObject obj, final NodeInterface value) throws FrameworkException {
+
 		obj.as(AbstractFile.class).setHasParent(value != null);
 	}
 }

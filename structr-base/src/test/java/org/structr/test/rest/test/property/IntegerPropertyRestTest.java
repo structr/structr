@@ -38,8 +38,6 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 			.post("/TestThree")
 			.getHeader("Location");
 
-
-
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 		.expect()

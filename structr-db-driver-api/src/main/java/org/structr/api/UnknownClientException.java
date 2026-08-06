@@ -32,6 +32,7 @@ public class UnknownClientException extends RuntimeException {
 	}
 
 	public String getErrorCode() {
+
 		return errorCode;
 	}
 }

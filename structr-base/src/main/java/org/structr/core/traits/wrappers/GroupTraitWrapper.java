@@ -33,6 +33,7 @@ import java.util.List;
 public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 
 	public GroupTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
+
 		super(traits, nodeInterface);
 	}
 
@@ -48,6 +49,7 @@ public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 	public void addMember(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
 		if (user == null) {
+
 			throw new FrameworkException(422, "Unable to add user " + user + " to group " + this);
 		}
 
@@ -63,6 +65,7 @@ public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 	public void removeMember(final SecurityContext securityContext, final Principal member) throws FrameworkException {
 
 		if (member == null) {
+
 			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + this);
 		}
 

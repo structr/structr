@@ -24,16 +24,19 @@ import org.structr.docs.ontology.Ontology;
 public class ConjunctionToken extends ConstantToken<Void> {
 
 	public ConjunctionToken(final Token token) {
+
 		super(token);
 	}
 
 	@Override
 	public Void resolve(final Ontology ontology) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 }

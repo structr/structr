@@ -39,14 +39,17 @@ import java.util.Map;
 public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements NumericalPropertyKey<Double> {
 
 	public DoubleProperty(final String name) {
+
 		this(name, name, null);
 	}
 
 	public DoubleProperty(final String jsonName, final String dbName) {
+
 		this(jsonName, dbName, null);
 	}
 
 	public DoubleProperty(final String name, final Double defaultValue) {
+
 		this(name, name, defaultValue);
 	}
 
@@ -69,42 +72,50 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 	@Override
 	public String typeName() {
+
 		return "Double";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Double.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Double;
 	}
 
 	@Override
 	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
 	@Override
 	public Double convertToNumber(Double source) {
+
 		return source;
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Double> {
 
 		public InputConverter(SecurityContext securityContext) {
+
 			super(securityContext);
 		}
 
@@ -112,6 +123,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		public Object revert(Double source) throws FrameworkException {
 
 			if (source == null) {
+
 				return null;
 			}
 
@@ -119,10 +131,12 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 			if (!lenient) {
 
 				if (Double.isNaN(source)) {
+
 					return null;
 				}
 
 				if (Double.isInfinite(source)) {
+
 					return null;
 				}
 
@@ -135,6 +149,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		public Double convert(Object source) throws FrameworkException {
 
 			if (source == null) {
+
 				return null;
 			}
 
@@ -147,6 +162,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
 
 				try {
+
 					return Double.valueOf(source.toString());
 
 				} catch (Throwable t) {
@@ -168,10 +184,12 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		if (value != null) {
 
 			if (value instanceof Double) {
+
 				return value;
 			}
 
 			if (value instanceof Number) {
+
 				return ((Number) value).doubleValue();
 			}
 
@@ -190,33 +208,39 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public Object getIndexValue(final Object value) {
+
 		return fixDatabaseProperty(value);
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for double-precision floating point values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return Double.valueOf(index);
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

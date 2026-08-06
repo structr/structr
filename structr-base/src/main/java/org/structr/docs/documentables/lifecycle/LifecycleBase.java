@@ -28,46 +28,55 @@ public abstract class LifecycleBase implements Documentable {
 	private final String name;
 
 	public LifecycleBase(final String name) {
+
 		this.name = name;
 	}
 
 	@Override
 	public final DocumentableType getDocumentableType() {
+
 		return DocumentableType.LifecycleMethod;
 	}
 
 	@Override
 	public final String getName() {
+
 		return name;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return null;
 	}
 
@@ -102,13 +111,11 @@ public abstract class LifecycleBase implements Documentable {
 		// User
 		documentables.add(new OnOAuthLogin());
 
-
 		// global
 		documentables.add(new OnStructrLogin());
 		documentables.add(new OnStructrLogout());
 		documentables.add(new OnAcmeChallenge());
 		documentables.add(new AfterAcmeChallenge());
-
 
 	}
 }

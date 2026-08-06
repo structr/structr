@@ -75,6 +75,7 @@ public abstract class Command {
 	public final void setArgument(final String key, final Object value) {
 
 		if (key != null && value != null) {
+
 			this.arguments.put(key, value);
 		}
 	}
@@ -86,6 +87,7 @@ public abstract class Command {
 	 * @return the argument or null if no such argument exists.
 	 */
 	public final Object getArgument(final String key) {
+
 		return (this.arguments.get(key));
 	}
 }

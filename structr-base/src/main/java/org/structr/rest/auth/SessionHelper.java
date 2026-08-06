@@ -18,7 +18,6 @@
  */
 package org.structr.rest.auth;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
@@ -59,6 +58,7 @@ public class SessionHelper {
 	public static boolean isSessionTimedOut(final HttpSession session) {
 
 		if (session == null) {
+
 			return true;
 		}
 
@@ -72,6 +72,7 @@ public class SessionHelper {
 			if (sessionTimeout > 0 && now > lastAccessed + sessionTimeout * 1000) {
 
 				logger.debug("Session {} timed out, last accessed at {}", new Object[]{session.getId(), Instant.ofEpochMilli(lastAccessed).toString()});
+
 				return true;
 			}
 
@@ -93,7 +94,9 @@ public class SessionHelper {
 		if (request.getSession(true) == null) {
 
 			if (request instanceof ServerUpgradeRequest) {
+
 				logger.debug("Requested to create a new session on a Websocket request, aborting");
+
 				return;
 			}
 
@@ -119,6 +122,7 @@ public class SessionHelper {
 	public static void clearSession(final String sessionId) {
 
 		if (StringUtils.isBlank(sessionId)) {
+
 			return;
 		}
 
@@ -164,7 +168,6 @@ public class SessionHelper {
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
 		final String[] sessionIds = user.getSessionIds();
-
 		if (sessionIds != null && sessionIds.length > 0) {
 
 			final SessionCache sessionCache = getDefaultSessionCache();
@@ -175,6 +178,7 @@ public class SessionHelper {
 				final HttpSession httpSession = SessionHandler.ServletSessionApi.wrapSession(session);
 
 				if (session == null || SessionHelper.isSessionTimedOut(httpSession)) {
+
 					SessionHelper.clearSession(sessionId);
 					SessionHelper.invalidateSession(sessionId);
 				}
@@ -194,7 +198,6 @@ public class SessionHelper {
 			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 
 			final String[] sessionIds = user.getSessionIds();
-
 			if (sessionIds != null && sessionIds.length > 0) {
 
 				for (final String sessionId : sessionIds) {
@@ -217,6 +220,7 @@ public class SessionHelper {
 		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
 			for (final NodeInterface user : StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).getAsList()) {
+
 				clearAllSessions(user.as(Principal.class));
 			}
 
@@ -265,6 +269,7 @@ public class SessionHelper {
 
 			// we just created a totally new session, there can't
 			// be a user with this session ID, so don't search.
+
 			return null;
 
 		} else {
@@ -305,9 +310,11 @@ public class SessionHelper {
 
 					// we just created a totally new session, there can't
 					// be a user with this session ID, so don't search.
+
 					return null;
 
 				} else  {
+
 					logger.debug("3b. Session with requested id " + requestedSessionId + " found, continuing.");
 
 					sessionId = requestedSessionId;
@@ -330,6 +337,7 @@ public class SessionHelper {
 				SessionHelper.newSession(request);
 				// we just created a totally new session, there can't
 				// be a user with this session ID, so don't search.
+
 				return null;
 
 			} else {
@@ -345,6 +353,7 @@ public class SessionHelper {
 		if (isNotTimedOut) {
 
 			//logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", new Object[]{session, session.getLastAccessedTime(), user});
+
 			return user;
 
 		} else {
@@ -364,10 +373,12 @@ public class SessionHelper {
 	}
 
 	public static String getShortSessionId(final String sessionId) {
+
 		return StringUtils.substringBeforeLast(sessionId, ".");
 	}
 
 	private static SessionCache getDefaultSessionCache() {
+
 		return Services.getInstance().getService(HttpService.class, "default").getSessionCache();
 	}
 
@@ -383,6 +394,7 @@ public class SessionHelper {
 			return sessionCache.get(sessionId);
 
 		} catch (final Exception ex) {
+
 			logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
 		}
 

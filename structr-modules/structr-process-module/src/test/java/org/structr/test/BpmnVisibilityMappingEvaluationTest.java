@@ -70,6 +70,7 @@ public class BpmnVisibilityMappingEvaluationTest extends AbstractProcessEngineTe
 
 			final NodeInterface defNode = new org.structr.process.bpmn.BpmnImporter(securityContext).importBpmn(loadResource("/visibility-multi-type.bpmn"));
 			final NodeInterface proc    = firstProcess(defNode);
+
 			procId = proc.getUuid();
 
 			// so both user tasks reserve to the initiator on activation (task-reserved-by-me)
@@ -90,16 +91,20 @@ public class BpmnVisibilityMappingEvaluationTest extends AbstractProcessEngineTe
 
 		// ===== Stage A: no instance yet -> only the start (no-instance) div is visible =====
 		try (final Tx tx = app.tx()) {
+
 			assertTrue("start div visible when there is no instance in context", visible(vmStart, ctx, null));
 			tx.success();
 		}
 
 		// ===== Stage B: start -> token waits at Task_Fill =====
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
+
 			instId = engineAs(worker).startProcess(app.getNodeById(procId), null).getUuid();
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface instance = app.getNodeById(instId);
@@ -116,14 +121,15 @@ public class BpmnVisibilityMappingEvaluationTest extends AbstractProcessEngineTe
 
 		// ===== Stage C: complete Task_Fill -> passes serviceTask + manualTask -> waits at the catch event =====
 		try (final Tx tx = app.tx()) {
+
 			engineAs(worker).completeTask(openTaskAt(app.getNodeById(instId), "Task_Fill"), Map.of());
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface instance = app.getNodeById(instId);
-			assertEquals("token passes the pass-through steps and waits at the catch event",
-				List.of("Event_Wait"), waitingTokenElementIds(instance));
+			assertEquals("token passes the pass-through steps and waits at the catch event", List.of("Event_Wait"), waitingTokenElementIds(instance));
 
 			assertTrue ("catch-event div visible while the token waits there", visible(vmWait,   ctx, instance));
 			assertFalse("Task_Fill div hidden once completed",                 userTaskVisible(vmFillAvail, vmFillMine, ctx, instance));
@@ -140,9 +146,11 @@ public class BpmnVisibilityMappingEvaluationTest extends AbstractProcessEngineTe
 
 		// ===== Stage D: deliver the message -> token advances to Task_Review =====
 		try (final Tx tx = app.tx()) {
+
 			engineAs(worker).signalEvent(app.getNodeById(instId), "Event_Wait", Map.of());
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface instance = app.getNodeById(instId);
@@ -163,7 +171,6 @@ public class BpmnVisibilityMappingEvaluationTest extends AbstractProcessEngineTe
 
 		final Traits t          = Traits.of(ProcessTraits.VISIBILITY_MAPPING);
 		final NodeInterface step = elementByBpmnId(process, stepBpmnId);
-
 		final NodeInterface vm = bindProcess
 			? app.create(ProcessTraits.VISIBILITY_MAPPING,
 				new NodeAttribute<>(t.key(VisibilityMappingTraitDefinition.VISIBLE_WHEN_PROPERTY),   state),
@@ -177,11 +184,13 @@ public class BpmnVisibilityMappingEvaluationTest extends AbstractProcessEngineTe
 	}
 
 	private boolean visible(final String vmUuid, final SecurityContext ctx, final NodeInterface instance) throws FrameworkException {
+
 		return app.getNodeById(vmUuid).as(VisibilityMapping.class).evaluate(ctx, instance);
 	}
 
 	/** A user-task div is visible when its available OR its reserved-by-me mapping matches (the generator OR-combines them). */
 	private boolean userTaskVisible(final String vmAvail, final String vmMine, final SecurityContext ctx, final NodeInterface instance) throws FrameworkException {
+
 		return visible(vmAvail, ctx, instance) || visible(vmMine, ctx, instance);
 	}
 }

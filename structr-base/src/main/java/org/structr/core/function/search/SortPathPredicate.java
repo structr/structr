@@ -27,6 +27,7 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 public class SortPathPredicate extends AbstractPredicate {
+
 	private boolean sortDescending = false;
 	private String sortPath     = null;
 
@@ -38,6 +39,7 @@ public class SortPathPredicate extends AbstractPredicate {
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
+
 		query.sort(new PathPropertySortOrder(new ActionContext(securityContext), sortPath, sortDescending));
 	}
 }

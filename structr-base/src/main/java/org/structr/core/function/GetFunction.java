@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
@@ -47,11 +46,13 @@ public class GetFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "get";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("entity, propertyName");
 	}
 
@@ -69,6 +70,7 @@ public class GetFunction extends CoreFunction {
 
 			// handle GraphObject
 			if (sources[0] instanceof GraphObject) {
+
 				dataObject = (GraphObject)sources[0];
 			}
 
@@ -103,6 +105,7 @@ public class GetFunction extends CoreFunction {
 			if (sources[0] instanceof Map && !(sources[0] instanceof GraphObjectMap)) {
 
 				final Map map = (Map)sources[0];
+
 				return map.get(keyName);
 			}
 
@@ -110,6 +113,7 @@ public class GetFunction extends CoreFunction {
 			if (sources[0] instanceof HttpServletRequest) {
 
 				final HttpServletRequest request = (HttpServletRequest)sources[0];
+
 				return request.getParameter(keyName);
 			}
 
@@ -117,7 +121,6 @@ public class GetFunction extends CoreFunction {
 
 				final Traits traits = dataObject.getTraits();
 				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || dataObject instanceof GraphObjectMap;
-
 				final PropertyKey key = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(keyName) : traits.key(keyName));
 
 				if (key != null) {
@@ -126,6 +129,7 @@ public class GetFunction extends CoreFunction {
 					Object value = dataObject.getProperty(key);
 
 					if (inputConverter != null) {
+
 						return inputConverter.revert(value);
 					}
 
@@ -146,17 +150,20 @@ public class GetFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${get(entity, propertyKey)}. Example: ${get(this, 'children')}"),
 			Usage.javaScript("Usage: ${{ $.get(entity, propertyKey) }}. Example: ${{ $.get($.this, 'children')}")
@@ -165,11 +172,13 @@ public class GetFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the value with the given name of the given entity, or an empty string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Returns the value for the given property key from the given entity. 
 		This function will print an error message if the first parameter is null / not accessible. 
@@ -179,32 +188,28 @@ public class GetFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.javaScript("${get(page, 'name')}"),
-				Example.structrScript("${{ $.get(page, 'name') }}")
-		);
+
+		return List.of(Example.javaScript("${get(page, 'name')}"), Example.structrScript("${{ $.get(page, 'name') }}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"The result value of the get() method can differ from the result value of property access using the dot notation (`get(this, 'name')` vs `this.name`) for certain property types (e.g. date properties), because get() converts the property value to its output representation.",
 				"That means that a Date object will be formatted into a string when fetched via `get(this, 'date')`, whereas `this.date` will return an actual date object."
 		);
 	}
 
-
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("entity", "node or object"),
-				Parameter.mandatory("propertyKey", "requested property name")
-				);
+		return List.of(Parameter.mandatory("entity", "node or object"), Parameter.mandatory("propertyKey", "requested property name"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

@@ -19,6 +19,7 @@
 package org.structr.api;
 
 public class SyntaxErrorException extends RuntimeException {
+
     private String errorCode = null;
 
     public SyntaxErrorException(final Throwable cause, final String errorCode, final String message) {
@@ -29,6 +30,7 @@ public class SyntaxErrorException extends RuntimeException {
     }
 
     public String getErrorCode() {
+
         return errorCode;
     }
 }

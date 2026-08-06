@@ -55,6 +55,7 @@ public class IterableFilter<T> implements Iterable<T> {
 			public boolean hasNext()
 			{
 				do {
+
 					if(sourceIterator.hasNext()) {
 
 						currentElement = sourceIterator.next();

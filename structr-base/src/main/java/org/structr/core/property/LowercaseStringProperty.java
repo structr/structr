@@ -45,10 +45,12 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	private ContentType contentType;
 
 	public LowercaseStringProperty(final String jsonName) {
+
 		super(jsonName);
 	}
 
 	public LowercaseStringProperty(final String jsonName, final String dbName) {
+
 		super(jsonName);
 		this.dbName = dbName;
 	}
@@ -78,16 +80,19 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return String.class;
 	}
 
@@ -97,6 +102,7 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 		if (value != null) {
 
 			if (value instanceof String) {
+
 				return value;
 			}
 
@@ -108,25 +114,30 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new PropertyConverter<Object, String>(securityContext) {
 
 			@Override
 			public Object revert(String source) throws FrameworkException {
+
 				return source;
 			}
 
@@ -134,6 +145,7 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 			public String convert(final Object source) throws FrameworkException {
 
 				if (source != null) {
+
 					return source.toString().toLowerCase();
 				}
 
@@ -148,33 +160,40 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	 * @return contentType
 	 */
 	public String contentType() {
+
 		return contentType != null ? contentType.toString() : null;
 	}
 
 	public LowercaseStringProperty contentType(final String contentType) {
+
 		this.contentType = parse(contentType);
+
 		return this;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return this.jsonName().toLowerCase() + " #" + index;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for string values that converts all values to lowercase.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 

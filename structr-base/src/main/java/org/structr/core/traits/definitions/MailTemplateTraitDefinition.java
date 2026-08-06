@@ -44,15 +44,14 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String LOCALE_PROPERTY      = "locale";
 
 	public MailTemplateTraitDefinition() {
+
 		super(StructrTraits.MAIL_TEMPLATE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			MailTemplate.class, (traits, node) -> new MailTemplateTraitWrapper(traits, node)
-		);
+		return Map.of(MailTemplate.class, (traits, node) -> new MailTemplateTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -62,11 +61,7 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<String> descriptionProperty = new StringProperty(DESCRIPTION_PROPERTY).indexed().description("Description of this template.");
 		final Property<String> localeProperty      = new StringProperty(LOCALE_PROPERTY).indexed().description("Locale for this template.");
 
-		return newSet(
-			textProperty,
-			descriptionProperty,
-			localeProperty
-		);
+		return newSet(textProperty, descriptionProperty, localeProperty);
 	}
 
 	@Override
@@ -74,25 +69,20 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(
-					TEXT_PROPERTY, DESCRIPTION_PROPERTY, LOCALE_PROPERTY
-			),
+			PropertyView.Public, newSet(TEXT_PROPERTY, DESCRIPTION_PROPERTY, LOCALE_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-					TEXT_PROPERTY, DESCRIPTION_PROPERTY, LOCALE_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(TEXT_PROPERTY, DESCRIPTION_PROPERTY, LOCALE_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

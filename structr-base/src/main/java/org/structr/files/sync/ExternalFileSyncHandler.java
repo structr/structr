@@ -68,10 +68,12 @@ public class ExternalFileSyncHandler {
 	private final App app = StructrApp.getInstance(StorageSyncService.createSyncContext());
 
 	public ExternalFileSyncHandler(final SyncTarget target) {
+
 		this.target = target;
 	}
 
 	public Stats getStats() {
+
 		return stats;
 	}
 
@@ -85,6 +87,7 @@ public class ExternalFileSyncHandler {
 
 		final NodeInterface node = resolve(entry, true);
 		if (node == null) {
+
 			return null;
 		}
 
@@ -131,6 +134,7 @@ public class ExternalFileSyncHandler {
 			if (target.syncRootUuid().equals(node.getUuid())) {
 
 				logger.warn("External storage of sync target {} reports deletion of the sync root itself, not deleting node {}", target.syncRootPath(), node.getUuid());
+
 				return;
 			}
 
@@ -175,6 +179,7 @@ public class ExternalFileSyncHandler {
 
 				// the entry path is authoritative for externally created objects
 				if (entry.hasPath()) {
+
 					moveTo(bound, entry);
 				}
 
@@ -197,6 +202,7 @@ public class ExternalFileSyncHandler {
 
 				// the node dictates its own name/path unless the provider explicitly reports a differing path
 				if (entry.hasPath()) {
+
 					moveTo(node, entry);
 				}
 
@@ -220,11 +226,13 @@ public class ExternalFileSyncHandler {
 
 		final NodeInterface syncRoot = getSyncRoot();
 		if (syncRoot == null || !entry.hasPath()) {
+
 			return null;
 		}
 
 		// the empty relative path addresses the sync root itself
 		if (entry.relativePath().isEmpty()) {
+
 			return syncRoot;
 		}
 
@@ -238,6 +246,7 @@ public class ExternalFileSyncHandler {
 
 		final NodeInterface parentFolder = resolveParentFolder(syncRoot, entry, create);
 		if (parentFolder == null) {
+
 			return null;
 		}
 
@@ -248,6 +257,7 @@ public class ExternalFileSyncHandler {
 
 		final String parentPath = entry.parentPath();
 		if (parentPath.isEmpty()) {
+
 			return syncRoot;
 		}
 
@@ -256,7 +266,6 @@ public class ExternalFileSyncHandler {
 		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
 		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final PropertyKey<String> nameKey          = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
 		NodeInterface current = syncRoot;
 
 		for (final String segment : parentPath.split("/")) {
@@ -265,6 +274,7 @@ public class ExternalFileSyncHandler {
 			if (child == null) {
 
 				if (!create) {
+
 					return null;
 				}
 
@@ -323,7 +333,6 @@ public class ExternalFileSyncHandler {
 		if (node == null && doCreate) {
 
 			final String type            = getTargetType(syncRoot, entry.directory());
-
 			final PropertyMap properties = new PropertyMap();
 
 			properties.put(nameKey,       entry.name());
@@ -401,6 +410,7 @@ public class ExternalFileSyncHandler {
 
 		final NodeInterface syncRoot = getSyncRoot();
 		if (syncRoot == null) {
+
 			return false;
 		}
 
@@ -410,17 +420,20 @@ public class ExternalFileSyncHandler {
 		final String currentPath        = abstractFile.getPath();
 
 		if (expectedPath.equals(currentPath)) {
+
 			return false;
 		}
 
 		if (target.syncRootUuid().equals(node.getUuid())) {
 
 			logger.warn("External storage of sync target {} reports a differing path {} for the sync root itself, not moving node {}", target.syncRootPath(), expectedPath, node.getUuid());
+
 			return false;
 		}
 
 		final NodeInterface newParent = resolveParentFolder(syncRoot, entry, true);
 		if (newParent == null) {
+
 			return false;
 		}
 
@@ -441,12 +454,11 @@ public class ExternalFileSyncHandler {
 		if (node.is(StructrTraits.FILE)) {
 
 			final NodeInterface syncRoot = getSyncRoot();
-
 			if (syncRoot != null && syncRoot.is(StructrTraits.FOLDER)) {
 
 				final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
-
 				if (Boolean.TRUE.equals(syncRoot.getProperty(doFulltextIndexing))) {
+
 					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(node);
 				}
 			}
@@ -464,6 +476,7 @@ public class ExternalFileSyncHandler {
 		if (entry.size() == null || entry.lastModified() == null) {
 
 			// the backend cannot provide cheap change detection
+
 			return true;
 		}
 
@@ -485,6 +498,7 @@ public class ExternalFileSyncHandler {
 		for (final NodeInterface node : app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(storageKeyKey, nativeKey).getAsList()) {
 
 			if (isGovernedByThisTarget(node.as(AbstractFile.class))) {
+
 				return node;
 			}
 		}
@@ -495,6 +509,7 @@ public class ExternalFileSyncHandler {
 	private boolean isGovernedByThisTarget(final AbstractFile file) {
 
 		if (target.syncRootUuid().equals(file.getUuid())) {
+
 			return true;
 		}
 
@@ -515,6 +530,7 @@ public class ExternalFileSyncHandler {
 	}
 
 	private PropertyKey<Long> lastSeenMountedKey() {
+
 		return Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.LAST_SEEN_MOUNTED_PROPERTY);
 	}
 
@@ -537,6 +553,7 @@ public class ExternalFileSyncHandler {
 
 		@Override
 		public String toString() {
+
 			return "created " + created + ", updated " + updated + ", unchanged " + unchanged + ", deleted " + deleted + ", ignored " + ignored;
 		}
 	}

@@ -68,6 +68,7 @@ public class ImageConverter extends PropertyConverter {
 			Image img = null;
 
 			try {
+
 				if (source instanceof byte[] data) {
 
 					MagicMatch match = Magic.getMagicMatch(data);
@@ -112,6 +113,7 @@ public class ImageConverter extends PropertyConverter {
 				}
 
 			} catch (Throwable t) {
+
 				logger.warn("Cannot create image node from given data", t);
 			}
 
@@ -122,7 +124,6 @@ public class ImageConverter extends PropertyConverter {
 				
 				currentObject.setProperties(securityContext, new PropertyMap(keyAndClass.getPropertyKey(), img));
 			}
-
 
 		} catch (Throwable t) {
 

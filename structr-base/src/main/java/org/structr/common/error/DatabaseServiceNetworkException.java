@@ -21,14 +21,17 @@ package org.structr.common.error;
 public class DatabaseServiceNetworkException extends DatabaseServiceNotAvailableException {
 
 	public DatabaseServiceNetworkException(final int status, final String message) {
+
 		super(status, message, (ErrorToken)null);
 	}
 
 	public DatabaseServiceNetworkException(final int status, final String message, final ErrorBuffer errorBuffer) {
+
 		super(status, message, (ErrorToken)null);
 	}
 
 	public DatabaseServiceNetworkException(final int status, final String message, final ErrorToken errorToken) {
+
 		super(status, message, (ErrorToken)null);
 	}
 }

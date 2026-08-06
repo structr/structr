@@ -36,21 +36,25 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 	private String cachedTenantId = null;
 
 	public NodeWrapper(final EmbeddedDatabaseService db, final org.neo4j.graphdb.Node entity) {
+
 		super(db, entity);
 	}
 
 	@Override
 	public String toString() {
+
 		return "N" + getId();
 	}
 
 	@Override
 	protected String getQueryPrefix() {
+
 		return concat("MATCH (n", getTenantIdentifier(database), ")");
 	}
 
 	@Override
 	public Relationship<String> createRelationshipTo(final Node<String> endNode, final RelationshipType relationshipType) {
+
 		return createRelationshipTo(endNode, relationshipType, new LinkedHashMap<>());
 	}
 
@@ -60,6 +64,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 		final org.neo4j.graphdb.Relationship newRelationship = entity.createRelationshipTo(convert(endNode), convert(relationshipType));
 
 		for (final Map.Entry<String, Object> entry : properties.entrySet()) {
+
 			newRelationship.setProperty(entry.getKey(), entry.getValue());
 		}
 
@@ -77,16 +82,19 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 
 	@Override
 	public void removeLabel(final String label) {
+
 		entity.removeLabel(Label.label(label));
 	}
 
 	@Override
 	public Iterable<String> getLabels() {
+
 		return Iterables.map(l -> l.name(), entity.getLabels());
 	}
 
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType type, final Node targetNode) {
+
 		return getRelationshipTo(type, targetNode) != null;
 	}
 
@@ -109,11 +117,13 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 
 	@Override
 	public Iterable<Relationship<String>> getRelationships() {
+
 		return Iterables.map(r -> new RelationshipWrapper(database, r), sort(entity.getRelationships()));
 	}
 
 	@Override
 	public Iterable<Relationship<String>> getRelationships(final Direction direction) {
+
 		return Iterables.map(r -> new RelationshipWrapper(database, r), sort(entity.getRelationships(convert(direction))));
 	}
 
@@ -123,6 +133,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 		if (isDeleted()) {
 
 			// deleted nodes has not relationships
+
 			return Collections.emptyList();
 		}
 
@@ -160,10 +171,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 
 	@Override
 	public boolean isNode() {
+
 		return true;
 	}
 
 	public org.neo4j.graphdb.Node getNode() {
+
 		return entity;
 	}
 
@@ -189,7 +202,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 		if (cachedTenantId == null) {
 
 			final String identifier = db.getTenantIdentifier();
-
 			if (StringUtils.isNotBlank(identifier)) {
 
 				cachedTenantId = ":" + identifier;
@@ -204,14 +216,17 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 	}
 
 	private org.neo4j.graphdb.RelationshipType convert(final RelationshipType relationshipType) {
+
 		return  org.neo4j.graphdb.RelationshipType.withName(relationshipType.name());
 	}
 
 	private org.neo4j.graphdb.Direction convert(final Direction direction) {
+
 		return org.neo4j.graphdb.Direction.valueOf(direction.name());
 	}
 
 	private org.neo4j.graphdb.Node convert(final Node node) {
+
 		return ((NodeWrapper)node).getNode();
 	}
 
@@ -227,10 +242,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 				final Comparable t2 = (Comparable) b.getProperty("internalTimestamp");
 
 				// Yes, we deliberately provoke both ClassCastException and NullPointerException here.
+
 				return t1.compareTo(t2);
 			}
 
 			// fallback: element ID
+
 			return a.getElementId().compareTo(b.getElementId());
 		});
 

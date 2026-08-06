@@ -117,6 +117,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 			if (StringUtils.isNumeric(part)) {
 
 				int index = Integer.valueOf(part);
+
 				if (current instanceof List) {
 
 					final List list = (List)current;
@@ -166,6 +167,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 			if (StringUtils.isNumeric(part)) {
 
 				int index = Integer.valueOf(part);
+
 				if (current instanceof Collection) {
 
 					final Collection collection = (Collection)current;
@@ -175,6 +177,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 						assertEquals("Invalid map path result for " + mapPath, value, null);
 
 						// nothing more to check here
+
 						return;
 
 					} else {
@@ -190,6 +193,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 					assertEquals("Invalid collection size for " + mapPath, value, ((List)current).size());
 
 					// nothing more to check here
+
 					return;
 				}
 
@@ -198,6 +202,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 					assertEquals("Invalid map size for " + mapPath, value, ((Map)current).size());
 
 					// nothing more to check here
+
 					return;
 				}
 

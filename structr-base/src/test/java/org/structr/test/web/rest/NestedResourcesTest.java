@@ -317,6 +317,7 @@ public class NestedResourcesTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -326,7 +327,6 @@ public class NestedResourcesTest extends StructrUiTest {
 		final String authorId    = createEntityAsUser(ADMIN_USERNAME, ADMIN_PASSWORD, "/TestAuthor", "{ name: 'Tester' }");
 		final String versionId   = createEntityAsUser(ADMIN_USERNAME, ADMIN_PASSWORD, "/TestVersion", "{ name: 'TestVersion' }");
 		final String documentId  = createEntityAsUser(ADMIN_USERNAME, ADMIN_PASSWORD, "/TestDocument", "{ name: 'TestDocument', hasVersion: { id: '" + versionId + "', hasAuthor: { id: '" + authorId + "' } } } ");
-
 
 		// check document to have correct associations
 		RestAssured
@@ -346,7 +346,6 @@ public class NestedResourcesTest extends StructrUiTest {
 				.body("result.hasVersion.hasAuthor.name", equalTo("Tester"))
 			.when()
 				.get("/TestDocument/" + documentId);
-
 
 	}
 }

@@ -46,54 +46,67 @@ public class GraphQueryPart {
 	}
 
 	public String getLinkIdentifier() {
+
 		return "(" + label + ")" + getRelationshipPattern() + "(" + otherLabel + ")";
 	}
 
 	public Operation getOperation() {
+
 		return operation;
 	}
 
 	public Set<Object> getValues() {
+
 		return values;
 	}
 
 	public String getLabel() {
+
 		return label;
 	}
 
 	public void setLabel(final String label) {
+
 		this.label = label;
 	}
 
 	public String getOtherLabel() {
+
 		return otherLabel;
 	}
 
 	public void setOtherLabel(final String otherLabel) {
+
 		this.otherLabel = otherLabel;
 	}
 
 	public String getIdentifier() {
+
 		return identifier;
 	}
 
 	public void setIdentifier(final String identifier) {
+
 		this.identifier = identifier;
 	}
 
 	public String getRelationship() {
+
 		return relationship;
 	}
 
 	public void setRelationship(final String relationship) {
+
 		this.relationship = relationship;
 	}
 
 	public Direction getDirection() {
+
 		return direction;
 	}
 
 	public void setDirection(final Direction direction) {
+
 		this.direction = direction;
 	}
 

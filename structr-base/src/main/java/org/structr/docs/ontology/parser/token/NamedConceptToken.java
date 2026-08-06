@@ -37,10 +37,12 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implement
 	public NamedConceptToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
 		if (identifierToken != null) {
+
 			identifierToken.setParent(this);
 		}
 
 		if (conceptToken != null) {
+
 			conceptToken.setParent(this);
 		}
 
@@ -49,31 +51,38 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implement
 	}
 
 	public boolean isUnknown() {
+
 		return conceptToken != null && ConceptType.Unknown.equals(conceptToken.getType());
 	}
 
 	@Override
 	public String toString() {
+
 		return getClass().getSimpleName() + "(" + conceptToken + ", " + identifierToken + ")";
 	}
 
 	public ConceptToken getConceptToken() {
+
 		return conceptToken;
 	}
 
 	public IdentifierToken getIdentifierToken() {
+
 		return identifierToken;
 	}
 
 	public void addAdditionalNamedConcept(final NamedConceptToken additionalNamedConcept) {
+
 		additionalNamedConcepts.add(additionalNamedConcept);
 	}
 
 	public List<NamedConceptToken> getAdditionalNamedConcepts() {
+
 		return additionalNamedConcepts;
 	}
 
 	public NamedConceptToken copy(final IdentifierToken newIdentifierToken) {
+
 		return new NamedConceptToken(conceptToken, newIdentifierToken);
 	}
 
@@ -82,8 +91,8 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implement
 
 		final ConceptType type  = conceptToken.resolve(ontology);
 		final String identifier = identifierToken.resolve(ontology);
-
 		final Concept concept = ontology.getOrCreateConcept(identifierToken, type, identifier, conceptToken.allowReuse());
+
 		if (concept != null) {
 
 			// additional named concepts go into metadata of a concept
@@ -115,6 +124,7 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implement
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
@@ -122,6 +132,7 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implement
 	public Token getToken() {
 
 		if (identifierToken != null) {
+
 			return identifierToken.getToken();
 		}
 
@@ -132,6 +143,7 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implement
 	public void renameTo(final String newName) {
 
 		if (identifierToken != null) {
+
 			identifierToken.renameTo(newName);
 		}
 	}
@@ -149,6 +161,7 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implement
 			identifierToken.getToken().remove();
 
 			for (final Token syntaxToken : identifierToken.getSyntaxTokens()) {
+
 				syntaxToken.remove();
 			}
 		}

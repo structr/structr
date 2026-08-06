@@ -61,15 +61,14 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final String ODT_FIELD_ATTRIBUTE_VALUE = "office:string-value";
 
 	public ODTExporterTraitDefinition() {
+
 		super(StructrTraits.ODT_EXPORTER);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ODTExporter.class, (traits, node) -> new ODTExporterTraitWrapper(traits, node)
-		);
+		return Map.of(ODTExporter.class, (traits, node) -> new ODTExporterTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -86,6 +85,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 					final String uuid              = (String)data.get("uuid");
 
 					exportAttributes(actionContext, entity.as(ODTExporter.class), uuid);
+
 					return null;
 				}
 			}
@@ -94,6 +94,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -108,16 +109,14 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			final App app                        = StructrApp.getInstance(securityContext);
 			final ResultStream result            = app.nodeQuery("AbstractNode").key(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(actionContext, StructrTraits.NODE_INTERFACE, result);
-
 			Map<String, Object> nodeProperties = new HashMap<>();
 			GraphObjectMap node = (GraphObjectMap) Iterables.first(transformedResult);
-			node.getPropertyKeys(null).forEach(
-				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
-			);
+
+			node.getPropertyKeys(null).forEach(p -> nodeProperties.put(p.dbName(), node.getProperty(p)));
 
 			OdfDocument text = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
-
 			NodeList nodes = text.getContentRoot().getElementsByTagName(ODT_FIELD_TAG_NAME);
+
 			for (int i = 0; i < nodes.getLength(); i++) {
 
 				Node currentNode = nodes.item(i);
@@ -127,15 +126,14 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 				Node currentContent = attrs.getNamedItem(ODT_FIELD_ATTRIBUTE_VALUE);
 
 				if (nodeFieldValue != null) {
+
 					if (nodeFieldValue instanceof String[]) {
 
 						String[] arr = (String[]) nodeFieldValue;
 						List<String> list = new ArrayList<>(Arrays.asList(arr));
-
 						StringBuilder sb = new StringBuilder();
-						list.forEach(
-							s -> sb.append(s + "\n")
-						);
+
+						list.forEach(s -> sb.append(s + "\n"));
 
 						currentContent.setNodeValue(sb.toString());
 
@@ -143,9 +141,8 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 						Collection col = (Collection) nodeFieldValue;
 						StringBuilder sb = new StringBuilder();
-						col.forEach(
-							s -> sb.append(s + "\n")
-						);
+
+						col.forEach(s -> sb.append(s + "\n"));
 
 						currentContent.setNodeValue(sb.toString());
 
@@ -162,6 +159,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			text.close();
 
 		} catch (Exception e) {
+
 			final Logger logger = LoggerFactory.getLogger(ODTExporterTraitDefinition.class);
 			logger.error("Error while exporting to ODT", e);
 		}

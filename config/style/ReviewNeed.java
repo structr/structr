@@ -27,7 +27,8 @@ import java.util.stream.*;
  * it ranks files by how much they are likely to reward a human review, from signals drawn from
  * established metrics (cyclomatic/cognitive complexity, Maintainability Index, PMD/SonarQube
  * smells) plus Structr-specific smells. Regex + brace-depth heuristics, no parser — expect some
- * false positives; treat scores as a "look here first" ordering.
+ * false positives; treat scores as a "look here first" ordering. Methods annotated {@code @Test}
+ * are excluded from scoring, so test-method bodies don't skew the metrics.
  *
  * Single-file program; runs with the JDK source launcher (no build, no dependencies, no Python):
  *     java config/style/ReviewNeed.java [--top N] [--by SIGNAL] [--main-only] [--summary] [paths...]
@@ -57,11 +58,12 @@ public class ReviewNeed {
 		// the smells the team called out first, weighted highest
 		W.put("long_methods", 3); W.put("complexity", 3); W.put("deep_nesting", 2);
 		W.put("cstyle_for", 2); W.put("switch_heavy", 2); W.put("str_const_enum", 4);
-		W.put("parser_smell", 3); W.put("oversized", 1); W.put("todos", 1);
+		W.put("parser_smell", 3); W.put("oversized", 1); W.put("todos", 5);
 		// the more exotic signals
 		W.put("magic_numbers", 1); W.put("long_params", 2); W.put("boolean_params", 2);
 		W.put("equals_literal", 2); W.put("instanceof_heavy", 2); W.put("broad_catch", 2);
 		W.put("reflection", 2); W.put("concurrency", 3); W.put("sysout", 2); W.put("regex_heavy", 2);
+		W.put("long_lines", 1);
 	}
 
 	static final Pattern DECISION      = Pattern.compile("\\b(if|for|while|case|catch)\\b|&&|\\|\\||\\?");
@@ -70,7 +72,7 @@ public class ReviewNeed {
 	static final Pattern PARSER        = Pattern.compile("\\.charAt\\(|\\.substring\\(|\\.indexOf\\(|\\.lastIndexOf\\(|\\.split\\(|\\.toCharArray\\(|StringBuilder|StringTokenizer|Character\\.is");
 	static final Pattern METHOD_SIG    = Pattern.compile("^\\s*(?!(if|for|while|switch|catch|synchronized|return|new|else)\\b)[\\w@].*\\)\\s*(throws [\\w., ]+)?\\{$");
 	static final Pattern TYPE_DECL     = Pattern.compile("\\b(class|interface|enum|record)\\b");
-	static final Pattern TODO          = Pattern.compile("\\b(TODO|FIXME|XXX|HACK)\\b");
+	static final Pattern TODO          = Pattern.compile("\\b(TODO|FIXME|XXX|HACK)\\b|(?i:\\bknown\\s+bugs?\\b)");
 	static final Pattern SWITCH        = Pattern.compile("\\bswitch\\s*\\(");
 	static final Pattern STRING_LIT    = Pattern.compile("\"(\\\\.|[^\"\\\\])*\"");
 	static final Pattern CHAR_LIT      = Pattern.compile("'(\\\\.|[^'\\\\])*'");
@@ -95,10 +97,12 @@ public class ReviewNeed {
 
 		final Matcher m = p.matcher(s);
 		int n = 0;
+
 		while (m.find()) {
 
 			n++;
 		}
+
 		return n;
 	}
 
@@ -107,6 +111,7 @@ public class ReviewNeed {
 
 		final List<String> out = new ArrayList<>();
 		boolean inBlock = false;
+
 		for (String line : raw) {
 
 			if (inBlock) {
@@ -116,8 +121,10 @@ public class ReviewNeed {
 
 					out.add(""); continue;
 				}
+
 				line = line.substring(end + 2); inBlock = false;
 			}
+
 			while (true) {
 
 				final int start = line.indexOf("/*");
@@ -125,13 +132,16 @@ public class ReviewNeed {
 
 					break;
 				}
+
 				final int end = line.indexOf("*/", start + 2);
 				if (end < 0) {
 
 					line = line.substring(0, start); inBlock = true; break;
 				}
+
 				line = line.substring(0, start) + " " + line.substring(end + 2);
 			}
+
 			line = STRING_LIT.matcher(line).replaceAll("\"\"");
 			line = CHAR_LIT.matcher(line).replaceAll("''");
 			final int c = line.indexOf("//");
@@ -139,8 +149,80 @@ public class ReviewNeed {
 
 				line = line.substring(0, c);
 			}
+
 			out.add(line);
 		}
+
+		return out;
+	}
+
+	/**
+	 * Blank out the body of every {@code @Test}-annotated method (found by walking up over the
+	 * annotation lines above a method signature) so test methods don't skew the metrics. Works on
+	 * the comment/string-stripped lines from {@link #toCode}; returns a copy with those regions blank.
+	 */
+	static List<String> stripTestMethods(final List<String> code) {
+
+		final boolean[] excluded = new boolean[code.size()];
+
+		for (int i = 0; i < code.size(); i++) {
+
+			final String line = code.get(i);
+			final boolean isMethod = METHOD_SIG.matcher(line).find() && !TYPE_DECL.matcher(line).find() && !line.contains("->") && !line.contains(" new ") && !line.contains("=");
+
+			if (!isMethod) {
+
+				continue;
+			}
+
+			boolean isTest = false;
+			int start = i, k = i - 1;
+
+			while (k >= 0) {
+
+				final String t = code.get(k).strip();
+				if (t.startsWith("@")) {
+
+					isTest = isTest || t.startsWith("@Test");
+					start = k; k--;
+
+				} else if (t.isEmpty()) {
+
+					k--;
+
+				} else {
+
+					break;
+				}
+			}
+
+			if (!isTest) {
+
+				continue;
+			}
+
+			int depth = count(OPEN_BRACE, line) - count(CLOSE_BRACE, line);
+			int end = i, j = i + 1;
+
+			while (j < code.size() && depth > 0) {
+
+				depth += count(OPEN_BRACE, code.get(j)) - count(CLOSE_BRACE, code.get(j));
+				end = j; j++;
+			}
+
+			for (int x = start; x <= end; x++) {
+
+				excluded[x] = true;
+			}
+		}
+
+		final List<String> out = new ArrayList<>(code.size());
+
+		for (int i = 0; i < code.size(); i++) {
+
+			out.add(excluded[i] ? "" : code.get(i));
+		}
+
 		return out;
 	}
 
@@ -149,9 +231,10 @@ public class ReviewNeed {
 		final String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 		final boolean accepted = content.contains(ACCEPT_MARKER);
 		final List<String> raw = Arrays.asList(content.split("\n", -1));
-		final List<String> code = toCode(raw);
+		final List<String> code = stripTestMethods(toCode(raw));
 		final String joined = String.join("\n", code);
 		int loc = 0;
+
 		for (String c : code) {
 
 			if (!c.trim().isEmpty()) {
@@ -162,15 +245,17 @@ public class ReviewNeed {
 
 		int longM = 0, cx = 0, deep = 0, longParams = 0, boolParams = 0, numMethods = 0;
 		int i = 0;
+
 		while (i < code.size()) {
 
 			final String line = code.get(i);
-			final boolean isMethod = METHOD_SIG.matcher(line).find() && !TYPE_DECL.matcher(line).find()
-				&& !line.contains("->") && !line.contains(" new ") && !line.contains("=");
+			final boolean isMethod = METHOD_SIG.matcher(line).find() && !TYPE_DECL.matcher(line).find() && !line.contains("->") && !line.contains(" new ") && !line.contains("=");
+
 			if (!isMethod) {
 
 				i++; continue;
 			}
+
 			numMethods++;
 			final int lp = line.indexOf('('), rp = line.lastIndexOf(')');
 			if (lp >= 0 && rp > lp) {
@@ -182,14 +267,17 @@ public class ReviewNeed {
 
 						longParams++;
 					}
+
 					if (count(BOOLEAN_PARAM, params) >= 2) {
 
 						boolParams++;
 					}
 				}
 			}
+
 			int depth = count(OPEN_BRACE, line) - count(CLOSE_BRACE, line);
 			int j = i + 1, body = 0, cyc = 1, maxRel = 0;
+
 			while (j < code.size() && depth > 0) {
 
 				final String cj = code.get(j);
@@ -197,43 +285,55 @@ public class ReviewNeed {
 
 					body++;
 				}
+
 				cyc += count(DECISION, cj);
 				maxRel = Math.max(maxRel, depth);
 				depth += count(OPEN_BRACE, cj) - count(CLOSE_BRACE, cj);
 				j++;
 			}
+
 			if (body >= LONG_METHOD) {
 
 				longM++;
 			}
+
 			if (cyc > CX) {
 
 				cx++;
 			}
+
 			if (maxRel >= DEEP + 1) {
 
 				deep++;
 			}
+
 			i = j;
 		}
 
 		// clusters of >= 3 sibling String constants (blanks don't break the run)
 		int clusters = 0, run = 0;
+
 		for (String c : code) {
 
 			if (STR_CONST.matcher(c).find()) {
 
 				run++;
+
 			} else if (c.trim().isEmpty()) {
+
 				/* keep the run going */
+
 			} else {
+
 				if (run >= 3) {
 
 					clusters++;
 				}
+
 				run = 0;
 			}
 		}
+
 		if (run >= 3) {
 
 			clusters++;
@@ -241,13 +341,16 @@ public class ReviewNeed {
 
 		// magic numbers: literals other than 0/1/2, excluding constant declarations
 		int magic = 0;
+
 		for (String c : code) {
 
 			if (c.contains("static final") || TYPE_DECL.matcher(c).find()) {
 
 				continue;
 			}
+
 			final Matcher m = MAGIC.matcher(c);
+
 			while (m.find()) {
 
 				final String v = m.group();
@@ -259,7 +362,31 @@ public class ReviewNeed {
 		}
 
 		final int parser = count(PARSER, joined);
+		int longLines = 0;
+
+		for (final String c : raw) {
+
+			final String t = c.strip();
+			if (t.startsWith("import ") || t.startsWith("package ")) {
+
+				continue;
+			}
+
+			int w = 0;
+
+			for (int x = 0; x < c.length(); x++) {
+
+				w += c.charAt(x) == '\t' ? 8 : 1;
+			}
+
+			if (w > 200) {
+
+				longLines++;
+			}
+		}
+
 		final Map<String, Integer> sub = new LinkedHashMap<>();
+
 		sub.put("long_methods", longM);
 		sub.put("complexity", cx);
 		sub.put("deep_nesting", deep);
@@ -279,12 +406,15 @@ public class ReviewNeed {
 		sub.put("concurrency", count(CONCURRENCY, joined));
 		sub.put("sysout", count(SYSOUT, joined));
 		sub.put("regex_heavy", count(REGEX_HEAVY, joined) / 2);
+		sub.put("long_lines", longLines);
 
 		int score = 0;
+
 		for (Map.Entry<String, Integer> e : sub.entrySet()) {
 
 			score += e.getValue() * W.get(e.getKey());
 		}
+
 		return new Result(loc, score, sub, accepted);
 	}
 
@@ -295,10 +425,12 @@ public class ReviewNeed {
 		contrib.removeIf(e -> e.getValue() == 0);
 		contrib.sort((p, q) -> q.getValue() * W.get(q.getKey()) - p.getValue() * W.get(p.getKey()));
 		final StringBuilder sig = new StringBuilder();
+
 		for (final Map.Entry<String, Integer> e : contrib) {
 
 			sig.append(sig.length() > 0 ? ", " : "").append(e.getKey()).append("=").append(e.getValue());
 		}
+
 		return sig.length() == 0 ? "-" : sig.toString();
 	}
 
@@ -307,7 +439,9 @@ public class ReviewNeed {
 		try {
 
 			return base.relativize(p.toAbsolutePath()).toString();
+
 		} catch (Exception e) {
+
 			return p.toString();
 		}
 	}
@@ -318,6 +452,7 @@ public class ReviewNeed {
 		String by = null;
 		boolean summary = false, mainOnly = false, showAccepted = false;
 		final List<String> paths = new ArrayList<>();
+
 		for (int i = 0; i < a.length; i++) {
 
 			switch (a[i]) {
@@ -329,11 +464,14 @@ public class ReviewNeed {
 				default                -> paths.add(a[i]);
 			}
 		}
+
 		final boolean mo = mainOnly;
+
 		if (paths.isEmpty()) {
 
 			paths.add(".");
 		}
+
 		if (by != null && !W.containsKey(by)) {
 
 			System.err.println("--by must be one of: " + W.keySet());
@@ -345,6 +483,7 @@ public class ReviewNeed {
 		try {
 
 			final List<Path> fs = new ArrayList<>();
+
 			for (String p : paths) {
 
 				final Path pp = Paths.get(p);
@@ -352,6 +491,7 @@ public class ReviewNeed {
 
 					continue;
 				}
+
 				try (Stream<Path> s = Files.walk(pp)) {
 
 					s.filter(x -> x.toString().endsWith(".java")
@@ -361,13 +501,16 @@ public class ReviewNeed {
 			}
 
 			final List<Row> all = new ArrayList<>();
+
 			for (Path f : fs) {
 
 				try {
 
 					final Result res = analyze(f);
 					all.add(new Row(res.score(), res.loc(), f, res.sub(), res.accepted()));
+
 				} catch (Exception ignore) {
+
 					/* skip unreadable file */
 				}
 			}
@@ -377,19 +520,24 @@ public class ReviewNeed {
 			final Path base = Paths.get(paths.get(0)).toAbsolutePath();
 			int acceptedCount = 0;
 			final List<Row> visible = new ArrayList<>();
+
 			for (Row r : all) {
 
 				if (r.accepted()) {
 
 					acceptedCount++;
+
 					if (showAccepted) {
 
 						visible.add(r);
 					}
+
 				} else {
+
 					visible.add(r);
 				}
 			}
+
 			final String acc = acceptedCount > 0 ? acceptedCount + " accepted, " : "";
 
 			if (summary) {
@@ -397,26 +545,34 @@ public class ReviewNeed {
 				if (visible.isEmpty()) {
 
 					System.out.println("[review-need] " + all.size() + " files scored (" + acc + "0 to review).");
+
 					return;
 				}
+
 				final int n = Math.min(10, visible.size());
 				System.out.println("[review-need] " + all.size() + " files scored (" + acc + "heuristic). Top " + n + " needing review:");
+
 				for (int i = 0; i < n; i++) {
 
 					final Row r = visible.get(i);
 					final String tag = r.accepted() ? "  [accepted]" : "";
+
 					System.out.printf("[review-need]  %s  (score %d)%s  %s%n", rel(base, r.path()), r.score(), tag, signals(r.sub()));
 				}
+
 				return;
 			}
 
 			if (visible.isEmpty()) {
 
 				System.out.println("Nothing to review (" + acc + all.size() + " scored).");
+
 				return;
 			}
+
 			System.out.printf("%6s %6s  %s%n", "score", "loc", by != null ? "path, flags   (ranked by " + by + ")" : "path, flags");
 			System.out.println("-".repeat(80));
+
 			for (int i = 0; i < Math.min(top, visible.size()); i++) {
 
 				final Row row = visible.get(i);
@@ -424,12 +580,15 @@ public class ReviewNeed {
 
 					continue;
 				}
+
 				final String tag = row.accepted() ? " [accepted]" : "";
 				System.out.printf("%6d %6d  %s%s  %s%n", row.score(), row.loc(), rel(base, row.path()), tag, signals(row.sub()));
 			}
+
 			System.out.println("\n" + visible.size() + " file(s) to review" + (acceptedCount > 0 ? " (" + acceptedCount + " accepted, hidden)" : "") + ". Heuristic.");
 
 		} catch (Throwable t) {
+
 			System.out.println("[review-need] skipped (" + t.getClass().getSimpleName() + ": " + t.getMessage() + ")");
 		}
 	}

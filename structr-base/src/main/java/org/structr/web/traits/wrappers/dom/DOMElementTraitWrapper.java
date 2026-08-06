@@ -47,43 +47,52 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	private static final Gson gson = new GsonBuilder().create();
 
 	public DOMElementTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 
 	// ----- public methods -----
 	@Override
 	public String getTag() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.TAG_PROPERTY));
 	}
 
 	@Override
 	public String getHtmlId() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY));
 	}
 
 	@Override
 	public String getHtmlName() {
+
 		// FIXME ? _html_name is only defined on some elements, wont this break?
+
 		return wrappedObject.getProperty(traits.key("_html_name"));
 	}
 
 	@Override
 	public String getEventMapping() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY));
 	}
 
 	@Override
 	public String getRenderingMode() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_RENDERING_MODE_PROPERTY));
 	}
 
 	@Override
 	public String getDelayOrInterval() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY));
 	}
 
 	@Override
 	public String getDataReloadTarget() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY));
 	}
 
@@ -98,29 +107,35 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 	@Override
 	public String getNodeValue() {
+
 		return null;
 	}
 
 	public Iterable<PropertyKey> getHtmlAttributes() {
+
 		return traits.getMethod(GetAttributes.class).getHtmlAttributes(this);
 	}
 
 	public List<String> getHtmlAttributeNames() {
+
 		return traits.getMethod(GetAttributes.class).getHtmlAttributeNames(this);
 	}
 
 	@Override
 	public void openingTag(AsyncBuffer out, String tag, RenderContext.EditMode editMode, RenderContext renderContext, int depth) throws FrameworkException {
+
 		traits.getMethod(OpeningTag.class).openingTag(this, out, tag, editMode, renderContext, depth);
 	}
 
 	@Override
 	public boolean isInsertable() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_INSERT_PROPERTY));
 	}
 
 	@Override
 	public boolean isFromWidget() {
+
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_FROM_WIDGET_PROPERTY));
 	}
 
@@ -156,8 +171,8 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	public boolean isTargetElement() {
 
 		final String key = "cachedIsTargetElement";
-
 		Boolean cachedIsTargetElement = (Boolean) wrappedObject.getTemporaryStorage().get(key);
+
 		if (cachedIsTargetElement == null) {
 
 			final boolean isManualReloadTarget = isManualReloadTarget();
@@ -212,6 +227,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 	@Override
 	public boolean isManualReloadTarget() {
+
 		return false;
 	}
 
@@ -228,6 +244,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		private String tagName = null;
 
 		public TagPredicate(String tagName) {
+
 			this.tagName = tagName;
 		}
 
@@ -237,8 +254,8 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 			if (obj.is(StructrTraits.DOM_ELEMENT)) {
 
 				DOMElement elem = obj.as(DOMElement.class);
-
 				if (tagName.equals(elem.getTag())) {
+
 					return true;
 				}
 			}
@@ -253,7 +270,6 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		if (traits.hasKey(name)) {
 
 			final PropertyKey<String> key = traits.key(name);
-
 			if (key instanceof HtmlProperty h) {
 
 				return h;

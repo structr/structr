@@ -18,7 +18,6 @@
  */
 package org.structr.web.resource;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -38,11 +37,13 @@ public class LoginResource extends ExactMatchEndpoint {
 	protected static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
 
 	public LoginResource() {
+
 		super(RESTParameter.forStaticString("login", true, "_login"));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new LoginResourceHandler(call);
 	}
 }

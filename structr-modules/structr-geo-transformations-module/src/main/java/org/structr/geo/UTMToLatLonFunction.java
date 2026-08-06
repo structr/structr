@@ -50,11 +50,13 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "utmToLatLon";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("utmString");
 	}
 
@@ -69,7 +71,6 @@ public class UTMToLatLonFunction extends GeoFunction {
 			if (utmString != null) {
 
 				final String[] parts = utmString.split("[\\s]+");
-
 				if (parts.length < 3) {
 
 					logger.warn("Unsupported UTM string: this implementation only supports the full UTM format with spaces, e.g. 32U 439596 5967780 or 32 N 439596 5967780.");
@@ -106,12 +107,14 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, ae.getMessage(), isJs);
+
 			return "Unsupported UTM string";
 
 		} catch (ArgumentCountException ae) {
 
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, ae.getMessage(), isJs);
+
 			return usage(isJs);
 		}
 
@@ -120,24 +123,25 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.javaScript("Usage: ${{ $.utmToLatLon(utmString) }}."),
-				Usage.structrScript("Usage: ${utmToLatLon(utmString)}.")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.utmToLatLon(utmString) }}."), Usage.structrScript("Usage: ${utmToLatLon(utmString)}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts the given UTM string to latitude/longitude coordinates.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${utmToLatLon('32U 395473 5686479')}
@@ -152,13 +156,13 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("utmString", "UTM location string")
-				);
+
+		return List.of(Parameter.mandatory("utmString", "UTM location string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 	// ----- private methods -----
@@ -182,6 +186,7 @@ public class UTMToLatLonFunction extends GeoFunction {
 					// single-digit zone plus band
 					band = zone.substring(1);
 				}
+
 				break;
 		}
 
@@ -198,7 +203,6 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 		return "N";
 	}
-
 
 	private GraphObjectMap utmToLatLon(final String zone, final String hemisphere, final String east, final String north) {
 
@@ -221,6 +225,7 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 		// append "0" to zone number of single-digit
 		if (cleanedZone.length() == 1) {
+
 			epsg.append("0");
 		}
 

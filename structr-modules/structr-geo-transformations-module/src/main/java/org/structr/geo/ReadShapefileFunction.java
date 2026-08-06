@@ -56,11 +56,13 @@ public class ReadShapefileFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "readShapefile";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("filename");
 	}
 
@@ -106,6 +108,7 @@ public class ReadShapefileFunction extends GeoFunction {
 						int count                                = 0;
 
 						if (metadata != null) {
+
 							iterator = metadata.iterator();
 						}
 
@@ -121,6 +124,7 @@ public class ReadShapefileFunction extends GeoFunction {
 
 								// transform to WGS-84
 								if (transform != null) {
+
 									geometry = JTS.transform(geometry, transform);
 								}
 
@@ -128,6 +132,7 @@ public class ReadShapefileFunction extends GeoFunction {
 
 								// store data as well
 								if (iterator != null) {
+
 									item.put("metadata", iterator.next());
 								}
 
@@ -135,6 +140,7 @@ public class ReadShapefileFunction extends GeoFunction {
 							}
 
 							if (++count % 1000 == 0) {
+
 								logger.info("Number of geometries: {}", count);
 							}
 						}
@@ -166,28 +172,32 @@ public class ReadShapefileFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Reads a shapefile from a Structr path and returns it as a list of WKT strings.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
@@ -199,6 +209,7 @@ public class ReadShapefileFunction extends GeoFunction {
 			final PrjFileReader prjReader = new PrjFileReader(shpFiles.getReadChannel(ShpFileType.PRJ, shpReader));
 
 			try {
+
 				return prjReader.getCoordinateReferenceSystem();
 
 			} finally {
@@ -211,9 +222,11 @@ public class ReadShapefileFunction extends GeoFunction {
 			try {
 
 				// default to RD for now...
+
 				return CRS.decode("EPSG:28992");
 
 			} catch (FactoryException ex) {
+
 				logger.error("", ex);
 			}
         }
@@ -222,7 +235,6 @@ public class ReadShapefileFunction extends GeoFunction {
 	}
 
 	private static List<Map<String, Object>> readDBF(ShpFiles shpFiles, final List<String> metadataFields) {
-
 
 		try {
 
@@ -235,6 +247,7 @@ public class ReadShapefileFunction extends GeoFunction {
 				final int num                = header.getNumFields();
 
 				for (int i=0; i<num; i++) {
+
 					metadataFields.add(header.getFieldName(i));
 				}
 
@@ -266,6 +279,7 @@ public class ReadShapefileFunction extends GeoFunction {
 			return data;
 
 		} catch (IOException e) {
+
 			logger.error(ExceptionUtils.getStackTrace(e));
 		}
 

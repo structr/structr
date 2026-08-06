@@ -64,46 +64,55 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 	@Override
 	public String getName() {
+
 		return name;
 	}
 
 	@Override
 	public String getLabel() {
+
 		return label;
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return lifecycleMethods;
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return frameworkMethods;
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return dynamicMethods;
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
+
 		return views;
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
 		return propertyKeys;
 	}
 
@@ -124,10 +133,12 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 				validator.addValidatorsOrNull(property.createValidators(schemaNode));
 
 				if (property.isCompound()) {
+
 					compoundKeys.add(property.getName());
 				}
 
 			} catch (FrameworkException e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -144,6 +155,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 						final Set<PropertyKey> keys = new LinkedHashSet<>();
 
 						for (final String compoundKey : compoundKeys) {
+
 							keys.add(traits.key(compoundKey));
 						}
 
@@ -154,14 +166,13 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 		}
 
 		if (validator.hasValidators()) {
+
 			lifecycleMethods.put(IsValid.class, validator);
 		}
 
 		if (schemaNode.isServiceClass()) {
 
-			lifecycleMethods.put(
-					OnCreation.class,
-					new OnCreation() {
+			lifecycleMethods.put(OnCreation.class, new OnCreation() {
 						@Override
 						public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -186,6 +197,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 						if (existingMethod instanceof LifecycleMethodAdapter adapter) {
 
 							adapter.addMethod(method);
+
 						} else {
 
 							throw new RuntimeException("Unexpected lifecycle method " + method.getName() + ", expected LifecycleMethodAdapter!");
@@ -229,7 +241,6 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 				for (final String name : ngp.split(",")) {
 
 					final String trimmed = name.trim();
-
 					if (StringUtils.isNotBlank(trimmed)) {
 
 						names.add(trimmed);
@@ -262,6 +273,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 				}
 
 			} catch (FrameworkException e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -277,9 +289,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 			for (final String part : parts) {
 
 				final String trimmed = part.trim();
-
 				if (StringUtils.isNotBlank(trimmed)) {
-
 
 				}
 			}
@@ -303,6 +313,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 			// sort according to comma-separated list of property names
 			final String[] order = orderString.split("[, ]+");
+
 			for (final String property : order) {
 
 				if (StringUtils.isNotEmpty(property.trim())) {
@@ -341,6 +352,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 		private final List<IsValid> validators = new LinkedList<>();
 
 		public boolean hasValidators() {
+
 			return !validators.isEmpty();
 		}
 

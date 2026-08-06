@@ -38,17 +38,15 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String NEXT_PROPERTY                             = "next";
 	public static final String PREV_FOR_EACH_PROPERTY                    = "prevForEach";		// FIXME: is this ever used?
 
-
 	public FlowNodeTraitDefinition() {
+
 		super(StructrTraits.FLOW_NODE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowNode.class, (traits, node) -> new FlowNode(traits, node)
-		);
+		return Map.of(FlowNode.class, (traits, node) -> new FlowNode(traits, node));
 	}
 
 	@Override
@@ -59,12 +57,7 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> next                   = new EndNode(traitsInstance, NEXT_PROPERTY, StructrTraits.FLOW_NODES);
 		final Property<NodeInterface> prevForEach            = new StartNode(traitsInstance, PREV_FOR_EACH_PROPERTY, StructrTraits.FLOW_FOR_EACH_BODY);
 
-		return newSet(
-			isStartNodeOfContainer,
-			prev,
-			next,
-			prevForEach
-		);
+		return newSet(isStartNodeOfContainer, prev, next, prevForEach);
 	}
 
 	@Override
@@ -84,6 +77,7 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

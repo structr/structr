@@ -80,6 +80,7 @@ public class StructrGlobalSchemaMethods {
 				final Map<String, Object> entry  = new TreeMap<>();
 				final Map<String, Object> params = new LinkedHashMap<>();
 				final SchemaMethod schemaMethod  = node.as(SchemaMethod.class);
+
 				globalMethods.add(entry);
 
 				entry.put(JsonSchema.KEY_NAME,                schemaMethod.getName());
@@ -135,9 +136,11 @@ public class StructrGlobalSchemaMethods {
 		context.setDoTransactionNotifications(false);
 
 		if (JsonSchema.ImportMode.replace.equals(importMode)) {
+
 			// completely delete all global schema methods and import the methods from file
 
 			for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getAsList()) {
+
 				app.delete(method);
 			}
 
@@ -147,6 +150,7 @@ public class StructrGlobalSchemaMethods {
 			}
 
 		} else if (JsonSchema.ImportMode.extend.equals(importMode)) {
+
 			// import the methods from file and delete pre-existing global schema methods present in the file
 			// Note: this can only happen if a complete snapshot is used to extend another database
 
@@ -155,6 +159,7 @@ public class StructrGlobalSchemaMethods {
 				final String name = entry.get(JsonSchema.KEY_NAME).toString();
 
 				for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).name(name).getAsList()) {
+
 					app.delete(method);
 				}
 
@@ -168,8 +173,11 @@ public class StructrGlobalSchemaMethods {
 		final Map<String, Map<String, Object>> params;
 
 		if (entry.containsKey(JsonSchema.KEY_PARAMETERS)) {
+
 			params = (Map)entry.remove(JsonSchema.KEY_PARAMETERS);
+
 		} else {
+
 			params = Map.of();
 		}
 
@@ -185,6 +193,7 @@ public class StructrGlobalSchemaMethods {
 	}
 
 	public void clear() {
+
 		globalMethods.clear();
 	}
 
@@ -214,6 +223,7 @@ public class StructrGlobalSchemaMethods {
 
 		// don't show types without tags
 		if (tags.isEmpty()) {
+
 			return false;
 		}
 

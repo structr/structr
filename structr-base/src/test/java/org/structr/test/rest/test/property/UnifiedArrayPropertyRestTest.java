@@ -78,7 +78,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		final String creationValues = join(value1, value2, value3, value4, value5);
 		final String updateValues   = join(value3, value4, value5);
-
 		String location = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { '" + type + "ArrayProperty' : [" + creationValues + "] } ")
@@ -152,8 +151,7 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(201)
 		.when()
 			.post("/TestThree")
-			.getHeader("Location")
-		);
+			.getHeader("Location"));
 
 		// create empty test object
 		final String id2 = getUuidFromLocation(RestAssured.given()
@@ -162,8 +160,7 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(201)
 		.when()
 			.post("/TestThree")
-			.getHeader("Location")
-		);
+			.getHeader("Location"));
 
 		// test search for empty array property
 		RestAssured.given()
@@ -722,7 +719,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 			.delete("/TestThree");
 	}
 
-
 	@Test
 	public void testArraySearchWithOR() {
 
@@ -816,7 +812,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 			.delete("/TestThree");
 
 	}
-
 
 	@Test
 	public void testArraySearchWithAND() {

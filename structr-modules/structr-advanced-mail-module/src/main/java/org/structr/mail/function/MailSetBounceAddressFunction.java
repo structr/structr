@@ -31,16 +31,19 @@ import java.util.List;
 public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	public MailSetBounceAddressFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailSetBounceAddress";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("address");
 	}
 
@@ -59,32 +62,32 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailSetBounceAddress(address)}"),
-			Usage.javaScript("Usage: ${{ $.mailSetBounceAddress(address) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailSetBounceAddress(address)}"), Usage.javaScript("Usage: ${{ $.mailSetBounceAddress(address) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the bounce address of the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("address", "address to which undeliverable messages will be returned if undeliverable")
-		);
+
+		return List.of(Parameter.mandatory("address", "address to which undeliverable messages will be returned if undeliverable"));
 	}
 }

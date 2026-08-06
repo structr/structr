@@ -26,11 +26,13 @@ import org.structr.memory.index.MemoryQuery;
 public class RelationshipQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public RelationshipQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
+
 		return false;
 	}
 }

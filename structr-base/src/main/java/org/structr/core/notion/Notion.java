@@ -67,6 +67,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	public abstract PropertyKey<T> getPrimaryPropertyKey();
 
 	public void setRelationProperty(final RelationProperty propertyKey) {
+
 		this.serializationStrategy.setRelationProperty(propertyKey);
 		this.deserializationStrategy.setRelationProperty(propertyKey);
 	}
@@ -79,6 +80,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 			@Override
 			public T adapt(S s) throws FrameworkException {
+
 				return serializationStrategy.serialize(securityContext, type, s);
 			}
 		};
@@ -92,6 +94,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 			public S adapt(T s) throws FrameworkException {
 
 				if (s instanceof Iterable) {
+
 					throw new ClassCastException("Invalid source type.");
 				}
 
@@ -114,6 +117,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 						return serializationStrategy.serialize(securityContext, type, o);
 
 					} catch (FrameworkException ex) {
+
 						throw new RuntimeException(ex);
 					}
 				}, s);
@@ -129,12 +133,14 @@ public abstract class Notion<S extends NodeInterface, T> {
 			public Iterable<S> adapt(Iterable<T> s) throws FrameworkException {
 
 				if (s == null) {
+
 					return Collections.EMPTY_LIST;
 				}
 
 				// do not use lazy evaluation here as it would move the creation of
 				// related nodes via notions to a different point in time
 				final List<S> list = new LinkedList<>();
+
 				for (final T t : s) {
 
 					list.add(deserializationStrategy.deserialize(securityContext, type, t, context));
@@ -195,10 +201,12 @@ public abstract class Notion<S extends NodeInterface, T> {
 	}
 
 	public void setType(final String type) {
+
 		this.type = type;
 	}
 
 	public void setIdProperty(String idProperty) {
+
 		this.idProperty = idProperty;
 	}
 
@@ -208,6 +216,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 		protected Object context = null;
 
 		public void setContext(final Object context) {
+
 			this.context = context;
 		}
 	}

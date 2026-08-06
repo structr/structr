@@ -45,31 +45,37 @@ public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String POSITION_PROPERTY = "position";
 
 	public ComponentTraitDefinition() {
+
 		super(StructrTraits.COMPONENT);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
@@ -79,26 +85,20 @@ public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> kindProperty      = new StringProperty(KIND_PROPERTY);
 		final Property<Integer> positionProperty = new IntProperty(POSITION_PROPERTY);
 
-		return Set.of(
-			kindProperty,
-			positionProperty
-		);
+		return Set.of(kindProperty, positionProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(KIND_PROPERTY),
+		return Map.of(PropertyView.Public, newSet(KIND_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(KIND_PROPERTY)
-		);
+			PropertyView.Ui, newSet(KIND_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

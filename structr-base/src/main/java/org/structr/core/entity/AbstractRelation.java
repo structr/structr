@@ -27,7 +27,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 
-
 /**
  * Abstract base class for relations in Structr.
  */
@@ -41,34 +40,42 @@ public abstract class AbstractRelation {
 	protected SecurityContext securityContext  = null;
 
 	public void setSourceProperty(final PropertyKey source) {
+
 		this.sourceProperty = source;
 	}
 
 	public void setTargetProperty(final PropertyKey target) {
+
 		this.targetProperty = target;
 	}
 
 	public PropertyKey getSourceProperty() {
+
 		return sourceProperty;
 	}
 
 	public PropertyKey getTargetProperty() {
+
 		return targetProperty;
 	}
 
 	public Notion getEndNodeNotion() {
+
 		return endNodeNotion;
 	}
 
 	public Notion getStartNodeNotion() {
+
 		return startNodeNotion;
 	}
 
 	public PropertyKey<String> getSourceIdProperty() {
+
 		return Traits.of(StructrTraits.RELATIONSHIP_INTERFACE).key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
 	}
 
 	public PropertyKey<String> getTargetIdProperty() {
+
 		return Traits.of(StructrTraits.RELATIONSHIP_INTERFACE).key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
 	}
 
@@ -76,14 +83,17 @@ public abstract class AbstractRelation {
 
 		// FIXME: this method will most likely not do what it's supposed to do..
 		if (sourceType.equals(type) && targetType.equals(type)) {
+
 			return Direction.BOTH;
 		}
 
 		if (sourceType.equals(type)) {
+
 			return Direction.OUTGOING;
 		}
 
 		if (targetType.equals(type)) {
+
 			return Direction.INCOMING;
 		}
 

@@ -24,5 +24,6 @@ package org.structr.websocket.command.dom;
  *
  */
 public enum RelativePosition {
+
     Before, After
 }

@@ -45,18 +45,18 @@ public class FlowDecisionTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FALSE_ELEMENT_PROPERTY = "falseElement";
 
 	public FlowDecisionTraitDefinition() {
+
 		super(StructrTraits.FLOW_DECISION);
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Map.of(
-			GetFlowType.class,
-			new GetFlowType() {
+		return Map.of(GetFlowType.class, new GetFlowType() {
 
 				@Override
 				public FlowType getFlowType(FlowNode flowNode) {
+
 					return FlowType.Decision;
 				}
 			}
@@ -66,9 +66,7 @@ public class FlowDecisionTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowDecision.class, (traits, node) -> new FlowDecision(traits, node)
-		);
+		return Map.of(FlowDecision.class, (traits, node) -> new FlowDecision(traits, node));
 	}
 
 	@Override
@@ -78,31 +76,20 @@ public class FlowDecisionTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> trueElement  = new EndNode(traitsInstance, TRUE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_TRUE);
 		final Property<NodeInterface> falseElement = new EndNode(traitsInstance, FALSE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_FALSE);
 
-		return newSet(
-			condition,
-			trueElement,
-			falseElement
-		);
+		return newSet(condition, trueElement, falseElement);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				CONDITION_PROPERTY, TRUE_ELEMENT_PROPERTY, FALSE_ELEMENT_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(CONDITION_PROPERTY, TRUE_ELEMENT_PROPERTY, FALSE_ELEMENT_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				CONDITION_PROPERTY, TRUE_ELEMENT_PROPERTY, FALSE_ELEMENT_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(CONDITION_PROPERTY, TRUE_ELEMENT_PROPERTY, FALSE_ELEMENT_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

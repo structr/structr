@@ -39,11 +39,13 @@ public class GeoDistanceFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "distance";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("point1, point2");
 	}
 
@@ -79,28 +81,32 @@ public class GeoDistanceFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the distance between two geometries.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

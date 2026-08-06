@@ -29,11 +29,13 @@ public class AndFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "and";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("bool1, bool2, ...");
 	}
 
@@ -62,6 +64,7 @@ public class AndFunction extends CoreFunction {
 				} else {
 
 					// null is false
+
 					return false;
 				}
 			}
@@ -78,38 +81,37 @@ public class AndFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${and(b1, b2, ...)}"),
-				Usage.javaScript("Usage: ${{ $.and(b1, b2, ...) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${and(b1, b2, ...)}"), Usage.javaScript("Usage: ${{ $.and(b1, b2, ...) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("expressions...", "list of expressions to evaluate")
-		);
+
+		return List.of(Parameter.mandatory("expressions...", "list of expressions to evaluate"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the logical AND result of the given boolean expressions.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function takes two or more arguments and ANDs them together, returning `true` if all the expressions evaluate to true, and `false` otherwise.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${and(true, false)}", "true && false = false")
-		);
+
+		return List.of(Example.structrScript("${and(true, false)}", "true && false = false"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

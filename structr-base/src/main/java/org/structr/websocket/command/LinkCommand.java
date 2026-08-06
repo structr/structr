@@ -44,6 +44,7 @@ public class LinkCommand extends AbstractCommand {
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
+
 				sourceNode.as(LinkSource.class).setLinkable(targetNode.as(Linkable.class));
 
 			} catch (FrameworkException t) {
@@ -59,6 +60,7 @@ public class LinkCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "LINK";
 	}
 }

@@ -34,36 +34,43 @@ import org.structr.process.traits.definitions.BpmnDefinitionsTraitDefinition;
 public class BpmnDefinitionsTraitWrapper extends AbstractNodeTraitWrapper implements BpmnDefinitions {
 
 	public BpmnDefinitionsTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getTargetNamespace() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDefinitionsTraitDefinition.TARGET_NAMESPACE_PROPERTY));
 	}
 
 	@Override
 	public String getExporter() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDefinitionsTraitDefinition.EXPORTER_PROPERTY));
 	}
 
 	@Override
 	public String getExporterVersion() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDefinitionsTraitDefinition.EXPORTER_VERSION_PROPERTY));
 	}
 
 	@Override
 	public String getNamespaceDeclarations() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDefinitionsTraitDefinition.NAMESPACE_DECLARATIONS));
 	}
 
 	@Override
 	public String getSecurityLevel() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDefinitionsTraitDefinition.SECURITY_LEVEL_PROPERTY));
 	}
 

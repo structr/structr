@@ -44,10 +44,12 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 	private final List<ScriptMethod> methods = new LinkedList<>();
 
 	public LifecycleMethodAdapter(final SchemaMethod schemaMethod) {
+
 		this.methods.add(new ScriptMethod(schemaMethod));
 	}
 
 	public void addMethod(final SchemaMethod schemaMethod) {
+
 		this.methods.add(new ScriptMethod(schemaMethod));
 	}
 
@@ -57,6 +59,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 		final String type = graphObject.getTraits().getName();
 
 		for (final ScriptMethod method : methods) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 					.currentMethod(method)
@@ -72,6 +75,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 		final String type = graphObject.getTraits().getName();
 
 		for (final ScriptMethod method : methods) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 					.currentMethod(method)
@@ -92,6 +96,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 			// entity is null because it is deleted, properties are available via "data" keyword
 			for (final ScriptMethod method : methods) {
+
 				final ScriptConfig scriptConfig = ScriptConfig.builder()
 						.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 						.currentMethod(method)
@@ -101,6 +106,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 			}
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 		}
 	}
@@ -111,6 +117,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 		final String type = graphObject.getTraits().getName();
 
 		for (final ScriptMethod method : methods) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 					.currentMethod(method)
@@ -126,6 +133,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 		final String type = graphObject.getTraits().getName();
 
 		for (final ScriptMethod method : methods) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 					.currentMethod(method)
@@ -141,6 +149,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 		final String type = graphObject.getTraits().getName();
 
 		for (final ScriptMethod method : methods) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 					.currentMethod(method)
@@ -159,6 +168,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 		final String type = nodeInterface.getTraits().getName();
 
 		for (final ScriptMethod method : methods) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 					.currentMethod(method)
@@ -174,6 +184,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 		final String type = nodeInterface.getTraits().getName();
 
 		for (final ScriptMethod method : methods) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
 					.currentMethod(method)

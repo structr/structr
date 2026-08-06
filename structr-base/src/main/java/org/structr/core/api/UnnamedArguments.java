@@ -30,18 +30,22 @@ public class UnnamedArguments extends Arguments {
 
 	@Override
 	public String toString() {
+
 		return this.arguments.toString();
 	}
 
 	public void add(final Object value) {
+
 		arguments.add(new Argument(null, value));
 	}
 
 	public void prepend(final Object value) {
+
 		arguments.add(0, new Argument(null, value));
 	}
 
 	public boolean isEmpty() {
+
 		return arguments.isEmpty();
 	}
 

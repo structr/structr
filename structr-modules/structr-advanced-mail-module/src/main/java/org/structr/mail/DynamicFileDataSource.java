@@ -31,7 +31,6 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 
-
 /**
  * Data Source for dynamic files which has two purposes
  * 1. Only generate the dynamic file content once (the getInputStream() method is called twice when sending an email. once to determine the Content-Transfer-Encoding and once for the actual content)
@@ -54,18 +53,26 @@ public class DynamicFileDataSource implements DataSource {
 		if (contentType != null) {
 
 			final String charset = StringUtils.substringAfterLast(contentType, "charset=").trim().toUpperCase();
+
 			try {
+
 				if (!"".equals(charset) && Charset.isSupported(charset)) {
+
 					encoding = charset;
 				}
+
 			} catch (IllegalCharsetNameException ice) {
+
 				logger.warn("Charset is not supported '{}'. Using 'UTF-8'", charset);
 			}
 		}
 
 		try {
+
 			fileContent = IOUtils.toString(fileNode.getInputStream(), encoding);
+
 		} catch (IOException ex) {
+
 			logger.warn("Unable to open input stream for {}: {}", fileName, ex.getMessage());
 			fileContent = "";
 		}
@@ -73,21 +80,25 @@ public class DynamicFileDataSource implements DataSource {
 
 	@Override
 	public InputStream getInputStream() throws IOException {
+
 		return IOUtils.toInputStream(fileContent, encoding);
 	}
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
+
 		throw new UnsupportedOperationException("Writing to dynamic file is not allowed.");
 	}
 
 	@Override
 	public String getContentType() {
+
 		return contentType;
 	}
 
 	@Override
 	public String getName() {
+
 		return fileName;
 	}
 }

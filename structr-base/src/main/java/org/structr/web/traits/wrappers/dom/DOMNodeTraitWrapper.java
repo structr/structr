@@ -78,6 +78,7 @@ import java.util.*;
 public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOMNode {
 
 	public DOMNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -89,6 +90,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	 * @return
 	 */
 	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone, final Map<String, DOMNode> cloneMap) throws FrameworkException {
+
 		return cloneAndAppendChildren(securityContext, nodeToClone, cloneMap, null);
 	}
 
@@ -99,14 +101,15 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone, final Map<String, DOMNode> cloneMap, final Set<String> stopAt) throws FrameworkException {
 
 		final DOMNode newNode = nodeToClone.cloneNode(false);
-
 		if (cloneMap.put(nodeToClone.getUuid(), newNode) != null) {
+
 			throw new FrameworkException(422, "Node already cloned!");
 		}
 
 		// a boundary node is cloned WITHOUT its content, so the caller does not have to clone the
 		// whole tree and delete the unwanted part again
 		if (stopAt != null && stopAt.contains(nodeToClone.getUuid())) {
+
 			return newNode;
 		}
 
@@ -120,11 +123,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getChildLinkType() {
+
 		return StructrTraits.DOM_NODE_CONTAINS_DOM_NODE;
 	}
 
 	@Override
 	public final PropertyKey<Integer> getPositionProperty() {
+
 		return Traits.of(StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).key("position");
 	}
 
@@ -144,8 +149,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public final void treeAppendChild(final NodeInterface childElement) throws FrameworkException {
 
 		final NodeInterface lastChild = treeGetLastChild();
-
 		PropertyMap properties = new PropertyMap();
+
 		properties.put(getPositionProperty(), treeGetChildCount());
 
 		// create child relationship
@@ -153,6 +158,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		// add new node to linked list
 		if (lastChild != null) {
+
 			//listInsertAfter(lastChild, childElement);
 		}
 
@@ -171,10 +177,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// we have no children, but the ref child is non-null => can't be ours.. :)
 			if (refChild != null) {
+
 				throw new FrameworkException(404, "Referenced child is not a child of parent node.");
 			}
 
 			treeAppendChild(newChild);
+
 			return;
 		}
 
@@ -201,6 +209,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		// if child is not found, raise an exception
 		if (!found) {
+
 			throw new FrameworkException(404, "Referenced child is not a child of parent node.");
 		}
 
@@ -220,6 +229,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		if (rels.isEmpty()) {
 
 			treeAppendChild(newChild);
+
 			return;
 		}
 
@@ -285,6 +295,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final NodeInterface treeGetFirstChild() {
+
 		return treeGetChild(0);
 	}
 
@@ -306,7 +317,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		for (final RelationshipInterface rel : this.getOutgoingRelationships(getChildLinkType())) {
 
 			Integer pos = rel.getProperty(getPositionProperty());
-
 			if (pos != null && pos == position) {
 
 				return rel.getTargetNode();
@@ -363,6 +373,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final int treeGetChildCount() {
+
 		return Iterables.count(this.getOutgoingRelationships(getChildLinkType()));
 	}
 
@@ -397,17 +408,20 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		int position = 0;
 
 		for (RelationshipInterface childRel : childRels) {
+
 			childRel.setProperty(getPositionProperty(), position++);
 		}
 	}
 
 	@Override
 	public final void linkChildren(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
+
 		linkChildren(startNode, endNode, null);
 	}
 
 	@Override
 	public final void linkChildren(final NodeInterface startNode, final NodeInterface endNode, final PropertyMap properties) throws FrameworkException {
+
 		StructrApp.getInstance(getSecurityContext()).create(startNode, endNode, getChildLinkType(), properties);
 	}
 
@@ -420,6 +434,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		for (RelationshipInterface rel : list) {
 
 			if (rel != null && rel.getTargetNode().equals(endNode)) {
+
 				app.delete(rel);
 			}
 		}
@@ -448,7 +463,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			if (node.is(StructrTraits.TEMPLATE)) {
 
 				final Template template = node.as(Template.class);
-
 				Page doc = node.getOwnerDocument();
 
 				if (doc == null) {
@@ -587,8 +601,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public final String getPositionPath() {
 
 		String path = "";
-
 		DOMNode currentNode = this;
+
 		while (currentNode.getParent() != null) {
 
 			DOMNode parentNode = currentNode.getParent();
@@ -612,6 +626,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		render(ctx, 0);
 
 		// extract source
+
 		return buffer.getBuffer().toString();
 	}
 
@@ -676,15 +691,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// skip blacklisted properties
 			if (cloneBlacklist.contains(key.jsonName())) {
+
 				continue;
 			}
 
 			// skip tagName, otherwise the target node will have mismatching type and tag
 			if (DOMElementTraitDefinition.TAG_PROPERTY.equals(key.jsonName())) {
+
 				continue;
 			}
 
 			if (!key.isUnvalidated()) {
+
 				properties.put(key, sourceNode.getProperty(key));
 			}
 		}
@@ -694,15 +712,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// skip blacklisted properties
 			if (cloneBlacklist.contains(key.jsonName())) {
+
 				continue;
 			}
 
 			// skip tagName, otherwise the target node will have mismatching type and tag
 			if (DOMElementTraitDefinition.TAG_PROPERTY.equals(key.jsonName())) {
+
 				continue;
 			}
 
 			if (!key.isUnvalidated()) {
+
 				properties.put(key, sourceNode.getProperty(key));
 			}
 		}
@@ -712,10 +733,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// skip blacklisted properties
 			if (cloneBlacklist.contains(key.jsonName())) {
+
 				continue;
 			}
 
 			if (!key.isUnvalidated()) {
+
 				properties.put(key, sourceNode.getProperty(key));
 			}
 		}
@@ -744,6 +767,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		getSecurityInstructions(instructions);
 
 		if (this.isHidden()) {
+
 			instructions.add("@structr:hidden");
 		}
 
@@ -766,6 +790,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				out.append(instruction);
 
 				if (it.hasNext()) {
+
 					out.append(", ");
 				}
 			}
@@ -782,21 +807,25 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final void render(final RenderContext renderContext, final int depth) throws FrameworkException {
+
 		traits.getMethod(Render.class).render(this, renderContext, depth);
 	}
 
 	@Override
 	public final void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
+
 		traits.getMethod(RenderContent.class).renderContent(this, renderContext, depth);
 	}
 
 	@Override
 	public final DOMNode doAdopt(final Page _page) throws FrameworkException {
+
 		return traits.getMethod(DoAdopt.class).doAdopt(this, _page);
 	}
 
 	@Override
 	public final DOMNode doImport(final Page newPage) throws FrameworkException {
+
 		return traits.getMethod(DoImport.class).doImport(this, newPage);
 	}
 
@@ -809,8 +838,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public List<DOMNode> getAncestors() {
 
 		List<DOMNode> ancestors = new ArrayList<>();
-
 		DOMNode _parent = getParent();
+
 		while (_parent != null) {
 
 			ancestors.add(_parent);
@@ -840,6 +869,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// ignore page-less nodes
 			if (getParent() == null) {
+
 				return;
 			}
 		}
@@ -884,6 +914,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// check if data key shadows built-in function
 			if (SchemaMethodTraitDefinition.isReservedWord(_dataKey)) {
+
 				errorBuffer.add(new SemanticErrorToken(getType(), "dataKey", "is_reserved_word"));
 			}
 		}
@@ -902,6 +933,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			} else if (wrappedObject.getTraits().contains(StructrTraits.PAGE)) {
 
 				if (!_name.equals(_name.replaceAll("[#?\\%;/]", ""))) {
+
 					errorBuffer.add(new SemanticErrorToken(getType(), "name", "contains_illegal_characters").withDetail(_name));
 				}
 			}
@@ -916,6 +948,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		if (name != null) {
 
 			final List<DOMNode> syncedNodes = Iterables.toList(getSyncedNodes());
+
 			for (final DOMNode syncedNode : syncedNodes) {
 
 				if (syncedNode.getName() == null) {
@@ -932,6 +965,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		// resolve the requested sync mode (default ALL when nothing was set on the context)
 		final DOMNode.SHARED_COMPONENT_SYNC_MODE mode = resolveSharedComponentSyncMode(securityContext);
 		if (mode == DOMNode.SHARED_COMPONENT_SYNC_MODE.NONE) {
+
 			return;
 		}
 
@@ -939,10 +973,14 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		// the modification queue's fixpoint loop carries the change across the whole sync group.
 		final List<DOMNode> targets       = Iterables.toList(getSyncedNodes());
 		final DOMNode sharedComponent     = getSharedComponent();
+
 		if (sharedComponent != null) {
+
 			targets.add(sharedComponent);
 		}
+
 		if (targets.isEmpty()) {
+
 			return;
 		}
 
@@ -951,19 +989,27 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		final PropertyMap changed = new PropertyMap();
 		changed.putAll(modificationQueue.getModifiedProperties(wrappedObject));
 		changed.putAll(modificationQueue.getNewProperties(wrappedObject));
+
 		if (changed.isEmpty()) {
+
 			return;
 		}
+
 		final PropertyMap previous = modificationQueue.getRemovedProperties(wrappedObject);
 
 		// keep only syncable changed keys (skip identity / audit / access / structure / name)
 		final PropertyMap syncable = new PropertyMap();
+
 		for (final PropertyKey key : changed.keySet()) {
+
 			if (!DOMNode.sharedComponentSyncBlacklist.contains(key.jsonName())) {
+
 				syncable.put(key, changed.get(key));
 			}
 		}
+
 		if (syncable.isEmpty()) {
+
 			return;
 		}
 
@@ -977,6 +1023,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 				// BY_VALUE: only update peers that still hold this node's previous value
 				if (byValue && !java.util.Objects.equals(target.getProperty(key), previous.get(key))) {
+
 					continue;
 				}
 
@@ -984,6 +1031,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 
 			if (!toApply.isEmpty()) {
+
 				// reuse the same securityContext so the cascade keeps the same sync mode
 				target.setProperties(securityContext, toApply);
 			}
@@ -997,35 +1045,42 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// ASK is a UI-only marker the client resolves before the write; an unresolved
 			// ASK reaching the core must NOT auto-propagate (treat it as NONE)
+
 			return (mode == DOMNode.SHARED_COMPONENT_SYNC_MODE.ASK) ? DOMNode.SHARED_COMPONENT_SYNC_MODE.NONE : mode;
 		}
 
 		// no mode set (plain REST write / legacy caller): preserve the historic all-sync default
+
 		return DOMNode.SHARED_COMPONENT_SYNC_MODE.ALL;
 	}
 
 	@Override
 	public final boolean isSynced() {
+
 		return Iterables.count(getSyncedNodes()) > 0 || getSharedComponent() != null;
 	}
 
 	@Override
 	public final boolean isVoidElement() {
+
 		return traits.getMethod(IsVoidElement.class).isVoidElement();
 	}
 
 	@Override
 	public final boolean avoidWhitespace() {
+
 		return traits.getMethod(AvoidWhitespace.class).avoidWhitespace();
 	}
 
 	@Override
 	public final boolean inTrash() {
+
 		return getOwnerDocumentAsSuperUser() == null;
 	}
 
 	@Override
 	public final boolean dontCache() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DONT_CACHE_PROPERTY));
 	}
 
@@ -1039,16 +1094,19 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(hide) && StringUtils.isBlank(show)) {
+
 			return true;
 		}
 
 		// If locale string is found in hide, don't render
 		if (StringUtils.contains(hide, localeString)) {
+
 			return false;
 		}
 
 		// If locale string is found in hide, don't render
 		if (StringUtils.isNotBlank(show) && !StringUtils.contains(show, localeString)) {
+
 			return false;
 		}
 
@@ -1064,12 +1122,15 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
+
 			return true;
 		}
 
 		try {
+
 			// If hide conditions evaluates to "true", don't render
 			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, wrappedObject, "${".concat(_hideConditions.trim()).concat("}"), "hideConditions", getUuid()))) {
+
 				return false;
 			}
 
@@ -1090,8 +1151,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		try {
+
 			// If show conditions evaluates to "false", don't render
 			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, wrappedObject, "${".concat(_showConditions.trim()).concat("}"), "showConditions", getUuid()))) {
+
 				return false;
 			}
 
@@ -1120,10 +1183,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		// In raw, widget or deployment mode, render everything
 		EditMode editMode = renderContext.getEditMode(renderContext.getSecurityContext().getUser(false));
 		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+
 			return true;
 		}
 
 		if (wrappedObject.isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext) || !displayForVisibilityMappings(renderContext)) {
+
 			return false;
 		}
 
@@ -1151,7 +1216,9 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	private boolean displayForVisibilityMappings(final RenderContext renderContext) {
 
 		if (!Traits.exists(StructrTraits.VISIBILITY_MAPPING)) {
+
 			// Process module not loaded. This feature is not present, so this should not impact rendering/hide nodes
+
 			return true;
 		}
 
@@ -1164,8 +1231,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		// agnostic of feature-module types.
 		GraphObject ctx = renderContext.getDataObject();
 		if (ctx == null) {
+
 			ctx = renderContext.getDetailsDataObject();
 		}
+
 		final NodeInterface contextObject = (ctx instanceof NodeInterface) ? (NodeInterface) ctx : null;
 
 		// Iterate VMs as superuser: configuration data, not access-controlled per user.
@@ -1186,6 +1255,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		// Mappings exist but none matched: hide. No mappings: render (opt-in default).
+
 		return !hadAny;
 	}
 
@@ -1198,6 +1268,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			String ourId   = this.getUuid();
 
 			if (ourId != null && otherId != null && ourId.equals(otherId)) {
+
 				return true;
 			}
 		}
@@ -1208,11 +1279,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final boolean hasSharedComponent() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY));
 	}
 
 	@Override
 	public boolean contentEquals(final DOMNode otherNode) {
+
 		return traits.getMethod(ContentEquals.class).contentEquals(this, otherNode);
 	}
 
@@ -1226,46 +1299,55 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getIdHash() {
+
 		return getUuid();
 	}
 
 	@Override
 	public final String getShowConditions() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY));
 	}
 
 	@Override
 	public final String getHideConditions() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY));
 	}
 
 	@Override
 	public final String getShowForLocales() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY));
 	}
 
 	@Override
 	public final String getHideForLocales() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY));
 	}
 
 	@Override
 	public final String getDataHash() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_STRUCTR_HASH_PROPERTY));
 	}
 
 	@Override
 	public final String getDataKey() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY));
 	}
 
 	@Override
 	public final String getCssClass() {
+
 		return traits.getMethod(GetCssClass.class).getCssClass(wrappedObject);
 	}
 
 	@Override
 	public String getNodeValue() {
+
 		return traits.getMethod(GetNodeValue.class).getNodeValue(wrappedObject);
 	}
 
@@ -1292,16 +1374,19 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public String getComponentType() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getItemType() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getRepeaterType() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY));
 	}
 
@@ -1326,11 +1411,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		// that's an error
+
 		return -1;
 	}
 
 	@Override
 	public boolean isComponentRoot() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY));
 	}
 
@@ -1408,55 +1495,66 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY), isComponentRoot);
 	}
 
 	@Override
 	public void setComponentType(final String componentType) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
 	}
 
 	@Override
 	public void setItemType(final String itemType) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY), itemType);
 	}
 
 	@Override
 	public void setDimensions(final Integer dimensions) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY), dimensions);
 	}
 
 	@Override
 	public final void renderManagedAttributes(AsyncBuffer out, SecurityContext securityContext, RenderContext renderContext) throws FrameworkException {
+
 		traits.getMethod(RenderManagedAttributes.class).renderManagedAttributes(wrappedObject, out, securityContext, renderContext);
 	}
 
 	@Override
 	public final String getCypherQuery() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY));
 	}
 
 	@Override
 	public final String getFunctionQuery() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
 	}
 
 	@Override
 	public final String getPagePath() {
+
 		return traits.getMethod(GetPagePath.class).getPagePath(wrappedObject);
 	}
 
 	@Override
 	public final String getContextName() {
+
 		return traits.getMethod(GetContextName.class).getContextName(wrappedObject);
 	}
 
 	@Override
 	public final String getSharedComponentConfiguration() {
+
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY));
 	}
 
 	public final void setParent(final DOMNode parent) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), parent);
 	}
 
@@ -1486,6 +1584,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final Iterable<DOMNode> getChildren() {
+
 		return Iterables.map(n -> n.as(DOMNode.class), treeGetChildren());
 	}
 
@@ -1540,6 +1639,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		// iterator(). Either form means "no mappings on this node" -- the gate
 		// treats it as default-render (opt-in feature).
 		if (raw == null) {
+
 			return java.util.Collections.emptyList();
 		}
 
@@ -1548,26 +1648,31 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final void setOwnerDocument(final Page page) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), page);
 	}
 
 	@Override
 	public final void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY), sharedComponent);
 	}
 
 	@Override
 	public final void updateFromNode(final DOMNode otherNode) throws FrameworkException {
+
 		traits.getMethod(UpdateFromNode.class).updateFromNode(wrappedObject, otherNode);
 	}
 
 	@Override
 	public final void updateHasSharedComponentFlag() throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY), getSharedComponent() != null);
 	}
 
 	@Override
 	public final void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
+
 		wrappedObject.setVisibility(publicUsers, authenticatedUsers);
 	}
 
@@ -1580,6 +1685,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			final GraphObject previousDataObject = renderContext.getDataNode(dataKey);
 
 			try {
+
 				for (final Object dataObject : listSource) {
 
 					// make current data object available in renderContext
@@ -1602,6 +1708,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			} finally {
 
 				if (listSource instanceof AutoCloseable) {
+
 					try { ((AutoCloseable)listSource).close(); } catch (Exception ex) {}
 				}
 			}
@@ -1615,6 +1722,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final void handleNewChild(final DOMNode newChild) throws FrameworkException {
+
 		traits.getMethod(HandleNewChild.class).handleNewChild(this, newChild);
 	}
 
@@ -1622,7 +1730,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public final void checkIsChild(final DOMNode otherNode) throws FrameworkException {
 
 		DOMNode _parent = otherNode.getParent();
-
 		if (!isSameNode(_parent)) {
 
 			throw new FrameworkException(422, NOT_FOUND_ERR_MESSAGE);
@@ -1630,6 +1737,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	public final void checkHierarchy(final DOMNode otherNode) throws FrameworkException {
+
 		traits.getMethod(CheckHierarchy.class).checkHierarchy(this, otherNode);
 	}
 
@@ -1680,12 +1788,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		// superuser can do everything
 		if (securityContext != null && securityContext.isSuperUser()) {
+
 			return;
 		}
 
 		final AccessControllable ac = as(AccessControllable.class);
-
 		if (securityContext.isVisible(wrappedObject) || ac.isGranted(Permission.read, securityContext)) {
+
 			return;
 		}
 
@@ -1694,6 +1803,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+
 		traits.getMethod(RenderCustomAttributes.class).renderCustomAttributes(this, out, securityContext, renderContext);
 	}
 
@@ -1715,12 +1825,14 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			for (final Permission p : Permission.allPermissions) {
 
 				if (perms.contains(p.name())) {
+
 					// first character only
 					shortPerms.append(p.name().substring(0, 1));
 				}
 			}
 
 			if (shortPerms.length() > 0) {
+
 				// ignore SECURITY-relationships without permissions
 				instructions.add("@structr:grant(" + grantee.getName() + "," + shortPerms.toString() + ")");
 			}
@@ -1735,8 +1847,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		final boolean elementProtected  = wrappedObject.isVisibleToAuthenticatedUsers();
 		final boolean elementPrivate    = !elementPublic && !elementProtected;
 		final boolean elementPublicOnly = elementPublic && !elementProtected;
-
-
 		boolean addVisibilityInstructions = false;
 
 		if (_parentNode == null) {
@@ -1756,19 +1866,30 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		if (addVisibilityInstructions) {
 
 			if (elementPublicOnly) {
+
 				instructions.add("@structr:public-only");
+
 				return;
 			}
+
 			if (elementPublic && elementProtected) {
+
 				instructions.add("@structr:public");
+
 				return;
 			}
+
 			if (elementProtected) {
+
 				instructions.add("@structr:protected");
+
 				return;
 			}
+
 			if (elementPrivate) {
+
 				instructions.add("@structr:private");
+
 				return;
 			}
 		}
@@ -1785,10 +1906,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			if (linkable != null) {
 
 				final String linkableInstruction = (linkable.is(StructrTraits.PAGE)) ? "pagelink" : "link";
-
 				String path = linkable.getPath();
 
 				if (linkable.is(StructrTraits.PAGE) && path == null) {
+
 					path = linkable.getName();
 				}
 
@@ -1873,14 +1994,17 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			// render new component attributes as data attributes
 			if (getComponentType() != null) {
+
 				out.append(" data-structr-meta-component-type=\"").append(getComponentType()).append("\"");
 			}
 
 			if (getRepeaterType() != null) {
+
 				out.append(" data-structr-meta-repeater-type=\"").append(getRepeaterType()).append("\"");
 			}
 
 			if (getItemType() != null) {
+
 				out.append(" data-structr-meta-item-type=\"").append(getItemType()).append("\"");
 			}
 
@@ -1899,6 +2023,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final List<RelationshipInterface> getChildRelationships() {
+
 		return treeGetChildRelationships();
 	}
 
@@ -1930,7 +2055,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			if (key.startsWith("data-")) {
 
 				final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new StringProperty(key);
-
 				if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
 					final Object defaultValue = propertyKey.defaultValue();
@@ -1948,7 +2072,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
 
 				final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new StringProperty(key);
-
 				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(propertyKey);
 
 				customProperties.add(customProp);
@@ -2224,6 +2347,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		try {
+
 			// replace directly
 			treeReplaceChild(newChild, oldChild);
 
@@ -2300,6 +2424,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final DOMNode cloneNode(final boolean deep) throws FrameworkException {
+
 		return cloneNode(deep, null);
 	}
 
@@ -2348,11 +2473,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			if (this.is(StructrTraits.PAGE)) {
 
 				final Iterable<NodeInterface> linkSourcesPointingToPageToClone = this.getProperty(this.getTraits().key(LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY));
+
 				for (final NodeInterface n : linkSourcesPointingToPageToClone) {
 
 					final LinkSource linkSource = n.as(LinkSource.class);
-
 					if (clone.equals(linkSource.getProperty(clone.getTraits().key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY)))) {
+
 						linkSource.setLinkable(clone.as(Linkable.class));
 					}
 				}
@@ -2368,6 +2494,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
+
 					continue;
 				}
 
@@ -2386,6 +2513,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
+
 					continue;
 				}
 
@@ -2404,6 +2532,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
+
 					continue;
 				}
 
@@ -2500,14 +2629,15 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
+
 		wrappedObject.setHidden(hidden);
 	}
 
 	@Override
 	public void setIdAttribute(final String id) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY), id);
 	}
-
 
 	/**
 	 * Returns the component type for this component, i.e. traverses
@@ -2533,6 +2663,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		if (node != null) {
+
 			return node.getComponentType();
 		}
 
@@ -2563,6 +2694,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		if (node != null) {
+
 			return node.getItemType();
 		}
 
@@ -2595,6 +2727,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		if (node != null) {
+
 			return node.getDisplayMode();
 		}
 
@@ -2624,6 +2757,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		if (node != null) {
+
 			return node.showLabels();
 		}
 
@@ -2653,6 +2787,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		if (node != null) {
+
 			return node.getFieldSet();
 		}
 
@@ -2683,6 +2818,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		if (node != null) {
+
 			return node.getReloadBehaviour();
 		}
 
@@ -2712,6 +2848,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		if (node != null) {
+
 			return node.getRole();
 		}
 
@@ -2737,6 +2874,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			return newConfig.as(ComponentConfiguration.class);
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 		}
 

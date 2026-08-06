@@ -29,16 +29,19 @@ import org.structr.process.traits.definitions.BpmnParticipantTraitDefinition;
 public class BpmnParticipantTraitWrapper extends AbstractNodeTraitWrapper implements BpmnParticipant {
 
 	public BpmnParticipantTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getBpmnName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnParticipantTraitDefinition.BPMN_NAME_PROPERTY));
 	}
 

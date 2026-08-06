@@ -37,6 +37,7 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 	protected PropertyKey[] propertyKeys = null;
 
 	public MapPropertyGroup(final PropertyKey... propertyKeys) {
+
 		this.propertyKeys = propertyKeys;
 	}
 
@@ -51,16 +52,14 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 			if (converter != null) {
 				
 				try {
+
 					Object convertedValue = converter.revert(source.getProperty(key));
 					groupedProperties.put(key, convertedValue);
 					
 				} catch(FrameworkException fex) {
 					
-					logger.warn("Unable to convert grouped property {} on type {}: {}", key.dbName(),
-						source.getClass().getSimpleName(),
-						fex.getMessage());
+					logger.warn("Unable to convert grouped property {} on type {}: {}", key.dbName(), source.getClass().getSimpleName(), fex.getMessage());
 				}
-				
 				
 			} else {
 				
@@ -90,6 +89,7 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 		}
 
 		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+
 			destination.setProperty(entry.getKey(), entry.getValue());
 		}
 	}

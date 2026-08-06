@@ -52,6 +52,7 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String POSTAL_CODE_PROPERTY    = "postalCode";
 
 	public TestNineTraitDefinition() {
+
 		super("TestNine");
 	}
 
@@ -60,20 +61,20 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					geocode(graphObject);
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 					geocode(graphObject);
 				}
 			}
@@ -91,30 +92,18 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Double> latitude                    = new DoubleProperty(LATITUDE_PROPERTY);
 		final Property<Double> longitude                   = new DoubleProperty(LONGITUDE_PROPERTY);
 
-		return newSet(
-			testEights,
-			testEightIds,
-			city,
-			street,
-			postalCode,
-			latitude,
-			longitude
-		);
+		return newSet(testEights, testEightIds, city, street, postalCode, latitude, longitude);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, CITY_PROPERTY, STREET_PROPERTY, POSTAL_CODE_PROPERTY, LATITUDE_PROPERTY, LONGITUDE_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Public, newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, CITY_PROPERTY, STREET_PROPERTY, POSTAL_CODE_PROPERTY, LATITUDE_PROPERTY, LONGITUDE_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -126,7 +115,6 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<String> city       = traits.key(CITY_PROPERTY);
 		final PropertyKey<String> street     = traits.key(STREET_PROPERTY);
 		final PropertyKey<String> postalCode = traits.key(POSTAL_CODE_PROPERTY);
-
 		Double lat              = node.getProperty(latitude);
 		Double lon              = node.getProperty(longitude);
 
@@ -135,8 +123,8 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 			String _city       = node.getProperty(city);
 			String _street     = node.getProperty(street);
 			String _postalCode = node.getProperty(postalCode);
-
 			GeoCodingResult geoCodingResult = GeoHelper.geocode(_street, null, _postalCode, _city, null, null);
+
 			if (geoCodingResult == null) {
 
 				return;

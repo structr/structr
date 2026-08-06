@@ -116,6 +116,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 * originates from the external storage side
 	 */
 	public static boolean isSyncOrigin(final SecurityContext securityContext) {
+
 		return securityContext != null && Boolean.TRUE.equals(securityContext.getAttribute(SYNC_ORIGIN_ATTRIBUTE));
 	}
 
@@ -129,28 +130,33 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		final StorageSyncService service = runningService();
 		if (service == null) {
+
 			return null;
 		}
 
 		synchronized (service.targets) {
 
 			if (service.targets.isEmpty()) {
+
 				return null;
 			}
 		}
 
 		final AbstractFile supplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
 		if (supplier == null) {
+
 			return null;
 		}
 
 		final ActiveSync sync = service.getActiveSync(supplier.getUuid());
 		if (sync == null || !sync.direction.isOutbound()) {
+
 			return null;
 		}
 
 		// read the sync root's path fresh from the node - ancestors may have
 		// been renamed since the target snapshot was taken
+
 		return new OutboundTarget(supplier.getUuid(), supplier.getPath());
 	}
 
@@ -159,6 +165,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 * target (its structural changes are propagated to the external storage)
 	 */
 	public static boolean isOutboundGoverned(final AbstractFile file) {
+
 		return getOutboundTarget(file) != null;
 	}
 
@@ -173,6 +180,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		final OutboundTarget target = getOutboundTarget(file);
 		if (target == null) {
+
 			return;
 		}
 
@@ -205,6 +213,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (stashed == null && previousName == null) {
 
 			// no location change: the return value only matters for renames
+
 			return false;
 		}
 
@@ -212,12 +221,14 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final OutboundTarget oldTarget = stashed != null ? stashed.target() : newTarget;
 
 		if (oldTarget == null && newTarget == null) {
+
 			return false;
 		}
 
 		// the sync root's physical location is defined by its configuration,
 		// not by its virtual path - no event, but the change is covered
 		if ((oldTarget != null && uuid.equals(oldTarget.syncRootUuid())) || (newTarget != null && uuid.equals(newTarget.syncRootUuid()))) {
+
 			return true;
 		}
 
@@ -267,20 +278,22 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		final OutboundTarget target = getOutboundTarget(file);
 		if (target == null) {
+
 			return false;
 		}
 
 		final String uuid = file.getUuid();
-
 		if (uuid.equals(target.syncRootUuid())) {
 
 			// deleting the sync root node does not delete the external storage
 			// behind it - the physical root is defined by the configuration
+
 			return true;
 		}
 
 		final String relativePath = relativize(target, file.getPath());
 		if (relativePath == null) {
+
 			return false;
 		}
 
@@ -298,17 +311,19 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		final OutboundTarget target = getOutboundTarget(file);
 		if (target == null) {
+
 			return;
 		}
 
 		final String uuid = file.getUuid();
-
 		if (uuid.equals(target.syncRootUuid())) {
+
 			return;
 		}
 
 		final String relativePath = relativize(target, file.getPath());
 		if (relativePath == null) {
+
 			return;
 		}
 
@@ -329,11 +344,13 @@ public class StorageSyncService extends Thread implements RunnableService {
 		capturedEvents.remove();
 
 		if (!successful || captured == null || captured.isEmpty()) {
+
 			return;
 		}
 
 		final StorageSyncService service = runningService();
 		if (service == null) {
+
 			return;
 		}
 
@@ -413,6 +430,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		final Services services = Services.peekInstance();
 		if (services == null || !services.isInitialized()) {
+
 			return null;
 		}
 
@@ -439,6 +457,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	public boolean isSynchronized(final String uuid) {
 
 		synchronized (targets) {
+
 			return targets.containsKey(uuid);
 		}
 	}
@@ -457,6 +476,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (config == null) {
 
 			detach(uuid);
+
 			return;
 		}
 
@@ -464,6 +484,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (!(provider instanceof SynchronizableStorageProvider synchronizable)) {
 
 			detach(uuid);
+
 			return;
 		}
 
@@ -488,6 +509,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 					// unchanged target: only update the scan interval
 					existing.setScanInterval(scanInterval);
+
 					return;
 				}
 
@@ -504,12 +526,14 @@ public class StorageSyncService extends Thread implements RunnableService {
 			} catch (IOException ioex) {
 
 				logger.warn("Unable to create synchronizer for {}: {}", path, ioex.getMessage());
+
 				return;
 			}
 
 			if (synchronizer == null) {
 
 				// this configuration has no external side to synchronize
+
 				return;
 			}
 
@@ -523,6 +547,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			if (!direction.isInbound()) {
 
 				logger.info("Outbound-only synchronization of {}, skipping scans", path);
+
 				return;
 			}
 
@@ -533,14 +558,15 @@ public class StorageSyncService extends Thread implements RunnableService {
 					synchronizer.startWatching(new BoundListener(uuid));
 
 				} catch (IOException ioex) {
+
 					logger.warn("Unable to start watching {}: {}", path, ioex.getMessage());
 				}
 			}
 
 			// upon creation, set the last scanned date correctly to prevent early scanning
 			final boolean wasNeverScanned = (lastScanned == null);
-
 			if (!wasNeverScanned) {
+
 				sync.lastScanned = lastScanned;
 			}
 
@@ -566,6 +592,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final ActiveSync sync;
 
 		synchronized (targets) {
+
 			sync = targets.remove(syncRootUuid);
 		}
 
@@ -590,6 +617,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			for (final ActiveSync sync : targets.values()) {
 
 				if (storageConfigurationUuid.equals(sync.target.storageConfigurationUuid())) {
+
 					attachedRoots.add(sync.target.syncRootUuid());
 				}
 			}
@@ -603,6 +631,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			if (configNode == null) {
 
 				attachedRoots.forEach(this::detach);
+
 				return;
 			}
 
@@ -618,11 +647,13 @@ public class StorageSyncService extends Thread implements RunnableService {
 			for (final String attachedRoot : attachedRoots) {
 
 				if (!linkedRoots.contains(attachedRoot)) {
+
 					detach(attachedRoot);
 				}
 			}
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to handle storage configuration change of {}: {}", storageConfigurationUuid, fex.getMessage());
 		}
 	}
@@ -639,6 +670,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			// re-initialize the whole service layer on this background thread (fatal for the
 			// embedded database -> System.exit, killing e.g. a test fork).
 			if (services == null) {
+
 				break;
 			}
 
@@ -747,6 +779,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final long deadline = System.currentTimeMillis() + 10_000;
 
 		for (final Thread scan : scanThreads) {
+
 			scan.interrupt();
 		}
 
@@ -754,12 +787,16 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			final long remaining = deadline - System.currentTimeMillis();
 			if (remaining <= 0) {
+
 				break;
 			}
 
 			try {
+
 				scan.join(remaining);
+
 			} catch (InterruptedException iex) {
+
 				Thread.currentThread().interrupt();
 				break;
 			}
@@ -768,6 +805,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		synchronized (targets) {
 
 			for (final ActiveSync sync : targets.values()) {
+
 				closeQuietly(sync.synchronizer);
 			}
 
@@ -783,6 +821,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	private void startScan(final ActiveSync sync) {
 
 		if (!running) {
+
 			return;
 		}
 
@@ -805,6 +844,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (!running) {
 
 			scanThreads.remove(scan);
+
 			return;
 		}
 
@@ -813,11 +853,13 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 	@Override
 	public boolean runOnStartup() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isRunning() {
+
 		return running;
 	}
 
@@ -833,6 +875,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 	@Override
 	public void shutdown() {
+
 		stopService();
 	}
 
@@ -842,16 +885,19 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 	@Override
 	public boolean isVital() {
+
 		return false;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return false;
 	}
 
 	@Override
 	public String getModuleName() {
+
 		return "ui";
 	}
 
@@ -859,6 +905,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	ActiveSync getActiveSync(final String syncRootUuid) {
 
 		synchronized (targets) {
+
 			return targets.get(syncRootUuid);
 		}
 	}
@@ -870,6 +917,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (sync == null) {
 
 			// target was detached while the event was queued
+
 			return;
 		}
 
@@ -888,6 +936,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.error(ExceptionUtils.getStackTrace(fex));
 		}
 	}
@@ -974,6 +1023,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (existing == null) {
 
 			captured.put(key, new PendingOutbound(syncRootUuid, event));
+
 			return;
 		}
 
@@ -1030,10 +1080,12 @@ public class StorageSyncService extends Thread implements RunnableService {
 	private static String relativize(final OutboundTarget target, final String absolutePath) {
 
 		if (absolutePath == null) {
+
 			return null;
 		}
 
 		if (absolutePath.equals(target.syncRootPath())) {
+
 			return "";
 		}
 
@@ -1045,6 +1097,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 	private void enqueueOutbound(final List<PendingOutbound> events) {
 
 		synchronized (outboundQueue) {
+
 			outboundQueue.addAll(events);
 		}
 	}
@@ -1061,6 +1114,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		synchronized (outboundQueue) {
 
 			if (outboundQueue.isEmpty()) {
+
 				return;
 			}
 
@@ -1071,7 +1125,6 @@ public class StorageSyncService extends Thread implements RunnableService {
 		for (final PendingOutbound pending : due) {
 
 			final ActiveSync sync = getActiveSync(pending.syncRootUuid());
-
 			if (sync == null || !sync.direction.isOutbound()) {
 
 				// target was detached or reconfigured while the event was queued
@@ -1083,6 +1136,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 				sync.synchronizer.onVirtualChange(pending.event());
 
 			} catch (Throwable t) {
+
 				logger.warn("Error while propagating virtual change {} to {}: {}", pending.event(), sync.target.syncRootPath(), t.getMessage());
 			}
 		}
@@ -1095,6 +1149,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			synchronizer.close();
 
 		} catch (Throwable t) {
+
 			logger.warn("Error while closing synchronizer for {}: {}", synchronizer.getTarget().syncRootPath(), t.getMessage());
 		}
 	}
@@ -1109,11 +1164,13 @@ public class StorageSyncService extends Thread implements RunnableService {
 		private final String syncRootUuid;
 
 		public BoundListener(final String syncRootUuid) {
+
 			this.syncRootUuid = syncRootUuid;
 		}
 
 		@Override
 		public void onEvent(final ExternalChangeEvent event) {
+
 			addToQueue(new PendingEvent(syncRootUuid, event));
 		}
 
@@ -1156,10 +1213,12 @@ public class StorageSyncService extends Thread implements RunnableService {
 		}
 
 		void setScanInterval(final Integer scanIntervalSeconds) {
+
 			this.scanInterval = scanIntervalSeconds != null ? scanIntervalSeconds * 1000L : 0L;
 		}
 
 		boolean shouldScan() {
+
 			return scanInterval > 0 && System.currentTimeMillis() > (lastScanned + scanInterval);
 		}
 	}

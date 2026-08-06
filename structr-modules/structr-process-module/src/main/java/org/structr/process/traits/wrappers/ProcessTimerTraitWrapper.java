@@ -33,31 +33,37 @@ import java.util.Date;
 public class ProcessTimerTraitWrapper extends AbstractNodeTraitWrapper implements ProcessTimer {
 
 	public ProcessTimerTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getStatus() {
+
 		return wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.STATUS_PROPERTY));
 	}
 
 	@Override
 	public void setStatus(final String status) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), status);
 	}
 
 	@Override
 	public boolean isPending() {
+
 		return ProcessTimerTraitDefinition.STATUS_PENDING.equals(getStatus());
 	}
 
 	@Override
 	public String getTimerType() {
+
 		return wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.TIMER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public Boolean getCancelActivity() {
+
 		return wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.CANCEL_ACTIVITY_PROPERTY));
 	}
 
@@ -65,6 +71,7 @@ public class ProcessTimerTraitWrapper extends AbstractNodeTraitWrapper implement
 	public ProcessInstance getInstance() {
 
 		final NodeInterface instance = wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.INSTANCE_PROPERTY));
+
 		return instance != null ? instance.as(ProcessInstance.class) : null;
 	}
 
@@ -72,6 +79,7 @@ public class ProcessTimerTraitWrapper extends AbstractNodeTraitWrapper implement
 	public ProcessToken getToken() {
 
 		final NodeInterface token = wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.TOKEN_PROPERTY));
+
 		return token != null ? token.as(ProcessToken.class) : null;
 	}
 
@@ -79,16 +87,19 @@ public class ProcessTimerTraitWrapper extends AbstractNodeTraitWrapper implement
 	public BpmnElement getElement() {
 
 		final NodeInterface element = wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.ELEMENT_PROPERTY));
+
 		return element != null ? element.as(BpmnElement.class) : null;
 	}
 
 	@Override
 	public void setFiredAt(final Date firedAt) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessTimerTraitDefinition.FIRED_AT_PROPERTY), firedAt);
 	}
 
 	@Override
 	public void setErrorMessage(final String message) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessTimerTraitDefinition.ERROR_MESSAGE_PROPERTY), message);
 	}
 }

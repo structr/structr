@@ -48,54 +48,62 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 		super(name);
 
 		try {
+
 			this.constructor = converterClass.getConstructor(SecurityContext.class, GraphObject.class);
 
 		} catch(NoSuchMethodException nsmex) {
 
 			logger.error("Unable to instantiate converter of type {} for key {}", new Object[] {
-				converterClass.getName(),
-				name
+				converterClass.getName(), name
 			});
 		}
 	}
 
 	@Override
 	public String typeName() {
+
 		return ""; // read-only
 	}
 
 	@Override
 	public Class valueType() {
+
 		return null;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return createConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
@@ -108,8 +116,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 		} catch(Throwable t) {
 
 			logger.error("Unable to instantiate converter of type {} for key {}", new Object[] {
-				constructor.getClass().getName(),
-				dbName
+				constructor.getClass().getName(), dbName
 			});
 		}
 
@@ -119,27 +126,32 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

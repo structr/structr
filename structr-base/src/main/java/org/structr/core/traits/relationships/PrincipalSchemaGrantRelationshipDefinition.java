@@ -29,46 +29,55 @@ import static org.structr.core.entity.Relation.Multiplicity.One;
 public class PrincipalSchemaGrantRelationshipDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public PrincipalSchemaGrantRelationshipDefinition() {
+
 		super(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.SCHEMA_GRANT;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "SCHEMA_GRANT";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return true;
 	}
 }

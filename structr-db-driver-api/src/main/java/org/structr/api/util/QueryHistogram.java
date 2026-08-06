@@ -39,6 +39,7 @@ public class QueryHistogram {
 
 		// remove first element
 		if (timers.size() > HISTOGRAM_SIZE) {
+
 			timers.remove(0);
 		}
 
@@ -48,6 +49,7 @@ public class QueryHistogram {
 	}
 
 	public static synchronized void clear() {
+
 		timers.clear();
 	}
 

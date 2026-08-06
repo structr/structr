@@ -55,15 +55,18 @@ public class LoginResourceHandler extends RESTCallHandler {
 	protected static final Logger logger = LoggerFactory.getLogger(LoginResourceHandler.class.getName());
 
 	public LoginResourceHandler(final RESTCall call) {
+
 		super(call);
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	public String getErrorMessage() {
+
 		return AuthHelper.STANDARD_ERROR_MSG;
 	}
 
@@ -80,10 +83,10 @@ public class LoginResourceHandler extends RESTCallHandler {
 			final String password       = (String) propertySet.get(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 			final String twoFactorToken = (String) propertySet.get(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
 			final String twoFactorCode  = (String) propertySet.get("twoFactorCode");
-
 			String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
 
 			if (StringUtils.contains(emailOrUsername, "@")) {
+
 				emailOrUsername = emailOrUsername.trim().toLowerCase();
 			}
 
@@ -92,6 +95,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 			Principal user = null;
 
 			if (!Settings.CallbacksOnLogin.getValue()) {
+
 				ctx.disableInnerCallbacks();
 			}
 
@@ -146,11 +150,13 @@ public class LoginResourceHandler extends RESTCallHandler {
 		}
 
 		if (returnedMethodResult == null) {
+
 			// should not happen
 			throw new AuthenticationException(getErrorMessage());
 		}
 
 		if (userId != null) {
+
 			// broadcast login to cluster for the user
 			Services.getInstance().broadcastLogin(userId.hash());
 		}
@@ -160,16 +166,19 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 	@Override
 	public String getTypeName(final SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public boolean createPostTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of("OPTIONS", "POST");
 	}
 
@@ -178,6 +187,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 		final String superUserName = Settings.SuperUserName.getValue();
 		if (StringUtils.equals(superUserName, emailOrUsername)) {
+
 			throw new AuthenticationException("login with superuser not supported.");
 		}
 
@@ -188,8 +198,8 @@ public class LoginResourceHandler extends RESTCallHandler {
 		if (user != null) {
 
 			final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
-
 			if (twoFactorAuthenticationSuccessOrNotNecessary) {
+
 				return user;
 			}
 		}

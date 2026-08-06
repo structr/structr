@@ -63,6 +63,7 @@ public class Input extends GenericHtmlElementTraitDefinition {
 	public static final String WIDTH_PROPERTY          = getPrefixedHTMLAttributeName("width");
 
 	public Input() {
+
 		super(StructrTraits.INPUT);
 	}
 
@@ -73,11 +74,11 @@ public class Input extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}

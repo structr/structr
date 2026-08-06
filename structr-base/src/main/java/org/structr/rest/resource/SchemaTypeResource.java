@@ -39,14 +39,13 @@ import java.util.Set;
 public class SchemaTypeResource extends ExactMatchEndpoint {
 
 	public enum UriPart {
+
 		_schema
 	}
 
 	public SchemaTypeResource() {
-		super(
-			RESTParameter.forStaticString(UriPart._schema.name(), true),
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true)
-		);
+
+		super(RESTParameter.forStaticString(UriPart._schema.name(), true), RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true));
 	}
 
 	@Override
@@ -74,6 +73,7 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 	// ----- public static methods -----
 	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final String type, final String propertyView) throws FrameworkException {
+
 		return new PagingIterable<>("getSchemaTypeResult(" + type + ")", SchemaHelper.getSchemaTypeInfo(securityContext, type, propertyView));
 	}
 
@@ -101,16 +101,19 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS");
 		}
 	}
@@ -124,6 +127,7 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 	}

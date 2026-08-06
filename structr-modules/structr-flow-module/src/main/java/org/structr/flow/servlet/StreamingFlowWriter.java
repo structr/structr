@@ -33,11 +33,13 @@ import java.io.Writer;
 public class StreamingFlowWriter extends StreamingWriter {
 
 	public StreamingFlowWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+
 		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
 	}
 
 	@Override
 	public RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer) {
+
 		return new StructrFlowHtmlWriter(securityContext, new PrintWriter(new BufferedWriter(writer)));
 	}
 }

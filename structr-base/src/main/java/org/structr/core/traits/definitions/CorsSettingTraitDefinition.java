@@ -53,15 +53,16 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String IS_CORS_SETTING_PROPERTY    = "isCorsSetting";
 
 	public CorsSettingTraitDefinition() {
+
 		super(StructrTraits.CORS_SETTING);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -77,9 +78,7 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			CorsSetting.class, (traits, node) -> new CorsSettingTraitWrapper(traits, node)
-		);
+		return Map.of(CorsSetting.class, (traits, node) -> new CorsSettingTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -94,23 +93,14 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<String>               exposeHeaders     = new StringProperty(EXPOSE_HEADERS_PROPERTY).indexed();
 		final Property<Boolean>              isCorsSetting     = new ConstantBooleanProperty(IS_CORS_SETTING_PROPERTY, true);
 
-		return newSet(
-			requestUri,
-			acceptedOrigins,
-			maxAge,
-			allowMethods,
-			allowHeaders,
-			allowCredentials,
-			exposeHeaders,
-			isCorsSetting
-		);
+		return newSet(requestUri, acceptedOrigins, maxAge, allowMethods, allowHeaders, allowCredentials, exposeHeaders, isCorsSetting);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
-
 
 	@Override
 	public Map<String, Set<String>> getViews() {

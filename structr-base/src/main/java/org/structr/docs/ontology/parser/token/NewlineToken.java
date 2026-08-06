@@ -25,16 +25,19 @@ import org.structr.docs.ontology.Ontology;
 public class NewlineToken extends ConstantToken<Concept> {
 
 	public NewlineToken(final Token token) {
+
 		super(token);
 	}
 
 	@Override
 	public Concept resolve(final Ontology ontology) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return true;
 	}
 }

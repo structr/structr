@@ -21,6 +21,7 @@ package org.structr.core.auth.exception;
 public class SessionLimitExceededException extends UnauthorizedReasonException {
 
 	public SessionLimitExceededException() {
+
 		super("Max. number of sessions exceeded", "sessionLimitExceeded");
 	}
 

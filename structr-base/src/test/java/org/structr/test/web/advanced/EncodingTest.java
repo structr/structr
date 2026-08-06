@@ -49,7 +49,6 @@ public class EncodingTest extends StructrUiTest {
 
 		final String testString = "abcdefgjihklmnopqrstuvwxyzäöüßóñABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ";
 		final int port          = 54679;
-
 		final SocketConfig socketConfig = SocketConfig.custom()
 			.setSoTimeout(1000)
 			.setTcpNoDelay(true)
@@ -74,10 +73,12 @@ public class EncodingTest extends StructrUiTest {
 		        server.start();
 
 		} catch (IOException ioex) {
+
 			ioex.printStackTrace();
 		}
 
 		try {
+
 			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${GET('http://localhost:" + port + "/')}", "test");
 
 			assertNotNull("Result should not be null", result);

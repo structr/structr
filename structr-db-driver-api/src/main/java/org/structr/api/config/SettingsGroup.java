@@ -44,26 +44,31 @@ public class SettingsGroup implements Category {
 	}
 
 	public String getName() {
+
 		return name;
 	}
 
 	@Override
 	public String getDisplayName() {
+
 		return name;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 
 	public String getKey() {
+
 		return key;
 	}
 
 	public void registerSetting(final Setting setting) {
 
 		synchronized (settings) {
+
 			settings.add(setting);
 		}
 	}
@@ -71,6 +76,7 @@ public class SettingsGroup implements Category {
 	public void unregisterSetting(final Setting setting) {
 
 		synchronized (settings) {
+
 			settings.remove(setting);
 		}
 	}
@@ -78,6 +84,7 @@ public class SettingsGroup implements Category {
 	public List<Setting> getSettings() {
 
 		synchronized (settings) {
+
 			return new LinkedList<>(settings);
 		}
 	}
@@ -104,6 +111,7 @@ public class SettingsGroup implements Category {
 
 			// ignore hidden settings
 			if ("hidden".equals(group)) {
+
 				continue;
 			}
 
@@ -145,6 +153,7 @@ public class SettingsGroup implements Category {
 
 			// display title only if other groups exist
 			if (!mapped.isEmpty()) {
+
 				groupContainer.block("h1").text("Custom");
 			}
 

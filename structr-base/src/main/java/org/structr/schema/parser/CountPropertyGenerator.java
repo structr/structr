@@ -33,21 +33,25 @@ import org.structr.schema.SchemaHelper.Type;
 public class CountPropertyGenerator extends PropertyGenerator {
 
 	public CountPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Integer.class.getName();
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Count;
 	}
 
@@ -56,6 +60,7 @@ public class CountPropertyGenerator extends PropertyGenerator {
 
 		final String expression = source.getFormat();
 		if (expression == null || expression.isEmpty()) {
+
 			throw new FrameworkException(422, "Invalid count property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_property_reference", "Empty property reference."));
 		}
 

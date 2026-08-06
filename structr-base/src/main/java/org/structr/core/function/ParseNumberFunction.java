@@ -36,11 +36,13 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "parseNumber";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("number [, locale ]");
 	}
 
@@ -48,25 +50,27 @@ public class ParseNumberFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || (sources.length == 2 && sources[1] == null) || sources.length > 2) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
 		try {
 
 			final String numberString = sources[0].toString().replaceAll("[^\\d.,-]", "");
-
 			if (StringUtils.isBlank(numberString)) {
+
 				return null;
 			}
 
 			Locale locale = ctx.getLocale();
+
 			try {
 
 				if (sources.length == 2) {
 
 					final String localeString = sources[1].toString();
-
 					if (StringUtils.isNotBlank(localeString)) {
 
 						locale = Locale.forLanguageTag(localeString);
@@ -93,24 +97,25 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${parseNumber(value, locale)}."),
-				Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${parseNumber(value, locale)}."), Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Parses the given string using the given (optional) locale.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Parses the given string into a numerical value. With the second (optional) parameter you can pass a locale string to take a country-/language specific number formatting into account.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${parseNumber('123,456,789.123', 'en')}"),
 				Example.structrScript("${parseNumber('123.456.789,123', 'de')}"),
@@ -121,22 +126,19 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"If no locale parameter is given, the default locale for the context is used. See the `locale` keyword."
-		);
+
+		return List.of("If no locale parameter is given, the default locale for the context is used. See the `locale` keyword.");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("string", "String that will be parsed into numerical value"),
-				Parameter.optional("locale", "Locale string for specific number formatting")
-		);
+		return List.of(Parameter.mandatory("string", "String that will be parsed into numerical value"), Parameter.optional("locale", "Locale string for specific number formatting"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

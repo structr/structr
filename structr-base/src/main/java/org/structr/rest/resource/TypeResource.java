@@ -32,6 +32,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 public class TypeResource extends ExactMatchEndpoint {
 
 	public TypeResource() {
+
 		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true));
 	}
 
@@ -50,6 +51,7 @@ public class TypeResource extends ExactMatchEndpoint {
 		}
 
 		// only return a handler if there is actually a type with the requested name
+
 		return null;
 	}
 }

@@ -37,6 +37,7 @@ public class BindTypeHandler implements TypeHandler<Bind> {
 
 			connection.setJID(String.valueOf(JidCreate.entityFullFrom(bind.getJid())));
 			connection.setResource(String.valueOf(bind.getResource()));
+
 		} catch (XmppStringprepException e) {
 
 			throw new RuntimeException(new FrameworkException(422, "Could not handle bind event."));

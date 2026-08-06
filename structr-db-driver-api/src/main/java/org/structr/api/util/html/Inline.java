@@ -25,6 +25,7 @@ package org.structr.api.util.html;
 public class Inline extends Tag {
 
 	public Inline(final Tag parent, final String tagName) {
+
 		super(parent, tagName, false, false);
 	}
 }

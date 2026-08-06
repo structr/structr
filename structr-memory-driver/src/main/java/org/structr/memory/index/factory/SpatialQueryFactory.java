@@ -29,6 +29,7 @@ import org.structr.memory.index.MemoryQuery;
 public class SpatialQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public SpatialQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

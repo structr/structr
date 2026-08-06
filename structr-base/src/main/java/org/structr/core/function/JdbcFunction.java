@@ -38,11 +38,13 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "jdbc";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("jdbcUrl, sqlQuery[, username, password]");
 	}
 
@@ -56,7 +58,6 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 			final List<Map<String, Object>> data = new LinkedList<>();
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
-
 			String username = null;
 			String password = null;
 
@@ -72,7 +73,6 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 				try (final Connection connection = getConnection(url, username, password)) {
 
 					final Statement statement = connection.createStatement();
-
 					if (statement.execute(sql)) {
 
 						try (final ResultSet resultSet = statement.getResultSet()) {
@@ -118,17 +118,20 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.jdbc(url, query[, username, password ]); }}. Example: ${{ $.jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd'); }}"),
 			Usage.structrScript("Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd')}")
@@ -137,11 +140,13 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Fetches data from a JDBC source.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Make sure the driver specific to your SQL server is available in a JAR file in Structr's lib directory (`/usr/lib/structr/lib` in Debian installations).
 		
@@ -194,13 +199,12 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"Username and password can also be included in the JDBC connection string."
-		);
+		return List.of("Username and password can also be included in the JDBC connection string.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 

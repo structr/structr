@@ -36,6 +36,7 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "write";
 	}
 
@@ -57,7 +58,9 @@ public class WriteFunction extends AdvancedScriptingFunction {
 						try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file, false))) {
 
 							for (int i = 1; i < sources.length; i++) {
+
 								if (sources[i] != null) {
+
 									IOUtils.write(sources[i].toString(), writer);
 								}
 							}
@@ -83,6 +86,7 @@ public class WriteFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -91,11 +95,13 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Writes text to a new file in the `exchange/` folder.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function writes the given text to the file with the given file name in the exchange/ folder. If the file already exist, an error will be thrown.
 			
@@ -105,15 +111,14 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("filename, text");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("filename", "name of the file to write to"),
-			Parameter.optional("text", "text to write")
-		);
+
+		return List.of(Parameter.mandatory("filename", "name of the file to write to"), Parameter.optional("text", "text to write"));
 	}
 
 	@Override
@@ -127,6 +132,7 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `exchange/` folder itself may be a symbolic link.",
 			"The canonical path of a file has to be identical to the provided filepath in order to prevent directory traversal attacks. This means that symbolic links inside the `exchange/` folder are forbidden",
@@ -139,6 +145,7 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${write(filename, text)}. Example: ${write('test.txt', this.name)}"),
 			Usage.javaScript("Usage: ${{$.write(filename, text)}}. Example: ${{ $.write('test.txt', $.this.name); }}")
@@ -147,6 +154,7 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

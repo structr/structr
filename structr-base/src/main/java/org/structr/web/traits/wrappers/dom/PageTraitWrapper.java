@@ -53,11 +53,13 @@ import java.util.Map;
 public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	public PageTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public void setVersion(final int version) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(PageTraitDefinition.VERSION_PROPERTY), version);
 	}
 
@@ -67,6 +69,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		final Integer _version = this.getVersion();
 
 		wrappedObject.unlockReadOnlyPropertiesOnce();
+
 		if (_version == null) {
 
 			setVersion(1);
@@ -79,6 +82,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public int getVersion() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.VERSION_PROPERTY));
 	}
 
@@ -88,42 +92,50 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		setVisibility(visibleToPublic, visibleToAuth);
 
 		for (final NodeInterface node : getAllChildNodes()) {
+
 			node.setVisibility(visibleToPublic, visibleToAuth);
 		}
 	}
 
 	@Override
 	public Integer getCacheForSeconds() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY));
 	}
 
 	@Override
 	public Integer getPosition() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.POSITION_PROPERTY));
 	}
 
 	@Override
 	public String getPath() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.PATH_PROPERTY));
 	}
 
 	@Override
 	public String getCategory() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.CATEGORY_PROPERTY));
 	}
 
 	@Override
 	public final String getContentType() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getShowOnErrorCodes() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY));
 	}
 
 	@Override
 	public boolean pageCreatesRawData() {
+
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY));
 	}
 
@@ -168,6 +180,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		if (importer.parse(false)) {
 
 			for (final NodeInterface node : this.getAllChildNodes()) {
+
 				app.delete(node);
 			}
 
@@ -181,10 +194,12 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 		final RenderContext ctx = new RenderContext(page.getSecurityContext(), null, null, editMode);
 		final StringRenderBuffer buffer = new StringRenderBuffer();
+
 		ctx.setBuffer(buffer);
 		page.render(ctx, 0);
 
 		// extract source
+
 		return buffer.getBuffer().toString();
 	}
 
@@ -206,6 +221,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 		// Template is already taken => we need to modify the type :(
 		if (StructrTraits.TEMPLATE.equals(elementType)) {
+
 			elementType = "TemplateElement";
 		}
 
@@ -252,8 +268,8 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 				if (obj.is(StructrTraits.DOM_ELEMENT)) {
 
 					DOMElement elem = obj.as(DOMElement.class);
-
 					if (tagName.equals(elem.getTag())) {
+
 						return true;
 					}
 				}
@@ -267,6 +283,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	public DOMNode importNode(final DOMNode node, final boolean deep) throws FrameworkException {
+
 		return importNode(node, deep, true);
 	}
 
@@ -304,6 +321,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			// child nodes from its parents
 			DOMNode _parent = domNode.getParent();
 			if (_parent != null) {
+
 				_parent.removeChild(domNode);
 			}
 		}
@@ -328,6 +346,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			// child nodes from its parents
 			DOMNode _parent = domNode.getParent();
 			if (_parent != null) {
+
 				_parent.removeChild(domNode);
 			}
 		}
@@ -348,8 +367,8 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 				if (obj.is(StructrTraits.DOM_ELEMENT)) {
 
 					final DOMElement elem = obj.as(DOMElement.class);
-
 					if (id.equals(elem.getHtmlId())) {
+
 						return true;
 					}
 				}
@@ -361,6 +380,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 		// return first result
 		if (results.size() == 1) {
+
 			return results.get(0).as(DOMElement.class);
 		}
 
@@ -369,12 +389,14 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public DOMElement createElement(final String tag) throws FrameworkException {
+
 		return createElement(tag, false);
 
 	}
 
 	@Override
 	public Content createTextNode(final String text) {
+
 		// TODO: combine createTextNode, createTemplate and createComment
 		try {
 
@@ -402,6 +424,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public Content createTemplate(final String text) {
+
 		// TODO: combine createTextNode, createTemplate and createComment
 		try {
 
@@ -429,6 +452,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public Comment createComment(final String comment) {
+
 		// TODO: combine createTextNode, createTemplate and createComment
 		try {
 
@@ -454,6 +478,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public void adoptNode(final DOMNode newHtmlNode) throws FrameworkException {
+
 		adoptNode(newHtmlNode, true);
 	}
 }

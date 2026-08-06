@@ -38,6 +38,7 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 	private static final Logger logger = LoggerFactory.getLogger(NodeRelationshipStatisticsCommand.class.getName());
 
 	public Map<String, Long> execute(final NodeInterface sNode) throws FrameworkException {
+
 		return execute(sNode, null);
 	}
 
@@ -60,21 +61,27 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 
 			// use temporary map to avoid frequent construction of Long values when increasing..
 			Map<String, LongValueHolder> values = new LinkedHashMap<>();
+
 			for (Relationship r : rels) {
 
 				final String relType = r.getType().name();
 				LongValueHolder count = values.get(relType);
+
 				if(count == null) {
+
 					count = new LongValueHolder();
 					values.put(relType, count);
 				}
+
 				count.inc();
 			}
 
 			// create results from temporary map
 			for(Entry<String, LongValueHolder> entry : values.entrySet()) {
+
 				final String key = entry.getKey();
 				LongValueHolder value = entry.getValue();
+
 				statistics.put(key, value.getValue());
 			}
 
@@ -91,14 +98,17 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 		private long value = 0;
 
 		public long getValue() {
+
 			return value;
 		}
 
 		public void setValue(long value) {
+
 			this.value = value;
 		}
 
 		public void inc() {
+
 			this.value++;
 		}
 	}

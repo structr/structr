@@ -77,21 +77,21 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_RESOURCE_ACCESS_PROPERTY = "isResourceAccess";
 
 	public ResourceAccessTraitDefinition(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					boolean valid = true;
-
 					final Traits traits = obj.getTraits();
 
 					valid &= ValidationHelper.isValidStringNotBlank(obj, traits.key(SIGNATURE_PROPERTY), errorBuffer);
@@ -101,29 +101,29 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
 					ResourceAccessTraitWrapper.clearCache();
 				}
 			},
 
-			AfterCreation.class,
-			new AfterCreation() {
+			AfterCreation.class, new AfterCreation() {
 
 				@Override
 				public void afterCreation(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
+
 					ResourceAccessTraitWrapper.clearCache();
 				}
 			},
 
-			AfterModification.class,
-			new AfterModification() {
+			AfterModification.class, new AfterModification() {
 
 				@Override
 				public void afterModification(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
+
 					ResourceAccessTraitWrapper.clearCache();
 				}
 			}
@@ -133,9 +133,7 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ResourceAccess.class, (traits, node) -> new ResourceAccessTraitWrapper(traits, node)
-		);
+		return Map.of(ResourceAccess.class, (traits, node) -> new ResourceAccessTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -145,11 +143,7 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long>                 flags              = new LongProperty(FLAGS_PROPERTY).indexed();
 		final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty(IS_RESOURCE_ACCESS_PROPERTY, true);
 
-		return newSet(
-			signature,
-			flags,
-			isResourceAccess
-		);
+		return newSet(signature, flags, isResourceAccess);
 	}
 
 	@Override
@@ -169,6 +163,7 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

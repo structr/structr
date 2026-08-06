@@ -29,18 +29,22 @@ public class DataSources {
 	private static final Map<String, GraphDataSource> dataSources = new LinkedHashMap<>();
 
 	public static void put(final String module, final String name, final GraphDataSource dataSource) {
+
 		dataSources.put(name, dataSource);
 	}
 
 	public static Set<String> getNames() {
+
 		return new LinkedHashSet<>(dataSources.keySet());
 	}
 
 	public static GraphDataSource get(final String name) {
+
 		return dataSources.get(name);
 	}
 
 	public static Collection<GraphDataSource> getDataSources() {
+
 		return dataSources.values();
 	}
 }

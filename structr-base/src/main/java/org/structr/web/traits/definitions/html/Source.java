@@ -36,6 +36,7 @@ public class Source extends GenericHtmlElementTraitDefinition {
 	public static final String MEDIA_PROPERTY = getPrefixedHTMLAttributeName("media");
 
 	public Source() {
+
 		super(StructrTraits.SOURCE);
 	}
 
@@ -46,11 +47,11 @@ public class Source extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -66,19 +67,12 @@ public class Source extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> typeProperty  = new StringProperty(TYPE_PROPERTY);
 		final PropertyKey<String> mediaProperty = new StringProperty(MEDIA_PROPERTY);
 
-		return newSet(
-			srcProperty, typeProperty, mediaProperty
-		);
+		return newSet(srcProperty, typeProperty, mediaProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					SRC_PROPERTY, TYPE_PROPERTY, MEDIA_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(SRC_PROPERTY, TYPE_PROPERTY, MEDIA_PROPERTY));
 	}
 }

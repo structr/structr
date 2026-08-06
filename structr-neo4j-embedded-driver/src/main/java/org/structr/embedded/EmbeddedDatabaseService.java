@@ -94,11 +94,13 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		}
 
 		// signal success
+
 		return true;
 	}
 
 	@Override
 	public void shutdown() {
+
 		managementService.close();
 	}
 
@@ -215,11 +217,13 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 
 	@Override
 	public Node<String> getNodeById(final Identity<String> id) {
+
 		return getNodeById(unwrap(id));
 	}
 
 	@Override
 	public Relationship<String> getRelationshipById(final Identity<String> id) {
+
 		return getRelationshipById(unwrap(id));
 	}
 
@@ -237,6 +241,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public Iterable<Node<String>> getNodesByLabel(final String type) {
 
 		if (type == null) {
+
 			return getAllNodes();
 		}
 
@@ -251,6 +256,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public Iterable<Node<String>> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
+
 			return getAllNodes();
 		}
 
@@ -275,6 +281,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public Iterable<Relationship<String>> getRelationshipsByType(final String type) {
 
 		if (type == null) {
+
 			return getAllRelationships();
 		}
 
@@ -289,6 +296,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public Index<Node<String>> nodeIndex() {
 
 		if (nodeIndex == null) {
+
 			nodeIndex = new CypherNodeIndex(this);
 		}
 
@@ -299,6 +307,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public Index<Relationship<String>> relationshipIndex() {
 
 		if (relationshipIndex == null) {
+
 			relationshipIndex = new CypherRelationshipIndex(this);
 		}
 
@@ -343,6 +352,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 				break;
 
 			case 4:
+
 				if (supportsIdempotentIndexCreation) {
 
 					// idempotent index update, no need to check for existance first
@@ -352,6 +362,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 
 					logger.warn("This driver does not support index creation on Neo4j 4.0.x databases. Performance will be impacted.");
 				}
+
 				break;
 
 			case 3:
@@ -377,10 +388,12 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public boolean isIndexUpdateFinished() {
 
 		if (indexUpdater != null) {
+
 			return indexUpdater.isFinished();
 		}
 
 		// no updater, no update in progress
+
 		return true;
 	}
 
@@ -410,6 +423,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
 
 		if (!(query instanceof String)) {
+
 			throw new IllegalArgumentException("Unsupported query type " + query.getClass().getName() + ", expected String.");
 		}
 
@@ -431,6 +445,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	}
 
 	public EmbeddedTransaction getCurrentTransaction() {
+
 		return getCurrentTransaction(true);
 	}
 
@@ -446,10 +461,12 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	}
 
 	boolean logQueries() {
+
 		return Settings.CypherDebugLogging.getValue();
 	}
 
 	boolean logPingQueries() {
+
 		return Settings.CypherDebugLoggingPing.getValue();
 	}
 
@@ -464,26 +481,32 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	}
 
 	Node<String> getNodeById(final String id) {
+
 		return getCurrentTransaction().getNodeWrapper(id);
 	}
 
 	Relationship<String> getRelationshipById(final String id) {
+
 		return getCurrentTransaction().getRelationshipWrapper(id);
 	}
 
 	void consume(final String nativeQuery) {
+
 		consume(nativeQuery, Collections.EMPTY_MAP);
 	}
 
 	void consume(final String nativeQuery, final Map<String, Object> parameters) {
+
 		getCurrentTransaction().set(nativeQuery, parameters);
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery) {
+
 		return execute(nativeQuery, Collections.EMPTY_MAP);
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
+
 		return getCurrentTransaction().run(new SimpleCypherQuery(nativeQuery, parameters));
 	}
 
@@ -497,6 +520,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		final Long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
 
 		if (nodeCount == null || relCount == null || userCount == null) {
+
 			throw new RuntimeException("Unable to fetch database counts.");
 		}
 
@@ -608,9 +632,11 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		switch (feature) {
 
 			case LargeStringIndexing:
+
 				return false;
 
 			case FulltextIndexing:
+
 				return true;
 
 			case QueryLanguage:
@@ -622,30 +648,38 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 				}
 
 			case SpatialQueries:
+
 				return true;
 
 			case NewDistanceFunction:
+
 				return neo4jMajorVersion >= 5;
 
 			case AuthenticationRequired:
+
 				return true;
 
 			case RelationshipIndexes:
+
 				return supportsRelationshipIndexes;
 
 			case NewDBIndexesFormat:
 				// New db.indexes() format can be used for Neo4j versions >= 4,
 				// which is identical to the version for the reactive flag.
+
 				return neo4jMajorVersion >= 4;
 
 			case ShowIndexesQuery:
+
 				return neo4jMajorVersion >= 5;
 
 			case TypePredicateExpressions:
 				// see https://development.neo4j.dev/blog/developer/data-quality-type-constraints-functions/
+
 				return neo4jMajorVersion >= 5 && neo4jMinorVersion >= 9;
 
 			case RangeIndexes:
+
 				return neo4jMajorVersion >= 5;
 		}
 
@@ -654,21 +688,25 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 
 	@Override
 	public String getErrorMessage() {
+
 		return errorMessage;
 	}
 
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
+
 		return Map.of();
 	}
 
 	@Override
 	public void flushCaches() {
+
 		EmbeddedTransaction.flushCaches();
 	}
 
 	// ----- private methods -----
 	private String getNeo4jVersion() {
+
 		return "2026.04.0";
 	}
 
@@ -709,12 +747,14 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	}
 
 	private boolean databaseExists() {
+
 		return graphDb.isAvailable();
 	}
 
 	private String stringOrDefault(final String[] source, final int index, final String defaultValue) {
 
 		if (index >= source.length) {
+
 			return defaultValue;
 		}
 
@@ -731,51 +771,61 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		}
 
 		public TypePredicate(final String mainType) {
+
 			this.mainType = mainType;
 		}
 
 		@Override
 		public String getSourceType() {
+
 			return null;
 		}
 
 		@Override
 		public String getTargetType() {
+
 			return null;
 		}
 
 		@Override
 		public Class getQueryType() {
+
 			return TypeQuery.class;
 		}
 
 		@Override
 		public String getName() {
+
 			return "type";
 		}
 
 		@Override
 		public Class getType() {
+
 			return String.class;
 		}
 
 		@Override
 		public Object getValue() {
+
 			return mainType;
 		}
 
 		@Override
 		public String getLabel() {
+
 			return null;
 		}
 
 		@Override
 		public boolean isExactMatch() {
+
 			return true;
 		}
 
 		@Override
 		public SortOrder getSortOrder() {
+
 			return null;
 		}
 	}
@@ -785,41 +835,49 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		protected String type = null;
 
 		public TypePropertyPredicate(final String type) {
+
 			this.type = type;
 		}
 
 		@Override
 		public Class getQueryType() {
+
 			return ExactQuery.class;
 		}
 
 		@Override
 		public String getName() {
+
 			return "type";
 		}
 
 		@Override
 		public Class getType() {
+
 			return String.class;
 		}
 
 		@Override
 		public Object getValue() {
+
 			return type;
 		}
 
 		@Override
 		public String getLabel() {
+
 			return null;
 		}
 
 		@Override
 		public boolean isExactMatch() {
+
 			return true;
 		}
 
 		@Override
 		public SortOrder getSortOrder() {
+
 			return null;
 		}
 
@@ -828,14 +886,17 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	private <T> NativeQuery<T> createQuery(final String query, final Class<T> type) {
 
 		if (Iterable.class.equals(type)) {
+
 			return (NativeQuery<T>)new IterableQuery(query);
 		}
 
 		if (Boolean.class.equals(type)) {
+
 			return (NativeQuery<T>)new BooleanQuery(query);
 		}
 
 		if (Long.class.equals(type)) {
+
 			return (NativeQuery<T>)new LongQuery(query);
 		}
 

@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.graph.Direction;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
@@ -46,10 +45,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 	public CollectionRelationshipsResource() {
 
-		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
-			RESTParameter.forPattern("rel",  "in|out", true)
-		);
+		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true), RESTParameter.forPattern("rel",  "in|out", true));
 	}
 
 	@Override
@@ -76,6 +72,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 		}
 
 		// only return a handler if there is actually a type with the requested name
+
 		return null;
 	}
 
@@ -110,14 +107,12 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 							relationships = Iterables.toList(node.getIncomingRelationships());
 							break;
 
-
 						case OUTGOING:
 
 							relationships = Iterables.toList(node.getOutgoingRelationships());
 							break;
 
 					}
-
 
 					if (relationships != null) {
 
@@ -139,6 +134,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 							for (final RelationshipInterface rel : relationships) {
 
 								if (!rel.getRelation().isInternal()) {
+
 									resultList.add(rel);
 								}
 							}
@@ -156,11 +152,13 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 	}

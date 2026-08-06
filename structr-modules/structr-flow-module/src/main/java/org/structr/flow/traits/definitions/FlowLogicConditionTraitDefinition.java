@@ -45,15 +45,14 @@ import java.util.Map;
 public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowLogicConditionTraitDefinition() {
+
 		super(StructrTraits.FLOW_LOGIC_CONDITION);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node)
-		);
+		return Map.of(FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node));
 	}
 
 	@Override
@@ -61,23 +60,23 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.Exception;
 					}
 				},
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
 						final FlowLogicCondition flowNode      = node.as(FlowLogicCondition.class);
 						final List<FlowCondition> _dataSources = Iterables.toList(flowNode.getConditions());
+
 						if (_dataSources.isEmpty()) {
 
 							return flowNode.combine(null, false);
@@ -99,8 +98,7 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -120,6 +118,7 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -28,10 +28,12 @@ public class TargetNodeFilter<T extends MemoryEntity> implements Filter<T> {
 	private MemoryIdentity targetNode = null;
 
 	public TargetNodeFilter(final MemoryIdentity targetNode) {
+
 		this.targetNode = targetNode;
 	}
 
 	public MemoryIdentity getIdentity() {
+
 		return targetNode;
 	}
 }

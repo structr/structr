@@ -89,6 +89,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -119,6 +120,7 @@ public class SSHFilesTest extends SSHTest {
 				os.flush();
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
@@ -128,10 +130,12 @@ public class SSHFilesTest extends SSHTest {
 				os.flush();
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
 		} catch (SftpException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -150,20 +154,24 @@ public class SSHFilesTest extends SSHTest {
 			assertEquals("Invalid test file name", name2, file2.getName());
 
 			try {
+
 				assertEquals("Invalid test file content", testContent1, IOUtils.toString(file1.getInputStream()));
 				assertEquals("Invalid test file content", testContent2, IOUtils.toString(file2.getInputStream()));
 
 			} catch (IOException ioex) {
+
 				fail("Unexpected exception: " + ioex.getMessage());
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 
 		try {
+
 			final Vector<LsEntry> entries = sftp.ls("/");
 
 			// listing contains "." and ".." => 4 entries
@@ -197,6 +205,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -220,17 +229,20 @@ public class SSHFilesTest extends SSHTest {
 				os.flush();
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
 			sftp.rename("/" + name1, "/" + name2);
 
 		} catch (SftpException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 
 		try {
+
 			final String date = getDateStringDependingOnCurrentDayOfMonth();
 			final Vector<LsEntry> entries = sftp.ls("/");
 
@@ -249,6 +261,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -263,7 +276,6 @@ public class SSHFilesTest extends SSHTest {
 		final String testContent1 = "Test Content öäü";
 		final String name1        = "file1.txt";
 		final String name2        = "fileöäüß.txt";
-
 		String date = null;
 
 		try {
@@ -278,6 +290,7 @@ public class SSHFilesTest extends SSHTest {
 				os.flush();
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
@@ -291,6 +304,7 @@ public class SSHFilesTest extends SSHTest {
 		}
 
 		try {
+
 			final Vector<LsEntry> entries = sftp.ls("/dir2");
 
 			// listing contains "." and ".." => 3 entries
@@ -308,6 +322,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -337,6 +352,7 @@ public class SSHFilesTest extends SSHTest {
 				os.flush();
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
@@ -346,10 +362,12 @@ public class SSHFilesTest extends SSHTest {
 				os.flush();
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
 		} catch (SftpException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -366,19 +384,23 @@ public class SSHFilesTest extends SSHTest {
 			assertEquals("Invalid test file name", name, file1.getName());
 
 			try {
+
 				assertEquals("Invalid test file content", testContent2, IOUtils.toString(file1.getInputStream()));
 
 			} catch (IOException ioex) {
+
 				fail("Unexpected exception: " + ioex.getMessage());
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 
 		try {
+
 			final Vector<LsEntry> entries = sftp.ls("/");
 
 			// listing contains "." and file => 2 entries
@@ -406,6 +428,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -434,10 +457,12 @@ public class SSHFilesTest extends SSHTest {
 				os.flush();
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
 		} catch (SftpException ex) {
+
 			logger.warn("", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -453,15 +478,18 @@ public class SSHFilesTest extends SSHTest {
 			assertEquals("Invalid test file name", name, file1.getName());
 
 			try {
+
 				assertEquals("Invalid test file content", testContent, IOUtils.toString(file1.getInputStream()));
 
 			} catch (IOException ioex) {
+
 				fail("Unexpected exception: " + ioex.getMessage());
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 
@@ -472,6 +500,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -485,6 +514,7 @@ public class SSHFilesTest extends SSHTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -512,6 +542,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -526,6 +557,7 @@ public class SSHFilesTest extends SSHTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
@@ -534,7 +566,6 @@ public class SSHFilesTest extends SSHTest {
 	private String getDateStringDependingOnCurrentDayOfMonth() {
 
 		final Calendar cal = GregorianCalendar.getInstance();
-
 		if (cal.get(Calendar.DAY_OF_MONTH) < 10) {
 
 			return new SimpleDateFormat("MMM  d HH:mm", Locale.ENGLISH).format(System.currentTimeMillis());

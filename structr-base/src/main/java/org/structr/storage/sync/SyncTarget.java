@@ -40,6 +40,7 @@ public record SyncTarget(String syncRootUuid, String syncRootPath, boolean syncR
 	public SyncTarget {
 
 		if (syncRootUuid == null || syncRootPath == null) {
+
 			throw new IllegalArgumentException("SyncTarget needs a sync root UUID and path");
 		}
 

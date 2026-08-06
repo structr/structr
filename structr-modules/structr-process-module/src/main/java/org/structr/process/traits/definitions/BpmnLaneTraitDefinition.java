@@ -49,15 +49,14 @@ public class BpmnLaneTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FLOW_NODE_REFS_PROPERTY  = "flowNodeRefs";
 
 	public BpmnLaneTraitDefinition() {
+
 		super(ProcessTraits.BPMN_LANE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnLane.class, (traits, node) -> new BpmnLaneTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnLane.class, (traits, node) -> new BpmnLaneTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -85,6 +84,7 @@ public class BpmnLaneTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

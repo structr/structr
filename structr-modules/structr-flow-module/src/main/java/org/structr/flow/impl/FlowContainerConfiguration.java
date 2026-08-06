@@ -29,18 +29,22 @@ import org.structr.module.api.DeployableEntity;
 public class FlowContainerConfiguration extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	public FlowContainerConfiguration(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getValidForEditor() {
+
 		return wrappedObject.getProperty(traits.key(FlowContainerConfigurationTraitDefinition.VALID_FOR_EDITOR_PROPERTY));
 	}
 
 	public String getConfigJson() {
+
 		return wrappedObject.getProperty(traits.key(FlowContainerConfigurationTraitDefinition.CONFIG_JSON_PROPERTY));
 	}
 
 	public Map<String, Object> exportData() {
+
 		return traits.getMethod(GetExportData.class).getExportData(this.as(FlowBaseNode.class));
 	}
 }

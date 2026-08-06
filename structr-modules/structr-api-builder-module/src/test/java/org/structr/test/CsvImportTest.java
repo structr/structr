@@ -91,6 +91,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -162,6 +163,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -207,6 +209,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -278,6 +281,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -323,6 +327,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -394,6 +399,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -439,6 +445,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -510,6 +517,7 @@ public class CsvImportTest extends CsvTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -527,8 +535,8 @@ public class CsvImportTest extends CsvTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface customType = createTestNode(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "DummyType"));
-
 			final List<NodeInterface> properties = new LinkedList<>();
+
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testDataString"),                new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String")));
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "retrievedImportSourceFileName"), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String")));
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "retrievedCustomString"),         new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String")));

@@ -47,34 +47,42 @@ public class RESTCall extends LinkedHashMap<String, String> {
 	}
 
 	public String getResourceSignature() {
+
 		return StringUtils.join(signatureParts, "/");
 	}
 
 	public String getURL() {
+
 		return url;
 	}
 
 	public String getViewName() {
+
 		return viewName;
 	}
 
 	public boolean isDefaultView() {
+
 		return isDefaultView;
 	}
 
 	public void addPathParameters(final String[] parts) {
+
 		pathParameters.addAll(Arrays.asList(parts));
 	}
 
 	public List<String> getPathParameters() {
+
 		return pathParameters;
 	}
 
 	public String getUserType() {
+
 		return userType;
 	}
 
 	public void addSignaturePart(final String value) {
+
 		signatureParts.add(value);
 	}
 }

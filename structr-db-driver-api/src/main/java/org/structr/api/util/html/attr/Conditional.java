@@ -40,6 +40,7 @@ public class Conditional extends Attr {
 	public String format(final Context context) {
 
 		if (predicate.accept(context)) {
+
 			return super.format(context);
 		}
 

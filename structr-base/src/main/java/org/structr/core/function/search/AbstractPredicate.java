@@ -29,10 +29,12 @@ public abstract class AbstractPredicate implements SearchFunctionPredicate {
 	protected List<SearchParameter> parameters         = new LinkedList<>();
 
 	public void addPredicate(final SearchFunctionPredicate predicate) {
+
 		predicates.add(predicate);
 	}
 
 	public void addParameter(final SearchParameter param) {
+
 		parameters.add(param);
 	}
 }

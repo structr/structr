@@ -31,10 +31,12 @@ import java.util.Map;
 public class FlowParameterDataSource extends FlowDataSource implements DeployableEntity {
 
 	public FlowParameterDataSource(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getKey() {
+
 		return wrappedObject.getProperty(traits.key(FlowParameterDataSourceTraitDefinition.KEY_PROPERTY));
 	}
 
@@ -44,6 +46,7 @@ public class FlowParameterDataSource extends FlowDataSource implements Deployabl
 
 			Object resolvedPart = getValue(obj, parts.get(0));
 			parts.remove(0);
+
 			return resolveParts(resolvedPart, parts);
 		}
 
@@ -70,6 +73,7 @@ public class FlowParameterDataSource extends FlowDataSource implements Deployabl
 
 			return map.get(key);
 		}
+
 		return null;
 	}
 

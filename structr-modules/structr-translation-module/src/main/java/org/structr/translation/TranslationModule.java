@@ -27,7 +27,6 @@ import org.structr.module.StructrModule;
 
 import java.util.Set;
 
-
 public class TranslationModule implements StructrModule {
 
 	public static final Setting<String> TranslationGoogleAPIKey      = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.google.apikey", "", "Google Cloud Translation API Key");
@@ -45,16 +44,19 @@ public class TranslationModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "translation";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

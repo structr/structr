@@ -82,6 +82,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			if (parentId == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
+
 				return;
 			}
 
@@ -90,6 +91,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			if (parentNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
 				return;
 			}
 
@@ -104,17 +106,22 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					final boolean isTemplate   = (parentNode.is(StructrTraits.TEMPLATE));
 
 					if (isShadowPage && isTemplate && parentNode.getParent() == null) {
+
 						getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
+
 						return;
 					}
 
 					if (!isShadowPage && !isTemplate && parentNode.isSynced()) {
+
 						getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to shared components (that are not Templates) in the pages tree is not allowed").build(), true);
+
 						return;
 					}
 
 					DOMNode newNode = CreateAndAppendDOMNodeCommand.createNewNode(getWebSocket(), tagName, document);
 					if (newNode == null) {
+
 						return;
 					}
 
@@ -187,11 +194,13 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CREATE_AND_APPEND_DOM_NODE";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
@@ -201,15 +210,15 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 			final String key = (String) entry.getKey();
 			final Object val = entry.getValue();
-
 			PropertyKey propertyKey = targetNode.getTraits().key(key);
+
 			if (propertyKey != null) {
 
 				try {
 
 					Object convertedValue = val;
-
 					PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance(), false);
+
 					if (inputConverter != null) {
 
 						convertedValue = inputConverter.convert(val);
@@ -278,6 +287,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					break;
 
 				case "custom":
+
 					try {
 
 						// experimental: create DOM element with literal tag
@@ -286,6 +296,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						).as(DOMElement.class);
 
 						if (newNode != null && document != null) {
+
 							newNode.doAdopt(document);
 						}
 
@@ -293,8 +304,10 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 						// abort
 						webSocket.send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
+
 						return null;
 					}
+
 					break;
 
 				default:

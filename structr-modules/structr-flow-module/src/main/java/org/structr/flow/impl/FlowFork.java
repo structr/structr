@@ -28,6 +28,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowFork extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
 	public FlowFork(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

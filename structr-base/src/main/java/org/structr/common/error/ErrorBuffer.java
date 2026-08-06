@@ -33,22 +33,27 @@ public class ErrorBuffer {
 	private int status                    = 0;
 
 	public void add(final ErrorToken token) {
+
 		tokens.add(token);
 	}
 
 	public boolean hasError() {
+
 		return !tokens.isEmpty();
 	}
 
 	public List<ErrorToken> getErrorTokens() {
+
 		return tokens;
 	}
 
 	public void setStatus(final int status) {
+
 		this.status = status;
 	}
 
 	public int getStatus() {
+
 		return status;
 	}
 }

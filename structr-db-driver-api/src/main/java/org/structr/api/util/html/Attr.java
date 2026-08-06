@@ -31,23 +31,28 @@ public class Attr {
 	private Object value = null;
 
 	public Attr(final String key, final Object value) {
+
 		this.key = key;
 		this.value = value;
 	}
 
 	public String format(final Context context) {
+
 		return key + "=\"" + escapeAttributeValue(value.toString()) + "\"";
 	}
 
 	private String escapeAttributeValue(final String attrValue) {
+
 		return StringUtils.replaceEach(attrValue, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
 	}
 
 	public String getKey() {
+
 		return key;
 	}
 
 	public Object getValue() {
+
 		return value;
 	}
 }

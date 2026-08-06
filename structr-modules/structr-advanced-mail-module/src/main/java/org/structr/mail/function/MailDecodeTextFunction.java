@@ -33,16 +33,19 @@ import java.util.List;
 public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 
 	public MailDecodeTextFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailDecodeText";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("text");
 	}
 
@@ -60,31 +63,33 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 			} catch (UnsupportedEncodingException ex) {
 
 				logger.warn("Unable to encode text '{}', returning original value", sources[0].toString());
+
 				return sources[0].toString();
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailDecodeText(text)}"),
-			Usage.javaScript("Usage: ${{ $.mailDecodeText(text) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailDecodeText(text)}"), Usage.javaScript("Usage: ${{ $.mailDecodeText(text) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Decodes RFC 822 \"text\" token from mail-safe form as per RFC 2047.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				Decode "unstructured" headers, that is, headers that are defined as '*text' as per RFC 822.
 				The string is decoded using the algorithm specified in RFC 2047, Section 6.1. If the charset-conversion fails for any sequence, it is returned as-is.
@@ -94,15 +99,13 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("text", "text to decode")
-		);
+
+		return List.of(Parameter.mandatory("text", "text to decode"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${mailDecodeText('=?utf-8?Q?h=C3=A4llo?=')}", "Decoding encoded string \"hällo\"")
-		);
+
+		return List.of(Example.structrScript("${mailDecodeText('=?utf-8?Q?h=C3=A4llo?=')}", "Decoding encoded string \"hällo\""));
 	}
 }

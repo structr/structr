@@ -42,40 +42,48 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	private static final Logger logger = LoggerFactory.getLogger(DoubleProperty.class.getName());
 
 	public LongProperty(final String name) {
+
 		super(name);
 	}
 
 	public LongProperty(final String name, final String dbName) {
+
 		super(name, dbName);
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Long";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Long.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Long;
 	}
 
 	@Override
 	public PropertyConverter<Long, Long> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<Long, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
@@ -83,6 +91,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	public Long convertToNumber(Double source) {
 
 		if (source != null) {
+
 			return source.longValue();
 		}
 
@@ -92,11 +101,13 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	protected class InputConverter extends PropertyConverter<Object, Long> {
 
 		public InputConverter(SecurityContext securityContext) {
+
 			super(securityContext);
 		}
 
 		@Override
 		public Object revert(Long source) throws FrameworkException {
+
 			return source;
 		}
 
@@ -114,14 +125,12 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
 
 				try {
+
 					return Long.valueOf(source.toString());
 
 				} catch (Throwable t) {
 
-					throw new PropertyInputParsingException(
-						LongProperty.this.jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), LongProperty.this.jsonName(), source)
-					);
+					throw new PropertyInputParsingException(LongProperty.this.jsonName(), new NumberFormatToken(declaringTrait.getLabel(), LongProperty.this.jsonName(), source));
 				}
 			}
 
@@ -135,10 +144,12 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		if (value != null) {
 
 			if (value instanceof Long) {
+
 				return value;
 			}
 
 			if (value instanceof Number) {
+
 				return ((Number)value).longValue();
 			}
 
@@ -157,33 +168,39 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public Object getIndexValue(final Object value) {
+
 		return fixDatabaseProperty(value);
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for long integer values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return Long.valueOf(index);
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -197,6 +214,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		map.put("example", 12467634433L);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -213,6 +231,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		map.put("example", 12467634433L);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 

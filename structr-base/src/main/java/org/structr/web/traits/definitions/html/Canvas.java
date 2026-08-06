@@ -32,6 +32,7 @@ public class Canvas extends GenericHtmlElementTraitDefinition {
 	public static final String HEIGHT_PROPERTY = getPrefixedHTMLAttributeName("height");
 
 	public Canvas() {
+
 		super("Canvas");
 	}
 
@@ -41,20 +42,12 @@ public class Canvas extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> widthProperty  = new StringProperty(WIDTH_PROPERTY);
 		final PropertyKey<String> heightProperty = new StringProperty(HEIGHT_PROPERTY);
 
-		return newSet(
-			widthProperty,
-			heightProperty
-		);
+		return newSet(widthProperty, heightProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					WIDTH_PROPERTY, HEIGHT_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(WIDTH_PROPERTY, HEIGHT_PROPERTY));
 	}
 }

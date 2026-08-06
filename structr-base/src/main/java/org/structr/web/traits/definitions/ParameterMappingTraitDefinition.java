@@ -52,15 +52,16 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String FLOW_RESULT_PROPERTY       = "flowResult";
 
 	public ParameterMappingTraitDefinition() {
+
 		super(StructrTraits.PARAMETER_MAPPING);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
@@ -75,24 +76,25 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ParameterMapping.class, (traits, node) -> new ParameterMappingTraitWrapper(traits, node)
-		);
+		return Map.of(ParameterMapping.class, (traits, node) -> new ParameterMappingTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
@@ -110,16 +112,7 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<String> methodResult     = new StringProperty(METHOD_RESULT_PROPERTY).description("Method to be evaluated to result value");
 		final Property<String> flowResult       = new StringProperty(FLOW_RESULT_PROPERTY).description("Flow to be evaluated to result value");
 
-		return Set.of(
-			actionMappingProperty,
-			inputElement,
-			parameterType,
-			parameterName,
-			constantValue,
-			scriptExpression,
-			methodResult,
-			flowResult
-		);
+		return Set.of(actionMappingProperty, inputElement, parameterType, parameterName, constantValue, scriptExpression, methodResult, flowResult);
 	}
 
 	@Override
@@ -136,6 +129,7 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

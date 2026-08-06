@@ -45,11 +45,13 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	public ConstantBooleanProperty(final String jsonName, final String dbName, final boolean constantValue) {
+
 		super(jsonName, dbName);
 	}
 
 	@Override
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -57,6 +59,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj.getTraits().contains(declaringTrait.getLabel())) {
+
 			return this.constantValue;
 		}
 
@@ -65,73 +68,87 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 
 	@Override
 	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final Boolean value) throws FrameworkException {
+
 		throw new FrameworkException(422, "Unable to change value of constant property ‛" + this.jsonName() + "‛", new ReadOnlyPropertyToken(obj.getType(), this.jsonName()));
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Boolean";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Boolean.class;
 	}
 
 	@Override
 	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return constantValue;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

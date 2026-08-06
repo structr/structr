@@ -38,6 +38,7 @@ import java.util.List;
 public class IntegerArrayPropertyGenerator extends NumericalArrayPropertyGenerator<Integer> {
 
 	public IntegerArrayPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
@@ -58,11 +59,13 @@ public class IntegerArrayPropertyGenerator extends NumericalArrayPropertyGenerat
 
 	@Override
 	public String getValueType() {
+
 		return Integer[].class.getSimpleName();
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new ArrayProperty(source.getPropertyName(), Integer.class);
 	}
 
@@ -82,11 +85,13 @@ public class IntegerArrayPropertyGenerator extends NumericalArrayPropertyGenerat
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.IntegerArray;
 	}
 
 	@Override
 	public Integer[] getDefaultValue() {
+
 		return null;
 	}
 }

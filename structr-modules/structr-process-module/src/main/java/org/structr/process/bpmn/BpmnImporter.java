@@ -253,16 +253,17 @@ public class BpmnImporter {
 		// Top-level global definitions (message, signal, error, escalation, ...)
 		// live on BpmnDefinitions, not on any individual process.
 		final NodeList rootChildren = root.getChildNodes();
+
 		for (int i = 0; i < rootChildren.getLength(); i++) {
 
 			final Node child = rootChildren.item(i);
-
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 
 				final Element childEl = (Element) child;
 				final String ln       = childEl.getLocalName();
 
 				if (!"process".equals(ln) && !"BPMNDiagram".equals(ln) && !"collaboration".equals(ln)) {
+
 					importGlobalDefinition(app, defNode, childEl, ln);
 				}
 			}
@@ -290,7 +291,6 @@ public class BpmnImporter {
 
 			final Element processEl    = (Element) processNodes.item(i);
 			final String processIdAttr = processEl.getAttribute("id");
-
 			final NodeInterface procNode = createBpmnNode(app, ProcessTraits.BPMN_PROCESS);
 			final Traits procTraits = procNode.getTraits();
 
@@ -315,6 +315,7 @@ public class BpmnImporter {
 
 			// Import process child elements (recursively handles sub-processes)
 			importProcessChildren(app, procNode, null, processEl, elementMap, flowMap);
+
 			if (previousProc != null) {
 
 				cloneElementMethods(app, previousProc, elementMap);
@@ -361,10 +362,10 @@ public class BpmnImporter {
 		// resolve to a BpmnElement / BpmnSequenceFlow).
 		final Set<String> participantBpmnIds = new HashSet<>();
 		final Set<String> messageFlowBpmnIds = new HashSet<>();
-
 		final NodeList collabs = root.getElementsByTagNameNS(BPMN_NS, "collaboration");
 
 		if (collabs.getLength() > 0) {
+
 			importCollaboration(app, defNode, (Element) collabs.item(0), processMap, elementMap, participantBpmnIds, messageFlowBpmnIds);
 		}
 
@@ -373,6 +374,7 @@ public class BpmnImporter {
 		// repoint them at the new BpmnDefinitions and (per processId) the
 		// element map. The new file root holds all the rewired bindings.
 		for (final String processIdAttr : processMap.keySet()) {
+
 			rewireExternalReferences(app, processIdAttr, defNode, elementMap);
 		}
 
@@ -420,20 +422,18 @@ public class BpmnImporter {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node n = children.item(i);
-
 			if (n.getNodeType() != Node.ELEMENT_NODE) {
 
 				continue;
 			}
 
 			final Element child = (Element) n;
-
 			if (!BPMN_NS.equals(child.getNamespaceURI())) {
+
 				continue;
 			}
 
 			final String ln = child.getLocalName();
-
 			if ("participant".equals(ln)) {
 
 				final String partBpmnId      = child.getAttribute("id");
@@ -462,6 +462,7 @@ public class BpmnImporter {
 				}
 
 				if (StringUtils.isNotEmpty(partBpmnId)) {
+
 					participantBpmnIds.add(partBpmnId);
 				}
 
@@ -485,14 +486,17 @@ public class BpmnImporter {
 				final NodeInterface tgt = elementMap.get(child.getAttribute("targetRef"));
 
 				if (src != null) {
+
 					mfNode.setProperty(mfTraits.key(BpmnMessageFlowTraitDefinition.SOURCE_ELEMENT_PROPERTY), src);
 				}
 
 				if (tgt != null) {
+
 					mfNode.setProperty(mfTraits.key(BpmnMessageFlowTraitDefinition.TARGET_ELEMENT_PROPERTY), tgt);
 				}
 
 				if (StringUtils.isNotEmpty(mfBpmnId)) {
+
 					messageFlowBpmnIds.add(mfBpmnId);
 				}
 			}
@@ -509,7 +513,6 @@ public class BpmnImporter {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
 
 				continue;
@@ -589,6 +592,7 @@ public class BpmnImporter {
 				laneNode.setProperty(laneTraits.key("name"), (StringUtils.isNotEmpty(laneName)) ? laneName : laneBpmnId);
 
 				if (StringUtils.isNotEmpty(laneBpmnId)) {
+
 					laneBpmnIds.add(laneBpmnId);
 				}
 
@@ -611,6 +615,7 @@ public class BpmnImporter {
 				}
 
 				if (!resolved.isEmpty()) {
+
 					laneNode.setProperty(laneTraits.key(BpmnLaneTraitDefinition.FLOW_NODE_REFS_PROPERTY), resolved);
 				}
 			}
@@ -628,10 +633,12 @@ public class BpmnImporter {
 			final String tgtRef          = flow.getTargetRefId();
 
 			if (srcRef != null && elementMap.containsKey(srcRef)) {
+
 				flowNode.setProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.SOURCE_ELEMENT_PROPERTY), elementMap.get(srcRef));
 			}
 
 			if (tgtRef != null && elementMap.containsKey(tgtRef)) {
+
 				flowNode.setProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY), elementMap.get(tgtRef));
 			}
 		}
@@ -657,6 +664,7 @@ public class BpmnImporter {
 			final BpmnElement elem = elemNode.as(BpmnElement.class);
 
 			if (!elem.isType(BpmnElementType.BOUNDARY_EVENT)) {
+
 				continue;
 			}
 
@@ -669,6 +677,7 @@ public class BpmnImporter {
 			Map<String, Object> attrs;
 
 			try {
+
 				attrs = gson.fromJson(json, Map.class);
 
 			} catch (Exception ex) {
@@ -678,6 +687,7 @@ public class BpmnImporter {
 			}
 
 			if (attrs == null) {
+
 				continue;
 			}
 
@@ -756,6 +766,7 @@ public class BpmnImporter {
 		attrs.remove("name");
 
 		for (final String consumed : consumedAttributeKeys) {
+
 			attrs.remove(consumed);
 		}
 
@@ -769,6 +780,7 @@ public class BpmnImporter {
 
 			String body = camExpr.trim();
 			if (body.startsWith("${") && body.endsWith("}")) {
+
 				body = body.substring(2, body.length() - 1).trim();
 			}
 
@@ -780,6 +792,7 @@ public class BpmnImporter {
 
 			final String camClass = nullIfEmpty(el.getAttributeNS(CAMUNDA_NS, "class"));
 			final String camDeleg = nullIfEmpty(el.getAttributeNS(CAMUNDA_NS, "delegateExpression"));
+
 			if (camClass != null || camDeleg != null) {
 
 				logger.warn("Element '{}' has a Camunda service-task implementation ({}) with no Structr runtime equivalent; "
@@ -789,6 +802,7 @@ public class BpmnImporter {
 		}
 
 		if (!attrs.isEmpty()) {
+
 			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY), gson.toJson(attrs));
 		}
 
@@ -849,6 +863,7 @@ public class BpmnImporter {
 
 								elemNode.setProperty(traits.key(BpmnElementTraitDefinition.TIMER_EXPRESSION_TYPE_PROPERTY), xsiType);
 							}
+
 							break;
 						}
 					}
@@ -918,6 +933,7 @@ public class BpmnImporter {
 		attrs.remove("targetRef");
 
 		if (!attrs.isEmpty()) {
+
 			flowNode.setProperty(traits.key(BpmnSequenceFlowTraitDefinition.BPMN_ATTRIBUTES_PROPERTY), gson.toJson(attrs));
 		}
 
@@ -975,6 +991,7 @@ public class BpmnImporter {
 			}
 
 			if (skippedShapes > 0) {
+
 				logger.warn("Skipped {} BPMNShape(s) referencing entities that were not imported.", skippedShapes);
 			}
 
@@ -997,6 +1014,7 @@ public class BpmnImporter {
 			}
 
 			if (skippedEdges > 0) {
+
 				logger.warn("Skipped {} BPMNEdge(s) referencing entities that were not imported.", skippedEdges);
 			}
 		}
@@ -1068,6 +1086,7 @@ public class BpmnImporter {
 		diAttrs.remove("isHorizontal");
 
 		if (!diAttrs.isEmpty()) {
+
 			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.DI_ATTRIBUTES_PROPERTY), gson.toJson(diAttrs));
 		}
 
@@ -1131,6 +1150,7 @@ public class BpmnImporter {
 		diAttrs.remove("bpmnElement");
 
 		if (!diAttrs.isEmpty()) {
+
 			edgeNode.setProperty(traits.key(BpmnDiEdgeTraitDefinition.DI_ATTRIBUTES_PROPERTY), gson.toJson(diAttrs));
 		}
 
@@ -1253,11 +1273,12 @@ public class BpmnImporter {
 	private void importPerformerSubElements(final App app, final NodeInterface elemNode, final Element parent, final String localName, final String kind) throws FrameworkException {
 
 		final NodeList children = parent.getChildNodes();
+
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (child.getNodeType() != Node.ELEMENT_NODE || !localName.equals(child.getLocalName())) {
+
 				continue;
 			}
 
@@ -1304,6 +1325,7 @@ public class BpmnImporter {
 	private String collapseWhitespace(final String s) {
 
 		if (s == null) {
+
 			return "";
 		}
 
@@ -1346,13 +1368,14 @@ public class BpmnImporter {
 		for (int i = 0; i < s.length(); i++) {
 
 			final char c = s.charAt(i);
-
 			if (c == '(' || c == '{') {
+
 				depth++;
 
 			} else if (c == ')' || c == '}') {
 
 				if (depth > 0) {
+
 					depth--;
 				}
 
@@ -1412,13 +1435,14 @@ public class BpmnImporter {
 
 		final List<NodeInterface> merged = new LinkedList<>();
 		final Set<String> seen           = new LinkedHashSet<>();
-
 		final Iterable<NodeInterface> existing = node.getProperty(methodsKey);
+
 		if (existing != null) {
 
 			for (final NodeInterface m : existing) {
 
 				if (m != null && seen.add(m.getUuid())) {
+
 					merged.add(m);
 				}
 			}
@@ -1427,6 +1451,7 @@ public class BpmnImporter {
 		for (final NodeInterface m : toAdd) {
 
 			if (m != null && seen.add(m.getUuid())) {
+
 				merged.add(m);
 			}
 		}
@@ -1437,17 +1462,22 @@ public class BpmnImporter {
 	private Double parseDoubleOrNull(final String s) {
 
 		if (StringUtils.isBlank(s)) {
+
 			return null;
 		}
 
 		try {
+
 			return Double.parseDouble(s.trim());
+
 		} catch (final NumberFormatException ex) {
+
 			return null;
 		}
 	}
 
 	private String nullIfEmpty(final String s) {
+
 		return (StringUtils.isEmpty(s)) ? null : s;
 	}
 
@@ -1476,18 +1506,25 @@ public class BpmnImporter {
 			final StringBuilder sb = new StringBuilder();
 			sb.append(BPMN_SRC_HEADER_START).append('\n');
 			sb.append("// process: ").append(StringUtils.defaultIfBlank(name, procId));
+
 			if (StringUtils.isNotBlank(procId)) {
+
 				sb.append(" (id: ").append(procId).append(')');
 			}
+
 			if (version != null) {
+
 				sb.append(", version: ").append(version);
 			}
+
 			sb.append('\n');
 			sb.append("// element: ").append(nullIfEmpty(el.getAttribute("id"))).append(" (").append(elementType).append(")\n");
 			sb.append(BPMN_SRC_HEADER_END).append('\n');
+
 			return sb.toString();
 
 		} catch (final Exception e) {
+
 			return "";
 		}
 	}
@@ -1500,13 +1537,18 @@ public class BpmnImporter {
 	private String stripBpmnSourceComment(final String body) {
 
 		if (body == null || !body.startsWith(BPMN_SRC_HEADER_START)) {
+
 			return body;
 		}
+
 		final int end = body.indexOf(BPMN_SRC_HEADER_END);
 		if (end < 0) {
+
 			return body;
 		}
+
 		final int nl = body.indexOf('\n', end);
+
 		return nl < 0 ? "" : body.substring(nl + 1);
 	}
 
@@ -1540,15 +1582,17 @@ public class BpmnImporter {
 		}
 
 		final NodeList children = extEl.getChildNodes();
+
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
+
 				continue;
 			}
 
 			if (!"taskListener".equals(child.getLocalName())) {
+
 				continue;
 			}
 
@@ -1599,10 +1643,13 @@ public class BpmnImporter {
 				case "delete":     return BpmnTaskListenerTraitDefinition.EVENT_CANCELLED;
 				default:
 					logger.warn("Camunda task listener event '{}' has no Structr equivalent; importing as-is", rawEvent);
+
 					return rawEvent;
 			}
 		}
+
 		// structr:taskListener and any other namespace: pass through as-is
+
 		return rawEvent;
 	}
 
@@ -1633,6 +1680,7 @@ public class BpmnImporter {
 
 			return dExpr;
 		}
+
 		final String expr = nullIfEmpty(listenerEl.getAttribute("expression"));
 		if (expr != null) {
 
@@ -1687,11 +1735,14 @@ public class BpmnImporter {
 
 		final Map<String, Map<String, Integer>> services = ProcessEngine.detectServiceCalls(script);
 		if (!services.isEmpty()) {
+
 			logger.info("BPMN import: detected service calls {}", services);
 		}
+
 		for (final Map.Entry<String, Map<String, Integer>> service : services.entrySet()) {
 
 			final NodeInterface type = ensureServiceClass(app, service.getKey());
+
 			for (final Map.Entry<String, Integer> method : service.getValue().entrySet()) {
 
 				ensureServiceMethod(app, type, service.getKey(), method.getKey(), method.getValue());
@@ -1704,8 +1755,8 @@ public class BpmnImporter {
 
 		final Traits schemaNodeTraits     = Traits.of(StructrTraits.SCHEMA_NODE);
 		final PropertyKey<String> nameKey = schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
 		final NodeInterface existing = app.nodeQuery(StructrTraits.SCHEMA_NODE).key(nameKey, typeName).getFirst();
+
 		if (existing != null) {
 
 			return existing;
@@ -1745,6 +1796,7 @@ public class BpmnImporter {
 		// same-transaction query can't reliably see a just-created sibling, so this
 		// in-memory guard prevents duplicates for a service referenced in more than one place.
 		if (!scaffoldedServiceMethods.add(typeName + "#" + methodName)) {
+
 			return;
 		}
 
@@ -1755,11 +1807,16 @@ public class BpmnImporter {
 
 			final NodeInterface owner = m.getProperty(schemaNodeKey);
 			if (owner != null && schemaNodeId.equals(owner.getUuid())) {
+
 				logger.info("BPMN import: service method {}.{} already exists, skipping", typeName, methodName);
+
 				return;
 			}
+
 			if (typeName.equalsIgnoreCase(m.getProperty(staticNameKey))) {
+
 				logger.info("BPMN import: service method {}.{} already exists (legacy binding), skipping", typeName, methodName);
+
 				return;
 			}
 		}
@@ -1805,6 +1862,7 @@ public class BpmnImporter {
 			for (final NodeInterface m : current) {
 
 				if (safeName.equals(m.getProperty(nameKey))) {
+
 					return m;
 				}
 
@@ -1815,9 +1873,12 @@ public class BpmnImporter {
 		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 
 		method.setProperty(nameKey, safeName);
+
 		if (!safeName.equals(methodName)) {
+
 			method.setProperty(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), camundaListenerBody(methodName));
 		}
+
 		existing.add(method);
 		elemNode.setProperty(methodsKey, existing);
 
@@ -1850,8 +1911,7 @@ public class BpmnImporter {
 	 * at the process sets {@code subjectType}; {@code <structr:subjectContract formView=".."
 	 * writableView=".." instructions=".."/>} on a user task sets that step's contract properties.
 	 */
-	private void importStructrContract(final App app, final NodeInterface procNode, final Element processEl,
-	                                   final Map<String, NodeInterface> elementMap) throws FrameworkException {
+	private void importStructrContract(final App app, final NodeInterface procNode, final Element processEl, final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
 		final Traits procTraits = procNode.getTraits();
 
@@ -1864,6 +1924,7 @@ public class BpmnImporter {
 
 				final String type = nullIfEmpty(subjectEl.getAttribute("type"));
 				if (type != null) {
+
 					procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), type);
 				}
 			}
@@ -1871,26 +1932,32 @@ public class BpmnImporter {
 
 		// Per user-task contract.
 		final NodeList userTasks = processEl.getElementsByTagNameNS(BPMN_NS, "userTask");
+
 		for (int i = 0; i < userTasks.getLength(); i++) {
 
 			final Element userTaskEl = (Element) userTasks.item(i);
 			final String  taskId     = nullIfEmpty(userTaskEl.getAttribute("id"));
+
 			if (taskId == null) {
+
 				continue;
 			}
 
 			final NodeInterface element = elementMap.get(taskId);
 			if (element == null) {
+
 				continue;
 			}
 
 			final Element ext = getFirstChildByLocalName(userTaskEl, "extensionElements");
 			if (ext == null) {
+
 				continue;
 			}
 
 			final Element contractEl = firstStructrChild(ext, "subjectContract");
 			if (contractEl == null) {
+
 				continue;
 			}
 
@@ -1900,12 +1967,17 @@ public class BpmnImporter {
 			final String instructions  = nullIfEmpty(contractEl.getAttribute("instructions"));
 
 			if (formView != null) {
+
 				element.setProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY), formView);
 			}
+
 			if (writableView != null) {
+
 				element.setProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY), writableView);
 			}
+
 			if (instructions != null) {
+
 				element.setProperty(elemTraits.key(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY), instructions);
 			}
 		}
@@ -1915,13 +1987,16 @@ public class BpmnImporter {
 	private Element firstStructrChild(final Element parent, final String localName) {
 
 		final NodeList children = parent.getChildNodes();
+
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && STRUCTR_NS.equals(child.getNamespaceURI()) && localName.equals(child.getLocalName())) {
+
 				return (Element) child;
 			}
 		}
+
 		return null;
 	}
 
@@ -1936,16 +2011,21 @@ public class BpmnImporter {
 
 		final Set<String> namespaceUris          = new HashSet<>(namespaces.values());
 		final List<BpmnVendorAdapter> adapters   = BpmnVendorAdapters.applicableTo(namespaceUris);
+
 		if (adapters.isEmpty()) {
+
 			return;
 		}
 
 		final List<VendorTaskForm> forms = new ArrayList<>();
+
 		for (final BpmnVendorAdapter adapter : adapters) {
+
 			forms.addAll(adapter.extractForms(processEl));
 		}
 
 		if (!forms.isEmpty()) {
+
 			SubjectTypeSynthesizer.synthesize(app, procNode, forms, elementMap);
 		}
 	}
@@ -1959,6 +2039,7 @@ public class BpmnImporter {
 		}
 
 		final NodeList children = extEl.getChildNodes();
+
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
@@ -1976,6 +2057,7 @@ public class BpmnImporter {
 			final boolean isCamunda  = CAMUNDA_NS.equals(ns)  && "executionListener".equals(localName);
 
 			if (!isStructr && !isCamunda) {
+
 				continue;
 			}
 
@@ -1988,6 +2070,7 @@ public class BpmnImporter {
 
 			final String eventName  = translateProcessListenerEvent(rawEvent, ns);
 			final String methodName = extractListenerMethod(listenerEl, ns);
+
 			if (StringUtils.isEmpty(methodName)) {
 
 				logger.warn("Process listener on process element '{}' (event='{}') has no method/class/expression payload; skipped", processEl.getAttribute("id"), rawEvent);
@@ -2021,10 +2104,13 @@ public class BpmnImporter {
 				// Camunda's executionListener has no equivalent for our broader event set.
 				default:
 					logger.warn("Camunda execution listener event '{}' has no Structr equivalent; importing as-is", rawEvent);
+
 					return rawEvent;
 			}
 		}
+
 		// structr:processListener: pass through verbatim (the EnumProperty validates).
+
 		return rawEvent;
 	}
 
@@ -2041,6 +2127,7 @@ public class BpmnImporter {
 		node.setProperty(traits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY), method);
 
 		if (bpmnId != null) {
+
 			node.setProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), bpmnId);
 		}
 
@@ -2073,16 +2160,19 @@ public class BpmnImporter {
 	static String sanitizeMethodName(final String raw) {
 
 		if (raw == null) {
+
 			return null;
 		}
 
 		final String s = raw.trim();
 		if (s.isEmpty()) {
+
 			return null;
 		}
 
 		// Common case: already a valid Structr method name (structr:taskListener method="...").
 		if (VALID_METHOD_NAME.matcher(s).matches()) {
+
 			return s;
 		}
 
@@ -2097,23 +2187,31 @@ public class BpmnImporter {
 
 			String ref = s.replaceAll("^\\$\\{", "").replaceAll("\\}$", "").trim();
 			final int dot = ref.lastIndexOf('.');
+
 			if (dot >= 0 && dot < ref.length() - 1) {
+
 				ref = ref.substring(dot + 1);
 			}
+
 			candidate = ref;
 		}
 
 		// Keep only identifier characters.
 		candidate = candidate.replaceAll("[^A-Za-z0-9_]", "");
+
 		if (candidate.isEmpty()) {
+
 			candidate = "listener";
 		}
 
 		// Ensure a valid first character (lowercase letter or underscore).
 		final char c0 = candidate.charAt(0);
 		if (c0 >= 'A' && c0 <= 'Z') {
+
 			candidate = Character.toLowerCase(c0) + candidate.substring(1);
+
 		} else if (!((c0 >= 'a' && c0 <= 'z') || c0 == '_')) {
+
 			candidate = "_" + candidate;
 		}
 
@@ -2161,6 +2259,7 @@ public class BpmnImporter {
 				if (name != null) {
 
 					anyDepth = name;
+
 					if (depth == 0) {
 
 						outer = name;
@@ -2185,11 +2284,14 @@ public class BpmnImporter {
 	private static String identifierEndingAt(final String s, final int parenIndex) {
 
 		int end = parenIndex;
+
 		while (end > 0 && Character.isWhitespace(s.charAt(end - 1))) {
+
 			end--;
 		}
 
 		int start = end;
+
 		while (start > 0) {
 
 			final char c = s.charAt(start - 1);
@@ -2204,6 +2306,7 @@ public class BpmnImporter {
 		}
 
 		if (start == end) {
+
 			return null;
 		}
 
@@ -2233,6 +2336,7 @@ public class BpmnImporter {
 
 		String inner = payload.trim();
 		if (inner.startsWith("${") && inner.endsWith("}")) {
+
 			inner = inner.substring(2, inner.length() - 1).trim();
 		}
 
@@ -2245,6 +2349,7 @@ public class BpmnImporter {
 		}
 
 		final String safeComment = payload.replace("*/", "* /");
+
 		return "{ /* imported from Camunda listener: " + safeComment + " -- no Structr equivalent, port manually */ }";
 	}
 
@@ -2267,6 +2372,7 @@ public class BpmnImporter {
 			for (final NodeInterface m : current) {
 
 				if (safeName.equals(m.getProperty(nameKey))) {
+
 					return m;
 				}
 
@@ -2277,9 +2383,12 @@ public class BpmnImporter {
 		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 
 		method.setProperty(nameKey, safeName);
+
 		if (!safeName.equals(methodName)) {
+
 			method.setProperty(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), camundaListenerBody(methodName));
 		}
+
 		existing.add(method);
 		procNode.setProperty(methodsKey, existing);
 
@@ -2330,6 +2439,7 @@ public class BpmnImporter {
 
 			final Element el = (Element) n;
 			final String bpmnId = el.getAttribute("id");
+
 			if (StringUtils.isEmpty(bpmnId)) {
 
 				continue;
@@ -2382,6 +2492,7 @@ public class BpmnImporter {
 			}
 
 			if (!"methodRef".equals(refEl.getLocalName())) {
+
 				continue;
 			}
 
@@ -2490,11 +2601,13 @@ public class BpmnImporter {
 
 		final Element ext = getFirstChildByLocalName(el, "extensionElements");
 		if (ext == null) {
+
 			return;
 		}
 
 		final Element io = getFirstChildByLocalName(ext, "inputOutput");
 		if (io == null) {
+
 			return;
 		}
 
@@ -2502,6 +2615,7 @@ public class BpmnImporter {
 		final List<Map<String, String>> outputs = collectIoParams(io, "outputParameter");
 
 		if (inputs.isEmpty() && outputs.isEmpty()) {
+
 			return;
 		}
 
@@ -2520,14 +2634,15 @@ public class BpmnImporter {
 
 			final String name = p.getAttribute("name");
 			if (StringUtils.isEmpty(name)) {
+
 				continue;
 			}
 
 			// Simple text/expression source. Nested complex sources (camunda:map /
 			// list / script) collapse to their text content (best effort).
 			final String source = p.getTextContent() != null ? p.getTextContent().trim() : "";
-
 			final Map<String, String> entry = new LinkedHashMap<>();
+
 			entry.put("name", name);
 			entry.put("source", source);
 			out.add(entry);
@@ -2544,8 +2659,8 @@ public class BpmnImporter {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName())) {
+
 				result.add((Element) child);
 			}
 		}
@@ -2560,11 +2675,12 @@ public class BpmnImporter {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
-
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName())) {
+
 				return (Element) child;
 			}
 		}
+
 		return null;
 	}
 
@@ -2578,6 +2694,7 @@ public class BpmnImporter {
 				return val;
 			}
 		}
+
 		return null;
 	}
 
@@ -2589,8 +2706,8 @@ public class BpmnImporter {
 		for (int i = 0; i < attrs.getLength(); i++) {
 
 			final Attr attr = (Attr) attrs.item(i);
-
 			if ("xmlns".equals(attr.getPrefix()) || "xmlns".equals(attr.getName())) {
+
 				ns.put(attr.getName(), attr.getValue());
 			}
 		}
@@ -2606,12 +2723,12 @@ public class BpmnImporter {
 		for (int i = 0; i < nodeAttrs.getLength(); i++) {
 
 			final Attr attr = (Attr) nodeAttrs.item(i);
+			if (!"xmlns".equals(attr.getPrefix()) && !"xmlns".equals(attr.getName()) && !CAMUNDA_NS.equals(attr.getNamespaceURI())) {
 
-			if (!"xmlns".equals(attr.getPrefix()) && !"xmlns".equals(attr.getName())
-				&& !CAMUNDA_NS.equals(attr.getNamespaceURI())) {
 				attrs.put(attr.getName(), attr.getValue());
 			}
 		}
+
 		return attrs;
 	}
 
@@ -2637,6 +2754,7 @@ public class BpmnImporter {
 	private void stampVersion(final NodeInterface node) throws FrameworkException {
 
 		if (currentVersion != null) {
+
 			node.setProperty(node.getTraits().key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY), currentVersion);
 		}
 	}
@@ -2660,6 +2778,7 @@ public class BpmnImporter {
 	private void rewireExternalReferences(final App app, final String processId, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
 		if (StringUtils.isEmpty(processId)) {
+
 			return;
 		}
 
@@ -2678,7 +2797,6 @@ public class BpmnImporter {
 		for (final NodeInterface proc : app.nodeQuery(ProcessTraits.BPMN_PROCESS).key(procProcessIdKey, processId).getResultStream()) {
 
 			final NodeInterface def = proc.getProperty(procDefKey);
-
 			if (def != null && def.getUuid().equals(newDefNode.getUuid())) {
 
 				newProcessNode = proc;
@@ -2713,6 +2831,7 @@ public class BpmnImporter {
 		if (newProcessNode == null) {
 
 			logger.warn("rewireVisibilityMappings: no new BpmnProcess found for processId='{}' in the re-imported file; skipping VisibilityMapping rewire for this id.", processId);
+
 			return;
 		}
 
@@ -2728,6 +2847,7 @@ public class BpmnImporter {
 			for (final NodeInterface vm : app.nodeQuery(ProcessTraits.VISIBILITY_MAPPING).key(boundProcessKey, oldProc).getResultStream()) {
 
 				if (processedVms.add(vm.getUuid())) {
+
 					rewireVm(vm, newProcessNode, elementMap, boundProcessKey, boundStepKey, boundProcessIdKey, boundStepBpmnIdKey, processId);
 				}
 			}
@@ -2738,6 +2858,7 @@ public class BpmnImporter {
 		for (final NodeInterface vm : app.nodeQuery(ProcessTraits.VISIBILITY_MAPPING).key(boundProcessIdKey, processId).getResultStream()) {
 
 			if (processedVms.add(vm.getUuid())) {
+
 				rewireVm(vm, newProcessNode, elementMap, boundProcessKey, boundStepKey, boundProcessIdKey, boundStepBpmnIdKey, processId);
 			}
 		}
@@ -2757,12 +2878,14 @@ public class BpmnImporter {
 		// backup (used when the old element is gone).
 		String stepBpmnId           = null;
 		final NodeInterface oldStep = vm.getProperty(boundStepKey);
+
 		if (oldStep != null) {
 
 			stepBpmnId = oldStep.getProperty(Traits.of(ProcessTraits.BPMN_ELEMENT).key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 		}
 
 		if (stepBpmnId == null) {
+
 			stepBpmnId = vm.getProperty(boundStepBpmnIdKey);
 		}
 
@@ -2774,6 +2897,7 @@ public class BpmnImporter {
 			vm.setProperty(boundStepBpmnIdKey, stepBpmnId);
 
 			if (newStep == null) {
+
 				logger.warn("VisibilityMapping {} bound step bpmnId='{}' has no match in re-imported definition; boundStep cleared", vm.getUuid(), stepBpmnId);
 			}
 		}
@@ -2788,6 +2912,7 @@ public class BpmnImporter {
 		if (newProcessNode == null) {
 
 			logger.warn("rewireActionMappings: no new BpmnProcess found for processId='{}' in the re-imported file; skipping ActionMapping rewire for this id.", processId);
+
 			return;
 		}
 
@@ -2834,6 +2959,7 @@ public class BpmnImporter {
 		}
 
 		if (elemBpmnId == null) {
+
 			elemBpmnId = am.getProperty(targetsElementBpmnIdKey);
 		}
 
@@ -2845,6 +2971,7 @@ public class BpmnImporter {
 			am.setProperty(targetsElementBpmnIdKey, elemBpmnId);
 
 			if (newElem == null) {
+
 				logger.warn("ActionMapping {} targets element bpmnId='{}' has no match in re-imported definition; targetsElement cleared", am.getUuid(), elemBpmnId);
 			}
 		}
@@ -2857,19 +2984,20 @@ public class BpmnImporter {
 	private NodeInterface findPreviousProcess(final App app, final String processId, final String excludeUuid) throws FrameworkException {
 
 		if (StringUtils.isEmpty(processId)) {
+
 			return null;
 		}
 
 		final Traits procTraits                = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final PropertyKey<String> processIdKey = procTraits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY);
 		final PropertyKey<String> versionKey   = procTraits.key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY);
-
 		NodeInterface previousProc = null;
 		int highest = -1;
 
 		for (final NodeInterface candidate : app.nodeQuery(ProcessTraits.BPMN_PROCESS).key(processIdKey, processId).getResultStream()) {
 
 			if (candidate.getUuid().equals(excludeUuid)) {
+
 				continue;
 			}
 
@@ -2915,10 +3043,12 @@ public class BpmnImporter {
 		final Iterable<NodeInterface> previousMethods         = previousProc.getProperty(methodsKey);
 
 		if (previousMethods == null) {
+
 			return;
 		}
 
 		final List<NodeInterface> clonedMethods = new LinkedList<>();
+
 		for (final NodeInterface oldMethod : previousMethods) {
 
 			clonedMethods.add(cloneSchemaMethod(app, oldMethod));
@@ -2941,6 +3071,7 @@ public class BpmnImporter {
 		final Iterable<NodeInterface> oldElements              = previousProc.getProperty(elementsKey);
 
 		if (oldElements == null) {
+
 			return;
 		}
 
@@ -2978,6 +3109,7 @@ public class BpmnImporter {
 			// listener pointing at the empty stub and accumulate duplicate methods on
 			// every re-import.
 			final List<NodeInterface> clonedMethods = new LinkedList<>();
+
 			for (final NodeInterface oldMethod : oldElemMethods) {
 
 				final String name             = oldMethod.getProperty(methodNameKey);
@@ -2994,6 +3126,7 @@ public class BpmnImporter {
 			}
 
 			if (!clonedMethods.isEmpty()) {
+
 				appendMethods(newElem, elemMethodsKey, clonedMethods);
 			}
 		}
@@ -3009,10 +3142,12 @@ public class BpmnImporter {
 			for (final NodeInterface m : methods) {
 
 				if (name.equals(m.getProperty(nameKey))) {
+
 					return m;
 				}
 			}
 		}
+
 		return null;
 	}
 
@@ -3054,6 +3189,7 @@ public class BpmnImporter {
 		final Object value = source.getProperty(key);
 
 		if (value != null) {
+
 			target.setProperty(key, value);
 		}
 	}
@@ -3067,13 +3203,13 @@ public class BpmnImporter {
 	private String computeNextVersion(final App app, final String processId) throws FrameworkException {
 
 		if (StringUtils.isEmpty(processId)) {
+
 			return "1";
 		}
 
 		final Traits procTraits                = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final PropertyKey<String> processIdKey = procTraits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY);
 		final PropertyKey<String> versionKey   = procTraits.key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY);
-
 		int max = 0;
 
 		for (final NodeInterface existing : app.nodeQuery(ProcessTraits.BPMN_PROCESS).key(processIdKey, processId).getResultStream()) {

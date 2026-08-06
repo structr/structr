@@ -53,10 +53,12 @@ public enum VideoFormat {
 	private String resolution = null;
 
 	private VideoFormat(final String resolution) {
+
 		this.resolution = resolution;
 	}
 
 	public String getResolution() {
+
 		return resolution;
 	}
 }

@@ -45,10 +45,12 @@ public class Tx implements AutoCloseable, Prefetcher {
 	private String prefetchHint             = null;
 
 	public Tx(final SecurityContext securityContext) {
+
 		this(securityContext, true, true);
 	}
 
 	public Tx(final SecurityContext securityContext, final boolean doValidation, final boolean doCallbacks) {
+
 		this(securityContext, doValidation, doCallbacks, (securityContext != null && securityContext.doTransactionNotifications()));
 	}
 
@@ -68,36 +70,43 @@ public class Tx implements AutoCloseable, Prefetcher {
 	}
 
 	public void success() throws FrameworkException {
+
 		TransactionCommand.commitTx(securityContext, doValidation);
 	}
 
 	@Override
 	public void prefetchHint(final String hint) {
+
 		TransactionCommand.getCurrentTransaction().prefetchHint(hint);
 		this.prefetchHint = hint;
 	}
 
 	@Override
 	public void prefetch(final String type1, final String type2, final Set<String> keys) {
+
 		TransactionCommand.getCurrentTransaction().prefetch(type1, type2, keys);
 	}
 
 	@Override
 	public void prefetch(final String query, final Set<String> keys) {
+
 		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
 	}
 
 	@Override
 	public void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+
 		TransactionCommand.getCurrentTransaction().prefetch(query, outgoingKeys, incomingKeys);
 	}
 
 	@Override
 	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id) {
+
 		TransactionCommand.getCurrentTransaction().prefetch2(query, outgoingKeys, incomingKeys, id);
 	}
 
 	public void setIsPing(final boolean isPing) {
+
 		TransactionCommand.getCurrentTransaction().setIsPing(isPing);
 	}
 
@@ -105,7 +114,6 @@ public class Tx implements AutoCloseable, Prefetcher {
 	public void close() throws FrameworkException {
 
 		final ModificationQueue modificationQueue = TransactionCommand.finishTx();
-
 		if (guard.compareAndSet(false, true) && (modificationQueue == null || modificationQueue.transactionWasSuccessful())) {
 
 			final List<Object> ids = new ArrayList<>();
@@ -127,6 +135,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 						if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.doTransactionNotifications() ) {
 
 							final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+
 							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
 
 								listener.afterCommit(securityContext, modificationEvents);
@@ -134,6 +143,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 						}
 
 						hasChanges = modificationQueue.hasChanges();
+
 						if (hasChanges) {
 
 							ids.addAll(modificationQueue.getIds());
@@ -146,6 +156,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 					tx.success();
 
 				} catch (RetryException rex) {
+
 					retry = true;
 				}
 			}
@@ -184,6 +195,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 	}
 
 	public void disableChangelog() {
+
 		TransactionCommand.disableChangelog();
 	}
 }

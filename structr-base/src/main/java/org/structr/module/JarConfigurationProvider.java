@@ -86,21 +86,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	@Override
 	public Map<String, Class<? extends Agent>> getAgents() {
+
 		return agentClassCache;
 	}
 
 	@Override
 	public Map<String, StructrModule> getModules() {
+
 		return modules;
 	}
 
 	@Override
 	public Set<String> getClassNames() {
+
 		return classNames;
 	}
 
 	@Override
 	public Map<Class, List<Documentation>> getDocumentationAnnotations() {
+
 		return documentationAnnotations;
 	}
 
@@ -188,7 +192,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					while ((line = reader.readLine()) != null) {
 
 						final String className = line.trim();
-
 						if (!className.isEmpty()) {
 
 							documentedClassNames.add(className);

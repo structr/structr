@@ -71,14 +71,13 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-methods-clobber.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
 			final NodeInterface userTask = findElementByBpmnId(procNode, "UserTask_1");
+
 			assertNotNull("UserTask_1 not imported", userTask);
 
 			final List<String> names = methodNames(userTask);
 
-			assertTrue("Element methods should still contain the task-listener method 'onCreate' after methodRef import; found: " + names,
-				names.contains("onCreate"));
-			assertTrue("Element methods should contain the methodRef target 'refMethod'; found: " + names,
-				names.contains("refMethod"));
+			assertTrue("Element methods should still contain the task-listener method 'onCreate' after methodRef import; found: " + names, names.contains("onCreate"));
+			assertTrue("Element methods should contain the methodRef target 'refMethod'; found: " + names, names.contains("refMethod"));
 
 			tx.success();
 
@@ -152,6 +151,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-camunda-prefix.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
 			final NodeInterface userTask = findElementByBpmnId(procNode, "UserTask_1");
+
 			assertNotNull("UserTask_1 not imported", userTask);
 
 			// The attribute WAS read (a performer was generated) -- proving the
@@ -160,8 +160,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 			assertFalse("Expected a BpmnPerformer generated from c:assignee", performers.isEmpty());
 
 			final String bpmnAttrs = userTask.getProperty(userTask.getTraits().key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
-			assertFalse("The Camunda assignee attribute leaked into bpmnAttributes (not stripped for prefix 'c'): " + bpmnAttrs,
-				bpmnAttrs != null && bpmnAttrs.contains("assignee"));
+			assertFalse("The Camunda assignee attribute leaked into bpmnAttributes (not stripped for prefix 'c'): " + bpmnAttrs, bpmnAttrs != null && bpmnAttrs.contains("assignee"));
 
 			tx.success();
 
@@ -180,6 +179,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 		try (final InputStream is = getClass().getResourceAsStream(path)) {
 
 			assertNotNull("Resource not found: " + path, is);
+
 			return new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 		} catch (final Exception ex) {
@@ -192,12 +192,17 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 
 		final Traits defTraits = defNode.getTraits();
 		final Iterable<NodeInterface> processes = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.PROCESSES_PROPERTY));
+
 		if (processes == null) {
+
 			return null;
 		}
+
 		for (final NodeInterface p : processes) {
+
 			return p;
 		}
+
 		return null;
 	}
 
@@ -205,15 +210,21 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final Iterable<NodeInterface> elements = procNode.getProperty(procTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
+
 		if (elements == null) {
+
 			return null;
 		}
+
 		for (final NodeInterface e : elements) {
+
 			final String id = e.getProperty(e.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 			if (bpmnId.equals(id)) {
+
 				return e;
 			}
 		}
+
 		return null;
 	}
 
@@ -221,11 +232,15 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 
 		final List<String> names = new ArrayList<>();
 		final Iterable<NodeInterface> methods = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.METHODS_PROPERTY));
+
 		if (methods != null) {
+
 			for (final NodeInterface m : methods) {
+
 				names.add(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			}
 		}
+
 		return names;
 	}
 
@@ -234,11 +249,15 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 		final List<String> ids = new ArrayList<>();
 		final Traits pt = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final Iterable<NodeInterface> lanes = procNode.getProperty(pt.key(BpmnProcessTraitDefinition.LANES_PROPERTY));
+
 		if (lanes != null) {
+
 			for (final NodeInterface l : lanes) {
+
 				ids.add(l.getProperty(l.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
 			}
 		}
+
 		return ids;
 	}
 
@@ -259,6 +278,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/bug-nested-lanes.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
+
 			assertNotNull("process not imported", procNode);
 
 			final List<String> topLaneIds = laneBpmnIds(procNode);
@@ -286,6 +306,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 
 		final String secret = "XXE-SECRET-" + java.util.UUID.randomUUID();
 		final java.nio.file.Path secretFile = java.nio.file.Files.createTempFile("xxe-secret", ".txt");
+
 		java.nio.file.Files.writeString(secretFile, secret);
 		secretFile.toFile().deleteOnExit();
 
@@ -304,6 +325,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			NodeInterface defNode;
+
 			try {
 
 				defNode = new BpmnImporter(securityContext).importBpmn(xml);
@@ -312,6 +334,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 
 				// A hardened parser rejecting DOCTYPE / external entities is the SECURE outcome.
 				tx.success();
+
 				return;
 			}
 
@@ -321,8 +344,7 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 				? userTask.getProperty(userTask.getTraits().key(BpmnElementTraitDefinition.DOCUMENTATION_PROPERTY))
 				: null;
 
-			assertFalse("XXE: the external entity was expanded and leaked local file contents into the graph: " + documentation,
-				documentation != null && documentation.contains(secret));
+			assertFalse("XXE: the external entity was expanded and leaked local file contents into the graph: " + documentation, documentation != null && documentation.contains(secret));
 
 			tx.success();
 		}

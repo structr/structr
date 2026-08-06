@@ -39,15 +39,14 @@ import java.util.Set;
 public class CsvTestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CsvTestTwoTraitDefinition() {
+
 		super("CsvTestTwo");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			CsvTestTwo.class, (traits, node) -> new CsvTestTwoTraitWrapper(traits, node)
-		);
+		return Map.of(CsvTestTwo.class, (traits, node) -> new CsvTestTwoTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -63,33 +62,18 @@ public class CsvTestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>        enumProperty        = new EnumProperty("enumProperty", CsvTestEnum.class).indexed();
 		final Property<Integer>       index               = new IntProperty("index");
 
-		return newSet(
-			stringArrayProperty,
-			booleanProperty,
-			doubleProperty,
-			integerProperty,
-			longProperty,
-			dateProperty,
-			stringProperty,
-			enumProperty,
-			index
-		);
+		return newSet(stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, dateProperty, stringProperty, enumProperty, index);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-
-		return Map.of(
-			"csv",
-			newSet(
-				"name", "index", "type", "stringArrayProperty"
-			)
-		);
+		return Map.of("csv", newSet("name", "index", "type", "stringArrayProperty"));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

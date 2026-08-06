@@ -51,16 +51,19 @@ public class TranslateFunction extends UiFunction {
 
 	@Override
 	public String getName() {
+
 		return "translate";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("text, sourceLanguage, targetLanguage, translationProvider");
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return "translation";
 	}
 
@@ -68,6 +71,7 @@ public class TranslateFunction extends UiFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
+
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 3);
 
 			final String text = sources[0].toString();
@@ -78,6 +82,7 @@ public class TranslateFunction extends UiFunction {
 			String translationProvider = "google";
 
 			if (sources.length == 4 && sources[3] instanceof String) {
+
 				translationProvider = (String) sources[3];
 			}
 
@@ -88,18 +93,13 @@ public class TranslateFunction extends UiFunction {
 					try {
 
 						final String gctAPIKey = TranslationModule.TranslationGoogleAPIKey.getValue();
-
 						if (gctAPIKey == null || gctAPIKey.isEmpty()) {
+
 							throw new FrameworkException(422, ERROR_NO_GOOGLE_API_KEY);
 						}
 
 						final Translate translate = TranslateOptions.newBuilder().setApiKey(gctAPIKey).build().getService();
-
-						Translation translation = translate.translate(
-							text,
-							TranslateOption.sourceLanguage(sourceLanguage),
-							TranslateOption.targetLanguage(targetLanguage)
-						);
+						Translation translation = translate.translate(text, TranslateOption.sourceLanguage(sourceLanguage), TranslateOption.targetLanguage(targetLanguage));
 
 						return translation.getTranslatedText();
 					}
@@ -116,35 +116,35 @@ public class TranslateFunction extends UiFunction {
 					Gson gson = new Gson();
 
 					if (deeplAPIKey == null || deeplAPIKey.isEmpty()) {
+
 						throw new FrameworkException(422, ERROR_NO_DEEPL_API_KEY);
 					}
 
 					final String apiBaseURL = deeplAPIKey.contains(":fx") ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate";
-
 					final Map<String, String> headers = Map.of("Authorization", "DeepL-Auth-Key "+deeplAPIKey, "Content-Type", "application/json");
-
 					Map<String, Object> requestJson = new HashMap<>();
+
 					requestJson.put("text", new String[]{text});
 					requestJson.put("target_lang", targetLanguage.toUpperCase());
 					requestJson.put("source_lang", sourceLanguage.toUpperCase());
 
 					final Map<String, Object> responseData = HttpHelper.post(apiBaseURL, gson.toJson(requestJson), null, null, headers, "UTF-8", true);
-
 					final String response = responseData.get(HttpHelper.FIELD_BODY) instanceof String ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
 					if (response != null)
 					{
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
-
 						if (resultObject.has("translations")) {
 
 							final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");
-
 							if (!translations.isEmpty()) {
+
 								final JsonObject translation = translations.get(0).getAsJsonObject();
+
 								return translation.get("text").getAsString();
 							}
 						}
+
 						else
 						{
 							throw new FrameworkException(422, String.format(ERROR_DEEPL_FAILED, text, response));
@@ -155,22 +155,22 @@ public class TranslateFunction extends UiFunction {
 						throw new FrameworkException(422, String.format(ERROR_DEEPL_API_FAILED, text));
 					}
 
-
 				}
 				default:
 					throw new FrameworkException(422, ERROR_UNKNOWN_PROVIDER);
 			}
 
-
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}"),
 			Usage.javaScript("Usage: ${{ $.translate(text, sourceLanguage, targetLanguage[, translationProvider]) }}")
@@ -179,11 +179,13 @@ public class TranslateFunction extends UiFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Translates the given string from the source language to the target language.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Supported translation providers:
 			  - `google` (Google Cloud Translation API, default)
@@ -192,22 +194,19 @@ public class TranslateFunction extends UiFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${translate('Structr is awesome', 'en', 'de')}"),
-				Example.javaScript("${{ $.translate('Structr is awesome', 'en', 'de', 'deepl') }}")
-		);
+
+		return List.of(Example.structrScript("${translate('Structr is awesome', 'en', 'de')}"), Example.javaScript("${{ $.translate('Structr is awesome', 'en', 'de', 'deepl') }}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"An API Key has to be configured in structr.conf.",
-				"See the documentation on the Translation module for more info."
-		);
+
+		return List.of("An API Key has to be configured in structr.conf.", "See the documentation on the Translation module for more info.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

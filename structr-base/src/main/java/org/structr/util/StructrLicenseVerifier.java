@@ -97,6 +97,7 @@ public class StructrLicenseVerifier {
 			}
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to initialize key store or ciphers: {}", t.getMessage());
 		}
 	}
@@ -177,11 +178,13 @@ public class StructrLicenseVerifier {
 					}
 
 				} catch (Throwable t) {
+
 					logger.warn("Unable to verify license: {}", t.getMessage());
 				}
 			}
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to verify license: {}", t.getMessage());
 		}
 	}
@@ -296,6 +299,7 @@ public class StructrLicenseVerifier {
 	}
 
 	private List<String> split(final String src) {
+
 		return Arrays.asList(src.split("\n"));
 	}
 
@@ -306,6 +310,7 @@ public class StructrLicenseVerifier {
 			return gson.fromJson(reader, Map.class);
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to open license config {}: {}", name, ioex.getMessage());
 		}
 
@@ -319,6 +324,7 @@ public class StructrLicenseVerifier {
 			gson.toJson(config, writer);
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to store license config {}: {}", name, ioex.getMessage());
 		}
 	}
@@ -368,7 +374,6 @@ public class StructrLicenseVerifier {
 		try (final InputStream is = new FileInputStream(passwordFileName)) {
 
 			final List<String> lines = IOUtils.readLines(is, "utf-8");
-
 			if (!lines.isEmpty()) {
 
 				return lines.get(0);
@@ -382,7 +387,6 @@ public class StructrLicenseVerifier {
 	private static Pair keyValue(final String line) {
 
 		final String[] parts = line.split("=", 2);
-
 		if (parts.length == 2) {
 
 			final String key   = parts[0].trim();
@@ -392,6 +396,7 @@ public class StructrLicenseVerifier {
 		}
 
 		// ignore invalid lines
+
 		return null;
 	}
 
@@ -401,15 +406,18 @@ public class StructrLicenseVerifier {
 		private String right = null;
 
 		public Pair(final String left, final String right) {
+
 			this.left = left;
 			this.right = right;
 		}
 
 		public String getLeft() {
+
 			return left;
 		}
 
 		public String getRight() {
+
 			return right;
 		}
 	}

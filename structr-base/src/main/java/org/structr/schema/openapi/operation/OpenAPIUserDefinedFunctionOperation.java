@@ -29,7 +29,6 @@ public class OpenAPIUserDefinedFunctionOperation extends OpenAPIOperation {
 
 	public OpenAPIUserDefinedFunctionOperation(final StructrMethodDefinition method) {
 
-
 		super(
 			// summary
 			StringUtils.isBlank(method.getSummary()) ? "Executes user-defined function " + method.getName() + "()." : method.getSummary(),

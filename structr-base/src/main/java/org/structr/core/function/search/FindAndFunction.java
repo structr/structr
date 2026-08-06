@@ -32,16 +32,19 @@ public class FindAndFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.and";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.and";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.and";
 	}
 
@@ -67,6 +70,7 @@ public class FindAndFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.and(predicates...) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.equals('name', 'Test'))) }}"),
 			Usage.structrScript("Usage: ${and(predicate, ...). Example: ${find('Group', and(equals('name', 'Test')))}")
@@ -75,16 +79,19 @@ public class FindAndFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Combines the given predicates using logical AND, returning a predicate usable with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The predicates can be passed as a single list or as a list of parameters.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -98,11 +105,13 @@ public class FindAndFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("predicates");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 

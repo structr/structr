@@ -34,11 +34,13 @@ public class UpperFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "upper";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str");
 	}
 
@@ -54,50 +56,50 @@ public class UpperFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.upper(string) }}. "),
-			Usage.structrScript("Usage: ${upper(string)}. ")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.upper(string) }}. "), Usage.structrScript("Usage: ${upper(string)}. "));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the uppercase value of its parameter.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${upper(this.nickName)}"),
-			Example.javaScript("${{ $.upper($.this.nickName) }}")
-		);
+
+		return List.of(Example.structrScript("${upper(this.nickName)}"), Example.javaScript("${{ $.upper($.this.nickName) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("str", "given string")
-		);
+
+		return List.of(Parameter.mandatory("str", "given string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

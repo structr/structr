@@ -32,16 +32,19 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.lt";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.lt";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.lt";
 	}
 
@@ -67,6 +70,7 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.lt(value)}}. Example: ${{ $.find('User', { age: $.predicate.lt(42) }); }}"),
 			Usage.structrScript("Usage: ${lt(value)}. Example: ${find('User', 'age', lt(42))}")
@@ -75,16 +79,19 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns an lt predicate that can be used in find() function calls.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -95,11 +102,13 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 
 	}

@@ -90,6 +90,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String BASE64_DATA_PROPERTY               = "base64Data";
 
 	public FileTraitDefinition() {
+
 		super(StructrTraits.FILE);
 	}
 
@@ -98,13 +99,13 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 					final File thisFile  = graphObject.as(File.class);
 					final Principal user = securityContext.getUser(false);
+
 					if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent() && user != null && !user.isAdmin()) {
 
 						final Folder workingOrHomeDir = thisFile.getCurrentWorkingDir();
@@ -116,8 +117,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -151,8 +151,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnNodeDeletion.class,
-			new OnNodeDeletion() {
+			OnNodeDeletion.class, new OnNodeDeletion() {
 				@Override
 				public void onNodeDeletion(NodeInterface nodeInterface, SecurityContext securityContext) throws FrameworkException {
 
@@ -171,8 +170,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			AfterCreation.class,
-			new AfterCreation() {
+			AfterCreation.class, new AfterCreation() {
 				@Override
 				public void afterCreation(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
 
@@ -198,8 +196,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			SetProperty.class,
-			new SetProperty() {
+			SetProperty.class, new SetProperty() {
 				@Override
 				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
@@ -211,8 +208,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnUploadCompletion.class,
-			new OnUploadCompletion() {
+			OnUploadCompletion.class, new OnUploadCompletion() {
 				@Override
 				public void onUploadCompletion(File file, SecurityContext securityContext) {
 
@@ -252,12 +248,15 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(File.class).doCSVImport(securityContext, arguments.toMap());
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Starts an asynchronous CSV import job and returns the job ID.";
 				}
 
@@ -267,12 +266,15 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(File.class).doXMLImport(securityContext, arguments.toMap());
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Starts an asynchronous CSV import job and returns the job ID.";
 				}
 
@@ -282,12 +284,15 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(File.class).getFirstLines(securityContext, arguments.toMap());
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Returns the first lines of the file along with the detected line separator (LF, CR, or CR+LF).";
 				}
 
@@ -297,12 +302,15 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(File.class).getCSVHeaders(securityContext, arguments.toMap());
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Extracts and returns the column headers from a CSV file.";
 				}
 
@@ -312,12 +320,15 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(File.class).getXMLStructure(securityContext);
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Analyzes the structure of an XML file and returns it as a JSON representation.";
 				}
 
@@ -337,6 +348,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Searches for a term in the file's extracted text content and returns the surrounding context.";
 				}
 
@@ -346,15 +358,14 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			File.class, (traits, node) -> new FileTraitWrapper(traits, node)
-		);
+		return Map.of(File.class, (traits, node) -> new FileTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -423,11 +434,13 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 
@@ -435,6 +448,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	private static <T> void OnSetProperty(final org.structr.web.entity.File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
 
 		if (isCreation) {
+
 			return;
 		}
 
@@ -454,6 +468,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		} else if (key.equals(parentIdKey)) {
 
 			NodeInterface parentFolder = null;
+
 			try {
 
 				parentFolder = StructrApp.getInstance().nodeQuery(StructrTraits.FOLDER).uuid((String) value).getFirst();

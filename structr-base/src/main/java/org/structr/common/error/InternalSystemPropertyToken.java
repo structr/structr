@@ -24,6 +24,7 @@ package org.structr.common.error;
 public class InternalSystemPropertyToken extends SemanticErrorToken {
 
 	public InternalSystemPropertyToken(final String type, final String propertyKey) {
+
 		super(type, propertyKey, "is_system_property");
 	}
 }

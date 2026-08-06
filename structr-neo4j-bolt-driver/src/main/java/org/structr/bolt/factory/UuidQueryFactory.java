@@ -30,6 +30,7 @@ import org.structr.bolt.AdvancedCypherQuery;
 public class UuidQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public UuidQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 

@@ -61,12 +61,11 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ProcessToken.class, (traits, node) -> new ProcessTokenTraitWrapper(traits, node)
-		);
+		return Map.of(ProcessToken.class, (traits, node) -> new ProcessTokenTraitWrapper(traits, node));
 	}
 
 	public ProcessTokenTraitDefinition() {
+
 		super(ProcessTraits.PROCESS_TOKEN);
 	}
 
@@ -94,6 +93,7 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

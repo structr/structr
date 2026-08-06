@@ -73,8 +73,8 @@ public class ProcessJWTHelper {
 	public static String createProcessToken(final String processInstanceId, final String taskId, final String action, final int expiryMinutes) throws FrameworkException {
 
 		final Algorithm algorithm = getAlgorithm();
-
 		final Calendar expiration = Calendar.getInstance();
+
 		expiration.add(Calendar.MINUTE, expiryMinutes > 0 ? expiryMinutes : DEFAULT_EXPIRY_MINUTES);
 
 		final String issuer = Settings.JWTIssuer.getValue();
@@ -116,7 +116,6 @@ public class ProcessJWTHelper {
 
 			final Algorithm algorithm = getAlgorithm();
 			final String issuer = Settings.JWTIssuer.getValue();
-
 			final JWTVerifier verifier = JWT.require(algorithm)
 				.withIssuer(issuer)
 				.withClaim(CLAIM_SCOPE, SCOPE_VALUE)
@@ -129,11 +128,13 @@ public class ProcessJWTHelper {
 		} catch (JWTVerificationException ex) {
 
 			logger.debug("Invalid process access token: {}", ex.getMessage());
+
 			return null;
 
 		} catch (FrameworkException ex) {
 
 			logger.warn("Error validating process access token: {}", ex.getMessage());
+
 			return null;
 		}
 	}
@@ -144,6 +145,7 @@ public class ProcessJWTHelper {
 	public static String getProcessInstanceId(final Map<String, Claim> claims) {
 
 		final Claim claim = claims.get(CLAIM_PROCESS_INSTANCE_ID);
+
 		return claim != null && !claim.isNull() ? claim.asString() : null;
 	}
 
@@ -153,6 +155,7 @@ public class ProcessJWTHelper {
 	public static String getTaskId(final Map<String, Claim> claims) {
 
 		final Claim claim = claims.get(CLAIM_TASK_ID);
+
 		return claim != null && !claim.isNull() ? claim.asString() : null;
 	}
 
@@ -162,6 +165,7 @@ public class ProcessJWTHelper {
 	public static String getAction(final Map<String, Claim> claims) {
 
 		final Claim claim = claims.get(CLAIM_ACTION);
+
 		return claim != null && !claim.isNull() ? claim.asString() : null;
 	}
 
@@ -178,8 +182,8 @@ public class ProcessJWTHelper {
 				// generate and persist a strong secret on first use if none is configured
 				// (a present-but-weak secret is left untouched so the check below still rejects it)
 				final String secret = Settings.getOrGenerateJWTSecret();
-
 				if (secret == null || secret.length() < 32) {
+
 					throw new FrameworkException(500, "JWT secret is not configured or too weak (must be at least 32 characters). Configure " + Settings.JWTSecret.getKey());
 				}
 

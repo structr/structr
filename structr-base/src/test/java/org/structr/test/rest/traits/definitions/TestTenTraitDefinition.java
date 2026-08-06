@@ -36,6 +36,7 @@ import java.util.Set;
 public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestTenTraitDefinition() {
+
 		super("TestTen");
 	}
 
@@ -47,25 +48,18 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Object> getNameProperty 	= new FunctionProperty<>("getNameProperty").readFunction("{ return Structr.this.name; }").cachingEnabled(true);
 		final Property<Object> getRandomNumProp	= new FunctionProperty<>("getRandomNumProp").readFunction("{ return Math.random()*10000; }").cachingEnabled(true);
 
-		return newSet(
-			testSeven,
-			functionTest,
-			getNameProperty,
-			getRandomNumProp
-		);
+		return newSet(testSeven, functionTest, getNameProperty, getRandomNumProp);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSeven", "functionTest", "getNameProperty", "getRandomNumProp")
-		);
+		return Map.of(PropertyView.Public, newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSeven", "functionTest", "getNameProperty", "getRandomNumProp"));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

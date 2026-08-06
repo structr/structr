@@ -37,16 +37,19 @@ public class UuidSearchAttribute extends SearchAttribute<String> implements Uuid
 
 	@Override
 	public String toString() {
+
 		return "UuidSearchAttribute(" + super.toString() + ")";
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return UuidQuery.class;
 	}
 
 	@Override
 	public boolean isExactMatch() {
+
 		return true;
 	}
 
@@ -63,12 +66,14 @@ public class UuidSearchAttribute extends SearchAttribute<String> implements Uuid
 		if (nodeValue != null) {
 
 			if (compare(nodeValue, searchValue) != 0) {
+
 				return false;
 			}
 
 		} else {
 
 			if (searchValue != null && StringUtils.isNotBlank(searchValue)) {
+
 				return false;
 			}
 		}
@@ -79,11 +84,13 @@ public class UuidSearchAttribute extends SearchAttribute<String> implements Uuid
 	// ----- interface UuidQuery -----
 	@Override
 	public String getUuid() {
+
 		return getValue();
 	}
 
 	// ----- private methods -----
 	private int compare(final String nodeValue, final String searchValue) {
+
 		return nodeValue.compareTo(searchValue);
 	}
 }

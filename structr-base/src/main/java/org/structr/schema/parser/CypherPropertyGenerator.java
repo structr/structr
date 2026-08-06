@@ -32,26 +32,31 @@ import org.structr.schema.SchemaHelper.Type;
 public class CypherPropertyGenerator extends PropertyGenerator {
 
 	public CypherPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return "Iterable<GraphObject>";
 	}
 
 	@Override
 	protected Object getDefaultValue() {
+
 		return null;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new CypherQueryProperty(source.getPropertyName(), source.getFormat());
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Cypher;
 	}
 }

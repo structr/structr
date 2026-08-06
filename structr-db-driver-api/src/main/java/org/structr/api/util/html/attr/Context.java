@@ -27,10 +27,12 @@ public class Context {
 	private int depth = 0;
 	
 	public Context(final int depth) {
+
 		this.depth = depth;
 	}
 	
 	public int getDepth() {
+
 		return depth;
 	}
 }

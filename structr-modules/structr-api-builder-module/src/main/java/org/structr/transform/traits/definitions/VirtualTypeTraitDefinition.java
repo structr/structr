@@ -46,30 +46,32 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String POSITION_PROPERTY          = "position";
 
 	public VirtualTypeTraitDefinition() {
+
 		super(StructrTraits.VIRTUAL_TYPE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			VirtualType.class, (traits, node) -> new VirtualTypeTraitWrapper(traits, node)
-		);
+		return Map.of(VirtualType.class, (traits, node) -> new VirtualTypeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -80,12 +82,7 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> sourceTypeProperty                  = new StringProperty(SOURCE_TYPE_PROPERTY);
 		final Property<Integer> positionProperty                   = new IntProperty(POSITION_PROPERTY).indexed();
 
-		return Set.of(
-			propertiesProperty,
-			filterExpressionProperty,
-			sourceTypeProperty,
-			positionProperty
-		);
+		return Set.of(propertiesProperty, filterExpressionProperty, sourceTypeProperty, positionProperty);
 	}
 
 	@Override
@@ -105,6 +102,7 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

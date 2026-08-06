@@ -42,11 +42,13 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "getDirectAccessEntries";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("node");
 	}
 
@@ -60,6 +62,7 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 			if (!(sources[0] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as first argument!", ctx.isJavaScriptContext());
+
 				return Collections.emptyList();
 			}
 
@@ -87,7 +90,9 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 		for (final AccessEntry entry : entries) {
 
 			final List<String> permissionNames = new ArrayList<>(entry.permissions().size());
+
 			for (final Permission p : entry.permissions()) {
+
 				permissionNames.add(p.name());
 			}
 
@@ -106,6 +111,7 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getDirectAccessEntries(node)}. Example: ${getDirectAccessEntries(this)}"),
 			Usage.javaScript("Usage: ${{ $.getDirectAccessEntries(node) }}. Example: ${{ $.getDirectAccessEntries($.this) }}")
@@ -114,11 +120,13 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the direct access entries (owner and direct SECURITY relationships) on the given node.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Returns a list of access entries covering tiers 1 and 2 of the permission model: the owner
 		(if any) and principals connected to the node via a direct SECURITY relationship.
@@ -131,22 +139,19 @@ public class GetDirectAccessEntriesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${getDirectAccessEntries(this)}"),
-			Example.javaScript("${{ $.getDirectAccessEntries($.this) }}")
-		);
+
+		return List.of(Example.structrScript("${getDirectAccessEntries(this)}"), Example.javaScript("${{ $.getDirectAccessEntries($.this) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("node", "node to inspect")
-		);
+		return List.of(Parameter.mandatory("node", "node to inspect"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

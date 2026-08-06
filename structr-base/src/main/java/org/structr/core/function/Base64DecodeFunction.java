@@ -41,6 +41,7 @@ public class Base64DecodeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "base64decode";
 	}
 
@@ -102,11 +103,13 @@ public class Base64DecodeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Decodes the given base64 text using the supplied scheme.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Valid values for `scheme` are `basic` (default), `url` and `mime`. The following explanation of the encoding schemes is taken directly from https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html
 
@@ -123,11 +126,13 @@ public class Base64DecodeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("base64Text [, scheme [, charset ]]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${base64decode(base64Text [, scheme [, charset ]])}. Example: ${base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}"),
 			Usage.javaScript("Usage: ${{ $.base64decode(base64Text [, scheme [, charset ]]) }}. Example: ${{ $.base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\") }}")
@@ -146,13 +151,13 @@ public class Base64DecodeFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}", "Decode a base64-encoded string")
-		);
+
+		return List.of(Example.structrScript("${base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}", "Decode a base64-encoded string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

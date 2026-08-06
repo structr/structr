@@ -52,10 +52,10 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
 	public static final String SCRIPT_PROPERTY            = "script";
 
-
 	private static final Logger logger = LoggerFactory.getLogger(FlowLogTraitDefinition.class);
 
 	public FlowLogTraitDefinition() {
+
 		super(StructrTraits.FLOW_LOG);
 	}
 
@@ -64,17 +64,16 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(final FlowNode flowNode) {
+
 						return FlowType.Action;
 					}
 				},
 
-				ActionOperations.class,
-				new ActionOperations() {
+				ActionOperations.class, new ActionOperations() {
 
 					@Override
 					public void execute(final Context context, final FlowAction action) throws FlowException {
@@ -98,7 +97,6 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 
 							// Evaluate script and write result to context
 							final Object result = Scripting.evaluate(context.getActionContext(action.getSecurityContext(), action), action, "${" + _script.trim() + "}", "FlowLog(" + uuid + ")");
-
 							final FlowContainer container = action.getFlowContainer();
 
 							logger.info( (container.getName() != null ? ("[" + container.getEffectiveName() + "]") : "") + ("([" + action.getType() + "]" + uuid + "): ") + result	);
@@ -110,8 +108,7 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -133,10 +130,7 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowLog.class, (traits, node) -> new FlowLog(traits, node),
-			FlowAction.class, (traits, node) -> new FlowLog(traits, node)
-		);
+		return Map.of(FlowLog.class, (traits, node) -> new FlowLog(traits, node), FlowAction.class, (traits, node) -> new FlowLog(traits, node));
 	}
 
 	@Override
@@ -145,10 +139,7 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> exceptionHandler = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> script                  = new StringProperty(SCRIPT_PROPERTY);
 
-		return newSet(
-			exceptionHandler,
-			script
-		);
+		return newSet(exceptionHandler, script);
 	}
 
 	@Override
@@ -169,6 +160,7 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

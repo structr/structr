@@ -36,12 +36,14 @@ public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 	protected String apiKey            = null;
 
 	public AbstractGeoCodingProvider() {
+
 		this.apiKey = Settings.GeocodingApiKey.getValue();
 	}
 
 	protected String encodeURL(String source) {
 
 		try {
+
 			return URLEncoder.encode(source, "UTF-8");
 
 		} catch (UnsupportedEncodingException ex) {
@@ -50,6 +52,7 @@ public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 		}
 
 		// fallback, unencoded
+
 		return source;
 	}
 }

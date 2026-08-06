@@ -41,59 +41,82 @@ public class HMACFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
+
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final String algorithmPrefix = "Hmac";
-
 			final String value = (String) sources[0];
 			final String secret = (String) sources[1];
-
 			String algorithm = null;
+
 			if (sources.length > 2) {
+
 				algorithm = (String) sources[2];
+
 			} else {
+
 				algorithm = "SHA256";
 			}
+
 			algorithm = algorithmPrefix.concat(algorithm);
 
 			Boolean returnRawHash = false;
+
 			if (sources.length > 3) {
+
 				returnRawHash = true;
 			}
 
 			SecretKeySpec key = new SecretKeySpec((secret).getBytes("UTF-8"), algorithm);
 			Mac mac = Mac.getInstance(algorithm);
+
 			mac.init(key);
 
 			byte[] rawBytesHash = mac.doFinal(value.getBytes("UTF-8"));
 
 			if (returnRawHash) {
+
 				return rawBytesHash;
 			}
 
 			// Create Hex String and fill with 0 if needed
 			StringBuffer hash = new StringBuffer();
+
 			for (final byte b : rawBytesHash) {
+
 				String hex = Integer.toHexString(0xFF & b);
 				if (hex.length() == 1) {
+
 					hash.append('0');
 				}
+
 				hash.append(hex);
 			}
 
 			return hash.toString();
 
 		} catch (UnsupportedEncodingException e) {
+
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 		} catch (NoSuchAlgorithmException e) {
+
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 		} catch (InvalidKeyException e) {
+
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 		} catch (ArgumentNullException pe) {
+
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
+
 		} catch (ArgumentCountException pe) {
+
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -102,35 +125,32 @@ public class HMACFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${hmac(value, secret [, hashAlgorithm ])}"),
-			Usage.javaScript("Usage: ${{ $.hmac(value, secret [, hashAlgorithm ]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${hmac(value, secret [, hashAlgorithm ])}"), Usage.javaScript("Usage: ${{ $.hmac(value, secret [, hashAlgorithm ]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${hmac(toJson(me)), 'aVeryGoodSecret')}"),
-				Example.javaScript("${{ $.hmac(JSON.stringify({key1: 'test'}), 'aVeryGoodSecret') }}")
-		);
+
+		return List.of(Example.structrScript("${hmac(toJson(me)), 'aVeryGoodSecret')}"), Example.javaScript("${{ $.hmac(JSON.stringify({key1: 'test'}), 'aVeryGoodSecret') }}"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"Default value for parameter hashAlgorithm is SHA256."
-		);
+
+		return List.of("Default value for parameter hashAlgorithm is SHA256.");
 	}
 
 	@Override
@@ -146,16 +166,19 @@ public class HMACFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value, secret [, hashAlgorithm ]");
 	}
 
 	@Override
 	public String getName() {
+
 		return "hmac";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

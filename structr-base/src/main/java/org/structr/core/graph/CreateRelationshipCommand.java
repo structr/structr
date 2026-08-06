@@ -51,16 +51,19 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 
 	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
+
 		return createRelationship(fromNode, toNode, relType, null);
 	}
 
 	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties) throws FrameworkException {
+
 		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
 	private RelationshipInterface createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final String entityType, final PropertyMap attributes) throws FrameworkException {
 
 		if (!Traits.exists(entityType)) {
+
 			throw new FrameworkException(422, "Relationship type " + entityType + " does not exist");
 		}
 
@@ -99,6 +102,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		tmp.getData().put(visibleToAuthenticatedUsersKey.dbName(), false);
 
 		if (user != null) {
+
 			tmp.getData().put(createdByKey.dbName(), user.getUuid());
 		}
 
@@ -142,6 +146,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 					final Object value = entry.getValue();
 
 					if (!key.isUnvalidated()) {
+
 						TransactionCommand.relationshipModified(securityContext.getCachedUser(), newRel, key, null, value);
 					}
 				}

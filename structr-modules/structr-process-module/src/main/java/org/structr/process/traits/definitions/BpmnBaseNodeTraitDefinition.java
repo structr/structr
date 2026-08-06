@@ -56,6 +56,7 @@ public class BpmnBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String VERSION_PROPERTY  = "version";
 
 	public BpmnBaseNodeTraitDefinition() {
+
 		super(ProcessTraits.BPMN_BASE_NODE);
 	}
 
@@ -71,14 +72,12 @@ public class BpmnBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public, newSet(BPMN_ID_PROPERTY, VERSION_PROPERTY),
-			PropertyView.Ui,     newSet(BPMN_ID_PROPERTY, VERSION_PROPERTY)
-		);
+		return Map.of(PropertyView.Public, newSet(BPMN_ID_PROPERTY, VERSION_PROPERTY), PropertyView.Ui,     newSet(BPMN_ID_PROPERTY, VERSION_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class PageHAS_PATHPagePath extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public PageHAS_PATHPagePath() {
+
 		super(StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.PAGE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.PAGE_PATH;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_PATH";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

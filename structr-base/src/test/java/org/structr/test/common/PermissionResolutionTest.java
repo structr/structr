@@ -51,7 +51,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class PermissionResolutionTest extends StructrTest {
 
-
 	@Test
 	public void test01SimplePermissionResolution() {
 
@@ -83,6 +82,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -115,12 +115,14 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		// check access for user1 on instance1
 		final App userApp = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
+
 		try (final Tx tx = userApp.tx()) {
 
 			assertNotNull("User1 should be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
@@ -129,6 +131,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -143,6 +146,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -156,6 +160,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -170,6 +175,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -183,6 +189,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -197,6 +204,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -210,6 +218,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -224,6 +233,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -237,6 +247,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -268,6 +279,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -278,7 +290,6 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Principal tester = app.nodeQuery(StructrTraits.USER).getFirst().as(Principal.class);
-
 			final NodeInterface p1 = app.create(projectType,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester)
@@ -302,6 +313,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -358,6 +370,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -370,7 +383,6 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Principal tester = app.nodeQuery(StructrTraits.USER).getFirst().as(Principal.class);
-
 			final NodeInterface p1 = app.create(mooType,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester)
@@ -394,6 +406,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -446,6 +459,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -470,6 +484,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -485,6 +500,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -501,6 +517,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -522,6 +539,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -555,6 +573,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -573,6 +592,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -607,6 +627,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -683,6 +704,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -696,6 +718,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -713,6 +736,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -726,10 +750,8 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Traits traits = Traits.of(StructrTraits.GROUP);
-
 			final NodeInterface group1 = app.create(StructrTraits.GROUP, "group1");
 			final NodeInterface group2 = app.create(StructrTraits.GROUP, "group2");
-
 			final PropertyKey<Iterable<NodeInterface>> key = traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY);
 
 			tester = app.create(StructrTraits.PRINCIPAL, "tester").as(Principal.class);
@@ -802,6 +824,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -819,6 +842,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -855,6 +879,7 @@ public class PermissionResolutionTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

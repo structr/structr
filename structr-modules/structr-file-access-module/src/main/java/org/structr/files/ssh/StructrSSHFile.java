@@ -70,18 +70,21 @@ public class StructrSSHFile implements Path {
 		this.name       = name;
 
 		if (parent != null) {
+
 			this.fileSystem = parent.getFileSystem();
 		}
 	}
 
 	@Override
 	public String toString() {
+
 		return getClass().getSimpleName() + " (" + name + ")";
 	}
 
 	public SecurityContext getSecurityContext() {
 
 		if (parent != null) {
+
 			return parent.getSecurityContext();
 		}
 
@@ -89,20 +92,24 @@ public class StructrSSHFile implements Path {
 	}
 
 	public AbstractFile getActualFile() {
+
 		return actualFile;
 	}
 
 	public void setActualFile(final AbstractFile file) {
+
 		this.actualFile = file;
 	}
 
 	public void setFileSystem(final FileSystem fileSystem) {
+
 		this.fileSystem = fileSystem;
 	}
 
 	public StructrSSHFile findFile(final String path) {
 
 		if ("/".equals(path)) {
+
 			return getRootFolder();
 		}
 
@@ -113,10 +120,12 @@ public class StructrSSHFile implements Path {
 		final String localPart     = parts[0];
 
 		if (".".equals(path)) {
+
 			return this;
 		}
 
 		if ("..".equals(path)) {
+
 			return parent;
 		}
 
@@ -135,6 +144,7 @@ public class StructrSSHFile implements Path {
 					if (localPart.equals(folderName)) {
 
 						final StructrSSHFile matchingFolder = new StructrSSHFile(this, folderName, folder);
+
 						if (parts.length > 1) {
 
 							return matchingFolder.findFile(localPath.substring(folderName.length() + 1));
@@ -142,6 +152,7 @@ public class StructrSSHFile implements Path {
 						} else {
 
 							// match found
+
 							return matchingFolder;
 						}
 					}
@@ -164,6 +175,7 @@ public class StructrSSHFile implements Path {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				logger.warn("", fex);
 			}
 		}
@@ -174,6 +186,7 @@ public class StructrSSHFile implements Path {
 	private StructrSSHFile getRootFolder() {
 
 		if (parent != null) {
+
 			return parent;
 		}
 
@@ -210,123 +223,149 @@ public class StructrSSHFile implements Path {
 
 	@Override
 	public FileSystem getFileSystem() {
+
 		return fileSystem;
 	}
 
 	@Override
 	public boolean isAbsolute() {
+
 		return true;
 	}
 
 	@Override
 	public Path getRoot() {
+
 		return getFileSystem().getPath("/");
 	}
 
 	@Override
 	public Path getFileName() {
+
 		return Paths.get(name);
 	}
 
 	@Override
 	public Path getParent() {
+
 		return parent;
 	}
 
 	@Override
 	public int getNameCount() {
+
 		logger.info("Method not implemented yet"); return 0;
 	}
 
 	@Override
 	public Path getName(int i) {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public Path subpath(int i, int i1) {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public boolean startsWith(Path path) {
+
 		logger.info("Method not implemented yet"); return false;
 	}
 
 	@Override
 	public boolean startsWith(String string) {
+
 		logger.info("Method not implemented yet"); return false;
 	}
 
 	@Override
 	public boolean endsWith(Path path) {
+
 		logger.info("Method not implemented yet"); return false;
 	}
 
 	@Override
 	public boolean endsWith(String string) {
+
 		logger.info("Method not implemented yet"); return false;
 	}
 
 	@Override
 	public Path normalize() {
+
 		// We assume no redundant path parts, see https://docs.oracle.com/javase/7/docs/api/java/nio/file/Path.html#normalize()
+
 		return this;
 	}
 
 	@Override
 	public Path resolve(Path path) {
+
 		return findFile(path.toString());
 	}
 
 	@Override
 	public Path resolve(String string) {
+
 		return findFile(string);
 	}
 
 	@Override
 	public Path resolveSibling(Path path) {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public Path resolveSibling(String string) {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public Path relativize(Path path) {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public URI toUri() {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public Path toAbsolutePath() {
+
 		// We assume this is already an absolute path, see https://docs.oracle.com/javase/7/docs/api/java/nio/file/Path.html#toAbsolutePath()
+
 		return this;
 	}
 
 	@Override
 	public Path toRealPath(LinkOption... los) throws IOException {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public java.io.File toFile() {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public WatchKey register(WatchService ws, WatchEvent.Kind<?>[] kinds, WatchEvent.Modifier... mdfrs) throws IOException {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
 	@Override
 	public WatchKey register(WatchService ws, WatchEvent.Kind<?>... kinds) throws IOException {
+
 		logger.info("Method not implemented yet"); return null;
 	}
 
@@ -334,8 +373,8 @@ public class StructrSSHFile implements Path {
 	public Iterator<Path> iterator() {
 
 		Path _parent = this.getParent();
-
 		final List<Path> pathElements = new ArrayList<>();
+
 		pathElements.add(this);
 
 		while (_parent != null) {
@@ -351,6 +390,7 @@ public class StructrSSHFile implements Path {
 
 	@Override
 	public int compareTo(Path path) {
+
 		logger.info("Method not implemented yet"); return 0;
 	}
 }

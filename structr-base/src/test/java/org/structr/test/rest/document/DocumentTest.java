@@ -462,10 +462,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.when()
 			.post("/Project");
 
-
-
 		// JSON output depth limits our ability to check the result here, so we need to check separately
-
 
 		RestAssured
 			.given()
@@ -539,7 +536,6 @@ public class DocumentTest extends StructrRestTestBase {
 			.when()
 			.get("/Task/test?name=Task2&_sort=name");
 
-
 		// check Task3
 		RestAssured
 			.given()
@@ -555,7 +551,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 			.get("/Task/test?name=Task3&_sort=name");
-
 
 		// check Task4
 		RestAssured
@@ -585,7 +580,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 			.get("/Task/test?name=Task4&_sort=name");
-
 
 		// check Task5
 		RestAssured
@@ -618,7 +612,6 @@ public class DocumentTest extends StructrRestTestBase {
 			.when()
 			.get("/Task/test?name=Task5&_sort=name");
 
-
 		// check Subtask5.1
 		RestAssured
 			.given()
@@ -642,7 +635,6 @@ public class DocumentTest extends StructrRestTestBase {
 			.when()
 			.get("/Task/test?name=Subtask5.1&_sort=name");
 
-
 		// check Subtask5.2
 		RestAssured
 			.given()
@@ -665,7 +657,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 			.get("/Task/test?name=Subtask5.2&_sort=name");
-
 
 		// check companies
 		RestAssured
@@ -1111,7 +1102,6 @@ public class DocumentTest extends StructrRestTestBase {
 			.when()
 			.get("/Task/test?name=Task2&_sort=name");
 
-
 		// check Task3
 		RestAssured
 			.given()
@@ -1130,7 +1120,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 			.get("/Task/test?name=Task3&_sort=name");
-
 
 		// check Task4
 		RestAssured
@@ -1247,7 +1236,6 @@ public class DocumentTest extends StructrRestTestBase {
 			.statusCode(201)
 			.when()
 			.post("/Project");
-
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.header("Structr-Force-Merge-Of-Nested-Properties", "enabled")
@@ -1393,7 +1381,6 @@ public class DocumentTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 			final JsonReferenceType rel  = project.relate(task, "HAS", Cardinality.OneToOne, "project", "task").setCascadingCreate(Cascade.sourceToTarget);
@@ -1405,13 +1392,13 @@ public class DocumentTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		final String projectId = createEntity("Project", "{ name: 'Project1' }");
 		final String taskId    = createEntity("Task",    "{ name: 'Task1' }");
-
 
 		// create data
 		RestAssured
@@ -1424,7 +1411,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 				.put("/Project/" + projectId);
-
 
 		// check result
 		RestAssured
@@ -1445,7 +1431,6 @@ public class DocumentTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 			final JsonReferenceType rel  = project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks").setCascadingCreate(Cascade.sourceToTarget);
@@ -1457,13 +1442,13 @@ public class DocumentTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		final String projectId = createEntity("Project", "{ name: 'Project1' }");
 		final String taskId    = createEntity("Task",    "{ name: 'Task1' }");
-
 
 		// create data
 		RestAssured
@@ -1506,13 +1491,13 @@ public class DocumentTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		final String parent = createEntity(StructrTraits.GROUP, "{ name: 'parent' }");
 		final String child  = createEntity(StructrTraits.GROUP, "{ name: 'child' }");
-
 
 		// create data
 		RestAssured
@@ -1833,6 +1818,7 @@ public class DocumentTest extends StructrRestTestBase {
 			if (spec.isView) {
 
 				final Set<String> view = views.computeIfAbsent(spec.key, k -> new LinkedHashSet<>());
+
 				for (final String p : spec.type.split("[, ]+")) {
 
 					view.add(p.trim());
@@ -1843,6 +1829,7 @@ public class DocumentTest extends StructrRestTestBase {
 				views.computeIfAbsent("public", k -> new LinkedHashSet<>()).add(spec.key);
 
 				if (!first) {
+
 					buf.append(", ");
 				}
 
@@ -1871,6 +1858,7 @@ public class DocumentTest extends StructrRestTestBase {
 			final String viewName = entry.getKey();
 
 			if (!first) {
+
 				buf.append(", ");
 			}
 
@@ -1892,9 +1880,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 	private String createSchemaRelationships(final String sourceId, final String targetId, final String relationshipType, final String sourceMultiplicity, final String targetMultiplicity, final String sourceJsonName, final String targetJsonName, final int autocreate, final int cascadingDelete) {
 
-		return createEntity(
-			"/SchemaRelationshipNode",
-			"{ \"sourceId\": \"" + sourceId + "\"" +
+		return createEntity("/SchemaRelationshipNode", "{ \"sourceId\": \"" + sourceId + "\"" +
 			", \"targetId\": \"" + targetId + "\"" +
 			", \"relationshipType\": \"" + relationshipType + "\"" +
 			", \"sourceMultiplicity\": \"" + sourceMultiplicity + "\"" +
@@ -1909,10 +1895,12 @@ public class DocumentTest extends StructrRestTestBase {
 	private static class PropertySpec extends SchemaSpec {
 
 		public PropertySpec(final String key, final String type) {
+
 			this(key, type, false, false);
 		}
 
 		public PropertySpec(final String key, final String type, final boolean unique, final boolean notNull) {
+
 			super(false, key, type, unique, notNull);
 		}
 	}
@@ -1920,6 +1908,7 @@ public class DocumentTest extends StructrRestTestBase {
 	private static class ViewSpec extends SchemaSpec {
 
 		public ViewSpec(final String key, final String properties) {
+
 			super(true, key, properties, false, false);
 		}
 	}
@@ -1933,6 +1922,7 @@ public class DocumentTest extends StructrRestTestBase {
 		boolean isView  = false;
 
 		public SchemaSpec(final boolean isView, final String key, final String type) {
+
 			this(isView, key, type, false, false);
 		}
 

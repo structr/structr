@@ -34,11 +34,13 @@ public class StoreFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "store";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
@@ -64,56 +66,53 @@ public class StoreFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${store(key, value)}."),
-			Usage.javaScript("Usage: ${{$.store(key, value)}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${store(key, value)}."), Usage.javaScript("Usage: ${{$.store(key, value)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Stores the given value in the current request context under the given key.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function can be used to temporarily save the results of a computation step etc. and is often used to provide 
 		some sort of "variables" in the scripting context. See `retrieve()` for the inverse operation.
 		""";
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${store('users', find('User'))}"),
-			Example.javaScript("${{ $.store('users', $.find('User')) }}")
-		);
+
+		return List.of(Example.structrScript("${store('users', find('User'))}"), Example.javaScript("${{ $.store('users', $.find('User')) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("key", "given key"),
-			Parameter.mandatory("value", "value to store")
-		);
+		return List.of(Parameter.mandatory("key", "given key"), Parameter.mandatory("value", "value to store"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

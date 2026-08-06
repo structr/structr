@@ -84,6 +84,7 @@ public class RateLimitRejectHandler implements Request.Handler {
 		this.perClient = new LinkedHashMap<>(256, 0.75f, false) {
 			@Override
 			protected boolean removeEldestEntry(final Map.Entry<String, Refusals> eldest) {
+
 				return size() > maxTracked;
 			}
 		};
@@ -95,10 +96,12 @@ public class RateLimitRejectHandler implements Request.Handler {
 	 * handler is installed, like the limiter it wraps.
 	 */
 	private long windowMs() {
+
 		return Settings.LogThrottleWindow.getValue();
 	}
 
 	private int maxLines() {
+
 		return Settings.LogThrottleMaxLines.getValue();
 	}
 
@@ -130,7 +133,6 @@ public class RateLimitRejectHandler implements Request.Handler {
 		synchronized (perClient) {
 
 			final Refusals refusals = perClient.computeIfAbsent(address, key -> new Refusals());
-
 			if (now - refusals.windowStart >= windowMs) {
 
 				refusals.windowStart = now;
@@ -150,12 +152,14 @@ public class RateLimitRejectHandler implements Request.Handler {
 		if (firstInWindow) {
 
 			if (mayLog()) {
+
 				logger.warn("Rate limit: refused {} {} from {}", request.getMethod(), path(request), address);
 			}
 
 		} else if (count == escalateAfter) {
 
 			if (mayLog()) {
+
 				logger.error("Rate limit: {} requests from {} refused within {} ms - sustained flooding from a single address. Block it at firewall or host level if it continues. Last request: {} {}, user agent: {}",
 					count, address, windowMs, request.getMethod(), path(request), userAgent(request));
 			}
@@ -180,12 +184,13 @@ public class RateLimitRejectHandler implements Request.Handler {
 		final long windowMs = windowMs();
 
 		if (maxLines <= 0) {
+
 			return true;
 		}
 
 		final int used = linesInWindow.incrementAndGet();
-
 		if (used < maxLines) {
+
 			return true;
 		}
 
@@ -237,7 +242,6 @@ public class RateLimitRejectHandler implements Request.Handler {
 		if (newClient) {
 
 			final int clients = clientsInWindow.incrementAndGet();
-
 			if (clients == distinctClients && !distributedReported) {
 
 				distributedReported = true;

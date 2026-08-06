@@ -65,6 +65,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
+
 		return config;
 	}
 
@@ -72,6 +73,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	public static String getTypeOrDefault(final NodeInterface obj, final String defaultType) {
 
 		if (obj != null) {
+
 			return obj.getType();
 		}
 
@@ -110,6 +112,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			if (content != null) {
 
 				final PagingIterable resultIterable = new PagingIterable(request.toString(), content);
+
 				if (result.getOverriddenResultCount() != null) {
 
 					resultIterable.setOverriddenResultCount(result.getOverriddenResultCount());
@@ -173,7 +176,6 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		try {
 
 			final String accept = request.getHeader(RequestHeaders.Accept.getName());
-
 			if (accept != null && accept.contains("text/html")) {
 
 				writeHtml(securityContext, response, result, baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
@@ -206,10 +208,15 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			try {
 
 				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
+
 				} else if (t instanceof IllegalStateException && t.getCause() == null && t.getMessage() == null) {
+
 					// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
+
 				} else {
+
 					logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 					logger.warn(" => Error thrown: ", t);
 				}
@@ -222,6 +229,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		} finally {
 
 			try {
+
 				response.getWriter().flush();
 				response.getWriter().close();
 
@@ -234,6 +242,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
 		final App app                          = StructrApp.getInstance(securityContext);
 		final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(view, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
+
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 
@@ -292,7 +301,9 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 		// set response headers (for Allow in 405)
 		final Map<String, String> headers = fex.headers();
+
 		for (final String header : headers.keySet()) {
+
 			response.addHeader(header, headers.get(header));
 		}
 

@@ -59,7 +59,6 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				if(rel.getUuid() != null) {
 
 					final Relationship dbRel = rel.getRelationship();
-
 					if (dbRel.hasProperty(sourceKey)) {
 
 						dbRel.setProperty(destKey, dbRel.getProperty(sourceKey));
@@ -71,11 +70,13 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 			@Override
 			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+
 				logger.warn("Unable to copy relationship properties of relationship {}: {}", rel.getUuid(), t.getMessage());
 			}
 
 			@Override
 			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
 				logger.warn("Unable to copy relationship properties: {}", t.getMessage() );
 			}
 		});
@@ -85,71 +86,80 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
-
 	@Override
 	public String getName() {
+
 		return "copyRelationshipProperties";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Copies property values from one key to another on all relationships.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("sourceKey", "Source property key"),
-			Parameter.mandatory("destKey", "Destination property key")
-		);
+
+		return List.of(Parameter.mandatory("sourceKey", "Source property key"), Parameter.mandatory("destKey", "Destination property key"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

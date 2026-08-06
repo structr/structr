@@ -82,10 +82,12 @@ public final class PrincipalExpressionResolver {
 	public List<NodeInterface> resolveAll(final String expressionBody, final String contextLabel) throws FrameworkException {
 
 		final List<NodeInterface> result = new LinkedList<>();
+
 		if (expressionBody == null) {
 
 			return result;
 		}
+
 		final String trimmed = expressionBody.trim();
 		if (trimmed.isEmpty()) {
 
@@ -99,12 +101,14 @@ public final class PrincipalExpressionResolver {
 
 				continue;
 			}
+
 			final NodeInterface resolved = resolveOne(entry, contextLabel);
 			if (resolved != null) {
 
 				result.add(resolved);
 			}
 		}
+
 		return result;
 	}
 
@@ -120,10 +124,12 @@ public final class PrincipalExpressionResolver {
 
 			final Traits instTraits = processInstance.getTraits();
 			final NodeInterface initiator = processInstance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY));
+
 			if (initiator == null) {
 
 				logger.warn("Expression '${{initiator}}' in {} resolved to null (process instance has no recorded initiator).", contextLabel);
 			}
+
 			return initiator;
 		}
 
@@ -135,9 +141,11 @@ public final class PrincipalExpressionResolver {
 			final String name = m.group(2).trim();
 			final String typeName = "user".equals(kind) ? StructrTraits.USER : StructrTraits.GROUP;
 			final List<NodeInterface> matches = app.nodeQuery(typeName).name(name).getAsList();
+
 			if (matches.isEmpty()) {
 
 				logger.warn("Expression '{}' in {} did not resolve: no {} named '{}'", entry, contextLabel, kind, name);
+
 				return null;
 			}
 
@@ -148,16 +156,13 @@ public final class PrincipalExpressionResolver {
 				// wrong principal, so make the ambiguity visible rather than
 				// silently choosing one.
 				logger.warn("Expression '{}' in {} is ambiguous: {} {}s named '{}' exist; using the first match ({}). "
-					+ "Use a unique name or ${{initiator}} to make the assignment deterministic.",
-					entry, contextLabel, matches.size(), kind, name, matches.get(0).getUuid());
+					+ "Use a unique name or ${{initiator}} to make the assignment deterministic.", entry, contextLabel, matches.size(), kind, name, matches.get(0).getUuid());
 			}
 
 			return matches.get(0);
 		}
 
-		throw new FrameworkException(422,
-			"Invalid principal expression '" + entry + "' in " + contextLabel +
-			". Expected one of: ${initiator}, user(<name>), group(<name>)."
-		);
+		throw new FrameworkException(422, "Invalid principal expression '" + entry + "' in " + contextLabel +
+			". Expected one of: ${initiator}, user(<name>), group(<name>).");
 	}
 }

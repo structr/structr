@@ -31,16 +31,19 @@ import java.util.List;
 public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 	public MailSelectConfigFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailSelectConfig";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name");
 	}
 
@@ -63,25 +66,26 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailSelectConfig(name)}"),
-			Usage.javaScript("Usage: ${{ $.mailSelectConfig(name) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailSelectConfig(name)}"), Usage.javaScript("Usage: ${{ $.mailSelectConfig(name) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Selects a configuration prefix for the SMTP configuration.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				Allows selecting a different SMTP configuration (as configured in structr.conf) for the current outgoing mail.
 				
@@ -91,13 +95,13 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("name", "name prefix to use for lookup in configuration")
-		);
+
+		return List.of(Parameter.mandatory("name", "name prefix to use for lookup in configuration"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"A selected configuration can be removed by calling `mailSelectConfig()` without parameters or with `null` or `\"\"` as parameter.",
 				"A manual configuration (see `mailSetManualConfig()`) overrides a selected configuration which overrides the default configuration."
@@ -106,6 +110,7 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${mailSelectConfig('myDifferentConfig')}

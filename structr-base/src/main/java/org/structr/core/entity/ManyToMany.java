@@ -32,11 +32,13 @@ public abstract class ManyToMany extends AbstractRelation implements Relation<Ma
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
+
 		return Multiplicity.Many;
 	}
 
 	@Override
 	public Multiplicity getTargetMultiplicity() {
+
 		return Multiplicity.Many;
 	}
 
@@ -72,10 +74,7 @@ public abstract class ManyToMany extends AbstractRelation implements Relation<Ma
 
 			final String message = "Relationship already exists from " + sourceNode.getType() + "(" + sourceNode.getUuid() + ") " + sourceNode.getName() + " to " + targetNode.getType() + " (" + targetNode.getUuid() + ") " + targetNode.getName();
 
-			throw new FrameworkException(422, message, new DuplicateRelationshipToken(
-				getClass().getSimpleName(),
-				message
-			));
+			throw new FrameworkException(422, message, new DuplicateRelationshipToken(getClass().getSimpleName(), message));
 		}
 	}
 
@@ -94,6 +93,7 @@ public abstract class ManyToMany extends AbstractRelation implements Relation<Ma
 
 	@Override
 	public Direction getDirectionForType(String type) {
+
 		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 }

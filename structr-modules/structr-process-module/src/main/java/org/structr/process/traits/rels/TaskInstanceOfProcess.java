@@ -42,76 +42,91 @@ import org.structr.process.ProcessTraits;
 public class TaskInstanceOfProcess extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public TaskInstanceOfProcess() {
+
 		super(ProcessTraits.TASK_INSTANCE_OF_PROCESS);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return ProcessTraits.TASK_INSTANCE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return ProcessTraits.PROCESS_INSTANCE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "TASK_OF";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.TARGET_TO_SOURCE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.In;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public String getDeltaProperties() {
+
 		return null;
 	}
 }

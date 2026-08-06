@@ -77,6 +77,7 @@ public interface SchemaMethod extends NodeInterface {
 		// - lifecycle methods can never be static
 		// - lifecycle methods are never callable via REST
 		if (isLifecycleMethod()) {
+
 			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), false);
 			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY), true);
 		}
@@ -84,11 +85,13 @@ public interface SchemaMethod extends NodeInterface {
 		// - service class methods must be static
 		// - user-defined functions must also be static
 		if (!isTypeMethod || isServiceClassMethod) {
+
 			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true);
 		}
 
 		// a method which is not callable via REST should not be present in OpenAPI
 		if (isPrivateMethod() == true) {
+
 			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), false);
 		}
 	}

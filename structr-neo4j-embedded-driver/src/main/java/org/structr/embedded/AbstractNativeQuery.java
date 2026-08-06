@@ -31,12 +31,14 @@ public abstract class AbstractNativeQuery<T> implements NativeQuery<T> {
 	protected String query                         = null;
 
 	public AbstractNativeQuery(final String query) {
+
 		this.query = query;
 	}
 
 	abstract T execute(final EmbeddedTransaction tx);
 
 	public String getQuery() {
+
 		return query;
 	}
 
@@ -44,6 +46,7 @@ public abstract class AbstractNativeQuery<T> implements NativeQuery<T> {
 	public void configure(final Map<String, Object> config) {
 
 		if (config != null) {
+
 			parameters.putAll(config);
 		}
 	}

@@ -41,36 +41,43 @@ public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements 
 	public static final String MDC_SCRATCHPAD_TAG = "structrScratchMDC";
 
 	public ScratchpadTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getSource() {
+
 		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.SOURCE_PROPERTY));
 	}
 
 	@Override
 	public String getResult() {
+
 		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.RESULT_PROPERTY));
 	}
 
 	@Override
 	public String getLog() {
+
 		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.LOG_PROPERTY));
 	}
 
 	@Override
 	public Long getLastRunTimestamp() {
+
 		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.LAST_RUN_TIMESTAMP_PROPERTY));
 	}
 
 	@Override
 	public boolean getCollapsed() {
+
 		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.COLLAPSED_PROPERTY));
 	}
 
 	@Override
 	public void setLastRunTimestamp(final Long timestamp) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ScratchpadTraitDefinition.LAST_RUN_TIMESTAMP_PROPERTY), timestamp);
 	}
 
@@ -90,6 +97,7 @@ public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 		final Long lastRunTimestamp = getLastRunTimestamp();
 		if (lastRunTimestamp == null) {
+
 			return "";
 		}
 

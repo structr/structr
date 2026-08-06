@@ -32,38 +32,47 @@ public class Example {
 	}
 
 	public String getText() {
+
 		return text;
 	}
 
 	public String getTitle() {
+
 		return title;
 	}
 
 	public Language getLanguage() {
+
 		return language;
 	}
 
 	public static Example javaScript(final String example) {
+
 		return new Example(example, null, Language.JavaScript);
 	}
 
 	public static Example javaScript(final String example, final String title) {
+
 		return new Example(example, title, Language.JavaScript);
 	}
 
 	public static Example structrScript(final String text, final String title) {
+
 		return new Example(text, title, Language.StructrScript);
 	}
 
 	public static Example structrScript(final String text) {
+
 		return new Example(text, null, Language.StructrScript);
 	}
 
 	public static Example html(final String text, final String title) {
+
 		return new Example(text, title, Language.Html);
 	}
 
 	public static Example html(final String text) {
+
 		return new Example(text, null, Language.Html);
 	}
 }

@@ -30,16 +30,17 @@ import org.structr.schema.action.ActionContext;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class TitleizeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "titleize";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str");
 	}
 
@@ -47,18 +48,25 @@ public class TitleizeFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length == 0 || (sources.length > 0 && sources[0] == null) || (sources.length > 0 && sources[0] != null && StringUtils.isBlank(sources[0].toString()))) {
+
 			return null;
 		}
 
 		if (sources.length > 2) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
 		final String separator;
+
 		if (sources.length == 1) {
+
 			separator = " ";
+
 		} else {
+
 			separator = sources[1].toString();
 		}
 
@@ -67,24 +75,25 @@ public class TitleizeFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.titleize(string, separator) }}"),
-			Usage.structrScript("Usage: ${titleize(string, separator)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.titleize(string, separator) }}"), Usage.structrScript("Usage: ${titleize(string, separator)}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Titleizes the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${titleize('structr has a lot of built-in functions')}
@@ -100,14 +109,12 @@ public class TitleizeFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("string", "URL to connect to"),
-				Parameter.optional("separatorChars", "string separator (default: ` `)")
-				);
+		return List.of(Parameter.mandatory("string", "URL to connect to"), Parameter.optional("separatorChars", "string separator (default: ` `)"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 

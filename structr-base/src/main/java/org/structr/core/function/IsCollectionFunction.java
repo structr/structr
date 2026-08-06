@@ -31,11 +31,13 @@ public class IsCollectionFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "isCollection";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
@@ -51,50 +53,50 @@ public class IsCollectionFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return false;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${isCollection(value)}"),
-				Usage.javaScript("Usage: ${{ $.isCollection(value) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${isCollection(value)}"), Usage.javaScript("Usage: ${{ $.isCollection(value) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given argument is a collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("value", "value to check")
-		);
+		return List.of(Parameter.mandatory("value", "value to check"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${isCollection(this)}")
-		);
+
+		return List.of(Example.structrScript("${isCollection(this)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

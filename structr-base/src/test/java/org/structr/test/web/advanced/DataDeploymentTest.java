@@ -92,10 +92,10 @@ public class DataDeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 
 		try {
 
@@ -116,6 +116,7 @@ public class DataDeploymentTest extends StructrUiTest {
 			deleteExportAt(exportPath);
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -136,6 +137,7 @@ public class DataDeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -173,6 +175,7 @@ public class DataDeploymentTest extends StructrUiTest {
 	}
 
 	protected void deleteExportAt(final Path path) throws IOException {
+
 		Files.walkFileTree(path, new DeploymentTestBase.DeletingFileVisitor());
 	}
 }

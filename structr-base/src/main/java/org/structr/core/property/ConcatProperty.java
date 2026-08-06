@@ -49,47 +49,56 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
 	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+
 		return StringUtils.join(propertyKeys.stream().map(k -> obj.getProperty(k)).toList(), separator);
 	}
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return String.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return "concatenated string";
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -106,6 +115,7 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 			map.put("example", getExampleValue(1));
 
 			if (this.readOnly) {
+
 				map.put("readOnly", true);
 			}
 		}

@@ -43,16 +43,19 @@ public class RelationshipTypeProperty extends StringProperty {
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return String.class;
 	}
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -69,36 +72,43 @@ public class RelationshipTypeProperty extends StringProperty {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public String typeName() {
+
 		return ""; // read-only
 	}
 
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
+
 		return value;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 }

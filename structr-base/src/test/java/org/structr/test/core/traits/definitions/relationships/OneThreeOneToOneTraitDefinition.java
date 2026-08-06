@@ -25,46 +25,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class OneThreeOneToOneTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public OneThreeOneToOneTraitDefinition() {
+
 		super("OneThreeOneToOne");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestOne";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestThree";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "OWNS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

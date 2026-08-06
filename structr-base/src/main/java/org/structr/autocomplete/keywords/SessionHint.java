@@ -27,16 +27,19 @@ public class SessionHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "session";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the current HTTP session.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			The `session` keyword allows you to access the HTTP session, store data in it and query session metadata like the session ID, the creation time etc.
 			
@@ -53,8 +56,8 @@ public class SessionHint extends GeneralKeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${log(session.id)}", "Log the session ID of the current request"),
+
+		return List.of(Example.structrScript("${log(session.id)}", "Log the session ID of the current request"),
 			Example.javaScript("""
 			${{
 				$.session.myData = 'test';
@@ -66,8 +69,7 @@ public class SessionHint extends GeneralKeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
-		);
+
+		return List.of("Only available in a context where Structr is responding to an HTTP request from the outside.");
 	}
 }

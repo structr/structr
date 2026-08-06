@@ -34,11 +34,13 @@ public class SubstringFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "substring";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str, start [, length ]");
 	}
 
@@ -67,6 +69,7 @@ public class SubstringFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -75,28 +78,28 @@ public class SubstringFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.substring(string, start [, length ]) }}."),
-			Usage.structrScript("Usage: ${substring(string, start [, length ])}.")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.substring(string, start [, length ]) }}."), Usage.structrScript("Usage: ${substring(string, start [, length ])}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the substring of the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Returns a portion with the given length of the given string, starting from the given start index. 
 		If no length parameter is given or the length would exceed the string length (calculated from the start index), the rest of the string is returned.
 		""";
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("""
 				${substring('This is my test', 2)}
@@ -106,22 +109,18 @@ public class SubstringFunction extends CoreFunction {
 				${substring('This is my test', 8, 100)}
 				> my test
 				"""),
-		Example.javaScript("${{ $.substring('This is my test', 2) }}")
-		);
+		Example.javaScript("${{ $.substring('This is my test', 2) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("string", "URL to connect to"),
-			Parameter.mandatory("start", "URL to connect to"),
-			Parameter.optional("length", "length of string from start")
-		);
+		return List.of(Parameter.mandatory("string", "URL to connect to"), Parameter.mandatory("start", "URL to connect to"), Parameter.optional("length", "length of string from start"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

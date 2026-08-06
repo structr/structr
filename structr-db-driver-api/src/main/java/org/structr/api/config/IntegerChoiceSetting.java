@@ -32,10 +32,12 @@ public class IntegerChoiceSetting extends IntegerSetting {
 	private final Map<Integer, String> choices = new LinkedHashMap<>();
 
 	public IntegerChoiceSetting(final SettingsGroup group, final String groupName, final String key, final Integer value, final Map<Integer, String> choices) {
+
 		this(group, groupName, key, value, choices, null);
 	}
 
 	public IntegerChoiceSetting(final SettingsGroup group, final String groupName, final String key, final Integer value, final Map<Integer, String> choices, final String comment) {
+
 		super(group, groupName, key, value, comment);
 
 		this.choices.putAll(choices);
@@ -49,7 +51,6 @@ public class IntegerChoiceSetting extends IntegerSetting {
 		renderLabel(group);
 
 		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
-
 		final Tag select = settingInputContainer.block("select").attr(new Attr("name", getKey()));
 
 		for (final Map.Entry<Integer, String> entry : choices.entrySet()) {
@@ -59,6 +60,7 @@ public class IntegerChoiceSetting extends IntegerSetting {
 
 			// selected?
 			if (entry.getKey().equals(getValue())) {
+
 				option.attr(new Attr("selected", "selected"));
 			}
 		}

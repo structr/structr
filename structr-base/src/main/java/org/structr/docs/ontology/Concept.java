@@ -65,40 +65,49 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public String getId() {
+
 		return "concept" + StringUtils.leftPad(String.valueOf(id), 5, '0');
 	}
 
 	@Override
 	public String toString() {
+
 		return type + "(" + getName() + ")";
 	}
 
 	@Override
 	public int compareTo(final Concept o) {
+
 		return getName().compareTo(o.getName());
 	}
 
 	public String getNameTypeAndLinks() {
+
 		return type + "(" + getName() + ")";
 	}
 
 	public ConceptType getType() {
+
 		return type;
 	}
 
 	public void setType(final ConceptType type) {
+
 		this.type = type;
 	}
 
 	public String getName() {
+
 		return name;
 	}
 
 	public Set<AbstractToken> getTokens() {
+
 		return tokens;
 	}
 
 	public Ontology getOntology() {
+
 		return ontology;
 	}
 
@@ -161,10 +170,12 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public Map<Verb, List<Link>> getChildLinks() {
+
 		return ontology.getOutgoingLinks(this);
 	}
 
 	public List<Link> getChildLinks(final Verb verb) {
+
 		return ontology.getOutgoingLinks(this, verb);
 	}
 
@@ -178,8 +189,8 @@ public final class Concept implements Comparable<Concept> {
 			for (final Link link : list) {
 
 				final Concept child = link.getTarget();
-
 				if (child.getType().equals(conceptType)) {
+
 					result.add(child);
 				}
 			}
@@ -203,18 +214,22 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public Map<Verb, List<Link>> getParentLinks() {
+
 		return ontology.getIncomingLinks(this);
 	}
 
 	public List<Link> getParentLinks(final Verb verb) {
+
 		return ontology.getIncomingLinks(this, verb);
 	}
 
 	public Map<String, Object> getMetadata() {
+
 		return metadata;
 	}
 
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 
@@ -230,10 +245,12 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public void setDocumentable(final Documentable documentable) {
+
 		this.documentable = documentable;
 	}
 
 	public Documentable getDocumentable() {
+
 		return documentable;
 	}
 
@@ -256,16 +273,19 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public boolean isTopic() {
+
 		return ConceptType.Topic.equals(type);
 	}
 
 	public int getTotalChildCount() {
+
 		return getTotalChildCount(this, new LinkedHashSet<>(), 0);
 	}
 
 	private int getTotalChildCount(final Concept concept, final Set<String> visited, final int level) {
 
 		if (!visited.add(concept.getName())) {
+
 			return 0;
 		}
 
@@ -278,6 +298,7 @@ public final class Concept implements Comparable<Concept> {
 			for (final Link childLink : child) {
 
 				if (childLink == null) {
+
 					throw new RuntimeException("Empty child link in children of " + getName() + ".");
 				}
 
@@ -296,6 +317,7 @@ public final class Concept implements Comparable<Concept> {
 			for (final Link link : list) {
 
 				if (link.getTarget().equals(concept)) {
+
 					return true;
 				}
 			}
@@ -312,6 +334,7 @@ public final class Concept implements Comparable<Concept> {
 			for (final Link link : list) {
 
 				if (type.equals(link.getTarget().getType())) {
+
 					return true;
 				}
 			}
@@ -328,6 +351,7 @@ public final class Concept implements Comparable<Concept> {
 			for (final Link link : list) {
 
 				if (link.getSource().equals(concept)) {
+
 					return true;
 				}
 			}
@@ -366,7 +390,6 @@ public final class Concept implements Comparable<Concept> {
 		if (metadata.containsKey("description")) {
 
 			final String desc = (String) metadata.get("description");
-
 			if (desc != null && desc.toLowerCase().contains(searchString)) {
 
 				score += SHORT_DESC_MATCH_SCORE;
@@ -377,7 +400,6 @@ public final class Concept implements Comparable<Concept> {
 		if (metadata.containsKey("content")) {
 
 			final String content = (String) metadata.get("content");
-
 			if (content != null && content.toLowerCase().contains(searchString)) {
 
 				score += SHORT_DESC_MATCH_SCORE;
@@ -410,6 +432,7 @@ public final class Concept implements Comparable<Concept> {
 
 		final Map<Verb, List<Link>> parents = getParentLinks();
 		if (parents.isEmpty()) {
+
 			return true;
 		}
 
@@ -418,6 +441,7 @@ public final class Concept implements Comparable<Concept> {
 			for (final Link parentLink : entry.getValue()) {
 
 				if ("Structr".equals(parentLink.getSource().getName())) {
+
 					return true;
 				}
 			}
@@ -444,9 +468,11 @@ public final class Concept implements Comparable<Concept> {
 	public Concept getChildWithName(final String name) {
 
 		final List<Link> list = getChildLinks(Verb.Has);
+
 		for (final Link link : list) {
 
 			if (link.getTarget().getName().equals(name)) {
+
 				return link.getTarget();
 			}
 		}
@@ -465,11 +491,7 @@ public final class Concept implements Comparable<Concept> {
 				final Token token = abstractToken.getToken();
 				if (token != null) {
 
-					references.add(Map.of(
-						"sourceFile", token.getSource(),
-						"row",        token.getRow(),
-						"column",     token.getColumn()
-					));
+					references.add(Map.of("sourceFile", token.getSource(), "row",        token.getRow(), "column",     token.getColumn()));
 				}
 			}
 		}
@@ -515,6 +537,7 @@ public final class Concept implements Comparable<Concept> {
 					Files.writeString(Path.of(folder, fileName), value);
 
 				} catch (IOException ioex) {
+
 					ioex.printStackTrace();
 				}
 			}
@@ -561,6 +584,7 @@ public final class Concept implements Comparable<Concept> {
 										descriptionToken.updateContent("content", fileName);
 
 									} catch (IOException ioex) {
+
 										ioex.printStackTrace();
 									}
 
@@ -589,6 +613,7 @@ public final class Concept implements Comparable<Concept> {
 			if (current.getParent() == null) {
 
 				if (levelConsumer != null) {
+
 					levelConsumer.accept(level);
 				}
 
@@ -649,6 +674,7 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public String getSnippetName(final int index) {
+
 		return "snippets/" + this.getName() + " - " + StringUtils.leftPad(Integer.toString(index), 3, "0") + ".md";
 	}
 
@@ -657,6 +683,7 @@ public final class Concept implements Comparable<Concept> {
 		for (final Link link : getChildLinks(verb)) {
 
 			if (link.getTarget().equals(concept)) {
+
 				return link;
 			}
 		}
@@ -670,6 +697,7 @@ public final class Concept implements Comparable<Concept> {
 		for (final ConceptType type : ConceptType.values()) {
 
 			if (type.getIdentifier().equals(name)) {
+
 				return true;
 			}
 		}
@@ -682,6 +710,7 @@ public final class Concept implements Comparable<Concept> {
 		for (final ConceptType type : ConceptType.values()) {
 
 			if (type.getIdentifier().equals(name)) {
+
 				return type;
 			}
 		}
@@ -690,6 +719,7 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public static Concept create(final Ontology ontology, final AbstractToken token, final ConceptType type, final String name) {
+
 		return new Concept(ontology, token, type, name);
 	}
 
@@ -700,10 +730,12 @@ public final class Concept implements Comparable<Concept> {
 
 		@Override
 		public void accept(final Integer value) {
+
 			this.value = value;
 		}
 
 		public Integer getValue() {
+
 			return value;
 		}
 	}

@@ -33,7 +33,6 @@ public class PlaintextTopicFormatter extends Formatter {
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
 		final Concept concept = link.getTarget();
-
 		if (settings.hasDetail(Details.name) && !ConceptType.Text.equals(concept.getType())) {
 
 			//final String text = (link != null ? link + " " : "") + concept.getType() + " \"" + concept.getName() + "\" from " + concept.getSourceFile() + ":" + concept.getLineNumber();

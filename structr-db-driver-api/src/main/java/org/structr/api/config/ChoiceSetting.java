@@ -35,16 +35,19 @@ public class ChoiceSetting extends StringSetting {
 	private final Map<String, String> choices = new LinkedHashMap<>();
 
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices) {
+
 		this(group, categoryName, key, value, choices, null);
 	}
 
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 
 		this.choices.putAll(choices.stream().collect(Collectors.toMap(Function.identity(), Function.identity(), (a, b) -> a, LinkedHashMap::new)));
 	}
 
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Map<String, String> choicesMap, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 
 		this.choices.putAll(choicesMap);
@@ -58,7 +61,6 @@ public class ChoiceSetting extends StringSetting {
 		renderLabel(group);
 
 		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
-
 		final Tag select = settingInputContainer.block("select").attr(new Attr("name", getKey()));
 
 		for (final Map.Entry<String, String> entry : choices.entrySet()) {
@@ -67,6 +69,7 @@ public class ChoiceSetting extends StringSetting {
 
 			// selected?
 			if (entry.getKey().equals(getValue())) {
+
 				option.attr(new Attr("selected", "selected"));
 			}
 		}

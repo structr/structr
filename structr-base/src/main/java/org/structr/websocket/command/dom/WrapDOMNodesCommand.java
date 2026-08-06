@@ -62,13 +62,17 @@ public class WrapDOMNodesCommand extends CreateAndAppendDOMNodeCommand {
 		nodeData.remove("inheritGrantees");
 
 		if (pageId == null) {
+
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot wrap nodes without pageId").build(), true);
+
 			return;
 		}
 
 		// guard before splitting, so a missing nodeIds returns 422 instead of an NPE
 		if (nodeIdsRaw == null || nodeIdsRaw.isBlank()) {
+
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot wrap nodes without nodeIds").build(), true);
+
 			return;
 		}
 
@@ -77,7 +81,9 @@ public class WrapDOMNodesCommand extends CreateAndAppendDOMNodeCommand {
 				.toList();
 
 		if (nodeIds.isEmpty()) {
+
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot wrap nodes without nodeIds").build(), true);
+
 			return;
 		}
 
@@ -89,20 +95,28 @@ public class WrapDOMNodesCommand extends CreateAndAppendDOMNodeCommand {
 
 			final DOMNode node = getDOMNode(nodeId);
 			if (node == null) {
+
 				getWebSocket().send(MessageBuilder.status().code(404).message("Node " + nodeId + " not found").build(), true);
+
 				return;
 			}
 
 			final DOMNode parent = node.getParent();
 			if (parent == null) {
+
 				getWebSocket().send(MessageBuilder.status().code(422).message("Node " + nodeId + " has no parent node").build(), true);
+
 				return;
 			}
 
 			if (commonParent == null) {
+
 				commonParent = parent;
+
 			} else if (!commonParent.getUuid().equals(parent.getUuid())) {
+
 				getWebSocket().send(MessageBuilder.status().code(422).message("All nodes to wrap must share the same parent").build(), true);
+
 				return;
 			}
 
@@ -111,18 +125,23 @@ public class WrapDOMNodesCommand extends CreateAndAppendDOMNodeCommand {
 
 		final Page document = getPage(pageId);
 		if (document == null) {
+
 			getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);
+
 			return;
 		}
 
 		DOMNode newNode = CreateAndAppendDOMNodeCommand.createNewNode(getWebSocket(), tagName, document);
 		if (newNode == null) {
+
 			return;
 		}
 
 		// re-instantiate to get the correct type
 		newNode = getDOMNode(newNode.getUuid());
+
 		if (newNode == null) {
+
 			return;
 		}
 
@@ -134,14 +153,17 @@ public class WrapDOMNodesCommand extends CreateAndAppendDOMNodeCommand {
 			commonParent.replaceChild(newNode, firstNode);
 
 			for (final DOMNode oldNode : domNodes) {
+
 				newNode.appendChild(oldNode);
 			}
 
 			if (inheritVisibilityFlags) {
+
 				copyVisibilityFlags(commonParent, newNode);
 			}
 
 			if (inheritGrantees) {
+
 				copyGrantees(commonParent, newNode);
 			}
 
@@ -158,11 +180,13 @@ public class WrapDOMNodesCommand extends CreateAndAppendDOMNodeCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "WRAP_DOM_NODES";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 }

@@ -39,11 +39,13 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 	private GraphQuery graphQuery = null;
 
 	public GraphPredicate(final GraphQuery graphQuery) {
+
 		this.graphQuery = graphQuery;
 	}
 
 	@Override
 	public String toString() {
+
 		return "GRAPH(" + graphQuery + ")";
 	}
 
@@ -78,7 +80,9 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 					}
 
 					if (graphQuery.isAny()) {
+
 						// pre-filter: actual must be a subset of expected; includeInResult() does the final check
+
 						return !actual.isEmpty() && expected.containsAll(actual);
 					}
 
@@ -98,9 +102,11 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 					}
 
 					if (graphQuery.isAny()) {
+
 						// pre-filter: at least one actual value must be in expected; includeInResult() does the final check
 						final Set<Object> intersection = new LinkedHashSet<>(actual);
 						intersection.retainAll(expected);
+
 						return !intersection.isEmpty();
 					}
 
@@ -122,6 +128,7 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 									final boolean contains    = lowerValue.contains(expectedString);
 
 									if (contains) {
+
 										return true;
 									}
 								}
@@ -145,6 +152,7 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 	private Object getPrimitiveValue(final Object value) {
 
 		if (value instanceof Number n) {
+
 			return n.doubleValue();
 		}
 

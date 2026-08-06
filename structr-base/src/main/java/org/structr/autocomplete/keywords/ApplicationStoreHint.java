@@ -27,21 +27,25 @@ public class ApplicationStoreHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "applicationStore";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Application-wide data store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The application store can be used to store data in-memory as long as the instance is running. It can be accessed like a simple JavaScript object and can store primitive data and objects / arrays. Do NOT use the application store to store nodes or relationships since those are transaction-bound and cannot be cached.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			${{
@@ -56,6 +60,7 @@ public class ApplicationStoreHint extends GeneralKeywordHint {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"Do NOT use the application store to store nodes or relationships since those are transaction-bound and cannot be cached.",
 			"The keyword was introduced in version 4.0 and is not available in 3.x releases.",

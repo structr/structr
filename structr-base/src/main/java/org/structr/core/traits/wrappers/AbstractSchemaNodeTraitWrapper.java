@@ -42,11 +42,13 @@ import java.util.*;
 public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper implements AbstractSchemaNode {
 
 	public AbstractSchemaNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
@@ -110,6 +112,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 		for (final SchemaMethod method : getSchemaMethods()) {
 
 			if (name.equals(method.getName())) {
+
 				return method;
 			}
 		}
@@ -125,6 +128,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 		for (final SchemaMethod method : getSchemaMethods()) {
 
 			if (name.equals(method.getName())) {
+
 				result.add(method);
 			}
 		}
@@ -138,6 +142,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 		for (final SchemaProperty property : getSchemaProperties()) {
 
 			if (name.equals(property.getName())) {
+
 				return property;
 			}
 		}
@@ -151,6 +156,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 		for (final SchemaView view : getSchemaViews()) {
 
 			if (name.equals(view.getName())) {
+
 				return view;
 			}
 		}
@@ -160,66 +166,79 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 
 	@Override
 	public String getSummary() {
+
 		return wrappedObject.getProperty(traits.key(AbstractSchemaNodeTraitDefinition.SUMMARY_PROPERTY));
 	}
 
 	@Override
 	public String getIcon() {
+
 		return wrappedObject.getProperty(traits.key(AbstractSchemaNodeTraitDefinition.ICON_PROPERTY));
 	}
 
 	@Override
 	public String getDescription() {
+
 		return wrappedObject.getProperty(traits.key(AbstractSchemaNodeTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public String getCategory() {
+
 		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.CATEGORY_PROPERTY));
 	}
 
 	@Override
 	public String getClassName() {
+
 		return getName();
 	}
 
 	@Override
 	public String getDefaultSortKey() {
+
 		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.DEFAULT_SORT_KEY_PROPERTY));
 	}
 
 	@Override
 	public String getDefaultSortOrder() {
+
 		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.DEFAULT_SORT_ORDER_PROPERTY));
 	}
 
 	@Override
 	public boolean isInterface() {
+
 		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.IS_INTERFACE_PROPERTY));
 	}
 
 	@Override
 	public boolean isAbstract() {
+
 		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.IS_ABSTRACT_PROPERTY));
 	}
 
 	@Override
 	public boolean isServiceClass() {
+
 		return wrappedObject.getProperty(traits.key(AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY));
 	}
 
 	@Override
 	public boolean changelogDisabled() {
+
 		return wrappedObject.getProperty(traits.key(AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY));
 	}
 
 	@Override
 	public boolean includeInOpenAPI() {
+
 		return wrappedObject.getProperty(traits.key(AbstractSchemaNodeTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY));
 	}
 
 	@Override
 	public String[] getTags() {
+
 		return wrappedObject.getProperty(traits.key(AbstractSchemaNodeTraitDefinition.TAGS_PROPERTY));
 	}
 

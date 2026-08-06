@@ -37,12 +37,14 @@ public class Ranges {
 	public Ranges(final String spec) {
 
 		if (StringUtils.isBlank(spec)) {
+
 			throw new IllegalArgumentException("Range specification must not be empty");
 		}
 
 		for (final String range : spec.trim().split("[,]+")) {
 
 			if (StringUtils.isNotBlank(range)) {
+
 				handleRange(range);
 			}
 		}
@@ -53,6 +55,7 @@ public class Ranges {
 		for (final Range range : ranges) {
 
 			if (range.contains(index)) {
+
 				return true;
 			}
 		}
@@ -73,6 +76,7 @@ public class Ranges {
 
 					ranges.add(new Range(singleNumber, singleNumber));
 				}
+
 				break;
 
 			case 2:
@@ -88,6 +92,7 @@ public class Ranges {
 
 					throw new IllegalArgumentException("Range must have two boundaries");
 				}
+
 				break;
 
 			default:
@@ -102,6 +107,7 @@ public class Ranges {
 			return Integer.parseInt(src.trim());
 
 		} catch (NumberFormatException nex) {
+
 			logger.warn("Invalid range specification, unable to parse {}, ignoring.", src);
 		}
 
@@ -117,10 +123,12 @@ public class Ranges {
 		public Range(final int first, final int last) {
 
 			if (first < 0 || last < 0) {
+
 				throw new IllegalArgumentException("Range boundary must not be negative");
 			}
 
 			if (first > last) {
+
 				throw new IllegalArgumentException("Range boundaries must be in ascending order");
 			}
 
@@ -129,6 +137,7 @@ public class Ranges {
 		}
 
 		public boolean contains(final int number) {
+
 			return (number >= first && number <= last);
 		}
 	}

@@ -66,7 +66,6 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 	public void testConditionalFlowExportsWithoutXsiInNamespaceDeclarations() {
 
 		final String defUuid = importDef("/simple-approval.bpmn");
-
 		Throwable thrown = null;
 		String exported  = null;
 
@@ -76,8 +75,7 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 			final Traits t              = defNode.getTraits();
 
 			// Simulate a natively-authored definition: namespace map WITHOUT xmlns:xsi.
-			defNode.setProperty(t.key(BpmnDefinitionsTraitDefinition.NAMESPACE_DECLARATIONS),
-				"{\"xmlns:bpmn\":\"http://www.omg.org/spec/BPMN/20100524/MODEL\"}");
+			defNode.setProperty(t.key(BpmnDefinitionsTraitDefinition.NAMESPACE_DECLARATIONS), "{\"xmlns:bpmn\":\"http://www.omg.org/spec/BPMN/20100524/MODEL\"}");
 
 			exported = new BpmnExporter().exportBpmn(defNode.as(BpmnDefinitions.class));
 
@@ -129,15 +127,14 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 
 		final Document doc     = parseXml(exported);
 		final Element userTask = (Element) doc.getElementsByTagNameNS(BPMN_NS, "userTask").item(0);
+
 		assertNotNull("exported XML should contain a userTask", userTask);
 
 		final int docIdx = firstChildIndex(userTask, "documentation");
 		final int extIdx = firstChildIndex(userTask, "extensionElements");
 
-		assertTrue("EXP-2: userTask must contain both <documentation> and <extensionElements> (doc=" + docIdx + ", ext=" + extIdx + ")",
-			docIdx >= 0 && extIdx >= 0);
-		assertTrue("EXP-2: <documentation> must appear before <extensionElements> per BPMN tBaseElement (doc=" + docIdx + ", ext=" + extIdx + ")",
-			docIdx < extIdx);
+		assertTrue("EXP-2: userTask must contain both <documentation> and <extensionElements> (doc=" + docIdx + ", ext=" + extIdx + ")", docIdx >= 0 && extIdx >= 0);
+		assertTrue("EXP-2: <documentation> must appear before <extensionElements> per BPMN tBaseElement (doc=" + docIdx + ", ext=" + extIdx + ")", docIdx < extIdx);
 	}
 
 	/**
@@ -151,7 +148,6 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 	public void testMalformedBpmnAttributesDoesNotAbortExport() {
 
 		final String defUuid = importDef("/simple-approval.bpmn");
-
 		Throwable thrown = null;
 		String exported  = null;
 
@@ -187,7 +183,6 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 	public void testDiLabelBoundsMissingDimensionsDoesNotCrash() {
 
 		final String defUuid = importDef("/simple-approval.bpmn");
-
 		Throwable thrown = null;
 		String exported  = null;
 
@@ -246,6 +241,7 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 		for (final NodeInterface e : app.nodeQuery(ProcessTraits.BPMN_ELEMENT).getResultStream()) {
 
 			if (bpmnType.equals(e.getProperty(e.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
+
 				return e;
 			}
 		}
@@ -263,11 +259,13 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 
 			final org.w3c.dom.Node child = children.item(i);
 			if (child.getNodeType() != org.w3c.dom.Node.ELEMENT_NODE) {
+
 				continue;
 			}
 
 			final Element el = (Element) child;
 			if (BPMN_NS.equals(el.getNamespaceURI()) && localName.equals(el.getLocalName())) {
+
 				return elementIndex;
 			}
 
@@ -282,6 +280,7 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 		try (final InputStream is = getClass().getResourceAsStream(path)) {
 
 			assertNotNull("resource not found: " + path, is);
+
 			return new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 		} catch (final Exception ex) {
@@ -295,6 +294,7 @@ public class BpmnExporterBugReproTest extends StructrUiTest {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		final DocumentBuilder builder = factory.newDocumentBuilder();
+
 		return builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 	}
 }

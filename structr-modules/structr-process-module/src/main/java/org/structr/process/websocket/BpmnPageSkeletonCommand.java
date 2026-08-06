@@ -82,7 +82,6 @@ public class BpmnPageSkeletonCommand extends AbstractCommand {
 		// rather than silently producing a bare page. The subject form is not chosen here: the
 		// generator uses the canonical Process Subject Form widget, looked up by name.
 		final Widget templateWidget = resolveWidget(webSocketData.getNodeDataStringValue("templateWidgetId"), "Page template");
-
 		final BpmnPageSkeletonGenerator.Result result = BpmnPageSkeletonGenerator.createSkeleton(
 			StructrApp.getInstance(getWebSocket().getSecurityContext()),
 			getWebSocket().getSecurityContext(),
@@ -106,6 +105,7 @@ public class BpmnPageSkeletonCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return COMMAND_NAME;
 	}
 

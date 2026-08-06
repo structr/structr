@@ -48,6 +48,7 @@ public class SchemaJsonImporter {
 
 		// nothing to do
 		if (StringUtils.isBlank(source)) {
+
 			return;
 		}
 
@@ -59,9 +60,11 @@ public class SchemaJsonImporter {
 			final JsonSchema schema;
 
 			try {
+
 				schema = StructrSchema.createFromSource(source);
 
 			} catch (InvalidSchemaException | URISyntaxException ex) {
+
 				throw new FrameworkException(422, ex.getMessage());
 			}
 

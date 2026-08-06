@@ -46,11 +46,13 @@ import java.util.TreeMap;
 public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode> implements JsonObjectType {
 
 	StructrNodeTypeDefinition(final StructrSchemaDefinition root, final String name) {
+
 		super(root, name);
 	}
 
 	@Override
 	public JsonReferenceType relate(final JsonObjectType type) {
+
 		return relate(type, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type.getName()));
 	}
 
@@ -68,11 +70,13 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 	@Override
 	public JsonReferenceType relate(final JsonObjectType type, final String relationship) {
+
 		return relate(type, relationship, Cardinality.ManyToMany);
 	}
 
 	@Override
 	public JsonReferenceType relate(URI externalTypeReference, String relationship) {
+
 		return relate(externalTypeReference, relationship, Cardinality.ManyToMany);
 	}
 
@@ -164,7 +168,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		return def;
 	}
 
-
 	@Override
 	Map<String, Object> serialize() {
 
@@ -175,8 +178,8 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	Map<String, Object> serialize(final boolean removeManagedViews) {
 
 		final Map<String, Object> map = super.serialize(removeManagedViews);
-
 		Map<String, Object> serializedProperties = (Map)map.get(JsonSchema.KEY_PROPERTIES);
+
 		if (serializedProperties == null) {
 
 			serializedProperties = new TreeMap<>();
@@ -209,6 +212,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 		// remove empty objects from json
 		if (serializedProperties.isEmpty()) {
+
 			map.remove(JsonSchema.KEY_PROPERTIES);
 		}
 
@@ -217,6 +221,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 	@Override
 	public boolean isBlacklisted(final Set<String> blacklist) {
+
 		return blacklist.contains(this.name);
 	}
 
@@ -277,7 +282,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	private String getPropertyName(final String targetTypeName, final boolean outgoing, final String relationshipTypeName, final Cardinality cardinality) {
 
 		final String sourceTypeName = getName();
-
 		String _sourceMultiplicity = null;
 		String _targetMultiplicity = null;
 

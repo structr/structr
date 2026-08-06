@@ -18,7 +18,6 @@
  */
 package org.structr.web.traits.wrappers;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -48,21 +47,25 @@ import java.util.List;
 public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implements AbstractFile {
 
 	public AbstractFileTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
 	@Override
 	public void setParent(final Folder parent) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent);
 	}
 
 	@Override
 	public void setHasParent(final boolean hasParent) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), hasParent);
 	}
 
@@ -80,6 +83,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public String getPath() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY));
 	}
 
@@ -95,6 +99,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		if (getHasParent()) {
 
 			NodeInterface parentFolder = getParent();
+
 			while (parentFolder != null) {
 
 				folderPath   = parentFolder.getName().concat("/").concat(folderPath);
@@ -132,6 +137,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		if (parent != null) {
 
 			// recurse
+
 			return parent.as(Folder.class).isMounted();
 		}
 
@@ -140,16 +146,19 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public boolean isExternal() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.IS_EXTERNAL_PROPERTY));
 	}
 
 	@Override
 	public boolean getHasParent() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY));
 	}
 
 	@Override
 	public String getStorageKey() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.STORAGE_KEY_PROPERTY));
 	}
 
@@ -169,6 +178,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public boolean isBinaryDataAccessible(final SecurityContext securityContext) {
+
 		return !isExternal() || isMounted();
 	}
 
@@ -196,7 +206,6 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	public boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		boolean valid = validatePath(securityContext, null);
-
 		if (!valid) {
 
 			final Logger logger       = LoggerFactory.getLogger(AbstractFileTraitDefinition.class);
@@ -257,19 +266,25 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		switch (insertionPosition) {
 
 			case "beforeextension":
+
 				if (oldName.contains(".")) {
+
 					final int lastDot = oldName.lastIndexOf(".");
+
 					return oldName.substring(0, lastDot).concat("_").concat(timestamp).concat(oldName.substring(lastDot));
 
 				} else {
+
 					return oldName.concat("_").concat(timestamp);
 				}
 
 			case "start":
+
 				return timestamp.concat("_").concat(oldName);
 
 			case "end":
 			default:
+
 				return oldName.concat("_").concat(timestamp);
 		}
 

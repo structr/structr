@@ -49,16 +49,19 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "fromExcel";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("file [, sheetIndexOrName = 0 ]");
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return "excel";
 	}
 
@@ -72,8 +75,8 @@ public class FromExcelFunction extends Function<Object, Object> {
 			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 				final File file = n.as(File.class);
-
 				if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
+
 					return "";
 				}
 
@@ -107,6 +110,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -115,6 +119,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${fromExcel(file[, sheetIndexOrName = 0 ])}. Example: ${fromExcel(first(find('File', 'name', 'test.xlsx')))}"),
 			Usage.javaScript("Usage: ${{ $.fromExcel(file[, sheetIndexOrName = 0 ]); }}. Example: ${{ $.fromExcel(fileNode); }}")
@@ -123,31 +128,31 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"The columns in the first row of the excel sheet are used as headers and must be populated for columns to be read."
-		);
+
+		return List.of("The columns in the first row of the excel sheet are used as headers and must be populated for columns to be read.");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Reads data from a given Excel sheet.";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("file", "excel file to read from"),
-				Parameter.optional("sheetIndexOrName", "sheet index or name of sheet to read from (defaults to first sheet)")
-		);
+
+		return List.of(Parameter.mandatory("file", "excel file to read from"), Parameter.optional("sheetIndexOrName", "sheet index or name of sheet to read from (defaults to first sheet)"));
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The sheet can be passed as zero-indexed sheet number or by sheet name.";
 	}
 
@@ -157,6 +162,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 		final XSSFSheet sheet        = (XSSFSheet) workbook.getSheet(sheetName);
 
 		if (sheet == null) {
+
 			throw new FrameworkException(400, "Error while reading excel file: Sheet '" + sheetName + "' not found");
 		}
 
@@ -181,7 +187,6 @@ public class FromExcelFunction extends Function<Object, Object> {
 	private Object readExcelSheet(final XSSFSheet sheet) {
 
 		final List<GraphObjectMap> elements = new LinkedList<>();
-
 		final int firstRowNum = sheet.getFirstRowNum();
 		final int lastRowNum  = sheet.getLastRowNum();
 
@@ -189,13 +194,11 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 		// First row = header
 		final XSSFRow headerRow = sheet.getRow(firstRowNum);
-
 		final ArrayList<GenericProperty> headerPropertyKeys = new ArrayList<>();
 
 		for (int c = headerRow.getFirstCellNum(); c < headerRow.getLastCellNum(); c++) {
 
 			final XSSFCell cell = headerRow.getCell(c);
-
 			if (cell == null) {
 
 				logger.warn("Skipping empty header cell (column index: {})", c);
@@ -208,7 +211,6 @@ public class FromExcelFunction extends Function<Object, Object> {
 		for (int r = firstRowNum+1; r <= lastRowNum; r++) {
 
 			final XSSFRow row = sheet.getRow(r);
-
 			if (row == null) {
 
 				logger.debug("Row is null, skipping...");
@@ -216,7 +218,9 @@ public class FromExcelFunction extends Function<Object, Object> {
 			}
 
 			final GraphObjectMap rowObject = new GraphObjectMap();
+
 			for (final GenericProperty prop : headerPropertyKeys) {
+
 				rowObject.put(prop, null);
 			}
 
@@ -228,7 +232,6 @@ public class FromExcelFunction extends Function<Object, Object> {
 			for (int c = firstCellNum; c < lastCellNum; c++) {
 
 				final XSSFCell cell = row.getCell(c);
-
 				if (cell != null) {
 
 					if (headerPropertyKeys.size() > c) {
@@ -255,7 +258,6 @@ public class FromExcelFunction extends Function<Object, Object> {
 	private Object getCellValue(final XSSFCell cell) {
 
 		final CellType cellType = cell.getCellType();
-
 		Object value = "";
 
 		switch (cellType) {
@@ -264,11 +266,16 @@ public class FromExcelFunction extends Function<Object, Object> {
 				break;
 
 			case NUMERIC:
+
 				if (DateUtil.isCellDateFormatted(cell)) {
+
 					value = cell.getDateCellValue();
+
 				} else {
+
 					value = cell.getNumericCellValue();
 				}
+
 				break;
 
 			case STRING:

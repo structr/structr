@@ -25,6 +25,7 @@ public abstract class UiCommunityFunction extends UiFunction {
 
 	@Override
 	public String getRequiredModule() {
+
 		return "ui";
 	}
 }

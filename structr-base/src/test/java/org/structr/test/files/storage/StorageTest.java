@@ -43,9 +43,7 @@ import java.util.Scanner;
 
 import static org.testng.AssertJUnit.*;
 
-
 public class StorageTest extends StructrUiTest {
-
 
 	@Test
 	public void testStorageBinaryMigrationForFolders() {
@@ -56,31 +54,31 @@ public class StorageTest extends StructrUiTest {
 			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, Map.of());
 			final Traits folderTraits         = Traits.of(StructrTraits.FOLDER);
 			final Traits fileTraits           = Traits.of(StructrTraits.FILE);
-
 			PropertyMap folderProps = new PropertyMap();
+
 			folderProps.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "local");
 			folderProps.put(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), local);
 			NodeInterface folder = app.create(StructrTraits.FOLDER, folderProps);
-
 			PropertyMap folderProps2 = new PropertyMap();
+
 			folderProps2.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "memory");
 			folderProps2.put(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), memory);
 			NodeInterface folder2 = app.create(StructrTraits.FOLDER, folderProps2);
-
 			PropertyMap fileProps = new PropertyMap();
+
 			fileProps.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile.txt");
 			fileProps.put(fileTraits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder);
 			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
-
 			final String payload = "test payload written to this file";
-
 			OutputStream os = file.getOutputStream();
+
 			os.write(payload.getBytes());
 			os.flush();
 
 			// Check if data was successfully written
 			InputStream is = file.getInputStream();
 			String result = new Scanner(is).useDelimiter("\\A").next();
+
 			assertEquals(payload, result);
 
 			// Move from in local to memory storage provider folder
@@ -92,7 +90,9 @@ public class StorageTest extends StructrUiTest {
 			assertEquals(payload, result);
 
 			tx.success();
+
 		} catch (FrameworkException | IOException ex) {
+
 			fail("Unexpected exception: " + ex);
 		}
 	}
@@ -105,16 +105,14 @@ public class StorageTest extends StructrUiTest {
 			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, null);
 			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, null);
 			final Traits fileTraits           = Traits.of(StructrTraits.FILE);
-
 			final PropertyKey<StorageConfiguration> storageConfigurationKey = fileTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
-
 			PropertyMap fileProps = new PropertyMap();
+
 			fileProps.put(fileTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile.txt");
 			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
-
 			final String payload = "test payload written to this file";
-
 			OutputStream os = file.getOutputStream();
+
 			os.write(payload.getBytes());
 			os.flush();
 			os.close();
@@ -122,6 +120,7 @@ public class StorageTest extends StructrUiTest {
 			// Check if data was successfully written
 			InputStream is = file.getInputStream();
 			String result = new Scanner(is).useDelimiter("\\A").next();
+
 			is.close();
 			assertEquals(payload, result);
 
@@ -161,7 +160,9 @@ public class StorageTest extends StructrUiTest {
 			assertEquals(payload, result);
 
 			tx.success();
+
 		} catch (FrameworkException | IOException ex) {
+
 			fail("Unexpected exception: " + ex);
 		}
 	}

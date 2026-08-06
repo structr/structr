@@ -60,7 +60,6 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 	private final static String SCHEMA_ANALYZE_STATUS   = "SCHEMA_ANALYZE_STATUS";
 
-
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
@@ -81,7 +80,6 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		customHeaders.put("end", new Date(endTime).toString());
 		customHeaders.put("duration", duration);
 
-
 		broadcastData.remove("start");
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
@@ -90,21 +88,25 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	public void analyzeSchema(final String statusMessageType) {
 
 		final String schemaAnalyzerTmpPath = userHome + File.separator + ".structrSchemaAnalyzer";
-
 		final File analyzerFolder = new File(schemaAnalyzerTmpPath + File.separator);
+
 		if (analyzerFolder.exists()) {
+
 			for (final File existingLFC : analyzerFolder.listFiles((File dir, String name) -> name.endsWith(".lfc"))) {
+
 				existingLFC.delete();
 			}
 		}
@@ -130,6 +132,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			tx.success();
 
 		} catch(FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 
@@ -172,9 +175,9 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
-
 
 		info("Collecting type information..");
 		publishProgressMessage(statusMessageType, "Collecting type information..");
@@ -187,6 +190,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 
@@ -201,6 +205,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 
@@ -215,9 +220,9 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
-
 
 		info("Sorting result..");
 
@@ -229,6 +234,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 
@@ -268,6 +274,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			tx.success();
 
 		} catch(FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
 
@@ -309,12 +316,12 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			}
 		});
 
-
 		info("Grouping relationships..");
 		publishProgressMessage(statusMessageType, "Grouping relationships..");
 
 		// group relationships by type
 		final Map<String, List<RelationshipInfo>> relTypeInfoMap = new LinkedHashMap<>();
+
 		for (final RelationshipInfo relInfo : relationships) {
 
 			//final String relType         = relInfo.getRelType();
@@ -334,6 +341,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		publishProgressMessage(statusMessageType, "Aggregating relationship information..");
 
 		final List<RelationshipInfo> reducedRelationshipInfos = new ArrayList<>();
+
 		if (Settings.InheritanceDetection.getValue()) {
 
 			// reduce relationship infos into one
@@ -356,8 +364,8 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			public boolean handleGraphObject(SecurityContext securityContext, TypeInfo typeInfo) throws FrameworkException {
 
 				final String type = typeInfo.getPrimaryType();
-
 				if (!ValidationHelper.isValidStringMatchingRegex(type, schemaNodeNamePattern)) {
+
 					publishWarningMessage("Schema Analysis Error", "Type '" + type + "' does not match regular expression '" + schemaNodeNamePattern + "'<br>Analysis will continue but no changes will be made.");
 					logger.warn("Schema Analysis Error: Type '{}' does not match regular expression '{}' - Analysis will continue but no changes will be made.", type, schemaNodeNamePattern);
 				}
@@ -375,6 +383,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 						// handle array types differently
 						String propertyTypeName = propertyType.getSimpleName();
+
 						if (propertyType.isArray()) {
 
 							// remove "[]" from the end and append "Array" to match the appropriate parser
@@ -434,7 +443,6 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			}
 		});
 
-
 		info("Starting with schema relationship creation..");
 		publishProgressMessage(statusMessageType, "Starting with schema relationship creation for " + reducedRelationshipInfos.size() + " relationship types..");
 
@@ -488,6 +496,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 		// nothing to do
 		if (sources.isEmpty()) {
+
 			return;
 		}
 
@@ -521,6 +530,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		for (final NodeInfo nodeInfo : nodeTypes) {
 
 			final Set<String> allTypes = nodeInfo.getTypes();
+
 			for (final String type : allTypes) {
 
 				final TypeInfo typeInfo = new TypeInfo(type, allTypes, nodeIds.get(nodeInfo));
@@ -624,6 +634,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 			// set relType on first hit (should all be the same!)
 			if (relType == null) {
+
 				relType = info.getRelType();
 			}
 		}
@@ -741,51 +752,61 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getName() {
+
 		return "";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
@@ -794,6 +815,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		private boolean reverse = false;
 
 		public HierarchyComparator(final boolean reverse) {
+
 			this.reverse = reverse;
 		}
 
@@ -803,6 +825,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			if (reverse) {
 
 				return Integer.valueOf(o1.getHierarchyLevel()).compareTo(o2.getHierarchyLevel());
+
 			} else {
 
 				return Integer.valueOf(o2.getHierarchyLevel()).compareTo(o1.getHierarchyLevel());

@@ -43,7 +43,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.*;
 
-
 public class WrapInWidgetCommand extends AbstractCommand {
 
 	@Override
@@ -70,6 +69,7 @@ public class WrapInWidgetCommand extends AbstractCommand {
 		if (nodeToReplace == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node to replace is not a DOMNode or node not found").build(), true);
+
 			return;
 		}
 
@@ -97,6 +97,7 @@ public class WrapInWidgetCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "WRAP_IN_WIDGET";
 	}
 
@@ -175,6 +176,7 @@ public class WrapInWidgetCommand extends AbstractCommand {
 
 			// don't collect nested components
 			if (child.isComponentRoot()) {
+
 				continue;
 			}
 
@@ -197,15 +199,19 @@ public class WrapInWidgetCommand extends AbstractCommand {
 	public static String nameOrTag(final DOMNode node) {
 
 		if (node.getName() != null) {
+
 			return node.getName();
 		}
 
 		if (node.is(StructrTraits.DOM_ELEMENT)) {
+
 			return node.as(DOMElement.class).getTag();
 		}
 
 		if (node.is(StructrTraits.CONTENT)) {
+
 			final String content = node.as(Content.class).getContent();
+
 			return "Content[" + content.substring(0, Math.min(content.length(), 6)) + "]";
 		}
 

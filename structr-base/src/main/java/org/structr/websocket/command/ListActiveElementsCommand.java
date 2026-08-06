@@ -76,12 +76,14 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "LIST_ACTIVE_ELEMENTS";
 	}
 
@@ -124,10 +126,12 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		boolean included = isActiveNode(current);
 
 		if (current instanceof Template && current.getName() != null && hasDirectActiveDescendant(current)) {
+
 			included = true;
 		}
 
 		if (current.is("Table") && hasActiveDescendant(current)) {
+
 			included = true;
 		}
 
@@ -140,6 +144,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			addAndLinkDataSourceIfPresent(index, nodes, edges, current);
 
 			if (current.is("DOMElement")) {
+
 				addAndLinkActionMappingIfPresent(nodeData, index, nodes, edges, current.as(DOMElement.class));
 			}
 
@@ -147,6 +152,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			if (!addAndLinkConditionsIfPresent(nodeData, index, pageChildren, pageEdges, current, lastParent)) {
 
 				if (lastParent != null && !addNestedChildren) {
+
 					addEdge(edges, lastParent, current, Map.of());
 				}
 			}
@@ -198,20 +204,13 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			if (node.is("DOMElement")) {
 
 				final DOMElement elem = node.as(DOMElement.class);
-
 				final String tag  = "<" + elem.getTag() + "/>";
 
-				map.put("labels", List.of(
-					Map.of("text", (name != null ? name : tag)),
-					Map.of("text", type)
-				));
+				map.put("labels", List.of(Map.of("text", (name != null ? name : tag)), Map.of("text", type)));
 
 			} else {
 
-				map.put("labels", List.of(
-					Map.of("text", (name != null ? name : type)),
-					Map.of("text", type)
-				));
+				map.put("labels", List.of(Map.of("text", (name != null ? name : type)), Map.of("text", type)));
 			}
 
 			index.put(id, map);
@@ -245,6 +244,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		if (!contains(list, node)) {
 
 			list.add(node);
+
 			return true;
 		}
 
@@ -263,10 +263,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			map.put("height",   getHeightForType(type, name));
 			map.put("children", new LinkedList<>());
 
-			map.put("labels", List.of(
-				Map.of("text", (name != null ? name : type)),
-				Map.of("text", type)
-			));
+			map.put("labels", List.of(Map.of("text", (name != null ? name : type)), Map.of("text", type)));
 
 			index.put(id, map);
 		}
@@ -277,22 +274,27 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	private int getWidthForType(final String type, final String name) {
 
 		if ("PropertyDataSource".equals(type) || "ListDataSource".equals(type)) {
+
 			return 40;
 		}
 
 		if ("Condition".equals(type)) {
+
 			return 40;
 		}
 
 		if ("Page".equals(type)) {
+
 			return 120;
 		}
 
 		if (name != null && name.length() > 30) {
+
 			return 360;
 		}
 
 		if (name != null && name.length() > 10) {
+
 			return 240;
 		}
 
@@ -308,18 +310,22 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	private int getHeightForType(final String type, final String name) {
 
 		if ("PropertyDataSource".equals(type) || "ListDataSource".equals(type)) {
+
 			return 40;
 		}
 
 		if ("Condition".equals(type)) {
+
 			return 40;
 		}
 
 		if ("Page".equals(type)) {
+
 			return 180;
 		}
 
 		if (!"ActionMapping".equals(type) && name != null && name.length() > 10) {
+
 			return 80;
 		}
 
@@ -333,6 +339,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	}
 
 	private void addEdge(final List<Map<String, Object>> edges, final NodeInterface source, final NodeInterface target, final Map<String, Object> data) {
+
 		addEdge(edges, source.getUuid(), target.getUuid(), data);
 	}
 
@@ -356,24 +363,26 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 		// nodes are the same
 		if (node1.getUuid().equals(node2.getUuid())) {
+
 			return null;
 		}
 
 		final List<DOMNode> ancestors1 = getAncestors(node1);
 		final List<DOMNode> ancestors2 = getAncestors(node2);
-
 		final int depth1               = ancestors1.size();
 		final int depth2               = ancestors2.size();
 
 		ancestors1.retainAll(ancestors2);
 
 		if (ancestors1.isEmpty()) {
+
 			return null;
 		}
 
 		System.out.println(depth1 + ", " + depth2 + ": " + ancestors1.size());
 
 		// return last element
+
 		return ancestors1.get(ancestors1.size() - 1);
 
 	}
@@ -381,7 +390,6 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	private List<DOMNode> getAncestors(final DOMNode node) {
 
 		final List<DOMNode> ancestors = new LinkedList<>();
-
 		DOMNode current = node.getParent();
 
 		while (current != null) {
@@ -398,6 +406,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		for (final NodeInterface child : node.getAllChildNodes()) {
 
 			if (isActiveNode(child)) {
+
 				return true;
 			}
 		}
@@ -410,6 +419,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		for (final DOMNode child : node.getChildren()) {
 
 			if (isActiveNode(child)) {
+
 				return true;
 			}
 		}
@@ -421,12 +431,14 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 		// no name => not a named container
 		if (node.getName() == null) {
+
 			return false;
 		}
 
 		for (final DOMNode child : node.getChildren()) {
 
 			if (isLowestNamedContainerInHierarchy(child)) {
+
 				return false;
 			}
 		}
@@ -573,6 +585,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			addIfNotPresent(nodes, createNodeFromMap(index, conditionId, null, "Condition"));
 
 			if (lastParent != null) {
+
 				addEdge(edges, lastParent, parent, Map.of());
 			}
 
@@ -592,6 +605,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			addIfNotPresent(nodes, createNodeFromMap(index, conditionId, null, "Condition"));
 
 			if (lastParent != null) {
+
 				addEdge(edges, lastParent, parent, Map.of());
 			}
 
@@ -630,7 +644,6 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			if (!triggerElements.isEmpty()) {
 
 				final DOMElement triggerElement = triggerElements.get(0);
-
 				if (Set.of("input", "select").contains(triggerElement.getTag()) && StringUtils.isNotBlank(triggerElement.getHtmlName())) {
 
 					return action + ": " + triggerElement.getHtmlName();
@@ -641,7 +654,6 @@ public class ListActiveElementsCommand extends AbstractCommand {
 					if (!parameterMappings.isEmpty()) {
 
 						final ParameterMapping param = parameterMappings.get(0);
-
 						if (StringUtils.isNotBlank(param.getParameterName())) {
 
 							return action + ": " + param.getParameterName();

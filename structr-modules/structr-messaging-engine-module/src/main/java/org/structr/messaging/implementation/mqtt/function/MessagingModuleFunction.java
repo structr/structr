@@ -25,11 +25,13 @@ public abstract class MessagingModuleFunction extends Function<Object, Object> {
 
 	@Override
 	public String getRequiredModule() {
+
         	return "messaging-module";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.MQTT;
 	}
 }

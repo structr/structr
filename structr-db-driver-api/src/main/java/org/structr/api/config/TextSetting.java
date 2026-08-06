@@ -27,14 +27,17 @@ import org.structr.api.util.html.Tag;
 public class TextSetting extends StringSetting {
 
 	public TextSetting(final SettingsGroup group, final String key, final String value) {
+
 		this(group, null, key, value);
 	}
 
 	public TextSetting(final SettingsGroup group, final String groupName, final String key, final String value) {
+
 		super(group, groupName, key, value);
 	}
 
 	public TextSetting(final SettingsGroup group, final String groupName, final String key, final String value, final String comment) {
+
 		super(group, groupName, key, value, comment);
 	}
 

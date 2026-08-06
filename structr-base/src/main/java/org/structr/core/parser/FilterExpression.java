@@ -41,6 +41,7 @@ public class FilterExpression extends Expression {
 	private Expression filterExpression = null;
 
 	public FilterExpression(final int row, final int column) {
+
 		super("filter", row, column);
 	}
 
@@ -69,6 +70,7 @@ public class FilterExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null || filterExpression == null) {
+
 			return ERROR_MESSAGE_FILTER;
 		}
 
@@ -101,67 +103,67 @@ public class FilterExpression extends Expression {
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	@Override
 	public String getName() {
+
 		return "filter";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Filters a list using a StructrScript expression.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The function will remove any object from the list for which the filter expression returns **false**, and return the filtered list. The filter expression can be any valid expression that returns a boolean value. Inside the expression function, the keyword `data` refers to the current element.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("list", "list of elements to loop over"),
-			Parameter.mandatory("filterExpression", "expression to evaluate for each element")
-		);
+
+		return List.of(Parameter.mandatory("list", "list of elements to loop over"), Parameter.mandatory("filterExpression", "expression to evaluate for each element"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${filter(find('User'), not(data.isAdmin))}", "Remove admin users from a list of users")
-		);
+
+		return List.of(Example.structrScript("${filter(find('User'), not(data.isAdmin))}", "Remove admin users from a list of users"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.filter()`)."
-		);
+
+		return List.of("This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.filter()`).");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return List.of(
-			Signature.structrScript("list, filterExpression")
-		);
+
+		return List.of(Signature.structrScript("list, filterExpression"));
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.StructrScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${filter(list, filterExpression)}. Example: ${filter(find('User'), data.isAdmin)}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${filter(list, filterExpression)}. Example: ${filter(find('User'), data.isAdmin)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

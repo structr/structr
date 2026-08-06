@@ -63,10 +63,6 @@ public class OpenAPIMaintenanceOperationChangeNodePropertyKey extends LinkedHash
             ),
 
 			// responses
-			Map.of(
-					"200", new OpenAPISchemaReference("#/components/responses/ok"),
-					"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-			)
-		));
+			Map.of("200", new OpenAPISchemaReference("#/components/responses/ok"), "401", new OpenAPISchemaReference("#/components/responses/unauthorized"))));
 	}
 }

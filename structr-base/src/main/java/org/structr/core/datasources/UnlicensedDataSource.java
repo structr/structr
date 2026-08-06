@@ -36,12 +36,14 @@ public class UnlicensedDataSource implements GraphDataSource {
 	private String module = null;
 
 	public UnlicensedDataSource(final String name, final String module) {
+
 		this.name   = name;
 		this.module = module;
 	}
 
 	@Override
 	public Object getData(ActionContext actionContext, NodeInterface referenceNode) throws FrameworkException {
+
 		return null;
 	}
 

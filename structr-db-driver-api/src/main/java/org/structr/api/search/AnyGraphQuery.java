@@ -18,10 +18,10 @@
  */
 package org.structr.api.search;
 
-
 public interface AnyGraphQuery extends GraphQuery {
 
 	default boolean isAny() {
+
 		return true;
 	}
 }

@@ -73,6 +73,7 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 	}
 
 	private ActionContext ctx() {
+
 		return new ActionContext(securityContext);
 	}
 
@@ -108,14 +109,14 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 
 		final String token = ProcessJWTHelper.createProcessToken("pid-1", "tid-1", "review");
 		Settings.JWTIssuer.setValue("someone-else");
-		assertNull("a token from a different issuer must not validate",
-			ProcessJWTHelper.validateProcessToken(token));
+		assertNull("a token from a different issuer must not validate", ProcessJWTHelper.validateProcessToken(token));
 	}
 
 	@Test
 	public void testJwtWeakSecretAndKeypairFailToCreate() throws Exception {
 
 		Settings.JWTSecret.setValue("too-short");
+
 		try {
 
 			ProcessJWTHelper.createProcessToken("p", "t", "a");
@@ -125,11 +126,13 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 
 			assertEquals(500, expected.getStatus());
 		}
+
 		// validate swallows the same failure and returns null.
 		assertNull(ProcessJWTHelper.validateProcessToken("anything"));
 
 		Settings.JWTSecret.setValue("0123456789abcdef0123456789abcdef");
 		Settings.JWTSecretType.setValue("keypair");
+
 		try {
 
 			ProcessJWTHelper.createProcessToken("p", "t", "a");
@@ -148,28 +151,24 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 	@Test
 	public void testProcessTokenFunction() throws Exception {
 
-		final Object token = new ProcessTokenFunction().apply(ctx(), null,
-			new Object[] { "pid-1", "tid-1", "review" });
+		final Object token = new ProcessTokenFunction().apply(ctx(), null, new Object[] { "pid-1", "tid-1", "review" });
 		assertNotNull(ProcessJWTHelper.validateProcessToken(token.toString()));
 
 		// non-numeric expiryMinutes falls back to the default -> still a valid token.
-		final Object token2 = new ProcessTokenFunction().apply(ctx(), null,
-			new Object[] { "pid-1", "tid-1", "review", "notanumber" });
+		final Object token2 = new ProcessTokenFunction().apply(ctx(), null, new Object[] { "pid-1", "tid-1", "review", "notanumber" });
 		assertNotNull(ProcessJWTHelper.validateProcessToken(token2.toString()));
 
 		// too few args -> usage string (not a valid token).
-		final Object usage = new ProcessTokenFunction().apply(ctx(), null,
-			new Object[] { "pid-1", "tid-1" });
-		assertNull("a usage string must not validate as a token",
-			ProcessJWTHelper.validateProcessToken(usage.toString()));
+		final Object usage = new ProcessTokenFunction().apply(ctx(), null, new Object[] { "pid-1", "tid-1" });
+		assertNull("a usage string must not validate as a token", ProcessJWTHelper.validateProcessToken(usage.toString()));
 	}
 
 	@Test
 	public void testValidateProcessTokenFunction() throws Exception {
 
 		final String token = ProcessJWTHelper.createProcessToken("pid-1", "tid-1", "review");
-
 		final Object out = new ValidateProcessTokenFunction().apply(ctx(), null, new Object[] { token });
+
 		assertTrue(out instanceof Map);
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> m = (Map<String, Object>) out;
@@ -183,8 +182,7 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 
 		// exact-length contract: 2 args -> usage string, NOT a validation Map.
 		final Object twoArgs = new ValidateProcessTokenFunction().apply(ctx(), null, new Object[] { token, "extra" });
-		assertFalse("validate takes exactly one arg; extra args must yield usage, not a Map",
-			twoArgs instanceof Map);
+		assertFalse("validate takes exactly one arg; extra args must yield usage, not a Map", twoArgs instanceof Map);
 	}
 
 	// ==================================================================
@@ -212,8 +210,7 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			// 'log' channel is SMTP-free and returns TRUE.
-			assertEquals(Boolean.TRUE,
-				new NotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject", "body" }));
+			assertEquals(Boolean.TRUE, new NotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject", "body" }));
 
 			// unknown channel -> 422.
 			try {
@@ -244,6 +241,7 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 
 			final String xml = loadResource("/simple-approval.bpmn");
 			final Object def = new ImportBPMNFunction().apply(ctx(), null, new Object[] { xml });
+
 			assertTrue("import should return the created BpmnDefinitions node", def instanceof NodeInterface);
 
 			// non-String arg -> falls through to usage (not a node).
@@ -260,8 +258,8 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 
 			final String xml = loadResource("/simple-approval.bpmn");
 			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(xml);
-
 			final Object out = new ExportBPMNFunction().apply(ctx(), null, new Object[] { defNode });
+
 			assertNotNull(out);
 			assertTrue("export should produce BPMN XML", out.toString().contains("definitions"));
 

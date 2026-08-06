@@ -97,6 +97,7 @@ public class InsertCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "INSERT";
 	}
 }

@@ -43,11 +43,13 @@ public class GetComponentFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "getComponent";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name");
 	}
 
@@ -63,17 +65,20 @@ public class GetComponentFunction extends UiCommunityFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getComponent(name)}. Example: ${getComponent('Main Template')}"),
 			Usage.javaScript("Usage: ${{ $.getComponent(name); }}. Example: ${{ $.getComponent('Main Template'); }}")
@@ -82,11 +87,13 @@ public class GetComponentFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Finds and returns the component with the given name in the current page.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Components can be referenced via their `name` property.
 		
@@ -105,9 +112,7 @@ public class GetComponentFunction extends UiCommunityFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("name", "name of the node (and subtree) to include")
-		);
+		return List.of(Parameter.mandatory("name", "name of the node (and subtree) to include"));
 	}
 
 	@Override
@@ -139,6 +144,7 @@ public class GetComponentFunction extends UiCommunityFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

@@ -18,13 +18,11 @@
  */
 package org.structr.rest.exception;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 
 import java.util.Set;
-
 
 /**
  *

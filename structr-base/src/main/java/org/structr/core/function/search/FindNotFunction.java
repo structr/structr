@@ -31,16 +31,19 @@ public class FindNotFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.not";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.not";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.not";
 	}
 
@@ -73,6 +76,7 @@ public class FindNotFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{not(predicate, ...) }} Example: ${{ $.find('Group', $.predicate.not($.predicate.equals('name', 'Test'))) }}"),
 			Usage.structrScript("Usage: ${not(predicate, ...). Example: ${find('Group', not(equals('name', 'Test')))}")
@@ -81,21 +85,25 @@ public class FindNotFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("predicate");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

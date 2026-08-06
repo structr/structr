@@ -35,29 +35,35 @@ import java.nio.charset.Charset;
 public class FeedItemContentTraitWrapper extends AbstractFeedItemTraitWrapper implements FeedItemContent {
 
 	public FeedItemContentTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public InputStream getInputStream() {
+
 		return IOUtils.toInputStream(getValue(), Charset.forName("utf-8"));
 	}
 
 	public String getValue() {
+
 		return wrappedObject.getProperty(traits.key(FeedItemContentTraitDefinition.VALUE_PROPERTY));
 	}
 
 	public void setValue(final String value) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FeedItemContentTraitDefinition.VALUE_PROPERTY), value);
 	}
 
 	@Override
 	public String getExtractedContent() {
+
 		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFeedItemTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

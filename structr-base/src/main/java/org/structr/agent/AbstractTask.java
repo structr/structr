@@ -41,6 +41,7 @@ public class AbstractTask<T> implements Task<T> {
 	private int retryCount                             = 0;
 
 	public AbstractTask(final String type, final Principal user) {
+
 		this(type, user, null);
 	}
 	
@@ -50,37 +51,44 @@ public class AbstractTask<T> implements Task<T> {
 		this.user = user;
 
 		if (node != null) {
+
 			this.objects.add(node);
 		}
 	}
 
 	@Override
 	public Principal getUser() {
+
 		return user;
 	}
 
 	@Override
 	public List<T> getWorkObjects() {
+
 		return objects;
 	}
 
 	@Override
 	public int priority() {
+
 		return priority;
 	}
 
 	@Override
 	public Date getScheduledTime() {
+
 		return scheduledTime;
 	}
 
 	@Override
 	public Date getCreationTime() {
+
 		return creationTime;
 	}
 
 	@Override
 	public String getType() {
+
 		return type;
 	}
 
@@ -88,6 +96,7 @@ public class AbstractTask<T> implements Task<T> {
 	public long getDelay(final TimeUnit unit) {
 
 		if (unit != null) {
+
 			return unit.convert(delay, TimeUnit.MILLISECONDS);
 		}
 
@@ -96,38 +105,47 @@ public class AbstractTask<T> implements Task<T> {
 
 	@Override
 	public Object getStatusProperty(final String key) {
+
 		return statusProperties.get(key);
 	}
 
 	public void setStatusProperty(final String key, final Object value) {
+
 		statusProperties.put(key, value);
 	}
 
 	public void addNode(final T node) {
+
 		this.objects.add(node);
 	}
 
 	public void setUser(final Principal user) {
+
 		this.user = user;
 	}
 
 	public void setPriority(final int priority) {
+
 		this.priority = priority;
 	}
 
 	public void setScheduledTime(final Date scheduledTime) {
+
 		this.scheduledTime = scheduledTime;
 	}
 
 	public void setCreationTime(final Date creationTime) {
+
 		this.creationTime = creationTime;
 	}
 
 	public void setType(final String type) {
+
 		this.type = type;
 	}
 
 	public void setDelay(final long delay) {
+
 		this.delay = delay;
 	}
 
@@ -141,11 +159,13 @@ public class AbstractTask<T> implements Task<T> {
 
 	@Override
 	public void incrementRetryCount() {
+
 		retryCount++;
 	}
 
 	@Override
 	public int getRetryCount() {
+
 		return retryCount;
 	}
 }

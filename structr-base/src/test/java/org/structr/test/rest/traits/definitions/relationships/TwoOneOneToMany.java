@@ -36,6 +36,7 @@ import java.util.Set;
 public class TwoOneOneToMany extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition { //OneToMany<TestTwo, TestOne> {
 
 	public TwoOneOneToMany() {
+
 		super("TwoOneOneToMany");
 	}
 
@@ -52,9 +53,7 @@ public class TwoOneOneToMany extends AbstractRelationshipTraitDefinition impleme
 		final Property<String>   stringProperty      = new StringProperty("stringProperty").indexed();
 		final Property<String> enumProperty          = new EnumProperty("enumProperty", TestEnum.class).indexed();
 
-		return Set.of(
-			startNodeId, endNodeId, stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty, enumProperty
-		);
+		return Set.of(startNodeId, endNodeId, stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty, enumProperty);
 	}
 
 	@Override
@@ -68,16 +67,19 @@ public class TwoOneOneToMany extends AbstractRelationshipTraitDefinition impleme
 
 	@Override
 	public String getSourceType() {
+
 		return "TestTwo";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestOne";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "OWNS";
 	}
 
@@ -95,26 +97,31 @@ public class TwoOneOneToMany extends AbstractRelationshipTraitDefinition impleme
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

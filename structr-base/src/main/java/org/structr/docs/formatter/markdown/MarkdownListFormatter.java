@@ -38,10 +38,12 @@ public class MarkdownListFormatter extends Formatter {
 		final Concept concept = link.getTarget();
 
 		if (settings.hasDetail(Details.name)) {
+
 			lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 		}
 
 		if (settings.hasDetail(Details.shortDescription) && concept.getShortDescription() != null) {
+
 			lines.add(concept.getShortDescription());
 		}
 
@@ -68,16 +70,19 @@ public class MarkdownListFormatter extends Formatter {
 						documentables.add(new Documentable() {
 							@Override
 							public DocumentableType getDocumentableType() {
+
 								return DocumentableType.Constant;
 							}
 
 							@Override
 							public String getName() {
+
 								return child.getName();
 							}
 
 							@Override
 							public String getShortDescription() {
+
 								return coalesce(child.getShortDescription(), (String) child.getMetadata().get("description"));
 							}
 						});
@@ -102,6 +107,7 @@ public class MarkdownListFormatter extends Formatter {
 		for (final String string : strings) {
 
 			if (StringUtils.isNotBlank(string)) {
+
 				return string;
 			}
 		}

@@ -38,6 +38,7 @@ public class StringContainsPredicate<T extends PropertyContainer> implements Pre
 
 	@Override
 	public String toString() {
+
 		return "CONTAINS(" + key + ", " + desiredValue + ", case " + (caseInsensitive ? "insensitive" : "sensitive") + ")";
 	}
 

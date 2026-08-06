@@ -36,6 +36,7 @@ public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 	private static final Logger logger = LoggerFactory.getLogger(UpdateFeedTask.class.getName());
 
 	public UpdateFeedTask() {
+
 		super("UpdateFeedTask", null);
 	}
 
@@ -43,6 +44,7 @@ public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 	public List<T> getWorkObjects() {
 
 		try {
+
 			final Iterable<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.DATA_FEED).getResultStream();
 
 			return (List<T>)Iterables.toList(Iterables.map(n -> n.as(DataFeed.class), nodes));

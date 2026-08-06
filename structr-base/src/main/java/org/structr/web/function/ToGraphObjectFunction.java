@@ -34,11 +34,13 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "toGraphObject";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("obj [, view = \"public\" [, depth = 3 ]]");
 	}
 
@@ -50,20 +52,23 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 			try {
 
 				final SecurityContext securityContext = ctx.getSecurityContext();
-
 				final Value<String> view = new StaticValue<>("public");
+
 				if (sources.length > 1) {
+
 					view.set(securityContext, sources[1].toString());
 				}
 
 				int outputDepth = 3;
+
 				if (sources.length > 2 && sources[2] instanceof Number) {
+
 					outputDepth = ((Number)sources[2]).intValue();
 				}
 
 				final Object converted = UiFunction.toGraphObject(sources[0], outputDepth);
-
 				if (converted != null) {
+
 					return converted;
 				}
 
@@ -84,19 +89,19 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${toGraphObject(obj)}"),
-			Usage.javaScript("Usage: ${{ $.toGraphObject(obj) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${toGraphObject(obj)}"), Usage.javaScript("Usage: ${{ $.toGraphObject(obj) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts the given entity to GraphObjectMap.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Tries to convert then given object or collection into a graph object. If an element in the source can not be converted to a graph object, it is ignored.
 			
@@ -108,6 +113,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 						${{
@@ -132,12 +138,12 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 						${toGraphObject(inheritingTypes('Principal'))}
 						> [{value=Group}, {value=User}]
 						"""
-				)
-		);
+				));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("source", "object or collection"),
 				Parameter.optional("view", "view (default: `public`)"),
@@ -147,6 +153,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"Some objects (e.g. strings, numbers, etc) can not be directly converted to graph objects but it can be desirable to use such collections in repeaters (e.g. the return value of the `inheriting_types()` function). For collections with such objects, each object is wrapped in a graph object with a `value` key as its result. (see example 2)"
 		);
@@ -154,6 +161,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

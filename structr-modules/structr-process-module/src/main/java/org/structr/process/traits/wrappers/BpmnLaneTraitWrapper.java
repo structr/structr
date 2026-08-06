@@ -31,16 +31,19 @@ import org.structr.process.traits.definitions.BpmnLaneTraitDefinition;
 public class BpmnLaneTraitWrapper extends AbstractNodeTraitWrapper implements BpmnLane {
 
 	public BpmnLaneTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getBpmnName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnLaneTraitDefinition.BPMN_NAME_PROPERTY));
 	}
 

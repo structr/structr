@@ -49,57 +49,69 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean isAdmin() {
+
 		return true;
 	}
 
 	public String getRealName() {
+
 		return "Super User";
 	}
 
 	public String getPassword() {
+
 		return null;
 	}
 
 	public String getConfirmationKey() {
+
 		return null;
 	}
 
 	public String getSessionId() {
+
 		return null;
 	}
 
 	@Override
 	public SecurityContext getSecurityContext() {
+
 		return null;
 	}
 
 	@Override
 	public PropertyContainer getPropertyContainer() {
+
 		return null;
 	}
 
 	@Override
 	public Set<PropertyKey> getFullPropertySet() {
+
 		return Set.of();
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(String propertyView) {
+
 		return Set.of();
 	}
 
 	@Override
 	public long getSourceTransactionId() {
+
 		return 0;
 	}
 
 	@Override
 	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+
 		return null;
 	}
 
 	@Override
 	public <T> Object setProperty(PropertyKey<T> key, T value, boolean isCreation) throws FrameworkException {
+
 		return null;
 	}
 
@@ -115,11 +127,13 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean isNode() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return false;
 	}
 
@@ -135,6 +149,7 @@ public class SuperUser implements Principal {
 
 	@Override
 	public <V> V getProperty(PropertyKey<V> propertyKey, Predicate<GraphObject> filter) {
+
 		return null;
 	}
 
@@ -145,6 +160,7 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean systemPropertiesUnlocked() {
+
 		return false;
 	}
 
@@ -160,6 +176,7 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean readOnlyPropertiesUnlocked() {
+
 		return false;
 	}
 
@@ -175,16 +192,19 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+
 		return false;
 	}
 
 	@Override
 	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+
 		return false;
 	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
+
 		return false;
 	}
 
@@ -200,39 +220,48 @@ public class SuperUser implements Principal {
 
 	@Override
 	public Traits getTraits() {
+
 		return Traits.of("Principal");
 	}
 
 	@Override
 	public <T> T as(Class<T> type) {
+
 		if (Principal.class.isAssignableFrom(type)) {
+
 			return (T)this;
 		}
+
 		return null;
 	}
 
 	@Override
 	public boolean is(String type) {
+
 		return false;
 	}
 
 	@Override
 	public String getType() {
+
 		return "SuperUser";
 	}
 
 	@Override
 	public List<Group> getParents() {
+
 		return Collections.emptyList();
 	}
 
 	@Override
 	public List<Group> getParentsPrivileged() {
+
 		return Collections.emptyList();
 	}
 
 	@Override
 	public String getUuid() {
+
 		return Principal.SUPERUSER_ID;
 	}
 
@@ -247,15 +276,18 @@ public class SuperUser implements Principal {
 	}
 
 	public boolean shouldSkipSecurityRelationships() {
+
 		return true;
 	}
 
 	@Override
 	public void setPassword(final String passwordValue) {
+
 		// not supported
 	}
 
 	public void setRealName(final String realName) {
+
 		// not supported
 	}
 
@@ -278,16 +310,19 @@ public class SuperUser implements Principal {
 
 	@Override
 	public Node getNode() {
+
 		return null;
 	}
 
 	@Override
 	public boolean isDeleted() {
+
 		return false;
 	}
 
 	@Override
 	public String getName() {
+
 		return Settings.SuperUserName.getValue();
 	}
 
@@ -298,96 +333,115 @@ public class SuperUser implements Principal {
 
 	@Override
 	public Object getPath(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public boolean hasRelationshipTo(RelationshipType type, NodeInterface targetNode) {
+
 		return false;
 	}
 
 	@Override
 	public RelationshipInterface getRelationshipTo(RelationshipType type, NodeInterface targetNode) {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getRelationships() {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser() {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser(String type) {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getIncomingRelationships() {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getOutgoingRelationships() {
+
 		return null;
 	}
 
 	@Override
 	public boolean hasRelationship(String type) {
+
 		return false;
 	}
 
 	@Override
 	public boolean hasIncomingRelationships(String type) {
+
 		return false;
 	}
 
 	@Override
 	public boolean hasOutgoingRelationships(String type) {
+
 		return false;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getRelationships(String type) {
+
 		return null;
 	}
 
 	@Override
 	public RelationshipInterface getIncomingRelationship(String type) {
+
 		return null;
 	}
 
 	@Override
 	public RelationshipInterface getIncomingRelationshipAsSuperUser(String type) {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getIncomingRelationships(String type) {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(String type, Predicate<GraphObject> predicate) {
+
 		return null;
 	}
 
 	@Override
 	public RelationshipInterface getOutgoingRelationship(String type) {
+
 		return null;
 	}
 
 	@Override
 	public RelationshipInterface getOutgoingRelationshipAsSuperUser(String type) {
+
 		return null;
 	}
 
 	@Override
 	public Iterable<RelationshipInterface> getOutgoingRelationships(String type) {
+
 		return null;
 	}
 
@@ -398,6 +452,7 @@ public class SuperUser implements Principal {
 
 	@Override
 	public Map<String, Object> getTemporaryStorage() {
+
 		return Map.of();
 	}
 
@@ -408,16 +463,19 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean isVisibleToPublicUsers() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return false;
 	}
 
@@ -428,11 +486,13 @@ public class SuperUser implements Principal {
 
 	@Override
 	public Date getCreatedDate() {
+
 		return null;
 	}
 
 	@Override
 	public Date getLastModifiedDate() {
+
 		return null;
 	}
 
@@ -492,61 +552,73 @@ public class SuperUser implements Principal {
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+
 		return "";
 	}
 
 	@Override
 	public Object evaluate(ActionContext actionContext, String key, String defaultValue, GraphObject contextObject, int row, int column) throws FrameworkException {
+
 		return null;
 	}
 
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
+
 		return List.of();
 	}
 
 	@Override
 	public NodeInterface getSyncNode() {
+
 		return null;
 	}
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
+
 		return null;
 	}
 
 	@Override
 	public boolean changelogEnabled() {
+
 		return false;
 	}
 
 	@Override
 	public Iterable<NodeInterface> getOwnedNodes() {
+
 		return null;
 	}
 
 	@Override
 	public boolean addSessionId(String sessionId) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public void removeSessionId(String sessionId) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public boolean addRefreshToken(String refreshToken) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public String[] getRefreshTokens() {
+
 		return new String[0];
 	}
 
 	@Override
 	public void removeRefreshToken(String refreshToken) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -557,26 +629,31 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean isValidPassword(final String password) {
+
 		return false;
 	}
 
 	@Override
 	public String getEncryptedPassword() {
+
 		return null;
 	}
 
 	@Override
 	public String getSalt() {
+
 		return null;
 	}
 
 	@Override
 	public String getTwoFactorSecret() {
+
 		return null;
 	}
 
 	@Override
 	public String getTwoFactorUrl() {
+
 		return null;
 	}
 
@@ -592,6 +669,7 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean isTwoFactorUser() {
+
 		return false;
 	}
 
@@ -602,16 +680,19 @@ public class SuperUser implements Principal {
 
 	@Override
 	public boolean isTwoFactorConfirmed() {
+
 		return false;
 	}
 
 	@Override
 	public Integer getPasswordAttempts() {
+
 		return 0;
 	}
 
 	@Override
 	public Date getPasswordChangeDate() {
+
 		return null;
 	}
 
@@ -627,21 +708,25 @@ public class SuperUser implements Principal {
 
 	@Override
 	public String[] getSessionIds() {
+
 		return new String[0];
 	}
 
 	@Override
 	public String getProxyUrl() {
+
 		return "";
 	}
 
 	@Override
 	public String getProxyUsername() {
+
 		return "";
 	}
 
 	@Override
 	public String getProxyPassword() {
+
 		return "";
 	}
 
@@ -652,46 +737,55 @@ public class SuperUser implements Principal {
 
 	@Override
 	public String getLocale() {
+
 		return null;
 	}
 
 	@Override
 	public String getSessionData() {
+
 		return null;
 	}
 
 	@Override
 	public void setSessionData(String sessionData) throws FrameworkException {
+
 		// nothing to do for SuperUser
 	}
 
 	@Override
 	public boolean isBlocked() {
+
 		return false;
 	}
 
 	@Override
 	public void setIsAdmin(boolean isAdmin) throws FrameworkException {
+
 		// nothing to do
 	}
 
 	@Override
 	public void setEMail(String eMail) throws FrameworkException {
+
 		// nothing to do
 	}
 
 	@Override
 	public void setSalt(String salt) throws FrameworkException {
+
 		// nothing to do
 	}
 
 	@Override
 	public String getEMail() {
+
 		return null;
 	}
 
 	@Override
 	public int compareTo(final NodeInterface o) {
+
 		return 0;
 	}
 }

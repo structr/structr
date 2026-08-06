@@ -41,6 +41,7 @@ public class QueryBuilder {
 	private final Traits traits;
 
 	public QueryBuilder(final String type) {
+
 		traits = Traits.of(type);
 	}
 
@@ -50,14 +51,18 @@ public class QueryBuilder {
 		switch(type) {
 
 			case "group":
+
 				return resolveGroup(context, object, query);
 
 			case "operation":
+
 				return resolveOperation(context, object, query);
 
 			case "sort":
+
 				return resolveSortOperation(object, query);
 		}
+
 		return query;
 	}
 
@@ -99,6 +104,7 @@ public class QueryBuilder {
 
 		// Resolve nested elements
 		for (int i = 0; i < operations.length(); i++) {
+
 			resolveQueryObject(context, operations.getJSONObject(i), query);
 		}
 
@@ -110,7 +116,6 @@ public class QueryBuilder {
 		final String key = object.getString("key");
 		final String op  = object.getString("op");
 		Object value     = object.get("value");
-
 		PropertyKey propKey = traits.key(key);
 
 		if (value != null) {
@@ -120,6 +125,7 @@ public class QueryBuilder {
 				value = Scripting.replaceVariables(context, null, value, StructrTraits.FLOW_TYPE_QUERY);
 
 			} catch (FrameworkException ex) {
+
 				ex.printStackTrace();
 			}
 		}

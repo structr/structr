@@ -39,7 +39,6 @@ public interface MaintenanceCommand extends Documentable {
 	String COMMAND_SUBTYPE_KEY      = "subtype";
 	String COMMAND_TITLE_KEY        = "title";
 	String COMMAND_MESSAGE_KEY      = "message";
-
 	String COMMAND_SUBTYPE_BEGIN    = "BEGIN";
 	String COMMAND_SUBTYPE_PROGRESS = "PROGRESS";
 	String COMMAND_SUBTYPE_END      = "END";
@@ -52,6 +51,7 @@ public interface MaintenanceCommand extends Documentable {
 	Map<String, String> getCustomHeaders();
 
 	default boolean isQuietMode() {
+
 		return false;
 	}
 
@@ -66,10 +66,12 @@ public interface MaintenanceCommand extends Documentable {
 	}
 
 	default Object getCommandResult() {
+
 		return Collections.EMPTY_LIST;
 	}
 
 	default int getCommandStatusCode() {
+
 		return HttpServletResponse.SC_OK;
 	}
 
@@ -96,6 +98,7 @@ public interface MaintenanceCommand extends Documentable {
 	default void publishWarningMessage (final String title, final String text) {
 
 		if (isQuietMode()) {
+
 			return;
 		}
 
@@ -110,6 +113,7 @@ public interface MaintenanceCommand extends Documentable {
 	default void publishInfoMessage (final String title, final String text) {
 
 		if (isQuietMode()) {
+
 			return;
 		}
 
@@ -129,6 +133,7 @@ public interface MaintenanceCommand extends Documentable {
 	default void publishCustomMessage (final String type, final String subType, final String message, final Map<String, Object> additionalInfo) {
 
 		if (isQuietMode()) {
+
 			return;
 		}
 
@@ -137,10 +142,12 @@ public interface MaintenanceCommand extends Documentable {
 		msgData.put(COMMAND_SUBTYPE_KEY, subType);
 
 		if (message != null) {
+
 			msgData.put(COMMAND_MESSAGE_KEY, message);
 		}
 
 		if (additionalInfo != null) {
+
 			// careful with additional info. "type", "subtype" and "message" overwrite control data
 			msgData.putAll(additionalInfo);
 		}

@@ -28,10 +28,12 @@ import org.structr.module.api.DeployableEntity;
 public class FlowParameterInput extends FlowBaseNode implements DeployableEntity {
 
 	public FlowParameterInput(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getKey() {
+
 		return wrappedObject.getProperty(traits.key(FlowParameterInputTraitDefinition.KEY_PROPERTY));
 	}
 

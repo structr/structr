@@ -30,6 +30,7 @@ import org.structr.test.core.entity.TestEight;
 public class TestEightTraitWrapper extends AbstractNodeTraitWrapper implements TestEight {
 
 	public TestEightTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

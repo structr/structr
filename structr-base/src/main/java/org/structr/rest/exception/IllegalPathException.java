@@ -18,7 +18,6 @@
  */
 package org.structr.rest.exception;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
 
@@ -28,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 public class IllegalPathException extends FrameworkException {
 
 	public IllegalPathException(final String message) {
+
 		super(HttpServletResponse.SC_BAD_REQUEST, message);
 	}
 }

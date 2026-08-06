@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class UserHOME_DIRFolder extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public UserHOME_DIRFolder() {
+
 		super(StructrTraits.USER_HOME_DIR_FOLDER);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.USER;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.FOLDER;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HOME_DIR";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

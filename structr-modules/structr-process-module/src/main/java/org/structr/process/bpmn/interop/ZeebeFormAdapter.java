@@ -56,11 +56,13 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 
 	@Override
 	public String vendorName() {
+
 		return "Zeebe";
 	}
 
 	@Override
 	public boolean appliesTo(final Set<String> namespaceUris) {
+
 		return namespaceUris.contains(ZEEBE_NS);
 	}
 
@@ -76,6 +78,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 			final Element formEl = (Element) formEls.item(i);
 			final String  id     = StringUtils.trimToNull(formEl.getAttribute("id"));
 			final String  json   = StringUtils.trimToNull(formEl.getTextContent());
+
 			if (id == null || json == null) {
 
 				continue;
@@ -88,7 +91,9 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 
 					formsById.put(id, parsed.getAsJsonObject());
 				}
+
 			} catch (final Exception e) {
+
 				logger.warn("Zeebe userTaskForm '{}' is not valid JSON -- skipped: {}", id, e.getMessage());
 			}
 		}
@@ -106,6 +111,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 
 			final Element userTask = (Element) userTasks.item(i);
 			final String  taskId   = StringUtils.trimToNull(userTask.getAttribute("id"));
+
 			if (taskId == null) {
 
 				continue;
@@ -148,6 +154,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 
 			return null;
 		}
+
 		return StringUtils.trimToNull(StringUtils.substringAfterLast(key, ":"));
 	}
 
@@ -155,6 +162,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 
 		final List<VendorFormField> fields = new ArrayList<>();
 		final JsonElement components       = schema.get("components");
+
 		if (components == null || !components.isJsonArray()) {
 
 			return fields;
@@ -166,6 +174,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 
 				continue;
 			}
+
 			final JsonObject component = el.getAsJsonObject();
 
 			// Only input components carry a key; layout components (text/button/spacer) do not.
@@ -177,8 +186,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 
 			final String  label      = optString(component, "label");
 			final String  structrType = mapType(optString(component, "type"));
-			final boolean required    = component.has("validate") && component.get("validate").isJsonObject()
-				&& optBool(component.getAsJsonObject("validate"), "required");
+			final boolean required    = component.has("validate") && component.get("validate").isJsonObject() && optBool(component.getAsJsonObject("validate"), "required");
 			final boolean readOnly    = optBool(component, "readonly") || optBool(component, "disabled");
 
 			fields.add(new VendorFormField(key, label, structrType, required, readOnly));
@@ -196,6 +204,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 		}
 
 		// textfield / textarea / radio / select / taglist all map to the default (String).
+
 		return switch (formJsType.trim().toLowerCase()) {
 			case "number"   -> "Double";
 			case "checkbox" -> "Boolean";
@@ -207,16 +216,20 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 	private static String optString(final JsonObject obj, final String key) {
 
 		final JsonElement el = obj.get(key);
+
 		return (el != null && el.isJsonPrimitive()) ? StringUtils.trimToNull(el.getAsString()) : null;
 	}
 
 	private static boolean optBool(final JsonObject obj, final String key) {
 
 		final JsonElement el = obj.get(key);
+
 		try {
 
 			return el != null && el.isJsonPrimitive() && el.getAsBoolean();
+
 		} catch (final Exception e) {
+
 			return false;
 		}
 	}

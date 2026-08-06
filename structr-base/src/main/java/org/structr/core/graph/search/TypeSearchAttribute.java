@@ -45,7 +45,6 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), null, isExactMatch);
 
 		final Traits traits = Traits.of(type);
-
 		if (traits.isRelationshipType()) {
 
 			try {
@@ -57,6 +56,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 				this.targetType = rel.getTargetType();
 
 			} catch (Throwable t) {
+
 				logger.warn("", t);
 			}
 
@@ -72,21 +72,25 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	@Override
 	public Class getQueryType() {
+
 		return TypeQuery.class;
 	}
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
+
 		return entity.getTraits().contains(type);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return sourceType;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return targetType;
 	}
 }

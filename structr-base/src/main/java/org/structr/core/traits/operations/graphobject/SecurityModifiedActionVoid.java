@@ -25,11 +25,13 @@ import org.structr.core.traits.operations.VoidAction;
 public class SecurityModifiedActionVoid extends VoidAction implements SecurityModified {
 
 	public SecurityModifiedActionVoid(final Runnable function) {
+
 		super(function);
 	}
 
 	@Override
 	public void securityModified(final GraphObject graphObject, final SecurityContext securityContext) {
+
 		function.run();
 	}
 }

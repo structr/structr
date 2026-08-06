@@ -44,20 +44,24 @@ import java.util.Map;
 public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper implements StorageConfiguration {
 
 	public StorageConfigurationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
 	public Iterable<NodeInterface> getEntries() {
+
 		return wrappedObject.getProperty(traits.key(StorageConfigurationTraitDefinition.ENTRIES_PROPERTY));
 	}
 
 	@Override
 	public String getProvider() {
+
 		return wrappedObject.getProperty(traits.key(StorageConfigurationTraitDefinition.PROVIDER_PROPERTY));
 	}
 
@@ -83,8 +87,6 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 		try {
 
 			Class<?> foundClass = this.getProvider() != null ? Class.forName(this.getProvider()) : null;
-
-
 			if (foundClass == null) {
 
 				return StorageProviderFactory.getDefaultStorageProviderClass();
@@ -96,11 +98,13 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 			}
 
 			logger.error("Found class for given provider fully qualified class name, but found class does not extend the StorageProvider interface. Found Class: {}", foundClass.getName());
+
 			return null;
 
 		} catch (ClassNotFoundException ex) {
 
 			logger.error("Unable to instantiate storage provider {}: {}", this.getName(), ex.getMessage());
+
 			return null;
 		}
 	}

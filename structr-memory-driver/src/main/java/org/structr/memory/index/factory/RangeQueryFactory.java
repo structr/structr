@@ -31,6 +31,7 @@ import org.structr.memory.index.predicate.RangePredicate;
 public class RangeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public RangeQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -48,6 +49,7 @@ public class RangeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			final Class type            = null;
 
 			if (rangeStart == null && rangeEnd == null) {
+
 				return false;
 			}
 

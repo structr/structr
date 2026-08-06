@@ -52,11 +52,13 @@ public class LicensingTest {
 
 	@BeforeMethod
 	protected void starting(final Method method) {
+
 		System.out.println("##### Starting " + getClass().getName() + "#" + method.getName());
 	}
 
 	@AfterMethod
 	protected void finished(final Method method) {
+
 		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName());
 	}
 
@@ -112,8 +114,11 @@ public class LicensingTest {
 
 		// wait for service layer to be initialized
 		do {
+
 			try {
+
 				Thread.sleep(100);
+
 			} catch (Throwable t) {
 			}
 
@@ -129,17 +134,20 @@ public class LicensingTest {
 		Services.getInstance().shutdown();
 
 		try {
+
 			File testConf = new File("structr.conf");
 			if (testConf.isFile()) {
+
 				testConf.delete();
 			}
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
-
 		try {
+
 			File testDir = new File(basePath);
 			if (testDir.isDirectory()) {
 
@@ -151,10 +159,10 @@ public class LicensingTest {
 			}
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
-
 
 	protected void setupDatabaseConnection(String testDatabaseConnection) {
 
@@ -162,11 +170,16 @@ public class LicensingTest {
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin123");
+
 		if (StringUtils.isBlank(testDatabaseConnection)) {
+
 			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
 		} else {
+
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
+
 		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}

@@ -25,6 +25,7 @@ import org.structr.api.RetryException;
 import java.util.function.Supplier;
 
 public abstract class RetryWrapper {
+
 	private static final int maxRetries = 20;
 	private static final int retryDelay = 100;
 	private static final int firstRetryDelay = 10;
@@ -33,6 +34,7 @@ public abstract class RetryWrapper {
 
 	// ---- public static methods ----
 	public static  <T> T executeWithRetry(Supplier<T> supplier) {
+
 		boolean retry = false;
 		int retries = 0;
 
@@ -49,6 +51,7 @@ public abstract class RetryWrapper {
 				try {
 
 					Thread.sleep(retries > 0 ? retryDelay : firstRetryDelay);
+
 				} catch (InterruptedException iex) {
 
 					break;

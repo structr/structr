@@ -27,6 +27,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowNotNull extends FlowCondition implements DeployableEntity {
 
 	public FlowNotNull(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

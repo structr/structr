@@ -34,11 +34,13 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "invalidateCacheValue";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("cacheKey");
 	}
 
@@ -63,31 +65,31 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${invalidateCacheValue(cacheKey)}"),
-			Usage.javaScript("Usage: ${{ $.invalidateCacheValue(cacheKey) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${invalidateCacheValue(cacheKey)}"), Usage.javaScript("Usage: ${{ $.invalidateCacheValue(cacheKey) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Invalidates the cached value for the given key (if present).";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${invalidateCacheValue('mykey')}")
-		);
+
+		return List.of(Example.structrScript("${invalidateCacheValue('mykey')}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Miscellaneous;
 	}
 }

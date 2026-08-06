@@ -27,6 +27,7 @@ import java.util.LinkedList;
 public class ResolveIsARelationsRule extends Rule {
 
 	public ResolveIsARelationsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -38,15 +39,12 @@ public class ResolveIsARelationsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.poll();
-
 			if (token1 instanceof NamedConceptToken name1 && name1.isUnknown() && !tokens.isEmpty()) {
 
 				final AbstractToken token2 = tokens.poll();
-
 				if (token2 instanceof VerbToken verbToken && "is".equals(verbToken.getToken()) && !tokens.isEmpty()) {
 
 					final AbstractToken token3 = tokens.poll();
-
 					if (token3 instanceof ConceptToken conceptToken) {
 
 						result.add(new IsAToken(name1, conceptToken));

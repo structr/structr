@@ -37,6 +37,7 @@ import org.structr.feed.entity.AbstractFeedItem;
 public class AbstractFeedItemTraitWrapper extends AbstractNodeTraitWrapper implements AbstractFeedItem {
 
 	public AbstractFeedItemTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -60,21 +61,25 @@ public class AbstractFeedItemTraitWrapper extends AbstractNodeTraitWrapper imple
 
 	@Override
 	public boolean indexingEnabled() {
+
 		return Settings.FeedItemContentIndexingEnabled.getValue();
 	}
 
 	@Override
 	public Integer maximumIndexedWords() {
+
 		return Settings.FeedItemContentIndexingLimit.getValue();
 	}
 
 	@Override
 	public Integer indexedWordMinLength() {
+
 		return Settings.FeedItemContentIndexingMinLength.getValue();
 	}
 
 	@Override
 	public Integer indexedWordMaxLength() {
+
 		return Settings.FeedItemContentIndexingMaxLength.getValue();
 	}
 }

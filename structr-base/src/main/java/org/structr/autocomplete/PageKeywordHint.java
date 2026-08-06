@@ -28,13 +28,13 @@ public abstract class PageKeywordHint extends KeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This keywords is only available in Page elements (DOM nodes)."
-		);
+
+		return List.of("This keywords is only available in Page elements (DOM nodes).");
 	}
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Page Keywords"));
 	}
 }

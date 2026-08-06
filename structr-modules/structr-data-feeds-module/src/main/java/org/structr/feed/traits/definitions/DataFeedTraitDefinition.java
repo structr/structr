@@ -45,7 +45,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
-
 public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String ITEMS_PROPERTY           = "items";
@@ -58,15 +57,14 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String MAX_ITEMS_PROPERTY       = "maxItems";
 
 	public DataFeedTraitDefinition() {
+
 		super(StructrTraits.DATA_FEED);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
-		return Map.of(
-			IsValid.class,
-			new IsValid() {
+		return Map.of(IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -77,11 +75,11 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					graphObject.as(DataFeed.class).updateFeed(securityContext);
 				}
 			}
@@ -100,11 +98,13 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					entity.as(DataFeed.class).cleanUp(securityContext);
+
 					return null;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Removes old feed items based on the configured maxItems and maxAge properties.";
 				}
 			},
@@ -113,13 +113,16 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					entity.as(DataFeed.class).updateIfDue(securityContext);
+
 					return null;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Checks if an update is due based on lastUpdated and updateInterval, and fetches new items if necessary.";
 				}
 			},
@@ -128,13 +131,16 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					entity.as(DataFeed.class).updateFeed(securityContext);
+
 					return null;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Fetches new entries from the remote feed URL and runs cleanUp afterward.";
 				}
 			}
@@ -144,9 +150,7 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			DataFeed.class, (traits, node) -> new DataFeedTraitWrapper(traits, node)
-		);
+		return Map.of(DataFeed.class, (traits, node) -> new DataFeedTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -161,16 +165,7 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> maxAgeProperty                   = new LongProperty(MAX_AGE_PROPERTY);
 		final Property<Integer> maxItemsProperty              = new IntProperty(MAX_ITEMS_PROPERTY);
 
-		return newSet(
-			itemsProperty,
-			urlProperty,
-			feedTypeProperty,
-			descriptionProperty,
-			updateIntervalProperty,
-			lastUpdatedProperty,
-			maxAgeProperty,
-			maxItemsProperty
-		);
+		return newSet(itemsProperty, urlProperty, feedTypeProperty, descriptionProperty, updateIntervalProperty, lastUpdatedProperty, maxAgeProperty, maxItemsProperty);
 	}
 
 	@Override
@@ -191,11 +186,13 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

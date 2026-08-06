@@ -41,11 +41,13 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "enumInfo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type, propertyName");
 	}
 
@@ -61,15 +63,16 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 			final Traits type             = Traits.of(typeName);
 
 			if (type == null) {
+
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
 			}
 
 			if (!type.hasKey(enumPropertyName)) {
+
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, PropertyInfoFunction.UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted(getName(), typeName, enumPropertyName));
 			}
 
 			final PropertyKey key = type.key(enumPropertyName);
-
 			if (key instanceof EnumProperty enumProperty) {
 
 				final Set<String> enumConstants = enumProperty.getEnumConstants();
@@ -84,12 +87,14 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${enumInfo(type, enumProperty)}. Example ${enumInfo('Document', 'documentType')}"),
 			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty)}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
@@ -98,16 +103,14 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the collection of possible values of an enum property.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("type", "type on which the property is defined"),
-			Parameter.mandatory("propertyName", "name of the property")
-		);
+		return List.of(Parameter.mandatory("type", "type on which the property is defined"), Parameter.mandatory("propertyName", "name of the property"));
 	}
 
 	@Override
@@ -124,6 +127,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
 				"If the requested property does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned.",
@@ -133,6 +137,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Schema;
 	}
 }

@@ -82,6 +82,7 @@ import java.util.Map.Entry;
 public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	public FileTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -92,6 +93,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		if (text != null) {
 
 			final FulltextIndexer indexer = StructrApp.getInstance(ctx).getFulltextIndexer();
+
 			return indexer.getContextObject(searchTerm, text, contextLength);
 		}
 
@@ -100,6 +102,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public void notifyUploadCompletion() {
+
 		traits.getMethod(OnUploadCompletion.class).onUploadCompletion(this, getSecurityContext());
 	}
 
@@ -123,16 +126,15 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		}
 	}
 
-
 	@Override
 	public String getFormattedSize() {
-		return FileUtils.byteCountToDisplaySize(
-				getSize()
-		);
+
+		return FileUtils.byteCountToDisplaySize(getSize());
 	}
 
 	@Override
 	public Long getSize() {
+
 		return StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size();
 	}
 
@@ -142,6 +144,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		final Integer _version = getVersion();
 
 		wrappedObject.unlockSystemPropertiesOnce();
+
 		if (_version == null) {
 
 			setVersion(1);
@@ -154,51 +157,61 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public void setVersion(final int version) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FileTraitDefinition.VERSION_PROPERTY), version);
 	}
 
 	@Override
 	public Integer getVersion() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.VERSION_PROPERTY));
 	}
 
 	@Override
 	public Integer getCacheForSeconds() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY));
 	}
 
 	@Override
 	public Long getChecksum() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY));
 	}
 
 	@Override
 	public Long getFileModificationDate() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY));
 	}
 
 	@Override
 	public String getMd5() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.MD5_PROPERTY));
 	}
 
 	@Override
 	public void setSize(final Long size) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FileTraitDefinition.SIZE_PROPERTY), size);
 	}
 
 	@Override
 	public boolean isTemplate() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.IS_TEMPLATE_PROPERTY));
 	}
 
 	@Override
 	public boolean dontCache() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.DONT_CACHE_PROPERTY));
 	}
 
 	@Override
 	public String getPath() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY));
 	}
 
@@ -239,6 +252,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			if (isTemplate()) {
 
 				boolean editModeActive = false;
+
 				if (securityContext.getRequest() != null) {
 
 					final String editParameter = securityContext.getRequest().getParameter(RequestParameters.EditMode.getName());
@@ -258,7 +272,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 					try {
 
 						final String result = Scripting.replaceVariables(new ActionContext(securityContext), wrappedObject, content, "getInputStream");
-
 						String encoding = "UTF-8";
 
 						// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
@@ -270,11 +283,16 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 						if (cType != null) {
 
 							final String charset = StringUtils.substringAfterLast(cType, "charset=").trim().toUpperCase();
+
 							try {
+
 								if (!"".equals(charset) && Charset.isSupported(charset)) {
+
 									encoding = charset;
 								}
+
 							} catch (IllegalCharsetNameException ice) {
+
 								logger.warn("Charset is not supported '{}'. Using 'UTF-8'", charset);
 							}
 						}
@@ -291,6 +309,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			return is;
 
 		} catch (IOException ex) {
+
 			logger.warn("Unable to open input stream for {}: {}", getPath(), ex.getMessage());
 		}
 
@@ -309,16 +328,19 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public OutputStream getOutputStream() {
+
 		return getOutputStream(true, false);
 	}
 
 	@Override
 	public String getExtractedContent() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override
 	public String getContentType() {
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
@@ -336,6 +358,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		try {
 
 			// Return file output stream and save checksum and size after closing
+
 			return new ClosingOutputStream(this, append, notifyIndexerAfterClosing);
 
 		} catch (IOException e) {
@@ -483,7 +506,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	public String getXMLStructure(final SecurityContext securityContext) throws FrameworkException {
 
 		final String contentType = getContentType();
-
 		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
 
 			try (final Reader input = new InputStreamReader(getInputStream())) {
@@ -494,6 +516,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 				return gson.toJson(analyzer.getStructure(100));
 
 			} catch (XMLStreamException | IOException ex) {
+
 				LoggerFactory.getLogger(File.class).error("{}", ExceptionUtils.getStackTrace(ex));
 			}
 		}
@@ -527,6 +550,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			final User user = _owner.as(User.class);
 
 			workingOrHomeDir = user.getWorkingDirectory();
+
 			if (workingOrHomeDir == null) {
 
 				workingOrHomeDir = user.getHomeDirectory();
@@ -540,16 +564,17 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	public int getNumberOrDefault(final Map<String, Object> data, final String key, final int defaultValue) {
 
 		final Object value = data.get(key);
-
 		if (value != null) {
 
 			// try number
 			if (value instanceof Number) {
+
 				return ((Number)value).intValue();
 			}
 
 			// try string
 			if (value instanceof String) {
+
 				try { return Integer.valueOf((String)value); } catch (NumberFormatException nex) {}
 			}
 		}
@@ -561,7 +586,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	public void checkMoveBinaryContents(final NodeInterface newProvider) throws FrameworkException {
 
 		final AbstractFile abstractFile = wrappedObject.as(AbstractFile.class);
-
 		if (!StorageProviderFactory.getStorageProvider(abstractFile).equals(StorageProviderFactory.getSpecificStorageProvider(abstractFile, newProvider))) {
 
 			final StorageProvider previousSP = StorageProviderFactory.getStorageProvider(abstractFile);
@@ -576,6 +600,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 		final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(this, previousParent != null ? previousParent.getStorageConfiguration(): null);
 		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(this, newParent != null ? newParent.as(Folder.class).getStorageConfiguration(): null);
+
 		previousSP.moveTo(newSP);
 	}
 
@@ -594,6 +619,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		}
 
 		// default to setting in security context
+
 		return wrappedObject.getSecurityContext().doIndexing();
 	}
 
@@ -611,6 +637,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
@@ -624,7 +651,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), StandardCharsets.UTF_8))) {
 
 			int[] buf = new int[10010];
-
 			int ch          = reader.read();
 			int i           = 0;
 			int l           = 0;
@@ -707,6 +733,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			lines.append(new String(buf, 0, i));
 
 		} catch (Exception ex) {
+
 			LoggerFactory.getLogger(File.class).error("{}", ExceptionUtils.getStackTrace(ex));
 		}
 
@@ -720,15 +747,18 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		private String separator = null;
 
 		public LineAndSeparator(final String line, final String separator) {
+
 			this.line      = line;
 			this.separator = separator;
 		}
 
 		public String getLine() {
+
 			return line;
 		}
 
 		public String getSeparator() {
+
 			return separator;
 		}
 	}

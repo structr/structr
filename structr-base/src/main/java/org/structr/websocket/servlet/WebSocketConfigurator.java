@@ -44,9 +44,11 @@ public class WebSocketConfigurator implements Consumer<ServerWebSocketContainer>
 	public WebSocketConfigurator(final String oldServletName) {
 
 		try {
+
 			config.initializeFromSettings(oldServletName);
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -60,18 +62,19 @@ public class WebSocketConfigurator implements Consumer<ServerWebSocketContainer>
 			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getOutputNestingDepth()));
 
 		if (Settings.WsIndentation.getValue()) {
+
 			gsonBuilder.setPrettyPrinting();
 		}
 
 		final boolean lenient = Settings.JsonLenient.getValue();
 		if (lenient) {
+
 			// Serializes NaN, -Infinity, Infinity, see http://code.google.com/p/google-gson/issues/detail?id=378
 			gsonBuilder.serializeSpecialFloatingPointValues();
 
 		}
 
 		final Gson gson = gsonBuilder.create();
-
 		final WebsocketController syncController = new WebsocketController(gson);
 
 		// register (Structr) transaction listener

@@ -32,6 +32,7 @@ import java.util.LinkedList;
 public class IdentifyConceptsRule extends Rule {
 
 	public IdentifyConceptsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 

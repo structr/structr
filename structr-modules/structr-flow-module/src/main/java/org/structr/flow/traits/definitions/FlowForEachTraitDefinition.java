@@ -53,6 +53,7 @@ public class FlowForEachTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
 
 	public FlowForEachTraitDefinition() {
+
 		super(StructrTraits.FLOW_FOR_EACH);
 	}
 
@@ -61,26 +62,25 @@ public class FlowForEachTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.ForEach;
 					}
 				},
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
+
 						return context.getData(dataSource.getUuid());
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -101,9 +101,7 @@ public class FlowForEachTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowForEach.class, (traits, node) -> new FlowForEach(traits, node)
-		);
+		return Map.of(FlowForEach.class, (traits, node) -> new FlowForEach(traits, node));
 	}
 
 	@Override
@@ -113,11 +111,7 @@ public class FlowForEachTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> loopBody             = new EndNode(traitsInstance, LOOP_BODY_PROPERTY, StructrTraits.FLOW_FOR_EACH_BODY);
 		final Property<NodeInterface> exceptionHandler     = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 
-		return newSet(
-			dataTarget,
-			loopBody,
-			exceptionHandler
-		);
+		return newSet(dataTarget, loopBody, exceptionHandler);
 	}
 
 	@Override
@@ -138,6 +132,7 @@ public class FlowForEachTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

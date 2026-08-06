@@ -18,7 +18,6 @@
  */
 package org.structr.rest.servlet;
 
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import jakarta.servlet.ServletException;
@@ -73,6 +72,7 @@ public class ConfigServlet extends AbstractServletBase {
 		.build();
 
 	private static final class AttemptState {
+
 		int attempts;
 		long lockoutUntil;
 	}
@@ -99,12 +99,14 @@ public class ConfigServlet extends AbstractServletBase {
 				writer.flush();
 
 			} catch (IOException ioex) {
+
 				logger.error(ExceptionUtils.getStackTrace(ioex));
 			}
 
 		} else {
 
 			if (isStateChangingGetRequest(request) && !checkCsrfOrigin(request, response)) {
+
 				return;
 			}
 
@@ -122,6 +124,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Setting setting  = Settings.getSetting(key);
 
 				if (setting == null) {
+
 					setting = Settings.getCaseSensitiveSetting(key);
 				}
 
@@ -152,6 +155,7 @@ public class ConfigServlet extends AbstractServletBase {
 				if (serviceName != null) {
 
 					try {
+
 						Services.getInstance().startService(serviceName);
 
 					} catch (FrameworkException fex) {
@@ -193,6 +197,7 @@ public class ConfigServlet extends AbstractServletBase {
 							Services.getInstance().shutdownService(serviceName);
 
 							try {
+
 								Services.getInstance().startService(serviceName);
 
 							} catch (FrameworkException fex) {
@@ -223,8 +228,8 @@ public class ConfigServlet extends AbstractServletBase {
 				final String databaseName           = Settings.ConnectionDatabaseName.getDefaultValue();
 				final String username               = Settings.ConnectionUser.getDefaultValue();
 				final String password               = Settings.ConnectionPassword.getDefaultValue();
-
 				final DatabaseConnection connection = new DatabaseConnection();
+
 				connection.setName(name);
 				connection.setUrl(url);
 				connection.setUsername(username);
@@ -232,9 +237,11 @@ public class ConfigServlet extends AbstractServletBase {
 				connection.setDatabaseName(databaseName);
 
 				try {
+
 					cmd.addConnection(connection, false);
 
 				} catch (FrameworkException fex) {
+
 					logger.error(ExceptionUtils.getStackTrace(fex));
 				}
 
@@ -255,8 +262,8 @@ public class ConfigServlet extends AbstractServletBase {
 				if (success) {
 
 					final String baseUrl = ActionContext.getBaseUrl(request, true);
-
 					final Map<String, Object> msgData = new HashMap();
+
 					msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
 					msgData.put("enabled",                           maintenanceEnabled);
 					msgData.put("baseUrl",                           baseUrl);
@@ -279,6 +286,7 @@ public class ConfigServlet extends AbstractServletBase {
 					writer.flush();
 
 				} catch (IOException ioex) {
+
 					logger.error(ExceptionUtils.getStackTrace(ioex));
 				}
 			}
@@ -292,6 +300,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		// CSRF origin check for all ConfigServlet POST requests
 		if (!checkCsrfOrigin(request, response)) {
+
 			return;
 		}
 
@@ -337,6 +346,7 @@ public class ConfigServlet extends AbstractServletBase {
 						state.attempts++;
 
 						if (state.attempts >= MAX_FAILED_ATTEMPTS) {
+
 							state.lockoutUntil = System.currentTimeMillis() + LOCKOUT_DURATION_MS;
 							logger.warn("ConfigServlet login locked out for {} for {}ms after {} failed attempts", remoteIp, LOCKOUT_DURATION_MS, state.attempts);
 						}
@@ -378,6 +388,7 @@ public class ConfigServlet extends AbstractServletBase {
 				connection.setPassword(password);
 
 				try {
+
 					cmd.addConnection(connection, cmd.getConnections().isEmpty() && "true".equals(connectNow));
 
 					// wizard finished
@@ -426,6 +437,7 @@ public class ConfigServlet extends AbstractServletBase {
 						data.put(DatabaseConnection.KEY_PASSWORD,     connectionPassword);
 
 						try {
+
 							switch (restAction) {
 
 								case "save":
@@ -469,6 +481,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						// skip internal group configuration parameter
 						if (key.endsWith("._settings_group")) {
+
 							continue;
 						}
 
@@ -481,7 +494,6 @@ public class ConfigServlet extends AbstractServletBase {
 						}
 
 						Setting<?> setting = Settings.getSetting(key);
-
 						if (setting != null && setting.isDynamic()) {
 
 							// unregister dynamic settings so the type can change
@@ -502,6 +514,7 @@ public class ConfigServlet extends AbstractServletBase {
 								if (group != null) {
 
 									parent = Settings.getGroup(group);
+
 									if (parent == null) {
 
 										// default to misc group
@@ -546,6 +559,7 @@ public class ConfigServlet extends AbstractServletBase {
 		form.attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"));
 
 		if (firstStart) {
+
 			welcomeTab(menu, tabs);
 		}
 
@@ -584,7 +598,6 @@ public class ConfigServlet extends AbstractServletBase {
 
 					final boolean running         = serviceClass != null ? services.isReady(serviceClass, name) : false;
 					final String serviceClassName = serviceClass.getSimpleName() + "." + name;
-
 					final Tag row  = table.block("tr");
 
 					row.block("td").text(serviceClassName);
@@ -625,6 +638,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final Tag button = group.block("td").block("button").attr(new Attr("Type", "button"));
 
 			if (Settings.MaintenanceModeEnabled.getComment() != null) {
+
 				label.attr(new Attr("class", "has-comment"));
 				label.attr(new Attr("data-comment", Settings.MaintenanceModeEnabled.getComment()));
 			}
@@ -667,7 +681,6 @@ public class ConfigServlet extends AbstractServletBase {
 	private Tag setupDocument(final HttpServletRequest request, final Document doc) {
 
 		final Tag head = doc.block("head");
-
 		final String applicationRootPath = Settings.ApplicationRootPath.getValue();
 
 		head.block("title").text(TITLE);
@@ -707,11 +720,15 @@ public class ConfigServlet extends AbstractServletBase {
 	private AttemptState getOrCreateAttemptState(final String remoteIp) {
 
 		try {
+
 			return loginAttempts.get(remoteIp, AttemptState::new);
+
 		} catch (Exception ex) {
+
 			// AttemptState::new is total; this branch is defensive only.
 			final AttemptState fallback = new AttemptState();
 			loginAttempts.put(remoteIp, fallback);
+
 			return fallback;
 		}
 	}
@@ -731,6 +748,7 @@ public class ConfigServlet extends AbstractServletBase {
 	private boolean isAuthenticated(final HttpServletRequest request) {
 
 		if (!Settings.SetupWizardCompleted.getValue()) {
+
 			return true;
 		}
 
@@ -775,10 +793,12 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag item2 = list.block("li").text("Configure a <b>database connection</b>");
 
 		if (passwordIsSet) {
+
 			item1.block("span").text(" &#x2714;");
 		}
 
 		if (databaseIsConfigured) {
+
 			item2.block("span").text(" &#x2714;");
 		}
 
@@ -818,8 +838,8 @@ public class ConfigServlet extends AbstractServletBase {
 			body.block("p").text("There are currently no database connections configured. To use Structr, you have the following options:");
 
 			final Tag div = body.block("div");
-
 			final Tag leftDiv  = div.block("div").css("inline-block");
+
 			leftDiv.block("button").id("create-db-connection-button").css("default-action").attr(new Type("button")).text("Create new database connection");
 			leftDiv.block("p").text("Configure Structr to connect to a running database.");
 
@@ -857,8 +877,7 @@ public class ConfigServlet extends AbstractServletBase {
 		driver.add(new SelectField(driver, "driver-structr-new-connection")
 				.addOption("Neo4j Remote (Bolt)", "org.structr.bolt.BoltDatabaseService")
 				.addOption("Neo4j Embedded", "org.structr.embedded.EmbeddedDatabaseService")
-				.addOption("In-Memory (non-persistent, all data will be erased on shutdown!)", "org.structr.memory.MemoryDatabaseService")
-		);
+				.addOption("In-Memory (non-persistent, all data will be erased on shutdown!)", "org.structr.memory.MemoryDatabaseService"));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT_URL));
@@ -881,6 +900,7 @@ public class ConfigServlet extends AbstractServletBase {
 			// allow user to prevent connecting immediately
 			final Tag checkbox = div.block("p");
 			final Tag label    = checkbox.block("label");
+
 			label.empty("input").attr(new Attr("type", "checkbox"), new Attr("id", "connect-checkbox"), new Attr("checked", "checked"));
 			label.block("span").text("Connect immediately");
 		}
@@ -913,7 +933,6 @@ public class ConfigServlet extends AbstractServletBase {
 
 				// Regenerate session ID to prevent session fixation attacks
 				final String newSessionId = request.changeSessionId();
-
 				if (newSessionId != null) {
 
 					sessions.add(newSessionId);
@@ -927,7 +946,6 @@ public class ConfigServlet extends AbstractServletBase {
 
 				// Use existing session ID without regeneration
 				final String sessionId = session.getId();
-
 				if (sessionId != null) {
 
 					sessions.add(sessionId);
@@ -979,6 +997,7 @@ public class ConfigServlet extends AbstractServletBase {
 	private static class Style extends Attr {
 
 		public Style(final Object value) {
+
 			super("style", value);
 		}
 	}
@@ -986,6 +1005,7 @@ public class ConfigServlet extends AbstractServletBase {
 	private static class Src extends Attr {
 
 		public Src(final Object value) {
+
 			super("src", value);
 		}
 	}
@@ -993,6 +1013,7 @@ public class ConfigServlet extends AbstractServletBase {
 	private static class Type extends Attr {
 
 		public Type(final Object value) {
+
 			super("type", value);
 		}
 	}
@@ -1000,6 +1021,7 @@ public class ConfigServlet extends AbstractServletBase {
 	private static class Name extends Attr {
 
 		public Name(final Object value) {
+
 			super("name", value);
 		}
 	}
@@ -1007,6 +1029,7 @@ public class ConfigServlet extends AbstractServletBase {
 	private static class Value extends Attr {
 
 		public Value(final Object value) {
+
 			super("value", value);
 		}
 	}
@@ -1014,6 +1037,7 @@ public class ConfigServlet extends AbstractServletBase {
 	private static class OnClick extends Attr {
 
 		public OnClick(final Object value) {
+
 			super("onclick", value);
 		}
 	}

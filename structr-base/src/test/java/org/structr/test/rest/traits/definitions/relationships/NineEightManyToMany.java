@@ -29,46 +29,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class NineEightManyToMany extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public NineEightManyToMany() {
+
 		super("NineEightManyToMany");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestNine";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestEight";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

@@ -71,6 +71,7 @@ public abstract class Setting<T> {
 	}
 
 	public String getKey() {
+
 		return key;
 	}
 
@@ -88,20 +89,24 @@ public abstract class Setting<T> {
 	}
 
 	public String getCategory() {
+
 		return category;
 	}
 
 	public String getComment() {
+
 		return comment;
 	}
 
 	public T getValue() {
+
 		return value;
 	}
 
 	public T getPrefixedValue(final String prefix) {
 
 		if (StringUtils.isBlank(prefix)) {
+
 			return getValue();
 		}
 
@@ -111,6 +116,7 @@ public abstract class Setting<T> {
 	}
 
 	public T getDefaultValue() {
+
 		return defaultValue;
 	}
 
@@ -125,11 +131,14 @@ public abstract class Setting<T> {
 	}
 
 	public Setting<T> setLongDescription(final String longDescription) {
+
 		this.longDescription = longDescription;
+
 		return this;
 	}
 
 	public String getLongDescription() {
+
 		return longDescription;
 	}
 
@@ -163,6 +172,7 @@ public abstract class Setting<T> {
 	public T getPrefixedValue(final String prefix, final T defaultValue) {
 
 		if (StringUtils.isBlank(prefix)) {
+
 			return getValue(defaultValue);
 		}
 
@@ -176,7 +186,6 @@ public abstract class Setting<T> {
 		final T oldValue      = this.value;
 		this.value            = value;
 		final boolean changed = ((oldValue == null && value != null) || (oldValue != null && !oldValue.equals(value)));
-
 		if (changed == true && changeHandler != null) {
 
 			changeHandler.execute(this, oldValue, value);
@@ -186,40 +195,51 @@ public abstract class Setting<T> {
 	}
 
 	public void setDefaultValue(final T value) {
+
 		this.defaultValue = value;
 	}
 
 	public boolean isModified() {
+
 		return isModified || (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
 	}
 
 	public void setIsModified(final boolean isModified) {
+
 		this.isModified = isModified;
 	}
 
 	public boolean isDynamic() {
+
 		return isDynamic;
 	}
 
 	public Setting setIsProtected() {
+
 		this.isProtected = true;
+
 		return this;
 	}
 
 	public boolean isProtected() {
+
 		return this.isProtected;
 	}
 
 	public void setIsDynamic(boolean isDynamic) {
+
 		this.isDynamic = isDynamic;
 	}
 
 	public Setting<T> setChangeHandler(final SettingChangeHandler changeHandler) {
+
 		this.changeHandler = changeHandler;
+
 		return this;
 	}
 
 	public SettingChangeHandler getChangeHandler() {
+
 		return this.changeHandler;
 	}
 
@@ -232,20 +252,23 @@ public abstract class Setting<T> {
 	// ----- private methods -----
 	private String getCalculatedComment() {
 
-
 		if (getComment() != null && getLongDescription() != null) {
+
 			return getComment() + "<br>" + getLongDescriptionAsRenderedHTML();
 		}
 
 		if (getLongDescription() == null) {
+
 			return getComment();
 		}
 
 		if (getComment() == null) {
+
 			return getLongDescription();
 		}
 
 		if (getKey().endsWith(".cronExpression")) {
+
 			return Settings.CRON_EXPRESSION_INFO_HTML;
 		}
 

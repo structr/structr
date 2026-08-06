@@ -27,6 +27,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowSwitch extends FlowNode implements DeployableEntity {
 
 	public FlowSwitch(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 

@@ -47,11 +47,13 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 	public JsonDateProperty setDatePattern(final String datePattern) {
 
 		this.datePattern = datePattern;
+
 		return this;
 	}
 
 	@Override
 	public String getDatePattern() {
+
 		return datePattern;
 	}
 
@@ -62,6 +64,7 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 		final Map<String, Object> map = super.serialize();
 
 		if (datePattern != null) {
+
 			map.put(JsonSchema.KEY_DATE_PATTERN, datePattern);
 		}
 
@@ -74,6 +77,7 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 		super.deserialize(source);
 
 		if (source.containsKey(JsonSchema.KEY_DATE_PATTERN)) {
+
 			this.datePattern = (String)source.get(JsonSchema.KEY_DATE_PATTERN);
 		}
 	}
@@ -88,12 +92,14 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 
 	@Override
 	public String getFormat() {
+
 		return datePattern;
 	}
 
 	// ----- protected methods -----
 	@Override
 	protected Type getTypeToSerialize() {
+
 		return Type.Date;
 	}
 }

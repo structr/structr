@@ -46,6 +46,7 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 	public static final String DATA_SOURCES_PROPERTY = "dataSources";
 
 	public FlowCollectionDataSourceTraitDefinition() {
+
 		super(StructrTraits.FLOW_COLLECTION_DATA_SOURCE);
 	}
 
@@ -54,8 +55,7 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -76,8 +76,7 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -98,9 +97,7 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowCollectionDataSource.class, (traits, node) -> new FlowCollectionDataSource(traits, node)
-		);
+		return Map.of(FlowCollectionDataSource.class, (traits, node) -> new FlowCollectionDataSource(traits, node));
 	}
 
 	@Override
@@ -108,25 +105,20 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 
 		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(traitsInstance, DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
 
-		return newSet(
-			dataSources
-		);
+		return newSet(dataSources);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(DATA_SOURCES_PROPERTY),
+		return Map.of(PropertyView.Public, newSet(DATA_SOURCES_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(DATA_SOURCES_PROPERTY)
-		);
+			PropertyView.Ui, newSet(DATA_SOURCES_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 

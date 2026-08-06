@@ -34,6 +34,7 @@ import java.util.Map;
 class CypherNodeIndex extends AbstractCypherIndex<Node<String>> {
 
 	public CypherNodeIndex(final EmbeddedDatabaseService db) {
+
 		super(db);
 	}
 
@@ -51,11 +52,11 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<String>> {
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
 		if (query.hasPredicates()) {
+
 			buf.append(":NodeInterface");
 		}
 
 		final String tenantId = db.getTenantIdentifier();
-
 		if (tenantId != null) {
 
 			buf.append(":");
@@ -67,7 +68,6 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<String>> {
 			buf.append(":");
 			buf.append(typeLabel);
 		}
-
 
 		buf.append(")");
 
@@ -110,6 +110,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<String>> {
 		final String tenantIdentifier        = db.getTenantIdentifier();
 		final Map<String, Object> parameters = new LinkedHashMap<>();
 		final EmbeddedTransaction tx         = db.getCurrentTransaction();
+
 		final String              statement;
 
 		// check if index exists first
@@ -149,6 +150,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<String>> {
 
 	@Override
 	public Iterable<Node<String>> getResult(final CypherQuery query) {
+
 		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
 	}
 }

@@ -52,11 +52,13 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "validate_process_token";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -71,6 +73,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 			final Map<String, Claim> claims = ProcessJWTHelper.validateProcessToken(token);
 
 			if (claims == null) {
+
 				return null;
 			}
 
@@ -86,6 +89,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -94,20 +98,19 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("token");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.structrScript("Usage: ${validate_process_token(token)}"),
-			Usage.javaScript("Usage: ${{$.validate_process_token(token)}}")
-		);
+		return List.of(Usage.structrScript("Usage: ${validate_process_token(token)}"), Usage.javaScript("Usage: ${{$.validate_process_token(token)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Validates a process access JWT and returns its claims.";
 	}
 
@@ -135,9 +138,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("token", "the JWT string from the URL parameter")
-		);
+		return List.of(Parameter.mandatory("token", "the JWT string from the URL parameter"));
 	}
 
 	@Override
@@ -157,6 +158,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

@@ -32,16 +32,19 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "find.gte";
 	}
 
 	@Override
 	public String getReplacementHint() {
+
 		return "predicate.gte";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return "predicate.gte";
 	}
 
@@ -67,6 +70,7 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.predicate.gte(value)}. Example: ${{ $.find('User', { age: $.predicate.gte(42) }); }}"),
 			Usage.structrScript("Usage: ${gte(value)}. Example: ${find('User', 'age', gte(42))}")
@@ -75,16 +79,19 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a gte predicate that can be used in find() function calls.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -95,11 +102,13 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Predicate;
 	}
 }

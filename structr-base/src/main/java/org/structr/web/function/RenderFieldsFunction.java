@@ -42,11 +42,13 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 	@Override
 	public String getName() {
+
 		return "renderFields";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("tag [, slot]");
 	}
 
@@ -82,17 +84,20 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${renderFields(tag, slot)}. Example: ${renderFields('th'))}"),
 			Usage.javaScript("Usage: ${{ $.renderFields(tag, slot)}}. Example: ${{ $.renderFields('th')}}")
@@ -101,33 +106,31 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Renders values for one or all of the fields *of one element* from the enclosing component's data source, wrapped in the given tag.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function evaluates the `value` expression(s) *for one element* and renders the result, wrapped in the given tag. If the `slot` argument is present, only the value for the given slot is rendered. If no slot is given, this function renders all fields for one value, wrapped in the HTML element given in the `tag` argument.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${renderFields('li', 'label)}", "Render the value of the `label` slot of the current element")
-		);
+		return List.of(Example.structrScript("${renderFields('li', 'label)}", "Render the value of the `label` slot of the current element"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"Works only during page rendering in Template nodes.",
-			"This function can only be used inside a component that iterates over the values of a data source."
-		);
+		return List.of("Works only during page rendering in Template nodes.", "This function can only be used inside a component that iterates over the values of a data source.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

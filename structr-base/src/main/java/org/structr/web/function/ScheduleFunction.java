@@ -37,11 +37,13 @@ public class ScheduleFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "schedule";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("function [, title, [ onFinish ]]");
 	}
 
@@ -76,25 +78,26 @@ public class ScheduleFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${schedule(function [, title, [ onFinish ]])}."),
-			Usage.javaScript("Usage: ${{$.schedule(function [, title, [ onFinish ]])}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${schedule(function [, title, [ onFinish ]])}."), Usage.javaScript("Usage: ${{$.schedule(function [, title, [ onFinish ]])}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Schedules a script or a function to be executed in a separate thread.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Allows the user to insert a script snippet into the import queue for later execution. 
 		Useful in situations where a script should run after a long-running import job, or if the script should run in 
@@ -109,8 +112,8 @@ public class ScheduleFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${schedule('call(\"myCleanupScript\")', 'Cleans unconnected nodes from the graph')}"),
+
+		return List.of(Example.structrScript("${schedule('call(\"myCleanupScript\")', 'Cleans unconnected nodes from the graph')}"),
 				Example.javaScript("""
 						${{
 						    $.schedule(function() {
@@ -143,6 +146,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

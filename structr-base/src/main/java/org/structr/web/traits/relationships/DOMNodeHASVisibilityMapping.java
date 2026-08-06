@@ -45,6 +45,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodeHASVisibilityMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeHASVisibilityMapping() {
+
 		super(StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING);
 	}
 

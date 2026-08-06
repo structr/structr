@@ -34,14 +34,17 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 	public FactsToken(final NamedConceptToken subject, final VerbToken predicate, final NamedConceptListToken objects) {
 
 		if (subject != null) {
+
 			subject.setParent(this);
 		}
 
 		if (predicate != null) {
+
 			predicate.setParent(this);
 		}
 
 		if (objects != null) {
+
 			objects.setParent(this);
 		}
 
@@ -52,10 +55,12 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 
 	@Override
 	public String toString() {
+
 		return "FactsToken(" + subjectToken + ", " + predicateToken + ", " + objectsToken + ")";
 	}
 
 	public NamedConceptToken getSubjectToken() {
+
 		return subjectToken;
 	}
 
@@ -75,21 +80,25 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 
 	@Override
 	public boolean isTerminal() {
+
 		return true;
 	}
 
 	@Override
 	public Token getToken() {
+
 		return null;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Cannot rename fact.");
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Cannot update fact.");
 	}
 
@@ -103,7 +112,9 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 		final Concept subject                   = annotatedSubject.getConcept();
 
 		if (subject == null) {
+
 			System.out.println(subjectToken + ": subject is null!");
+
 			return;
 		}
 
@@ -133,7 +144,9 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 		final Concept subject                   = annotatedSubject.getConcept();
 
 		if (subject == null) {
+
 			System.out.println(subjectToken + ": subject is null!");
+
 			return;
 		}
 
@@ -144,7 +157,9 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 			ontology.setCurrentSubject(object);
 
 			if (object == null) {
+
 				System.out.println(object + ": object is null!");
+
 				return;
 			}
 
@@ -164,7 +179,6 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 		allTokens.addAll(subjectToken.getAllSourceTokens());
 		allTokens.addAll(predicateToken.getAllSourceTokens());
 		allTokens.addAll(objectsToken.getAllSourceTokens());
-
 
 		return allTokens;
 	}

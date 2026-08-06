@@ -91,6 +91,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 		try (final InputStream is = getClass().getResourceAsStream(path)) {
 
 			assertNotNull("Resource not found: " + path, is);
+
 			return new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
 		} catch (final Exception ex) {
@@ -114,20 +115,24 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 	@BeforeMethod
 	public void clearEngineCache() {
+
 		engineCache.clear();
 	}
 
 	/** Engine acting as the super user (no recorded initiator / grants). */
 	protected ProcessEngine engine() {
+
 		return engineCache.computeIfAbsent(SUPERUSER_KEY, k -> new ProcessEngine(securityContext));
 	}
 
 	/** Engine acting as the given principal (records initiator, applies grants). */
 	protected ProcessEngine engineAs(final NodeInterface user) {
+
 		return engineCache.computeIfAbsent(user.getUuid(), k -> new ProcessEngine(userContext(user)));
 	}
 
 	protected SecurityContext userContext(final NodeInterface user) {
+
 		return SecurityContext.getInstance(user.as(Principal.class), AccessMode.Backend);
 	}
 
@@ -137,8 +142,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 	protected NodeInterface firstProcess(final NodeInterface defNode) throws FrameworkException {
 
-		final Iterable<NodeInterface> processes = defNode.getProperty(
-			defNode.getTraits().key(BpmnDefinitionsTraitDefinition.PROCESSES_PROPERTY));
+		final Iterable<NodeInterface> processes = defNode.getProperty(defNode.getTraits().key(BpmnDefinitionsTraitDefinition.PROCESSES_PROPERTY));
 		if (processes != null) {
 
 			for (final NodeInterface p : processes) {
@@ -146,6 +150,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 				return p;
 			}
 		}
+
 		return null;
 	}
 
@@ -153,6 +158,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final Iterable<NodeInterface> elements = procNode.getProperty(procTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
+
 		if (elements != null) {
 
 			for (final NodeInterface e : elements) {
@@ -163,6 +169,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 				}
 			}
 		}
+
 		return null;
 	}
 
@@ -171,14 +178,17 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 	// ------------------------------------------------------------------
 
 	protected String instanceStatus(final NodeInterface instance) throws FrameworkException {
+
 		return instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
 	}
 
 	protected NodeInterface subjectOf(final NodeInterface instance) throws FrameworkException {
+
 		return instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 	}
 
 	protected List<NodeInterface> tokens(final NodeInterface instance) throws FrameworkException {
+
 		return collect(instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY)));
 	}
 
@@ -187,6 +197,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 		int count = 0;
 		final Traits t = Traits.of(ProcessTraits.PROCESS_TOKEN);
+
 		for (final NodeInterface token : tokens(instance)) {
 
 			if (status.equals(token.getProperty(t.key(ProcessTokenTraitDefinition.STATUS_PROPERTY)))) {
@@ -194,6 +205,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 				count++;
 			}
 		}
+
 		return count;
 	}
 
@@ -202,6 +214,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 		final List<String> ids = new LinkedList<>();
 		final Traits t = Traits.of(ProcessTraits.PROCESS_TOKEN);
+
 		for (final NodeInterface token : tokens(instance)) {
 
 			final String status = token.getProperty(t.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
@@ -214,18 +227,22 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 				}
 			}
 		}
+
 		return ids;
 	}
 
 	protected List<NodeInterface> tasks(final NodeInterface instance) throws FrameworkException {
+
 		return collect(instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.TASKS_PROPERTY)));
 	}
 
 	protected String taskStatus(final NodeInterface task) throws FrameworkException {
+
 		return task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
 	}
 
 	protected NodeInterface assigneeOf(final NodeInterface task) throws FrameworkException {
+
 		return task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY));
 	}
 
@@ -238,16 +255,18 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 		for (final NodeInterface task : tasks(instance)) {
 
 			final String status = taskStatus(task);
-			if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)
-				|| TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
+			if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status) || TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
+
 				continue;
 			}
+
 			final NodeInterface el = task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
 			if (el != null && elementBpmnId.equals(el.getProperty(el.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)))) {
 
 				return task;
 			}
 		}
+
 		return null;
 	}
 
@@ -262,6 +281,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 				return task;
 			}
 		}
+
 		return null;
 	}
 
@@ -274,8 +294,8 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 		final Map<String, String> out = new LinkedHashMap<>();
 		final Traits pv = Traits.of(ProcessTraits.PROCESS_PARAMETER_VALUE);
-		final Iterable<NodeInterface> pvs = instance.getProperty(
-			instance.getTraits().key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY));
+		final Iterable<NodeInterface> pvs = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY));
+
 		if (pvs != null) {
 
 			for (final NodeInterface p : pvs) {
@@ -284,22 +304,26 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 						p.getProperty(pv.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY)));
 			}
 		}
+
 		return out;
 	}
 
 	protected List<NodeInterface> pendingTimers() throws FrameworkException {
 
 		final Traits t = Traits.of(ProcessTraits.PROCESS_TIMER);
+
 		return app.nodeQuery(ProcessTraits.PROCESS_TIMER)
 			.key(t.key(ProcessTimerTraitDefinition.STATUS_PROPERTY), ProcessTimerTraitDefinition.STATUS_PENDING)
 			.getAsList();
 	}
 
 	protected List<NodeInterface> allTimers() throws FrameworkException {
+
 		return app.nodeQuery(ProcessTraits.PROCESS_TIMER).getAsList();
 	}
 
 	protected String timerStatus(final NodeInterface timer) throws FrameworkException {
+
 		return timer.getProperty(timer.getTraits().key(ProcessTimerTraitDefinition.STATUS_PROPERTY));
 	}
 
@@ -313,6 +337,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 			final NodeInterface user = app.create(StructrTraits.USER, name);
 			tx.success();
+
 			return user;
 		}
 	}
@@ -323,6 +348,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 			final NodeInterface group = app.create(StructrTraits.GROUP, name);
 			tx.success();
+
 			return group;
 		}
 	}
@@ -346,6 +372,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 			final NodeInterface subject = app.create("TestOne", name);
 			tx.success();
+
 			return subject;
 		}
 	}
@@ -353,6 +380,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 	protected List<NodeInterface> collect(final Iterable<NodeInterface> it) {
 
 		final List<NodeInterface> out = new LinkedList<>();
+
 		if (it != null) {
 
 			for (final NodeInterface n : it) {
@@ -360,6 +388,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 				out.add(n);
 			}
 		}
+
 		return out;
 	}
 }

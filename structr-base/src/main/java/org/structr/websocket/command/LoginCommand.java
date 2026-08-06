@@ -59,6 +59,7 @@ public class LoginCommand extends AbstractCommand {
 		final App app                   = StructrApp.getInstance(ctx);
 
 		if (Settings.CallbacksOnLogin.getValue() == false) {
+
 			ctx.disableInnerCallbacks();
 		}
 
@@ -72,7 +73,6 @@ public class LoginCommand extends AbstractCommand {
 			final String password       = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 			final String twoFactorToken = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
-
 
 			try {
 
@@ -89,6 +89,7 @@ public class LoginCommand extends AbstractCommand {
 
 						username = username.toLowerCase();
 					}
+
 					username = username.trim();
 
 					user = auth.doLogin(getWebSocket().getRequest(), username, password);
@@ -103,7 +104,6 @@ public class LoginCommand extends AbstractCommand {
 				if (user != null && !(user instanceof SuperUser)) {
 
 					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
-
 					if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
 						SessionHelper.clearInvalidSessions(user);
@@ -171,6 +171,7 @@ public class LoginCommand extends AbstractCommand {
 
 						final Principal principal       = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
+
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");
 
@@ -179,6 +180,7 @@ public class LoginCommand extends AbstractCommand {
 						msg.data("qrdata", qrdata);
 
 					} catch (UnsupportedEncodingException uee) {
+
 						logger.warn("Charset ISO-8859-1 not supported!?", uee);
 					}
 				}
@@ -211,11 +213,13 @@ public class LoginCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "LOGIN";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction () {
+
 		return false;
 	}
 }

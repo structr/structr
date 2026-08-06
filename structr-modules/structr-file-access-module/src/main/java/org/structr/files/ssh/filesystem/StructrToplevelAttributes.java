@@ -32,51 +32,61 @@ public class StructrToplevelAttributes implements PosixFileAttributes, DosFileAt
 	private String key = null;
 
 	public StructrToplevelAttributes(final String key) {
+
 		this.key = key;
 	}
 
 	@Override
 	public FileTime lastModifiedTime() {
+
 		return FileTime.from(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public FileTime lastAccessTime() {
+
 		return FileTime.from(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public FileTime creationTime() {
+
 		return FileTime.from(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public boolean isRegularFile() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isDirectory() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isSymbolicLink() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isOther() {
+
 		return false;
 	}
 
 	@Override
 	public long size() {
+
 		return 0;
 	}
 
 	@Override
 	public Object fileKey() {
+
 		return key;
 	}
 
@@ -87,6 +97,7 @@ public class StructrToplevelAttributes implements PosixFileAttributes, DosFileAt
 
 			@Override
 			public String getName() {
+
 				return "superadmin";
 			}
 		};
@@ -99,6 +110,7 @@ public class StructrToplevelAttributes implements PosixFileAttributes, DosFileAt
 
 			@Override
 			public String getName() {
+
 				return "superadmin";
 			}
 		};
@@ -125,21 +137,25 @@ public class StructrToplevelAttributes implements PosixFileAttributes, DosFileAt
 
 	@Override
 	public boolean isReadOnly() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArchive() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isSystem() {
+
 		return false;
 	}
 

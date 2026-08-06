@@ -33,11 +33,13 @@ import org.structr.schema.SchemaHelper.Type;
 public class EncryptedStringPropertyGenerator extends StringPropertyGenerator {
 
 	public EncryptedStringPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Encrypted;
 	}
 
@@ -45,9 +47,10 @@ public class EncryptedStringPropertyGenerator extends StringPropertyGenerator {
 	public Property newInstance() throws FrameworkException {
 
 		final String expression = source.getFormat();
-
 		if ("[]".equals(expression)) {
+
 			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+
 			return null;
 		}
 

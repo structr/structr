@@ -48,6 +48,7 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String RESULT_PROPERTY            = "result";
 
 	public FlowReturnTraitDefinition() {
+
 		super(StructrTraits.FLOW_RETURN);
 	}
 
@@ -56,17 +57,16 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.Return;
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -88,9 +88,7 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowReturn.class, (traits, node) -> new FlowReturn(traits, node)
-		);
+		return Map.of(FlowReturn.class, (traits, node) -> new FlowReturn(traits, node));
 	}
 
 	@Override
@@ -99,10 +97,7 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> exceptionHandler = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> result                  = new StringProperty(RESULT_PROPERTY);
 
-		return newSet(
-			exceptionHandler,
-			result
-		);
+		return newSet(exceptionHandler, result);
 	}
 
 	@Override
@@ -123,6 +118,7 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

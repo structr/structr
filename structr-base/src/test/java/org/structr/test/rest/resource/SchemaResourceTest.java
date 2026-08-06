@@ -1181,7 +1181,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	public void testSchemaResourceResponseNotAffectedBySoftLimit() {
 
 		final String resourceURI = "/_schema";
-
 		final Integer correctNumberOfSchemaTypes = RestAssured
 				.given()
 					.contentType("application/json; charset=UTF-8")
@@ -1215,7 +1214,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	public void testSchemaTypeResourceResponseNotAffectedBySoftLimit() {
 
 		final String resourceURI = "/_schema/Group/all";
-
 		final Integer correctNumberOfSchemaPropertiesForGroupAllView = RestAssured
 				.given()
 					.contentType("application/json; charset=UTF-8")

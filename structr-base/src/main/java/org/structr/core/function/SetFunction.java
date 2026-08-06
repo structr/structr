@@ -43,11 +43,13 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "set";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("entity, parameterMap");
 	}
 
@@ -60,7 +62,6 @@ public class SetFunction extends CoreFunction {
 
 			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || (sources[0] instanceof GraphObjectMap);
 			final SecurityContext securityContext          = ctx.getSecurityContext();
-
 			Traits type = null;
 			PropertyMap propertyMap = null;
 
@@ -89,7 +90,6 @@ public class SetFunction extends CoreFunction {
 
 				propertyMap               = new PropertyMap();
 				final int parameterCount = sources.length;
-
 				if (parameterCount % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -126,6 +126,7 @@ public class SetFunction extends CoreFunction {
 			}
 
 			if (propertyMap != null) {
+
 				sourceObject.setProperties(securityContext, propertyMap);
 			}
 
@@ -136,6 +137,7 @@ public class SetFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -144,6 +146,7 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}."),
 			Usage.javaScript("Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}.")
@@ -152,11 +155,13 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets a value or multiple values on an entity. The values can be provided as a map or as a list of alternating keys and values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Sets the passed values for the given property keys on the specified entity, using the security context of the current user.
 		`set()` accepts several different parameter combinations, where the first parameter is always a graph object. 
@@ -167,9 +172,8 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${set(user, 'name', 'new-user-name', 'eMail', 'new@email.com')}"),
-				Example.structrScript("${set(page, 'name', 'my-page-name')}"),
+
+		return List.of(Example.structrScript("${set(user, 'name', 'new-user-name', 'eMail', 'new@email.com')}"), Example.structrScript("${set(page, 'name', 'my-page-name')}"),
 				Example.javaScript("""
 						${{
 						    let me = $.me;
@@ -196,6 +200,7 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
 				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.",
@@ -205,6 +210,7 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

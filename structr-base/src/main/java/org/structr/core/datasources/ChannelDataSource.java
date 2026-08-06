@@ -39,16 +39,19 @@ public class ChannelDataSource<T extends GraphObject> extends AbstractValueDataS
 	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
 
 	public ChannelDataSource(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public String getChannelName() {
+
 		return Functions.cleanString(name);
 	}
 
 	@Override
 	public int getDimension() {
+
 		return 0;
 	}
 

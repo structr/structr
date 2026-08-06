@@ -54,15 +54,18 @@ public enum FunctionCategory implements Category {
 
 	@Override
 	public String getName() {
+
 		return name();
 	}
 
 	public String getDisplayName() {
+
 		return displayName;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 }

@@ -45,6 +45,7 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String VERSION_PROPERTY           = "version";
 
 	public RemoteDocumentTraitDefinition() {
+
 		super(StructrTraits.REMOTE_DOCUMENT);
 	}
 
@@ -57,13 +58,7 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer> cacheForSecondsProperty = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 		final Property<Integer> versionProperty         = new IntProperty(VERSION_PROPERTY).readOnly();
 
-		return newSet(
-			urlProperty,
-			contentTypeProperty,
-			checksumProperty,
-			cacheForSecondsProperty,
-			versionProperty
-		);
+		return newSet(urlProperty, contentTypeProperty, checksumProperty, cacheForSecondsProperty, versionProperty);
 	}
 
 	@Override
@@ -84,13 +79,12 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			RemoteDocument.class, (traits, node) -> new RemoteDocumentTraitWrapper(traits, node)
-		);
+		return Map.of(RemoteDocument.class, (traits, node) -> new RemoteDocumentTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

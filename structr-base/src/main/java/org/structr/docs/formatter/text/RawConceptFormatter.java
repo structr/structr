@@ -40,7 +40,9 @@ public class RawConceptFormatter extends Formatter {
 				break;
 
 			case "shortDescription":
+
 				if (concept.getShortDescription() != null) {
+
 					lines.add(concept.getShortDescription());
 				}
 		}

@@ -35,6 +35,7 @@ public class UnlicensedTypeException extends Exception {
 	}
 
 	public Set<String> getTypes() {
+
 		return this.types;
 	}
 }

@@ -34,6 +34,7 @@ public interface StructrDefinition {
 	StructrDefinition resolveJsonPointerKey(final String key);
 
 	default String[] listToArray(final Collection<String> list) {
+
 		return list.toArray(new String[0]);
 	}
 

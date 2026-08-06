@@ -34,11 +34,13 @@ public class CeilFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "ceil";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
@@ -54,49 +56,50 @@ public class CeilFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.ceil(value)}}. Example: ${{$.ceil(32.4)}}"),
-			Usage.structrScript("Usage: ${ceil(value)}. Example: ${ceil(32.4)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{$.ceil(value)}}. Example: ${{$.ceil(32.4)}}"), Usage.structrScript("Usage: ${ceil(value)}. Example: ${ceil(32.4)}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the given value, rounded up to the nearest integer.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("value", "input value (can also be a string with a number in it)")
-		);
+
+		return List.of(Parameter.mandatory("value", "input value (can also be a string with a number in it)"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${ ceil(5.8) }", "Returns 6")
-		);
+
+		return List.of(Example.structrScript("${ ceil(5.8) }", "Returns 6"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

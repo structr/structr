@@ -25,6 +25,7 @@ import org.structr.web.entity.dom.Template;
 public class TemplateTraitWrapper extends ContentTraitWrapper implements Template {
 
 	public TemplateTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

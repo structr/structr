@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMElementINPUT_ELEMENTParameterMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementINPUT_ELEMENTParameterMapping() {
+
 		super(StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.DOM_ELEMENT;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.PARAMETER_MAPPING;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "INPUT_ELEMENT";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return 0;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

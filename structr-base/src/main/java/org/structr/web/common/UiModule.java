@@ -623,32 +623,38 @@ public class UiModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "ui";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("rest");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 
 	// ----- deployment-specific methods -----
 	@Override
 	public boolean hasDeploymentData() {
+
 		return true;
 	}
 
 	@Override
 	public void exportDeploymentData(final Path target, final Gson gson) throws FrameworkException {
+
 		StorageConfigurationDeploymentHandler.exportDeploymentData(target, gson);
 	}
 
 	@Override
 	public void importDeploymentData(final Path source, final Gson gson) throws FrameworkException {
+
 		StorageConfigurationDeploymentHandler.importDeploymentData(source, gson);
 	}
 }

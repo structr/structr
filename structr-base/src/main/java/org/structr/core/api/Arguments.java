@@ -35,12 +35,14 @@ public abstract class Arguments {
 
 	@Override
 	public String toString() {
+
 		return this.arguments.toString();
 	}
 
 	public Object get(final int index) {
 
 		if (index < arguments.size()) {
+
 			return arguments.get(index).getValue();
 		}
 
@@ -96,6 +98,7 @@ public abstract class Arguments {
 		final List<Object> result = new ArrayList();
 
 		for (final Argument a : arguments) {
+
 			result.add(a.getValue());
 		}
 
@@ -103,6 +106,7 @@ public abstract class Arguments {
 	}
 
 	public List<Argument> getAll() {
+
 		return arguments;
 	}
 
@@ -143,14 +147,17 @@ public abstract class Arguments {
 
 		@Override
 		public String toString() {
+
 			return "(" + name + " = " + value + ")";
 		}
 
 		public String getName() {
+
 			return name;
 		}
 
 		public Object getValue() {
+
 			return value;
 		}
 	}

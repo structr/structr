@@ -23,7 +23,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 
-
 /**
  *
  */
@@ -44,6 +43,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 
 	@Override
 	public String toString() {
+
 		return "R" + getId();
 	}
 
@@ -67,6 +67,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 			return database.getNodeById(sourceNodeId);
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -81,6 +82,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 			return database.getNodeById(targetNodeId);
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -91,6 +93,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 	public Node<String> getOtherNode(final Node<String> node) {
 
 		if (database.unwrap(node.getId()).equals(sourceNodeId)) {
+
 			return getEndNode();
 		}
 
@@ -99,6 +102,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 
 	@Override
 	public RelationshipType getType() {
+
 		return database.getRelationshipType(type);
 	}
 
@@ -106,10 +110,12 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 	public void delete(final boolean deleteRelationships) {
 
 		if (!database.getCurrentTransaction().isNodeDeleted(sourceNodeId)) {
+
 			getStartNode().invalidate();
 		}
 
 		if (!database.getCurrentTransaction().isNodeDeleted(targetNodeId)) {
+
 			getEndNode().invalidate();
 		}
 
@@ -124,6 +130,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 	public Direction getDirectionForNode(final Node<String> node) {
 
 		if (database.unwrap(node.getId()) == sourceNodeId) {
+
 			return Direction.OUTGOING;
 		}
 
@@ -132,6 +139,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.graphdb.Relationship> 
 
 	@Override
 	public boolean isNode() {
+
 		return false;
 	}
 }

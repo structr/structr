@@ -27,6 +27,7 @@ public class OpenAPIExampleAnyResult extends LinkedHashMap<String, Object> {
 		put("result",             result);
 
 		if (includeQueryTime) {
+
 			put("query_time",         "0.001659655");
 		}
 

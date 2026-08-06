@@ -90,20 +90,24 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	@Override
 	public Object getCommandResult() {
+
 		return getConnections();
 	}
 
 	public void deactivateConnections() throws FrameworkException {
+
 		Services.getInstance().activateService(NodeService.class, "default");
 	}
 
@@ -171,6 +175,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			if (connectNow) {
 
 				try {
+
 					activateConnection(data);
 
 				} catch (FrameworkException fex) {
@@ -245,7 +250,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				Settings.DatabaseAvailableConnections.setValue(StringUtils.join(connectionNames, " "));
 
 				final Services services = Services.getInstance();
-
 				if (prefix.equals(services.getNameOfActiveService(NodeService.class))) {
 
 					services.shutdownServices(NodeService.class);
@@ -277,6 +281,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 	}
 
 	public boolean hasActiveConnection() {
+
 		return getConnections().stream().map(DatabaseConnection::isActive).reduce(false, (t, u) -> t || u);
 	}
 
@@ -343,6 +348,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 		if (StringUtils.isEmpty((String)data.get(KEY_NAME))) {
+
 			errorBuffer.add(new EmptyPropertyToken("Connection", "name"));
 		}
 
@@ -354,12 +360,14 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		// connection cannot be named "default"
 		if ("default".equals(data.get(KEY_NAME))) {
+
 			errorBuffer.add(new UniqueToken("Connection", "name", "default", null, null));
 		}
 
 		if (!nameOnly) {
 
 			if (StringUtils.isEmpty((String) data.get(KEY_URL))) {
+
 				errorBuffer.add(new EmptyPropertyToken("Connection", "url"));
 			}
 
@@ -386,16 +394,19 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 					if (databaseService.supportsFeature(DatabaseFeature.AuthenticationRequired)) {
 
 						if (StringUtils.isEmpty((String) data.get(KEY_USERNAME))) {
+
 							errorBuffer.add(new EmptyPropertyToken("Connection", "username"));
 						}
 
 						if (StringUtils.isEmpty((String) data.get(KEY_PASSWORD))) {
+
 							errorBuffer.add(new EmptyPropertyToken("Connection", "password"));
 						}
 					}
 				}
 
 			} catch (ReflectiveOperationException | SecurityException | IllegalArgumentException ex) {
+
 				errorBuffer.add(new SemanticErrorToken("Driver", "driver", "driver_error"));
 			}
 		}
@@ -406,51 +417,61 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getName() {
+
 		return "";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 }

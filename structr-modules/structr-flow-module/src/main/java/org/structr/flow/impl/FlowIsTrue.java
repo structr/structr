@@ -27,10 +27,12 @@ import org.structr.flow.traits.definitions.FlowIsTrueTraitDefinition;
 public class FlowIsTrue extends FlowCondition {
 
 	public FlowIsTrue(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowIsTrueTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
 	}
 

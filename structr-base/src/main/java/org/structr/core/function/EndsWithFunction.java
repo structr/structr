@@ -31,11 +31,13 @@ public class EndsWithFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "endsWith";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str, suffix");
 	}
 
@@ -54,12 +56,14 @@ public class EndsWithFunction extends CoreFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${$.endsWith(string, suffix)}. Example: ${$.endsWith(locale, \"de\")}"),
 			Usage.structrScript("Usage: ${endsWith(string, suffix)}. Example: ${endsWith(locale, \"de\")}")
@@ -68,24 +72,25 @@ public class EndsWithFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given string ends with the given suffix.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("string", "string to check"),
-			Parameter.mandatory("suffix", "suffix to check")
-		);
+
+		return List.of(Parameter.mandatory("string", "string to check"), Parameter.mandatory("suffix", "suffix to check"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

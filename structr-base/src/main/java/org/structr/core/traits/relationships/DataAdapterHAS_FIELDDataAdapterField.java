@@ -28,76 +28,91 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DataAdapterHAS_FIELDDataAdapterField extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DataAdapterHAS_FIELDDataAdapterField() {
+
 		super(StructrTraits.DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.DATA_ADAPTER;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.DATA_ADAPTER_FIELD;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_FIELD";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.Out;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public String getDeltaProperties() {
+
 		return null;
 	}
 }

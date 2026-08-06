@@ -36,10 +36,12 @@ public class StructrScriptException extends FrameworkException {
 	}
 
 	public int getRow() {
+
 		return row;
 	}
 
 	public int getColumn() {
+
 		return column;
 	}
 }

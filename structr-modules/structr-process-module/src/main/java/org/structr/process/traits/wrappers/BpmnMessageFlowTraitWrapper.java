@@ -29,26 +29,31 @@ import org.structr.process.traits.definitions.BpmnMessageFlowTraitDefinition;
 public class BpmnMessageFlowTraitWrapper extends AbstractNodeTraitWrapper implements BpmnMessageFlow {
 
 	public BpmnMessageFlowTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getBpmnName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnMessageFlowTraitDefinition.BPMN_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getSourceRefId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnMessageFlowTraitDefinition.SOURCE_REF_ID_PROPERTY));
 	}
 
 	@Override
 	public String getTargetRefId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnMessageFlowTraitDefinition.TARGET_REF_ID_PROPERTY));
 	}
 

@@ -36,10 +36,12 @@ public class KeyAndClass<T> {
 	}
 
 	public PropertyKey<T> getPropertyKey() {
+
 		return key;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 }

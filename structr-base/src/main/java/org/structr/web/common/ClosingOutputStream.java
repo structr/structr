@@ -45,12 +45,14 @@ public class ClosingOutputStream extends BufferedOutputStream {
 	public void close() throws IOException {
 
 		if (closed) {
+
 			return;
 		}
 
 		super.close();
 
 		if (notifyIndexerAfterClosing) {
+
 			thisFile.notifyUploadCompletion();
 		}
 

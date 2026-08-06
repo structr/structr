@@ -50,11 +50,13 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STATE_DISTRICT_PROPERTY = "stateDistrict";
 
 	public LocationTraitDefinition() {
+
 		super(StructrTraits.LOCATION);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -105,6 +107,7 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

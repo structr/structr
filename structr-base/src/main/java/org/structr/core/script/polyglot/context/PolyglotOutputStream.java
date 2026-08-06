@@ -26,11 +26,13 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 
 public class PolyglotOutputStream extends OutputStream {
+
     private final Logger logger;
     private final StringBuilder buffer;
     private final Level level;
 
     public PolyglotOutputStream(Logger logger) {
+
         this.logger = logger;
         this.level = Level.INFO;
         this.buffer = new StringBuilder();
@@ -38,16 +40,22 @@ public class PolyglotOutputStream extends OutputStream {
 
     @Override
     public void write(int b) throws IOException {
+
         if (b == '\n') {
+
             flush();
+
         } else {
+
             buffer.append((char) b);
         }
     }
 
     @Override
     public void flush () {
+
         if (!buffer.isEmpty()) {
+
             logger.atLevel(level).log(buffer.toString());
             buffer.setLength(0);
         }

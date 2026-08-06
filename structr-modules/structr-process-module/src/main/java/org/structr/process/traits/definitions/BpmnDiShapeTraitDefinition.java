@@ -55,15 +55,14 @@ public class BpmnDiShapeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String REFERENCES_ELEMENT        = "referencesElement";
 
 	public BpmnDiShapeTraitDefinition() {
+
 		super(ProcessTraits.BPMN_DI_SHAPE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnDiShape.class, (traits, node) -> new BpmnDiShapeTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnDiShape.class, (traits, node) -> new BpmnDiShapeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -98,6 +97,7 @@ public class BpmnDiShapeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

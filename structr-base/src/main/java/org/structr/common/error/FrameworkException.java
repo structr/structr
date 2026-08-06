@@ -26,7 +26,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
 /**
  * The base class for all structr exceptions. This class contains
  * a buffer that supports context-dependent, nested error
@@ -43,10 +42,12 @@ public class FrameworkException extends Exception implements JsonException {
 	private int status                        = HttpServletResponse.SC_OK;
 
 	public FrameworkException(final int status, final String message) {
+
 		this(status, message, (ErrorToken)null);
 	}
 
 	public FrameworkException(final int status, final String message, final ErrorBuffer errorBuffer) {
+
 		this(status, message, (ErrorToken)null);
 
 		// copy error tokens
@@ -59,6 +60,7 @@ public class FrameworkException extends Exception implements JsonException {
 		this.message = message;
 
 		if (errorToken != null) {
+
 			this.errorBuffer.add(errorToken);
 		}
 	}
@@ -80,6 +82,7 @@ public class FrameworkException extends Exception implements JsonException {
 		if (errorBuffer != null && !errorBuffer.getErrorTokens().isEmpty()) {
 
 			buf.append(" ErrorTokens: ");
+
 			for (final Iterator<ErrorToken> it = errorBuffer.getErrorTokens().iterator(); it.hasNext();) {
 
 				final ErrorToken token = it.next();
@@ -87,6 +90,7 @@ public class FrameworkException extends Exception implements JsonException {
 				buf.append(token);
 
 				if (it.hasNext()) {
+
 					buf.append(", ");
 				}
 			}
@@ -105,6 +109,7 @@ public class FrameworkException extends Exception implements JsonException {
 
 	@Override
 	public Map<String, String> headers() {
+
 		return headers;
 	}
 
@@ -142,6 +147,7 @@ public class FrameworkException extends Exception implements JsonException {
 			}
 
 			if (!errors.isEmpty()) {
+
 				container.add("errors", errors);
 			}
 		}
@@ -150,24 +156,29 @@ public class FrameworkException extends Exception implements JsonException {
 	}
 
 	public void setErrorBuffer(final ErrorBuffer errorBuffer) {
+
 		this.errorBuffer = errorBuffer;
 	}
 
 	public ErrorBuffer getErrorBuffer() {
+
 		return errorBuffer;
 	}
 
 	@Override
 	public int getStatus() {
+
 		return status;
 	}
 
 	public void setData(final Map<String, String> data) {
+
 		this.data = data;
 	}
 
 	@Override
 	public String getMessage() {
+
 		return message;
 	}
 }

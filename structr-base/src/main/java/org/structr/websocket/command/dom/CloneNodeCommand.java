@@ -51,6 +51,7 @@ public class CloneNodeCommand extends AbstractCommand {
 		final boolean deep                          = (Boolean) nodeData.get("deep");
 		final String refId                          = (String) nodeData.get("refId");
 		final String relativePosition               = (String) nodeData.remove("relativePosition");
+
 		final RelativePosition position;
 
 		if (relativePosition != null) {
@@ -62,6 +63,7 @@ public class CloneNodeCommand extends AbstractCommand {
 			} catch (final IllegalArgumentException iae) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
+
 				return;
 			}
 
@@ -74,7 +76,6 @@ public class CloneNodeCommand extends AbstractCommand {
 		if (id != null) {
 
 			DOMNode parent = null;
-
 			final DOMNode node = getDOMNode(id);
 
 			if (parentId != null) {
@@ -111,6 +112,7 @@ public class CloneNodeCommand extends AbstractCommand {
 			if (ownerPage == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot clone node without a target page").build(), true);
+
 				return;
 			}
 
@@ -124,6 +126,7 @@ public class CloneNodeCommand extends AbstractCommand {
 					if (isShadowPage && isTemplate && parent.getParent() == null) {
 
 						getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
+
 						return;
 					}
 				}
@@ -152,7 +155,6 @@ public class CloneNodeCommand extends AbstractCommand {
 						} else {
 
 							final DOMNode nextNode = refNode.getNextSibling();
-
 							if (nextNode != null) {
 
 								parent.insertBefore(clonedNode, nextNode);
@@ -176,7 +178,6 @@ public class CloneNodeCommand extends AbstractCommand {
 				// send success
 				getWebSocket().send(webSocketData, true);
 
-
 			} catch (DOMException | FrameworkException ex) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
@@ -193,12 +194,14 @@ public class CloneNodeCommand extends AbstractCommand {
 		node.setOwnerDocument(page);
 
 		for (final DOMNode child : node.getChildren()) {
+
 			setOwnerPageRecursively(child, securityContext, page);
 		}
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "CLONE_NODE";
 	}
 }

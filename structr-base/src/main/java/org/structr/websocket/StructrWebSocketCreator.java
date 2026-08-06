@@ -70,6 +70,7 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 
 			// Returning null causes Jetty to reject the upgrade. Same pattern
 			// as an unsupported sub-protocol below.
+
 			return null;
 		}
 
@@ -78,8 +79,8 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 			response.setAcceptedSubProtocol(STRUCTR_PROTOCOL);
 
 			StructrWebSocket webSocket = new StructrWebSocket(syncController, gson, authenticator);
-
 			final ServletChannel servletChannel = Request.get(request, ServletContextRequest.class, ServletContextRequest::getServletChannel);
+
 			if (servletChannel != null) {
 
 				servletChannel.associate(request, response, callback);
@@ -112,21 +113,27 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 	private boolean isOriginAllowed(final ServerUpgradeRequest request) {
 
 		final String origin = request.getHeaders().get("Origin");
-
 		if (StringUtils.isBlank(origin)) {
+
 			return true;
 		}
 
 		final URI originUri;
+
 		try {
+
 			originUri = new URI(origin);
+
 		} catch (final URISyntaxException e) {
+
 			logger.warn("WebSocket upgrade rejected: invalid Origin header '{}'", origin);
+
 			return false;
 		}
 
 		final HttpURI requestUri = request.getHttpURI();
 		if (isSameOrigin(originUri, requestUri)) {
+
 			return true;
 		}
 
@@ -139,36 +146,46 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 				.collect(Collectors.toList());
 
 			if (accepted.contains("*") || accepted.contains(origin)) {
+
 				return true;
 			}
 		}
 
 		logger.warn("WebSocket upgrade rejected: Origin '{}' not allowed for request to {}", origin, requestUri);
+
 		return false;
 	}
 
 	private boolean isSameOrigin(final URI originUri, final HttpURI requestUri) {
 
 		if (originUri.getHost() == null || requestUri.getHost() == null) {
+
 			return false;
 		}
+
 		if (!originUri.getHost().equalsIgnoreCase(requestUri.getHost())) {
+
 			return false;
 		}
 
 		final int originPort  = effectivePort(originUri.getScheme(), originUri.getPort());
 		final int requestPort = effectivePort(requestUri.getScheme(), requestUri.getPort());
+
 		return originPort == requestPort;
 	}
 
 	private int effectivePort(final String scheme, final int port) {
 
 		if (port > 0) {
+
 			return port;
 		}
+
 		if ("https".equalsIgnoreCase(scheme) || "wss".equalsIgnoreCase(scheme)) {
+
 			return 443;
 		}
+
 		return 80;
 	}
 }

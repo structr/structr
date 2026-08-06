@@ -34,14 +34,17 @@ public class MockedWebsocketSetup {
 	}
 
 	public MockWebsocketSession getSession() {
+
 		return session;
 	}
 
 	public StructrWebSocket getWebSocket() {
+
 		return webSocket;
 	}
 
 	public Map<String, Object> getLastWebsocketResponse() {
+
 		return session.getLastWebsocketResponse();
 	}
 }

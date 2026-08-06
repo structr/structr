@@ -88,16 +88,19 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 	@Override
 	public SyncTarget getTarget() {
+
 		return target;
 	}
 
 	@Override
 	public boolean supportsWatching() {
+
 		return false;
 	}
 
 	@Override
 	public void startWatching(final StorageSyncListener listener) {
+
 		// no push channel for S3-compatible storage
 	}
 
@@ -106,6 +109,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 		// the keyspace is flat (keys are node uuids), subtree enumeration is
 		// not possible - the whole bucket is enumerated
+
 		return new BucketIterator();
 	}
 
@@ -117,6 +121,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 		// only files have objects (keys are File node uuids)
 		if (event.directory()) {
+
 			return;
 		}
 
@@ -135,6 +140,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 			logger.warn("Interrupted while applying virtual change {} to bucket {}", event, bucketName);
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to apply virtual change {} to S3 bucket '{}': {}", event, bucketName, S3Errors.describe(t));
 		}
 	}
@@ -173,12 +179,14 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 			// object was never materialized (e.g. metadata-only file)
 			logger.debug("No S3 object {} to refresh path metadata for", key);
+
 			return;
 		}
 
 		if (head.contentLength() != null && head.contentLength() > MAX_COPY_OBJECT_SIZE) {
 
 			logger.warn("Skipping path-metadata refresh of S3 object {}: size {} exceeds the single-request copy limit", key, head.contentLength());
+
 			return;
 		}
 
@@ -197,6 +205,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 			.metadata(metadata);
 
 		if (head.contentType() != null) {
+
 			builder.contentType(head.contentType());
 		}
 
@@ -214,6 +223,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 	 * Structr-origin objects live at the node uuid.
 	 */
 	private String objectKey(final VirtualChangeEvent event) {
+
 		return event.nativeKey() != null ? event.nativeKey() : event.nodeUuid();
 	}
 
@@ -226,6 +236,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 		} catch (ExecutionException eex) {
 
 			if (eex.getCause() instanceof S3Exception s3e && s3e.statusCode() == 404) {
+
 				return null;
 			}
 
@@ -243,10 +254,12 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 	private String relativizePathMetadata(final String absolutePath) {
 
 		if (absolutePath == null) {
+
 			return null;
 		}
 
 		if (absolutePath.equals(target.syncRootPath())) {
+
 			return "";
 		}
 
@@ -272,6 +285,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 		public boolean hasNext() {
 
 			while (buffer.isEmpty() && !exhausted) {
+
 				fetchNextPage();
 			}
 
@@ -282,6 +296,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 		public ExternalEntry next() {
 
 			if (!hasNext()) {
+
 				throw new NoSuchElementException();
 			}
 
@@ -295,6 +310,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 				final ListObjectsV2Request.Builder builder = ListObjectsV2Request.builder().bucket(bucketName);
 
 				if (continuationToken != null) {
+
 					builder.continuationToken(continuationToken);
 				}
 
@@ -324,6 +340,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 				throw new UncheckedIOException(new IOException("Interrupted while listing S3 bucket '" + bucketName + "'"));
 
 			} catch (ExecutionException eex) {
+
 				throw new UncheckedIOException(new IOException("Unable to list S3 bucket '" + bucketName + "': " + S3Errors.describe(eex)));
 			}
 		}
@@ -331,11 +348,11 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 		private ExternalEntry toEntry(final S3Object object) throws InterruptedException, ExecutionException {
 
 			final String key = object.key();
-
 			if (key.endsWith("/")) {
 
 				// keys ending in a slash are folder placeholder markers, not files
 				logger.debug("Skipping S3 object {}: folder placeholder marker", key);
+
 				return null;
 			}
 
@@ -345,13 +362,13 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 			// resolve the "path" user metadata, avoiding a HeadObject per key
 			// and scan: only new or changed (eTag) keys are headed
 			CachedHead cached = headCache.get(key);
-
 			if (cached == null || !cached.eTag().equals(object.eTag())) {
 
 				final HeadObjectResponse head = headOrNull(key);
 				if (head == null) {
 
 					// deleted between list and head
+
 					return null;
 				}
 
@@ -373,6 +390,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 				// no usable path metadata: uuid-only entries update known nodes and
 				// are ignored (with a warning) for unknown ones - correct behavior
 				// for foreign objects
+
 				return ExternalEntry.byUuid(key, false, size, lastModified).withNativeKey(key);
 			}
 
@@ -389,6 +407,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 				if (segment.isEmpty()) {
 
 					logger.warn("Skipping S3 object {}: key does not map to a valid virtual path", key);
+
 					return null;
 				}
 			}

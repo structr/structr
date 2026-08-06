@@ -35,11 +35,13 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "importBpmn";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -68,34 +70,32 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("bpmnXml");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.structrScript("Usage: ${import_bpmn(xml)}"),
-			Usage.javaScript("Usage: ${{$.importBpmn(xml)}}")
-		);
+		return List.of(Usage.structrScript("Usage: ${import_bpmn(xml)}"), Usage.javaScript("Usage: ${{$.importBpmn(xml)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Imports BPMN 2.0.2 XML and creates a BpmnDefinitions graph structure.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Parses the given BPMN 2.0.2 XML string and creates a complete graph representation including process elements, sequence flows, and DI diagram data. Returns the created BpmnDefinitions node.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("bpmnXml", "BPMN 2.0.2 XML string to import")
-		);
+		return List.of(Parameter.mandatory("bpmnXml", "BPMN 2.0.2 XML string to import"));
 	}
 
 	@Override
@@ -109,6 +109,7 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

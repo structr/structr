@@ -32,11 +32,13 @@ public class MergeUniqueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "mergeUnique";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list1, list2, list3...");
 	}
 
@@ -69,19 +71,19 @@ public class MergeUniqueFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${mergeUnique(list1, list2, list3...)}"),
-				Usage.javaScript("Usage: ${{ $.mergeUnique(list1, list2, list3...) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mergeUnique(list1, list2, list3...)}"), Usage.javaScript("Usage: ${{ $.mergeUnique(list1, list2, list3...) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Merges collections and objects into a single collection, removing duplicates.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			You can use this function to create collections of objects, add objects to a collection, or to merge multiple collections into a single one. All objects that are passed to this function will be added to the resulting collection. If an argument is a collection, all objects in that collection are added to the resulting collection as well.
 	
@@ -92,28 +94,24 @@ public class MergeUniqueFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("objects...", "collections or objects to merge into a single collection")
-		);
+		return List.of(Parameter.mandatory("objects...", "collections or objects to merge into a single collection"));
 	}
 
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This function will remove duplicate entries. If you don't want that, use `merge()`."
-		);
+		return List.of("This function will remove duplicate entries. If you don't want that, use `merge()`.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${mergeUnique(this.children, this.siblings)}")
-		);
+
+		return List.of(Example.structrScript("${mergeUnique(this.children, this.siblings)}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

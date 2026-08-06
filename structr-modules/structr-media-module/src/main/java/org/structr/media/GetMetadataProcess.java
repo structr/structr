@@ -74,6 +74,7 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 			final Properties properties   = new Properties();
 
 			try {
+
 				properties.load(new StringReader(outputStream()));
 
 				// convert entries to <String, String>
@@ -83,11 +84,13 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 					final String value = entry.getValue().toString();
 
 					if (accept(key, value)) {
+
 						map.put(key, value);
 					}
 				}
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 
@@ -98,6 +101,7 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 	}
 
 	protected boolean accept(final String key, final String value) {
+
 		return key != null && !key.startsWith(";");
 	}
 }

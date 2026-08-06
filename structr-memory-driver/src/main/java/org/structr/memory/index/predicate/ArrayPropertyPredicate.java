@@ -44,6 +44,7 @@ public class ArrayPropertyPredicate<T extends PropertyContainer, V> implements P
 
 	@Override
 	public String toString() {
+
 		return "Array(" + key + "=" + Arrays.toString((Object[]) expectedValue) + ")";
 	}
 
@@ -54,6 +55,7 @@ public class ArrayPropertyPredicate<T extends PropertyContainer, V> implements P
 
 		// support for null values
 		if (expectedValue == null) {
+
 			return value == null;
 		}
 

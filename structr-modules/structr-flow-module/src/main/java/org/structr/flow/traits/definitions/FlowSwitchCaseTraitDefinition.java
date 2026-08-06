@@ -48,6 +48,7 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CASE_PROPERTY   = "case";
 
 	public FlowSwitchCaseTraitDefinition() {
+
 		super(StructrTraits.FLOW_SWITCH_CASE);
 	}
 
@@ -56,17 +57,16 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.Switch;
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -88,9 +88,7 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowSwitchCase.class, (traits, node) -> new FlowSwitchCase(traits, node)
-		);
+		return Map.of(FlowSwitchCase.class, (traits, node) -> new FlowSwitchCase(traits, node));
 	}
 
 	@Override
@@ -99,30 +97,20 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> switchNode = new StartNode(traitsInstance, SWITCH_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
 		final Property<String> switchCase        = new StringProperty(CASE_PROPERTY);
 
-		return newSet(
-			switchNode,
-			switchCase
-		);
+		return newSet(switchNode, switchCase);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				CASE_PROPERTY, FlowNodeTraitDefinition.NEXT_PROPERTY, SWITCH_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(CASE_PROPERTY, FlowNodeTraitDefinition.NEXT_PROPERTY, SWITCH_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				CASE_PROPERTY, FlowNodeTraitDefinition.NEXT_PROPERTY, SWITCH_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(CASE_PROPERTY, FlowNodeTraitDefinition.NEXT_PROPERTY, SWITCH_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

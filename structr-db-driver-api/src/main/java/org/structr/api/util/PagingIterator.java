@@ -44,6 +44,7 @@ public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 	private int pageSize               = 0;
 
 	public PagingIterator(final String description, final Iterator<T> iterator, final int page, final int pageSize) {
+
 		this(description, iterator, page, pageSize, 0);
 	}
 
@@ -81,6 +82,7 @@ public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 	private int getLimitOffset() {
 
 		//For positive paging, reverse paging needs an alternative implementation
+
 		return getOffset() + pageSize;
 	}
 
@@ -133,10 +135,12 @@ public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 		while (iterator.hasNext()) {
 
 			if (currentIndex >= softLimit) {
+
 				return -1;
 			}
 
 			if (watcher != null && !watcher.okToContinue(currentIndex)) {
+
 				return currentIndex;
 			}
 
@@ -148,6 +152,7 @@ public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 
 		// close iterator (don't fetch more results!)
 		try {
+
 			close();
 
 		} catch (Exception ignore) {}
@@ -161,6 +166,7 @@ public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 		final double pageSize    = this.pageSize;
 
 		if (resultCount == -1) {
+
 			return -1;
 		}
 
@@ -168,14 +174,17 @@ public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 	}
 
 	public int getPageSize() {
+
 		return this.pageSize;
 	}
 
 	public int getPage() {
+
 		return this.page;
 	}
 
 	public boolean isConsumed() {
+
 		return consumed;
 	}
 

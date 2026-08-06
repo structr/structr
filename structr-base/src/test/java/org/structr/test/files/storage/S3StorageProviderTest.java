@@ -90,7 +90,6 @@ public class S3StorageProviderTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface folder = createS3Folder("s3empty", bucket);
-
 			final NodeInterface file = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "unwritten.txt"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
@@ -101,6 +100,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Creating an S3-backed file without content must not fail.");
 		}
@@ -123,6 +123,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Reading an unwritten S3 object must not fail.");
 		}
@@ -141,7 +142,6 @@ public class S3StorageProviderTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface folder = createS3Folder("s3stream", bucket);
-
 			final NodeInterface file = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
@@ -157,6 +157,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -191,6 +192,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -208,7 +210,6 @@ public class S3StorageProviderTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface folder = createS3Folder("s3contenttype", bucket);
-
 			final NodeInterface file = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "typed.txt"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
@@ -228,6 +229,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -252,7 +254,6 @@ public class S3StorageProviderTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface folder = createS3Folder("s3channel", bucket);
-
 			final NodeInterface file = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "channel.txt"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
@@ -264,6 +265,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -281,6 +283,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -310,6 +313,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -330,7 +334,6 @@ public class S3StorageProviderTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final StorageConfiguration localConfig = StorageProviderFactory.createConfig("local-" + bucket, LocalFSStorageProvider.class, Map.of());
-
 			final NodeInterface localFolder = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localsrc"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), localConfig)
@@ -356,6 +359,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -371,6 +375,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -389,6 +394,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -404,6 +410,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -422,6 +429,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -438,7 +446,6 @@ public class S3StorageProviderTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final StorageConfiguration localConfig = StorageProviderFactory.createConfig("local-" + bucket, LocalFSStorageProvider.class, Map.of());
-
 			final NodeInterface localFolder = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localsource"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), localConfig)
@@ -461,6 +468,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -479,6 +487,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException expected) {
+
 			moveRejected = true;
 		}
 
@@ -502,6 +511,7 @@ public class S3StorageProviderTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -520,12 +530,12 @@ public class S3StorageProviderTest extends StructrUiTest {
 			S3ClientCache.getOrCreate(endpoint, RustFsTestSupport.REGION, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY),
 			S3ClientCache.getOrCreate(endpoint, RustFsTestSupport.REGION, RustFsTestSupport.ACCESS_KEY, "other-secret"));
 
-		assertNull("Incomplete settings must not create a client",
-			S3ClientCache.getOrCreate(endpoint, null, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY));
+		assertNull("Incomplete settings must not create a client", S3ClientCache.getOrCreate(endpoint, null, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY));
 	}
 
 	// ----- private methods -----
 	private String uniqueBucket() {
+
 		return "test-" + System.nanoTime();
 	}
 

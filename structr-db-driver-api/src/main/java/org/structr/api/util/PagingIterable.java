@@ -39,10 +39,12 @@ public class PagingIterable<T> implements ResultStream<T> {
 	private int skipped                   = 0;
 
 	public PagingIterable(final String description, final Iterable<T> source) {
+
 		this(description, source, Integer.MAX_VALUE, 1);
 	}
 
 	public PagingIterable(final String description, final Iterable<T> source, final int pageSize, final int page) {
+
 		this(description, source, pageSize, page, 0);
 	}
 
@@ -68,31 +70,37 @@ public class PagingIterable<T> implements ResultStream<T> {
 
 	@Override
 	public int calculateTotalResultCount(final ProgressWatcher progressConsumer, final int softLimit) {
+
 		return overriddenResultCount != null ? overriddenResultCount : getIterator().getResultCount(progressConsumer, softLimit);
 	}
 
 	@Override
 	public int calculatePageCount(final ProgressWatcher progressConsumer, final int softLimit) {
+
 		return overriddenResultCount != null && this.getPageSize() != 0 ? (int)Math.ceil( ((double)overriddenResultCount) / ((double)this.getPageSize())) : getIterator().getPageCount(progressConsumer, softLimit);
 	}
 
 	@Override
 	public int getPageSize() {
+
 		return pageSize;
 	}
 
 	@Override
 	public int getPage() {
+
 		return page;
 	}
 
 	@Override
 	public void setQueryTime(String formattedTime) {
+
 		this.queryTimeFormatted = formattedTime;
 	}
 
 	@Override
 	public String getQueryTime() {
+
 		return queryTimeFormatted;
 	}
 
@@ -100,17 +108,20 @@ public class PagingIterable<T> implements ResultStream<T> {
 
 		@Override
 		public boolean hasNext() {
+
 			return false;
 		}
 
 		@Override
 		public Object next() {
+
 			throw new IllegalStateException("This iterator is empty.");
 		}
 
 	}, Integer.MAX_VALUE, 1, 0);
 
 	public boolean isConsumed() {
+
 		return getIterator().isConsumed();
 	}
 
@@ -120,21 +131,25 @@ public class PagingIterable<T> implements ResultStream<T> {
 		if (source instanceof AutoCloseable) {
 
 			try {
+
 				((AutoCloseable)source).close();
 
 			} catch (Exception ex) {
+
 				logger.error("Unable to close iterable", ex);
 			}
 		}
 	}
 
 	public void setOverriddenResultCount(final int resultCount) {
+
 		this.overriddenResultCount = resultCount;
 	}
 
 	private PagingIterator<T> getIterator() {
 
 		if (this.iterator == null) {
+
 			this.iterator = new PagingIterator<>(description, source.iterator(), page, pageSize, skipped);
 		}
 

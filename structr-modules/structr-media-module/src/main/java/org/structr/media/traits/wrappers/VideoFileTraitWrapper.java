@@ -29,6 +29,7 @@ import org.structr.web.traits.wrappers.FileTraitWrapper;
 public class VideoFileTraitWrapper extends FileTraitWrapper implements VideoFile {
 
 	public VideoFileTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

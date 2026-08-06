@@ -27,27 +27,31 @@ public class TenantIdentifierHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "tenantIdentifier";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the tenant identifier configured in structr.conf.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The tenant identifier is a configurable setting in structr.conf that allows you to run multiple Structr instances on a single Neo4j database. If the tenant identifier is configured, Structr adds it as a Neo4j label on all nodes and uses it in all queries, so that only those nodes and relationships are accessible that are labeled with the tenant identifier.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 }

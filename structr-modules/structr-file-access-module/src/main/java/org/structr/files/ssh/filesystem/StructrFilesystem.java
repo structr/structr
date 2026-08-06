@@ -56,31 +56,37 @@ public class StructrFilesystem extends FileSystem {
 
 	@Override
 	public FileSystemProvider provider() {
+
 		return provider;
 	}
 
 	@Override
 	public void close() throws IOException {
+
 		// closing not supported
 	}
 
 	@Override
 	public boolean isOpen() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isReadOnly() {
+
 		return false;
 	}
 
 	@Override
 	public String getSeparator() {
+
 		return "/";
 	}
 
 	@Override
 	public Iterable<Path> getRootDirectories() {
+
 		return Arrays.asList(new Path[] { root });
 	}
 
@@ -92,6 +98,7 @@ public class StructrFilesystem extends FileSystem {
 
 	@Override
 	public Set<String> supportedFileAttributeViews() {
+
 		return StructrFileAttributes.SUPPORTED_VIEWS;
 	}
 
@@ -100,6 +107,7 @@ public class StructrFilesystem extends FileSystem {
 
 		// build a full path string
 		final StringBuilder pathBuilder = new StringBuilder(first);
+
 		for (final String component : more) {
 
 			pathBuilder.append("/");
@@ -110,6 +118,7 @@ public class StructrFilesystem extends FileSystem {
 		StructrPath path = last;
 
 		if (fullPath.equals(lastFullPath) && last != null && !last.dontCache()) {
+
 			return last;
 		}
 
@@ -119,6 +128,7 @@ public class StructrFilesystem extends FileSystem {
 			final String[] parts  = fullPath.split("/");
 
 			if (fullPath.startsWith("/")) {
+
 				path = root;
 			}
 
@@ -131,9 +141,12 @@ public class StructrFilesystem extends FileSystem {
 
 						// navigate to parent, but not above root
 						if (path != null && path.getParent() != null) {
+
 							final Path parent = path.getParent();
 							path = (parent instanceof StructrPath) ? (StructrPath) parent : root;
+
 						} else {
+
 							path = root;
 						}
 
@@ -157,9 +170,9 @@ public class StructrFilesystem extends FileSystem {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
-
 
 		// cache a single path instance until a different path is requested
 		// (should increase performance of repeated evaulations of the same path)
@@ -194,10 +207,12 @@ public class StructrFilesystem extends FileSystem {
 
 	// ----- package methods -----
 	Path getRoot() {
+
 		return root;
 	}
 
 	public SecurityContext getSecurityContext() {
+
 		return securityContext;
 	}
 }

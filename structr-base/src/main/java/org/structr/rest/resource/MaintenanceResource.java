@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +97,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 	public MaintenanceResource() {
 
-		super(
-			RESTParameter.forStaticString("maintenance", true),
-			RESTParameter.forPattern("name", "[a-zA-Z_]+", true)
-		);
+		super(RESTParameter.forStaticString("maintenance", true), RESTParameter.forPattern("name", "[a-zA-Z_]+", true));
 	}
 
 	public static void getMaintenanceCommands(final List<Documentable> documentables) {
@@ -128,12 +124,14 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 			if ("_schemaJson".equals(typeName)) {
 
 				// handle schema json
+
 				return new SchemaJsonResourceHandler(call);
 			}
 
 			if (maintenanceCommandMap.containsKey(typeName)) {
 
 				// handle maintenance command
+
 				return new MaintenanceResourceHandler(call, typeName, maintenanceCommandMap.get(typeName));
 			}
 
@@ -145,6 +143,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 	public static void registerMaintenanceTask(final String key, final Class<? extends Task> task) {
 
 		if(maintenanceCommandMap.containsKey(key)) {
+
 			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");
 		}
 
@@ -152,6 +151,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 	}
 
 	public static Class getMaintenanceCommandClass(final String key) {
+
 		return maintenanceCommandMap.get(key);
 	}
 
@@ -170,16 +170,19 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
 			throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 		}
 
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
 			throw new IllegalMethodException("PUT not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 		}
 
 		@Override
 		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+
 			throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 		}
 
@@ -237,13 +240,16 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 							return result;
 
 						} else {
+
 							return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
 						}
 
 						// return 200 OK
+
 						return new RestMethodResult(HttpServletResponse.SC_OK);
 
 					} catch (NoSuchMethodException|InvocationTargetException|InstantiationException|IllegalAccessException ex) {
+
 						throw new SystemException(ex.getMessage());
 					}
 
@@ -268,22 +274,25 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 		@Override
 		public boolean createPostTransaction() {
+
 			return false;
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
-
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("POST");
 		}
 
@@ -304,16 +313,19 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 	public class SchemaJsonResourceHandler extends RESTCallHandler {
 
 		public SchemaJsonResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 
@@ -333,6 +345,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 			if(propertySet != null && propertySet.containsKey("schema")) {
 
 				try {
+
 					final App app           = StructrApp.getInstance(securityContext);
 					final String schemaJson = (String)propertySet.get("schema");
 
@@ -351,6 +364,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS", "POST");
 		}
 	}

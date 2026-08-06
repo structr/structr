@@ -57,6 +57,7 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String ENABLED_PROPERTY  = "enabled";
 
 	public KafkaClientTraitDefinition() {
+
 		super(StructrTraits.KAFKA_CLIENT);
 	}
 
@@ -65,8 +66,7 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -78,8 +78,7 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -88,16 +87,17 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 					final Traits traits = client.getTraits();
 
 					if (modificationQueue.isPropertyModified(client, traits.key(SERVERS_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(GROUP_ID_PROPERTY))) {
+
 						client.refreshConfiguration();
 					}
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
 					graphObject.as(KafkaClient.class).close();
 				}
 			}
@@ -109,9 +109,7 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			MessageClientOperations.class,
-			new MessageClientOperations() {
-
+			MessageClientOperations.class, new MessageClientOperations() {
 
 				@Override
 				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient messageClient, final String topic, final String message) throws FrameworkException {
@@ -128,6 +126,7 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 						final Logger logger = LoggerFactory.getLogger(KafkaClientTraitDefinition.class);
 						logger.error("Could not initialize producer. No servers configured.");
+
 						return new RestMethodResult(422);
 					}
 
@@ -141,11 +140,13 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
+
 					return new RestMethodResult(200);
 				}
 
 				@Override
 				public RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
+
 					return new RestMethodResult(200);
 				}
 			}
@@ -155,9 +156,7 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			KafkaClient.class, (traits, node) -> new KafkaClientTraitWrapper(traits, node)
-		);
+		return Map.of(KafkaClient.class, (traits, node) -> new KafkaClientTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -167,15 +166,12 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> groupIdProperty   = new StringProperty(GROUP_ID_PROPERTY);
 		final Property<Boolean> enabledProperty  = new BooleanProperty(ENABLED_PROPERTY).defaultValue(false);
 
-		return newSet(
-			serversProperty,
-			groupIdProperty,
-			enabledProperty
-		);
+		return newSet(serversProperty, groupIdProperty, enabledProperty);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 

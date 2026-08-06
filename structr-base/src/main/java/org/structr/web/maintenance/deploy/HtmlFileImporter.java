@@ -37,7 +37,6 @@ public abstract class HtmlFileImporter {
             try {
 
                 final BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
-
                 if (attrs.isRegularFile()) {
 
                     final String fileName = path.getFileName().toString();
@@ -47,6 +46,7 @@ public abstract class HtmlFileImporter {
                     }
 
                 } else {
+
                     logger.warn("Unexpected directory '{}' found in '{}' directory, ignoring", path.getFileName().toString(), folder.getFileName().toString());
                 }
 

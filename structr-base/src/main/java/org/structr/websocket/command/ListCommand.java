@@ -54,19 +54,20 @@ public class ListCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
 		final String rawType                  = webSocketData.getNodeDataStringValue("type");
 		final String properties               = webSocketData.getNodeDataStringValue("properties");
 		final boolean rootOnly                = webSocketData.getNodeDataBooleanValue("rootOnly");
-
 		Traits type = Traits.of(rawType);
+
 		if (type == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
+
 			return;
 		}
 
 		if (properties != null) {
+
 			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
 
@@ -80,16 +81,14 @@ public class ListCommand extends AbstractCommand {
 		if (type.contains(StructrTraits.FILE)) {
 
 			if (rootOnly) {
+
 				query.key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
 			}
 
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
 			query.not().key(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), true);
 
-			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
-				"all/INCOMING/CONTAINS",
-				"all/OUTGOING/CONFIGURED_BY"
-			));
+			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of("all/INCOMING/CONTAINS", "all/OUTGOING/CONFIGURED_BY"));
 		}
 
 		// important
@@ -97,10 +96,7 @@ public class ListCommand extends AbstractCommand {
 
 			query.key(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
 
-			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
-				"all/INCOMING/CONTAINS",
-				"all/OUTGOING/CONFIGURED_BY"
-			));
+			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of("all/INCOMING/CONTAINS", "all/OUTGOING/CONFIGURED_BY"));
 		}
 
 		try {
@@ -121,6 +117,7 @@ public class ListCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "LIST";
 	}
 }

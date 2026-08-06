@@ -140,38 +140,45 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			running = false;
 
 		} catch (IOException ex) {
+
 			logger.error("", ex);
 		}
 	}
 
 	@Override
 	public void initialized() {
+
 		// nothing to do
 	}
 
 	@Override
 	public String getName() {
+
 		return "SSHService";
 	}
 
 	@Override
 	public boolean isRunning() {
+
 		return server != null && running;
 	}
 
 	@Override
 	public boolean isVital() {
+
 		return false;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return false;
 	}
 
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "file-access";
 	}
 
@@ -183,6 +190,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		final SecurityContext ctx = getSecurityContext(session);
 		if (ctx == null) {
+
 			throw new IOException("No authenticated security context for this session.");
 		}
 
@@ -191,6 +199,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public Path getUserHomeDir(SessionContext sessionContext) throws IOException {
+
 		return Path.of("/");
 	}
 	// ------ -----
@@ -207,6 +216,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			logger.warn("Password-based SSH connections are forbidden. Rejecting connection attempt by user '{}'", username);
 
 			try {
+
 				session.disconnect(401, "Password-based SSH connections are forbidden");
 
 			} catch (IOException ignore) { }
@@ -244,11 +254,14 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			}
 
 			try {
+
 				if (isValid) {
+
 					session.setAuthenticated();
 				}
 
 			} catch (IOException ex) {
+
 				logger.error("", ex);
 			}
 		}
@@ -262,6 +275,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		boolean isValid = false;
 
 		if (key == null) {
+
 			return isValid;
 		}
 
@@ -291,6 +305,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						for (final String k : pubKeysData) {
 
 							if (k != null) {
+
 								final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
 								if (KeyUtils.compareKeys(pubKey, key)) {
 
@@ -303,6 +318,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 					// Store SecurityContext on the session only if authentication was successful
 					if (isValid) {
+
 						session.setAttribute(SECURITY_CONTEXT_KEY, sessionCtx);
 					}
 				}
@@ -328,6 +344,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public org.apache.sshd.server.command.Command create() {
+
 		// Legacy Factory<Command> interface method. The ShellFactory.createShell(ChannelSession)
 		// method is used instead. This should not be called in normal operation.
 		logger.warn("SSHService.create() called without session context. Shell creation requires session-scoped authentication.");
@@ -377,11 +394,13 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	@Override
 	public void modifyingAttributes(ServerSession session, Path path, Map<String, ?> attrs) {
+
 		// nothing to do
 	}
 
 	@Override
 	public void modifiedAttributes(ServerSession session, Path path, Map<String, ?> attrs, Throwable thrown) {
+
 		// nothing to do
 	}
 
@@ -391,32 +410,39 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		final SecurityContext ctx = getSecurityContext(session.getSession());
 		if (ctx == null) {
+
 			throw new IOException("No authenticated security context for this session.");
 		}
 
 		// SCP is allowed for all authenticated users (goes through filesystem permission model)
 		if (command.startsWith("scp ")) {
+
 			return scp.createCommand(session, command);
 		}
 
 		// F-02: Console commands (javascript, structrscript, cypher, admin) require backend (admin) access
 		if (!ctx.isSuperUser() && !AccessMode.Backend.equals(ctx.getAccessMode())) {
+
 			throw new IOException("Access denied. Console commands require backend (admin) access.");
 		}
 
 		if (command.startsWith("javascript ")) {
+
 			return new StructrConsoleCommand(ctx, ConsoleMode.JavaScript, command.substring(11));
 		}
 
 		if (command.startsWith("structrscript ")) {
+
 			return new StructrConsoleCommand(ctx, ConsoleMode.StructrScript, command.substring(14));
 		}
 
 		if (command.startsWith("cypher ")) {
+
 			return new StructrConsoleCommand(ctx, ConsoleMode.Cypher, command.substring(7));
 		}
 
 		if (command.startsWith("admin ")) {
+
 			return new StructrConsoleCommand(ctx, ConsoleMode.AdminShell, command.substring(6));
 		}
 
@@ -429,10 +455,12 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		final SecurityContext ctx = getSecurityContext(channelSession.getSession());
 		if (ctx == null) {
+
 			throw new IOException("No authenticated security context for this session.");
 		}
 
 		if (!AccessMode.Backend.equals(ctx.getAccessMode())) {
+
 			throw new IOException("Access denied. User has no backend access.");
 		}
 
@@ -448,6 +476,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	private SecurityContext getSecurityContext(final SessionContext session) {
 
 		if (session != null) {
+
 			return session.getAttribute(SECURITY_CONTEXT_KEY);
 		}
 

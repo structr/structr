@@ -33,11 +33,13 @@ import org.structr.schema.SchemaHelper;
 public class StructrCountProperty extends StructrLongProperty implements JsonCountProperty {
 
 	public StructrCountProperty(StructrTypeDefinition parent, String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "count";
 	}
 

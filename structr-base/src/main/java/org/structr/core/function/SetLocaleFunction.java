@@ -34,11 +34,13 @@ public class SetLocaleFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "setLocale";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("locale");
 	}
 
@@ -46,7 +48,9 @@ public class SetLocaleFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources == null || sources.length != 1 || sources[0] == null) {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -59,11 +63,13 @@ public class SetLocaleFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -72,6 +78,7 @@ public class SetLocaleFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${setLocale(locale)}. Example: ${setLocale('de_DE')}"),
 			Usage.javaScript("Usage: ${{ $.setLocale(locale); }}. Example: ${{ $.setLocale('de_DE'); }}")
@@ -80,11 +87,13 @@ public class SetLocaleFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the locale for the current request.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         This function gives granular control of the current locale and directly influences the result of date parsing and formatting functions as well as the results of calls to localize().
 
@@ -93,13 +102,13 @@ public class SetLocaleFunction extends CoreFunction {
 	}
 
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${ (setLocale('de_DE'), dateFormat(now, 'E')) }", "Get name of current weekday in german.")
-		);
+
+		return List.of(Example.structrScript("${ (setLocale('de_DE'), dateFormat(now, 'E')) }", "Get name of current weekday in german."));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

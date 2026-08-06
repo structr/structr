@@ -24,16 +24,19 @@ public class CronServiceDocumentable extends AbstractServiceDocumentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Service;
 	}
 
 	@Override
 	public String getName() {
+
 		return "CronService";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 }

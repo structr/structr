@@ -47,34 +47,37 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String BASIC_AUTH_REALM_PROPERTY     = "basicAuthRealm";
 
 	public LinkableTraitDefinition() {
+
 		super(StructrTraits.LINKABLE);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Linkable.class, (traits, node) -> new LinkableTraitWrapper(traits, node)
-		);
+		return Map.of(Linkable.class, (traits, node) -> new LinkableTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
@@ -86,27 +89,18 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty(ENABLE_BASIC_AUTH_PROPERTY).defaultValue(false).indexed();
 		final Property<String> basicAuthRealmProperty                   = new StringProperty(BASIC_AUTH_REALM_PROPERTY);
 
-		return Set.of(
-			linkingElementsProperty,
-			linkingElementsIdsProperty,
-			enableBasicAuthProperty,
-			basicAuthRealmProperty
-		);
+		return Set.of(linkingElementsProperty, linkingElementsIdsProperty, enableBasicAuthProperty, basicAuthRealmProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Ui,
-			newSet(
-				LINKING_ELEMENTS_PROPERTY, LINKING_ELEMENTS_IDS_PROPERTY, ENABLE_BASIC_AUTH_PROPERTY, BASIC_AUTH_REALM_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Ui, newSet(LINKING_ELEMENTS_PROPERTY, LINKING_ELEMENTS_IDS_PROPERTY, ENABLE_BASIC_AUTH_PROPERTY, BASIC_AUTH_REALM_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

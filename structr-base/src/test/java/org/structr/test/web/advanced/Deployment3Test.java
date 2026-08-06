@@ -71,6 +71,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -104,6 +105,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -117,6 +119,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test31");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test31");
 
 			final DOMElement body     = createElement(page, html, "body");
@@ -138,6 +141,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -153,6 +157,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test32");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test32");
 
 			final DOMElement body     = createElement(page, html, "body");
@@ -189,6 +194,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -204,6 +210,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test33");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test33");
 
 			final DOMElement body = createElement(page, html, "body");
@@ -215,6 +222,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -254,6 +262,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -282,7 +291,6 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY)));
 			assertEquals("Invalid SchemaMethod deployment result", "GET",          method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY)));
 
-
 			// Add new SchemaMethod properties here to make sure they are included in the schema import/export!
 
 			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
@@ -292,6 +300,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -334,10 +343,10 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// test
 		try (final Tx tx = app.tx()) {
@@ -358,6 +367,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -408,10 +418,10 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// test
 		try (final Tx tx = app.tx()) {
@@ -423,6 +433,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			DOMNode obj = null;
 
 			for (final NodeInterface n: div.getAllChildNodes()){
+
 				obj = n.as(DOMNode.class);
 				break;
 			}
@@ -435,6 +446,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -451,6 +463,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			final JsonType pageType = schema.getType(StructrTraits.PAGE);
 			final JsonType fileType = schema.getType(StructrTraits.FILE);
+
 			assertNotNull("Type Page must exist in every schema", pageType);
 			assertNotNull("Type File must exist in every schema", fileType);
 
@@ -466,6 +479,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -492,6 +506,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -518,6 +533,7 @@ public class Deployment3Test extends DeploymentTestBase {
 				createComponent(div);
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -525,6 +541,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -551,6 +568,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -570,6 +588,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

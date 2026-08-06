@@ -30,15 +30,18 @@ public abstract class TemporalDateConverter {
     public static Date convert(final Object inst) {
 
         if (inst == null) {
+
             return null;
         }
 
         if (inst instanceof Date date) {
 
             return date;
+
         } else if (inst instanceof ZonedDateTime zdt) {
 
             return Date.from(zdt.toInstant());
+
         } else if (inst instanceof Instant i) {
 
             return Date.from(i);

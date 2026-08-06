@@ -26,6 +26,7 @@ public abstract class CommandLineUtils {
     public static String[] translateCommandline(String toProcess) throws Exception {
 
         if ((toProcess == null) || (toProcess.length() == 0)) {
+
             return new String[0];
         }
 
@@ -38,51 +39,74 @@ public abstract class CommandLineUtils {
         StringBuilder current = new StringBuilder();
 
         while (tok.hasMoreTokens()) {
+
             String nextTok = tok.nextToken();
             switch (state) {
                 case inQuote:
+
                     if ("\'".equals(nextTok)) {
+
                         state = normal;
+
                     } else {
+
                         current.append(nextTok);
                     }
+
                     break;
                 case inDoubleQuote:
+
                     if ("\"".equals(nextTok)) {
+
                         state = normal;
+
                     } else {
+
                         current.append(nextTok);
                     }
+
                     break;
                 default:
+
                     if ("\'".equals(nextTok)) {
+
                         state = inQuote;
+
                     } else if ("\"".equals(nextTok)) {
+
                         state = inDoubleQuote;
+
                     } else if (" ".equals(nextTok)) {
+
                         if (current.length() != 0) {
+
                             v.addElement(current.toString());
                             current.setLength(0);
                         }
+
                     } else {
+
                         current.append(nextTok);
                     }
+
                     break;
             }
         }
 
         if (current.length() != 0) {
+
             v.addElement(current.toString());
         }
 
         if ((state == inQuote) || (state == inDoubleQuote)) {
+
             throw new RuntimeException("unbalanced quotes in " + toProcess);
         }
 
         String[] args = new String[v.size()];
         v.copyInto(args);
+
         return args;
     }
-
 
 }

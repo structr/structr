@@ -49,41 +49,49 @@ import java.util.List;
 public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 
 	public ImageTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public void setIsCreatingThumb(final boolean isCreatingThumb) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ImageTraitDefinition.IS_CREATING_THUMB_PROPERTY), isCreatingThumb);
 	}
 
 	@Override
 	public boolean isImage() {
+
 		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.IS_IMAGE_PROPERTY));
 	}
 
 	@Override
 	public boolean isThumbnail() {
+
 		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY));
 	}
 
 	@Override
 	public boolean getIsCreatingThumb() {
+
 		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.IS_CREATING_THUMB_PROPERTY));
 	}
 
 	@Override
 	public boolean thumbnailCreationFailed() {
+
 		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.THUMBNAIL_CREATION_FAILED_PROPERTY));
 	}
 
 	@Override
 	public Integer getWidth() {
+
 		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.WIDTH_PROPERTY));
 	}
 
 	@Override
 	public Integer getHeight() {
+
 		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.HEIGHT_PROPERTY));
 	}
 
@@ -122,11 +130,11 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 		final StringBuilder pathBuffer = new StringBuilder(Image.STRUCTR_THUMBNAIL_FOLDER);
 
 		if (originalParentFolder != null) {
+
 			pathBuffer.append(originalParentFolder.getPath());
 		}
 
 		final NodeInterface folder =  FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathBuffer.toString());
-
 		if (!folder.isVisibleToAuthenticatedUsers() || !folder.isVisibleToPublicUsers()) {
 
 			folder.setVisibility(true, true);
@@ -138,16 +146,19 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 
 	@Override
 	public Image getScaledImage(final String maxWidthString, final String maxHeightString) {
+
 		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), false);
 	}
 
 	@Override
 	public Image getScaledImage(final String maxWidthString, final String maxHeightString, final boolean cropToFit) {
+
 		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), cropToFit);
 	}
 
 	@Override
 	public Image getScaledImage(final int maxWidth, final int maxHeight) {
+
 		return getScaledImage(maxWidth, maxHeight, false);
 	}
 
@@ -196,6 +207,7 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 
 		// don't create thumbnails for empty files
 		if (!hasBytes) {
+
 			return null;
 		}
 

@@ -39,6 +39,7 @@ final class EmailRateLimiter {
 		.build();
 
 	private static final class Counter {
+
 		int count;
 	}
 
@@ -49,44 +50,59 @@ final class EmailRateLimiter {
 	 * incremented on success; if the IP limit is already over, the email
 	 * counter is not touched.
 	 */
-	static boolean allow(final String bucket, final String remoteIp, final int maxPerIpPerHour,
-	                     final String email,    final int maxPerEmailPerHour) {
+	static boolean allow(final String bucket, final String remoteIp, final int maxPerIpPerHour, final String email,    final int maxPerEmailPerHour) {
 
 		// whitelisted source IPs (development) bypass both counters
 		final String whitelist = Settings.EmailRateLimitWhitelist.getValue("");
 		if (whitelist != null && !whitelist.isBlank() && remoteIp != null) {
+
 			for (final String ip : whitelist.split(",")) {
+
 				if (remoteIp.equals(ip.trim())) {
+
 					return true;
 				}
 			}
 		}
 
 		if (!tryIncrement(bucket + ":ip:" + remoteIp, maxPerIpPerHour)) {
+
 			return false;
 		}
+
 		if (!tryIncrement(bucket + ":email:" + email, maxPerEmailPerHour)) {
+
 			return false;
 		}
+
 		return true;
 	}
 
 	private static boolean tryIncrement(final String key, final int max) {
 
 		final Counter counter;
+
 		try {
+
 			counter = counts.get(key, Counter::new);
+
 		} catch (final Exception ex) {
+
 			// Counter::new is total; defensive fall-open so loader failure
 			// never blocks a legitimate user.
+
 			return true;
 		}
 
 		synchronized (counter) {
+
 			if (counter.count >= max) {
+
 				return false;
 			}
+
 			counter.count++;
+
 			return true;
 		}
 	}

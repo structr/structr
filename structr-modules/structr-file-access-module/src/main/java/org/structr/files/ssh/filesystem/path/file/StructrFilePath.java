@@ -57,6 +57,7 @@ public class StructrFilePath extends StructrPath {
 	private static final Logger logger = LoggerFactory.getLogger(StructrFilePath.class.getName());
 
 	public StructrFilePath(final StructrFilesystem fs, final StructrPath parent, final String name) {
+
 		super(fs, parent, name);
 	}
 
@@ -82,7 +83,6 @@ public class StructrFilePath extends StructrPath {
 
 						try (final Tx tx = app.tx()) {
 
-
 							for (final Folder folder : folder.getFolders()) {
 
 								files.add(new StructrFilePath(fs, StructrFilePath.this, folder.getName()));
@@ -96,6 +96,7 @@ public class StructrFilePath extends StructrPath {
 							tx.success();
 
 						} catch (FrameworkException fex) {
+
 							logger.warn("", fex);
 						}
 
@@ -108,6 +109,7 @@ public class StructrFilePath extends StructrPath {
 
 				@Override
 				public void close() throws IOException {
+
 					closed = true;
 				}
 			};
@@ -122,7 +124,6 @@ public class StructrFilePath extends StructrPath {
 
 		NodeInterface actualFile    = getActualFile();
 		SeekableByteChannel channel = null;
-
 		final boolean create      = options.contains(StandardOpenOption.CREATE);
 		final boolean createNew   = options.contains(StandardOpenOption.CREATE_NEW);
 		final boolean write       = options.contains(StandardOpenOption.WRITE);
@@ -138,6 +139,7 @@ public class StructrFilePath extends StructrPath {
 
 					// if CREATE_NEW, file must not exist, otherwise an error should be thrown
 					if (createNew && actualFile != null) {
+
 						throw new java.nio.file.FileAlreadyExistsException(toString());
 					}
 
@@ -150,6 +152,7 @@ public class StructrFilePath extends StructrPath {
 							setParentFolder(actualFile);
 
 						} catch (FrameworkException fex) {
+
 							logger.warn("", fex);
 						}
 					}
@@ -199,6 +202,7 @@ public class StructrFilePath extends StructrPath {
 	public void createDirectory(FileAttribute<?>... attrs) throws IOException {
 
 		final App app = StructrApp.getInstance(fs.getSecurityContext());
+
 		try (final Tx tx = app.tx()) {
 
 			final String name             = getFileName().toString();
@@ -237,12 +241,14 @@ public class StructrFilePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to delete file {}: {}", getActualFile().as(Folder.class).getPath(), fex.getMessage());
 		}
 	}
 
 	@Override
 	public StructrPath resolveStructrPath(final String pathComponent) {
+
 		return new StructrFilePath(fs, this, pathComponent);
 	}
 
@@ -272,11 +278,13 @@ public class StructrFilePath extends StructrPath {
 
 	@Override
 	public <V extends FileAttributeView> V getFileAttributeView(final Class<V> type, final LinkOption... options) throws IOException {
+
 		return (V)getAttributes((Class)null, options);
 	}
 
 	@Override
 	public void copy(final Path target, final CopyOption... options) throws IOException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -293,7 +301,6 @@ public class StructrFilePath extends StructrPath {
 			try (final Tx tx = app.tx()) {
 
 				final Path otherParent = other.getParent();
-
 				if (otherParent instanceof StructrFilesRootPath) {
 
 					// rename & move (parent is null: root path)
@@ -321,12 +328,14 @@ public class StructrFilePath extends StructrPath {
 
 	@Override
 	public void setAttribute(final String attribute, final Object value, final LinkOption... options) throws IOException {
+
 		// ignore for now..
 		//System.out.println("setAttribute(" + attribute + ", " + value + "): " + Arrays.asList(options));
 	}
 
 	@Override
 	public boolean isSameFile(final Path path2) throws IOException {
+
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -338,6 +347,7 @@ public class StructrFilePath extends StructrPath {
 
 		// Special handling for relative paths pointing to the current directory
 		if (filePath.endsWith(StructrPath.CURRENT_DIRECTORY)) {
+
 			filePath = filePath.substring(0, filePath.length() - 1);
 		}
 
@@ -369,6 +379,7 @@ public class StructrFilePath extends StructrPath {
 
 	@Override
 	public boolean dontCache() {
+
 		return true;
 	}
 
@@ -376,11 +387,11 @@ public class StructrFilePath extends StructrPath {
 	private void setParentFolder(final NodeInterface file) throws FrameworkException {
 
 		final Path parentPath = getParent();
-
 		if (parentPath != null && parentPath instanceof StructrFilePath) {
 
 			final StructrFilePath parentFilePath = (StructrFilePath)parentPath;
 			final NodeInterface parentFolder     = parentFilePath.getActualFile();
+
 			if (parentFolder != null) {
 
 				file.as(AbstractFile.class).setParent(parentFolder.as(Folder.class));

@@ -85,7 +85,6 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		final String test01   = createEntity("/TestOne", "{ name: test01 }");
 		final String test02   = createEntity("/TestTwo", "{ name: test02, test_ones: [", test01, "] }");
 		final String resource = "/TwoOneOneToMany";
-
 		String id = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 		.expect()

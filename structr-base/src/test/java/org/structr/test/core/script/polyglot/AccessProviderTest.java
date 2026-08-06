@@ -46,11 +46,13 @@ public class AccessProviderTest {
 
 	@BeforeMethod
 	public void setUp() {
+
 		previousValue = Settings.ScriptingPolyglotAccess.getValue();
 	}
 
 	@AfterMethod
 	public void tearDown() {
+
 		Settings.ScriptingPolyglotAccess.setValue(previousValue);
 	}
 
@@ -61,6 +63,7 @@ public class AccessProviderTest {
 	 */
 	@Test
 	public void defaultValueIsAll() {
+
 		assertEquals("ALL", Settings.ScriptingPolyglotAccess.getDefaultValue());
 	}
 

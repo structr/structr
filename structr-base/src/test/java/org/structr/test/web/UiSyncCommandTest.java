@@ -19,6 +19,7 @@
 package org.structr.test.web;
 
 public class UiSyncCommandTest extends StructrUiTest {
+
 	/*
 
 

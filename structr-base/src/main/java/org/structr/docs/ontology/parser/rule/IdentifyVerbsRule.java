@@ -30,6 +30,7 @@ import java.util.*;
 public class IdentifyVerbsRule extends Rule {
 
 	public IdentifyVerbsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -41,7 +42,6 @@ public class IdentifyVerbsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken abstractToken = tokens.pop();
-
 			if (abstractToken instanceof UnresolvedToken unresolved) {
 
 				final Token token  = unresolved.getToken();

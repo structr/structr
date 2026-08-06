@@ -155,9 +155,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 								embedValue("load average 1 min", "system", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage(), null, "pass")
 						);
 
-						embedGroup(details, "uptime",
-								embedValue("uptime",  "system", ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass")
-						);
+						embedGroup(details, "uptime", embedValue("uptime",  "system", ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass"));
 
 						embedGroup(details, "threads",
 								embedValue("current thread count", "system", threadMXBean.getThreadCount(),       null, "pass"),
@@ -248,6 +246,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 			}
 
 			synchronized (data) {
+
 				gson.toJson(data, writer);
 			}
 
@@ -261,6 +260,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 	@Override
 	public String getModuleName() {
+
 		return "rest";
 	}
 
@@ -275,7 +275,6 @@ public class HealthCheckServlet extends AbstractDataServlet {
 			for (final String entry : whitelistSource.split(",")) {
 
 				final String trimmed = entry.trim();
-
 				if (StringUtils.isNotBlank(trimmed)) {
 
 					whitelist.add(trimmed);
@@ -300,6 +299,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	}
 
 	private Map<String, Object> embedValue(final String componentId, final String componentType, final Object value, final String unit, final String status) {
+
 		return embedValue(componentId, componentType, value, unit, status, null);
 	}
 
@@ -312,6 +312,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 		valueContainer.put("observedValue", value);
 
 		if (unit != null) {
+
 			valueContainer.put("observedUnit", unit);
 		}
 
@@ -319,6 +320,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 		valueContainer.put("time", new Date(lastUpdate));
 
 		if (valueDescription != null) {
+
 			valueContainer.put("valueDescription", valueDescription);
 		}
 

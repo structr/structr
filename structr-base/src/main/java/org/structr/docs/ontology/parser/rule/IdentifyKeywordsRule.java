@@ -28,6 +28,7 @@ import java.util.LinkedList;
 public class IdentifyKeywordsRule extends Rule {
 
 	public IdentifyKeywordsRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -39,11 +40,9 @@ public class IdentifyKeywordsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.poll();
-
 			if (token1 instanceof UnresolvedToken unresolvedToken && unresolvedToken.getToken() != null) {
 
 				final Token name = unresolvedToken.getToken();
-
 				if ("with".equals(name.toLowerCase())) {
 
 					result.add(new WithToken(name));

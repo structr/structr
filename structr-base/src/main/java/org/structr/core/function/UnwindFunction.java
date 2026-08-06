@@ -33,11 +33,13 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "unwind";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list1, list2, ...");
 	}
 
@@ -45,12 +47,14 @@ public class UnwindFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List list = new ArrayList();
+
 		for (final Object source : sources) {
 
 			if (source instanceof Iterable) {
 
 				// filter null objects
 				for (Object obj : (Iterable)source) {
+
 					if (obj != null) {
 
 						if (obj instanceof Iterable) {
@@ -81,19 +85,19 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.unwind(list1, ...) }}."),
-			Usage.structrScript("Usage: ${unwind(list1, ...)}.")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.unwind(list1, ...) }}."), Usage.structrScript("Usage: ${unwind(list1, ...)}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts a list of lists into a flat list.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Combines the given nested collections into to a single, "flat" collection. 
 		This method is the reverse of `extract()` and can be used to flatten collections of related nodes that were 
@@ -103,8 +107,8 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${unwind(this.children)}"),
+
+		return List.of(Example.structrScript("${unwind(this.children)}"),
 				Example.javaScript("""
 						${{ $.unwind([[1,2,3],4,5,[6,7,8]])}}
 						> [1, 2, 3, 4, 5, 6, 7, 8]
@@ -114,20 +118,19 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("collections", "collection(s) to unwind")
-				);
+
+		return List.of(Parameter.mandatory("collections", "collection(s) to unwind"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"`unwind()` is quite similar to `merge()`. The big difference is that `unwind()` filters out empty collections."
-		);
+
+		return List.of("`unwind()` is quite similar to `merge()`. The big difference is that `unwind()` filters out empty collections.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

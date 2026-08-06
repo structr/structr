@@ -47,6 +47,7 @@ final public class S3Errors {
 	public static String describe(final Throwable error) {
 
 		if (error == null) {
+
 			return "unknown error";
 		}
 
@@ -54,24 +55,27 @@ final public class S3Errors {
 		SdkException sdkException           = null;
 		UnknownHostException unknownHost    = null;
 		ConnectException connectException   = null;
-
 		final Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
 
 		for (Throwable current = error; current != null && seen.add(current); current = current.getCause()) {
 
 			if (s3Exception == null && current instanceof S3Exception e) {
+
 				s3Exception = e;
 			}
 
 			if (sdkException == null && current instanceof SdkException e) {
+
 				sdkException = e;
 			}
 
 			if (unknownHost == null && current instanceof UnknownHostException e) {
+
 				unknownHost = e;
 			}
 
 			if (connectException == null && current instanceof ConnectException e) {
+
 				connectException = e;
 			}
 		}
@@ -82,14 +86,15 @@ final public class S3Errors {
 			final AwsErrorDetails details = s3Exception.awsErrorDetails();
 			final String message          = details != null ? details.errorMessage() : null;
 			final int status              = s3Exception.statusCode();
-
 			final StringBuilder result = new StringBuilder("S3 request failed");
 
 			if (status > 0) {
+
 				result.append(" (HTTP ").append(status).append(")");
 			}
 
 			if (message != null && !message.isBlank()) {
+
 				result.append(": ").append(message);
 			}
 
@@ -98,15 +103,18 @@ final public class S3Errors {
 
 		// connectivity problems
 		if (unknownHost != null) {
+
 			return "unknown host: " + firstLine(unknownHost.getMessage());
 		}
 
 		if (connectException != null) {
+
 			return firstLine(connectException.getMessage());
 		}
 
 		// generic SDK client error (e.g. "Unable to execute HTTP request: ...")
 		if (sdkException != null) {
+
 			return firstLine(sdkException.getMessage());
 		}
 
@@ -117,19 +125,22 @@ final public class S3Errors {
 	private static String firstLine(final String message) {
 
 		if (message == null || message.isBlank()) {
+
 			return "unknown error";
 		}
 
 		String line = message;
-
 		final int newline = line.indexOf('\n');
+
 		if (newline >= 0) {
+
 			line = line.substring(0, newline);
 		}
 
 		// drop the SDK's noisy retry-count suffix
 		final int attemptCount = line.indexOf(" (SDK Attempt Count:");
 		if (attemptCount >= 0) {
+
 			line = line.substring(0, attemptCount);
 		}
 

@@ -39,11 +39,13 @@ public class FromCsvFunction extends CsvFunction {
 
 	@Override
 	public String getName() {
+
 		return "fromCsv";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' [, header [, escapeChar = '\\\\' ]]]]]");
 	}
 
@@ -77,8 +79,11 @@ public class FromCsvFunction extends CsvFunction {
 				CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0));
 
 				if (customColumnNamesSupplied) {
+
 					format = format.withHeader(((Collection<String>)sources[4]).toArray(new String[]{ })).withSkipHeaderRecord(false);
+
 				} else {
+
 					format = format.withHeader().withSkipHeaderRecord(true);
 				}
 
@@ -90,6 +95,7 @@ public class FromCsvFunction extends CsvFunction {
 				format = format.withEscape(escape.charAt(0));
 
 				CSVParser parser = new CSVParser(new StringReader(source), format);
+
 				for (final CSVRecord record : parser.getRecords()) {
 
 					objects.add(record.toMap());
@@ -107,12 +113,14 @@ public class FromCsvFunction extends CsvFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${fromCsv(source[, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}"),
 			Usage.javaScript("Usage: ${{ $.fromCsv(source [, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]]) }}")
@@ -121,11 +129,13 @@ public class FromCsvFunction extends CsvFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Parses the given CSV string and returns a list of objects.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "If the parameter `headerList` is not supplied, it is assumed that the first line of the CSV is a header and those header values are used as property names. If the parameter is supplied, the given values are used as property names and the first line is read as data.";
 	}
 
@@ -175,6 +185,7 @@ public class FromCsvFunction extends CsvFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

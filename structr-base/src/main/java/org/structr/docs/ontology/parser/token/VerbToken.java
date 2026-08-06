@@ -38,6 +38,7 @@ public class VerbToken extends StringToken<Verb> {
 	public String getInverse() {
 
 		if (isInverted) {
+
 			return verb.getRightToLeft();
 		}
 
@@ -45,25 +46,30 @@ public class VerbToken extends StringToken<Verb> {
 	}
 
 	public Verb resolve(final Ontology ontology) {
+
 		return verb;
 	}
 
 	public boolean isInverted() {
+
 		return isInverted;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Cannot update verb.");
 	}
 }

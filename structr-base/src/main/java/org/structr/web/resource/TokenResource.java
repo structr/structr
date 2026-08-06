@@ -45,22 +45,26 @@ import java.util.Map;
 public class TokenResource extends ExactMatchEndpoint {
 
 	public TokenResource() {
+
 		super(RESTParameter.forStaticString("token", true, "_token"));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new TokenResourceHandler(call);
 	}
 
 	private class TokenResourceHandler extends LoginResourceHandler {
 
 		public TokenResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
 		@Override
 		public String getErrorMessage() {
+
 			return JWTHelper.TOKEN_ERROR_MSG;
 		}
 
@@ -68,13 +72,11 @@ public class TokenResource extends ExactMatchEndpoint {
 		protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
 			Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
-
 			boolean isFromRefreshToken = false;
 
 			if (user == null) {
 
 				String refreshToken = getRefreshToken(securityContext, propertySet);
-
 				if (refreshToken != null) {
 
 					user = JWTHelper.getPrincipalForRefreshToken(refreshToken);
@@ -86,7 +88,6 @@ public class TokenResource extends ExactMatchEndpoint {
 			if (user != null) {
 
 				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
-
 				if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
 					if (!isFromRefreshToken) {
@@ -130,6 +131,7 @@ public class TokenResource extends ExactMatchEndpoint {
 
 			final HttpServletRequest request = securityContext.getRequest();
 			if (request == null) {
+
 				return null;
 			}
 
@@ -146,6 +148,7 @@ public class TokenResource extends ExactMatchEndpoint {
 			}
 
 			if (refreshToken == null) {
+
 				return request.getHeader(RequestHeaders.RefreshToken.getName());
 			}
 
@@ -162,8 +165,8 @@ public class TokenResource extends ExactMatchEndpoint {
 
 				final int tokenMaxAge   = Settings.JWTExpirationTimeout.getValue();
 				final int refreshMaxAge = Settings.JWTRefreshTokenExpirationTimeout.getValue();
-
 				final Cookie tokenCookie = new Cookie("access_token", tokenMap.get("access_token"));
+
 				tokenCookie.setPath("/");
 				tokenCookie.setHttpOnly(false);
 				tokenCookie.setMaxAge(tokenMaxAge * 60);

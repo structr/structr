@@ -26,31 +26,37 @@ import org.structr.core.traits.definitions.SchemaMethodParameterTraitDefinition;
 public class SchemaMethodParameterTraitWrapper extends AbstractNodeTraitWrapper implements SchemaMethodParameter {
 
 	public SchemaMethodParameterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
 	@Override
 	public String getDescription() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodParameterTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public String getParameterType() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public int getIndex() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodParameterTraitDefinition.INDEX_PROPERTY));
 	}
 
 	@Override
 	public String getExampleValue() {
+
 		return wrappedObject.getProperty(traits.key(SchemaMethodParameterTraitDefinition.EXAMPLE_VALUE_PROPERTY));
 	}
 }

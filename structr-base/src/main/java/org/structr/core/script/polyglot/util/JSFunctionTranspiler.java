@@ -33,6 +33,7 @@ public abstract class JSFunctionTranspiler {
 
             final String transpiledSource = "(() => {" + snippet.getSource() + "\n})();";
             snippet.setTranscribedSource(transpiledSource);
+
             return snippet.getTranscribedSource();
         }
 

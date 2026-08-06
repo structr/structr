@@ -87,26 +87,37 @@ public class WidgetAutoVisibilityMappingHelper {
 		if (data == null) return;
 		final Object raw = data.remove(SPEC_DATA_KEY);
 		if (raw == null) return;
+
 		if (rootNode == null) {
+
 			logger.warn("WidgetAutoVisibilityMappingHelper: spec present but no widget root node available; skipping VM creation.");
+
 			return;
 		}
 
 		if (!Traits.exists(StructrTraits.VISIBILITY_MAPPING)) {
+
 			// Process module not loaded. The widget that emitted this spec
 			// must therefore have come from a process-aware deployment that
 			// no longer is one. Log and move on.
 			logger.warn("WidgetAutoVisibilityMappingHelper: VisibilityMapping trait is not registered; skipping VM creation.");
+
 			return;
 		}
 
 		final Map<String, Object> spec;
+
 		try {
+
 			spec = gson.fromJson(String.valueOf(raw), Map.class);
+
 		} catch (JsonSyntaxException jex) {
+
 			logger.warn("WidgetAutoVisibilityMappingHelper: malformed __visibilityMappingSpec '{}': {}", raw, jex.getMessage());
+
 			return;
 		}
+
 		if (spec == null) return;
 
 		final String visibleWhen     = stringOrNull(spec.get("visibleWhen"));
@@ -114,39 +125,52 @@ public class WidgetAutoVisibilityMappingHelper {
 		final String boundStepId     = stringOrNull(spec.get("boundStep"));      // UUID, optional for process-level states
 
 		if (visibleWhen == null || visibleWhen.isEmpty() || boundProcessId == null || boundProcessId.isEmpty()) {
-			logger.warn("WidgetAutoVisibilityMappingHelper: incomplete spec (visibleWhen='{}', boundProcess='{}'); skipping VM creation.",
-				visibleWhen, boundProcessId);
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: incomplete spec (visibleWhen='{}', boundProcess='{}'); skipping VM creation.", visibleWhen, boundProcessId);
+
 			return;
 		}
 
 		try {
-			final App app = StructrApp.getInstance(securityContext);
 
+			final App app = StructrApp.getInstance(securityContext);
 			final NodeInterface processNode = app.getNodeById(boundProcessId);
+
 			if (processNode == null) {
+
 				logger.warn("WidgetAutoVisibilityMappingHelper: BpmnProcess '{}' not found; skipping VM creation.", boundProcessId);
+
 				return;
 			}
-			final String denormalizedProcessId = processNode.getProperty(processNode.getTraits().key("processId"));
 
+			final String denormalizedProcessId = processNode.getProperty(processNode.getTraits().key("processId"));
 			NodeInterface stepNode      = null;
 			String denormalizedStepBpmnId = null;
+
 			if (boundStepId != null && !boundStepId.isEmpty()) {
+
 				stepNode = app.getNodeById(boundStepId);
+
 				if (stepNode == null) {
+
 					logger.warn("WidgetAutoVisibilityMappingHelper: BpmnElement '{}' not found; creating VM without bound step.", boundStepId);
+
 				} else {
+
 					denormalizedStepBpmnId = stepNode.getProperty(stepNode.getTraits().key("bpmnId"));
 				}
 			}
 
 			final Traits vmTraits = Traits.of(StructrTraits.VISIBILITY_MAPPING);
 			final PropertyMap props = new PropertyMap();
+
 			props.put(vmTraits.key("domNode"),         rootNode);
 			props.put(vmTraits.key("visibleWhen"),     visibleWhen);
 			props.put(vmTraits.key("boundProcess"),    processNode);
 			props.put(vmTraits.key("boundProcessId"),  denormalizedProcessId);
+
 			if (stepNode != null) {
+
 				props.put(vmTraits.key("boundStep"),         stepNode);
 				props.put(vmTraits.key("boundStepBpmnId"),   denormalizedStepBpmnId);
 			}
@@ -160,12 +184,13 @@ public class WidgetAutoVisibilityMappingHelper {
 			// Skipped if the process has no subjectType (the step's own
 			// subjectFormView only narrows which of its fields to show).
 			if (stepNode != null) {
+
 				seedFieldSetFromView(rootNode, stepNode);
 			}
 
 		} catch (FrameworkException fex) {
-			logger.warn("WidgetAutoVisibilityMappingHelper: failed to create VisibilityMapping for widget root '{}': {}",
-				rootNode.getUuid(), fex.getMessage());
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: failed to create VisibilityMapping for widget root '{}': {}", rootNode.getUuid(), fex.getMessage());
 		}
 	}
 
@@ -214,13 +239,15 @@ public class WidgetAutoVisibilityMappingHelper {
 
 			logger.warn("WidgetAutoVisibilityMappingHelper: subject type '{}' has no usable fields (tried view '{}' and 'custom'), leaving the field set alone.",
 				subjectType, declaredView);
+
 			return;
 		}
 
 		final ComponentConfiguration config = findComponentConfiguration(rootNode);
 		if (config == null) {
-			logger.warn("WidgetAutoVisibilityMappingHelper: no ComponentConfiguration on widget root '{}' or its subtree; skipping fieldSet seeding.",
-				rootNode.getUuid());
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: no ComponentConfiguration on widget root '{}' or its subtree; skipping fieldSet seeding.", rootNode.getUuid());
+
 			return;
 		}
 
@@ -274,15 +301,19 @@ public class WidgetAutoVisibilityMappingHelper {
 		if (onRoot != null) return onRoot;
 
 		for (final NodeInterface descendant : rootNode.getAllChildNodes()) {
+
 			if (descendant.is(StructrTraits.DOM_NODE)) {
+
 				final ComponentConfiguration c = descendant.as(DOMNode.class).getComponentConfiguration();
 				if (c != null) return c;
 			}
 		}
+
 		return null;
 	}
 
 	private static String stringOrNull(final Object o) {
+
 		return (o == null) ? null : String.valueOf(o);
 	}
 }

@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * Returns a List of relationships for the given node.
  *
@@ -55,6 +54,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 		RelationshipFactory factory        = new RelationshipFactory(securityContext);
 		List<RelationshipInterface> result = new LinkedList<>();
 		Node node                          = sourceNode.getNode();
+
 		Iterable<Relationship> rels;
 
 		if (node == null) {

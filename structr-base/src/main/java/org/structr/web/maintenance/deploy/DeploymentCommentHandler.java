@@ -105,6 +105,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 		handlers.put("pagelink", (final Page page, final DOMNode node, final String parameters) -> {
 
 			if (node.is(StructrTraits.LINK_SOURCE)) {
+
 				DeployCommand.addDeferredPagelink(node.getUuid(), parameters);
 			}
 		});
@@ -136,7 +137,6 @@ public class DeploymentCommentHandler implements CommentHandler {
 		handlers.put("owner", (final Page page, final DOMNode node, final String name) -> {
 
 			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(name).getAsList();
-
 			if (principals.isEmpty()) {
 
 				DeployCommand.encounteredMissingPrincipal("Unknown owner", name);
@@ -157,7 +157,6 @@ public class DeploymentCommentHandler implements CommentHandler {
 			if (parts.length == 2) {
 
 				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(parts[0]).getAsList();
-
 				if (principals.isEmpty()) {
 
 					DeployCommand.encounteredMissingPrincipal("Unknown grantee", parts[0]);
@@ -217,6 +216,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 			return parseInstructions(null, null, comment, false);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unexpected exception, no changes should be made in this method: {}", fex.getMessage());
 		}
 
@@ -225,6 +225,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 	@Override
 	public boolean handleComment(final Page page, final DOMNode node, final String comment, final boolean apply) throws FrameworkException {
+
 		return parseInstructions(page, node, comment.trim(), apply);
 	}
 
@@ -307,6 +308,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 				}
 
 				if (c != s) {
+
 					return false;
 				}
 
@@ -325,8 +327,8 @@ public class DeploymentCommentHandler implements CommentHandler {
 		while (hasMore()) {
 
 			final char c = source[currentPosition];
-
 			if (Character.isWhitespace(c) || separators.contains(c)) {
+
 				break;
 			}
 
@@ -347,12 +349,13 @@ public class DeploymentCommentHandler implements CommentHandler {
 		while (hasMore()) {
 
 			final char c = source[currentPosition++];
-
 			if (c == '(') {
+
 				count++;
 			}
 
 			if (c == ')' && --count == 0) {
+
 				break;
 			}
 
@@ -363,10 +366,12 @@ public class DeploymentCommentHandler implements CommentHandler {
 	}
 
 	private boolean hasMore() {
+
 		return currentPosition < sourceLength;
 	}
 
 	private interface Handler {
+
 		void apply(final Page page, final DOMNode node, final String parameters) throws FrameworkException;
 	}
 }

@@ -125,7 +125,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
-
 			final AbstractNode afterCreate    = logEntries.get(0);
 			final AbstractNode afterDelete    = logEntries.get(1);
 			final AbstractNode afterSave      = logEntries.get(2);
@@ -377,7 +376,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
-
 			final AbstractNode afterDelete = logEntries.get(0);
 
 			assertEquals(afterDelete.getName(), "afterDelete: Customer");
@@ -501,8 +499,7 @@ public class LifecycleMethodsTest extends StructrUiTest {
 				.fileName("text.txt")
 				.controlName("file")
 				.mimeType("text/plain")
-				.build()
-			)
+				.build())
 			.expect()
 			.statusCode(200)
 			.when()

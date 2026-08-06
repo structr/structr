@@ -55,10 +55,12 @@ public class CSVFileImportJob extends FileImportJob {
 	private static final Logger logger = LoggerFactory.getLogger(CSVFileImportJob.class.getName());
 
 	private enum IMPORT_TYPE {
+
 		NODE, REL
 	}
 
 	public CSVFileImportJob(File file, Principal user, Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
+
 		super(file, user, configuration, ctxStore);
 	}
 
@@ -76,7 +78,6 @@ public class CSVFileImportJob extends FileImportJob {
 		} else {
 
 			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
-
 			if (module == null || !(module instanceof APIBuilder) ) {
 
 				throw new FrameworkException(400, "Cannot import CSV, API builder module is not available.");
@@ -89,7 +90,9 @@ public class CSVFileImportJob extends FileImportJob {
 
 	@Override
 	public boolean canRunMultiThreaded() {
+
 		// think about this, maybe we can add parallelism here?
+
 		return false;
 	}
 
@@ -116,8 +119,8 @@ public class CSVFileImportJob extends FileImportJob {
 			final APIBuilder builder       = (APIBuilder) StructrApp.getConfiguration().getModules().get("api-builder");
 			final SimpleDateFormat df      = new SimpleDateFormat("yyyyMMddHHMM");
 			final String importTypeName    = "ImportFromCsv" + df.format(System.currentTimeMillis());
-
 			final SecurityContext threadContext = SecurityContext.getInstance(user, AccessMode.Backend);
+
 			threadContext.setContextStore(ctxStore);
 			final App app                       = StructrApp.getInstance(threadContext);
 
@@ -129,6 +132,7 @@ public class CSVFileImportJob extends FileImportJob {
 			try (final InputStream is = getFileInputStream(threadContext)) {
 
 				if (is == null) {
+
 					return;
 				}
 
@@ -137,11 +141,11 @@ public class CSVFileImportJob extends FileImportJob {
 				reportBegin();
 
 				final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
-
 				IMPORT_TYPE currentImportType = IMPORT_TYPE.NODE;
 				Traits targetEntityType       = Traits.of(targetType);
 
 				if (targetEntityType == null) {
+
 					throw new FrameworkException(422, "Could not find type for '" + targetType + "'!");
 				}
 
@@ -177,7 +181,6 @@ public class CSVFileImportJob extends FileImportJob {
 						while (iterator.hasNext() && count++ < commitInterval) {
 
 							final JsonInput input = iterator.next();
-
 							if (input == null) {
 
 								if (ignoreInvalid) {
@@ -236,7 +239,9 @@ public class CSVFileImportJob extends FileImportJob {
 
 					// do this outside of the transaction!
 					shouldPause();
+
 					if (shouldAbort()) {
+
 						return;
 					}
 				}
@@ -254,6 +259,7 @@ public class CSVFileImportJob extends FileImportJob {
 					builder.removeMapping(app, targetType, importTypeName);
 
 				} catch (FrameworkException ex) {
+
 					logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
 				}
 
@@ -265,16 +271,19 @@ public class CSVFileImportJob extends FileImportJob {
 
 	@Override
 	public String getJobType() {
+
 		return "CSV";
 	}
 
 	@Override
 	public String getJobStatusType() {
+
 		return "FILE_IMPORT_STATUS";
 	}
 
 	@Override
 	public String getJobExceptionMessageType() {
+
 		return "FILE_IMPORT_EXCEPTION";
 	}
 }

@@ -21,6 +21,10 @@
 	<property name="severity" value="warning"/>
 	<property name="fileExtensions" value="java"/>
 
+	<!-- Count a tab as 8 columns (matches .editorconfig indent_size and the style tools), so the
+	     200-column ceiling means the same thing everywhere. -->
+	<property name="tabWidth" value="8"/>
+
 	<!-- NB: the AGPL header is already enforced by com.mycila:license-maven-plugin (see the root
 	     pom); no header check here, to avoid duplicate/conflicting enforcement. -->
 
@@ -36,6 +40,13 @@
 		<property name="message" value="More than one consecutive blank line is not allowed."/>
 	</module>
 
+	<!-- Soft line-length ceiling: 200 columns. Not the old 80/100 dogma — just a bound past which
+	     even a side-by-side diff or PR review pane scrolls. import/package lines are exempt. -->
+	<module name="LineLength">
+		<property name="max" value="200"/>
+		<property name="ignorePattern" value="^\s*(import|package)\s"/>
+	</module>
+
 	<module name="TreeWalker">
 
 		<!-- Every control statement is braced, even a single-statement if/for/while. -->
@@ -48,5 +59,8 @@
 
 		<!-- One statement per line. -->
 		<module name="OneStatementPerLine"/>
+
+		<!-- Method and constructor parameters must be declared final. -->
+		<module name="FinalParameters"/>
 	</module>
 </module>

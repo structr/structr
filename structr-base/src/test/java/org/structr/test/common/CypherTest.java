@@ -160,6 +160,7 @@ public class CypherTest extends StructrTest {
 				tx.success();
 
 			} catch (NotFoundException nfex) {
+
 				assertNotNull(nfex.getMessage());
 			}
 
@@ -216,6 +217,7 @@ public class CypherTest extends StructrTest {
 					tx.success();
 
 				} catch (NotFoundException nfex) {
+
 					assertNotNull(nfex.getMessage());
 				}
 
@@ -313,8 +315,8 @@ public class CypherTest extends StructrTest {
 
 				tx.success();
 
-
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -332,6 +334,7 @@ public class CypherTest extends StructrTest {
 					final Set<String> set             = new LinkedHashSet<>();
 
 					while (it.hasNext()) {
+
 						set.add(it.next().getType());
 					}
 
@@ -342,8 +345,8 @@ public class CypherTest extends StructrTest {
 
 				tx.success();
 
-
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -369,8 +372,8 @@ public class CypherTest extends StructrTest {
 
 				tx.success();
 
-
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -391,6 +394,7 @@ public class CypherTest extends StructrTest {
 					assertTrue("Invalid wrapped cypher query result", rels instanceof Collection);
 
 					final Iterator<GraphObject> it = ((Collection)nodes).iterator();
+
 					while (it.hasNext()) {
 
 						assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());
@@ -398,6 +402,7 @@ public class CypherTest extends StructrTest {
 					}
 
 					for (final GraphObject node : ((Collection<GraphObject>)rels)) {
+
 						assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", node.getType());
 					}
 
@@ -405,8 +410,8 @@ public class CypherTest extends StructrTest {
 
 				tx.success();
 
-
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -416,8 +421,8 @@ public class CypherTest extends StructrTest {
 
 				assertEquals("Invalid wrapped cypher query result", 100, result.size());
 
-
 				final Iterator it = result.iterator();
+
 				while (it.hasNext()) {
 
 					final Object path  = it.next();
@@ -431,6 +436,7 @@ public class CypherTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -460,12 +466,10 @@ public class CypherTest extends StructrTest {
 
 				tx.success();
 
-
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
-
-
 
 			String testOneId = null;
 			String testSixId = null;
@@ -503,6 +507,7 @@ public class CypherTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -522,6 +527,7 @@ public class CypherTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -541,6 +547,7 @@ public class CypherTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -554,6 +561,7 @@ public class CypherTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 		}
@@ -575,6 +583,7 @@ public class CypherTest extends StructrTest {
 				tester = app.create(StructrTraits.USER, "tester").as(Principal.class);
 
 				for (final NodeInterface testSix : testSixs) {
+
 					testSix.as(AccessControllable.class).grant(Permission.read, tester);
 				}
 
@@ -583,6 +592,7 @@ public class CypherTest extends StructrTest {
 					testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
 
 					if (count++ < 3) {
+
 						testOne.as(AccessControllable.class).grant(Permission.read, tester);
 					}
 				}
@@ -617,8 +627,8 @@ public class CypherTest extends StructrTest {
 
 				tx.success();
 
-
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 
@@ -647,8 +657,8 @@ public class CypherTest extends StructrTest {
 
 				tx.success();
 
-
 			} catch (FrameworkException ex) {
+
 				logger.error("", ex);
 			}
 		}
@@ -739,7 +749,6 @@ public class CypherTest extends StructrTest {
 				fail("Unexpected exception");
 			}
 
-
 			final Map<String, String> tests = new LinkedHashMap<>();
 			final Gson gson                 = new GsonBuilder().create();
 
@@ -775,12 +784,12 @@ public class CypherTest extends StructrTest {
 
 					final String query = test.getKey();
 					final String check = test.getValue();
-
 					final Object result    = app.command(NativeQueryCommand.class).execute(query);
 					final List list        = Iterables.toList((Iterable)result);
 					final String structure = gson.toJson(resolve(list));
 
 					if (!check.equals(structure)) {
+
 						System.out.println("################# " + query);
 						System.out.println(structure);
 					}
@@ -791,6 +800,7 @@ public class CypherTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
@@ -833,10 +843,12 @@ public class CypherTest extends StructrTest {
 		}
 
 		if (src instanceof NodeInterface) {
+
 			return ((NodeInterface)src).getType();
 		}
 
 		if (src instanceof RelationshipInterface) {
+
 			return ((RelationshipInterface)src).getRelType().name();
 		}
 

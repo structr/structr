@@ -26,6 +26,7 @@ import org.structr.web.entity.css.CssRule;
 public class CssRuleTraitWrapper extends AbstractNodeTraitWrapper implements CssRule {
 
 	public CssRuleTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

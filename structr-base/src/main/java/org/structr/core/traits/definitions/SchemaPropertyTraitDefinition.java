@@ -89,8 +89,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String VALIDATORS_PROPERTY                 = "validators";
 	public static final String TRANSFORMERS_PROPERTY               = "transformers";
 
-
 	public SchemaPropertyTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_PROPERTY);
 	}
 
@@ -99,14 +99,12 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					final PropertyKey<String> nameProperty = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
 					boolean valid = ValidationHelper.isValidStringMatchingRegex(obj, nameProperty, schemaPropertyNamePattern,
 						"Property name must match the following pattern: '" + schemaPropertyNamePattern + "', which means it must begin with a lowercase letter and may only contain letters, numbers, underscores and hyphens.",
 						errorBuffer);
@@ -128,6 +126,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 								errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).with("propertyName", thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
 
 								// name clash on the same type: return immediately
+
 								return false;
 							}
 						}
@@ -141,7 +140,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 					if (schemaProperty.getPropertyType() == SchemaHelper.Type.ZonedDateTime) {
 
 						final String customFormat = schemaProperty.getFormat();
-
 						if (!StringUtils.isBlank(customFormat)) {
 
 							try {
@@ -161,20 +159,20 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			}
@@ -184,9 +182,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			SchemaProperty.class, (traits, node) -> new SchemaPropertyTraitWrapper(traits, node)
-		);
+		return Map.of(SchemaProperty.class, (traits, node) -> new SchemaPropertyTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -195,7 +191,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface>           schemaNode    = new StartNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes(traitsInstance, SCHEMA_VIEWS_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes(traitsInstance, EXCLUDED_VIEWS_PROPERTY, StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-
 		final Property<String>             declaringUuid           = new StringProperty(DECLARING_UUID_PROPERTY);
 		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<String>             declaringClass          = new StringProperty(DECLARING_CLASS_PROPERTY);
@@ -307,6 +302,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

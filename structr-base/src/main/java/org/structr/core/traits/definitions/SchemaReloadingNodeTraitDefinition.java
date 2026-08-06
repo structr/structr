@@ -39,6 +39,7 @@ import java.util.Map;
 public class SchemaReloadingNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SchemaReloadingNodeTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_RELOADING_NODE);
 	}
 
@@ -47,29 +48,29 @@ public class SchemaReloadingNodeTraitDefinition extends AbstractNodeTraitDefinit
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			},
 
-			OnNodeDeletion.class,
-			new OnNodeDeletion() {
+			OnNodeDeletion.class, new OnNodeDeletion() {
 
 				@Override
 				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			}
@@ -78,6 +79,7 @@ public class SchemaReloadingNodeTraitDefinition extends AbstractNodeTraitDefinit
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

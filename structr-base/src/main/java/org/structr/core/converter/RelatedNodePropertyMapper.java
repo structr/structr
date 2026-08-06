@@ -96,6 +96,7 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 				if (relatedType != null) {
 					
 					try {
+
 						relatedNode = (T)app.create(relatedType);
 						relationProperty.addSingleElement(securityContext, localNode, relatedNode);
 

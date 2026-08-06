@@ -119,6 +119,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -171,6 +172,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -205,6 +207,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 				return gone;
 
 			} catch (FrameworkException fex) {
+
 				return false;
 			}
 		});
@@ -239,6 +242,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -255,6 +259,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -291,6 +296,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -338,6 +344,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -354,6 +361,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			// no tx.success()
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -396,6 +404,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 				return refreshed;
 
 			} catch (FrameworkException fex) {
+
 				return false;
 			}
 		});
@@ -439,6 +448,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -507,6 +517,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -536,6 +547,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -543,6 +555,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 	// ----- private methods -----
 	private String uniqueBucket() {
+
 		return "test-" + System.nanoTime();
 	}
 
@@ -559,6 +572,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			entries.put(StorageSyncService.DIRECTION_KEY, direction);
 
 			if (deleteStale) {
+
 				entries.put(StorageSyncService.DELETE_STALE_KEY, "true");
 			}
 
@@ -573,6 +587,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -591,6 +606,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception.");
+
 			return null;
 		}
 	}
@@ -608,6 +624,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 				return node != null;
 
 			} catch (FrameworkException fex) {
+
 				return false;
 			}
 		});
@@ -635,6 +652,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 		while (System.currentTimeMillis() < deadline) {
 
 			if (condition.getAsBoolean()) {
+
 				return;
 			}
 

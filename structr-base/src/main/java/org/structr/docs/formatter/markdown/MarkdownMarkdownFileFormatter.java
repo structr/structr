@@ -38,6 +38,7 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 	private final Resource baseResource;
 
 	public MarkdownMarkdownFileFormatter(final Resource baseResource) {
+
 		this.baseResource = baseResource;
 	}
 

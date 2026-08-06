@@ -29,26 +29,31 @@ import java.util.Date;
 public class ProcessParameterValueTraitWrapper extends AbstractNodeTraitWrapper implements ProcessParameterValue {
 
 	public ProcessParameterValueTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getParameterName() {
+
 		return wrappedObject.getProperty(traits.key(ProcessParameterValueTraitDefinition.PARAMETER_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getParameterType() {
+
 		return wrappedObject.getProperty(traits.key(ProcessParameterValueTraitDefinition.PARAMETER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getStringValue() {
+
 		return wrappedObject.getProperty(traits.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY));
 	}
 
 	@Override
 	public Date getSetAt() {
+
 		return wrappedObject.getProperty(traits.key(ProcessParameterValueTraitDefinition.SET_AT_PROPERTY));
 	}
 }

@@ -33,26 +33,31 @@ public class BoltIdentity implements Identity<Long> {
 
 	@Override
 	public Long getId() {
+
 		return id;
 	}
 
 	@Override
 	public String toString() {
+
 		return Long.toString(id);
 	}
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return ((BoltIdentity)other).getId() == id;
 	}
 
 	@Override
 	public int hashCode() {
+
 		return Long.valueOf(id).hashCode();
 	}
 
 	@Override
 	public long hash() {
+
 		return id;
 	}
 
@@ -61,12 +66,13 @@ public class BoltIdentity implements Identity<Long> {
 	public int compareTo(final Object o) {
 
 		final long otherId = ((BoltIdentity)o).getId();
-
 		if (id > otherId) {
+
 			return 1;
 		}
 
 		if (id < otherId) {
+
 			return -1;
 		}
 

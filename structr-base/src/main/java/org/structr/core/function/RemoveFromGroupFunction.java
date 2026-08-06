@@ -39,11 +39,13 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "removeFromGroup";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("group, user");
 	}
 
@@ -88,24 +90,25 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${removeFromGroup(group, principal)}"),
-			Usage.javaScript("Usage: ${{$.removeFromGroup(group, principal);}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${removeFromGroup(group, principal)}"), Usage.javaScript("Usage: ${{$.removeFromGroup(group, principal);}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes the given user from the given group.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${removeFromGroup(first(find('Group', 'name', 'Admins')), me)}"),
 			Example.javaScript("${{ $.removeFromGroup($.first($.find('Group', 'name', 'Admins')), $.me)} }}")
@@ -115,14 +118,12 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("group", "target group"),
-			Parameter.optional("principal", "principal to remove from group")
-		);
+		return List.of(Parameter.mandatory("group", "target group"), Parameter.optional("principal", "principal to remove from group"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

@@ -54,6 +54,7 @@ public class Option extends GenericHtmlElementTraitDefinition {
 	public static final String SELECTEDVALUES_PROPERTY = "selectedValues";
 
 	public Option() {
+
 		super(StructrTraits.OPTION);
 	}
 
@@ -64,12 +65,9 @@ public class Option extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> disabledProperty       = new StringProperty(DISABLED_PROPERTY);
 		final PropertyKey<String> selectedProperty       = new StringProperty(SELECTED_PROPERTY);
 		final PropertyKey<String> labelProperty          = new StringProperty(LABEL_PROPERTY);
-
 		final PropertyKey<String> selectedValuesProperty = new StringProperty(SELECTEDVALUES_PROPERTY);
 
-		return newSet(
-			valueProperty, disabledProperty, selectedProperty, labelProperty, selectedValuesProperty
-		);
+		return newSet(valueProperty, disabledProperty, selectedProperty, labelProperty, selectedValuesProperty);
 	}
 
 	@Override
@@ -92,12 +90,11 @@ public class Option extends GenericHtmlElementTraitDefinition {
 
 		final Map<Class, FrameworkMethod> frameworkMethods = super.getFrameworkMethods();
 
-		frameworkMethods.put(
-			RenderManagedAttributes.class,
-			new RenderManagedAttributes() {
+		frameworkMethods.put(RenderManagedAttributes.class, new RenderManagedAttributes() {
 
 				@Override
 				public void renderManagedAttributes(final NodeInterface node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+
 					Option.renderManagedAttributes(node.as(DOMNode.class), out, securityContext, renderContext);
 				}
 			}
@@ -124,7 +121,6 @@ public class Option extends GenericHtmlElementTraitDefinition {
 
 	String getSelectedValues();
 	*/
-
 
 	static final EqualFunction EqualFunction = new EqualFunction();
 
@@ -168,16 +164,17 @@ public class Option extends GenericHtmlElementTraitDefinition {
 										final String id = g.getUuid();
 										if (id != null) {
 
-
 										}
 									}
 								}
+
 								found = list.contains(currentValue);
 
 							} else if (selectedValues.getClass().isArray()) {
 
 								// Array
 								final Object[] array = (Object[])selectedValues;
+
 								for (final Object o : array) {
 
 									if (o.equals(currentValue)) {

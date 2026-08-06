@@ -44,11 +44,13 @@ public class PropertyMapper extends PropertyConverter {
 	
 	@Override
 	public Object convert(Object source) {
+
 		return source;
 	}
 
 	@Override
 	public Object revert(Object source) {
+
 		return currentObject.getProperty(mappedKey);
 	}
 }

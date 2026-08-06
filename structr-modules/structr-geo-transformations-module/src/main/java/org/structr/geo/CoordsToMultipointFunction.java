@@ -40,11 +40,13 @@ public class CoordsToMultipointFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "coordsToMultipoint";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list");
 	}
 
@@ -75,6 +77,7 @@ public class CoordsToMultipointFunction extends GeoFunction {
 					return factory.createMultiPoint(coordinates.toCoordinateArray());
 
 				} catch (Throwable t) {
+
 					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
@@ -84,28 +87,32 @@ public class CoordsToMultipointFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts a coordinate array into a multipoint geometry.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

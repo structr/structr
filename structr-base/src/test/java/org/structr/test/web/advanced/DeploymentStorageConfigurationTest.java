@@ -81,6 +81,7 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -108,6 +109,7 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 			assertEquals("All configuration entries must be preserved", config.size(), restored.size());
 
 			for (final Map.Entry<String, String> expected : config.entrySet()) {
+
 				assertEquals("Entry '" + expected.getKey() + "' must be preserved intact", expected.getValue(), restored.get(expected.getKey()));
 			}
 
@@ -126,7 +128,9 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 			boolean folderFound = false;
 
 			for (final NodeInterface linked : linkedFolders) {
+
 				if (folderUuid.equals(linked.getUuid())) {
+
 					folderFound = true;
 					break;
 				}
@@ -137,6 +141,7 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -167,6 +172,7 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -198,11 +204,14 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 			assertTrue("Module data must contain the configuration entries", moduleJson.contains("mountTarget"));
 
 		} catch (FrameworkException | IOException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
+
 		} finally {
 
 			if (exportPath != null) {
+
 				try { deleteExportAt(exportPath); } catch (IOException ignore) {}
 			}
 		}

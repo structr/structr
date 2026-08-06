@@ -48,14 +48,17 @@ public class StructrCustomProperty extends StructrDynamicProperty {
 
 	@Override
 	public String getType() {
+
 		return "custom";
 	}
 
 	public void setFqcn(final String value) {
+
 		this.fqcn = value;
 	}
 
 	public String getFqcn() {
+
 		return fqcn;
 	}
 
@@ -118,6 +121,7 @@ public class StructrCustomProperty extends StructrDynamicProperty {
 	// ----- protected methods -----
 	@Override
 	protected Type getTypeToSerialize() {
+
 		return Type.Custom;
 	}
 }

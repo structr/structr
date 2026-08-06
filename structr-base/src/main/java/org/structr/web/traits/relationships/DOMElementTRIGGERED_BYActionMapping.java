@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMElementTRIGGERED_BYActionMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementTRIGGERED_BYActionMapping() {
+
 		super(StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.DOM_ELEMENT;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.ACTION_MAPPING;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "TRIGGERED_BY";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

@@ -75,6 +75,7 @@ public enum BpmnElementType {
 	private final String bpmnName;
 
 	BpmnElementType(final String bpmnName) {
+
 		this.bpmnName = bpmnName;
 	}
 
@@ -95,11 +96,13 @@ public enum BpmnElementType {
 
 	/** The BPMN XML local name for this type ({@code null} for {@link #UNKNOWN}). */
 	public String bpmnName() {
+
 		return bpmnName;
 	}
 
 	/** True if {@code elementType} is this type's BPMN local name. */
 	public boolean matches(final String elementType) {
+
 		return bpmnName != null && bpmnName.equals(elementType);
 	}
 
@@ -110,6 +113,7 @@ public enum BpmnElementType {
 	 * sequence flows has to descend into them explicitly.
 	 */
 	public boolean isSubProcessLike() {
+
 		return SUB_PROCESS_LIKE.contains(this);
 	}
 
@@ -120,6 +124,7 @@ public enum BpmnElementType {
 	public static BpmnElementType fromBpmnName(final String elementType) {
 
 		if (elementType == null) {
+
 			return UNKNOWN;
 		}
 
@@ -128,6 +133,7 @@ public enum BpmnElementType {
 
 	/** True if the given BPMN local name is a recognised element type. */
 	public static boolean isKnown(final String elementType) {
+
 		return fromBpmnName(elementType) != UNKNOWN;
 	}
 

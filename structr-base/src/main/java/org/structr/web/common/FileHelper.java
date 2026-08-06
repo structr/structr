@@ -95,7 +95,6 @@ public class FileHelper {
 	public static NodeInterface transformFile(final SecurityContext securityContext, final String uuid, final String fileType) throws FrameworkException {
 
 		NodeInterface existingFile = getFileByUuid(securityContext, uuid);
-
 		if (existingFile != null) {
 
 			existingFile.unlockSystemPropertiesOnce();
@@ -253,6 +252,7 @@ public class FileHelper {
 		setFileData(newFile, fileData, contentType, updateMetadata);
 
 		if (updateMetadata) {
+
 			newFile.notifyUploadCompletion();
 		}
 
@@ -301,6 +301,7 @@ public class FileHelper {
 	 * @throws IOException
 	 */
 	public static void setFileData(final File file, final byte[] fileData, final String contentType) throws FrameworkException, IOException {
+
 		FileHelper.setFileData(file, fileData, contentType, true);
 	}
 
@@ -318,6 +319,7 @@ public class FileHelper {
 		FileHelper.writeToFile(file, fileData);
 
 		if (updateMetadata) {
+
 			setFilePropertiesOnCreation(file, contentType);
 		}
 	}
@@ -387,8 +389,8 @@ public class FileHelper {
 	private static void setFilePropertiesOnCreation(final NodeInterface fileNode) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
-
 		String id = fileNode.getUuid();
+
 		if (id == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
@@ -414,7 +416,6 @@ public class FileHelper {
 
 		final PropertyMap propertiesWithChecksums = new PropertyMap();
 		final Traits traits                       = Traits.of(StructrTraits.FILE);
-
 		Folder parentFolder = file.getParent();
 		String checksums = null;
 
@@ -425,6 +426,7 @@ public class FileHelper {
 		}
 
 		if (checksums == null) {
+
 			checksums = Settings.DefaultChecksums.getValue();
 		}
 
@@ -432,18 +434,22 @@ public class FileHelper {
 		propertiesWithChecksums.put(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY), FileHelper.getChecksum(file));
 
 		if (StringUtils.contains(checksums, "crc32"))	{
+
 			propertiesWithChecksums.put(traits.key(FileTraitDefinition.CRC32_PROPERTY), FileHelper.getCRC32Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "md5"))	{
+
 			propertiesWithChecksums.put(traits.key(FileTraitDefinition.MD5_PROPERTY), FileHelper.getMD5Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha1"))	{
+
 			propertiesWithChecksums.put(traits.key(FileTraitDefinition.SHA1_PROPERTY), FileHelper.getSHA1Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha512"))	{
+
 			propertiesWithChecksums.put(traits.key(FileTraitDefinition.SHA512_PROPERTY), FileHelper.getSHA512Checksum(file));
 		}
 
@@ -457,6 +463,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final File file, final PropertyMap map) throws FrameworkException, IOException {
+
 		updateMetadata(file, map, false);
 	}
 
@@ -478,7 +485,6 @@ public class FileHelper {
 				final PropertyKey<Long> fileModificationDateKey = traits.key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY);
 				final PropertyKey<String> contentTypeKey        = traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
 				final PropertyKey<Long> sizeKey                 = traits.key(FileTraitDefinition.SIZE_PROPERTY);
-
 				String contentType = file.getContentType();
 
 				// Don't overwrite existing MIME type
@@ -490,6 +496,7 @@ public class FileHelper {
 						map.put(contentTypeKey, contentType);
 
 					} catch (IOException ex) {
+
 						logger.debug("Unable to detect content MIME type", ex);
 					}
 				}
@@ -497,6 +504,7 @@ public class FileHelper {
 				map.put(fileModificationDateKey, file.getLastModifiedDate().getTime());
 
 				if (calcChecksums) {
+
 					map.putAll(getChecksums(file));
 				}
 
@@ -504,6 +512,7 @@ public class FileHelper {
 
 					// modify type when image type is detected AND the type is StructrTraits.FILE
 					if (contentType.startsWith("image/") && !file.getTraits().contains(StructrTraits.IMAGE) && StructrTraits.FILE.equals(file.getType())) {
+
 						map.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.IMAGE);
 					}
 				}
@@ -518,6 +527,7 @@ public class FileHelper {
 				file.setProperties(SecurityContext.getSuperUserInstance(), map);
 
 			} catch (IOException ioex) {
+
 				logger.warn("Unable to access {} on disk: {}", file.getPath(), ioex.getMessage());
 			}
 		}
@@ -530,6 +540,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final File file) throws FrameworkException, IOException {
+
 		updateMetadata(file, new PropertyMap(), false);
 	}
 
@@ -541,11 +552,11 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final File file, final boolean calcChecksums) throws FrameworkException {
+
 		updateMetadata(file, new PropertyMap(), calcChecksums);
 	}
 
 	public static String getBase64String(final File file) {
-
 
 		try (final InputStream is = file.getInputStream()) {
 
@@ -555,6 +566,7 @@ public class FileHelper {
 			}
 
 		} catch (IOException ex) {
+
 			logger.error("Could not get base64 string from file ", ex);
 		}
 
@@ -594,14 +606,17 @@ public class FileHelper {
 		}
 
 		public String getContentType() {
+
 			return contentType;
 		}
 
 		public String getData() {
+
 			return data;
 		}
 
 		public byte[] getBinaryData() {
+
 			return Base64.decode(data);
 		}
 	}
@@ -620,6 +635,7 @@ public class FileHelper {
 		setFilePropertiesOnCreation(fileNode);
 
 		try (final InputStream is = new ByteArrayInputStream(data); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
+
 			IOUtils.copy(is, os);
 		}
 
@@ -651,6 +667,7 @@ public class FileHelper {
 	 * @throws java.io.IOException
 	 */
 	public static String getContentMimeType(final File file) throws IOException {
+
 		return getContentMimeType(file, file.getName());
 	}
 
@@ -668,8 +685,11 @@ public class FileHelper {
 
 		// try name first, if not null
 		if (name != null) {
+
 			mimeType = mimeTypeMap.getContentType(name);
+
 			if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
+
 				return mimeType;
 			}
 		}
@@ -680,6 +700,7 @@ public class FileHelper {
 			if (mediaType != null) {
 
 				mimeType = mediaType.toString();
+
 				if (mimeType != null) {
 
 					return mimeType;
@@ -687,10 +708,12 @@ public class FileHelper {
 			}
 
 		} catch (NoClassDefFoundError t) {
+
 			logger.warn("Unable to instantiate MIME type detector: {}", t.getMessage());
 		}
 
 		// no success :(
+
 		return UNKNOWN_MIME_TYPE;
 	}
 
@@ -708,8 +731,11 @@ public class FileHelper {
 
 		// try name first, if not null
 		if (name != null) {
+
 			mimeType = mimeTypeMap.getContentType(name);
+
 			if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
+
 				return mimeType;
 			}
 		}
@@ -720,6 +746,7 @@ public class FileHelper {
 			if (mediaType != null) {
 
 				mimeType = mediaType.toString();
+
 				if (mimeType != null) {
 
 					return mimeType;
@@ -727,10 +754,12 @@ public class FileHelper {
 			}
 
 		} catch (NoClassDefFoundError t) {
+
 			logger.warn("Unable to instantiate MIME type detector: {}", t.getMessage());
 		}
 
 		// no success :(
+
 		return UNKNOWN_MIME_TYPE;
 	}
 
@@ -752,6 +781,7 @@ public class FileHelper {
 			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).key(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("File not found: {}", absolutePath);
 		}
 
@@ -763,6 +793,7 @@ public class FileHelper {
 		logger.debug("Search for file with uuid: {}", uuid);
 
 		try {
+
 			return StructrApp.getInstance(securityContext).getNodeById(StructrTraits.ABSTRACT_FILE, uuid);
 
 		} catch (FrameworkException fex) {
@@ -778,6 +809,7 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
+
 			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).name(name).getFirst();
 
 		} catch (FrameworkException fex) {
@@ -800,11 +832,13 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
+
 			final List<NodeInterface> files = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).name(name).getAsList();
 
 			for (final NodeInterface file : files) {
 
 				if (file.as(File.class).getParent() == null) {
+
 					return file;
 				}
 
@@ -839,7 +873,6 @@ public class FileHelper {
 		}
 
 		NodeInterface folder = FileHelper.getFileByAbsolutePath(securityContext, path);
-
 		if (folder != null) {
 
 			return folder;
@@ -852,6 +885,7 @@ public class FileHelper {
 
 			// ignore ".." and "." in paths
 			if ("..".equals(part) || ".".equals(part)) {
+
 				continue;
 			}
 
@@ -893,7 +927,9 @@ public class FileHelper {
 	public static void unarchive(final SecurityContext securityContext, final File file, final String parentFolderId) throws ArchiveException, IOException, FrameworkException {
 
 		if (file == null) {
+
 			logger.error("Unable to unarchive file (file parameter was null).");
+
 			return;
 		}
 
@@ -908,8 +944,8 @@ public class FileHelper {
 				// search for existing parent folder
 				final NodeInterface node = app.getNodeById(StructrTraits.FOLDER, parentFolderId);
 				String parentFolderName = null;
-
 				String msgString = "Unarchiving file {}";
+
 				if (node != null) {
 
 					existingParentFolder = node.as(Folder.class);
@@ -948,7 +984,6 @@ public class FileHelper {
 				try (final Tx outertx = app.tx()) {
 
 					SevenZFile sevenZFile = new SevenZFile(StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel());
-
 					SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
 
 					while (sevenZEntry != null) {
@@ -972,6 +1007,7 @@ public class FileHelper {
 									sevenZFile.read(buf, 0, buf.length);
 
 									try (final ByteArrayInputStream in = new ByteArrayInputStream(buf)) {
+
 										handleFile(securityContext, in, existingParentFolder, entryPath);
 									}
 								}
@@ -1022,11 +1058,9 @@ public class FileHelper {
 	private static void handleZipFile(final ZipFile zipFile, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {
 
 		int overallCount = 0;
-
 		Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 
 		while (entries.hasMoreElements()) {
-
 
 			try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
 
@@ -1035,8 +1069,8 @@ public class FileHelper {
 				while (entries.hasMoreElements() && count++ < 50) {
 
 					ZipArchiveEntry entry = entries.nextElement();
-
 					final String entryPath = "/" + PathHelper.clean(entry.getName());
+
 					logger.info("Entry path: {}", entryPath);
 
 					if (entry.isDirectory()) {
@@ -1063,7 +1097,6 @@ public class FileHelper {
 	private static void handleArchiveInputStream(final ArchiveInputStream in, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {
 
 		int overallCount = 0;
-
 		ArchiveEntry entry = in.getNextEntry();
 
 		while (entry != null) {
@@ -1132,18 +1165,20 @@ public class FileHelper {
 		}
 	}
 
-
 	public static String getDateString() {
+
 		return new SimpleDateFormat("yyyy-MM-dd-HHmmssSSS").format(new Date());
 	}
 
-
 	public static Long getChecksum(final File file) throws IOException {
+
 		StorageProvider sp = StorageProviderFactory.getStorageProvider(file);
+
 		return getChecksum(sp.getInputStream(), sp.size());
 	}
 
 	public static Long getChecksum(final java.io.File file) throws IOException {
+
 		return getChecksum(new FileInputStream(file), file.length());
 	}
 
@@ -1163,6 +1198,7 @@ public class FileHelper {
 
 				@Override
 				public ByteOrder byteOrder(BufferedInputStream input) {
+
 					return ByteOrder.nativeOrder();
 				}
 
@@ -1171,6 +1207,7 @@ public class FileHelper {
 			return hash;
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate checksum for {}: {}", inputStream, ex.getMessage());
 		}
 
@@ -1178,11 +1215,15 @@ public class FileHelper {
 	}
 
 	public static Long getCRC32Checksum(final File file) throws IOException {
+
 		final CRC32 crc32 = new CRC32();
 		final InputStream is = StorageProviderFactory.getStorageProvider(file).getInputStream();
 		byte[] buf = new byte[1024];
+
 		int length;
+
 		while ((length = is.read(buf)) != -1) {
+
 			crc32.update(buf, 0, length);
 		}
 
@@ -1196,6 +1237,7 @@ public class FileHelper {
 			return DigestUtils.md5Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate MD5 checksum of file represented by node " + file, ex);
 		}
 
@@ -1209,6 +1251,7 @@ public class FileHelper {
 			return DigestUtils.md5Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate MD5 checksum of file " + fileOnDisk, ex);
 		}
 
@@ -1222,6 +1265,7 @@ public class FileHelper {
 			return DigestUtils.sha1Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-1 checksum of file represented by node " + file, ex);
 		}
 
@@ -1235,6 +1279,7 @@ public class FileHelper {
 			return DigestUtils.sha1Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-1 checksum of file " + fileOnDisk, ex);
 		}
 
@@ -1248,6 +1293,7 @@ public class FileHelper {
 			return DigestUtils.sha256Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-256 checksum of file represented by node " + file, ex);
 		}
 
@@ -1261,6 +1307,7 @@ public class FileHelper {
 			return DigestUtils.sha256Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-256 checksum of file " + fileOnDisk, ex);
 		}
 
@@ -1274,6 +1321,7 @@ public class FileHelper {
 			return DigestUtils.sha384Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-384 checksum of file represented by node " + file, ex);
 		}
 
@@ -1287,6 +1335,7 @@ public class FileHelper {
 			return DigestUtils.sha384Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-384 checksum of file " + fileOnDisk, ex);
 		}
 
@@ -1300,6 +1349,7 @@ public class FileHelper {
 			return DigestUtils.sha512Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-512 checksum of file represented by node " + file, ex);
 		}
 
@@ -1313,6 +1363,7 @@ public class FileHelper {
 			return DigestUtils.sha512Hex(is);
 
 		} catch (final IOException ex) {
+
 			logger.warn("Unable to calculate SHA-512 checksum of file " + fileOnDisk, ex);
 		}
 
@@ -1349,22 +1400,14 @@ public class FileHelper {
 		TransactionCommand.getCurrentTransaction().prefetch2(
 				"MATCH (n:NodeInterface:AbstractFile { id: $id })<-[r:CONTAINS*]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
 
-				Set.of(),
-				Set.of(
-						"all/INCOMING/CONTAINS"
-				),
+				Set.of(), Set.of("all/INCOMING/CONTAINS"),
 
-				uuid
-		);
+				uuid);
 
 		TransactionCommand.getCurrentTransaction().prefetch(
 
 			"(n:NodeInterface:AbstractFile)-[r:CONFIGURED_BY]->(m:StorageConfiguration)",
 
-			Set.of(
-				"AbstractFile/all/OUTGOING/CONFIGURED_BY",
-				"AbstractFile/all/INCOMING/CONFIGURED_BY"
-			)
-		);
+			Set.of("AbstractFile/all/OUTGOING/CONFIGURED_BY", "AbstractFile/all/INCOMING/CONFIGURED_BY"));
 	}
 }

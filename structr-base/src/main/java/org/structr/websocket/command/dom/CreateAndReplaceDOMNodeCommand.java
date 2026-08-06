@@ -52,6 +52,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 			if (parentId == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
+
 				return;
 			}
 
@@ -60,6 +61,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 			if (parentNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
 				return;
 			}
 
@@ -67,6 +69,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 			if (refId == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without refId").build(), true);
+
 				return;
 			}
 
@@ -75,6 +78,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 			if (refNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(404).message("Reference node not found").build(), true);
+
 				return;
 			}
 
@@ -125,6 +129,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CREATE_AND_REPLACE_DOM_NODE";
 	}
 

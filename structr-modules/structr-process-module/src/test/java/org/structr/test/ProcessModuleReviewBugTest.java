@@ -95,6 +95,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-subprocess-parallel-end.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -107,8 +108,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 			assertNotNull("the sub-process's inner branch-B user task must still be open", openTaskAt(inst, "Sub_TaskB"));
 			assertNull("the parent must NOT advance past the sub-process (Task_After opened) while an internal "
-				+ "branch is still live; the sub-process resumed the parent on the first internal end event",
-				anyTaskAt(inst, "Task_After"));
+				+ "branch is still live; the sub-process resumed the parent on the first internal end event", anyTaskAt(inst, "Task_After"));
 
 			tx.success();
 		}
@@ -158,8 +158,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 			assertNotNull("Task_1 not imported in v2", task);
 
 			final List<String> names = methodNames(task);
-			assertEquals("re-import must not duplicate the element handler method; methods = " + names,
-				1, names.stream().filter("onTaskCreated"::equals).count());
+			assertEquals("re-import must not duplicate the element handler method; methods = " + names, 1, names.stream().filter("onTaskCreated"::equals).count());
 
 			final NodeInterface listenerMethod = listenerMethodForEvent(task, BpmnTaskListenerTraitDefinition.EVENT_CREATED);
 			assertNotNull("the 'created' task listener must resolve to a method", listenerMethod);
@@ -220,6 +219,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-inclusive-unrelated.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -243,6 +243,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 			engine().completeTask(openTaskAt(inst, "Task_A1"), Map.of());
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface inst = app.getNodeById(instId);
@@ -254,11 +255,9 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 			final NodeInterface inst = app.getNodeById(instId);
 
-			assertFalse("no token may be stranded at the inclusive join once both its branches arrived",
-				waitingTokenElementIds(inst).contains("Inc_Join"));
+			assertFalse("no token may be stranded at the inclusive join once both its branches arrived", waitingTokenElementIds(inst).contains("Inc_Join"));
 			assertNotNull("the inclusive join must fire once A1 and A2 arrived and open Task_A_After, "
-				+ "even though the unrelated Task_B is still open (currently deadlocks)",
-				openTaskAt(inst, "Task_A_After"));
+				+ "even though the unrelated Task_B is still open (currently deadlocks)", openTaskAt(inst, "Task_A_After"));
 
 			tx.success();
 		}
@@ -295,6 +294,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-gateway-condition-error.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -304,8 +304,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface inst = app.getNodeById(instId);
-			assertNotNull("a throwing condition is treated as false, so the gateway must take its default branch",
-				openTaskAt(inst, "Task_Default"));
+			assertNotNull("a throwing condition is treated as false, so the gateway must take its default branch", openTaskAt(inst, "Task_Default"));
 			assertNull("the intended (throwing-condition) branch must not be taken", anyTaskAt(inst, "Task_Intended"));
 			tx.success();
 		}
@@ -327,7 +326,6 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 	public void testExportOfDefaultNamespaceDefinitionIsWellFormed() throws Exception {
 
 		final String defUuid = importDefinition("/simple-approval.bpmn");
-
 		String exported     = null;
 		Throwable exportErr  = null;
 
@@ -336,8 +334,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 			final NodeInterface defNode = app.getNodeById(defUuid);
 
 			// Store the BPMN namespace as the DEFAULT (unprefixed) namespace.
-			defNode.setProperty(defNode.getTraits().key(BpmnDefinitionsTraitDefinition.NAMESPACE_DECLARATIONS),
-				"{\"xmlns\":\"" + BPMN_NS + "\"}");
+			defNode.setProperty(defNode.getTraits().key(BpmnDefinitionsTraitDefinition.NAMESPACE_DECLARATIONS), "{\"xmlns\":\"" + BPMN_NS + "\"}");
 
 			exported = new BpmnExporter().exportBpmn(defNode.as(BpmnDefinitions.class));
 
@@ -354,6 +351,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 		// The exported XML must be namespace-well-formed (re-parseable).
 		Throwable parseErr = null;
+
 		try {
 
 			parseXmlNamespaceAware(exported);
@@ -386,10 +384,8 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertTrue("a BpmnProcess must be recognised as a diagram node",
-				BpmnDiagramBatchCommand.isDiagramNode(app.getNodeById(procUuid)));
-			assertFalse("a User must NOT be treatable by a diagram batch (update/delete guard)",
-				BpmnDiagramBatchCommand.isDiagramNode(app.getNodeById(user.getUuid())));
+			assertTrue("a BpmnProcess must be recognised as a diagram node", BpmnDiagramBatchCommand.isDiagramNode(app.getNodeById(procUuid)));
+			assertFalse("a User must NOT be treatable by a diagram batch (update/delete guard)", BpmnDiagramBatchCommand.isDiagramNode(app.getNodeById(user.getUuid())));
 
 			tx.success();
 		}
@@ -415,13 +411,12 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 			final NodeInterface proc = app.getNodeById(procUuid);
 			final String realProcessId = proc.getProperty(proc.getTraits().key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY));
 			final NodeInterface step   = elementByBpmnId(proc, "Task_1");
+
 			assertNotNull("Task_1 should be imported", step);
 
 			// rel present -> derive id from the rel, ignoring the stale backup string
-			assertEquals("boundProcess rel must win over a stale boundProcessId string",
-				realProcessId, VisibilityMappingTraitDefinition.preferredBoundProcessId(proc, "STALE-PROCESS-ID"));
-			assertEquals("boundStep rel must win over a stale boundStepBpmnId string",
-				"Task_1", VisibilityMappingTraitDefinition.preferredBoundStepBpmnId(step, "STALE-STEP"));
+			assertEquals("boundProcess rel must win over a stale boundProcessId string", realProcessId, VisibilityMappingTraitDefinition.preferredBoundProcessId(proc, "STALE-PROCESS-ID"));
+			assertEquals("boundStep rel must win over a stale boundStepBpmnId string", "Task_1", VisibilityMappingTraitDefinition.preferredBoundStepBpmnId(step, "STALE-STEP"));
 
 			// rel absent -> fall back to the denormalized string
 			assertEquals("FALLBACK-PROCESS", VisibilityMappingTraitDefinition.preferredBoundProcessId(null, "FALLBACK-PROCESS"));
@@ -447,6 +442,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-camunda-servicetask.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -457,10 +453,8 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 			final NodeInterface inst = app.getNodeById(instId);
 
-			assertEquals("service task's execution.setVariable must persist approved=true",
-				"true", parameterValues(inst).get("approved"));
-			assertNotNull("the gateway must route to the approved branch (variable was set by the service task)",
-				openTaskAt(inst, "Task_Yes"));
+			assertEquals("service task's execution.setVariable must persist approved=true", "true", parameterValues(inst).get("approved"));
+			assertNotNull("the gateway must route to the approved branch (variable was set by the service task)", openTaskAt(inst, "Task_Yes"));
 			assertNull("the default/reject branch must not be taken", anyTaskAt(inst, "Task_No"));
 
 			tx.success();
@@ -478,6 +472,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-native-servicetask.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -488,8 +483,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 			final NodeInterface inst = app.getNodeById(instId);
 
-			assertEquals("$.process.amount write from the service task must persist",
-				"25000", parameterValues(inst).get("amount"));
+			assertEquals("$.process.amount write from the service task must persist", "25000", parameterValues(inst).get("amount"));
 			assertNotNull("the amount gateway must route to the medium bracket", openTaskAt(inst, "Task_Medium"));
 			assertNull("the small/default bracket must not be taken", anyTaskAt(inst, "Task_Small"));
 
@@ -516,6 +510,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-io-scope.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null, Map.of("x", 1)).getUuid();
@@ -545,6 +540,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-io-output-routes.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -579,6 +575,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/review-camunda-listener.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -588,8 +585,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface inst = app.getNodeById(instId);
-			assertEquals("a Camunda execution listener's execution.setVariable must persist the variable",
-				"true", parameterValues(inst).get("startedFlag"));
+			assertEquals("a Camunda execution listener's execution.setVariable must persist the variable", "true", parameterValues(inst).get("startedFlag"));
 			tx.success();
 		}
 	}
@@ -608,6 +604,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-bug-two-usertasks.bpmn");
 
 		final String inst1;
+
 		try (final Tx tx = app.tx()) {
 
 			inst1 = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -654,6 +651,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-bug-two-usertasks.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -665,8 +663,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 			final List<NodeInterface> steps = ProcessEngine.currentStepElements(app.getNodeById(instId));
 			assertEquals("exactly one current step", 1, steps.size());
-			assertEquals("instance is at Task_A", "Task_A",
-				steps.get(0).getProperty(steps.get(0).getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
+			assertEquals("instance is at Task_A", "Task_A", steps.get(0).getProperty(steps.get(0).getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
 			tx.success();
 		}
 
@@ -681,8 +678,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 			final List<NodeInterface> steps = ProcessEngine.currentStepElements(app.getNodeById(instId));
 			assertEquals(1, steps.size());
-			assertEquals("instance advanced to Task_B", "Task_B",
-				steps.get(0).getProperty(steps.get(0).getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
+			assertEquals("instance advanced to Task_B", "Task_B", steps.get(0).getProperty(steps.get(0).getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
 			tx.success();
 		}
 	}
@@ -716,10 +712,12 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 			for (final NodeInterface m : methods) {
 
 				if (name.equals(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)))) {
+
 					return m;
 				}
 			}
 		}
+
 		return null;
 	}
 
@@ -727,12 +725,15 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 		final List<String> names = new ArrayList<>();
 		final Iterable<NodeInterface> methods = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.METHODS_PROPERTY));
+
 		if (methods != null) {
 
 			for (final NodeInterface m : methods) {
+
 				names.add(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			}
 		}
+
 		return names;
 	}
 
@@ -744,10 +745,12 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 			for (final NodeInterface l : listeners) {
 
 				if (event.equals(l.getProperty(l.getTraits().key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY)))) {
+
 					return l.getProperty(l.getTraits().key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY));
 				}
 			}
 		}
+
 		return null;
 	}
 
@@ -756,6 +759,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		final DocumentBuilder builder = factory.newDocumentBuilder();
+
 		return builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 	}
 

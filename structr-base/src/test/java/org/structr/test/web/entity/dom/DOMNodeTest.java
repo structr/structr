@@ -49,13 +49,13 @@ public class DOMNodeTest extends DOMTest {
 		try (final Tx tx = app.tx()) {
 
 			final String domChildrenType = StructrTraits.DOM_NODE_CONTAINS_DOM_NODE;
-
 			NodeInterface node = getDocument();
+
 			assertNotNull(node);
 
 			final Page document = node.as(Page.class);
-
 			DOMElement div = document.createElement("div");
+
 			assertNotNull(div);
 
 			Content content1 = document.createTextNode("content1");
@@ -124,8 +124,8 @@ public class DOMNodeTest extends DOMTest {
 			assertNotNull(node);
 
 			final Page document = node.as(Page.class);
-
 			Content content = document.createTextNode("Dies ist ein Test");
+
 			assertNotNull(content);
 
 			DOMElement div = document.createElement("div");
@@ -156,10 +156,10 @@ public class DOMNodeTest extends DOMTest {
 			assertNotNull(node);
 
 			final Page document = node.as(Page.class);
-
 			Content test1 = document.createTextNode("test1");
 			Content test2 = document.createTextNode("test2");
 			Content test3 = document.createTextNode("test3");
+
 			assertNotNull(test1);
 			assertNotNull(test2);
 			assertNotNull(test3);
@@ -196,13 +196,13 @@ public class DOMNodeTest extends DOMTest {
 			assertNotNull(node);
 
 			final Page document = node.as(Page.class);
-
 			Content test1 = document.createTextNode("test1");
 			Content test2 = document.createTextNode("test2");
 			Content test3 = document.createTextNode("test3");
 			Content test4 = document.createTextNode("test4");
 			Content test5 = document.createTextNode("test5");
 			Content test6 = document.createTextNode("test6");
+
 			assertNotNull(test1);
 			assertNotNull(test2);
 			assertNotNull(test3);
@@ -256,6 +256,7 @@ public class DOMNodeTest extends DOMTest {
 
 				assertEquals(422, fex.getStatus());
 			}
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -332,10 +333,10 @@ public class DOMNodeTest extends DOMTest {
 			assertNotNull(wrongDocument);
 
 			Content wrongTextNode = wrongDocument.createTextNode("test");
-
 			Content test1 = document.createTextNode("test1");
 			Content test2 = document.createTextNode("test2");
 			Content test3 = document.createTextNode("test3");
+
 			assertNotNull(test1);
 			assertNotNull(test2);
 			assertNotNull(test3);
@@ -405,18 +406,17 @@ public class DOMNodeTest extends DOMTest {
 
 		try (final Tx tx = app.tx()) {
 
-
 			NodeInterface node = getDocument();
 			assertNotNull(node);
 
 			final Page document = node.as(Page.class);
-
 			Content test1 = document.createTextNode("test1");
 			Content test2 = document.createTextNode("test2");
 			Content test3 = document.createTextNode("test3");
 			Content test4 = document.createTextNode("test4");
 			Content test5 = document.createTextNode("test5");
 			Content test6 = document.createTextNode("test6");
+
 			assertNotNull(test1);
 			assertNotNull(test2);
 			assertNotNull(test3);
@@ -471,13 +471,13 @@ public class DOMNodeTest extends DOMTest {
 			assertNotNull(node);
 
 			final Page document = node.as(Page.class);
-
 			Content test1 = document.createTextNode("test1");
 			Content test2 = document.createTextNode("test2");
 			Content test3 = document.createTextNode("test3");
 			Content test4 = document.createTextNode("test4");
 			Content test5 = document.createTextNode("test5");
 			Content test6 = document.createTextNode("test6");
+
 			assertNotNull(test1);
 			assertNotNull(test2);
 			assertNotNull(test3);

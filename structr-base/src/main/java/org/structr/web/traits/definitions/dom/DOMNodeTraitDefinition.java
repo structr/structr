@@ -123,6 +123,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final Set<String> DataAttributeOutputBlacklist = Set.of(DOMElementTraitDefinition.DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY);
 
 	public DOMNodeTraitDefinition() {
+
 		super(StructrTraits.DOM_NODE);
 	}
 
@@ -131,8 +132,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -148,8 +148,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -186,9 +185,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Map<Class, FrameworkMethod> methods = new LinkedHashMap<>();
 
-		methods.put(
-			VisitForUsage.class,
-			new VisitForUsage() {
+		methods.put(VisitForUsage.class, new VisitForUsage() {
 
 				@Override
 				public void visitForUsage(final NodeInterface obj, final Map<String, Object> data) {
@@ -210,8 +207,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			Render.class,
-			new Render() {
+			Render.class, new Render() {
 
 				@Override
 				public void render(final DOMNode node, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -224,6 +220,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final boolean isPartial = renderContext.isPartialRendering(); // renderContext.getPage() == null;
 
 					if (!isAdminOnlyEditMode && !securityContext.isVisible(node)) {
+
 						return;
 					}
 
@@ -253,7 +250,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					} else {
 
 						final String subKey = node.getDataKey();
-
 						if (StringUtils.isNotBlank(subKey)) {
 
 							// fetch (optional) list of external data elements
@@ -278,7 +274,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 							} else {
 
 								final GraphObject currentDataNode = renderContext.getDataNode(subKey); // renderContext.getDataObject();
-
 								if (Iterables.isEmpty(listData) && currentDataNode != null) {
 
 									// There are two alternative ways of retrieving sub elements:
@@ -351,8 +346,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			DoAdopt.class,
-			new DoAdopt() {
+			DoAdopt.class, new DoAdopt() {
 
 				@Override
 				public DOMNode doAdopt(final DOMNode node, final Page _page) throws DOMException {
@@ -377,11 +371,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			GetCssClass.class,
-			new GetCssClass() {
+			GetCssClass.class, new GetCssClass() {
 
 				@Override
 				public String getCssClass(final NodeInterface node) {
+
 					return null;
 				}
 			}
@@ -389,8 +383,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			GetPagePath.class,
-			new GetPagePath() {
+			GetPagePath.class, new GetPagePath() {
 
 				@Override
 				public String getPagePath(final NodeInterface node) {
@@ -419,11 +412,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			GetNodeValue.class,
-			new GetNodeValue() {
+			GetNodeValue.class, new GetNodeValue() {
 
 				@Override
 				public String getNodeValue(final NodeInterface node) {
+
 					return null;
 				}
 			}
@@ -431,8 +424,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			RenderCustomAttributes.class,
-			new RenderCustomAttributes() {
+			RenderCustomAttributes.class, new RenderCustomAttributes() {
 
 				@Override
 				public void renderCustomAttributes(final DOMNode node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
@@ -440,7 +432,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final RenderContext.EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 					final Traits traits                   = node.getTraits();
 					final NodeInterface wrappedNode       = node;
-
 					Set<PropertyKey> dataAttributes = node.getDataPropertyKeys();
 
 					if (RenderContext.EditMode.DEPLOYMENT.equals(editMode)) {
@@ -454,6 +445,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// do not render attributes that are on the blacklist
 						if (!RenderContext.EditMode.DEPLOYMENT.equals(editMode) && DataAttributeOutputBlacklist.contains(key.jsonName())) {
+
 							continue;
 						}
 
@@ -470,6 +462,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						} else {
 
 							value = wrappedNode.getPropertyWithVariableReplacement(renderContext, key);
+
 							if (value != null) {
 
 								value = value.trim();
@@ -522,6 +515,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 									final String stringValue = value.toString();
 
 									if ((isBoolean && "true".equals(stringValue)) || (!isBoolean && StringUtils.isNotBlank(stringValue))) {
+
 										out.append(" ").append(htmlName).append("=\"").append(DOMNode.escapeForHtmlAttributes(stringValue)).append("\"");
 									}
 								}
@@ -534,8 +528,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			HandleNewChild.class,
-			new HandleNewChild() {
+			HandleNewChild.class, new HandleNewChild() {
 
 				@Override
 				public void handleNewChild(DOMNode node, DOMNode newChild) throws FrameworkException {
@@ -556,14 +549,14 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			CheckHierarchy.class,
-			new CheckHierarchy() {
+			CheckHierarchy.class, new CheckHierarchy() {
 
 				@Override
 				public void checkHierarchy(final DOMNode thisNode, final DOMNode otherNode) throws FrameworkException {
 
 					// verify that the other node is not this node
 					if (thisNode.isSameNode(otherNode)) {
+
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);
 					}
 
@@ -571,9 +564,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					// the ancestors of this node
 					// (prevent circular relationships)
 					DOMNode _parent = thisNode.getParent();
+
 					while (_parent != null) {
 
 						if (_parent.isSameNode(otherNode)) {
+
 							throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
 						}
 
@@ -588,8 +583,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			RenderManagedAttributes.class,
-			new RenderManagedAttributes() {
+			RenderManagedAttributes.class, new RenderManagedAttributes() {
 
 				@Override
 				public void renderManagedAttributes(final NodeInterface node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
@@ -599,11 +593,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			ContentEquals.class,
-			new ContentEquals() {
+			ContentEquals.class, new ContentEquals() {
 
 				@Override
 				public boolean contentEquals(final DOMNode elem, final DOMNode node) {
+
 					return false;
 				}
 			}
@@ -611,11 +605,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return false;
 				}
 			}
@@ -623,11 +617,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return false;
 				}
 			}
@@ -635,8 +629,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		methods.put(
 
-			Evaluate.class,
-			new Evaluate() {
+			Evaluate.class, new Evaluate() {
 
 				@Override
 				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
@@ -661,18 +654,23 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 									switch (key) {
 
 										case "pageCount":
+
 											return pageCount;
 
 										case "resultCount":
+
 											return resultCount;
 
 										case "currentPage":
+
 											return currentPage;
 
 										case "nextPage":
+
 											return currentPage + 1;
 
 										case "prevPage":
+
 											return Math.max(1, currentPage - 1);
 									}
 								}
@@ -690,15 +688,14 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			DOMNode.class, (traits, node) -> new DOMNodeTraitWrapper(traits, node)
-		);
+		return Map.of(DOMNode.class, (traits, node) -> new DOMNodeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -739,7 +736,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final DOMNode node = entity.as(DOMNode.class);
-
 					if (node != null) {
 
 						return node.getChildren();
@@ -758,7 +754,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final DOMNode node = entity.as(DOMNode.class);
-
 					if (node != null) {
 
 						return node.getNextSibling();
@@ -776,7 +771,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final DOMNode node = entity.as(DOMNode.class);
-
 					if (node != null) {
 
 						return node.getFirstChild();
@@ -795,7 +789,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final DOMNode node = entity.as(DOMNode.class);
 					final boolean deep = parameters.get("deep") != null && Boolean.parseBoolean(parameters.get("deep").toString());
-
 					final DOMNode clonedNode = node.cloneNode(deep);
 
 					return clonedNode;
@@ -852,17 +845,16 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
-
 						if (newChildNode != null) {
 
 							final DOMNode newChild = newChildNode.as(DOMNode.class);
-
 							final NodeInterface oldChildNode = (NodeInterface) parameters.get("oldChild");
 
 							if (oldChildNode != null) {
 
 								final DOMNode oldChild = oldChildNode.as(DOMNode.class);
 								final DOMNode node = entity.as(DOMNode.class);
+
 								node.replaceChild(newChild, oldChild);
 
 								return newChild;
@@ -871,7 +863,9 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 								throw new FrameworkException(422, "DOMNode.replaceChild(): missing required argument `oldChild` of type DOMNode.");
 							}
+
 						} else {
+
 							throw new FrameworkException(422, "DOMNode.replaceChild(): missing required argument `newChild` of type DOMNode.");
 						}
 				}
@@ -905,6 +899,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final DOMNode node = entity.as(DOMNode.class);
+
 					return node.getOwnerDocument();
 				}
 			},
@@ -933,6 +928,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					// this is called in case
+
 					return adapter.augmentFields(new RenderContext(actionContext.getSecurityContext()), dataSource, false);
 				}
 			},
@@ -945,7 +941,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final DOMNode domNode                 = entity.as(DOMNode.class);
 					final ComponentConfiguration config   = domNode.getComponentConfiguration();
 					final DataAdapter adapter             = config.getDataAdapter();
-
 					final String fieldName    = (String) arguments.get("_fieldName");
 					final String templateName = (String) arguments.get("_templateName");
 					final String displayMode  = (String) arguments.get("_displayMode");
@@ -954,12 +949,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final Boolean activate    = (Boolean) arguments.get("_activate");
 					final Boolean delete      = (Boolean) arguments.get("_delete");
 					final Boolean update      = (Boolean) arguments.get("_update");
-
 					final Map<String, DataAdapterField> fields = adapter.getFields();
 					final String type                          = StructrTraits.DATA_ADAPTER_FIELD;
 					final Traits fieldTraits                   = Traits.of(type);
-
 					DataAdapterField field = fields.get(fieldName);
+
 					if (field == null) {
 
 						field = StructrApp.getInstance(securityContext).create(type,
@@ -993,10 +987,12 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					if (activate != null && activate.booleanValue()) {
+
 						config.setFieldSet(config.getFieldSet() + "," + fieldName);
 					}
 
 					if (delete != null && delete.booleanValue()) {
+
 						config.setFieldSet(config.getFieldSet().replace(fieldName, ""));
 						StructrApp.getInstance(securityContext).delete(field);
 					}
@@ -1045,6 +1041,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final Channel channel                 = config.getDataSource();
 
 					if (channel == null) {
+
 						return " hidden ";
 					}
 
@@ -1080,6 +1077,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 							attributes.put("data-" + paginationKey, value);
 
 							if (value == currentPage) {
+
 								attributes.put("data-current-page", currentPage);
 							}
 
@@ -1090,6 +1088,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					// join into a single string and return it
+
 					return attributes.entrySet().stream().map(e -> e.getKey() + "=\"" + e.getValue() + "\"").collect(Collectors.joining(" "));
 				}
 			},
@@ -1107,6 +1106,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final Channel channel                 = config.getDataSource();
 
 					if (channel == null) {
+
 						return "";
 					}
 
@@ -1142,6 +1142,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final Channel channel                 = config.getDataSource();
 
 					if (channel == null) {
+
 						return " hidden ";
 					}
 
@@ -1157,10 +1158,12 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					attributes.put("name", filterKey);
 
 					if (StringUtils.isNotBlank(filterString)) {
+
 						attributes.put("value", filterString);
 					}
 
 					// join into a single string and return it
+
 					return attributes.entrySet().stream().map(e -> e.getKey() + "=\"" + e.getValue() + "\"").collect(Collectors.joining(" "));
 				}
 			}
@@ -1208,7 +1211,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer> dimensionsProperty                                 = new IntProperty(DIMENSIONS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> itemTypeProperty                                    = new StringProperty(ITEM_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> repeaterTypeProperty                                = new StringProperty(REPEATER_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-
 
 		return newSet(
 			parentProperty,
@@ -1267,6 +1269,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -1306,10 +1309,12 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		if (arguments.get("first") != null) {
+
 			return 1;
 		}
 
 		if (arguments.get("last") != null) {
+
 			return pageCount;
 		}
 
@@ -1320,6 +1325,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			// We return all the values here, buttons with invalid
 			// values are hidden by the method below.
+
 			return currentPage + window;
 		}
 
@@ -1330,16 +1336,19 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// hide "prev" button if there is no previous page
 		if (arguments.get("first") != null && (currentPage < 4 || resultCount == -1)) {
+
 			return true;
 		}
 
 		// hide "low" ellipsis button
 		if ("low".equals(arguments.get("ellipsis")) && (currentPage < 5 || resultCount == -1)) {
+
 			return true;
 		}
 
 		// hide "high" ellipsis button
 		if ("high".equals(arguments.get("ellipsis")) && (currentPage >= (pageCount - 3) || resultCount == -1)) {
+
 			return true;
 		}
 
@@ -1355,6 +1364,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			// do not show "window" buttons if result count is above soft limit
 			if (resultCount == -1) {
+
 				return true;
 			}
 
@@ -1362,6 +1372,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			final int newPage = currentPage + window;
 
 			// we're returning "hidden", not "visible" here
+
 			return newPage < 1 || newPage > pageCount;
 		}
 

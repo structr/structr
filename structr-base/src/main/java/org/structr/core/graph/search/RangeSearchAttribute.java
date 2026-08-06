@@ -47,16 +47,19 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 
 	@Override
 	public String toString() {
+
 		return "RangeSearchAttribute()";
 	}
 
 	@Override
 	public T getValue() {
+
 		return null;
 	}
 
 	@Override
 	public boolean isExactMatch() {
+
 		return true;
 	}
 
@@ -71,18 +74,22 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 			final Comparable ce = (Comparable)rangeEnd;
 
 			if (includeStart && includeEnd) {
+
 				return (cs == null || cs.compareTo(cv) <= 0) && (ce == null || ce.compareTo(cv) >= 0);
 			}
 
 			if (includeStart && !includeEnd) {
+
 				return (cs == null || cs.compareTo(cv) <= 0) && (ce == null || ce.compareTo(cv) > 0);
 			}
 
 			if (!includeStart && includeEnd) {
+
 				return (cs == null || cs.compareTo(cv) < 0) && (ce == null || ce.compareTo(cv) >= 0);
 			}
 
 			if (!includeStart && !includeEnd) {
+
 				return (cs == null || cs.compareTo(cv) < 0) && (ce == null || ce.compareTo(cv) > 0);
 			}
 		}
@@ -92,26 +99,31 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 
 	@Override
 	public T getRangeStart() {
+
 		return rangeStart;
 	}
 
 	@Override
 	public T getRangeEnd() {
+
 		return rangeEnd;
 	}
 
 	@Override
 	public boolean getIncludeStart() {
+
 		return includeStart;
 	}
 
 	@Override
 	public boolean getIncludeEnd() {
+
 		return includeEnd;
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return RangeQuery.class;
 	}
 }

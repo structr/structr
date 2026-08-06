@@ -49,6 +49,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testSimpleStringValue() {
+
 		assertEquals("Flow_no", ProcessEngine.getJsonAttributeValue("{\"default\":\"Flow_no\"}", "default"));
 	}
 
@@ -70,16 +71,19 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testValueWithSpaces() {
+
 		assertEquals("hello world", ProcessEngine.getJsonAttributeValue("{\"name\":\"hello world\"}", "name"));
 	}
 
 	@Test
 	public void testValueContainingColon() {
+
 		assertEquals("a:b:c", ProcessEngine.getJsonAttributeValue("{\"ref\":\"a:b:c\"}", "ref"));
 	}
 
 	@Test
 	public void testValueContainingBraces() {
+
 		assertEquals("{x:1}", ProcessEngine.getJsonAttributeValue("{\"expr\":\"{x:1}\"}", "expr"));
 	}
 
@@ -95,6 +99,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testAbsentKeyReturnsNull() {
+
 		assertNull(ProcessEngine.getJsonAttributeValue("{\"a\":\"1\"}", "default"));
 	}
 
@@ -110,10 +115,7 @@ public class ProcessEngineHelpersTest {
 
 		// The word "default" appears inside another attribute's value; only the real
 		// "default" key must be returned.
-		final String json = GSON.toJson(new LinkedHashMap<>(Map.of(
-			"documentation", "take the default branch",
-			"default",       "Flow_yes"
-		)));
+		final String json = GSON.toJson(new LinkedHashMap<>(Map.of("documentation", "take the default branch", "default",       "Flow_yes")));
 		assertEquals("Flow_yes", ProcessEngine.getJsonAttributeValue(json, "default"));
 	}
 
@@ -139,11 +141,13 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testJsonNullValueReturnsNull() {
+
 		assertNull(ProcessEngine.getJsonAttributeValue("{\"x\":null}", "x"));
 	}
 
 	@Test
 	public void testSurroundingWhitespaceIsTolerated() {
+
 		assertEquals("F", ProcessEngine.getJsonAttributeValue("   {\"default\":\"F\"}   ", "default"));
 	}
 
@@ -156,10 +160,10 @@ public class ProcessEngineHelpersTest {
 
 		final long before = System.currentTimeMillis();
 		final Date fireAt = ProcessEngine.computeFireAt("timeDuration", "PT1H");
+
 		assertNotNull(fireAt);
 		final long delta = fireAt.getTime() - before;
-		assertTrue("PT1H should fire ~1h out, was " + delta + "ms",
-			delta >= 59 * 60_000L && delta <= 61 * 60_000L);
+		assertTrue("PT1H should fire ~1h out, was " + delta + "ms", delta >= 59 * 60_000L && delta <= 61 * 60_000L);
 	}
 
 	@Test
@@ -167,6 +171,7 @@ public class ProcessEngineHelpersTest {
 
 		final long before = System.currentTimeMillis();
 		final Date fireAt = ProcessEngine.computeFireAt("timeDuration", "P1D");
+
 		assertNotNull(fireAt);
 		final long delta = fireAt.getTime() - before;
 		assertTrue("P1D should fire ~24h out", delta >= 23 * 3_600_000L && delta <= 25 * 3_600_000L);
@@ -181,6 +186,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testTimerCycleUnsupportedReturnsNull() {
+
 		assertNull(ProcessEngine.computeFireAt("timeCycle", "R3/PT10M"));
 	}
 
@@ -246,23 +252,20 @@ public class ProcessEngineHelpersTest {
 	@Test
 	public void testRewriteSingleVariable() {
 
-		assertEquals("$.process.approved == true",
-			ProcessEngine.rewriteConditionExpression("approved == true", Set.of("approved")));
+		assertEquals("$.process.approved == true", ProcessEngine.rewriteConditionExpression("approved == true", Set.of("approved")));
 	}
 
 	@Test
 	public void testRewriteKeepsLiteralsAndOperators() {
 
 		// Only the known variable 'delivery' is rewritten; the string literal 'express' is not.
-		assertEquals("$.process.delivery == 'express'",
-			ProcessEngine.rewriteConditionExpression("delivery == 'express'", Set.of("delivery")));
+		assertEquals("$.process.delivery == 'express'", ProcessEngine.rewriteConditionExpression("delivery == 'express'", Set.of("delivery")));
 	}
 
 	@Test
 	public void testRewriteMultipleVariables() {
 
-		final String out = ProcessEngine.rewriteConditionExpression(
-			"approved == true && amount > 100", Set.of("approved", "amount"));
+		final String out = ProcessEngine.rewriteConditionExpression("approved == true && amount > 100", Set.of("approved", "amount"));
 		assertEquals("$.process.approved == true && $.process.amount > 100", out);
 	}
 
@@ -270,23 +273,20 @@ public class ProcessEngineHelpersTest {
 	public void testRewriteDoesNotDoubleRewriteAlreadyQualified() {
 
 		// A reference already written as $.process.x must not be rewritten again.
-		assertEquals("$.process.approved == true",
-			ProcessEngine.rewriteConditionExpression("$.process.approved == true", Set.of("approved")));
+		assertEquals("$.process.approved == true", ProcessEngine.rewriteConditionExpression("$.process.approved == true", Set.of("approved")));
 	}
 
 	@Test
 	public void testRewriteRespectsWordBoundaries() {
 
 		// 'amount' must not match inside 'totalamount'.
-		assertEquals("totalamount > 1",
-			ProcessEngine.rewriteConditionExpression("totalamount > 1", Set.of("amount")));
+		assertEquals("totalamount > 1", ProcessEngine.rewriteConditionExpression("totalamount > 1", Set.of("amount")));
 	}
 
 	@Test
 	public void testRewriteNoVariablesOrNullIsIdentity() {
 
-		assertEquals("approved == true",
-			ProcessEngine.rewriteConditionExpression("approved == true", Set.of()));
+		assertEquals("approved == true", ProcessEngine.rewriteConditionExpression("approved == true", Set.of()));
 		assertNull(ProcessEngine.rewriteConditionExpression(null, Set.of("approved")));
 	}
 
@@ -368,16 +368,14 @@ public class ProcessEngineHelpersTest {
 	@Test
 	public void testTranspileForeignScript() {
 
-		final String out = ProcessEngine.transpileForeignScript(
-			"var x = execution.getVariable(\"amount\");\nexecution.setVariable(\"approved\", true);");
+		final String out = ProcessEngine.transpileForeignScript("var x = execution.getVariable(\"amount\");\nexecution.setVariable(\"approved\", true);");
 		// getVariable is rewritten to the $.process accessor ...
 		assertTrue("getVariable should be rewritten to $.process.amount", out.contains("$.process.amount"));
 		// ... the original source is preserved as a block comment ...
 		assertTrue("original source should be preserved as a comment", out.contains("/*"));
 		// ... and the live setVariable statement is dropped from the transpiled body.
 		final String transpiledBody = out.substring(out.indexOf("*/") + 2);
-		assertFalse("setVariable call should be dropped from the transpiled body",
-			transpiledBody.contains("execution.setVariable"));
+		assertFalse("setVariable call should be dropped from the transpiled body", transpiledBody.contains("execution.setVariable"));
 	}
 
 	@Test
@@ -389,10 +387,8 @@ public class ProcessEngineHelpersTest {
 		final String out  = ProcessEngine.transpileForeignScript("execution.setVariable('approved', true)");
 		final String body = out.substring(out.indexOf("*/") + 2);
 
-		assertTrue("no-semicolon setVariable must transpile to a $.process write; got:\n" + out,
-			body.contains("$.process.approved = true"));
-		assertFalse("the original execution.setVariable call must not survive in the transpiled body",
-			body.contains("execution.setVariable"));
+		assertTrue("no-semicolon setVariable must transpile to a $.process write; got:\n" + out, body.contains("$.process.approved = true"));
+		assertFalse("the original execution.setVariable call must not survive in the transpiled body", body.contains("execution.setVariable"));
 	}
 
 	@Test
@@ -404,10 +400,8 @@ public class ProcessEngineHelpersTest {
 		final String out  = ProcessEngine.transpileForeignScript("execution.setVariable('startedAt', now())");
 		final String body = out.substring(out.indexOf("*/") + 2);
 
-		assertTrue("nested-call value must survive and be prefixed; got:\n" + out,
-			body.contains("$.process.startedAt = $.now();"));
-		assertFalse("must not emit the corrupted 'now(;)' form; got:\n" + out,
-			body.contains("now(;)"));
+		assertTrue("nested-call value must survive and be prefixed; got:\n" + out, body.contains("$.process.startedAt = $.now();"));
+		assertFalse("must not emit the corrupted 'now(;)' form; got:\n" + out, body.contains("now(;)"));
 	}
 
 	@Test
@@ -415,6 +409,7 @@ public class ProcessEngineHelpersTest {
 
 		final String out  = ProcessEngine.transpileForeignScript("var d = now();");
 		final String body = out.substring(out.indexOf("*/") + 2);
+
 		assertTrue("bare now() should become $.now(); got:\n" + out, body.contains("$.now()"));
 	}
 
@@ -423,35 +418,28 @@ public class ProcessEngineHelpersTest {
 
 		// Member calls (obj.foo()), JS control keywords (if/for/...), built-ins
 		// (parseInt) and already-prefixed calls must NOT be turned into $. calls.
-		assertFalse("member call must not be prefixed",
-			ProcessEngine.prefixStructrFunctions("obj.foo(x)").contains("$.foo"));
-		assertEquals("keyword must not be prefixed",
-			"if (x) {", ProcessEngine.prefixStructrFunctions("if (x) {"));
-		assertFalse("built-in parseInt must not be prefixed",
-			ProcessEngine.prefixStructrFunctions("parseInt(x)").contains("$.parseInt"));
-		assertEquals("already-prefixed call must be left alone",
-			"$.now()", ProcessEngine.prefixStructrFunctions("$.now()"));
+		assertFalse("member call must not be prefixed", ProcessEngine.prefixStructrFunctions("obj.foo(x)").contains("$.foo"));
+		assertEquals("keyword must not be prefixed", "if (x) {", ProcessEngine.prefixStructrFunctions("if (x) {"));
+		assertFalse("built-in parseInt must not be prefixed", ProcessEngine.prefixStructrFunctions("parseInt(x)").contains("$.parseInt"));
+		assertEquals("already-prefixed call must be left alone", "$.now()", ProcessEngine.prefixStructrFunctions("$.now()"));
 	}
 
 	@Test
 	public void testRewriteServiceCallsBindsBeansToServiceClasses() {
 
 		// receiver.method(...) -> $.Receiver.method(...); nested/arg calls preserved.
-		assertEquals("$.NotificationService.notifyReviewer(task)",
-			ProcessEngine.rewriteServiceCalls("notificationService.notifyReviewer(task)"));
+		assertEquals("$.NotificationService.notifyReviewer(task)", ProcessEngine.rewriteServiceCalls("notificationService.notifyReviewer(task)"));
 		// script-context / built-in receivers are NOT treated as services.
 		assertEquals("$.process.x = 5;", ProcessEngine.rewriteServiceCalls("$.process.x = 5;"));
 		assertEquals("Math.floor(x)", ProcessEngine.rewriteServiceCalls("Math.floor(x)"));
 		// idempotent: an already-bound call is left alone on a second pass.
-		assertEquals("$.NotificationService.notifyReviewer(task)",
-			ProcessEngine.rewriteServiceCalls("$.NotificationService.notifyReviewer(task)"));
+		assertEquals("$.NotificationService.notifyReviewer(task)", ProcessEngine.rewriteServiceCalls("$.NotificationService.notifyReviewer(task)"));
 	}
 
 	@Test
 	public void testDetectServiceCallsCollectsReceiversMethodsAndArgCounts() {
 
-		final Map<String, Map<String, Integer>> svc = ProcessEngine.detectServiceCalls(
-			"paymentGateway.charge(amount, currency); notificationService.notify()");
+		final Map<String, Map<String, Integer>> svc = ProcessEngine.detectServiceCalls("paymentGateway.charge(amount, currency); notificationService.notify()");
 		assertEquals("two distinct services detected", 2, svc.size());
 		assertEquals("charge takes 2 args", Integer.valueOf(2), svc.get("PaymentGateway").get("charge"));
 		assertEquals("notify takes 0 args", Integer.valueOf(0), svc.get("NotificationService").get("notify"));
@@ -464,12 +452,9 @@ public class ProcessEngineHelpersTest {
 
 		// Only service-convention names (…Service/…Delegate/…Gateway/…) are treated as
 		// services; ordinary variables and the `task` context object are left untouched.
-		assertEquals("plain variable call must not become a service class",
-			"task.complete()", ProcessEngine.rewriteServiceCalls("task.complete()"));
-		assertEquals("plain variable call must not become a service class",
-			"order.total()", ProcessEngine.rewriteServiceCalls("order.total()"));
-		assertTrue("no service detected for plain variables",
-			ProcessEngine.detectServiceCalls("task.complete(); order.total()").isEmpty());
+		assertEquals("plain variable call must not become a service class", "task.complete()", ProcessEngine.rewriteServiceCalls("task.complete()"));
+		assertEquals("plain variable call must not become a service class", "order.total()", ProcessEngine.rewriteServiceCalls("order.total()"));
+		assertTrue("no service detected for plain variables", ProcessEngine.detectServiceCalls("task.complete(); order.total()").isEmpty());
 		// but convention-named beans still bind
 		assertEquals("$.PaymentGateway.charge(x)", ProcessEngine.rewriteServiceCalls("paymentGateway.charge(x)"));
 	}

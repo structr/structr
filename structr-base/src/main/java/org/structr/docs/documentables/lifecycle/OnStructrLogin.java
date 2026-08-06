@@ -23,16 +23,19 @@ import java.util.List;
 public class OnStructrLogin extends LifecycleBase {
 
 	public OnStructrLogin() {
+
 		super("onStructrLogin");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called when a user starts a new session.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onStructrLogin()` lifecycle method is called when users create new sessions by authenticating themselves with any of the login mechanisms.
 		
@@ -45,8 +48,6 @@ public class OnStructrLogin extends LifecycleBase {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also: `onStructrLogout()`."
-		);
+		return List.of("See also: `onStructrLogout()`.");
 	}
 }

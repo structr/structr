@@ -69,6 +69,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 	@Override
 	public void failure() {
+
 		forcedFailure = true;
 	}
 
@@ -81,6 +82,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 	@Override
 	public boolean isSuccessful() {
+
 		return success && !forcedFailure;
 	}
 
@@ -96,16 +98,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
 				Mono.from(tx.rollback()).block();
 
 			} catch (TransientException tex) {
+
 				closed = true;
 				throw new RetryException(tex);
+
 			} catch (NoSuchRecordException nex) {
+
 				throw new NotFoundException(nex);
+
 			} catch (ServiceUnavailableException ex) {
+
 				throw new NetworkException(ex.getMessage(), ex);
+
 			} catch (DatabaseException dex) {
+
 				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 			} catch (ClientException cex) {
+
 				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateClientException(cex);
 			}
@@ -117,16 +128,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
 				Mono.from(tx.commit()).block();
 
 			} catch (TransientException tex) {
+
 				closed = true;
 				throw new RetryException(tex);
+
 			} catch (NoSuchRecordException nex) {
+
 				throw new NotFoundException(nex);
+
 			} catch (ServiceUnavailableException ex) {
+
 				throw new NetworkException(ex.getMessage(), ex);
+
 			} catch (DatabaseException dex) {
+
 				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 			} catch (ClientException cex) {
+
 				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateClientException(cex);
 			}
@@ -156,6 +176,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 	@Override
 	public boolean isClosed() {
+
 		return closed;
 	}
 
@@ -178,16 +199,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			return value;
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
@@ -217,16 +247,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			return value;
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
@@ -256,16 +295,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			return value;
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
@@ -295,24 +343,35 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			return value;
 
 		} catch (TransientException tex) {
+
 			tex.printStackTrace();
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			nex.printStackTrace();
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			ex.printStackTrace();
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			dex.printStackTrace();
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			cex.printStackTrace();
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
+
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -332,16 +391,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			return Flux.from(tx.run(statement, map).records()).toIterable();
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
@@ -360,16 +428,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
                         return Iterables.toList(Iterables.map(new RecordMapMapper(db), Flux.from(tx.run(statement, map).records()).toIterable()));
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
@@ -387,16 +464,25 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			logSummary(Mono.from(result.consume()).block());
 
 		} catch (TransientException tex) {
+
 			closed = true;
 			throw new RetryException(tex);
+
 		} catch (NoSuchRecordException nex) {
+
 			throw new NotFoundException(nex);
+
 		} catch (ServiceUnavailableException ex) {
+
 			throw new NetworkException(ex.getMessage(), ex);
+
 		} catch (DatabaseException dex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+
 		} catch (ClientException cex) {
+
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
@@ -404,6 +490,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 	@Override
 	public Iterable<Record> newIterable(final BoltDatabaseService db, final CypherQuery query) {
+
 		return new QueryIterable(db, query);
 	}
 }

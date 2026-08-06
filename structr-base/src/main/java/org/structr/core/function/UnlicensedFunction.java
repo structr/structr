@@ -42,53 +42,62 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	private String module = null;
 
 	public UnlicensedFunction(final String name, final String module) {
+
 		this.name    = name;
 		this.module = module;
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
 		throw new UnlicensedScriptException(name, module);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Placeholder for unlicensed functions.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getName() {
+
 		return "unlicensed";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return null;
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return module;
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return true;
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return null;
 	}
 }

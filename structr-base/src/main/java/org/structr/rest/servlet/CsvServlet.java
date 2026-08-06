@@ -88,7 +88,6 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	public static final char DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS = ',';
 	public static final char DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS = '"';
 
-
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 	private static final String WRITE_BOM = "bom";
 
@@ -113,6 +112,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -168,6 +168,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 						try (Writer writer = response.getWriter()) {
 
 							if (writeBom) {
+
 								writeUtf8Bom(writer);
 							}
 
@@ -185,6 +186,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 						response.setStatus(code);
 
 						try (Writer writer = response.getWriter()) {
+
 							writer.flush();
 						}
 
@@ -260,6 +262,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -291,8 +294,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				securityContext.disablePreventDuplicateRelationships();
 
 				final long startTime = System.currentTimeMillis();
-
 				final Map<String, Object> data = new LinkedHashMap();
+
 				data.put("type", "CSV_IMPORT_STATUS");
 				data.put("subtype", "BEGIN");
 				data.put("username", username);
@@ -300,6 +303,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 				// isolate doPost
 				boolean retry = true;
+
 				while (retry) {
 
 					retry = false;
@@ -313,7 +317,6 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 							final List<JsonInput> list = new ArrayList<>();
 							csv.iterator().forEachRemaining(list::add);
 							final List<List<JsonInput>> chunkedCsv = ListUtils.partition(list, periodicCommitInterval);
-
 							final int totalChunkNo = chunkedCsv.size();
 							int currentChunkNo = 0;
 
@@ -342,6 +345,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 									TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
 
 								} catch (RetryException ddex) {
+
 									retry = true;
 								}
 
@@ -359,6 +363,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 								tx.success();
 
 							} catch (RetryException ddex) {
+
 								retry = true;
 							}
 						}
@@ -366,6 +371,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 					} else {
 
 						if (doPeriodicCommit) {
+
 							logger.warn("Resource auto-creates POST transaction - can not commit periodically!");
 						}
 
@@ -377,6 +383,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 							}
 
 						} catch (RetryException ddex) {
+
 							retry = true;
 						}
 					}
@@ -475,6 +482,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		} finally {
 
 			try {
+
 				//response.getWriter().flush();
 				response.getWriter().close();
 
@@ -489,6 +497,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	// ---- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "csv";
 	}
 
@@ -519,6 +528,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		// post-process escaped string
 		if (!removeLineBreaks) {
+
 			return StringUtils.replace(StringUtils.replace(escaped, "\r\n", "\n"), "\r", "\n");
 		}
 
@@ -536,7 +546,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		} else if (value instanceof String[]) {
 
 			final ArrayList<String> quotedStrings = new ArrayList();
+
 			for (final String str : Arrays.asList((String[])value)) {
+
 				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
 				quotedStrings.add("\\" + quoteChar + StringUtils.replace(str, ""+quoteChar, "\\\\\\" + quoteChar) + "\\" + quoteChar);
 			}
@@ -546,7 +558,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		} else if (value instanceof Date[]) {
 
 			final ArrayList<String> dateStrings = new ArrayList();
+
 			for (final Date d : Arrays.asList((Date[])value)) {
+
 				dateStrings.add("\\" + quoteChar + DatePropertyGenerator.format(d, DateProperty.getDefaultFormat()) + "\\" + quoteChar);
 			}
 
@@ -555,7 +569,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		} else if (value instanceof Object[]) {
 
 			final ArrayList<String> quotedStrings = new ArrayList();
+
 			for (final Object o : Arrays.asList((Object[])value)) {
+
 				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
 				quotedStrings.add("\\" + quoteChar + StringUtils.replace(o.toString(), ""+quoteChar, "\\\\\\" + quoteChar) + "\\" + quoteChar);
 			}
@@ -566,7 +582,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			// Special handling for collections of nodes
 			ArrayList<String> quotedStrings = new ArrayList();
+
 			for (final Object obj : (Iterable)value) {
+
 				quotedStrings.add("\\" + quoteChar + obj.toString() + "\\" + quoteChar);
 			}
 
@@ -585,9 +603,13 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	}
 
 	private void writeUtf8Bom(Writer out) {
+
 		try {
+
 			out.write("\ufeff");
+
 		} catch (IOException ex) {
+
 			logger.warn("Unable to write UTF-8 BOM", ex);
 		}
 	}
@@ -660,6 +682,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 
 		if (propertySet != null) {
+
 			return propertySet.getAttributes();
 		}
 

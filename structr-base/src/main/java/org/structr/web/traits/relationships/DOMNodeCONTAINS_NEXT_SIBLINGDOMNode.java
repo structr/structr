@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodeCONTAINS_NEXT_SIBLINGDOMNode extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeCONTAINS_NEXT_SIBLINGDOMNode() {
+
 		super(StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.DOM_NODE;
 	}
 
 	@Override
 	public  String getTargetType() {
+
 		return StructrTraits.DOM_NODE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONTAINS_NEXT_SIBLING";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

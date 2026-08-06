@@ -35,11 +35,13 @@ public class EscapeJavascriptFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "escapeJavascript";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
@@ -55,17 +57,20 @@ public class EscapeJavascriptFunction extends CoreFunction {
 		} catch (ArgumentNullException ane) {
 
 			// silently ignore null strings
+
 			return null;
 
 		} catch (ArgumentCountException ace) {
 
 			logParameterError(caller, sources, ace.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${escapeJavascript(text)}. Example: ${escapeJavascript(this.name)}"),
 			Usage.javaScript("Usage: ${{ $.escapeJavascript(text) }}. Example: ${{ $.escapeJavascript(this.name); }}")
@@ -74,28 +79,26 @@ public class EscapeJavascriptFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Escapes the given string for use with Javascript.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("text", "text to escape")
-		);
+		return List.of(Parameter.mandatory("text", "text to escape"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${escapeJavascript('This is a \"test\"')} => This is a \\\"test\\\" ")
-		);
+		return List.of(Example.structrScript("${escapeJavascript('This is a \"test\"')} => This is a \\\"test\\\" "));
 	}
 
 	@Override
@@ -110,6 +113,7 @@ public class EscapeJavascriptFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

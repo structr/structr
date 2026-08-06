@@ -26,11 +26,13 @@ import java.util.Map;
 public class IterableQuery extends AbstractNativeQuery<Iterable<Map<String, Object>>> {
 
 	public IterableQuery(final String query) {
+
 		super(query);
 	}
 
 	@Override
 	Iterable<Map<String, Object>> execute(final EmbeddedTransaction tx) {
+
 		return tx.run(new SimpleCypherQuery(query, parameters));
 	}
 }

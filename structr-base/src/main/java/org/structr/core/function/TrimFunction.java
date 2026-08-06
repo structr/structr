@@ -36,11 +36,13 @@ public class TrimFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "trim";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str");
 	}
 
@@ -71,6 +73,7 @@ public class TrimFunction extends CoreFunction {
 			}
 
 			if (StringUtils.isBlank(sources[0].toString())) {
+
 				return null;
 			}
 
@@ -79,30 +82,32 @@ public class TrimFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.trim(string) }}. Example: ${{trim($.this.text)}}"),
-			Usage.structrScript("Usage: ${trim(string)}. Example: ${trim(this.text)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.trim(string) }}. Example: ${{trim($.this.text)}}"), Usage.structrScript("Usage: ${trim(string)}. Example: ${trim(this.text)}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes whitespace at the edges of the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Removes any leading or trailing whitespace from the given object. If the object is a string, a trimmed version 
 		will be returned. If it is a collection, a collection of trimmed strings will be returned.""";
@@ -110,6 +115,7 @@ public class TrimFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${trim('         A text with lots of whitespace        ')}
@@ -125,20 +131,19 @@ public class TrimFunction extends CoreFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("object", "object to trim")
-				);
+
+		return List.of(Parameter.mandatory("object", "object to trim"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"A space is defined as any character whose codepoint is less than or equal to `U+0020` (the space character)."
-		);
+
+		return List.of("A space is defined as any character whose codepoint is less than or equal to `U+0020` (the space character).");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

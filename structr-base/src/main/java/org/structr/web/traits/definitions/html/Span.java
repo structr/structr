@@ -27,6 +27,7 @@ import java.util.Map;
 public class Span extends GenericHtmlElementTraitDefinition {
 
 	public Span() {
+
 		super(StructrTraits.SPAN);
 	}
 
@@ -37,11 +38,11 @@ public class Span extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

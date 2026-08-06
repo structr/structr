@@ -44,6 +44,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		// don't interpret invalid strings
 		if (editorText != null && (editorText.endsWith("''") || editorText.endsWith("\"\""))) {
+
 			return Collections.EMPTY_LIST;
 		}
 
@@ -110,6 +111,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 	@Override
 	protected String getFunctionName(String sourceName) {
+
 		return sourceName;
 	}
 

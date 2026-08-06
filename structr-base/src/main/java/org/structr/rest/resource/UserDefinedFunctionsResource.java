@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -55,8 +54,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 			// 12/2023: we decided to rename global schema methods to user-defined functions
 			// and make them available in the global scope just like built-in functions, hence
 			// the path
-			RESTParameter.forPattern("name", SchemaMethod.schemaMethodNamePattern, true)
-		);
+			RESTParameter.forPattern("name", SchemaMethod.schemaMethodNamePattern, true));
 	}
 
 	@Override
@@ -78,6 +76,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 	private class GlobalSchemaMethodResourceHandler extends RESTMethodCallHandler {
 
 		public GlobalSchemaMethodResourceHandler(final RESTCall call, final AbstractMethod method) {
+
 			super(call, method);
 		}
 
@@ -128,6 +127,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 			if ("PATCH".equals(method.getHttpVerb())) {
 
 				// FIXME, only the first property set is used, we need to test this
+
 				return executeMethod(securityContext, null, NamedArguments.fromMap(propertySet.get(0)));
 
 			} else {
@@ -158,16 +158,19 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of(method.getHttpVerb());
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 	}

@@ -36,11 +36,13 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "sendPlaintextMail";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("fromAddress, fromName, toAddress, toName, subject, content");
 	}
 
@@ -70,12 +72,14 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content) }}."),
 			Usage.structrScript("Usage: ${sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content)}.")
@@ -84,16 +88,19 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends a plaintext email.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"The return value of this function is the message ID of the delivered message, or null",
 				"`textContent` is typically generated using the `template()` function.",
@@ -105,6 +112,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("fromAddress", "sender address"),
 				Parameter.mandatory("fromName", "sender name"),
@@ -115,17 +123,15 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 		);
 	}
 
-
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to Structr!')}")
-		);
+
+		return List.of(Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to Structr!')}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.EMail;
 	}
 }

@@ -24,6 +24,7 @@ public abstract class CsvFunction extends UiFunction {
 
 	@Override
 	public String getRequiredModule() {
+
 		return "csv";
 	}
 }

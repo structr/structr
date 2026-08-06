@@ -41,6 +41,7 @@ public class Img extends GenericHtmlElementTraitDefinition {
 	public static final String HEIGHT_PROPERTY      = getPrefixedHTMLAttributeName("height");
 
 	public Img() {
+
 		super(StructrTraits.IMG);
 	}
 
@@ -51,11 +52,11 @@ public class Img extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}
@@ -63,11 +64,11 @@ public class Img extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -87,19 +88,12 @@ public class Img extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> widthProperty       = new StringProperty(WIDTH_PROPERTY);
 		final PropertyKey<String> heightProperty      = new StringProperty(HEIGHT_PROPERTY);
 
-		return newSet(
-			altProperty, srcProperty, crossoriginProperty, usemapProperty, ismapProperty, widthProperty, heightProperty
-		);
+		return newSet(altProperty, srcProperty, crossoriginProperty, usemapProperty, ismapProperty, widthProperty, heightProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					ALT_PROPERTY, SRC_PROPERTY, CROSSORIGIN_PROPERTY, USEMAP_PROPERTY, ISMAP_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(ALT_PROPERTY, SRC_PROPERTY, CROSSORIGIN_PROPERTY, USEMAP_PROPERTY, ISMAP_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY));
 	}
 }

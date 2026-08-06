@@ -36,18 +36,22 @@ public class NewIndexConfig {
 	}
 
 	public boolean isFulltextIndex() {
+
 		return isFulltextIndex;
 	}
 
 	public boolean isTextIndex() {
+
 		return isTextIndex;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 
 	public String getPropertyKey() {
+
 		return propertyKey;
 	}
 

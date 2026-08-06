@@ -82,16 +82,12 @@ public class HttpHelper {
 		final String proxyUsername  = StringUtils.isBlank(proxyUsernameParameter) ? Settings.HttpProxyUser.getValue()      : proxyUsernameParameter;
 		final String proxyPassword  = StringUtils.isBlank(proxyPasswordParameter) ? Settings.HttpProxyPassword.getValue()  : proxyPasswordParameter;
 		final String cookie         = StringUtils.isBlank(cookieParameter)        ? null                                   : cookieParameter;
-
 		HttpHost proxy                          = null;
 		final CredentialsProvider credsProvider = new BasicCredentialsProvider();
 
 		if (StringUtils.isNoneBlank(username, password)) {
 
-			credsProvider.setCredentials(
-				new AuthScope(new HttpHost(req.getURI().getHost())),
-				new UsernamePasswordCredentials(username, password)
-			);
+			credsProvider.setCredentials(new AuthScope(new HttpHost(req.getURI().getHost())), new UsernamePasswordCredentials(username, password));
 		}
 
 		if (StringUtils.isNotBlank(proxyUrl)) {
@@ -100,10 +96,7 @@ public class HttpHelper {
 
 			if (StringUtils.isNoneBlank(proxyUsername, proxyPassword)) {
 
-				credsProvider.setCredentials(
-					new AuthScope(proxy),
-					new UsernamePasswordCredentials(proxyUsername, proxyPassword)
-				);
+				credsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(proxyUsername, proxyPassword));
 			}
 		}
 
@@ -134,19 +127,15 @@ public class HttpHelper {
 				: SSLConnectionSocketFactory.getDefaultHostnameVerifier();
 
 			final SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, null, null, hostnameVerifier);
-
 			final BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
 				.register("http", PlainConnectionSocketFactory.getSocketFactory())
-				.register("https", sslConnectionSocketFactory).build()
-			);
+				.register("https", sslConnectionSocketFactory).build());
 
 			clientBuilder.setConnectionManager(connectionManager);
 		}
 
 		final CloseableHttpClient client = clientBuilder.build();
-
 		final int connectTimeout = (timeout != null)? timeout : (Settings.HttpConnectTimeout.getValue() * 1000);
-
 		final RequestConfig reqConfig = RequestConfig.custom()
 			.setProxy(proxy)
 			.setRedirectsEnabled(followRedirects)
@@ -168,6 +157,7 @@ public class HttpHelper {
 
 		// add request headers from context
 		for (final Map.Entry<String, String> header : headers.entrySet()) {
+
 			req.addHeader(header.getKey(), header.getValue());
 		}
 
@@ -178,6 +168,7 @@ public class HttpHelper {
 
 		// Skip BOM to work around this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 		if (content != null && content.length() > 1 && content.charAt(0) == 65279) {
+
 			return content.substring(1);
 		}
 
@@ -223,15 +214,15 @@ public class HttpHelper {
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req   = new HttpGet(uri);
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
-
 			final CloseableHttpResponse resp = hc.client().execute(req);
-
 			final String content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset())));
+
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
 
 		} catch (final Throwable t) {
+
 			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage(), t);
 		}
 
@@ -248,11 +239,11 @@ public class HttpHelper {
 		try {
 
 			Map<String, Object> result = getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
-
 			if (result != null && result.get(HttpHelper.FIELD_BODY) != null) {
 
 				InputStream body = (InputStream) result.get(HttpHelper.FIELD_BODY);
 				result.put(HttpHelper.FIELD_BODY, IOUtils.toByteArray(body));
+
 			} else if (result != null) {
 
 				result.put(HttpHelper.FIELD_BODY, null);
@@ -261,6 +252,7 @@ public class HttpHelper {
 			return result;
 
 		} catch (final Throwable t) {
+
 			logger.error("Error while downloading binary data from " + address, t);
 			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
 		}
@@ -276,11 +268,11 @@ public class HttpHelper {
 		try {
 
 			Map<String, Object> result = postAsStream(address, requestBody, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
-
 			if (result != null && result.get(HttpHelper.FIELD_BODY) != null) {
 
 				InputStream body = (InputStream) result.get(HttpHelper.FIELD_BODY);
 				result.put(HttpHelper.FIELD_BODY, IOUtils.toByteArray(body));
+
 			} else if (result != null) {
 
 				result.put(HttpHelper.FIELD_BODY, null);
@@ -289,6 +281,7 @@ public class HttpHelper {
 			return result;
 
 		} catch (final Throwable t) {
+
 			logger.error("Error while downloading binary data from " + address, t);
 			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
 		}
@@ -313,7 +306,6 @@ public class HttpHelper {
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpHead req  = new HttpHead(uri);
 			final HttpConfig hc = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates, null);
-
 			final CloseableHttpResponse response = hc.client().execute(req);
 
 			responseHeaders.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
@@ -352,7 +344,6 @@ public class HttpHelper {
 			if (entity != null) {
 
 				final InputStream responseContent = entity.getContent();
-
 				if (responseContent != null) {
 
 					content = IOUtils.toString(responseContent, charset(response, hc.charset()));
@@ -404,7 +395,6 @@ public class HttpHelper {
 		return post(address, requestBody, null, null, proxyUrl, proxyUsername, null, null, headers, charset, validateCertificates, config);
 	}
 
-
 	public static Map<String, Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
 
 		final Map<String, Object> responseData = new HashMap<>();
@@ -413,17 +403,18 @@ public class HttpHelper {
 
 			final URI uri      = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPost req = new HttpPost(uri);
-
 			Integer timeout         = null;
 			boolean followRedirects = false;
 
 			if (config != null) {
 
 				if (config.containsKey("timeout")) {
+
 					timeout = (Integer) config.get("timeout");
 				}
 
 				if (config.containsKey("redirects")) {
+
 					followRedirects = (Boolean) config.get("redirects");
 				}
 			}
@@ -434,9 +425,10 @@ public class HttpHelper {
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
-
 			String content = null;
+
 			if (responseEntity != null) {
+
 				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
 			}
 
@@ -456,22 +448,27 @@ public class HttpHelper {
 	}
 
 	public static Map<String, Object> put(final String address, final String requestBody) throws FrameworkException {
+
 		return put(address, requestBody, null, null, null, null, Collections.EMPTY_MAP, true);
 	}
 
 	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+
 		return put(address, requestBody, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
 	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+
 		return put(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates);
 	}
 
 	public static Map<String, Object> put(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+
 		return put(address, requestBody, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates);
 	}
 
 	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+
 		return put(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, "UTF-8", validateCertificates);
 	}
 
@@ -489,9 +486,10 @@ public class HttpHelper {
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
-
 			String content = null;
+
 			if (responseEntity != null) {
+
 				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
 			}
 
@@ -534,12 +532,12 @@ public class HttpHelper {
 			final URI uri        = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpDelete req = new HttpDelete(uri);
 			final HttpConfig hc  = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
-
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
-
 			String content = null;
+
 			if (responseEntity != null) {
+
 				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
 			}
 
@@ -573,13 +571,10 @@ public class HttpHelper {
 		try {
 
 			final Map<String, Object> responseData = new HashMap<>();
-
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req   = new HttpGet(uri);
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
-
 			final CloseableHttpResponse resp = hc.client().execute(req);
-
 			InputStream stream = resp.getEntity().getContent();
 
 			responseData.put(HttpHelper.FIELD_BODY, stream);
@@ -611,7 +606,6 @@ public class HttpHelper {
 		try {
 
 			final Map<String, Object> responseData = new HashMap<>();
-
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPost req  = new HttpPost(uri);
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
@@ -619,7 +613,6 @@ public class HttpHelper {
 			req.setEntity(new StringEntity(requestBody, hc.charset()));
 
 			final CloseableHttpResponse resp = hc.client().execute(req);
-
 			InputStream stream = resp.getEntity().getContent();
 
 			responseData.put(HttpHelper.FIELD_BODY, stream);
@@ -653,6 +646,7 @@ public class HttpHelper {
 
 		final ContentType contentType = ContentType.get(response.getEntity());
 		if (contentType != null && contentType.getCharset() != null) {
+
 			return contentType.getCharset().toString();
 		}
 
@@ -695,7 +689,6 @@ public class HttpHelper {
 			req.addHeader("User-Agent", "curl/7.35.0");
 
 			final CloseableHttpResponse resp = hc.client().execute(req);
-
 			final int statusCode = resp.getStatusLine().getStatusCode();
 
 			if (statusCode == 200) {
@@ -719,6 +712,7 @@ public class HttpHelper {
 			}
 
 		} catch (final Throwable t) {
+
 			throw new FrameworkException(422, "Unable to fetch file content from address " + address + ": " + t.getMessage());
 		}
 	}
@@ -731,8 +725,11 @@ public class HttpHelper {
 
 			final String key = header.getName();
 			if (map.containsKey(key)) {
+
 				map.put(key, String.join(System.lineSeparator(), map.get(key), header.getValue()));
+
 			} else {
+
 				map.put(header.getName(), header.getValue());
 			}
 		}
@@ -753,44 +750,46 @@ public class HttpHelper {
 	public static void validateUrl(final String address) throws FrameworkException {
 
 		if (!Settings.SsrfProtection.getValue()) {
+
 			return;
 		}
 
 		final URI uri;
 
 		try {
+
 			uri = URI.create(address);
+
 		} catch (IllegalArgumentException e) {
+
 			throw new FrameworkException(400, "Invalid URL: " + address);
 		}
 
 		// Only allow http and https schemes
 		final String scheme = uri.getScheme();
 		if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+
 			throw new FrameworkException(400, "Only http and https URLs are allowed");
 		}
 
 		// Resolve hostname and check against private IP ranges
 		final String host = uri.getHost();
 		if (host == null) {
+
 			throw new FrameworkException(400, "URL has no host component");
 		}
 
 		try {
 
 			final InetAddress resolved = InetAddress.getByName(host);
-
-			if (resolved.isLoopbackAddress()
-				|| resolved.isLinkLocalAddress()
-				|| resolved.isSiteLocalAddress()
-				|| resolved.isAnyLocalAddress()
-				|| resolved.isMulticastAddress()) {
+			if (resolved.isLoopbackAddress() || resolved.isLinkLocalAddress() || resolved.isSiteLocalAddress() || resolved.isAnyLocalAddress() || resolved.isMulticastAddress()) {
 
 				logger.warn("Blocked outbound request to internal address {} (resolved from {})", resolved.getHostAddress(), host);
 				throw new FrameworkException(403, "Requests to internal network addresses are not allowed");
 			}
 
 		} catch (UnknownHostException e) {
+
 			throw new FrameworkException(400, "Unable to resolve hostname: " + host);
 		}
 	}
@@ -808,10 +807,10 @@ public class HttpHelper {
 			for (final String part : StringUtils.split(whitelist, ',')) {
 
 				final String cleanedPart = part.strip();
-
 				if (StringUtils.isNotBlank(cleanedPart)) {
 
 					if (address.matches(cleanedPart)) {
+
 						return uri;
 					}
 				}
@@ -838,14 +837,16 @@ public class HttpHelper {
 			final HttpConfig hc            = configure(req, charset, username, password, null, null, null, null, headers, followRedirects, validateCertificates, timeout);
 
 			if (StringUtils.isNotBlank(requestBody)) {
+
 				req.setEntity(new StringEntity(requestBody, hc.charset()));
 			}
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity       = response.getEntity();
-
 			String content = null;
+
 			if (responseEntity != null) {
+
 				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
 			}
 
@@ -880,6 +881,7 @@ public class HttpHelper {
 		private final String method;
 
 		public HttpGenericMethod(final URI uri, final String method) {
+
 			super();
 			setURI(uri);
 			this.method = method;
@@ -887,6 +889,7 @@ public class HttpHelper {
 
 		@Override
 		public String getMethod() {
+
 			return method;
 		}
 	}
@@ -894,11 +897,13 @@ public class HttpHelper {
 	public static class HttpPatch extends HttpPut {
 
 		public HttpPatch(final URI uri) {
+
 			super(uri);
 		}
 
 		@Override
 		public String getMethod() {
+
 			return "PATCH";
 		}
 	}

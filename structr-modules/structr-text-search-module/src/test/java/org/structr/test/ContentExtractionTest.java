@@ -82,9 +82,12 @@ public class ContentExtractionTest extends StructrUiTest {
 					assertEquals("Invalid content extraction result", expected, actual);
 
 				} catch (TikaException e) {
+
 					e.printStackTrace();
 					fail("Unexpected exception.");
+
 				} catch (SAXException e) {
+
 					e.printStackTrace();
 					fail("Unexpected exception.");
 				}
@@ -93,6 +96,7 @@ public class ContentExtractionTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -118,9 +122,9 @@ public class ContentExtractionTest extends StructrUiTest {
 			assertTrue("StopWords for English should contain some words", words.contains("he"));
 
 		} catch (FrameworkException e) {
+
 			throw new RuntimeException(e);
 		}
-
 
 	}
 }

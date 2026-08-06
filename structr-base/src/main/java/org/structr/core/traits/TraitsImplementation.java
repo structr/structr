@@ -80,6 +80,7 @@ public class TraitsImplementation implements Traits {
 	 * Marked as deprecated to find problems in migrated code.
 	 */
 	public boolean equals(final Object o) {
+
 		return false;
 	}
 
@@ -98,6 +99,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public boolean contains(final String type) {
+
 		return getLabels().contains(type);
 	}
 
@@ -137,6 +139,7 @@ public class TraitsImplementation implements Traits {
 	public <T> PropertyKey<T> keyOrGenericProperty(final String name) {
 
 		if (hasKey(name)) {
+
 			return key(name);
 		}
 
@@ -145,21 +148,25 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public boolean hasKey(final String name) {
+
 		return key(name) != null;
 	}
 
 	@Override
 	public boolean isNodeType() {
+
 		return isNodeType;
 	}
 
 	@Override
 	public boolean isRelationshipType() {
+
 		return isRelationshipType;
 	}
 
 	@Override
 	public boolean isBuiltinType() {
+
 		return isBuiltInType;
 	}
 
@@ -180,6 +187,7 @@ public class TraitsImplementation implements Traits {
 
 				// make sure that dynamic properties (which appear later in this loop) overwrite existing properties
 				if (set.contains(key)) {
+
 					set.remove(key);
 				}
 
@@ -250,8 +258,8 @@ public class TraitsImplementation implements Traits {
 	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
 
 		T current = (T) frameworkMethodCache.get(type);
-
 		if (current != null) {
+
 			return current;
 		}
 
@@ -281,6 +289,7 @@ public class TraitsImplementation implements Traits {
 	public Map<String, AbstractMethod> getDynamicMethods() {
 
 		if (dynamicMethodCache != null) {
+
 			return dynamicMethodCache;
 		}
 
@@ -302,6 +311,7 @@ public class TraitsImplementation implements Traits {
 	 * edits don't propagate and stale code keeps running.
 	 */
 	public void clearDynamicMethodCache() {
+
 		this.dynamicMethodCache = null;
 	}
 
@@ -386,21 +396,25 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public boolean isInterface() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isAbstract() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isServiceClass() {
+
 		return isServiceClass;
 	}
 
 	@Override
 	public boolean changelogEnabled() {
+
 		return changelogEnabled;
 	}
 
@@ -419,6 +433,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<String> getAllTraits() {
+
 		return getLabels();
 	}
 
@@ -479,46 +494,55 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public String getName() {
+
 		return typeName;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return null;
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return null;
 	}
 
@@ -560,10 +584,12 @@ public class TraitsImplementation implements Traits {
 
 	// ----- private methods -----
 	private Set<Trait> getTraits() {
+
 		return traits;
 	}
 
 	public void addTrait(final String trait) {
+
 		traitNames.add(trait);
 	}
 
@@ -593,6 +619,7 @@ public class TraitsImplementation implements Traits {
 	private void recurse(final Set<String> resolvedTraits, final Set<String> seenTraits, final String name, final int depth) {
 
 		if (!seenTraits.add(name)) {
+
 			return;
 		}
 
@@ -614,6 +641,7 @@ public class TraitsImplementation implements Traits {
 		T value;
 
 		public Wrapper(final T value) {
+
 			this.value = value;
 		}
 	}

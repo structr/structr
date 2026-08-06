@@ -30,39 +30,43 @@ public class GetErrorsFunction extends CoreFunction {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
 		return ctx.getErrorBuffer().getErrorTokens();
 	}
 
 	@Override
 	public String getName() {
+
 		return "getErrors";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns all error tokens present in the current context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.getErrors()}}. Example: ${{$.getErrors()}}"),
-			Usage.structrScript("Usage: ${getErrors()}. Example: ${getErrors()}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{$.getErrors()}}. Example: ${{$.getErrors()}}"), Usage.structrScript("Usage: ${getErrors()}. Example: ${getErrors()}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 }

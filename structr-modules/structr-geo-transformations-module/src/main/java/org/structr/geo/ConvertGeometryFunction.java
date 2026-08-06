@@ -40,11 +40,13 @@ public class ConvertGeometryFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "convertGeometry";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("sourceCRS, destCRS, geometry");
 	}
 
@@ -72,11 +74,11 @@ public class ConvertGeometryFunction extends GeoFunction {
 				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 
-
 		} catch (IllegalArgumentException e) {
 
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, e.getMessage(), isJs);
+
 			return usage(isJs);
 		}
 
@@ -85,17 +87,19 @@ public class ConvertGeometryFunction extends GeoFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts the given geometry from source CRS to destination CRS.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

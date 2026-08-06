@@ -28,6 +28,7 @@ import org.structr.memory.index.predicate.*;
 public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public ComparisonQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -45,12 +46,14 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			final Class type                            = null;
 
 			if (value == null && comparison == null) {
+
 				return false;
 			}
 
 			switch (comparison) {
 				case equal:
 					query.addPredicate(new ValuePredicate(name, value));
+
 					return true;
 
 				case notEqual:
@@ -75,10 +78,12 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 				case isNull:
 					query.addPredicate(new NullPredicate<>(name));
+
 					return true;
 
 				case isNotNull:
 					query.addPredicate(new NotPredicate(new NullPredicate<>(name)));
+
 					return true;
 
 				case startsWith:

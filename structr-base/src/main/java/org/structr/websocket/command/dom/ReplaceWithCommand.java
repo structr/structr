@@ -66,18 +66,21 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 		if (pageId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot insert node without pageId").build(), true);
+
 			return;
 		}
 
 		if (nodeId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot insert node without a reference nodeId").build(), true);
+
 			return;
 		}
 
 		if (tagName == null || tagName.isEmpty()) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Cannot create node without tagname").build(), true);
+
 			return;
 		}
 
@@ -86,25 +89,28 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 		if (refNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node not found").build(), true);
+
 			return;
 		}
 
 		final Page document = getPage(pageId);
-
 		if (document == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);
+
 			return;
 		}
 
 		final DOMNode parentNode = refNode.getParent();
-
 		if (parentNode == null) {
+
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node has no parent node").build(), true);
+
 			return;
 		}
 
 		try {
+
 			DOMNode newNode;
 
 			if ("comment".equals(tagName)) {
@@ -126,6 +132,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 			}
 
 			newNode = getDOMNode(newNode.getUuid());
+
 			if (newNode != null) {
 
 				// do we really want to replace all properties? This might overwrite template source
@@ -146,20 +153,22 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "REPLACE_WITH";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
 	// ----- public static methods -----
 	public static void replaceNode(final SecurityContext securityContext, final DOMNode parentNode, final DOMNode refNode, final DOMNode newNode, final boolean copyAttributes, final boolean inheritVisibilityFlags, final boolean inheritGrantees) throws FrameworkException {
 
-
 		// move all children from refNode to newNode
 		for (final DOMNode child : refNode.getChildren()) {
+
 			refNode.removeChild(child);
 			newNode.appendChild(child);
 		}

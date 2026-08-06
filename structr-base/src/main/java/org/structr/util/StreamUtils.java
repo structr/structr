@@ -28,8 +28,7 @@ public abstract class StreamUtils {
 
     public static String readAllLines(final InputStream is) {
 
-        return new BufferedReader(
-                new InputStreamReader(is, StandardCharsets.UTF_8))
+        return new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining("\n"));
     }

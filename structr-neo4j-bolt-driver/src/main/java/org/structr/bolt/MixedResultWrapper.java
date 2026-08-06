@@ -32,6 +32,7 @@ class MixedResultWrapper<S, T> implements Function<S, T> {
 	protected BoltDatabaseService db = null;
 
 	public MixedResultWrapper(final BoltDatabaseService db) {
+
 		this.db = db;
 	}
 

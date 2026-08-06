@@ -34,16 +34,19 @@ public class EqualFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "equal";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
 	@Override
 	public List<String> aliases() {
+
 		return Arrays.asList("eq");
 	}
 
@@ -51,23 +54,26 @@ public class EqualFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources.length < 2) {
+
 			return true;
 		}
 
 		if (sources[0] == null && sources[1] == null) {
+
 			return true;
 		}
 
 		if (sources[0] == null || sources[1] == null) {
+
 			return false;
 		}
 
 		return valueEquals(sources[0], sources[1]);
 	}
 
-
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${$.equal(value1, value2)}. Example: ${$.equal($.this.children.size, 0)}"),
 			Usage.structrScript("Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}")
@@ -76,11 +82,13 @@ public class EqualFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a boolean value that indicates whether the values are equal.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function is very lenient; you can use it to compare dates and strings, strings and numbers, etc., based on the actual values of the converted objects.
 
@@ -90,13 +98,13 @@ public class EqualFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This function can also be called using just `eq()` as an alias."
-		);
+
+		return List.of("This function can also be called using just `eq()` as an alias.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

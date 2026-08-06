@@ -62,9 +62,8 @@ public class Settings {
 	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
 
 	public enum POSSIBLE_UUID_V4_FORMATS {
-		without_dashes,
-		with_dashes,
-		both
+
+		without_dashes, with_dashes, both
 	}
 
 	private static final Map<String, Setting> settings        = new TreeMap<>();
@@ -356,7 +355,6 @@ public class Settings {
 	public static final Setting<Boolean> CallbacksOnLogout      = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.logout.onsave",       false, "Setting this to true enables the execution of the User.onSave method when a user logs out. Disabled by default because the global login handler onStructrLogout would be the right place for such functionality.");
 	public static final Setting<Boolean> CallbacksOnLogin       = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.login.onsave",      false, "Setting this to true enables the execution of the User.onSave method for login actions. This will also trigger for failed login attempts and for two-factor authentication intermediate steps. Disabled by default because the global login handler onStructrLogin would be the right place for such functionality.");
 
-
 	// mail settings
 	public static final Setting<String> SmtpHost              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.host",         "localhost", "Address of the SMTP server used to send e-mails");
 	public static final Setting<Integer> SmtpPort             = new IntegerSetting(smtpGroup, "SMTP Settings", "smtp.port",         25,          "SMTP server port to use when sending e-mails");
@@ -610,7 +608,6 @@ public class Settings {
 	public static final Setting<String> MetricsServletDefaultView       = new StringSetting(servletsGroup,  "hidden", "metricsservlet.defaultview",       "public");
 	public static final Setting<String> MetricsServletWhitelist         = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.whitelist", "127.0.0.1, localhost, ::1", "Comma-separated list of IP addresses that are allowed to access the health check endpoint at /structr/metrics.");
 
-
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List of cron task configurations or method names separated by space. This only configures the list of tasks. For each task, there needs to be another configuration entry named '<taskname>.cronExpression' with the appropriate cron schedule configuration. Restart of CronService required.");
 	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.");
@@ -688,7 +685,6 @@ public class Settings {
 	public static final Setting<String> LetsEncryptDomainCSRFileName                = new StringSetting(securityGroup,   "Letsencrypt", "letsencrypt.domain.csr.filename", "domain.csr", "File name of the Let's Encrypt CSR. Default is 'domain.csr'.");
 	public static final Setting<String> LetsEncryptDomainChainFilename              = new StringSetting(securityGroup,   "Letsencrypt", "letsencrypt.domain.chain.filename", "domain-chain.crt", "File name of the Let's Encrypt domain chain. Default is 'domain-chain.crt'.");
 	public static final Setting<Integer> LetsEncryptKeySize                         = new IntegerSetting(securityGroup,  "Letsencrypt", "letsencrypt.key.size", 2048, "Encryption key length. Default is 2048.");
-
 
 	// OAuth General Settings
 	public static final Setting<String> OAuthServers          = new StringSetting(oauthGroup, "General", "oauth.servers", "auth0 azure facebook github google linkedin keycloak", "List of available OAuth services separated by space. Defaults to a list of all available services.");
@@ -792,22 +788,27 @@ public class Settings {
 	public static final Setting<Boolean> LicenseAllowFallback     = new BooleanSetting(licensingGroup,  "Licensing", "license.allow.fallback",      true, "Allow Structr to fall back to the Community License if no valid license exists (or license cannot be validated). Set this to false in production environments to prevent Structr from starting without a license.");
 
 	public static Collection<SettingsGroup> getGroups() {
+
 		return groups.values();
 	}
 
 	public static SettingsGroup getGroup(final String key) {
+
 		return groups.get(key);
 	}
 
 	public static Collection<Setting> getSettings() {
+
 		return settings.values();
 	}
 
 	public static <T> Setting<T> getSetting(final String... keys) {
+
 		return settings.get(StringUtils.join(toLowerCase(keys), "."));
 	}
 
 	public static <T> Setting<T> getCaseSensitiveSetting(final String... keys) {
+
 		return settings.get(StringUtils.join(keys, "."));
 	}
 
@@ -875,6 +876,7 @@ public class Settings {
 	}
 
 	public static Setting<?> createSettingForValue(final SettingsGroup group, final String key, final String value) {
+
 		return createSettingForValue(group, key, value, false);
 	}
 
@@ -1005,6 +1007,7 @@ public class Settings {
 			// If file does not exist, create it and set default permissions
 			final Path filePath     = Path.of(fileName);
 			final boolean didCreate = filePath.toFile().createNewFile();
+
 			if (didCreate) {
 
 				try {
@@ -1012,6 +1015,7 @@ public class Settings {
 					Files.setPosixFilePermissions(filePath, expectedConfigFilePermissions);
 
 				} catch (UnsupportedOperationException | IOException e) {
+
 					// happens on non-POSIX filesystems, ignore
 				}
 			}
@@ -1036,6 +1040,7 @@ public class Settings {
 			final long freeSpace          = fileHandler.getFile().getFreeSpace();
 
 			if (freeSpace < 1024 * 1024) {
+
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
@@ -1061,8 +1066,7 @@ public class Settings {
 				   .configure(new Parameters().fileBased()
 							  .setFileName(fileName)
 							  .setThrowExceptionOnMissing(true)
-							  .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-				   );
+							  .setListDelimiterHandler(new DefaultListDelimiterHandler('\0')));
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -1079,6 +1083,7 @@ public class Settings {
 			return PosixFilePermissions.toString(actualPermissions);
 
 		} catch (UnsupportedOperationException | IOException e) {
+
 			// happens on non-POSIX filesystems, ignore
 		}
 
@@ -1091,7 +1096,9 @@ public class Settings {
 
 			final FileHandler fileHandler = builder.getFileHandler();
 			final String pathString = fileHandler.getPath();
+
 			if (pathString != null) {
+
 				return Files.getPosixFilePermissions(Path.of(pathString));
 			}
 		}
@@ -1116,6 +1123,7 @@ public class Settings {
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
+
 			// happens on non-POSIX filesystems, ignore
 		}
 
@@ -1127,7 +1135,6 @@ public class Settings {
 		try {
 
 			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = getDefaultPropertiesConfigurationBuilder(fileName);
-
 			final PropertiesConfiguration config = builder.getConfiguration();
 			final Iterator<String> keys          = config.getKeys();
 
@@ -1159,6 +1166,7 @@ public class Settings {
 
 					// put key in cron group if it contains ".cronExpression"
 					if (key.contains(".cronExpression")) {
+
 						targetGroup = cronGroup;
 					}
 
@@ -1194,6 +1202,7 @@ public class Settings {
 	private static String checkPath(final String path) {
 
 		if (path.endsWith("/")) {
+
 			return path;
 		}
 
@@ -1214,14 +1223,15 @@ public class Settings {
 
 	// ----- package methods -----
 	static void registerGroup(final SettingsGroup group) {
+
 		groups.put(group.getKey(), group);
 	}
 
 	static void registerSetting(final Setting setting) {
 
 		final Setting oldSetting = settings.get(setting.getKey());
-
 		if (oldSetting != null) {
+
 			setting.setValue(oldSetting.getValue());
 			oldSetting.unregister();
 		}
@@ -1230,25 +1240,31 @@ public class Settings {
 	}
 
 	static void unregisterSetting(final Setting setting) {
+
 		settings.remove(setting.getKey());
 	}
 
 	public static Set<String> getStringsAsSet(final String... choices) {
+
 		return new LinkedHashSet<>(Arrays.asList(choices));
 	}
 
 	public static Map<Integer, String> getTwoFactorSettingOptions() {
+
 		final Map<Integer, String> options = new LinkedHashMap();
 		options.put(0, "off");
 		options.put(1, "optional");
 		options.put(2, "forced");
+
 		return options;
 	}
 
 	public static Map<Integer, String> getTwoFactorDigitsOptions() {
+
 		final Map<Integer, String> options = new LinkedHashMap();
 		options.put(6, "6 Digits");
 		options.put(8, "8 Digits");
+
 		return options;
 	}
 
@@ -1258,6 +1274,7 @@ public class Settings {
 		options.put(POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes");
 		options.put(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes");
 		options.put(POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)");
+
 		return options;
 	}
 
@@ -1270,11 +1287,12 @@ public class Settings {
 		options.put("INFO", "INFO");
 		options.put("WARN", "WARN");
 		options.put("ERROR", "ERROR");
+
 		return options;
 	}
 
-
 	public enum SCRIPT_PROCESS_LOG_STYLE {
+
 		NOTHING(0), SCRIPT_PATH(1), CUSTOM(2);
 
 		SCRIPT_PROCESS_LOG_STYLE(int l) {}
@@ -1290,10 +1308,12 @@ public class Settings {
 	}
 
 	public static Map<Integer, String> getScriptProcessLogCommandLineOptions() {
+
 		final Map<Integer, String> options = new LinkedHashMap();
 		options.put(0, "0 - Do not log command line");
 		options.put(1, "1 - Log full path to script without parameters");
 		options.put(2, "2 - Log full path to script and parameters as configured");
+
 		return options;
 	}
 
@@ -1305,6 +1325,7 @@ public class Settings {
 			if (value.toString().equals(source)) {
 
 				// value is not changed by parsing and toString()
+
 				return true;
 			}
 
@@ -1316,6 +1337,7 @@ public class Settings {
 	public static String getValidUUIDRegexString() {
 
 		if (Settings.uuidPattern == null) {
+
 			initializeValidUUIDPatternOnce();
 		}
 
@@ -1325,6 +1347,7 @@ public class Settings {
 	public static String getValidUUIDRegexStringForURLParts() {
 
 		if (Settings.uuidPattern == null) {
+
 			initializeValidUUIDPatternOnce();
 		}
 
@@ -1334,7 +1357,9 @@ public class Settings {
 	private static void initializeValidUUIDPatternOnce() {
 
 		if (Settings.uuidPattern != null && Settings.uuidOnlyRegex != null) {
+
 			// prevent update
+
 			return;
 		}
 
@@ -1363,12 +1388,14 @@ public class Settings {
 
 		// make sure the UUID pattern is always initialized
 		if (Settings.uuidPattern == null) {
+
 			initializeValidUUIDPatternOnce();
 		}
 
 		if (id != null) {
 
 			if (Settings.uuidPattern.matcher(id).matches()) {
+
 				return true;
 			}
 		}
@@ -1379,6 +1406,7 @@ public class Settings {
 	public static boolean isValidEmail(final String email) {
 
 		if (email == null) {
+
 			return false;
 		}
 
@@ -1386,6 +1414,7 @@ public class Settings {
 	}
 
 	public static void updateEmailValidationPattern() {
+
 		emailValidationPattern = Pattern.compile(Settings.EmailValidationRegex.getValue());
 	}
 }

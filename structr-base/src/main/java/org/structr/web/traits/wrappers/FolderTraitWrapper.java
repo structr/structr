@@ -35,31 +35,37 @@ import java.util.List;
 public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Folder {
 
 	public FolderTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getMountTarget() {
+
 		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY));
 	}
 
 	@Override
 	public String getMountTargetFileType() {
+
 		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FILE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getMountTargetFolderType() {
+
 		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FOLDER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getEnabledChecksums() {
+
 		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.ENABLED_CHECKSUMS_PROPERTY));
 	}
 
 	@Override
 	public boolean isExcludeSubtreeFromExport() {
+
 		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY));
 	}
 
@@ -69,21 +75,25 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key(FolderTraitDefinition.CHILDREN_PROPERTY);
 
 		// wrap nodes in AbstractFile wrapper
+
 		return Iterables.map(c -> c.as(AbstractFile.class), wrappedObject.getProperty(childrenKey));
 	}
 
 	@Override
 	public Iterable<File> getFiles() {
+
 		return Iterables.map(s -> s.as(File.class), Iterables.filter((AbstractFile value) -> value.is(StructrTraits.FILE), getChildren()));
 	}
 
 	@Override
 	public Iterable<Folder> getFolders() {
+
 		return Iterables.map(s -> s.as(Folder.class), Iterables.filter((AbstractFile value) -> value.is(StructrTraits.FOLDER), getChildren()));
 	}
 
 	@Override
 	public Iterable<Image> getImages() {
+
 		return Iterables.map(s -> s.as(Image.class), Iterables.filter((AbstractFile value) -> value.is(StructrTraits.IMAGE), getChildren()));
 	}
 

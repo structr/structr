@@ -27,23 +27,25 @@ public class ChildrenHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "children";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the child nodes of the current node.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${render(children)}", "Render the HTML content of an element's children into the page")
-		);
+
+		return List.of(Example.structrScript("${render(children)}", "Render the HTML content of an element's children into the page"));
 	}
 }

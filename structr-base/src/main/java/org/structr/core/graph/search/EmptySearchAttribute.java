@@ -34,6 +34,7 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	private boolean removeFromQuery = false;
 
 	public EmptySearchAttribute(final PropertyKey<T> key, final T value) {
+
 		this(key, value, false);
 	}
 
@@ -46,11 +47,13 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 
 	@Override
 	public String toString() {
+
 		return "EmptySearchAttribute()";
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return EmptyQuery.class;
 	}
 
@@ -63,12 +66,14 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 		if (nodeValue != null) {
 
 			if (!equal(nodeValue, searchValue)) {
+
 				return false;
 			}
 
 		} else {
 
 			if (searchValue != null) {
+
 				return false;
 			}
 		}
@@ -86,6 +91,7 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	 * @return whether to remove this search attribute before actually querying the database
 	 */
 	public boolean removeFromQuery() {
+
 		return removeFromQuery;
 	}
 
@@ -93,11 +99,13 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 
 		// easy, both values are null => equal
 		if (nodeValue == null && searchValue == null) {
+
 			return true;
 		}
 
 		// node value is null, search value is non-null,
 		if (nodeValue == null && searchValue != null) {
+
 			return false;
 		}
 
@@ -112,6 +120,7 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 			} else {
 
 				// TODO: check if this is sufficient
+
 				return StringUtils.isBlank(nodeValue.toString());
 			}
 		}
@@ -121,19 +130,21 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 
 			Iterable nodeCollection   = (Iterable)nodeValue;
 			Iterable searchCollection = (Iterable)searchValue;
-
 			final Iterator nodeIterator   = nodeCollection.iterator();
 			final Iterator searchIterator = searchCollection.iterator();
 
 			if (!nodeIterator.hasNext() && !searchIterator.hasNext()) {
+
 				return true;
 			}
 
 			if (isEmptyOrValue(nodeCollection) && !searchIterator.hasNext()) {
+
 				return true;
 			}
 
 			if (!nodeIterator.hasNext() && isEmptyOrValue(searchCollection)) {
+
 				return true;
 			}
 		}
@@ -144,12 +155,14 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	private boolean isEmptyOrValue(Iterable<T> collection) {
 
 		if (collection == null) {
+
 			return true;
 		}
 
 		for (T t : collection) {
 
 			if (t != null) {
+
 				return false;
 			}
 		}

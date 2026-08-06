@@ -79,11 +79,13 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public void setIndent(String indent) {
+
 		doc.setIndent(indent);
 	}
 
 	@Override
 	public SecurityContext getSecurityContext() {
+
 		return securityContext;
 	}
 
@@ -95,6 +97,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		pagingParameterString = getPagingParameters();
 
 		if (!propertyView.equals("public")) {
+
 			this.propertyView = "/" + propertyView;
 		}
 
@@ -116,7 +119,6 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		// try to isolate type (could still have trailing bits like UUID or even a method)
 		final String isolatedType = (currentType.contains("/")) ? currentType.substring(0, currentType.indexOf("/")) : currentType;
-
 		final Set<String> views = (Traits.exists(isolatedType)) ? Traits.of(isolatedType).getViewNames() : Traits.getAllViews();
 
 		for (String view : views.stream().sorted().toList()) {
@@ -172,6 +174,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter beginObject() throws IOException {
+
 		return beginObject(null);
 	}
 
@@ -184,6 +187,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		currentObject = graphObject;
 
 		if (!hasName) {
+
 			currentElement = currentElement.block(LI);
 		}
 
@@ -198,6 +202,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter endObject() throws IOException {
+
 		return endObject(null);
 	}
 
@@ -220,8 +225,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter name(final String name) throws IOException {
 
 		if (previousElement != null) {
+
 			previousElement.appendComma();
 		}
+
 		previousElement = currentElement;
 
 		currentElement = currentElement.block(LI);
@@ -240,6 +247,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		if (!hasName) {
 
 			if (previousElement != null) {
+
 				previousElement.appendComma();
 			}
 
@@ -301,6 +309,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		if (!hasName) {
 
 			if (previousElement != null) {
+
 				previousElement.appendComma();
 			}
 
@@ -321,6 +330,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		if (!hasName) {
 
 			if (previousElement != null) {
+
 				previousElement.appendComma();
 			}
 
@@ -341,6 +351,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		if (!hasName) {
 
 			if (previousElement != null) {
+
 				previousElement.appendComma();
 			}
 
@@ -361,6 +372,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		if (!hasName) {
 
 			if (previousElement != null) {
+
 				previousElement.appendComma();
 			}
 
@@ -377,6 +389,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public void raw(final String data) throws IOException {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -386,32 +399,36 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public void setPageSize(final int pageSize) {
+
 		this.pageSize = pageSize;
 	}
 
 	@Override
 	public int getPageSize() {
+
 		return pageSize;
 	}
 
 	@Override
 	public void setPage(final int page) {
+
 		this.page = page;
 	}
 
 	@Override
 	public int getPage() {
+
 		return page;
 	}
 
 	private String getPagingParameters() {
 
 		final ArrayList<String> paramList = new ArrayList<>();
-
 		final String pageSizeKeyword = RequestParameters.PageSize.getName();
 		final String requestPageSize = securityContext.getRequest().getParameter(pageSizeKeyword);
 
 		if (requestPageSize != null) {
+
 			paramList.add(pageSizeKeyword + "=" + requestPageSize);
 		}
 
@@ -419,10 +436,12 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		final String requestPageNumber = securityContext.getRequest().getParameter(pageNumberKeyword);
 
 		if (requestPageNumber != null) {
+
 			paramList.add(pageNumberKeyword + "=" + requestPageNumber);
 		}
 
 		if (paramList.size() == 0) {
+
 			return "";
 		}
 

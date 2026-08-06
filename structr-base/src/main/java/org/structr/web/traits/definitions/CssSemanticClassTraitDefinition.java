@@ -40,32 +40,33 @@ public class CssSemanticClassTraitDefinition extends AbstractNodeTraitDefinition
 
 	public static final String SELECTORS_PROPERTY = "selectors";
 
-
 	public CssSemanticClassTraitDefinition() {
+
 		super(StructrTraits.CSS_SEMANTIC_CLASS);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			CssSemanticClass.class, (traits, node) -> new CssSemanticClassTraitWrapper(traits, node)
-		);
+		return Map.of(CssSemanticClass.class, (traits, node) -> new CssSemanticClassTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -73,13 +74,12 @@ public class CssSemanticClassTraitDefinition extends AbstractNodeTraitDefinition
 
 		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes(traitsInstance, SELECTORS_PROPERTY, StructrTraits.CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR);
 
-		return Set.of(
-			selectorsProperty
-		);
+		return Set.of(selectorsProperty);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

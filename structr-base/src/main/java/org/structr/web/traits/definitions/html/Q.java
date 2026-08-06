@@ -27,6 +27,7 @@ import java.util.Map;
 public class Q extends GenericHtmlElementTraitDefinition {
 
 	public Q() {
+
 		super(StructrTraits.Q);
 	}
 
@@ -37,11 +38,11 @@ public class Q extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

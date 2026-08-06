@@ -38,14 +38,17 @@ public class AnnotatedLine {
 	}
 
 	public String getContent() {
+
 		return line;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 
 	public void setType(final String type) {
+
 		this.type = type;
 	}
 
@@ -68,10 +71,12 @@ public class AnnotatedLine {
 	}
 
 	public boolean isBlank() {
+
 		return StringUtils.isBlank(line);
 	}
 
 	public boolean isNumeric() {
+
 		return numberPattern.matcher(line.trim()).matches();
 	}
 

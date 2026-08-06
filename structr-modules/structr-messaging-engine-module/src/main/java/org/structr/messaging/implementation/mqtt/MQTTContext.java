@@ -58,13 +58,13 @@ public abstract class MQTTContext {
 	}
 
 	public static MQTTClientConnection getClientForId(final String id){
+
 		return connections.get(id);
 	}
 
 	public static void disconnect(final String uuid) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(uuid);
-
 		if (con != null){
 
 			connections.remove(uuid);
@@ -79,7 +79,6 @@ public abstract class MQTTContext {
 	public static void disconnect(final MQTTInfo info) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(info.getUuid());
-
 		if (con != null){
 
 			connections.remove(info.getUuid());
@@ -97,7 +96,6 @@ public abstract class MQTTContext {
 	public static void delete(final String uuid) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(uuid);
-
 		if (con != null){
 
 			connections.remove(uuid);
@@ -111,7 +109,6 @@ public abstract class MQTTContext {
 		try {
 
 			MQTTClientConnection con = getClientForId(info.getUuid());
-
 			if (con == null){
 
 				con = new MQTTClientConnection(info);
@@ -152,6 +149,7 @@ public abstract class MQTTContext {
 
 			// wait for service layer to be initialized
 			while (!Services.getInstance().isInitialized()) {
+
 				try { Thread.sleep(1000); } catch(InterruptedException iex) { }
 			}
 

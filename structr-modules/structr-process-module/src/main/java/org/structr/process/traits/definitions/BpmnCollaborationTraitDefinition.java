@@ -44,15 +44,14 @@ public class BpmnCollaborationTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String MESSAGE_FLOWS_PROPERTY = "messageFlows";
 
 	public BpmnCollaborationTraitDefinition() {
+
 		super(ProcessTraits.BPMN_COLLABORATION);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnCollaboration.class, (traits, node) -> new BpmnCollaborationTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnCollaboration.class, (traits, node) -> new BpmnCollaborationTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -80,6 +79,7 @@ public class BpmnCollaborationTraitDefinition extends AbstractNodeTraitDefinitio
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

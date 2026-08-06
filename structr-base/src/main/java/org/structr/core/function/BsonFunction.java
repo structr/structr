@@ -35,11 +35,13 @@ public class BsonFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "bson";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("data");
 	}
 
@@ -52,21 +54,23 @@ public class BsonFunction extends AdvancedScriptingFunction {
 
 			return NonWrappableObject.from(new BasicDBObject((Map)sources[0]));
 
-
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.bson(data) }}. Example: ${{ $.bson({ name: 'Test' }) }}"),
 			Usage.structrScript("Usage: ${bson(data)}. Example: ${bson({ name: 'Test' })}")
@@ -75,16 +79,19 @@ public class BsonFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates BSON document from a map / object.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

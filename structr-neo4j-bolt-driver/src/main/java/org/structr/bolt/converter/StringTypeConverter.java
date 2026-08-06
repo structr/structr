@@ -30,10 +30,12 @@ public class StringTypeConverter implements TypeConverter {
 	public Object getReadValue(final Object value) {
 
 		if (value == null) {
+
 			return null;
 		}
 
 		if (StringUtils.isEmpty(value.toString())) {
+
 			return null;
 		}
 
@@ -42,11 +44,13 @@ public class StringTypeConverter implements TypeConverter {
 
 	@Override
 	public Object getWriteValue(final Object value) {
+
 		return getReadValue(value);
 	}
 
 	@Override
 	public Object getInexactValue(final Object value) {
+
 		return getReadValue(value);
 	}
 }

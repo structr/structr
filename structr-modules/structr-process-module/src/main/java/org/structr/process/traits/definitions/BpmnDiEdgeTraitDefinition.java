@@ -48,15 +48,14 @@ public class BpmnDiEdgeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String REFERENCES_FLOW_PROPERTY  = "referencesFlow";
 
 	public BpmnDiEdgeTraitDefinition() {
+
 		super(ProcessTraits.BPMN_DI_EDGE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnDiEdge.class, (traits, node) -> new BpmnDiEdgeTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnDiEdge.class, (traits, node) -> new BpmnDiEdgeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -84,6 +83,7 @@ public class BpmnDiEdgeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

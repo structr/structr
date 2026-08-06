@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  *
  */
@@ -75,6 +74,7 @@ class PathWrapper implements Path {
 
 		@Override
 		public boolean hasNext() {
+
 			return state < 3;
 		}
 
@@ -90,10 +90,12 @@ class PathWrapper implements Path {
 
 				case 0:
 					state = 1;
+
 					return tx.getNodeWrapper(current.start());
 
 				case 1:
 					final Relationship rel = current.relationship();
+
 					if (it.hasNext()) {
 
 						state = 0;
@@ -108,6 +110,7 @@ class PathWrapper implements Path {
 
 				case 2:
 					state = 3;
+
 					return tx.getNodeWrapper(current.end());
 			}
 
@@ -116,6 +119,7 @@ class PathWrapper implements Path {
 
 		@Override
 		public void remove() {
+
 			throw new UnsupportedOperationException("Removal not supported.");
 		}
 	}

@@ -51,27 +51,33 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 	private static final Logger logger = LoggerFactory.getLogger(StructrFtpFolder.class.getName());
 
 	public StructrFtpFolder(final SecurityContext securityContext, final Folder folder) {
+
 		super(securityContext, folder);
 	}
 
 	@Override
 	public boolean doesExist() {
+
 		boolean exists = "/".equals(newPath) || super.doesExist();
+
 		return exists;
 	}
 
 	@Override
 	public boolean isDirectory() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isFile() {
+
 		return false;
 	}
 
 	@Override
 	public int getLinkCount() {
+
 		return 1;
 	}
 
@@ -94,6 +100,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public long getSize() {
+
 		return listFiles().size();
 	}
 
@@ -119,6 +126,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						for (NodeInterface f : folders) {
 
 							if (f.as(Folder.class).getHasParent()) {
+
 								continue;
 							}
 
@@ -131,9 +139,11 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 					}
 
 					try (final ResultStream<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(folderNameKey).getResultStream()) {
+
 						for (NodeInterface f : files) {
 
 							if (f.as(File.class).getHasParent()) {
+
 								continue;
 							}
 
@@ -150,6 +160,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 					return ftpFiles;
 
 				} catch (FrameworkException ex) {
+
 					logger.error("", ex);
 				}
 
@@ -180,6 +191,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			return ftpFiles;
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Error in listFiles()", fex);
 		}
 
@@ -189,24 +201,28 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public boolean mkdir() {
+
 		logger.error("Use FileOrFolder#createOutputStream() instead!");
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
+
 		logger.debug("createOutputStream()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public InputStream createInputStream(final long l) throws IOException {
+
 		logger.debug("createInputStream()");
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public Object getPhysicalFile() {
+
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

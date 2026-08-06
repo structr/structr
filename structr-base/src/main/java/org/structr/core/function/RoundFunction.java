@@ -30,11 +30,13 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "round";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value [, decimalPlaces = 0 ]");
 	}
 
@@ -44,10 +46,12 @@ public class RoundFunction extends AdvancedScriptingFunction {
 		try {
 
 			if (sources.length == 0) {
+
 				return null;
 			}
 
 			if (sources[0] == null || StringUtils.isBlank(sources[0].toString())) {
+
 				return null;
 			}
 
@@ -57,6 +61,7 @@ public class RoundFunction extends AdvancedScriptingFunction {
 			if (sources.length >= 2) {
 
 				if (sources[1] == null || StringUtils.isBlank(sources[1].toString())) {
+
 					return f1;
 				}
 
@@ -70,7 +75,6 @@ public class RoundFunction extends AdvancedScriptingFunction {
 			} else {
 
 				final double f2 = Math.pow(10, decimalPlaces);
-
 				long r = Math.round(f1 * f2);
 
 				return (double) r / f2;
@@ -83,25 +87,26 @@ public class RoundFunction extends AdvancedScriptingFunction {
 		} catch (Throwable t) {
 
 			logException(caller, t, sources);
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${round(value [, decimalPlaces = 0 ])}"),
-				Usage.javaScript("Usage: ${{ $.round(value [, decimalPlaces = 0 ]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${round(value [, decimalPlaces = 0 ])}"), Usage.javaScript("Usage: ${{ $.round(value [, decimalPlaces = 0 ]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Rounds the given argument to the nearest integer or to the given number of decimal places.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.
 			If the optional parameter `decimalPlaces` is given, this function rounds to the given number of decimal places.
@@ -110,23 +115,19 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript(" ${round(2.345678, 2)} "),
-				Example.javaScript("${{ $.round(2.345678, 2) }}")
-		);
+
+		return List.of(Example.structrScript(" ${round(2.345678, 2)} "), Example.javaScript("${{ $.round(2.345678, 2) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("value", "value to round"),
-				Parameter.optional("decimalPlaces", "target decimal places. Default 0")
-		);
+		return List.of(Parameter.mandatory("value", "value to round"), Parameter.optional("decimalPlaces", "target decimal places. Default 0"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

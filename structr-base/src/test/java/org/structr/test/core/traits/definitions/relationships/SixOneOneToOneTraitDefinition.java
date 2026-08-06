@@ -25,46 +25,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class SixOneOneToOneTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SixOneOneToOneTraitDefinition() {
+
 		super("SixOneOneToOne");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestSix";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestOne";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "ONE_TO_ONE";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

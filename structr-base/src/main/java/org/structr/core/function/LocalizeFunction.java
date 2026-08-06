@@ -43,11 +43,13 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "localize";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("keyOrKeys [, domain ]");
 	}
 
@@ -76,6 +78,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 			if (sources[0] == null) {
 
 				// silently ignore case which can happen for localize(current.propertyThatCanBeNull[, domain])
+
 				return null;
 
 			} else if (sources.length <= 2) {
@@ -89,6 +92,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 				// only show the error message for wrong parameter count
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -97,12 +101,14 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${localize(keyOrKeys [, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}"),
 			Usage.javaScript("Usage: ${{ $.localize(keyOrKeys [, domain]); }}. Example ${{ $.localize('HELLO_WORLD', 'myDomain'); }}")
@@ -111,11 +117,13 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a (cached) Localization result for the given key and optional domain.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				The `localize()` function can be used to localize a key or a list of keys. It uses the current `locale` (see keyword locale) to search for nodes of type `Localization` in the database. This lookup works in multiple steps. If a Localization object is found, the process is stopped and the result returned. If no localization is found, the search key itself is returned.
 
@@ -135,16 +143,14 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("keyOrKeys", "string or list of keys to localize"),
-				Parameter.optional("domain", "localization domain to use for lookup")
-		);
+
+		return List.of(Parameter.mandatory("keyOrKeys", "string or list of keys to localize"), Parameter.optional("domain", "localization domain to use for lookup"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${localize('Hello', 'Formal')}", "Salutation for the current locale in the 'Formal' domain"),
+
+		return List.of(Example.structrScript("${localize('Hello', 'Formal')}", "Salutation for the current locale in the 'Formal' domain"),
 				Example.html("""
 					<input type="text" name="username" placeholder="${localize('username')}...">
 
@@ -172,6 +178,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 
@@ -240,7 +247,6 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 					if (!fullFallbackLocale.isEmpty() && !fullLocale.equals(fullFallbackLocale)) {
 
 						final String fallbackValue = getLocalization(fallbackLocale, requestedKey, requestedDomain, true);
-
 						if (fallbackValue != null) {
 
 							value = fallbackValue;
@@ -313,15 +319,16 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		return value;
 	}
 
-
 	// ----- caching -----
 	private static final FixedSizeCache<String, String> localizationCache = new FixedSizeCache<>("Localization cache", 10000);
 
 	public static synchronized void invalidateCache() {
+
 		localizationCache.clear();
 	}
 
 	public static synchronized Map getCacheInfo() {
+
 		return localizationCache.getCacheInfo();
 	}
 
@@ -332,6 +339,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		buf.append("||").append(key);
 
 		if (domain != null && !domain.equals("")) {
+
 			buf.append("||").append(domain);
 		}
 
@@ -339,10 +347,12 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	}
 
 	private static synchronized String getCachedValue(final String cacheKey) {
+
 		return localizationCache.get(cacheKey);
 	}
 
 	private static synchronized void cacheValue(final String cacheKey, final String value) {
+
 		localizationCache.put(cacheKey, value);
 	}
 
@@ -352,7 +362,6 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		final PropertyKey<String> nameKey   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final PropertyKey<String> domainKey = traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY);
 		final PropertyKey<String> localeKey = traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY);
-
 		final List<NodeInterface> localizations = StructrApp.getInstance().nodeQuery(StructrTraits.LOCALIZATION)
 			.key(nameKey,   key)
 			.key(domainKey, domain)
@@ -361,6 +370,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 		// nothing found
 		if (localizations.isEmpty()) {
+
 			return null;
 		}
 
@@ -372,6 +382,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		}
 
 		// return first
+
 		return localizations.getFirst();
 	}
 
@@ -381,10 +392,12 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 		// nothing found
 		if (localization == null) {
+
 			return null;
 		}
 
 		// return first
+
 		return localization.getProperty(localization.getTraits().key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 	}
 

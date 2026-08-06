@@ -45,11 +45,13 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
 		Functions.put(licenseManager, new StopWordsFunction());
 	}
 
 	@Override
 	public void addToFulltextIndex(final NodeInterface node) throws FrameworkException {
+
 		StructrApp.getInstance(node.getSecurityContext()).processTasks(new FulltextIndexingTask(node.getUuid()));
 	}
 
@@ -78,6 +80,7 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 				// find next occurrence
 				pos = lowerCaseText.indexOf(lowerCaseSearchString, pos + 1);
+
 				if (pos >= 0) {
 
 					lineBuffer.setLength(0);
@@ -90,7 +93,6 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 					for (int i = pos; i >= 0; i--) {
 
 						final char c = text.charAt(i);
-
 						if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
 
 							wordCount += flushWordBuffer(lineBuffer, wordBuffer, true);
@@ -111,11 +113,13 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 							// paragraph boundary reached
 							if (newlineCount > 1) {
+
 								break;
 							}
 
 							// stop if we collected half of the desired word count
 							if (wordCount > contextLength / 2) {
+
 								break;
 							}
 
@@ -137,7 +141,6 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 					for (int i = pos + 1; i < textLength; i++) {
 
 						final char c = text.charAt(i);
-
 						if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !FulltextTokenizer.SpecialChars.contains(c)) {
 
 							wordCount += flushWordBuffer(lineBuffer, wordBuffer, false);
@@ -158,11 +161,13 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 							// paragraph boundary reached
 							if (newlineCount > 1) {
+
 								break;
 							}
 
 							// stop if we collected enough words
 							if (wordCount > contextLength) {
+
 								break;
 							}
 
@@ -191,22 +196,26 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 	}
 
 	public Set<String> getStopWords(final String language) {
+
 		return FulltextIndexingAgent.languageStopwordMap.get(language);
 	}
 
 	// ----- interface StructrModule -----
 	@Override
 	public String getName() {
+
 		return "text-search";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 
@@ -218,6 +227,7 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 			if (arguments != null && arguments.length > 0) {
 
 				final String language = arguments[0].toString();
+
 				return (T)getStopWords(language);
 
 			} else {

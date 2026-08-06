@@ -39,6 +39,7 @@ import java.util.Set;
 public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestTwoTraitDefinition() {
+
 		super("TestTwo");
 	}
 
@@ -47,8 +48,7 @@ public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -73,19 +73,18 @@ public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> testOne  = new StartNode(traitsInstance, "testOne", "OneTwoOneToOne");
 		final Property<NodeInterface> testOne2 = new EndNode(traitsInstance, "testOne2", "TwoOneOneToOne");
 
-		return newSet(
-			testOne,
-			testOne2
-		);
+		return newSet(testOne, testOne2);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

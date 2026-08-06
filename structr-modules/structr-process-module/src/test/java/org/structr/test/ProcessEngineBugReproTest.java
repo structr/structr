@@ -58,6 +58,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-bug-inclusive-auto.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -68,10 +69,8 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 
 			final NodeInterface inst = app.getNodeById(instId);
 
-			assertFalse("inclusive join stranded a token at the gateway (fired before both branches arrived)",
-				waitingTokenElementIds(inst).contains("Join_1"));
-			assertEquals("inclusive join must produce exactly one continuing token",
-				1, tokenCount(inst, ProcessTokenTraitDefinition.STATUS_WAITING));
+			assertFalse("inclusive join stranded a token at the gateway (fired before both branches arrived)", waitingTokenElementIds(inst).contains("Join_1"));
+			assertEquals("inclusive join must produce exactly one continuing token", 1, tokenCount(inst, ProcessTokenTraitDefinition.STATUS_WAITING));
 			assertNotNull("the single continuing token should wait at Task_After", openTaskAt(inst, "Task_After"));
 
 			tx.success();
@@ -90,6 +89,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-bug-parallel-endevent.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -120,6 +120,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-bug-two-usertasks.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -152,8 +153,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 			final NodeInterface inst = app.getNodeById(instId);
 
 			assertNull("a suspended instance must not open the next task", anyTaskAt(inst, "Task_B"));
-			assertFalse("a suspended instance must not advance the token to Task_B",
-				waitingTokenElementIds(inst).contains("Task_B"));
+			assertFalse("a suspended instance must not advance the token to Task_B", waitingTokenElementIds(inst).contains("Task_B"));
 
 			tx.success();
 		}
@@ -170,6 +170,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-bug-mixed-gateway.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -181,8 +182,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 			final NodeInterface inst = app.getNodeById(instId);
 
 			assertNotNull("mixed gateway must continue to its first outgoing path", openTaskAt(inst, "Task_X"));
-			assertNotNull("mixed gateway must ALSO continue to its second outgoing path (currently dropped)",
-				openTaskAt(inst, "Task_Y"));
+			assertNotNull("mixed gateway must ALSO continue to its second outgoing path (currently dropped)", openTaskAt(inst, "Task_Y"));
 
 			tx.success();
 		}
@@ -241,8 +241,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface inst = app.getNodeById(instId);
-			assertFalse("the signal must be delivered: the token must have left Catch_1",
-				waitingTokenElementIds(inst).contains("Catch_1"));
+			assertFalse("the signal must be delivered: the token must have left Catch_1", waitingTokenElementIds(inst).contains("Catch_1"));
 			tx.success();
 		}
 	}
@@ -340,6 +339,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 		 .append("    <bpmn:startEvent id=\"Start_1\"/>\n");
 
 		for (int i = 0; i < n; i++) {
+
 			b.append("    <bpmn:manualTask id=\"T").append(i).append("\"/>\n");
 		}
 
@@ -347,6 +347,7 @@ public class ProcessEngineBugReproTest extends AbstractProcessEngineTest {
 		 .append("    <bpmn:sequenceFlow id=\"F_start\" sourceRef=\"Start_1\" targetRef=\"T0\"/>\n");
 
 		for (int i = 0; i < n - 1; i++) {
+
 			b.append("    <bpmn:sequenceFlow id=\"F").append(i).append("\" sourceRef=\"T").append(i)
 			 .append("\" targetRef=\"T").append(i + 1).append("\"/>\n");
 		}

@@ -36,6 +36,7 @@ public class Th extends GenericHtmlElementTraitDefinition {
 	public static final String ABBR_PROPERTY    = getPrefixedHTMLAttributeName("abbr");
 
 	public Th() {
+
 		super(StructrTraits.TH);
 	}
 
@@ -48,19 +49,12 @@ public class Th extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> scopeProperty   = new StringProperty(SCOPE_PROPERTY);
 		final PropertyKey<String> abbrProperty    = new StringProperty(ABBR_PROPERTY);
 
-		return newSet(
-			colspanProperty, rowspanProperty, headersProperty, scopeProperty, abbrProperty
-		);
+		return newSet(colspanProperty, rowspanProperty, headersProperty, scopeProperty, abbrProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					COLSPAN_PROPERTY, ROWSPAN_PROPERTY, HEADERS_PROPERTY, SCOPE_PROPERTY, ABBR_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(COLSPAN_PROPERTY, ROWSPAN_PROPERTY, HEADERS_PROPERTY, SCOPE_PROPERTY, ABBR_PROPERTY));
 	}
 }

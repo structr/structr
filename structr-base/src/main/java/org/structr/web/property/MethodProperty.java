@@ -40,21 +40,25 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 	private Method method = null;
 
 	public MethodProperty(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Object.class;
 	}
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Object getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -73,6 +77,7 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 				return method.invoke(obj);
 
 			} catch (Throwable t) {
+
 				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
@@ -82,16 +87,19 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
@@ -113,6 +121,7 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 					this.method      = type.getMethod(methodName);
 
 				} catch (Throwable t) {
+
 					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
@@ -122,11 +131,13 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

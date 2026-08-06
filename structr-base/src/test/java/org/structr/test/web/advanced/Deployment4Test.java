@@ -81,6 +81,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -97,6 +98,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -112,6 +114,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			final Page page1 = Page.createNewPage(securityContext,   "test41_1");
 			final DOMElement html1 = createElement(page1, page1, "html");
 			final DOMElement head1 = createElement(page1, html1, "head");
+
 			createElement(page1, head1, "title", "test41_1");
 			final DOMElement body1 = createElement(page1, html1, "body");
 			final DOMElement div1   = createElement(page1, body1, "div");
@@ -119,14 +122,15 @@ public class Deployment4Test extends DeploymentTestBase {
 			// create first template and give it a name
 			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
 			final PropertyMap template1Properties = new PropertyMap();
+
 			template1Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test41Template");
 			template1.setProperties(template1.getSecurityContext(), template1Properties);
-
 
 			// create second page
 			final Page page2 = Page.createNewPage(securityContext,   "test41_2");
 			final DOMElement html2 = createElement(page2, page2, "html");
 			final DOMElement head2 = createElement(page2, html2, "head");
+
 			createElement(page2, head2, "title", "test41_2");
 			final DOMElement body2 = createElement(page2, html2, "body");
 			final DOMElement div2   = createElement(page2, body2, "div");
@@ -134,12 +138,14 @@ public class Deployment4Test extends DeploymentTestBase {
 			// create second template and give it the same name as the first one
 			final Template template2 = createTemplate(page2, div2, "template source 2 - öäüÖÄÜß'\"'`");
 			final PropertyMap template2Properties = new PropertyMap();
+
 			template2Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test41Template");
 			template2.setProperties(template2.getSecurityContext(), template2Properties);
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -156,6 +162,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test42");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test42");
 
 			final DOMElement body       = createElement(page, html, "body");
@@ -169,6 +176,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -185,17 +193,19 @@ public class Deployment4Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test43");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test43");
 
 			final DOMElement body       = createElement(page, html, "body");
 			final DOMElement div1        = createElement(page, body, "div");
-
 			final Content content = createContent(page, div1, "my content text");
+
 			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myNamedContentElement");
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -212,17 +222,19 @@ public class Deployment4Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext,   "test44");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test44");
 
 			final DOMElement body       = createElement(page, html, "body");
 			final DOMElement div1        = createElement(page, body, "div");
-
 			final Content content = createContent(page, div1, "my content text");
+
 			content.setHidden(true);
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -243,6 +255,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", testName);
 
 			final DOMElement body       = createElement(page, html, "body");
@@ -253,12 +266,12 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
 		// test
 		compare(calculateHash(), true);
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -269,6 +282,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -282,7 +296,6 @@ public class Deployment4Test extends DeploymentTestBase {
 			final Principal p1 = app.create(StructrTraits.USER, "user1").as(Principal.class);
 			final Principal p2 = app.create(StructrTraits.USER, "user2").as(Principal.class);
 			final Principal p3 = app.create(StructrTraits.USER, "user3").as(Principal.class);
-
 			final NodeInterface test1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", StructrTraits.FILE, "test1.txt", true);
 			final NodeInterface test2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", StructrTraits.FILE, "test2.txt", true);
 			final NodeInterface test3 = FileHelper.createFile(securityContext, "test3".getBytes(), "text/plain", StructrTraits.FILE, "test3.txt", true);
@@ -319,6 +332,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException|IOException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -339,6 +353,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -374,6 +389,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -390,6 +406,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -480,10 +497,12 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
 		try {
+
 			// clean directories
 			Files.walkFileTree(tmp, new DeletingFileVisitor());
 			Files.delete(tmp);
@@ -501,6 +520,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			final Page page = Page.createNewPage(securityContext, "test47");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test47");
 
 			final DOMElement body       = createElement(page, html, "body");
@@ -527,6 +547,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -550,6 +571,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -590,6 +612,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -610,7 +633,6 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			.when()
 				.get("/Project");
-
 
 		// test
 		final String hash1 = calculateHash();
@@ -636,7 +658,9 @@ public class Deployment4Test extends DeploymentTestBase {
 				);
 
 				tx.success();
+
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -657,6 +681,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -687,6 +712,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -704,7 +730,6 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			.when()
 				.get("/Project");
-
 
 		// test
 		final String hash3 = calculateHash();
@@ -730,7 +755,9 @@ public class Deployment4Test extends DeploymentTestBase {
 				);
 
 				tx.success();
+
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -774,6 +801,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -790,6 +818,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -805,6 +834,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -819,6 +849,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 

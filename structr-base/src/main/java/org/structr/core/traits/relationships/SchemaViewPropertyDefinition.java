@@ -31,51 +31,61 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 public class SchemaViewPropertyDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaViewPropertyDefinition() {
+
 		super(StructrTraits.SCHEMA_VIEW_PROPERTY);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.SCHEMA_VIEW;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.SCHEMA_PROPERTY;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_VIEW_PROPERTY";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return true;
 	}
 }

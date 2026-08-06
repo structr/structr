@@ -38,6 +38,7 @@ import java.util.Map;
 public class ParameterMappingTraitWrapper extends AbstractNodeTraitWrapper implements ParameterMapping {
 
 	public ParameterMappingTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 
@@ -67,31 +68,37 @@ public class ParameterMappingTraitWrapper extends AbstractNodeTraitWrapper imple
 
 	@Override
 	public String getParameterType() {
+
 		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getParameterName() {
+
 		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getConstantValue() {
+
 		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY));
 	}
 
 	@Override
 	public String getScriptExpression() {
+
 		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY));
 	}
 
 	@Override
 	public String getMethodResult() {
+
 		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.METHOD_RESULT_PROPERTY));
 	}
 
 	@Override
 	public String getFlowResult() {
+
 		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.FLOW_RESULT_PROPERTY));
 	}
 

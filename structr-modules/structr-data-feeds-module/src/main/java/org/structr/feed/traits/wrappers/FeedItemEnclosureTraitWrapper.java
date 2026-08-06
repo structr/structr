@@ -34,26 +34,31 @@ import java.nio.charset.Charset;
 public class FeedItemEnclosureTraitWrapper extends AbstractFeedItemTraitWrapper implements FeedItemEnclosure {
 
 	public FeedItemEnclosureTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getUrl() {
+
 		return wrappedObject.getProperty(traits.key(FeedItemEnclosureTraitDefinition.URL_PROPERTY));
 	}
 
 	@Override
 	public InputStream getInputStream() {
+
 		return IOUtils.toInputStream(getUrl(), Charset.forName("utf-8"));
 	}
 
 	@Override
 	public String getExtractedContent() {
+
 		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
+
 		return wrappedObject.getProperty(traits.key(AbstractFeedItemTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

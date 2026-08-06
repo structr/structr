@@ -42,11 +42,13 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "isInGroup";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("group, user [, checkHierarchy = false ]");
 	}
 
@@ -72,7 +74,6 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 			} else {
 
 				boolean checkHierarchy = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean) sources[2] : false;
-
 				final RelationshipType type = StructrApp.getInstance().getDatabaseService().getRelationshipType("CONTAINS");
 				final Group group           = ((NodeInterface)sources[0]).as(Group.class);
 				final Principal principal   = ((NodeInterface)sources[1]).as(Principal.class);
@@ -95,7 +96,6 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final Principal principal, final RelationshipType relType, final boolean checkHierarchy) {
 
 		boolean isInGroup = group.hasRelationshipTo(relType, principal);
-
 		if (!isInGroup && checkHierarchy) {
 
 			for (final Group principalGroup : principal.getParents()) {
@@ -114,6 +114,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${isInGroup(group, principal [, checkHierarchy = false ])}"),
 			Usage.javaScript("Usage: ${{ $.isInGroup(group, principal [, checkHierarchy = false ]);}}")
@@ -122,11 +123,13 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given user is in the given group.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "If the optional parameter `checkHierarchy` is set to `false`, only a direct group membership is checked. Otherwise, the full group hierarchy will be checked.";
 	}
 
@@ -142,6 +145,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.AccessControl;
 	}
 }

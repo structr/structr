@@ -36,11 +36,13 @@ public class RintFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "rint";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("bound");
 	}
 
@@ -60,6 +62,7 @@ public class RintFunction extends CoreFunction {
 				} catch (Throwable t) {
 
 					logException(caller, t, sources);
+
 					return null;
 				}
 			}
@@ -71,6 +74,7 @@ public class RintFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -79,40 +83,37 @@ public class RintFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${rint(bound)}"),
-				Usage.javaScript("Usage: ${{ $.rint(bound) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${rint(bound)}"), Usage.javaScript("Usage: ${{ $.rint(bound) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a random integer in the given range.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns a random integer value between 0 (inclusive) and the `bound` parameter (exclusive).";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${rint(bound)}"),
-				Example.javaScript("${{ $.rint(bound) }}")
-		);
+
+		return List.of(Example.structrScript("${rint(bound)}"), Example.javaScript("${{ $.rint(bound) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("bound", "end of random number range (exclusive)")
-		);
+		return List.of(Parameter.mandatory("bound", "end of random number range (exclusive)"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

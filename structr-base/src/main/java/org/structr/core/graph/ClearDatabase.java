@@ -39,6 +39,7 @@ public class ClearDatabase extends NodeServiceCommand implements MaintenanceComm
 	private static final Logger logger = LoggerFactory.getLogger(ClearDatabase.class.getName());
 
 	public void execute() throws FrameworkException {
+
 		execute(Map.of());
 	}
 
@@ -65,69 +66,80 @@ public class ClearDatabase extends NodeServiceCommand implements MaintenanceComm
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return true;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "clearDatabase";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes all nodes and relationships from the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Warning: This action cannot be reversed. It deletes your entire application and all data, including non-Structr nodes and relationships."
-		);
+
+		return List.of("Warning: This action cannot be reversed. It deletes your entire application and all data, including non-Structr nodes and relationships.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

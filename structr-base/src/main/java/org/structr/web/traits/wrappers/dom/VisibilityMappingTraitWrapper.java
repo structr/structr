@@ -45,6 +45,7 @@ public class VisibilityMappingTraitWrapper extends AbstractNodeTraitWrapper impl
 	private static final Logger logger = LoggerFactory.getLogger(VisibilityMappingTraitWrapper.class);
 
 	public VisibilityMappingTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 
@@ -56,23 +57,24 @@ public class VisibilityMappingTraitWrapper extends AbstractNodeTraitWrapper impl
 		// mapping with no logic should not light up).
 		final AbstractMethod method = Methods.resolveMethod(wrappedObject.getTraits(), "evaluate");
 		if (method == null) {
+
 			return false;
 		}
 
 		try {
+
 			// HashMap (not Map.of) because contextObject can be null on pages
 			// that don't render in a process-instance / task-instance scope.
 			final Map<String, Object> args = new HashMap<>();
 			args.put("contextObject", contextObject);
-			final Object result = method.execute(
-				new ActionContext(securityContext),
-				wrappedObject,
-				NamedArguments.fromMap(args)
-			);
+			final Object result = method.execute(new ActionContext(securityContext), wrappedObject, NamedArguments.fromMap(args));
+
 			return Boolean.TRUE.equals(result);
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("VisibilityMapping evaluate() failed for '{}': {}", wrappedObject.getUuid(), ex.getMessage());
+
 			return false;
 		}
 	}
@@ -84,22 +86,22 @@ public class VisibilityMappingTraitWrapper extends AbstractNodeTraitWrapper impl
 		// registered no such method has no action target, which is not an error.
 		final AbstractMethod method = Methods.resolveMethod(wrappedObject.getTraits(), "resolveTask");
 		if (method == null) {
+
 			return null;
 		}
 
 		try {
+
 			final Map<String, Object> args = new HashMap<>();
 			args.put("contextObject", contextObject);
-			final Object result = method.execute(
-				new ActionContext(securityContext),
-				wrappedObject,
-				NamedArguments.fromMap(args)
-			);
+			final Object result = method.execute(new ActionContext(securityContext), wrappedObject, NamedArguments.fromMap(args));
 
 			return (result instanceof NodeInterface) ? (NodeInterface) result : null;
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("VisibilityMapping resolveTask() failed for '{}': {}", wrappedObject.getUuid(), ex.getMessage());
+
 			return null;
 		}
 	}

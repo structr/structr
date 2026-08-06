@@ -25,21 +25,25 @@ import org.structr.core.entity.AbstractRelationship;
 public class RelationshipVisibilitySearchAttribute<T> extends SearchAttribute<T> {
 
 	public RelationshipVisibilitySearchAttribute() {
+
 		super(null, null);
 	}
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
+
 		return ((AbstractRelationship)entity).getSourceNode() != null && ((AbstractRelationship)entity).getTargetNode() != null;
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return RelationshipQuery.class;
 	}
 
 	@Override
 	public boolean isExactMatch() {
+
 		return true;
 	}
 }

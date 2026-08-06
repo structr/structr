@@ -32,16 +32,19 @@ public class SearchRelationshipCommand extends SearchCommand<Relationship, Relat
 
 	@Override
 	public Factory<Relationship, RelationshipInterface> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
+
 		return new RelationshipFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override
 	public Index<Relationship> getIndex() {
+
 		return  (Index<Relationship>) arguments.get("relationshipIndex");
 	}
 
 	@Override
 	public boolean isRelationshipSearch() {
+
 		return true;
 	}
 }

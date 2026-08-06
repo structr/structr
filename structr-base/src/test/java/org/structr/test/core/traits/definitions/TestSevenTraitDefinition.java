@@ -42,6 +42,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String LONGITUDE_PROPERTY      = "longitude";
 
 	public TestSevenTraitDefinition() {
+
 		super("TestSeven");
 	}
 
@@ -50,8 +51,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -70,9 +70,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Double> latitude = new DoubleProperty(LATITUDE_PROPERTY).indexed();
 		final Property<Double> longitude = new DoubleProperty(LONGITUDE_PROPERTY).indexed();
 
-		return newSet(
-			latitude, longitude
-		);
+		return newSet(latitude, longitude);
 	}
 
 	@Override
@@ -80,20 +78,18 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PropertyView.Public,
-			Set.of(
-				LATITUDE_PROPERTY, LONGITUDE_PROPERTY
-			)
-		);
+			PropertyView.Public, Set.of(LATITUDE_PROPERTY, LONGITUDE_PROPERTY));
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

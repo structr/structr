@@ -35,11 +35,13 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
+
 		return "escapeHtml";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("string");
 	}
 
@@ -55,17 +57,20 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 		} catch (ArgumentNullException ane) {
 
 			// silently ignore null strings
+
 			return null;
 
 		} catch (ArgumentCountException ace) {
 
 			logParameterError(caller, sources, ace.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${escapeHtml(string)}. Example: ${escapeHtml('test & test')}"),
 			Usage.javaScript("Usage: ${{ $.escapeHtml(string); }}. Example: ${{ $.escapeHtml('test & test'); }}")
@@ -74,37 +79,37 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Replaces HTML characters with their corresponding HTML entities.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Supports all known HTML 4.0 entities, including accents and special characters.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("text", "text to escape")
-		);
+
+		return List.of(Parameter.mandatory("text", "text to escape"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Note that the commonly used apostrophe escape character (') is not a legal entity and so is not supported."
-		);
+
+		return List.of("Note that the commonly used apostrophe escape character (') is not a legal entity and so is not supported.");
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${escapeHtml('Test & Test\"')} => Test &amp; Test&quot;")
-		);
+
+		return List.of(Example.structrScript("${escapeHtml('Test & Test\"')} => Test &amp; Test&quot;"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

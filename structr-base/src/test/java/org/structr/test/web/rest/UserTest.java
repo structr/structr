@@ -152,7 +152,6 @@ public class UserTest extends StructrUiTest {
 			.when()
 			.get("/User/" + uuid);
 
-
 	}
 
 	@Test

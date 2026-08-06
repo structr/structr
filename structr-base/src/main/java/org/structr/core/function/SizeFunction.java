@@ -34,11 +34,13 @@ public class SizeFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "size";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("collection");
 	}
 
@@ -46,6 +48,7 @@ public class SizeFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final List list = new ArrayList();
+
 		for (final Object source : sources) {
 
 			if (source != null) {
@@ -79,41 +82,37 @@ public class SizeFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${size(collection)}"),
-				Usage.javaScript("Usage: ${{ $.size(collection) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${size(collection)}"), Usage.javaScript("Usage: ${{ $.size(collection) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the size of the given collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${size(page.children)}"),
-				Example.structrScript("${size(merge('a', 'b', 'c'))}"),
-				Example.javaScript("${{ return $.size([1, 2, 3, 5, 8]); }}")
-		);
+
+		return List.of(Example.structrScript("${size(page.children)}"), Example.structrScript("${size(merge('a', 'b', 'c'))}"), Example.javaScript("${{ return $.size([1, 2, 3, 5, 8]); }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("collection", "collection to count")
-		);
+		return List.of(Parameter.mandatory("collection", "collection to count"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

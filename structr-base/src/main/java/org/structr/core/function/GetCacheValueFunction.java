@@ -35,11 +35,13 @@ public class GetCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "getCacheValue";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -53,6 +55,7 @@ public class GetCacheValueFunction extends CoreFunction {
 			final String cacheKey = sources[0].toString();
 
 			logger.warn("getCacheValue() is deprecated and will be removed in a future version.");
+
 			return CacheExpression.getCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
@@ -65,6 +68,7 @@ public class GetCacheValueFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getCacheValue(cacheKey)}. Example: ${getCacheValue('mykey')}"),
 			Usage.javaScript("Usage: ${{ $.getCacheValue(cacheKey); }}. Example: ${{ $.getCacheValue('mykey'); }}")
@@ -73,32 +77,31 @@ public class GetCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Retrieves the cached value for the given key.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns null if there is no stored value for the given key or if the stored value is expired.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getCacheValue('externalResult')}"),
-				Example.javaScript("${{ $.getCacheValue('externalResult') }}")
-		);
+
+		return List.of(Example.structrScript("${getCacheValue('externalResult')}"), Example.javaScript("${{ $.getCacheValue('externalResult') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("key", "cache key")
-		);
+		return List.of(Parameter.mandatory("key", "cache key"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

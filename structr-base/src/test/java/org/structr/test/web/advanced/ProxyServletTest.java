@@ -40,6 +40,7 @@ public class ProxyServletTest extends StructrUiTest {
 	@BeforeClass(alwaysRun = true)
 	@Override
 	public void setup(@Optional String testDatabaseConnection) {
+
 		final long timestamp = System.currentTimeMillis();
 
 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
@@ -64,8 +65,11 @@ public class ProxyServletTest extends StructrUiTest {
 
 		// wait for service layer to be initialized
 		do {
+
 			try {
+
 				Thread.sleep(100);
+
 			} catch (Throwable t) {
 			}
 
@@ -170,8 +174,11 @@ public class ProxyServletTest extends StructrUiTest {
 		final HttpService httpService = ((HttpService)services.getService(httpServiceClass, "default"));
 
 		httpService.stopService();
+
 		try {
+
 			httpService.startService();
+
 		} catch (final Exception ex) {
 
 		}

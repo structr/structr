@@ -96,12 +96,11 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			TaskInstance.class, (traits, node) -> new TaskInstanceTraitWrapper(traits, node)
-		);
+		return Map.of(TaskInstance.class, (traits, node) -> new TaskInstanceTraitWrapper(traits, node));
 	}
 
 	public TaskInstanceTraitDefinition() {
+
 		super(ProcessTraits.TASK_INSTANCE);
 	}
 
@@ -144,12 +143,15 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					engine.claimTask((NodeInterface) entity);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Claims this task for the calling user. Participant action: requires status=available and the caller to be a candidate assignee (directly or via group membership). For administrative reassignment, use 'assignTask' instead.";
 				}
 			},
@@ -168,28 +170,27 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					// assigns to anyone (accessControl check on the task).
 					if (!task.isGranted(Permission.accessControl, callerContext, false)) {
 
-						throw new FrameworkException(403,
-							"Caller lacks accessControl on this task: cannot reassign. " +
-							"Use 'claim' for participant self-assignment instead."
-						);
+						throw new FrameworkException(403, "Caller lacks accessControl on this task: cannot reassign. " +
+							"Use 'claim' for participant self-assignment instead.");
 					}
 
 					final Object assigneeArg = arguments.toMap().get("assignee");
 					if (assigneeArg == null) {
 
-						throw new FrameworkException(422,
-							"assignTask requires an 'assignee' parameter (User or Group node UUID)."
-						);
+						throw new FrameworkException(422, "assignTask requires an 'assignee' parameter (User or Group node UUID).");
 					}
 
 					final NodeInterface assignee = resolveAssignee(actionContext, assigneeArg);
 					final ProcessEngine engine   = new ProcessEngine(callerContext);
+
 					engine.assignTask(task, assignee);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Administratively assigns this task to a User or Group. Caller must have accessControl on the task. The new assignee does not need to be among the BPMN-declared candidate assignees (admin override). Pass 'assignee' as a node UUID or {id: '<uuid>'} object.";
 				}
 			},
@@ -202,12 +203,15 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					final java.util.Map<String, Object> params = arguments.toMap();
+
 					engine.completeTask((NodeInterface) entity, params.isEmpty() ? null : params);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Completes this user task and advances the process to the next step.";
 				}
 			},
@@ -244,12 +248,13 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final java.util.Map<String, Object> args = new java.util.LinkedHashMap<>(arguments.toMap());
-
 					final Object subjectTypeArg = args.remove("subjectType");
+
 					if (!(subjectTypeArg instanceof String) || ((String) subjectTypeArg).isBlank()) {
 
 						throw new FrameworkException(422, "completeWithSubject requires a 'subjectType' argument naming the SchemaNode type to instantiate as the process instance's subject.");
 					}
+
 					final String subjectType = ((String) subjectTypeArg).trim();
 					if (!Traits.exists(subjectType)) {
 
@@ -259,6 +264,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					final NodeInterface task     = (NodeInterface) entity;
 					final Traits taskTraits      = task.getTraits();
 					final NodeInterface instance = task.getProperty(taskTraits.key(PROCESS_INSTANCE_PROPERTY));
+
 					if (instance == null) {
 
 						throw new FrameworkException(422, "completeWithSubject: task has no parent ProcessInstance (data integrity error).");
@@ -308,11 +314,13 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					// matching fields; when we just created it, those writes are a harmless re-apply.
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.completeTask(task, args.isEmpty() ? null : args);
+
 					return subject;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Capture the process instance's subject and complete the task, with get-or-create semantics: if the instance has no subject yet, create a node of `subjectType` from the form fields under SU (so the caller doesn't auto-become its owner) and wire it as the subject; if it already has one, update its matching fields. Either way the task is then completed. A ProcessInstance has at most one subject, so calling this on successive steps captures-then-edits the same node rather than creating duplicates. Pass `subjectType` (SchemaNode type name) and any field values.";
 				}
 			},
@@ -324,19 +332,21 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final NodeInterface task              = (NodeInterface) entity;
-
 					final Object bpmnIdArg = arguments.toMap().get("bpmnId");
+
 					if (bpmnIdArg == null) {
 
 						throw new FrameworkException(422, "cancelBoundaryTimer requires a 'bpmnId' parameter (the boundary event's BPMN id, e.g. 'Boundary_Review_Escalate').");
 					}
 
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					return engine.cancelBoundaryTimerByBpmnId(task, bpmnIdArg.toString());
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Cancel a single pending boundary timer attached to this task, identified by the boundary event's BPMN id. Use case: a 'claimed' task listener cancels the escalation timer once a reviewer picks up the task, so still-running work isn't preempted by an interrupting boundary timer. Returns the number of timers cancelled (0 if no match).";
 				}
 			},
@@ -348,12 +358,15 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					engine.releaseTask((NodeInterface) entity);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Releases this task back to the available pool. Participant action: caller must be the current assignee. Status transitions to 'available'; the task can be re-claimed (potentially by the same caller). claimedTime is preserved as a 'previously-claimed' marker. Clears the assigneeSetBy audit field.";
 				}
 			},
@@ -365,12 +378,15 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					engine.declineTask((NodeInterface) entity);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Records that the calling user declines this task. Vote semantics: the caller's R+W stays intact (decline is reversible, they can claim later). The decline is captured in the task's declinedBy collection for audit and stalled-task detection. Caller must be among the (effective) candidate assignees.";
 				}
 			},
@@ -382,21 +398,24 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final NodeInterface task              = (NodeInterface) entity;
-
 					final Object delegateArg = arguments.toMap().get("delegate");
+
 					if (delegateArg == null) {
 
 						throw new FrameworkException(422, "delegate requires a 'delegate' parameter (User or Group node UUID).");
 					}
-					final NodeInterface delegate = resolveAssignee(actionContext, delegateArg);
 
+					final NodeInterface delegate = resolveAssignee(actionContext, delegateArg);
 					final ProcessEngine engine = new ProcessEngine(securityContext);
+
 					engine.delegateTask(task, delegate);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Delegates this task to another User or Group. Participant action: caller must be the current assignee (when status=reserved) or a candidate assignee (when status=available). Sets the new assignee, status='reserved', assigneeSetBy='delegation', claimedTime=now, and grants R+W to the delegate. Pass 'delegate' as a node UUID or {id: '<uuid>'} object.";
 				}
 			},
@@ -411,18 +430,18 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (!task.isGranted(Permission.accessControl, callerContext, false)) {
 
-						throw new FrameworkException(403,
-							"Caller lacks accessControl on this task: cannot cancel."
-						);
+						throw new FrameworkException(403, "Caller lacks accessControl on this task: cannot cancel.");
 					}
 
 					final ProcessEngine engine = new ProcessEngine(callerContext);
 					engine.cancelTask(task);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Administratively cancels this task. Caller must have accessControl on the task. Sets status='cancelled', cancelledTime=now, marks the waiting token as completed (no advance). The instance is left running for admin to terminate or otherwise handle; cancel is destructive at the task level only.";
 				}
 			},
@@ -437,18 +456,18 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (!task.isGranted(Permission.accessControl, callerContext, false)) {
 
-						throw new FrameworkException(403,
-							"Caller lacks accessControl on this task: cannot return it to the pool."
-						);
+						throw new FrameworkException(403, "Caller lacks accessControl on this task: cannot return it to the pool.");
 					}
 
 					final ProcessEngine engine = new ProcessEngine(callerContext);
 					engine.makeTaskAvailable(task);
+
 					return entity;
 				}
 
 				@Override
 				public String getDescription() {
+
 					return "Administratively returns this task to the available pool: clears the assignee and assigneeSetBy, transitions status='available', revokes the previous assignee's grant if they are not a current candidate assignee, and re-grants R+W to all current candidate assignees. The 'available' lifecycle event fires so notification handlers can re-notify candidates. Caller must have accessControl on the task.";
 				}
 			}
@@ -457,6 +476,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -470,16 +490,16 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (arg instanceof Iterable<?> || (arg != null && arg.getClass().isArray())) {
 
-			throw new FrameworkException(422,
-				"assignTask accepts a single 'assignee'. Pass exactly one User or Group, not a list."
-			);
+			throw new FrameworkException(422, "assignTask accepts a single 'assignee'. Pass exactly one User or Group, not a list.");
 		}
+
 		if (arg instanceof NodeInterface) {
 
 			return (NodeInterface) arg;
 		}
 
 		String uuid = null;
+
 		if (arg instanceof String) {
 
 			uuid = (String) arg;
@@ -492,20 +512,22 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 				uuid = (String) idObj;
 			}
 		}
+
 		if (uuid == null || uuid.isEmpty()) {
 
-			throw new FrameworkException(422,
-				"Cannot resolve assignee from value of type " +
+			throw new FrameworkException(422, "Cannot resolve assignee from value of type " +
 				(arg != null ? arg.getClass().getName() : "null") +
-				" (expected NodeInterface, UUID string, or {id: \"<uuid>\"})"
-			);
+				" (expected NodeInterface, UUID string, or {id: \"<uuid>\"})");
 		}
+
 		final App app = StructrApp.getInstance(actionContext.getSecurityContext());
 		final NodeInterface node = app.getNodeById(uuid);
+
 		if (node == null) {
 
 			throw new FrameworkException(422, "Assignee with id '" + uuid + "' not found");
 		}
+
 		return node;
 	}
 }

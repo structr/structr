@@ -57,6 +57,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public UserPrincipal owner() {
 
 		if (file == null) {
+
 			return null;
 		}
 
@@ -70,10 +71,14 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 				owner = securityContext.getUser(false)::getName;
 
 			} else {
+
 				owner = fileOwner::getName;
 			}
+
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -84,6 +89,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public GroupPrincipal group() {
 
 		if (file == null) {
+
 			return null;
 		}
 
@@ -100,6 +106,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -110,6 +117,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public FileTime lastModifiedTime() {
 
 		if (file == null) {
+
 			return null;
 		}
 
@@ -124,7 +132,9 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			}
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -133,6 +143,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 	@Override
 	public FileTime lastAccessTime() {
+
 		return lastModifiedTime();
 	}
 
@@ -140,6 +151,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public FileTime creationTime() {
 
 		if (file == null) {
+
 			return null;
 		}
 
@@ -152,8 +164,11 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 				time = FileTime.fromMillis(date.getTime());
 			}
+
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -164,15 +179,19 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public boolean isRegularFile() {
 
 		if (file == null) {
+
 			return false;
 		}
 
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			isRegularFile = file.is(StructrTraits.FILE);
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -183,15 +202,19 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public boolean isDirectory() {
 
 		if (file == null) {
+
 			return false;
 		}
 
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			isDirectory = file.is(StructrTraits.FOLDER);
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -200,12 +223,15 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 	@Override
 	public boolean isSymbolicLink() {
+
 		// Structr doesn't support symbolic links yet
+
 		return false;
 	}
 
 	@Override
 	public boolean isOther() {
+
 		return false;
 	}
 
@@ -213,6 +239,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public long size() {
 
 		if (file == null) {
+
 			return 0L;
 		}
 
@@ -230,7 +257,9 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			}
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -241,14 +270,19 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public Object fileKey() {
 
 		if (file == null) {
+
 			return null;
 		}
 
 		String uuid = null;
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 			uuid = file.getUuid();
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -266,6 +300,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		if (file != null) {
 
 			if (file.is(StructrTraits.FOLDER)) {
+
 				permissions.add(PosixFilePermission.OWNER_EXECUTE);
 			}
 
@@ -277,6 +312,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.OTHERS_WRITE);
 
 					if (file.is(StructrTraits.FOLDER)) {
+
 						permissions.add(PosixFilePermission.OTHERS_EXECUTE);
 					}
 				}
@@ -287,6 +323,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.GROUP_WRITE);
 
 					if (file.is(StructrTraits.FOLDER)) {
+
 						permissions.add(PosixFilePermission.GROUP_EXECUTE);
 					}
 				}
@@ -294,6 +331,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				logger.error("", fex);
 			}
 		}
@@ -303,21 +341,25 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 	@Override
 	public boolean isReadOnly() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArchive() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isSystem() {
+
 		return false;
 	}
 
@@ -358,14 +400,17 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 				map.put("permissions", permissions());
 
 				if (group != null) {
+
 					map.put("group", group.getName());
 				}
 
 				if (owner != null) {
+
 					map.put("owner", owner.getName());
 
 					// set group to owner
 					if (group == null) {
+
 						map.put("group", owner.getName());
 					}
 				}
@@ -383,6 +428,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			}
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -394,6 +440,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public String name() {
 
 		if (file == null) {
+
 			return null;
 		}
 
@@ -405,6 +452,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.error("", fex);
 		}
 
@@ -413,6 +461,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 	@Override
 	public PosixFileAttributes readAttributes() throws IOException {
+
 		return this;
 	}
 
@@ -420,6 +469,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public void setPermissions(final Set<PosixFilePermission> perms) throws IOException {
 
 		if (file == null) {
+
 			return;
 		}
 
@@ -431,6 +481,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Unable to set mapped file permissions for " + file, fex);
 		}
 	}
@@ -445,6 +496,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 	@Override
 	public UserPrincipal getOwner() throws IOException {
+
 		return owner();
 	}
 

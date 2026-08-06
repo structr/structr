@@ -60,6 +60,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 	static void onMessage(final String uuid, final Message message) {
 
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface client = StructrApp.getInstance().getNodeById(StructrTraits.XMPP_CLIENT, uuid);
@@ -91,6 +92,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 	static void onRequest(final String uuid, final IQ request) {
 
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface client = StructrApp.getInstance().getNodeById(StructrTraits.XMPP_CLIENT, uuid);

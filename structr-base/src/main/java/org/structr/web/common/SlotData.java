@@ -35,34 +35,42 @@ public class SlotData {
 	private String id                               = null;
 
 	public SlotData(final String id) {
+
 		this.id = id;
 	}
 
 	public String getId() {
+
 		return id;
 	}
 
 	public List<DOMNode> getNextSlotElements() {
+
 		return elements.poll();
 	}
 
 	public PropertyMap getNextSlotAttributes() {
+
 		return attributes.poll();
 	}
 
 	public PropertyMap getNextDataAttributes() {
+
 		return dataAttributes.poll();
 	}
 
 	public void putSlotAttributes(final PropertyMap attributes) {
+
 		this.attributes.add(attributes);
 	}
 
 	public void putDataAttributes(final PropertyMap attributes) {
+
 		this.dataAttributes.add(attributes);
 	}
 
 	public void putSlotElements(final List<DOMNode> children) {
+
 		this.elements.add(children);
 	}
 }

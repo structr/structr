@@ -47,15 +47,14 @@ public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefini
 	public static final String DEFINITION_PROPERTY       = "definition";
 
 	public BpmnGlobalDefinitionTraitDefinition() {
+
 		super(ProcessTraits.BPMN_GLOBAL_DEFINITION);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnGlobalDefinition.class, (traits, node) -> new BpmnGlobalDefinitionTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnGlobalDefinition.class, (traits, node) -> new BpmnGlobalDefinitionTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -81,6 +80,7 @@ public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefini
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

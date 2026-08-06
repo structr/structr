@@ -72,12 +72,16 @@ public class ConsoleCommand extends AbstractCommand {
 		final Boolean completion             = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
 		final ByteArrayOutputStream out      = new ByteArrayOutputStream();
 		final OutputStreamWritable writeable = new OutputStreamWritable(out);
-
 		ConsoleMode consoleMode = ConsoleMode.JavaScript;
+
 		if (StringUtils.isNotBlank(mode)) {
+
 			try {
+
 				consoleMode = ConsoleMode.valueOf(mode);
+
 			} catch(Throwable t) {
+
 				// ignore unknown console mode key and leave at default
 			}
 		}
@@ -102,10 +106,10 @@ public class ConsoleCommand extends AbstractCommand {
 			if (Boolean.TRUE.equals(completion)) {
 
 				final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
-
 				final List<String> commands = new ArrayList<>();
 
 				for (final TabCompletionResult res : tabCompletionResult) {
+
 					commands.add(res.getCommand());
 				}
 
@@ -162,11 +166,13 @@ public class ConsoleCommand extends AbstractCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "CONSOLE";
 	}
 
@@ -176,6 +182,7 @@ public class ConsoleCommand extends AbstractCommand {
 		private Writer writer = null;
 
 		public OutputStreamWritable(final OutputStream out) {
+
 			this.writer = new OutputStreamWriter(out);
 		}
 
@@ -210,12 +217,14 @@ public class ConsoleCommand extends AbstractCommand {
 
 		@Override
 		public void println() throws IOException {
+
 			writer.write(10);
 			writer.write(13);
 		}
 
 		@Override
 		public void flush() throws IOException {
+
 			writer.flush();
 		}
 	}

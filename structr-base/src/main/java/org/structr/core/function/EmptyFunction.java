@@ -38,11 +38,13 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "empty";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value");
 	}
 
@@ -75,9 +77,9 @@ public class EmptyFunction extends CoreFunction {
 		}
 	}
 
-
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.empty(string|array|collection)}}. Example: ${{if($.empty(possibleEmptyString), \"empty\", \"non-empty\")}}"),
 			Usage.structrScript("Usage: ${empty(string|array|collection)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}")
@@ -86,11 +88,13 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a boolean value that indicates whether the given object is null or empty.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		This function works for all sorts of objects: strings, collections, variables, etc., with different semantics depending on the input object.
 		
@@ -106,11 +110,13 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return super.getParameters();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${empty('')}", "Returns `true`"),
 			Example.structrScript("${empty('test')}", "Returns `false`"),
@@ -121,6 +127,7 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

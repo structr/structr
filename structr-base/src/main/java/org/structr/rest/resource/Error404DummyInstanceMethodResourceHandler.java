@@ -122,6 +122,7 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
@@ -139,6 +140,7 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of(method.getHttpVerb());
 	}
 }

@@ -57,7 +57,6 @@ public class ChunkCommand extends AbstractCommand {
 			int chunkSize      = webSocketData.getNodeDataIntegerValue("chunkSize");
 			int chunks         = webSocketData.getNodeDataIntegerValue("chunks");
 			Object rawData     = webSocketData.getNodeData().get("chunk");
-
 			byte[] data        = new byte[0];
 
 			if (rawData != null) {
@@ -81,21 +80,24 @@ public class ChunkCommand extends AbstractCommand {
 
 				logger.warn("Node {} does not exist", uuid);
 				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " does not exist").code(404).build(), true);
+
 				return;
 			}
 
 			if (!fileNode.is(StructrTraits.FILE)) {
+
 				logger.warn("Node {} is not a file", uuid);
 				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " is not a file").code(400).build(), true);
+
 				return;
 			}
 
 			final File file = fileNode.as(File.class);
-
 			if (file.isTemplate()) {
 
 				logger.warn("No write permission, file is in template mode: {}", new Object[] {file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission, file is in template mode").code(400).build(), true);
+
 				return;
 
 			}
@@ -104,6 +106,7 @@ public class ChunkCommand extends AbstractCommand {
 
 				logger.warn("No write permission for {} on {}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
+
 				return;
 
 			}
@@ -146,6 +149,7 @@ public class ChunkCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CHUNK";
 	}
 }

@@ -43,46 +43,55 @@ import org.structr.process.ProcessTraits;
 public class ActionMappingCONTROLSBpmnProcess extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ActionMappingCONTROLSBpmnProcess() {
+
 		super(StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.ACTION_MAPPING;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return ProcessTraits.BPMN_PROCESS;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CONTROLS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

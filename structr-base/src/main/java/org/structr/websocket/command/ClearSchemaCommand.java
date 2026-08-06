@@ -62,6 +62,7 @@ public class ClearSchemaCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CLEAR_SCHEMA";
 	}
 }

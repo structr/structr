@@ -34,6 +34,7 @@ import java.util.Map;
 public class TestTwelveTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestTwelveTraitDefinition() {
+
 		super("TestTwelve");
 	}
 
@@ -42,11 +43,11 @@ public class TestTwelveTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
 					return ValidationHelper.isValidUniqueProperty(obj, obj.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
 				}
 			}
@@ -55,11 +56,13 @@ public class TestTwelveTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

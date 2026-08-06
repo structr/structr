@@ -46,6 +46,7 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 
 		// alternative: allow passing a data source directly
 		if (firstArgument instanceof Channel dataSource) {
+
 			channel = dataSource;
 		}
 
@@ -64,21 +65,20 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "dataSource";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns data from the data source with the given name.";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(
-			Signature.javaScript("dataSource(dataSourceName, pageSize, page)"),
-			Signature.structrScript("dataSource(dataSourceName, pageSize, page)")
-		);
+		return List.of(Signature.javaScript("dataSource(dataSourceName, pageSize, page)"), Signature.structrScript("dataSource(dataSourceName, pageSize, page)"));
 	}
 
 	@Override
@@ -102,9 +102,7 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.dataSource('node:Page', 10, 1)}}"),
-			Usage.structrScript("Usage: ${dataSource('node:Page', 10, 1)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{$.dataSource('node:Page', 10, 1)}}"), Usage.structrScript("Usage: ${dataSource('node:Page', 10, 1)}"));
 	}
 }

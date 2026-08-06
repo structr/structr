@@ -36,11 +36,13 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "split";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("str [, separator ]");
 	}
 
@@ -55,8 +57,11 @@ public class SplitFunction extends CoreFunction {
 			String splitExpr = "[,;\\s]+";
 
 			if (sources.length >= 2) {
+
 				splitExpr = sources[1].toString();
+
 				return Arrays.asList(StringUtils.splitByWholeSeparator(toSplit, splitExpr));
+
 			} else {
 
 				return Arrays.asList(toSplit.split(splitExpr));
@@ -65,30 +70,32 @@ public class SplitFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.split(str[, separator]) }}."),
-			Usage.structrScript("Usage: ${split(str[, separator])}.")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.split(str[, separator]) }}."), Usage.structrScript("Usage: ${split(str[, separator])}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Splits the given string by the whole separator string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Uses the given separator to split the given string into a collection of strings. This is the opposite of `join()`.	
 		The default separator is a regular expression which splits the string at ANY of the following characters: `,;(whitespace)`
@@ -99,6 +106,7 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${split('one,two,three,four')}"),
 				Example.structrScript("${split('one;two;three;four')}"),
@@ -113,21 +121,18 @@ public class SplitFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("string", "string to split"),
-				Parameter.optional("separator", "separator string")
-				);
+		return List.of(Parameter.mandatory("string", "string to split"), Parameter.optional("separator", "separator string"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"Adjacent separators are treated as one separator"
-		);
+
+		return List.of("Adjacent separators are treated as one separator");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

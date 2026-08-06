@@ -44,7 +44,6 @@ public class StaticTypeWrapper implements ProxyObject {
 		if (method != null) {
 
 			final GraphObject superEntity = actionContext.isSuperCall(method);
-
 			if (superEntity != null || method.isStatic()) {
 
 				return method.getProxyExecutable(actionContext, superEntity);
@@ -56,11 +55,13 @@ public class StaticTypeWrapper implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
+
 		return null;
 	}
 
 	@Override
 	public boolean hasMember(final String key) {
+
 		return getMember(key) != null;
 	}
 

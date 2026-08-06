@@ -32,19 +32,22 @@ public class FlowStore extends FlowDataSource implements DeployableEntity {
 	private static final Logger logger = LoggerFactory.getLogger(FlowStore.class);
 
 	public FlowStore(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public enum Operation {
-		store,
-		retrieve
+
+		store, retrieve
 	}
 
 	public final String getOperation() {
+
 		return wrappedObject.getProperty(traits.key(FlowStoreTraitDefinition.OPERATION_PROPERTY));
 	}
 
 	public final String getKey() {
+
 		return wrappedObject.getProperty(traits.key(FlowStoreTraitDefinition.KEY_PROPERTY));
 	}
 
@@ -59,9 +62,12 @@ public class FlowStore extends FlowDataSource implements DeployableEntity {
 
 			switch (op) {
 				case "store":
+
 					if (ds != null) {
+
 						context.putIntoStore(_key, ds.get(context));
 					}
+
 					break;
 				case "retrieve":
 					context.setData(getUuid(), context.retrieveFromStore(_key));

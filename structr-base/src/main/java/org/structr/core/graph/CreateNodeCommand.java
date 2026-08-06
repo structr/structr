@@ -56,6 +56,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	public NodeInterface execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
+
 		for (NodeAttribute attribute : attributes) {
 
 			properties.put(attribute.getKey(), attribute.getValue());
@@ -68,6 +69,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	public NodeInterface execute(final NodeAttribute<?>... attributes) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
+
 		for (NodeAttribute attribute : attributes) {
 
 			properties.put(attribute.getKey(), attribute.getValue());
@@ -152,9 +154,11 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			properties.remove(createdByKey);
 
 			if (nodeType.contains(StructrTraits.PRINCIPAL) && !nodeType.contains(StructrTraits.GROUP)) {
+
 				// If we are creating a node inheriting from Principal, force existence of password property
 				// to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
 				if (isCreation && !properties.containsKey(passwordKey)) {
+
 					properties.put(passwordKey, null);
 				}
 			}
@@ -176,6 +180,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			}
 
 			node = nodeFactory.instantiateWithType(createNode(graphDb, user, typeName, labels, tmp.getData()), null, isCreation);
+
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
@@ -191,6 +196,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					final Object value    = entry.getValue();
 
 					if (!key.isUnvalidated()) {
+
 						TransactionCommand.nodeModified(securityContext.getCachedUser(), node, key, null, value);
 					}
 				}
@@ -227,7 +233,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	// ----- private methods -----
 	private Node createNode(final DatabaseService graphDb, final Principal user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
-
 
 		final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.ID_PROPERTY);
 		final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.TYPE_PROPERTY);
@@ -288,13 +293,17 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				return newNode;
 
 			} catch (DataFormatException dex) {
+
 				throw new FrameworkException(422, dex.getMessage());
+
 			} catch (ConstraintViolationException qex) {
+
 				throw new FrameworkException(422, qex.getMessage());
+
 			} catch (UnknownDatabaseException udbex) {
+
 				throw new FrameworkException(422, udbex.getMessage());
 			}
-
 
 		} else {
 
@@ -303,10 +312,15 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				return graphDb.createNode(type, labels, properties);
 
 			} catch (DataFormatException dex) {
+
 				throw new FrameworkException(422, dex.getMessage());
+
 			} catch (ConstraintViolationException qex) {
+
 				throw new FrameworkException(422, qex.getMessage());
+
 			} catch (UnknownDatabaseException udbex) {
+
 				throw new FrameworkException(422, udbex.getMessage());
 			}
 		}
@@ -324,7 +338,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	}
 
 	private void notifySecurityRelCreation(final RelationshipFactory factory, final Principal user, final Relationship rel) {
-
 
 		try {
 
@@ -354,6 +367,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				}
 
 			} catch (ClassCastException cce2) {
+
 				logger.warn("ClassCastException still exists, giving up.");
 			}
 
@@ -381,6 +395,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			logger.warn(ExceptionUtils.getStackTrace(cce));
 
 			try {
+
 				// try again
 				final RelationshipInterface ownsRelationship = factory.instantiate(rel);
 				if (ownsRelationship != null) {
@@ -389,6 +404,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				}
 
 			} catch (ClassCastException cce2) {
+
 				logger.warn("ClassCastException still exists, giving up.");
 			}
 

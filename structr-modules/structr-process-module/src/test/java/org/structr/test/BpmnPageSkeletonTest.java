@@ -72,20 +72,10 @@ import static org.testng.AssertJUnit.fail;
 public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 	/** The human-facing steps of the fixture, in flow order: generated html id per step. */
-	private static final List<String> EXPECTED_IDS = List.of(
-		"start-claim-submitted",
-		"task-initial-review",
-		"task-manual-assessment",
-		"event-wait-for-customer-response"
-	);
+	private static final List<String> EXPECTED_IDS = List.of("start-claim-submitted", "task-initial-review", "task-manual-assessment", "event-wait-for-customer-response");
 
 	/** The same steps' bpmnIds, in the same order -- what each div's mapping binds to. */
-	private static final List<String> EXPECTED_BPMN_IDS = List.of(
-		"Start_1",
-		"Task_InitialReview",
-		"Task_ManualAssessment",
-		"Event_WaitForResponse"
-	);
+	private static final List<String> EXPECTED_BPMN_IDS = List.of("Start_1", "Task_InitialReview", "Task_ManualAssessment", "Event_WaitForResponse");
 
 	@Test
 	public void testSkeletonStructureAndVisibilityMappings() {
@@ -97,10 +87,10 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 			final NodeInterface procNode = firstProcess(defNode);
+
 			assertNotNull("fixture should have a process", procNode);
 
-			final BpmnPageSkeletonGenerator.Result result = BpmnPageSkeletonGenerator.createSkeleton(
-				app, securityContext, procNode.as(BpmnProcess.class), null);
+			final BpmnPageSkeletonGenerator.Result result = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, procNode.as(BpmnProcess.class), null);
 
 			assertEquals("page name should be derived from the process name", "insurance-claim-handling", result.pageName());
 			assertEquals("one div per human-facing step", EXPECTED_IDS.size(), result.stepCount());
@@ -114,6 +104,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -165,6 +156,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 				// in the editor updates the page instead of leaving a stale literal behind
 				final DOMNode headingText = children(heading).get(0);
 				final String script       = headingText.getProperty(headingText.getTraits().key(ContentTraitDefinition.CONTENT_PROPERTY));
+
 				// compact StructrScript, reading the binding off the visibilityMapping keyword and
 				// falling back to the literal name so the heading never renders empty
 				assertEquals("${localize(coalesce(visibilityMapping.boundStep.bpmnName, '" + div.getName() + "'))}", script);
@@ -196,6 +188,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			// binding landed on the process
 			final NodeInterface procNode = app.getNodeById(procUuid);
 			final NodeInterface bound    = procNode.getProperty(procNode.getTraits().key(BpmnProcessTraitDefinition.INSTANCE_PAGE_PROPERTY));
+
 			assertNotNull("instance page should be bound", bound);
 			assertEquals(pageId, bound.getUuid());
 
@@ -218,7 +211,6 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 			final BpmnProcess process    = firstProcess(defNode).as(BpmnProcess.class);
-
 			final BpmnPageSkeletonGenerator.Result first  = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, process, null);
 			final BpmnPageSkeletonGenerator.Result second = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, process, null);
 
@@ -256,8 +248,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			// A widget's source names a node with the deployment instruction
 			// @structr:name(...) (DeploymentCommentHandler), which is how page templates
 			// mark their content area as "Main Content".
-			widget.setProperty(widget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
-				"<html><head><title>Template</title></head><body>"
+			widget.setProperty(widget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY), "<html><head><title>Template</title></head><body>"
 				+ "<header id=\"branding\"></header>"
 				+ "<!-- @structr:name(Main Content) --><main id=\"content\"></main>"
 				+ "</body></html>");
@@ -274,6 +265,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -281,11 +273,13 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final List<DOMNode> html = children(page);
+
 			assertEquals("the template should provide the page's single root", 1, html.size());
 
 			// the template's own markup survived untouched
 			final DOMNode body               = children(html.get(0)).get(1);
 			final List<DOMNode> bodyChildren = children(body);
+
 			assertEquals("body should still hold exactly the template's own children", 2, bodyChildren.size());
 			assertEquals("branding", htmlId(bodyChildren.get(0)));
 
@@ -323,14 +317,14 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 
-			pageId = BpmnPageSkeletonGenerator.createSkeleton(
-				app, securityContext, firstProcess(defNode).as(BpmnProcess.class), null).pageId();
+			pageId = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, firstProcess(defNode).as(BpmnProcess.class), null).pageId();
 
 			tx.success();
 
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -351,20 +345,18 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			// it inherits the start event div's no-instance rule instead of duplicating it
 			final PropertyKey<Iterable<NodeInterface>> vmKey = startPartial.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY);
-			assertTrue("nested launch partial should have no visibility mappings of its own",
-				collect(startPartial.getProperty(vmKey)).isEmpty());
+			assertTrue("nested launch partial should have no visibility mappings of its own", collect(startPartial.getProperty(vmKey)).isEmpty());
 
 			final DOMNode button = children(startPartial).get(0);
 			assertEquals("button", button.getProperty(button.getTraits().key(DOMElementTraitDefinition.TAG_PROPERTY)));
 			final DOMNode label = children(button).get(0);
-			assertEquals("${localize('Start Process Insurance Claim Handling')}",
-				label.getProperty(label.getTraits().key(ContentTraitDefinition.CONTENT_PROPERTY)));
-			assertEquals("the button should carry the theme's button classes",
-				"bpmn-start-process-button sw-button sw-button-primary", htmlClass(button));
+			assertEquals("${localize('Start Process Insurance Claim Handling')}", label.getProperty(label.getTraits().key(ContentTraitDefinition.CONTENT_PROPERTY)));
+			assertEquals("the button should carry the theme's button classes", "bpmn-start-process-button sw-button sw-button-primary", htmlClass(button));
 
 			// the action mapping starts THIS process and navigates to the new instance
 			final PropertyKey<Iterable<NodeInterface>> actionsKey = button.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY);
 			final List<NodeInterface> actions                    = collect(button.getProperty(actionsKey));
+
 			assertEquals("button should trigger exactly one action", 1, actions.size());
 
 			final NodeInterface action = actions.get(0);
@@ -404,14 +396,14 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 
-			pageId = BpmnPageSkeletonGenerator.createSkeleton(
-				app, securityContext, firstProcess(defNode).as(BpmnProcess.class), null).pageId();
+			pageId = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, firstProcess(defNode).as(BpmnProcess.class), null).pageId();
 
 			tx.success();
 
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -420,16 +412,15 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
 			final DOMNode startDiv   = humanStepDivs(wrapper).get(0);
-
 			final PropertyKey<Iterable<NodeInterface>> vmKey = startDiv.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY);
 			final List<NodeInterface> mappings               = collect(startDiv.getProperty(vmKey));
+
 			assertEquals("the start event div should carry exactly its no-instance mapping", 1, mappings.size());
 
 			final NodeInterface mapping = mappings.get(0);
 			final Traits vmTraits       = mapping.getTraits();
 
-			assertEquals(VisibilityMappingTraitDefinition.STATE_NO_INSTANCE,
-				mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.VISIBLE_WHEN_PROPERTY)));
+			assertEquals(VisibilityMappingTraitDefinition.STATE_NO_INSTANCE, mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.VISIBLE_WHEN_PROPERTY)));
 			// evaluate() derives the id from the relationship, so BOTH have to be absent for the
 			// context semantics to apply -- clearing only the string is not enough
 			assertNull("a no-instance mapping must not carry boundProcessId, or it turns into a per-user query",
@@ -439,19 +430,17 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			// the STEP is bound though: no predicate reads it for no-instance, and the heading
 			// script gets the step's live name from it
-			assertNotNull("a no-instance mapping should still record its step",
-				mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_PROPERTY)));
+			assertNotNull("a no-instance mapping should still record its step", mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_PROPERTY)));
 
 			// the predicate itself: no instance in render context -> render
-			assertTrue("the launch partial must be visible when the page has no instance in context",
-				mapping.as(VisibilityMapping.class).evaluate(securityContext, null));
+			assertTrue("the launch partial must be visible when the page has no instance in context", mapping.as(VisibilityMapping.class).evaluate(securityContext, null));
 
 			// and a step-scoped mapping still carries the id, where it is needed to check that
 			// a context instance belongs to this process
 			final DOMNode taskDiv                       = humanStepDivs(wrapper).get(1);
 			final List<NodeInterface> taskMappings      = collect(taskDiv.getProperty(taskDiv.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY)));
-			assertEquals("Process_ClaimHandling",
-				taskMappings.get(0).getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_ID_PROPERTY)));
+
+			assertEquals("Process_ClaimHandling", taskMappings.get(0).getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_ID_PROPERTY)));
 
 			tx.success();
 
@@ -483,6 +472,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), subject),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "name")
 			);
+
 			assertNotNull("the form view should exist", view);
 
 			final NodeInterface formWidget = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.PROCESS_SUBJECT_FORM_WIDGET);
@@ -506,6 +496,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected setup failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -553,10 +544,8 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final DOMNode assessmentForm = formChildOf(assessmentDiv);
 			assertNotNull("every user task gets a form when the process declares a subject type", assessmentForm);
-			assertEquals("all user-task forms bind to the current process instance",
-				"channel:current", assessmentForm.getComponentConfiguration().getDataSourceName());
-			assertEquals("all user-task forms of one process share the process-level subject type",
-				"Claim", assessmentForm.getComponentConfiguration().getExpectedDataType());
+			assertEquals("all user-task forms bind to the current process instance", "channel:current", assessmentForm.getComponentConfiguration().getDataSourceName());
+			assertEquals("all user-task forms of one process share the process-level subject type", "Claim", assessmentForm.getComponentConfiguration().getExpectedDataType());
 
 			// a non-user-task human step (the message catch event) still gets no subject form
 			final DOMNode waitDiv = humanStepDivs(wrapper).get(3);
@@ -586,12 +575,12 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			// ONLY the fallback widget exists -- no "Process Subject Form".
 			final NodeInterface fallback = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.FALLBACK_SUBJECT_FORM_WIDGET);
-			fallback.setProperty(fallback.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
-				"<div data-structr-meta-name=\"Test Form\" config=\"{ displayMode: 'input' }\"></div>");
+			fallback.setProperty(fallback.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY), "<div data-structr-meta-name=\"Test Form\" config=\"{ displayMode: 'input' }\"></div>");
 			fallback.setProperty(fallback.getTraits().key(WidgetTraitDefinition.DIMENSIONS_PROPERTY), 1);
 
 			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 			final BpmnProcess process   = firstProcess(defNode).as(BpmnProcess.class);
+
 			process.setProperty(process.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), "Claim");
 
 			procId = process.getUuid();
@@ -600,6 +589,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected setup failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -609,11 +599,10 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
-
 			final DOMNode form = formChildOf(humanStepDivs(wrapper).get(1));
+
 			assertNotNull("a subject form is inserted via the Edit Form fallback", form);
-			assertEquals("fallback form binds to the current instance", "channel:current",
-				form.getComponentConfiguration().getDataSourceName());
+			assertEquals("fallback form binds to the current instance", "channel:current", form.getComponentConfiguration().getDataSourceName());
 
 			tx.success();
 
@@ -665,6 +654,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected setup failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -682,8 +672,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final Traits amTraits = mapping.getTraits();
 
-			assertEquals("the submit action must become a process control action",
-				"control-process", mapping.getProperty(amTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY)));
+			assertEquals("the submit action must become a process control action", "control-process", mapping.getProperty(amTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY)));
 			assertEquals("a create form completes the task by creating its subject",
 				"completeWithSubject", mapping.getProperty(amTraits.key(ActionMappingTraitDefinition.PROCESS_OPERATION_PROPERTY)));
 			// idExpression is variable-replaced against the ActionMapping node, where $.task
@@ -750,6 +739,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected setup failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -770,8 +760,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final List<String> fields = List.of(fieldSet.split(","));
 
-			assertTrue("the subject's own properties should be seeded from the custom view, was: " + fieldSet,
-				fields.contains("amount") && fields.contains("reason"));
+			assertTrue("the subject's own properties should be seeded from the custom view, was: " + fieldSet, fields.contains("amount") && fields.contains("reason"));
 			assertFalse("framework properties have no place in a generated form, was: " + fieldSet,
 				fields.contains("type") || fields.contains("owner") || fields.contains("visibleToPublicUsers"));
 			assertFalse("the default single-field set means the fallback did not run, was: " + fieldSet, fields.size() == 1 && fields.contains("name"));
@@ -802,6 +791,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 			final BpmnProcess process   = firstProcess(defNode).as(BpmnProcess.class);
+
 			// deliberately no subjectType on the process
 
 			final BpmnPageSkeletonGenerator.Result result = BpmnPageSkeletonGenerator.createSkeleton(
@@ -884,6 +874,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected setup failure: " + fex.getMessage());
+
 			return;
 		}
 
@@ -893,14 +884,15 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
-
 			final DOMNode reviewForm = formChildOf(humanStepDivs(wrapper).get(1));
 			final DOMNode assessForm = formChildOf(humanStepDivs(wrapper).get(2));
+
 			assertNotNull("the review step should have a form",     reviewForm);
 			assertNotNull("the assessment step should have a form", assessForm);
 
 			final ComponentConfiguration reviewConfig = reviewForm.getComponentConfiguration();
 			final ComponentConfiguration assessConfig = assessForm.getComponentConfiguration();
+
 			assertNotNull("the review form should carry a configuration",     reviewConfig);
 			assertNotNull("the assessment form should carry a configuration", assessConfig);
 
@@ -939,16 +931,16 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			final BpmnProcess process = app.getNodeById(procId).as(BpmnProcess.class);
-			final String pageId       = BpmnPageSkeletonGenerator.createSkeleton(
-				app, securityContext, process, BpmnPageSkeletonGenerator.humanFacingSteps(process),
-				null, null).pageId();
+			final String pageId       = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, process, BpmnPageSkeletonGenerator.humanFacingSteps(process), null, null).pageId();
 
 			tx.success();
+
 			return pageId;
 
 		} catch (final FrameworkException fex) {
 
 			fail("Unexpected generation failure: " + fex.getMessage());
+
 			return null;
 		}
 	}
@@ -968,6 +960,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 				return child;
 			}
 		}
+
 		return null;
 	}
 
@@ -980,6 +973,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 		final List<DOMNode> all = children(wrapper);
 		assertFalse("wrapper should hold the details header plus step divs", all.isEmpty());
+
 		return all.subList(1, all.size());
 	}
 
@@ -988,8 +982,11 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 		final List<DOMNode> nodes = new ArrayList<>();
 		nodes.add(root);
+
 		for (final NodeInterface descendant : root.getAllChildNodes()) {
+
 			if (descendant.is(StructrTraits.DOM_ELEMENT)) {
+
 				nodes.add(descendant.as(DOMNode.class));
 			}
 		}
@@ -997,10 +994,12 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		for (final DOMNode node : nodes) {
 
 			if (!node.getTraits().hasKey(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY)) {
+
 				continue;
 			}
 
 			for (final NodeInterface mapping : collect(node.getProperty(node.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY)))) {
+
 				return mapping;
 			}
 		}
@@ -1016,8 +1015,8 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		final PropertyKey<NodeInterface> boundStepKey = vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_PROPERTY);
 		final PropertyKey<String> stepBpmnIdKey       = vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_BPMN_ID_PROPERTY);
 		final Set<String> states                      = new LinkedHashSet<>();
-
 		final Iterable<NodeInterface> mappings = div.getProperty(div.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY));
+
 		assertNotNull("div " + htmlId(div) + " should have visibility mappings", mappings);
 
 		for (final NodeInterface mapping : mappings) {
@@ -1027,8 +1026,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			final NodeInterface step = mapping.getProperty(boundStepKey);
 
 			assertNotNull("mapping should be bound to a step", step);
-			assertEquals("mapping bound to the wrong step",
-				expectedStepBpmnId, step.getProperty(step.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
+			assertEquals("mapping bound to the wrong step", expectedStepBpmnId, step.getProperty(step.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
 
 			// the denormalized cache the importer's rewire pass reads
 			assertEquals("boundStepBpmnId cache should match the bound step", expectedStepBpmnId, mapping.getProperty(stepBpmnIdKey));
@@ -1038,14 +1036,17 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 	}
 
 	private List<DOMNode> children(final NodeInterface node) {
+
 		return Iterables.toList(node.as(DOMNode.class).getChildren());
 	}
 
 	private String htmlId(final NodeInterface element) {
+
 		return element.getProperty(element.getTraits().key(DOMElementTraitDefinition._HTML_ID_PROPERTY));
 	}
 
 	private String htmlClass(final NodeInterface element) {
+
 		return element.getProperty(element.getTraits().key(DOMElementTraitDefinition._HTML_CLASS_PROPERTY));
 	}
 }

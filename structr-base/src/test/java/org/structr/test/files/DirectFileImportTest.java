@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.AssertJUnit.*;
 
-
 /**
  */
 public class DirectFileImportTest extends StructrUiTest {
@@ -72,6 +71,7 @@ public class DirectFileImportTest extends StructrUiTest {
 				fail("Direct file import command should not accept empty parameter map.");
 
 			} catch (FrameworkException ex) {
+
 				checkException(ex, 422, "Please provide 'source' attribute for deployment source directory path.");
 			}
 
@@ -82,6 +82,7 @@ public class DirectFileImportTest extends StructrUiTest {
 				fail("Direct file import command should not accept empty source directory");
 
 			} catch (FrameworkException ex) {
+
 				checkException(ex, 422, "Please provide 'source' attribute for deployment source directory path.");
 			}
 
@@ -92,6 +93,7 @@ public class DirectFileImportTest extends StructrUiTest {
 				fail("Direct file import command should not accept empty source directory");
 
 			} catch (FrameworkException ex) {
+
 				checkException(ex, 422, "Source path " + nonexistingPath + " does not exist.");
 			}
 
@@ -102,6 +104,7 @@ public class DirectFileImportTest extends StructrUiTest {
 				fail("Direct file import command should not accept invalid 'mode' value");
 
 			} catch (FrameworkException ex) {
+
 				checkException(ex, 422, "Unknown value for 'mode' attribute. Valid values are: copy, move");
 			}
 
@@ -112,10 +115,12 @@ public class DirectFileImportTest extends StructrUiTest {
 				fail("Direct file import command should not accept invalid 'existing' value");
 
 			} catch (FrameworkException ex) {
+
 				checkException(ex, 422, "Unknown value for 'existing' attribute. Valid values are: skip, overwrite, rename");
 			}
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create files");
 		}
 	}
@@ -137,6 +142,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(testDir.resolve(Paths.get("test3.txt")), "test file content 3");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -147,10 +153,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -172,11 +178,11 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
-
 
 	@Test
 	public void testDirectFileImportWithAbsoluteDirectory() {
@@ -196,6 +202,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			importPath = testDir.toString();
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -210,10 +217,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -235,6 +242,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -271,6 +279,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -280,10 +289,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -303,6 +312,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -325,6 +335,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -334,10 +345,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -357,6 +368,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -396,6 +408,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -405,10 +418,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -428,6 +441,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -455,6 +469,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -464,10 +479,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -487,6 +502,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -526,6 +542,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -535,10 +552,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -564,6 +581,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -586,6 +604,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -595,10 +614,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -618,6 +637,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -657,6 +677,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -666,10 +687,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -689,6 +710,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -711,6 +733,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -720,10 +743,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -743,6 +766,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -782,6 +806,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -791,10 +816,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -814,6 +839,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -841,6 +867,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -850,10 +877,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -873,6 +900,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -912,6 +940,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -921,10 +950,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -944,7 +973,6 @@ public class DirectFileImportTest extends StructrUiTest {
 			assertNull("Test file should NOT have a parent folder", file1.getParent());
 			assertEquals("Test file content does not match source", "test file content 1", getContent(file1));
 
-
 			assertNotNull("Test file should have been created by import", file2);
 			assertNotEquals("Existing file should be renamed", "test.txt", file2.getName());
 			assertNull("Test file should NOT have a parent folder", file2.getParent());
@@ -953,6 +981,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -975,6 +1004,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			createTestFile(importPath, "test file content 1");
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -984,10 +1014,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -1007,6 +1037,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1034,6 +1065,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			importPath = testDir.toString();
 
 		} catch (IOException ioex) {
+
 			fail("Unable to create test files.");
 		}
 
@@ -1044,10 +1076,10 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
@@ -1061,11 +1093,11 @@ public class DirectFileImportTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
-
 
 	// ----- private methods -----
 	private void createTestFile(final Path path, final String content) throws IOException {
@@ -1089,22 +1121,27 @@ public class DirectFileImportTest extends StructrUiTest {
 		final Map<String, Object> attributes = new LinkedHashMap<>();
 
 		if (sourcePath != null) {
+
 			attributes.put("source",   sourcePath);
 		}
 
 		if (targetPath != null) {
+
 			attributes.put("target",   targetPath);
 		}
 
 		if (mode != null) {
+
 			attributes.put("mode",     mode);
 		}
 
 		if (existing != null) {
+
 			attributes.put("existing", existing);
 		}
 
 		if (index != null) {
+
 			attributes.put("index",    index);
 		}
 
@@ -1118,6 +1155,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			return IOUtils.toString(is, "utf-8");
 
 		} catch (IOException ioex) {
+
 			ioex.printStackTrace();
 			fail("Unexpected exception.");
 		}

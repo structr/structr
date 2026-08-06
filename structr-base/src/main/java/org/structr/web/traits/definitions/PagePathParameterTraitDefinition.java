@@ -53,6 +53,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String USE_DEFAULT_IF_INVALID_PROPERTY  = "useDefaultIfInvalid";
 
 	public PagePathParameterTraitDefinition() {
+
 		super(StructrTraits.PAGE_PATH_PARAMETER);
 	}
 
@@ -61,8 +62,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-				OnCreation.class,
-				new OnCreation() {
+				OnCreation.class, new OnCreation() {
 					@Override
 					public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -74,8 +74,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 					}
 				},
 
-				OnModification.class,
-				new OnModification() {
+				OnModification.class, new OnModification() {
 					@Override
 					public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -91,20 +90,20 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			PagePathParameter.class, (traits, node) -> new PagePathParameterTraitWrapper(traits, node)
-		);
+		return Map.of(PagePathParameter.class, (traits, node) -> new PagePathParameterTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -118,15 +117,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<Boolean> isRequiredProperty          = new BooleanProperty(IS_REQUIRED_PROPERTY);
 		final Property<Boolean> useDefaultIfInvalidProperty = new BooleanProperty(USE_DEFAULT_IF_INVALID_PROPERTY);
 
-		return Set.of(
-			pathProperty,
-			positionProperty,
-			valueTypeProperty,
-			formatProperty,
-			defaultValueProperty,
-			isRequiredProperty,
-			useDefaultIfInvalidProperty
-		);
+		return Set.of(pathProperty, positionProperty, valueTypeProperty, formatProperty, defaultValueProperty, isRequiredProperty, useDefaultIfInvalidProperty);
 	}
 
 	@Override
@@ -134,16 +125,14 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-				PropertyView.Public,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY),
+				PropertyView.Public, newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY),
 
-				PropertyView.Ui,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY)
-		);
+				PropertyView.Ui, newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -154,10 +143,12 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 		private static final Map<String, PathParameterValueType> LOOKUP_TBL = Arrays.stream(values()).collect(Collectors.toMap(Enum::name, e -> e));
 
 		public static PathParameterValueType fromString(final String value) {
+
 			return LOOKUP_TBL.get(value);
 		}
 
 		public static boolean isValid(final String value) {
+
 			return LOOKUP_TBL.containsKey(value);
 		}
 

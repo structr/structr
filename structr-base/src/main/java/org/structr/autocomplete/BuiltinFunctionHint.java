@@ -32,6 +32,7 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 		if (includeParameters) {
 
 			// show method with signature right away
+
 			return getName() + "(" + getFirstSignature() + ")";
 		}
 
@@ -40,6 +41,7 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.BuiltInFunction;
 	}
 
@@ -47,8 +49,8 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 	public List<ConceptReference> getParentConcepts() {
 
 		final List<ConceptReference> concepts = super.getParentConcepts();
-
 		final Category category = getCategory();
+
 		if (category != null) {
 
 			final String displayName = category.getDisplayName();

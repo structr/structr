@@ -101,7 +101,6 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 				for (final Iterator it = element.getAttributes(); it.hasNext();) {
 
 					final Object attr = it.next();
-
 					if (attr instanceof Attribute) {
 
 						final Attribute attribute = (Attribute)attr;
@@ -172,13 +171,16 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 					case CREATE_NODE:
 						handleCreateNode(element, entityData, config);
+
 						return;
 
 					case SET_PROPERTY:
 						handleSetProperty(element, entityData, config);
+
 						return;
 
 					case IGNORE:
+
 						return;
 				}
 
@@ -190,6 +192,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 		// recurse into children
 		for (final Element child: element.children) {
+
 			convertAndTransform(child, entityData);
 		}
 	}
@@ -208,6 +211,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 				final Collection<Object> mappedProperties = ((Map)config.get(PROPERTIES)).values();
 				element.data.forEach((String key, Object value) -> {
 					if (mappedProperties.contains(key)) {
+
 						entityData.put(key, value);
 					}
 				});
@@ -230,6 +234,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 					final Collection<Object>  mappedProperties = ((Map)config.get(PROPERTIES)).values();
 					element.data.forEach((String key, Object value) -> {
 						if (mappedProperties.contains(key)) {
+
 							childData.put(key, value);
 						}
 					});
@@ -321,25 +326,30 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		private String text              = null;
 
 		public Element(final Element parent, final String tagName) {
+
 			this.parent  = parent;
 			this.tagName = tagName;
 
 			if (parent != null) {
+
 				parent.children.add(this);
 			}
 		}
 
 		public void setData(final Map<String, Object> data) {
+
 			this.data.putAll(data);
 		}
 
 		public void setText(final String text) {
+
 			this.text = text;
 		}
 
 		public String getPath() {
 
 			if (parent != null) {
+
 				return parent.getPath() + "/" + tagName;
 			}
 
@@ -355,6 +365,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		while (reader.hasNext() && nextElement == null) {
 
 			try {
+
 				final XMLEvent event = reader.nextEvent();
 
 				switch (event.getEventType()) {
@@ -383,12 +394,14 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 				}
 
 			} catch (XMLStreamException strex) {
+
 				logger.warn(strex.getMessage());
 				break;
 			}
 		}
 
 		// either an element has been created, or the stream is at its end
+
 		return nextElement != null;
 	}
 
@@ -402,6 +415,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		nextElement = null;
 
 		// return transferred reference
+
 		return result;
 	}
 }

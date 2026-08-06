@@ -31,26 +31,31 @@ import org.structr.schema.SchemaHelper.Type;
 public class BooleanPropertyGenerator extends PropertyGenerator<Boolean> {
 
 	public BooleanPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Boolean.class.getName();
 	}
 
 	@Override
 	protected Boolean getDefaultValue() {
+
 		return Boolean.valueOf(source.getDefaultValue());
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Boolean;
 	}
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
+
 		return new BooleanProperty(source.getPropertyName());
 	}
 }

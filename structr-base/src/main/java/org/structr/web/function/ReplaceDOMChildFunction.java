@@ -37,11 +37,13 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "replaceDomChild";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("parent, child, html");
 	}
 
@@ -59,6 +61,7 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${replaceDomChild(parent, child, html)}. Example: ${replaceDomChild(this, child, html)}"),
 			Usage.javaScript("Usage: ${{ $.replaceDomChild(parent, child, html) }}. Example: ${{ $.replaceDomChild(this, child, html) }}")
@@ -67,16 +70,19 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Replaces a node from the DOM with new HTML.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 

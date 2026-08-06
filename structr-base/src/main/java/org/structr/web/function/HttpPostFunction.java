@@ -46,6 +46,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "POST";
 	}
 
@@ -65,6 +66,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Map<String, Object> config = null;
 
 			if (sources.length >= 7 && sources[6] != null && sources[6] instanceof Map) {
+
 				config = (Map) sources[6];
 			}
 
@@ -78,8 +80,8 @@ public class HttpPostFunction extends UiAdvancedFunction {
 					contentType = ct.getMimeType();
 
 					final Charset cs = ct.getCharset();
-
 					if (cs != null) {
+
 						charset = cs.toString();
 					}
 
@@ -112,6 +114,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -119,7 +122,6 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final String contentType) throws FrameworkException {
 
 		final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
-
 		final GraphObjectMap response = new GraphObjectMap();
 
 		response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
@@ -138,6 +140,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("url, body [, contentType, charset, username, password, configMap ]");
 	}
 
@@ -157,6 +160,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
 			Usage.javaScript("Usage: ${{ $.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
@@ -165,11 +169,13 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends an HTTP POST request to the given URL and returns the response body.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function can be used in a script to make an HTTP POST request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
@@ -187,6 +193,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
@@ -197,6 +204,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

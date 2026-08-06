@@ -68,10 +68,7 @@ public class TableOfContentsMarkdownFileFormatter extends Formatter {
 						childList.add(childMap);
 					}
 
-					links.add(Map.of(
-						"name", child.getKey(),
-						"targets", childList
-					));
+					links.add(Map.of("name", child.getKey(), "targets", childList));
 				}
 			}
 

@@ -25,6 +25,7 @@ import org.structr.web.entity.dom.ShadowDocument;
 public class ShadowDocumentTraitWrapper extends PageTraitWrapper implements ShadowDocument {
 
 	public ShadowDocumentTraitWrapper(Traits traits, NodeInterface node) {
+
 		super(traits, node);
 	}
 }

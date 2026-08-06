@@ -28,10 +28,12 @@ public class SourceNodeFilter<T extends MemoryEntity> implements Filter<T> {
 	private MemoryIdentity sourceNode = null;
 
 	public SourceNodeFilter(final MemoryIdentity sourceNode) {
+
 		this.sourceNode = sourceNode;
 	}
 
 	public MemoryIdentity getIdentity() {
+
 		return sourceNode;
 	}
 }

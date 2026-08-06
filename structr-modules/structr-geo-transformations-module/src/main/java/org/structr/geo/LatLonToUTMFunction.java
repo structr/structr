@@ -43,11 +43,13 @@ public class LatLonToUTMFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "latLonToUtm";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("latitude, longitude");
 	}
 
@@ -80,11 +82,11 @@ public class LatLonToUTMFunction extends GeoFunction {
 					}
 
 					if (utmZone < 10) {
+
 						epsg.append("0");
 					}
 
 					epsg.append(utmZone);
-
 
 					final CoordinateReferenceSystem src = CRS.decode("EPSG:4326");
 					final CoordinateReferenceSystem dst = CRS.decode(epsg.toString());
@@ -105,6 +107,7 @@ public class LatLonToUTMFunction extends GeoFunction {
 					buf.append((int)Math.rint(targetPt.getOrdinate(1)));
 
 					// return result
+
 					return buf.toString();
 
 				} catch (Throwable t) {
@@ -121,6 +124,7 @@ public class LatLonToUTMFunction extends GeoFunction {
 
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, e.getMessage(), isJs);
+
 			return usage(isJs);
 		}
 
@@ -129,27 +133,26 @@ public class LatLonToUTMFunction extends GeoFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Converts the given latitude/longitude coordinates into an UTM string.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("latitude", "latitude of the desired UTM result"),
-			Parameter.mandatory("longitude", "longitude of the desired UTM result")
-		);
+		return List.of(Parameter.mandatory("latitude", "latitude of the desired UTM result"), Parameter.mandatory("longitude", "longitude of the desired UTM result"));
 	}
 
 	@Override
@@ -170,6 +173,7 @@ public class LatLonToUTMFunction extends GeoFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 
@@ -179,15 +183,19 @@ public class LatLonToUTMFunction extends GeoFunction {
 		int zone = Double.valueOf(Math.floor((lon + 180.0) / 6.0)).intValue() + 1;
 
 		if (lat >= 56.0 && lat < 64.0 && lon >= 3.0 && lon < 12.0) {
+
 			zone = 32;
 		}
 
 		if (lat >= 72.0 && lat < 84.0) {
+
 			if (lon >= 0.0 && lon < 9.0) {
+
 				zone = 31;
 			}
 
 		} else if (lon >= 9.0 && lon < 21.0) {
+
 			zone = 33;
 
 		} else if (lon >= 21.0 && lon < 33.0) {
@@ -195,6 +203,7 @@ public class LatLonToUTMFunction extends GeoFunction {
 			zone = 35;
 
 		} else if (lon >= 33.0 && lon < 42.0) {
+
 			zone = 37;
 		}
 

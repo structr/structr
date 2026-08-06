@@ -68,9 +68,7 @@ public class TestHelper {
 				"mult:" + SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY
 		));
 
-		requiredAttributes.put(StructrTraits.SCHEMA_PROPERTY, Arrays.asList(
-				"prop:" + SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY
-		));
+		requiredAttributes.put(StructrTraits.SCHEMA_PROPERTY, Arrays.asList("prop:" + SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
@@ -79,8 +77,8 @@ public class TestHelper {
 
 				final String key       = entry.getKey();
 				final List<String> add = entry.getValue();
-
 				List<String> list = requiredAttributes.get(key);
+
 				if (list != null) {
 
 					list.addAll(add);
@@ -105,8 +103,8 @@ public class TestHelper {
 					final String[] keyParts   = parts[0].split("\\.");
 					final String type         = keyParts[0];
 					final String viewName     = keyParts[1];
-
 					Map<String, List<String>> typeMap = viewMap.get(type);
+
 					if (typeMap == null) {
 
 						typeMap = new LinkedHashMap<>();
@@ -132,6 +130,7 @@ public class TestHelper {
 			}
 
 		} catch (IOException ioex) {
+
 			throw new AssertionError("Unable to load view specification: " + ioex.getMessage());
 		}
 
@@ -147,6 +146,7 @@ public class TestHelper {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			throw new AssertionError("Unexpected exception");
 		}
@@ -224,6 +224,7 @@ public class TestHelper {
 		}
 
 		if (fail) {
+
 			throw new AssertionError("View configuration does not match expected configuration:\n" + StringUtils.join(log, "\n"));
 		}
 	}
@@ -253,24 +254,28 @@ public class TestHelper {
 					body.append(count);
 
 				// Boolean
+
 				} else if (key.startsWith("b:")) {
 
 					body.append(key.substring(2));
 					body.append(": true");
 
 				// Enum with language
+
 				} else if (key.startsWith("lang:")) {
 
 					body.append(key.substring(5));
 					body.append(": \"de\"");
 
 				// enum with multiplicity
+
 				} else if (key.startsWith("mult:")) {
 
 					body.append(key.substring(5));
 					body.append(": \"*\"");
 
 				// schema property, just use String
+
 				} else if (key.startsWith("prop:")) {
 
 					body.append(key.substring(5));

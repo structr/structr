@@ -33,6 +33,7 @@ public class Optgroup extends GenericHtmlElementTraitDefinition {
 	public static final String LABEL_PROPERTY    = getPrefixedHTMLAttributeName("label");
 
 	public Optgroup() {
+
 		super(StructrTraits.OPTGROUP);
 	}
 
@@ -42,19 +43,12 @@ public class Optgroup extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> disabledProperty = new StringProperty(DISABLED_PROPERTY);
 		final PropertyKey<String> labelProperty    = new StringProperty(LABEL_PROPERTY);
 
-		return newSet(
-			disabledProperty, labelProperty
-		);
+		return newSet(disabledProperty, labelProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					DISABLED_PROPERTY, LABEL_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(DISABLED_PROPERTY, LABEL_PROPERTY));
 	}
 }

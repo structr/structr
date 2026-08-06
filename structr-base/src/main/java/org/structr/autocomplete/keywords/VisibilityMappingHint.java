@@ -24,16 +24,19 @@ public class VisibilityMappingHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "visibilityMapping";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the VisibilityMapping of the enclosing partial.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `visibilityMapping` keyword returns the VisibilityMapping bound to this node, or to the "
 			+ "closest ancestor that has one -- the same upward traversal `component` does. Use it to read what "
 			+ "a partial is bound to without a query, e.g. `$.visibilityMapping.boundStep.bpmnName` for the "

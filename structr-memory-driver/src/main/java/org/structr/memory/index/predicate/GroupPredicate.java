@@ -43,18 +43,22 @@ public class GroupPredicate<T> implements Predicate<T> {
 
 	@Override
 	public String toString() {
+
 		return conjunction.name() + "(" + StringUtils.join(predicates, ", ") + ")";
 	}
 
 	public GroupPredicate<T> getParent() {
+
 		return parent;
 	}
 
 	public void add(final Predicate<T> predicate) {
+
 		predicates.add(predicate);
 	}
 
 	public void setConjunction(final Conjunction conj) {
+
 		this.conjunction = conj;
 	}
 

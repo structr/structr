@@ -69,6 +69,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	 * @param type
 	 */
 	public EndNode(final TraitsInstance traitsInstance, final String name, final String type) {
+
 		this(traitsInstance, name, type, new ObjectNotion());
 	}
 
@@ -97,31 +98,37 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 	@Override
 	public String typeName() {
+
 		return "object";
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return notion.getEntityConverter(securityContext);
 	}
 
 	@Override
 	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -141,6 +148,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 		try {
 
 			if (updateCallback != null) {
+
 				updateCallback.notifyUpdated(obj, value);
 			}
 
@@ -154,6 +162,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 				throw (FrameworkException)cause;
 
 			} else {
+
 				r.printStackTrace();
 			}
 		}
@@ -163,77 +172,92 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 	@Override
 	public String relatedType() {
+
 		return destType;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public Property<NodeInterface> indexed() {
+
 		return this;
 	}
 
 	@Override
 	public Property<NodeInterface> passivelyIndexed() {
+
 		return this;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isIndexed() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isPassivelyIndexed() {
+
 		return false;
 	}
 
 	// ----- interface RelationProperty -----
 	@Override
 	public Notion getNotion() {
+
 		return notion;
 	}
 
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface t) throws FrameworkException {
+
 		setProperty(securityContext, obj, t);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return sourceType;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return destType;
 	}
 
 	@Override
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
+
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return relation;
 	}
 
@@ -246,6 +270,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 				case Relation.ALWAYS:
 				case Relation.SOURCE_TO_TARGET:
+
 					return true;
 			}
 		}
@@ -257,6 +282,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	public String getAutocreateFlagName() {
 
 		if (relation != null) {
+
 			return Relation.CASCADING_DESCRIPTIONS[relation.getAutocreationFlag()];
 		}
 
@@ -265,17 +291,20 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 	@Override
 	public String getDirectionKey() {
+
 		return "out";
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -307,6 +336,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		if (level > 4) {
+
 			return Collections.EMPTY_MAP;
 		}
 
@@ -320,12 +350,14 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 	@Override
 	public FieldDefinition getFieldDefinition() {
+
 		return this;
 	}
 
 	// ----- interface FieldDefinition -----
 	@Override
 	public boolean hasOptions() {
+
 		return true;
 	}
 
@@ -340,21 +372,25 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 	@Override
 	public String renderTemplate() {
+
 		return null;
 	}
 
 	@Override
 	public String editTemplate() {
+
 		return null;
 	}
 
 	@Override
 	public String dataType() {
+
 		return "node";
 	}
 
 	@Override
 	public String nodeType() {
+
 		return relatedType();
 	}
 }

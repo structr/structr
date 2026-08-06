@@ -26,6 +26,7 @@ import org.structr.bolt.AdvancedCypherQuery;
 public class EmptyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public EmptyQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -38,6 +39,7 @@ public class EmptyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 		// to select the correct index
 		final String label = predicate.getLabel();
 		if (label != null) {
+
 			query.indexLabel(label);
 		}
 

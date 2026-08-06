@@ -34,6 +34,7 @@ public class Td extends GenericHtmlElementTraitDefinition {
 	public static final String HEADERS_PROPERTY = getPrefixedHTMLAttributeName("headers");
 
 	public Td() {
+
 		super(StructrTraits.TD);
 	}
 
@@ -44,19 +45,12 @@ public class Td extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> rowspanProperty = new StringProperty(ROWSPAN_PROPERTY);
 		final PropertyKey<String> headersProperty = new StringProperty(HEADERS_PROPERTY);
 
-		return newSet(
-			colspanProperty, rowspanProperty, headersProperty
-		);
+		return newSet(colspanProperty, rowspanProperty, headersProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					COLSPAN_PROPERTY, ROWSPAN_PROPERTY, HEADERS_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(COLSPAN_PROPERTY, ROWSPAN_PROPERTY, HEADERS_PROPERTY));
 	}
 }

@@ -114,7 +114,6 @@ public class DeployDataCommand extends DeployCommand {
 		}
 
 		final Path target  = Paths.get(path);
-
 		if (!target.isAbsolute()) {
 
 			publishWarningMessage("Data export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
@@ -172,18 +171,29 @@ public class DeployDataCommand extends DeployCommand {
 
 			// clean up folders before export
 			try {
+
 				deleteDirectoryContentsRecursively(nodesDir);
+
 			} catch (IOException ioe) {
+
 				logger.warn("Unable to clean up {}: {}", nodesDir, ioe.getMessage());
 			}
+
 			try {
+
 				deleteDirectoryContentsRecursively(relsDir);
+
 			} catch (IOException ioe) {
+
 				logger.warn("Unable to clean up {}: {}", relsDir, ioe.getMessage());
 			}
+
 			try {
+
 				deleteDirectoryContentsRecursively(filesDir);
+
 			} catch (IOException ioe) {
+
 				logger.warn("Unable to clean up {}: {}", filesDir, ioe.getMessage());
 			}
 
@@ -191,8 +201,8 @@ public class DeployDataCommand extends DeployCommand {
 			for (final String trimmedType : types.split(",")) {
 
 				final String typeName = trimmedType.trim();
-
 				final Traits traits = Traits.of(typeName);
+
 				if (traits == null) {
 
 					logger.warn("Unable to export data for type '{}' - type unknown", typeName);
@@ -229,8 +239,7 @@ public class DeployDataCommand extends DeployCommand {
 						+ "\tThe affected relationships will only be able to be imported if the target/source is already present in the target instance.\n\n"
 						+ "\t" + missingTypeNamesForExport.stream().sorted().collect(Collectors.joining(", "))
 						+ "\n\n\tYou can safely ignore this if you are sure that the type is not required.\n"
-						+ "###############################################################################"
-				);
+						+ "###############################################################################");
 
 				publishWarningMessage(title, text);
 			}
@@ -247,8 +256,7 @@ public class DeployDataCommand extends DeployCommand {
 						+ "\tThe following folders are not part of the configured export set, but were still included in the export to correctly represent the directory structure.\n"
 						+ "\tThese folders will also be imported (if they do not exist).\n\n"
 						+ "\t" + exportedFoldersAsParents.stream().sorted().collect(Collectors.joining("\n\t"))
-						+ "\n###############################################################################"
-				);
+						+ "\n###############################################################################");
 
 				publishInfoMessage(ftitle, ftext);
 			}
@@ -285,7 +293,6 @@ public class DeployDataCommand extends DeployCommand {
 			ambiguousPrincipals.clear();
 
 			final String path = (String) parameters.get("source");
-
 			if (StringUtils.isBlank(path)) {
 
 				throw new ImportPreconditionFailedException("Data Deployment Import not started", "Please provide 'source' attribute for deployment source directory path.");
@@ -399,11 +406,9 @@ public class DeployDataCommand extends DeployCommand {
 				nodeFilesList.sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
-
 					if (f.isFile() && f.getName().endsWith(".json")) {
 
 						final String typeName = StringUtils.substringBeforeLast(f.getName(), ".json");
-
 						if (Traits.exists(typeName)) {
 
 							importExtensibleNodeListData(context, typeName, readConfigList(p));
@@ -430,11 +435,9 @@ public class DeployDataCommand extends DeployCommand {
 				relFilesList.sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
-
 					if (f.isFile() && f.getName().endsWith(".json")) {
 
 						final String typeName = StringUtils.substringBeforeLast(f.getName(), ".json");
-
 						if (Traits.exists(typeName)) {
 
 							importRelationshipListData(context, typeName, readConfigList(p));
@@ -471,8 +474,7 @@ public class DeployDataCommand extends DeployCommand {
 					+ "\tBecause of these missing permissions/ownerships, node access rights are not identical to the export you just imported.\n\n"
 					+ "\t" + transformCountedMapToHumanReadableList(missingPrincipals, "\n\t")
 					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
-					+ "###############################################################################"
-			);
+					+ "###############################################################################");
 
 			publishWarningMessage(title, text);
 		}
@@ -491,8 +493,7 @@ public class DeployDataCommand extends DeployCommand {
 					+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
 					+ "\t" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "\n\t")
 					+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
-					+ "###############################################################################"
-			);
+					+ "###############################################################################");
 			publishWarningMessage(title, text);
 		}
 
@@ -509,14 +510,13 @@ public class DeployDataCommand extends DeployCommand {
 		if (!failedRelationshipImports.isEmpty()) {
 
 			final String infos = "<ul>" + failedRelationshipImports.keySet().stream().reduce("", (tmp, typeName) -> {
-
 				final Map<String, Integer> relInfo = failedRelationshipImports.get(typeName);
 
 				return tmp + "<li>" + typeName + "<ul>" + relInfo.keySet().stream().reduce("", (innerTmp, missingNodeType) -> {
 
 					final int value = relInfo.get(missingNodeType);
-
 					if (value > 0) {
+
 						return innerTmp + "<li>" + value + "x " + missingNodeType + " node missing</li>";
 					}
 
@@ -602,7 +602,6 @@ public class DeployDataCommand extends DeployCommand {
 		for (final String type : exportTypes) {
 
 			final Traits traits = Traits.of(type);
-
 			if (traits.contains(StructrTraits.USER)) {
 
 				logger.warn("User type in export set! Type '{}' is a User type.\n\tIf, on import, the user who is running the import is present in the import data, this can lead to problems.", type);
@@ -625,7 +624,6 @@ public class DeployDataCommand extends DeployCommand {
 
 			final String simpleName  = fileOrFolderClass;
 			final String baseMessage = "Exporting nodes for type ";
-
 			boolean hasMore = true;
 			long nodeCount  = 0;
 			int pageSize    = Settings.DeploymentNodeExportBatchSize.getValue();
@@ -675,6 +673,7 @@ public class DeployDataCommand extends DeployCommand {
 		}
 
 		final Path requiredParentsPathsFile = target.resolve(FILES_FILE_PARENTS_PATH);
+
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(requiredParentsPathsFile.toFile()))) {
 
 			final List parents = new ArrayList(exportedFoldersAsParents);
@@ -771,6 +770,7 @@ public class DeployDataCommand extends DeployCommand {
 					for (final NodeInterface node : list) {
 
 						if (nodeCount > 0) {
+
 							fos.write(",");
 						}
 
@@ -820,6 +820,7 @@ public class DeployDataCommand extends DeployCommand {
 			// TODO: GSON can not serialize ZonedDateTime which would result in an exception => convert to string
 			// TODO: use DatabaseConverter to convert it rather than doing this?
 			if (obj instanceof ZonedDateTime) {
+
 				obj = obj.toString();
 			}
 
@@ -874,7 +875,6 @@ public class DeployDataCommand extends DeployCommand {
 		final NodeInterface targetNode = rel.getTargetNode();
 		final String sourceNodeClass   = sourceNode.getType();
 		final String targetNodeClass   = targetNode.getType();
-
 		final boolean relTypeExistsInSchema = (Traits.of(relTypeName) != null);
 
 		if (!relTypeExistsInSchema) {
@@ -929,7 +929,6 @@ public class DeployDataCommand extends DeployCommand {
 	private void exportRelationshipDirectly(final String simpleRelType, final Map<String, Object> relInfo, final Path relsDir) {
 
 		final Path relConf = relsDir.resolve(simpleRelType + ".json");
-
 		final boolean relOfTypeAlreadyExported = seenRelTypes.contains(simpleRelType);
 
 		if (relOfTypeAlreadyExported) {
@@ -979,16 +978,16 @@ public class DeployDataCommand extends DeployCommand {
 		int relCount          = 0;
 		final int maxSize     = data.size();
 		long totalTime        = 0;
-
 		final String baseMessage = "Importing relationships for type ";
+
 		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage, Map.of(MESSAGE_ID, typeName, TYPE_NAME, typeName, PROGRESS, "(" + maxSize + ")"));
 		logger.info("{}{} ({})", baseMessage, typeName, maxSize);
 
 		while (data.size() >= (chunkCount * chunkSize)) {
 
 			int endIndex = ((chunkCount + 1) * chunkSize);
-
 			if (endIndex > maxSize) {
+
 				endIndex = maxSize;
 			}
 
@@ -1006,7 +1005,6 @@ public class DeployDataCommand extends DeployCommand {
 
 					final String sourceId = (String) entry.get(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
 					final String targetId = (String) entry.get(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
-
 					final NodeInterface sourceNode = app.getNodeById(sourceId);
 					final NodeInterface targetNode = app.getNodeById(targetId);
 
@@ -1023,7 +1021,6 @@ public class DeployDataCommand extends DeployCommand {
 					}
 
 					final String fullRelType = (String) entry.get("type");
-
 					if (!Traits.exists(fullRelType)) {
 
 						final String message = "Relationship type not found! Not importing relationship %s(%s)".formatted(fullRelType, entry.get("id"));
@@ -1084,8 +1081,8 @@ public class DeployDataCommand extends DeployCommand {
 		if (Files.exists(filesMetadataFile)) {
 
 			final Map<String, Object> filesMetadata = readMetadataFileIntoMap(filesMetadataFile);
-
 			final Path files = source.resolve(FILES_FOLDER_PATH);
+
 			if (Files.exists(files)) {
 
 				try {
@@ -1100,13 +1097,13 @@ public class DeployDataCommand extends DeployCommand {
 
 					final Path requiredParentsPathsFile     = source.resolve(FILES_FILE_PARENTS_PATH);
 					final List<String> requiredParentsPaths = readRequiredParentsFileIntoList(requiredParentsPathsFile);
-
 					final DeletingFileImportVisitor fiv = new DeletingFileImportVisitor(ctx, files, filesMetadata, batchSize, requiredParentsPaths) {
 
 						@Override
 						protected void sendProgressUpdateNotification(final int count, final long chunkDuration, final long meanChunkDuration) {
 
 							publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage, Map.of(MESSAGE_ID, messageId, PROGRESS, "(" + count + " / " + maxSize + ")", CUR_CHUNK_TIME, chunkDuration, MEAN_CHUNK_TIME, meanChunkDuration));
+
 							logger.info("{} ({} / {}) (chunk: {}s, mean:{}s)", baseMessage, count, maxSize, chunkDuration/1000.0, meanChunkDuration/1000.0);
 						}
 					};
@@ -1124,7 +1121,6 @@ public class DeployDataCommand extends DeployCommand {
 	private void importExtensibleNodeListData(final SecurityContext context, final String defaultTypeName, final List<Map<String, Object>> data) {
 
 		final Traits defaultType = Traits.of(defaultTypeName);
-
 		if (defaultType == null) {
 
 			logger.warn("Not importing data. Node type cannot be found: {}!", defaultTypeName);
@@ -1139,17 +1135,16 @@ public class DeployDataCommand extends DeployCommand {
 			int nodeCount       = 0;
 			final int maxSize   = data.size();
 			long totalTime      = 0;
-
-
 			final String baseMessage = "Importing nodes for type ";
+
 			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage, Map.of(MESSAGE_ID, defaultTypeName, TYPE_NAME, defaultTypeName, PROGRESS, "(" + maxSize + ")"));
 			logger.info("{}{} ({})", baseMessage, defaultTypeName, maxSize);
 
 			while (data.size() >= (chunkCount * chunkSize)) {
 
 				int endIndex = ((chunkCount + 1) * chunkSize);
-
 				if (endIndex > maxSize) {
+
 					endIndex = maxSize;
 				}
 
@@ -1166,11 +1161,9 @@ public class DeployDataCommand extends DeployCommand {
 					for (final Map<String, Object> entry : sublist) {
 
 						final String id = (String)entry.get("id");
-
 						if (id != null) {
 
 							final NodeInterface existingNode = app.getNodeById(id);
-
 							if (existingNode != null) {
 
 								app.delete(existingNode);
@@ -1300,6 +1293,7 @@ public class DeployDataCommand extends DeployCommand {
 				return new ArrayList<>(getGson().fromJson(reader, ArrayList.class));
 
 			} catch (IOException ioex) {
+
 				logger.warn("", ioex);
 			}
 		}
@@ -1309,27 +1303,32 @@ public class DeployDataCommand extends DeployCommand {
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return true;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "deployData";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Exports or imports application data.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         Exports or imports data only, not the schema or application structure. Use this for backing up or migrating data between environments.
         """;
@@ -1337,6 +1336,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("mode", "`import` or `export`"),
 			Parameter.optional("source", "Source folder path (required for import)"),
@@ -1347,26 +1347,31 @@ public class DeployDataCommand extends DeployCommand {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 }

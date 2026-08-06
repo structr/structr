@@ -54,12 +54,13 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final Logger logger = LoggerFactory.getLogger(FlowStoreTraitDefinition.class);
 
 	public FlowStoreTraitDefinition() {
+
 		super(StructrTraits.FLOW_STORE);
 	}
 
 	public enum Operation {
-		store,
-		retrieve
+
+		store, retrieve
 	}
 
 	@Override
@@ -67,17 +68,16 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.Store;
 					}
 				},
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
@@ -96,18 +96,17 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 
 							logger.error("Exception in FlowStore get: ", ex);
 						}
+
 						return context.getData(store.getUuid());
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
 
 						final FlowStore flowStore = flowBaseNode.as(FlowStore.class);
-
 						final Map<String, Object> result = new TreeMap<>();
 
 						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowStore.getUuid());
@@ -126,9 +125,7 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowStore.class, (traits, node) -> new FlowStore(traits, node)
-		);
+		return Map.of(FlowStore.class, (traits, node) -> new FlowStore(traits, node));
 	}
 
 	@Override
@@ -138,12 +135,7 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> operation                   = new EnumProperty(OPERATION_PROPERTY, FlowStore.Operation.class);
 		final Property<String> key                         = new StringProperty(KEY_PROPERTY);
 
-
-		return newSet(
-			dataTarget,
-			operation,
-			key
-		);
+		return newSet(dataTarget, operation, key);
 	}
 
 	@Override
@@ -164,6 +156,7 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

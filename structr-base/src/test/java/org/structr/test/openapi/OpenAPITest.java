@@ -286,6 +286,7 @@ public class OpenAPITest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -721,7 +722,6 @@ public class OpenAPITest extends StructrUiTest {
 					))
 			));
 
-
 			// security
 			HttpFunctionsTest.assertMapPathValueIs(response, "security.#",  3);
 
@@ -758,7 +758,6 @@ public class OpenAPITest extends StructrUiTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.addType("Test");
-
 			final JsonMethod method = type.addMethod("testDateInput", "{ return $.methodParameters; }");
 
 			method.setIsStatic(true);

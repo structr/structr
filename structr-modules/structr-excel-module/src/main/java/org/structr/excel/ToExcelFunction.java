@@ -50,16 +50,19 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "toExcel";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]");
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return "excel";
 	}
 
@@ -71,7 +74,9 @@ public class ToExcelFunction extends Function<Object, Object> {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 7);
 
 			if ( !(sources[0] instanceof Iterable) ) {
+
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return "ERROR: First parameter must be a collection! ".concat(usage(ctx.isJavaScriptContext()));
 			}
 
@@ -103,12 +108,14 @@ public class ToExcelFunction extends Function<Object, Object> {
 						if (properties.size() == 0) {
 
 							logger.info("toExcel(): Unable to create Excel if list of properties is empty - returning empty Excel");
+
 							return "";
 						}
 
 					} else {
 
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
 					}
 				}
@@ -118,6 +125,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 			if (nodes.size() == 0 && propertyView != null) {
 
 				logger.info("toExcel(): Unable to create Excel if no nodes are given - returning empty Excel");
+
 				return "";
 			}
 
@@ -133,18 +141,21 @@ public class ToExcelFunction extends Function<Object, Object> {
 			} catch (Throwable t) {
 
 				logger.warn("toExcel(): Exception occurred", t);
+
 				return "";
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.structrScript("Usage: ${toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${toExcel(find('Page'), 'ui')}"),
 				Usage.javaScript("Usage: ${{ $.toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]]); }}. Example: ${{ $.toExcel($.find('Page'), 'ui')); }}")
@@ -153,6 +164,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("nodes", "Collection of objects (these objects can be database nodes or javascript objects)"),
 				Parameter.mandatory("propertiesOrView", "Name of a view (e.g. ui or public) or a collection of property names (e.g. `merge('id', 'name')` in StructrScript or `['id', 'name']` in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used."),
@@ -170,16 +182,19 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates Excel from given data.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Returns XLSX string representation of the given collection of objects with the configured header view/columns.";
 	}
 
 	@Override
 	public List<Example>getExamples() {
+
 		return List.of(
 				Example.structrScript("${setContent(create('File', 'name', 'newDocument.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}", "Excel file with view 'public' of user list."),
 				Example.structrScript("""
@@ -207,6 +222,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The output of this function is a complete excel file, so the complete data must be contained in the `nodes` parameter and can not be appended later on",
 			"This function is intended to be used in conjunction with the `setContent()` function or in a dynamic file",
@@ -230,6 +246,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 
@@ -239,10 +256,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 		final CreationHelper factory = workbook.getCreationHelper();
 		final XSSFSheet sheet        = (XSSFSheet) workbook.createSheet();
 		final Drawing drawing        = sheet.createDrawingPatriarch();
-
 		int rowCount  = 0;
 		int cellCount = 0;
-
 		XSSFRow currentRow = null;
 		XSSFCell cell      = null;
 
@@ -254,7 +269,6 @@ public class ToExcelFunction extends Function<Object, Object> {
 			if (propertyView != null) {
 
 				final Object obj = list.get(0);
-
 				if (obj instanceof GraphObject) {
 
 					for (PropertyKey key : ((GraphObject)obj).getPropertyKeys(propertyView)) {
@@ -262,10 +276,15 @@ public class ToExcelFunction extends Function<Object, Object> {
 						cell = currentRow.createCell(cellCount++);
 
 						String value = key.dbName();
+
 						if (localizeHeader) {
+
 							try {
+
 								value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
+
 							} catch (FrameworkException fex) {
+
 								logger.warn("toExcel(): Exception", fex);
 							}
 						}
@@ -285,10 +304,15 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					cell = currentRow.createCell(cellCount++);
 					String value = colName;
+
 					if (localizeHeader) {
+
 						try {
+
 							value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
+
 						} catch (FrameworkException fex) {
+
 							logger.warn("toExcel(): Exception", fex);
 						}
 					}
@@ -316,6 +340,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 					}
 
 				} else {
+
 					cell = currentRow.createCell(cellCount++);
 					cell.setCellValue("Error: Object is not of type GraphObject, can not determine properties of object");
 				}
@@ -342,6 +367,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 						final PropertyKey key = graphObj.getTraits().key(colName);
 						final Object value    = graphObj.getProperty(key);
+
 						cell                  = currentRow.createCell(cellCount++);
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
@@ -382,7 +408,9 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			// Special handling for collections of nodes
 			ArrayList<String> quotedStrings = new ArrayList();
+
 			for (final Object obj : (Collection)value) {
+
 				quotedStrings.add(obj.toString());
 			}
 
@@ -404,7 +432,6 @@ public class ToExcelFunction extends Function<Object, Object> {
 	public void writeToCell(final CreationHelper factory, final Drawing drawing, final XSSFCell cell, final Object value, final Integer maxCellLength, final String overflowMode) {
 
 		final String cellValue = escapeForExcel(value);
-
 		if (cellValue.length() <= maxCellLength) {
 
 			cell.setCellValue(cellValue);
@@ -414,12 +441,16 @@ public class ToExcelFunction extends Function<Object, Object> {
 			cell.setCellValue(cellValue.substring(0, maxCellLength));
 
 			if (!"t".equals(overflowMode)) {
+
 				final Comment comment = drawing.createCellComment(factory.createClientAnchor());
 
 				if ("o".equals(overflowMode)) {
+
 					final String overflow = cellValue.substring(maxCellLength, Math.min(maxCellLength + 32767, cellValue.length()));
 					comment.setString(factory.createRichTextString(overflow));
+
 				} else {
+
 					comment.setString(factory.createRichTextString(overflowMode));
 				}
 

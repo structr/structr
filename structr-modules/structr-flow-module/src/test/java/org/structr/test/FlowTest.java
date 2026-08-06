@@ -93,7 +93,6 @@ public class FlowTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-
 	}
 
 	@Test
@@ -102,8 +101,8 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowForEach").as(FlowContainer.class);
-
 			FlowForEach forEach = app.create(StructrTraits.FLOW_FOR_EACH).as(FlowForEach.class);
+
 			forEach.setFlowContainer(container);
 			container.setStartNode(forEach);
 
@@ -132,7 +131,6 @@ public class FlowTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-
 	}
 
 	@Test
@@ -141,8 +139,8 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowDecision").as(FlowContainer.class);
-
 			FlowDecision flowDecision = app.create(StructrTraits.FLOW_DECISION).as(FlowDecision.class);
+
 			flowDecision.setFlowContainer(container);
 			container.setStartNode(flowDecision);
 
@@ -168,8 +166,8 @@ public class FlowTest extends StructrUiTest {
 
 			// Get conditions for flowAnd
 			List<FlowCondition> conditions = Iterables.toList(flowAnd.getConditions());
-
 			FlowScriptCondition flowScriptCondition = app.create(StructrTraits.FLOW_SCRIPT_CONDITION).as(FlowScriptCondition.class);
+
 			flowScriptCondition.setFlowContainer(container);
 			flowScriptCondition.setScript("true");
 			conditions.add(flowScriptCondition);
@@ -288,8 +286,8 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowComparison").as(FlowContainer.class);
-
 			FlowDecision flowDecision = app.create(StructrTraits.FLOW_DECISION).as(FlowDecision.class);
+
 			flowDecision.setFlowContainer(container);
 			container.setStartNode(flowDecision);
 
@@ -342,7 +340,6 @@ public class FlowTest extends StructrUiTest {
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 	}
 
@@ -405,9 +402,9 @@ public class FlowTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("", fex);
 		}
-
 
 		RestAssured.basePath = htmlUrl;
 
@@ -425,8 +422,6 @@ public class FlowTest extends StructrUiTest {
 		.when()
 			.get("/flowRepeaterTestPage");
 
-
-
 	//"Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	}
@@ -437,8 +432,8 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowForEach").as(FlowContainer.class);
-
 			FlowReturn flowReturn = app.create(StructrTraits.FLOW_RETURN).as(FlowReturn.class);
+
 			flowReturn.setFlowContainer(container);
 			container.setStartNode(flowReturn);
 
@@ -470,7 +465,6 @@ public class FlowTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-
 	}
 
 	@Test
@@ -479,8 +473,8 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowStartNode").as(FlowContainer.class);
-
 			FlowLog flowLog = app.create(StructrTraits.FLOW_LOG).as(FlowLog.class);
+
 			flowLog.setFlowContainer(container);
 			flowLog.setScript("'FlowLog start node is working.'");
 			container.setStartNode(flowLog);
@@ -494,7 +488,6 @@ public class FlowTest extends StructrUiTest {
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 	}
 

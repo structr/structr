@@ -35,6 +35,7 @@ public abstract class AbstractDatabaseService<IDType> implements DatabaseService
 
 	@Override
 	public RelationshipType getRelationshipType(final String name) {
+
 		return getOrCreateRelationshipType(name);
 	}
 
@@ -42,7 +43,6 @@ public abstract class AbstractDatabaseService<IDType> implements DatabaseService
 	public String getTenantIdentifier() {
 
 		final String tenantId = Settings.TenantIdentifier.getValue();
-
 		if (StringUtils.isBlank(tenantId)) {
 
 			return null;
@@ -62,6 +62,7 @@ public abstract class AbstractDatabaseService<IDType> implements DatabaseService
 
 	// ----- private methods -----
 	private RelationshipType getOrCreateRelationshipType(final String name) {
+
 		return relTypeCache.computeIfAbsent(name, RelationshipType::forName);
 	}
 }

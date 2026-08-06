@@ -18,7 +18,6 @@
  */
 package org.structr.api.search;
 
-
 public enum QueryType {
 
 	Group, Range, Exact, Fulltext, Spatial

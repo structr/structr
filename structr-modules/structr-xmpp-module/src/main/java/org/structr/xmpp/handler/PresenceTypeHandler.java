@@ -29,6 +29,7 @@ public class PresenceTypeHandler implements TypeHandler<Presence> {
 
 	@Override
 	public void handle(final StructrXMPPConnection connection, final Presence presence) {
+
 		// not implemented yet..
 	}
 }

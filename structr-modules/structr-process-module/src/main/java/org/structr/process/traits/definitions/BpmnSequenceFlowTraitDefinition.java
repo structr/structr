@@ -51,15 +51,14 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String DI_EDGE_PROPERTY                     = "diEdge";
 
 	public BpmnSequenceFlowTraitDefinition() {
+
 		super(ProcessTraits.BPMN_SEQUENCE_FLOW);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnSequenceFlow.class, (traits, node) -> new BpmnSequenceFlowTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnSequenceFlow.class, (traits, node) -> new BpmnSequenceFlowTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -92,6 +91,7 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -89,7 +89,6 @@ public abstract class StreamingWriter {
 	private final DateTimeFormatter dateTimeFormatter;
 	private final SimpleDateFormat dateFormatter;
 
-
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
 	public StreamingWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
@@ -125,13 +124,13 @@ public abstract class StreamingWriter {
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl) throws IOException {
+
 		stream(securityContext, output, result, baseUrl, true);
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl, final boolean includeMetadata) throws IOException {
 
 		long t0 = System.nanoTime();
-
 		final RestWriter rootWriter = getRestWriter(securityContext, output);
 
 		configureWriter(rootWriter);
@@ -186,6 +185,7 @@ public abstract class StreamingWriter {
 				}
 
 				if (queryTime != null) {
+
 					rootWriter.name("query_time").value(queryTime);
 				}
 
@@ -201,12 +201,12 @@ public abstract class StreamingWriter {
 
 				// in the future more conditions could be added to show different warnings
 				final boolean hasWarnings = (skippedDeletedObjects > 0);
-
 				if (hasWarnings) {
 
 					rootWriter.name("warnings").beginArray();
 
 					if (skippedDeletedObjects > 0) {
+
 						rootWriter.beginObject();
 						rootWriter.name("token").value("SKIPPED_OBJECTS");
 						rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
@@ -237,6 +237,7 @@ public abstract class StreamingWriter {
 				}
 
 				if (renderSerializationTime) {
+
 					rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
 				}
 			}
@@ -249,14 +250,17 @@ public abstract class StreamingWriter {
 	}
 
 	public void setResultKeyName(final String resultKeyName) {
+
 		this.resultKeyName = resultKeyName;
 	}
 
 	public void setRenderSerializationTime(final boolean doRender) {
+
 		this.renderSerializationTime = doRender;
 	}
 
 	public void setOverriddenResultCount(final int resultCount) {
+
 		this.overriddenResultCount = resultCount;
 	}
 
@@ -268,6 +272,7 @@ public abstract class StreamingWriter {
 		if (serializer == null && !nonSerializerClasses.contains(type.getName())) {
 
 			do {
+
 				serializer = serializers.get(localType.getName());
 
 				if (serializer == null) {
@@ -280,6 +285,7 @@ public abstract class StreamingWriter {
 						serializer = serializers.get(interfaceType.getName());
 
 						if (serializer != null) {
+
 							break;
 						}
 					}
@@ -289,9 +295,9 @@ public abstract class StreamingWriter {
 
 			} while (serializer == null && !localType.equals(Object.class));
 
-
 			// cache found serializer
 			if (serializer != null) {
+
 				serializerCache.put(type.getName(), serializer);
 			}
 		}
@@ -302,6 +308,7 @@ public abstract class StreamingWriter {
 	private void collectAllInterfaces(Class type, Set<Class> interfaces) {
 
 		if (interfaces.contains(type)) {
+
 			return;
 		}
 
@@ -348,15 +355,18 @@ public abstract class StreamingWriter {
 	private void configureWriter(final RestWriter writer) {
 
 		if (indent && !writer.getSecurityContext().doMultiThreadedJsonOutput()) {
+
 			writer.setIndent("	");
 		}
 
 	}
 
 	private void setReduceNestedObjectsInRestrictedViewsDepth (SecurityContext securityContext) {
+
 		this.reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
 		HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
+
 			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestParameters.OutputReductionDepth.getName()), this.reduceNestedObjectsInRestrictedViewsDepth);
 		}
 	}
@@ -385,6 +395,7 @@ public abstract class StreamingWriter {
 			final SecurityContext securityContext = writer.getSecurityContext();
 
 			try {
+
 				final PropertyConverter converter = key.inputConverter(securityContext, false);
 				if (converter != null) {
 
@@ -403,17 +414,17 @@ public abstract class StreamingWriter {
 			} catch(Throwable t) {
 
 				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
+
 				} else if (t instanceof IllegalStateException && t.getCause() == null && (t.getMessage() == null || t.getMessage().equals("Nesting problem."))) {
+
 					// ignore exception. it is probably caused by a canceled request/closed connection which caused the JsonWriter to tilt
+
 				} else {
+
 					logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", new Object[] {
-						key.jsonName(),
-						key.getClass(),
-						key.getClass().getDeclaringClass(),
-						value.getClass().getName(),
-						value,
-						t.getMessage()
+						key.jsonName(), key.getClass(), key.getClass().getDeclaringClass(), value.getClass().getName(), value, t.getMessage()
 					});
 				}
 			}
@@ -436,7 +447,9 @@ public abstract class StreamingWriter {
 				final boolean notVisitedBefore = visitedObjects.add(hashCode);
 
 				if (source.getPropertyContainer() != null && source.getPropertyContainer().isDeleted()) {
+
 					skippedDeletedObjects++;
+
 					return 1;
 				}
 
@@ -451,6 +464,7 @@ public abstract class StreamingWriter {
 					final boolean hasView = traits.getViewNames().contains(localPropertyView);
 
 					if ((keys == null || keys.isEmpty()) && depth > 0 && !hasView) {
+
 						keys = Traits.getDefaultKeys();
 					}
 
@@ -458,16 +472,19 @@ public abstract class StreamingWriter {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, type, name)
 						if (reduceNestedObjectsForRestrictedViews && depth > reduceNestedObjectsInRestrictedViewsDepth && Schema.RestrictedViews.contains(localPropertyView)) {
+
 							keys = Traits.getDefaultKeys();
 						}
 
 						// speciality nested nodes which were already rendered: limit recursive rendering (id, type, name)
 						if (reduceRedundancy && !notVisitedBefore && depth > 0) {
+
 							keys = Traits.getDefaultKeys();
 						}
 
 						// prefetching hook
 						if (source instanceof NodeInterface n) {
+
 							n.prefetchPropertySet(keys);
 						}
 
@@ -475,11 +492,13 @@ public abstract class StreamingWriter {
 
 							// skip properties whose serialization is disabled
 							if (key.serializationDisabled()) {
+
 								continue;
 							}
 
 							final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
 							if (range != null) {
+
 								// Reset count for each key
 								range.resetCount();
 							}
@@ -487,8 +506,8 @@ public abstract class StreamingWriter {
 							// special handling for the internal _graph view: replace name with
 							// the name property from the ui view, in case it was overwritten
 							PropertyKey localKey = key;
-
 							final Object value = source.getProperty(localKey, range);
+
 							if (value != null) {
 
 								writer.name(key.jsonName());
@@ -499,7 +518,9 @@ public abstract class StreamingWriter {
 								if (localKey.isCollection()) {
 
 									writer.name(localKey.jsonName()).beginArray().endArray();
+
 								} else if (serializeNulls) {
+
 									writer.name(localKey.jsonName()).nullValue();
 								}
 							}
@@ -549,6 +570,7 @@ public abstract class StreamingWriter {
 
 					// first value?
 					if (hasFirstValue) {
+
 						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
 					}
@@ -567,6 +589,7 @@ public abstract class StreamingWriter {
 							actualResultCount++;
 
  							if (actualResultCount == softLimit) {
+
 								break;
 							}
 						}
@@ -629,6 +652,7 @@ public abstract class StreamingWriter {
 
 					// skip properties whose serialization is disabled
 					if (key.serializationDisabled()) {
+
 						continue;
 					}
 
@@ -649,6 +673,7 @@ public abstract class StreamingWriter {
 	private String getString(final Object value) {
 
 		if (value != null) {
+
 			return value.toString();
 		}
 
@@ -678,7 +703,6 @@ public abstract class StreamingWriter {
 		public boolean okToContinue(final int progress) {
 
 			final long now = System.currentTimeMillis();
-
 			if (now > lastUpdate + interval) {
 
 				lastUpdate = now;
@@ -702,6 +726,7 @@ public abstract class StreamingWriter {
 					writer.flush();
 
 				} catch (IOException ioex) {
+
 					return false;
 				}
 			}
@@ -713,6 +738,7 @@ public abstract class StreamingWriter {
 		public void close() throws IOException {
 
 			if (hasWritten) {
+
 				writer.endArray();
 			}
 		}

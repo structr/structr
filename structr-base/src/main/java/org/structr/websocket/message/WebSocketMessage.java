@@ -95,6 +95,7 @@ public class WebSocketMessage {
 	}
 
 	public void clear() {
+
 		this.nodeData           = new LinkedHashMap();
 		this.commandConfig      = new LinkedHashMap();
 		this.modifiedProperties = new LinkedHashSet();
@@ -103,151 +104,189 @@ public class WebSocketMessage {
 	}
 
 	public String getCommand() {
+
 		return command;
 	}
 
 	public String getId() {
+
 		return id;
 	}
 
 	public String getPageId() {
+
 		return pageId;
 	}
 
 	public Map<String, Object> getNodeData() {
+
 		return nodeData;
 	}
 
 	public Map<String, Object> getCommandConfig() {
+
 		return commandConfig;
 	}
 
 	public Map<String, Object> getRelData() {
+
 		return relData;
 	}
 
 	public String getCallback() {
+
 		return callback;
 	}
 
 	public String getButton() {
+
 		return button;
 	}
 
 	public String getParent() {
+
 		return parent;
 	}
 
 	public String getView() {
+
 		return view;
 	}
 
 	public Iterable<? extends GraphObject> getResult() {
+
 		return result;
 	}
 
 	public int getRawResultCount() {
+
 		return rawResultCount;
 	}
 
 	public String getSortKey() {
+
 		return sortKey;
 	}
 
 	public int getPageSize() {
+
 		return pageSize;
 	}
 
 	public int getPage() {
+
 		return page;
 	}
 
 	public String getSortOrder() {
+
 		return sortOrder;
 	}
 
 	public String getMessage() {
+
 		return message;
 	}
 
 	public int getCode() {
+
 		return code;
 	}
 
 	public Set<PropertyKey> getModifiedProperties() {
+
 		return modifiedProperties;
 	}
 
 	public Set<PropertyKey> getRemovedProperties() {
+
 		return removedProperties;
 	}
 
 	public int getChunkSize() {
+
 		return chunkSize;
 	}
 
 	public GraphObject getGraphObject() {
+
 		return graphObject;
 	}
 
 	public String getSessionId() {
+
 		return sessionId;
 	}
 
 	public boolean isSessionValid() {
+
 		return sessionValid;
 	}
 
 	public Set<String> getNodesWithChildren() {
+
 		return nodesWithChildren;
 	}
 
 	public JsonElement getJsonErrorObject() {
+
 		return jsonErrorObject;
 	}
 
 	public String getRelDataStringValue(final String key) {
+
 		return (String) getRelDataValue(key);
 	}
 
 	public Object getRelDataValue(final String key) {
+
 		return getRelData().get(key);
 	}
 
 	public Object getNodeDataValue(final String key) {
+
 		return getNodeData().get(key);
 	}
 
 	public boolean hasCommandConfigValue(final String key) {
+
 		return getCommandConfig().containsKey(key);
 	}
 
 	public Object getCommandConfigValue(final String key) {
+
 		return getCommandConfig().get(key);
 	}
 
 	public boolean getNodeDataBooleanValue(final String key) {
+
 		final Object value = getNodeDataValue(key);
+
 		return BooleanUtils.isTrue((Boolean) value);
 	}
 
 	public boolean getCommandConfigBooleanValue(final String key) {
+
 		final Object value = getCommandConfigValue(key);
+
 		return BooleanUtils.isTrue((Boolean) value);
 	}
 
 	public String getNodeDataStringValue(final String key) {
+
 		return (String) getNodeDataValue(key);
 	}
 
 	public String getCommandConfigStringValue(final String key) {
+
 		return (String) getCommandConfigValue(key);
 	}
 
 	public String getNodeDataStringValueTrimmedOrDefault(final String key, final String defaultValue) {
-		final String value = getNodeDataStringValueTrimmed(key);
 
+		final String value = getNodeDataStringValueTrimmed(key);
 		if (value != null) {
+
 			return value;
 		}
 
@@ -257,8 +296,8 @@ public class WebSocketMessage {
 	public String getNodeDataStringValueTrimmed(final String key) {
 
 		final String value = getNodeDataStringValue(key);
-
 		if (value != null) {
+
 			return value.trim();
 		}
 
@@ -266,13 +305,15 @@ public class WebSocketMessage {
 	}
 
 	public Long getNodeDataLongValue(final String key) {
-		final Object value = getNodeDataValue(key);
 
+		final Object value = getNodeDataValue(key);
 		if (value instanceof Number) {
+
 			return ((Number)value).longValue();
 		}
 
 		if (value instanceof String) {
+
 			try { return Long.parseLong(value.toString()); } catch (Throwable t) {}
 		}
 
@@ -280,13 +321,15 @@ public class WebSocketMessage {
 	}
 
 	public Integer getNodeDataIntegerValue(final String key) {
-		final Object value = getNodeDataValue(key);
 
+		final Object value = getNodeDataValue(key);
 		if (value instanceof Number) {
+
 			return ((Number)value).intValue();
 		}
 
 		if (value instanceof String) {
+
 			try { return Integer.parseInt(value.toString()); } catch (Throwable t) {}
 		}
 
@@ -294,126 +337,157 @@ public class WebSocketMessage {
 	}
 
 	public List<String> getNodeDataStringList(final String key) {
+
 		return (List<String>) getNodeDataValue(key);
 	}
 
 	public void setCommand(final String command) {
+
 		this.command = command;
 	}
 
 	public void setId(final String id) {
+
 		this.id = id;
 	}
 
 	public void setPageId(final String pageId) {
+
 		this.pageId = pageId;
 	}
 
 	public void setNodeData(final String key, Object value) {
+
 		nodeData.put(key, value);
 	}
 
 	public void setCommandConfig(final String key, Object value) {
+
 		commandConfig.put(key, value);
 	}
 
 	public void setNodeData(final Map<String, Object> data) {
+
 		this.nodeData.putAll(data);
 	}
 
 	public void setRelData(final String key, Object value) {
+
 		relData.put(key, value);
 	}
 
 	public void setRelData(final Map<String, Object> data) {
+
 		this.relData.putAll(data);
 	}
 
 	public void setCallback(final String callback) {
+
 		this.callback = callback;
 	}
 
 	public void setButton(final String button) {
+
 		this.button = button;
 	}
 
 	public void setParent(final String parent) {
+
 		this.parent = parent;
 	}
 
 	public void setView(final String view) {
+
 		this.view = view;
 	}
 
 	public void setResult(final Iterable<? extends GraphObject> result) {
+
 		this.result = result;
 	}
 
 	public void setRawResultCount(final int rawResultCount) {
+
 		this.rawResultCount = rawResultCount;
 	}
 
 	public void setSortKey(final String sortKey) {
+
 		this.sortKey = sortKey;
 	}
 
 	public void setPageSize(final int pageSize) {
+
 		this.pageSize = pageSize;
 	}
 
 	public void setPage(final int page) {
+
 		this.page = page;
 	}
 
 	public void setSortOrder(final String sortOrder) {
+
 		this.sortOrder = sortOrder;
 	}
 
 	public void setSessionId(final String sessionId) {
+
 		this.sessionId = sessionId;
 	}
 
 	public void setSessionValid(final boolean sessionValid) {
+
 		this.sessionValid = sessionValid;
 	}
 
 	public void setMessage(final String message) {
+
 		this.message = message;
 	}
 
 	public void setCode(final int code) {
+
 		this.code = code;
 	}
 
 	public void setModifiedProperties(final Set<PropertyKey> modifiedProperties) {
+
 		this.modifiedProperties = modifiedProperties;
 	}
 
 	public void setRemovedProperties(final Set<PropertyKey> removedProperties) {
+
 		this.removedProperties = removedProperties;
 	}
 
 	public void setChunkSize(final int chunkSize) {
+
 		this.chunkSize = chunkSize;
 	}
 
 	public void setGraphObject(final GraphObject graphObject) {
+
 		this.graphObject = graphObject;
 	}
 
 	public void setNodesWithChildren(final Set<String> nodesWithChildren) {
+
 		this.nodesWithChildren = nodesWithChildren;
 	}
 
 	public void setJsonErrorObject(final JsonElement jsonErrorObject) {
+
 		this.jsonErrorObject = jsonErrorObject;
 	}
 
 	public void setSecurityContext(final SecurityContext securityContext) {
+
 		this.securityContext = securityContext;
 	}
 
 	public SecurityContext getSecurityContext() {
+
 		return securityContext;
 	}
 }

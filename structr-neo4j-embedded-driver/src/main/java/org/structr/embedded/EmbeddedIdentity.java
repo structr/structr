@@ -27,32 +27,39 @@ public class EmbeddedIdentity implements Identity<String> {
 	private final String id;
 
 	public EmbeddedIdentity(final String id) {
+
 		this.id  = id;
 	}
 
 	@Override
 	public String getId() {
+
 		return id;
 	}
 
 	@Override
 	public String toString() {
+
 		return id;
 	}
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return ((EmbeddedIdentity)other).getId().equals(id);
 	}
 
 	@Override
 	public int hashCode() {
+
 		return id.hashCode();
 	}
 
 	@Override
 	public long hash() {
+
 		// FIXME: this is the only place where we need the actual long value
+
 		return id.hashCode();
 	}
 

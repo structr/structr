@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -29,7 +28,6 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
-
 
 /**
  * Replace a template with another template.
@@ -68,7 +66,6 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 
 		// check if parent node with given ID exists
 		final Template newTemplate = getNodeAs(newTemplateId, Template.class, StructrTraits.TEMPLATE);
-
 		if (newTemplate == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Replacement template node not found").build(), true);
@@ -78,7 +75,6 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 		}
 
 		final DOMNode templateToBeReplaced = getDOMNode(id);
-		
 		if (templateToBeReplaced == null) {
 			
 			getWebSocket().send(MessageBuilder.status().code(422).message("Unable to find template node to be replaced").build(), true);
@@ -98,6 +94,7 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 
 			// 3: Move child nodes from existing template to new template
 			for (final NodeInterface child : templateToBeReplaced.getAllChildNodes()) {
+
 				newClonedTemplate.appendChild(child.as(DOMNode.class));
 			}
 			
@@ -112,7 +109,6 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 
 		}
-
 
 	}
 

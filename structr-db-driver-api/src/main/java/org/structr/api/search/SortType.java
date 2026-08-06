@@ -18,7 +18,6 @@
  */
 package org.structr.api.search;
 
-
 public enum SortType {
 
 	Default, Integer, Double, Long;

@@ -39,6 +39,7 @@ public class Html extends GenericHtmlElementTraitDefinition {
 	public static final String CUSTOM_OPENING_TAG_PROPERTY = "customOpeningTag";
 
 	public Html() {
+
 		super(StructrTraits.HTML);
 	}
 
@@ -49,8 +50,7 @@ public class Html extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			OpeningTag.class,
-			new OpeningTag() {
+			OpeningTag.class, new OpeningTag() {
 
 				@Override
 				public void openingTag(final DOMElement node, final AsyncBuffer out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
@@ -78,23 +78,12 @@ public class Html extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> manifestProperty = new StringProperty(MANIFEST_PROPERTY);
 		final PropertyKey<String> customOpeningTag = new StringProperty(CUSTOM_OPENING_TAG_PROPERTY);
 
-		return newSet(
-			manifestProperty, customOpeningTag
-		);
+		return newSet(manifestProperty, customOpeningTag);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Ui,
-			newSet(
-				MANIFEST_PROPERTY, CUSTOM_OPENING_TAG_PROPERTY
-			),
-			PropertyView.Html,
-			newSet(
-				MANIFEST_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Ui, newSet(MANIFEST_PROPERTY, CUSTOM_OPENING_TAG_PROPERTY), PropertyView.Html, newSet(MANIFEST_PROPERTY));
 	}
 }

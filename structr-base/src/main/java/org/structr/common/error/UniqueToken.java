@@ -36,6 +36,7 @@ public class UniqueToken extends SemanticErrorToken {
 	}
 
 	public String getExistingUuid() {
+
 		return (String)data.get("existingNodeUuid");
 	}
 

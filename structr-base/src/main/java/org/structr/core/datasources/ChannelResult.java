@@ -39,16 +39,19 @@ public class ChannelResult<T> {
 	private int totalResultCount = 0;
 
 	public Iterable<T> getData() {
+
 		return values;
 	}
 
 	public boolean isEmpty() {
+
 		return values.isEmpty();
 	}
 
 	public T getFirst() {
 
 		if (!isEmpty()) {
+
 			return values.getFirst();
 		}
 
@@ -92,6 +95,7 @@ public class ChannelResult<T> {
 	}
 
 	public int getResultCount() {
+
 		return totalResultCount;
 	}
 }

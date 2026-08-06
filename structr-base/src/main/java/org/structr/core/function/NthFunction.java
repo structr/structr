@@ -35,11 +35,13 @@ public class NthFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "nth";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("collection, index");
 	}
 
@@ -55,7 +57,6 @@ public class NthFunction extends CoreFunction {
 			if (sources[0] instanceof List l && !l.isEmpty()) {
 
 				final int size = l.size();
-
 				if (pos >= size) {
 
 					return null;
@@ -84,17 +85,20 @@ public class NthFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.nth(collection, index)}}. Example: ${{$.nth($.this.children, 2)}}"),
 			Usage.structrScript("Usage: ${nth(collection, index)}. Example: ${nth(this.children, 2)}")
@@ -103,32 +107,30 @@ public class NthFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the element with the given index of the given collection.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("collection", "collection to return element of"),
-			Parameter.mandatory("index", "index of the object to return (0-based)")
-		);
+		return List.of(Parameter.mandatory("collection", "collection to return element of"), Parameter.mandatory("index", "index of the object to return (0-based)"));
 	}
 	@Override
 	public String getLongDescription() {
+
 		return "`first()` and `last()`.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${nth(find('User'), 1)}", "Return the second of the existing users")
-		);
+		return List.of(Example.structrScript("${nth(find('User'), 1)}", "Return the second of the existing users"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

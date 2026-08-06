@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -62,6 +61,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 	@Override
 	public String getModuleName() {
+
 		return "ui";
 	}
 
@@ -75,6 +75,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 		} catch (FrameworkException fex) {
 
 			try {
+
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
@@ -95,6 +96,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			// CSRF origin check for form-based login
 			if (!checkCsrfOrigin(request, response)) {
+
 				return;
 			}
 
@@ -105,6 +107,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -144,12 +147,15 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 								// redirect to requested target page or /
 								final String redirectLocation = HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY));
-
 								if (StringUtils.isBlank(redirectLocation)) {
+
 									sendRedirectHeader(response, "/", true);
+
 								} else {
+
 									sendRedirectHeader(response, redirectLocation, false);	// user-provided, should be already prefixed
 								}
+
 								break;
 
 							default:
@@ -175,10 +181,12 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 	}
 
 	protected String getUriPart() {
+
 		return "login";
 	}
 
 	protected RESTCallHandler getLoginResource(final HttpServletRequest request) throws FrameworkException {
+
 		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), StructrTraits.USER);
 	}
 

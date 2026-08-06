@@ -54,6 +54,7 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 			public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 				handleObject(node);
+
 				return true;
 			}
 		});
@@ -66,6 +67,7 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 				handleObject(rel);
+
 				return true;
 			}
 		});
@@ -76,11 +78,13 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
@@ -132,8 +136,11 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 			}
 
 		} catch (IOException ioex) {
+
 			logger.error("Unable to write changelog to file: {}", ioex.getMessage());
+
 		} catch (Throwable t) {
+
 			logger.warn("", t);
 		}
 
@@ -143,56 +150,67 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Hidden;
 	}
 
 	@Override
 	public String getName() {
+
 		return "";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
+
 		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

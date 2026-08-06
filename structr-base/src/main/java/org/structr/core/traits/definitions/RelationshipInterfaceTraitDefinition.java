@@ -40,11 +40,13 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 	public static final String TARGET_NODE_PROPERTY        = "targetNode";
 
 	public RelationshipInterfaceTraitDefinition() {
+
 		super(StructrTraits.RELATIONSHIP_INTERFACE);
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return true;
 	}
 
@@ -58,34 +60,20 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 		final Property<NodeInterface> sourceNode         = new SourceNodeProperty(SOURCE_NODE_PROPERTY);
 		final Property<NodeInterface> targetNode         = new TargetNodeProperty(TARGET_NODE_PROPERTY);
 
-		return newSet(
-			internalTimestamp,
-			relType,
-			sourceId,
-			targetId,
-			sourceNode,
-			targetNode
-		);
+		return newSet(internalTimestamp, relType, sourceId, targetId, sourceNode, targetNode);
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-				PropertyView.Public,
-				newSet(
-						REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY
-				),
+		return Map.of(PropertyView.Public, newSet(REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY),
 
-				PropertyView.Ui,
-				newSet(
-						REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY
-				)
-		);
+				PropertyView.Ui, newSet(REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY));
 	}
 }

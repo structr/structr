@@ -32,11 +32,13 @@ public class StructrURLStreamHandler extends URLStreamHandler {
 	private SecurityContext securityContext = null;
 
 	public StructrURLStreamHandler(final SecurityContext ctx) {
+
 		this.securityContext = ctx;
 	}
 
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
+
 		return new StructrURLConnection(securityContext, url);
 	}
 }

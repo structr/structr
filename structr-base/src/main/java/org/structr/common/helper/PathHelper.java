@@ -31,14 +31,17 @@ public class PathHelper {
 	public static String clean(final String path) {
 
 		// Remove leading and trailing /
+
 		return StringUtils.strip(path, PATH_SEP);
 	}
 
 	public static String replaceWhitespaceByPlus(final String path) {
+
 		return StringUtils.replace(path, " ", "+");
 	}
 
 	public static String replaceWhitespaceByPercentTwenty(final String path) {
+
 		return StringUtils.replace(path, " ", "%20");
 	}
 
@@ -61,6 +64,7 @@ public class PathHelper {
 		if (basePath.equals(PATH_SEP) && (targetPath.length() > 1)) {
 
 			// Base path is root path
+
 			return targetPath.substring(1);
 		}
 
@@ -70,6 +74,7 @@ public class PathHelper {
 					   ? baseAncestors.length
 					   : targetAncestors.length;
 		int lastCommonRoot       = -1;
+
 		int i;
 
 		// Iterate over the shorter path
@@ -112,7 +117,6 @@ public class PathHelper {
 
 			// newRelativePath.append(targetAncestors[targetAncestors.length - 1]);
 			String result = newRelativePath.toString();
-
 			if (result.endsWith(PATH_SEP)) {
 
 				result = result.substring(0, result.length() - 1);
@@ -135,7 +139,6 @@ public class PathHelper {
 	public static String getName(final String path) {
 
 		String cleanedPath = clean(path);
-
 		if (cleanedPath != null && cleanedPath.contains(PATH_SEP)) {
 
 			return StringUtils.substringAfterLast(cleanedPath, PATH_SEP);
@@ -156,7 +159,6 @@ public class PathHelper {
 	public static String getFolderPath(final String path) {
 
 		String cleanedPath = clean(path);
-
 		if (cleanedPath != null && cleanedPath.contains(PATH_SEP)) {
 
 			return PATH_SEP + StringUtils.substringBeforeLast(cleanedPath, PATH_SEP);
@@ -195,6 +197,7 @@ public class PathHelper {
 
 			// ignore ".." and "." in paths
 			if ("..".equals(part) || ".".equals(part)) {
+
 				continue;
 			}
 

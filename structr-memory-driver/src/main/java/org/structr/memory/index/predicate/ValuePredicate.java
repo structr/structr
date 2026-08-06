@@ -54,6 +54,7 @@ public class ValuePredicate<T extends PropertyContainer, V> implements Predicate
 
 		// support for null values
 		if (expectedValue == null) {
+
 			return actualValue == null;
 		}
 

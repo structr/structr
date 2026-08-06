@@ -32,14 +32,17 @@ public class CountResult {
 	}
 
 	public long getNodeCount() {
+
 		return nodeCount;
 	}
 
 	public long getRelationshipCount() {
+
 		return relCount;
 	}
 
 	public long getUserCount() {
+
 		return userCount;
 	}
 }

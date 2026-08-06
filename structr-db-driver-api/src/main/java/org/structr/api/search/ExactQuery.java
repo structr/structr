@@ -18,6 +18,5 @@
  */
 package org.structr.api.search;
 
-
 public interface ExactQuery extends QueryPredicate {
 }

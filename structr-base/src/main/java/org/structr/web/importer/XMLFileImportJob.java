@@ -50,6 +50,7 @@ public class XMLFileImportJob extends FileImportJob {
 	private final String contentType;
 
 	public XMLFileImportJob(final File file, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
+
 		super(file, user, configuration, ctxStore);
 
 		contentType = file.getContentType();
@@ -65,7 +66,6 @@ public class XMLFileImportJob extends FileImportJob {
 		} else {
 
 			final StructrModule module = StructrApp.getConfiguration().getModules().get("xml");
-
 			if (!Services.isTesting() && (module == null || !(module instanceof XMLModule))) {
 
 				throw new FrameworkException(400, "Cannot import XML, XML module is not available.");
@@ -79,7 +79,9 @@ public class XMLFileImportJob extends FileImportJob {
 
 	@Override
 	public boolean canRunMultiThreaded() {
+
 		// think about this, maybe we can add parallelism here?
+
 		return false;
 	}
 
@@ -113,13 +115,11 @@ public class XMLFileImportJob extends FileImportJob {
 					final Iterator<Map<String, Object>> iterator = new XMLHandler(configuration, reader);
 					final int batchSize                          = 100;
 					int chunks                                   = 0;
-
 					final long startTime = System.currentTimeMillis();
 
 					while (iterator.hasNext()) {
 
 						final long chunkStartTime = System.currentTimeMillis();
-
 						int count = 0;
 
 						// test: open transaction
@@ -145,7 +145,9 @@ public class XMLFileImportJob extends FileImportJob {
 
 						// do this outside of the transaction!
 						shouldPause();
+
 						if (shouldAbort()) {
+
 							return;
 						}
 
@@ -154,6 +156,7 @@ public class XMLFileImportJob extends FileImportJob {
 					importFinished(startTime, overallCount, 0);
 
 				} catch (XMLStreamException | FrameworkException ex) {
+
 					reportException(ex);
 				}
 
@@ -170,16 +173,19 @@ public class XMLFileImportJob extends FileImportJob {
 
 	@Override
 	public String getJobType() {
+
 		return "XML";
 	}
 
 	@Override
 	public String getJobStatusType() {
+
 		return "FILE_IMPORT_STATUS";
 	}
 
 	@Override
 	public String getJobExceptionMessageType() {
+
 		return "FILE_IMPORT_EXCEPTION";
 	}
 }

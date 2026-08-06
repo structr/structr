@@ -35,11 +35,13 @@ public class OneFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "one";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("number, oneValue, otherValue");
 	}
 
@@ -59,31 +61,31 @@ public class OneFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${one(number, oneValue, otherValue)}"),
-				Usage.javaScript("Usage: ${{ $.one(number, oneValue, otherValue) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${one(number, oneValue, otherValue)}"), Usage.javaScript("Usage: ${{ $.one(number, oneValue, otherValue) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Checks if a number is equal to 1, returns the oneValue if yes, the otherValue if no.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${one(this.children.size, 'child', 'children')}")
-		);
+
+		return List.of(Example.structrScript("${one(this.children.size, 'child', 'children')}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

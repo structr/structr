@@ -27,6 +27,7 @@ import java.util.Map;
 public class Cite extends GenericHtmlElementTraitDefinition {
 
 	public Cite() {
+
 		super(StructrTraits.CITE);
 	}
 
@@ -37,11 +38,11 @@ public class Cite extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

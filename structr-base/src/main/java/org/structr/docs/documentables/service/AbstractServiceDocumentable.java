@@ -25,6 +25,7 @@ public abstract class AbstractServiceDocumentable implements Documentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Service;
 	}
 }

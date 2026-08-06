@@ -87,11 +87,13 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	@Override
 	public String toString() {
+
 		return getStatement();
 	}
 
 	@Override
 	public boolean equals(final Object other) {
+
 		return hashCode() == other.hashCode();
 	}
 
@@ -121,23 +123,28 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	@Override
 	public void nextPage() {
+
 		fetchPage++;
 	}
 
 	@Override
 	public int pageSize() {
+
 		return this.fetchSize;
 	}
 
 	public SortOrder getSortOrder() {
+
 		return sortOrder;
 	}
 
 	public boolean hasPredicates() {
+
 		return buffer.length() > 0;
 	}
 
 	public boolean getHasOptionalParts() {
+
 		return hasOptionalParts;
 	}
 
@@ -156,6 +163,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
+
 					buf.append(" WHERE ");
 					buf.append(buffer);
 				}
@@ -169,6 +177,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
+
 					buf.append(" WHERE ");
 					buf.append(buffer);
 				}
@@ -184,6 +193,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), this));
 
 					if (hasPredicates) {
+
 						buf.append(" WHERE ");
 						buf.append(buffer);
 					}
@@ -191,9 +201,11 @@ public class AdvancedCypherQuery implements CypherQuery {
 					buf.append(index.getQuerySuffix(this));
 
 					if (it.hasNext()) {
+
 						buf.append(" UNION ");
 					}
 				}
+
 				break;
 		}
 
@@ -201,7 +213,6 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			boolean first     = true;
 			int sortSpecIndex = 0;
-
 
 			for (final SortSpec spec : sortOrder.getSortElements()) {
 
@@ -218,6 +229,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				buf.append(sortSpecIndex);
 
 				if (spec.sortDescending()) {
+
 					buf.append(" DESC");
 				}
 
@@ -234,10 +246,12 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	@Override
 	public Map<String, Object> getParameters() {
+
 		return parameters;
 	}
 
 	public void beginGroup() {
+
 		buffer.append("(");
 	}
 
@@ -259,41 +273,50 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	@Override
 	public void and() {
+
 		buffer.append(" AND ");
 	}
 
 	@Override
 	public void not() {
+
 		buffer.append(" NOT ");
 	}
 
 	@Override
 	public void andNot() {
+
 		buffer.append(" AND NOT ");
 	}
 
 	@Override
 	public void or() {
+
 		buffer.append(" OR ");
 	}
 
 	public void indexLabel(final String indexLabel) {
+
 		this.indexLabels.add(indexLabel);
 	}
 
 	public void typeLabel(final String typeLabel) {
+
 		this.typeLabels.add(typeLabel);
 	}
 
 	public void addSimpleParameter(final String key, final String operator, final Object value) {
+
 		addSimpleParameter(key, operator, value, true);
 	}
 
 	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty) {
+
 		addSimpleParameter(key, operator, value, isProperty, false);
 	}
 
 	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty, final boolean caseInsensitive) {
+
 		addSimpleParameter("n", key, operator, value, isProperty, caseInsensitive);
 	}
 
@@ -306,6 +329,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 			if (isProperty) {
 
 				if (caseInsensitive) {
+
 					buffer.append("toLower(");
 				}
 
@@ -318,8 +342,11 @@ public class AdvancedCypherQuery implements CypherQuery {
 			if (isProperty) {
 
 				if (caseInsensitive) {
+
 					buffer.append("`) ");
+
 				} else {
+
 					buffer.append("` ");
 				}
 
@@ -337,6 +364,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 		} else {
 
 			if (isProperty) {
+
 				buffer.append(identifier);
 				buffer.append(".`");
 			}
@@ -344,6 +372,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 			buffer.append(key);
 
 			if (isProperty) {
+
 				buffer.append("` ");
 			}
 
@@ -529,6 +558,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 			}
 
 			if (hasNodeIds && hasBoltIds) {
+
 				buffer.append(" OR ");
 			}
 
@@ -568,6 +598,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 			}
 
 			if (hasNodeIds && hasBoltIds) {
+
 				buffer.append(" OR ");
 			}
 
@@ -622,37 +653,45 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	@Override
 	public void sort(final SortOrder sortOrder) {
+
 		this.sortOrder = sortOrder;
 	}
 
 	public void setSourceType(final String sourceTypeLabel) {
+
 		this.sourceTypeLabel = sourceTypeLabel;
 	}
 
 	public String getSourceType() {
+
 		return sourceTypeLabel;
 	}
 
 	public void setTargetType(final String targetTypeLabel) {
+
 		this.targetTypeLabel = targetTypeLabel;
 	}
 
 	public String getTargetType() {
+
 		return targetTypeLabel;
 	}
 
 	public void hasOptionalParts() {
+
 		hasOptionalParts = true;
 	}
 
 	@Override
 	public QueryContext getQueryContext() {
+
 		return queryContext;
 	}
 
 	public QueryTimer getQueryTimer() {
 
 		if (queryTimer == null) {
+
 			queryTimer = QueryHistogram.newTimer();
 		}
 
@@ -667,14 +706,17 @@ public class AdvancedCypherQuery implements CypherQuery {
 	}
 
 	public String getType() {
+
 		return type;
 	}
 
 	public String getRelationshipType() {
+
 		return relationshipType;
 	}
 
 	public boolean isOutgoing() {
+
 		return outgoing;
 	}
 
@@ -695,6 +737,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 		}
 
 		// null indicates "no main type"
+
 		return null;
 	}
 

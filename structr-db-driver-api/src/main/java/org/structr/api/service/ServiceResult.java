@@ -26,6 +26,7 @@ public class ServiceResult {
 	private String message  = null;
 
 	public ServiceResult(final boolean success) {
+
 		this(null, success);
 	}
 
@@ -36,15 +37,18 @@ public class ServiceResult {
 	}
 
 	public boolean isSuccess() {
+
 		return success;
 	}
 
 	public String getMessage() {
+
 		return message;
 	}
 
 	@Override
 	public String toString() {
+
 		return "ServiceResult(" + success + ", " + message + ")";
 	}
 }

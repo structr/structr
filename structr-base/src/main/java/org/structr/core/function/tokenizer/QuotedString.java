@@ -40,13 +40,17 @@ public class QuotedString extends Tokenizer {
 
 			// not started
 			case 0:
+
 				if (character == quoteChar) {
+
 					return true;
 				}
+
 				break;
 
 			// in group (accept all)
 			case 1:
+
 				return true;
 		}
 
@@ -59,15 +63,21 @@ public class QuotedString extends Tokenizer {
 		switch (state) {
 
 			case 0:
+
 				if (character == quoteChar && !esc) {
+
 					state = 1;
 				}
+
 				break;
 
 			case 1:
+
 				if (character == quoteChar && !esc) {
+
 					state = 2;
 				}
+
 				break;
 		}
 
@@ -76,8 +86,10 @@ public class QuotedString extends Tokenizer {
 			if (esc) {
 
 				try {
+
 					// convert back to escape code
 					super.add(StringEscapeUtils.unescapeJava("\\" + Character.toString(character)).charAt(0));
+
 				} catch (Throwable t) {
 				}
 
@@ -99,11 +111,13 @@ public class QuotedString extends Tokenizer {
 
 	@Override
 	public void reset() {
+
 		state = 0;
 	}
 
 	@Override
 	public String getType() {
+
 		return "string";
 	}
 
@@ -111,6 +125,7 @@ public class QuotedString extends Tokenizer {
 	public String getContent() {
 
 		if (includeQuotesInToken) {
+
 			return "\"" + super.getContent() + "\"";
 		}
 
@@ -119,11 +134,13 @@ public class QuotedString extends Tokenizer {
 
 	@Override
 	public String getQuoteChar() {
+
 		return Character.toString(quoteChar);
 	}
 
 	@Override
 	Tokenizer newInstance() {
+
 		return new QuotedString(quoteChar, includeQuotesInToken);
 	}
 }

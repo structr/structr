@@ -71,6 +71,7 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 			// re-init fails fatally ("Database ... does not exist") and aborts the JVM via
 			// System.exit, killing e.g. the surefire/failsafe test fork.
 			if (services == null) {
+
 				break;
 			}
 
@@ -240,14 +241,17 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 	}
 
 	public boolean createEnclosingTransaction() {
+
 		return true;
 	}
 
 	public final int getMaxQueueSize() {
+
 		return maxQueueSize;
 	}
 
 	public final long getAverageExecutionTime() {
+
 		return averageExecutionTime;
 	}
 
@@ -259,6 +263,7 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 	}
 
 	public int getMaxAgents() {
+
 		return maxAgents;
 	}
 
@@ -283,14 +288,17 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 	}
 
 	protected AgentService getBlackboardService() {
+
 		return agentService;
 	}
 
 	public final boolean isSuspended() {
+
 		return suspended.get();
 	}
 
 	public final boolean isAcceptingTasks() {
+
 		return acceptingTasks.get();
 	}
 }

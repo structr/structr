@@ -45,9 +45,7 @@ public class ExampleData {
 
 	static {
 
-		DataProviders.put("attribute-names", Map.of(
-			"name-type-list", new TypeAttributesProvider()
-		));
+		DataProviders.put("attribute-names", Map.of("name-type-list", new TypeAttributesProvider()));
 	}
 
 	public static StructrTransactionListener postProcess(final String type, final List<String> attributes, final int number) {
@@ -68,6 +66,7 @@ public class ExampleData {
 					if (attributesList != null) {
 
 						final App app = StructrApp.getInstance();
+
 						try (final Tx tx = app.tx()) {
 
 							// only create data if the type exists and has no instances yet
@@ -96,6 +95,7 @@ public class ExampleData {
 							tx.success();
 
 						} catch (Throwable t) {
+
 							t.printStackTrace();
 						}
 					}

@@ -64,6 +64,7 @@ public class CypherQuery {
 
 	// extension methods
 	public CypherQuery sort(String sortKey) {
+
 		return sort(sortKey, false);
 	}
 
@@ -118,6 +119,7 @@ public class CypherQuery {
 	}
 
 	public Iterable<GraphObject> execute() throws FrameworkException {
+
 		return cypherQueryCommand.execute(toString(), getParameters(), includeHiddenAndDeleted, publicOnly);
 	}
 
@@ -139,15 +141,18 @@ public class CypherQuery {
 			buf.append(sortKey);
 
 			if(descending) {
+
 				buf.append(" DESC");
 			}
 		}
 
 		if(offset >= 0) {
+
 			buf.append(" SKIP ").append(offset);
 		}
 
 		if(limit >= 0) {
+
 			buf.append(" LIMIT ").append(limit);
 		}
 
@@ -155,6 +160,7 @@ public class CypherQuery {
 	}
 
 	public Map<String, Object> getParameters() {
+
 		return parameters;
 	}
 }

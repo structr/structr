@@ -77,36 +77,43 @@ public class RuntimeEvent {
 	}
 
 	public long getId() {
+
 		return id;
 	}
 
 	public long absoluteTimestamp() {
+
 		return absoluteTimestamp;
 	}
 	public long relativeTimestamp() {
+
 		return relativeTimestamp;
 	}
 
 	public String getType() {
+
 		return type;
 	}
 
 	public String getThreadName() {
+
 		return threadName;
 	}
 
 	public String getDescription() {
+
 		return description;
 	}
 
 	public Map<String, Object> getData() {
+
 		return data;
 	}
 
 	public boolean getSeen() {
+
 		return seen;
 	}
-
 
 	public GraphObject toGraphObject() {
 
@@ -124,6 +131,7 @@ public class RuntimeEvent {
 			result.setProperty(_data,              data);
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
@@ -131,6 +139,7 @@ public class RuntimeEvent {
 	}
 
 	public void acknowledge() {
+
 		this.seen = true;
 	}
 

@@ -32,6 +32,7 @@ import java.util.Set;
 public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestSixTraitDefinition() {
+
 		super("TestSix");
 	}
 
@@ -67,11 +68,13 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

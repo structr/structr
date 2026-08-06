@@ -112,6 +112,7 @@ public class SearchAndSortingTest extends StructrTest {
 				assertEquals(4, result.size());
 
 				for (NodeInterface node : result) {
+
 					System.out.println(node);
 				}
 
@@ -367,6 +368,7 @@ public class SearchAndSortingTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				for (final String source : testResults.keySet()) {
+
 					app.create("TestOne", source);
 				}
 
@@ -414,6 +416,7 @@ public class SearchAndSortingTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error(ex.toString());
 				fail("Unexpected exception");
 			}
@@ -426,10 +429,9 @@ public class SearchAndSortingTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				long t0 = System.currentTimeMillis();
-
 				List<? extends NodeInterface> result = app.nodeQuery(StructrTraits.NODE_INTERFACE).getAsList();
-
 				long t1 = System.currentTimeMillis();
+
 				logger.info("Query with inexact type took {} ms", t1-t0);
 				assertEquals(expectedNumber, result.size());
 
@@ -443,6 +445,7 @@ public class SearchAndSortingTest extends StructrTest {
 			}
 
 		} catch (FrameworkException ex) {
+
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
@@ -510,7 +513,6 @@ public class SearchAndSortingTest extends StructrTest {
 				tx.success();
 
 			}
-
 
 			try (final Tx tx = app.tx()) {
 
@@ -699,6 +701,7 @@ public class SearchAndSortingTest extends StructrTest {
 					try { Thread.sleep(2); } catch (Throwable t) {}
 
 				}
+
 				tx.success();
 			}
 
@@ -768,6 +771,7 @@ public class SearchAndSortingTest extends StructrTest {
 					// slow down execution speed to make sure distinct changes fall in different milliseconds
 					try { Thread.sleep(2); } catch (Throwable t) {}
 				}
+
 				tx.success();
 			}
 
@@ -832,6 +836,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 				}
+
 				tx.success();
 			}
 
@@ -899,9 +904,12 @@ public class SearchAndSortingTest extends StructrTest {
 					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestOne-" + name);
 
 					if ((i % 2) != 0) {
+
 						node.setProperty(Traits.of("TestOne").key("aDate"), new Date());
 						System.out.println("TestOne-" + name + ": indexed with date");
+
 					} else {
+
 						node.setProperty(Traits.of("TestOne").key("aDate"), null);
 						System.out.println("TestOne-" + name + ": null date");
 					}
@@ -962,6 +970,7 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			final List<NodeInterface> nodes = this.createTestNodes("TestOne", 10, 100);
+
 			try (final Tx tx = app.tx()) {
 
 				int i = 0;
@@ -969,28 +978,30 @@ public class SearchAndSortingTest extends StructrTest {
 				for (NodeInterface node : nodes) {
 
 					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), Long.toString(i));
+
 					if (i < 7) {
+
 						node.setProperty(Traits.of("TestOne").key("anInt"), i);
 					}
 
 					i++;
 				}
+
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
 				boolean sortDesc    = false;
-
 				final PropertyKey<String> nameKey   = Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 				final PropertyKey<Integer> anIntKey = Traits.of("TestOne").key("anInt");
 				final List<NodeInterface> result    = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("anInt"), sortDesc).sort(nameKey).getAsList();
-
 
 				// check that the sorting is stable, i.e. the position of nodes
 				// with equal values (and null) is not modified by sorting
 
 				final Iterator<NodeInterface> nameIterator = result.iterator();
+
 				while (nameIterator.hasNext()) {
 
 					// values first
@@ -1008,9 +1019,9 @@ public class SearchAndSortingTest extends StructrTest {
 					assertEquals("Invalid sort result with mixed values (null vs. int)", "9", nameIterator.next().getProperty(nameKey));
 				}
 
-
 				// check that the sorting is "nulls last" as documented
 				final Iterator<NodeInterface> intIterator = result.iterator();
+
 				while (intIterator.hasNext()) {
 
 					// values first
@@ -1052,7 +1063,6 @@ public class SearchAndSortingTest extends StructrTest {
 			props.put(key, name);
 
 			final NodeInterface node = createTestNode("TestOne", props);
-
 			List<NodeInterface> result = null;
 
 			try (final Tx tx = app.tx()) {
@@ -1250,6 +1260,7 @@ public class SearchAndSortingTest extends StructrTest {
 			fail("Expected a FrameworkException (name must_not_be_empty)");
 
 		} catch (FrameworkException nfe) {
+
 			nfe.printStackTrace();
 
 		}
@@ -1298,7 +1309,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 				tx.success();
 			}
-
 
 		} catch (FrameworkException ex) {
 
@@ -1580,6 +1590,7 @@ public class SearchAndSortingTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				int i = offset;
+
 				for (NodeInterface node : nodes) {
 
 					// System.out.println("Node ID: " + node.getNodeId());
@@ -1589,6 +1600,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), _name);
 				}
+
 				tx.success();
 			}
 
@@ -1600,7 +1612,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 				boolean sortDesc    = false;
-
 
 				// test pages sizes from 0 to 10
 				for (int ps=0; ps<10; ps++) {
@@ -1641,6 +1652,7 @@ public class SearchAndSortingTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				int i = offset;
+
 				for (NodeInterface node : nodes) {
 
 					// System.out.println("Node ID: " + node.getNodeId());
@@ -1650,6 +1662,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), _name);
 				}
+
 				tx.success();
 			}
 
@@ -1673,7 +1686,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 				tx.success();
 			}
-
 
 			try (final Tx tx = app.tx()) {
 
@@ -1733,11 +1745,11 @@ public class SearchAndSortingTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				int i = offset;
+
 				for (NodeInterface node : allNodes) {
 
 					// System.out.println("Node ID: " + node.getNodeId());
 					String _name = "TestOne-" + StringUtils.leftPad(Integer.toString(i), 5, "0");
-
 					final double rand = Math.random();
 
 					if (rand < 0.3) {
@@ -1777,6 +1789,7 @@ public class SearchAndSortingTest extends StructrTest {
 				tx.success();
 
 			} catch (Exception ex) {
+
 				fail("Unexpected exception");
 			}
 
@@ -1795,9 +1808,9 @@ public class SearchAndSortingTest extends StructrTest {
 				tx.success();
 
 			} catch (Exception ex) {
+
 				fail("Unexpected exception");
 			}
-
 
 		} catch (FrameworkException ex) {
 
@@ -1826,6 +1839,7 @@ public class SearchAndSortingTest extends StructrTest {
 			}
 
 		} catch (Throwable t) {
+
 			fail("Requesting a page beyond the number of existing elements should not throw an exception.");
 		}
 	}
@@ -1839,13 +1853,13 @@ public class SearchAndSortingTest extends StructrTest {
 			createTestNodes("TestOne", 10);
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> testOnes = app.nodeQuery("TestOne").getAsList();
-
 			final NodeInterface test1 = testOnes.get(3);
 			final NodeInterface test2 = testOnes.get(4);
 			final NodeInterface test3 = testOnes.get(7);
@@ -1857,6 +1871,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1866,10 +1881,10 @@ public class SearchAndSortingTest extends StructrTest {
 
 			assertEquals("Actual result size should be equal to result count", 8, (int)result.size());
 
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -1902,6 +1917,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1922,6 +1938,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -1946,6 +1963,7 @@ public class SearchAndSortingTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected exception.");
 			}
 
@@ -1962,6 +1980,7 @@ public class SearchAndSortingTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fex.printStackTrace();
 				System.out.println(fex.getMessage());
 				fail("Unexpected exception.");
@@ -1985,6 +2004,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2011,6 +2031,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
@@ -2036,6 +2057,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2087,6 +2109,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
@@ -2116,6 +2139,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2184,6 +2208,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
@@ -2198,7 +2223,6 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema          = StructrSchema.createEmptySchema();
-
 			final JsonObjectType center = schema.addType("Center");
 			final JsonObjectType type1  = schema.addType("Type1");
 			final JsonObjectType type2  = schema.addType("Type2");
@@ -2228,43 +2252,35 @@ public class SearchAndSortingTest extends StructrTest {
 		final String type3      = "Type3";
 		final String type4      = "Type4";
 		final String type5      = "Type5";
-
 		final PropertyKey type1CenterKey = Traits.of(type1).key("centers");
 		final PropertyKey type2CenterKey = Traits.of(type2).key("centers");
 		final PropertyKey type3CenterKey = Traits.of(type3).key("centers");
 		final PropertyKey type4CenterKey = Traits.of(type4).key("centers");
 		final PropertyKey type5CenterKey = Traits.of(type5).key("centers");
-
 		final PropertyKey types1Key = Traits.of(centerType).key("types1");
 		final PropertyKey types2Key = Traits.of(centerType).key("types2");
 		final PropertyKey types3Key = Traits.of(centerType).key("types3");
 		final PropertyKey types4Key = Traits.of(centerType).key("types4");
 		final PropertyKey types5Key = Traits.of(centerType).key("types5");
-
 		NodeInterface center1 = null;
 		NodeInterface center2 = null;
 		NodeInterface center3 = null;
 		NodeInterface center4 = null;
 		NodeInterface center5 = null;
-
 		NodeInterface type11 = null;
 		NodeInterface type12 = null;
 		NodeInterface type13 = null;
 		NodeInterface type14 = null;
 		NodeInterface type15 = null;
-
 		NodeInterface type21 = null;
 		NodeInterface type22 = null;
 		NodeInterface type23 = null;
 		NodeInterface type24 = null;
-
 		NodeInterface type31 = null;
 		NodeInterface type32 = null;
 		NodeInterface type33 = null;
-
 		NodeInterface type41 = null;
 		NodeInterface type42 = null;
-
 		NodeInterface type51 = null;
 
 		try (final Tx tx = app.tx()) {
@@ -2334,7 +2350,6 @@ public class SearchAndSortingTest extends StructrTest {
 				.key(types4Key, Arrays.asList(type42))
 				.key(types5Key, Arrays.asList(type51))
 				.getAsList();
-
 
 			// expected result: center object is found
 			assertEquals("Invalid graph search result with 1 component",  1, result1.size());
@@ -2416,7 +2431,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		final String centerType = "Center";
 		final String type1      = "Type1";
-
 		final PropertyKey types1Key      = Traits.of(centerType).key("types1");
 		final PropertyKey stringKey      = Traits.of(centerType).key("string");
 		final PropertyKey intKey         = Traits.of(centerType).key("integer");
@@ -2577,6 +2591,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -2596,6 +2611,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
@@ -2718,6 +2734,7 @@ public class SearchAndSortingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -2729,11 +2746,11 @@ public class SearchAndSortingTest extends StructrTest {
 		final Query query = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize);
 
 		if (includeHidden) {
+
 			query.includeHidden();
 		}
 
 		final List<NodeInterface> result = query.getAsList();
-
 		long expectedResultCount = (pageSize == 0 || page == 0)
 					   ? 0
 					   : Math.min(number, pageSize);
@@ -2742,7 +2759,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		logger.info("Result size: {}, expected: {}, start index: {}", new Object[] { result.size(), expectedResultCount, startIndex });
 		assertTrue(result.size() == expectedResultCount);
-
 
 		for (int j = 0; j < expectedResultCount; j++) {
 

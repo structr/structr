@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class CssSemanticClassMAPS_TOCssSelector extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public CssSemanticClassMAPS_TOCssSelector() {
+
 		super(StructrTraits.CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR);
 	}
 	
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.CSS_SEMANTIC_CLASS;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.CSS_SELECTOR;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "MAPS_TO";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

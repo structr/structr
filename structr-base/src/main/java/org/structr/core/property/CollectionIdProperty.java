@@ -30,10 +30,12 @@ import org.structr.core.notion.PropertyNotion;
 public class CollectionIdProperty<T extends NodeInterface> extends CollectionNotionProperty<T, String> {
 
 	public CollectionIdProperty(final String name, final String baseType, final String basePropertyName, final String relatedType) {
+
 		this(name, baseType, basePropertyName, relatedType, false);
 	}
 
 	public CollectionIdProperty(final String name, final String baseType, final String basePropertyName, final String relatedType, final boolean createIfNotExisting) {
+
 		super(name, baseType, basePropertyName, relatedType, new PropertyNotion("id", createIfNotExisting));
 	}
 }

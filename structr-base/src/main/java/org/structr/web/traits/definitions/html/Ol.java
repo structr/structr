@@ -33,6 +33,7 @@ public class Ol extends GenericHtmlElementTraitDefinition {
 	public static final String START_PROPERTY    = getPrefixedHTMLAttributeName("start");
 
 	public Ol() {
+
 		super(StructrTraits.OL);
 	}
 
@@ -42,19 +43,12 @@ public class Ol extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> reversedProperty = new StringProperty(REVERSED_PROPERTY);
 		final PropertyKey<String> startProperty    = new StringProperty(START_PROPERTY);
 
-		return newSet(
-			reversedProperty, startProperty
-		);
+		return newSet(reversedProperty, startProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					REVERSED_PROPERTY, START_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(REVERSED_PROPERTY, START_PROPERTY));
 	}
 }

@@ -50,6 +50,7 @@ public class StructrFileSystemFactory implements FileSystemFactory {
 			return fileSystemView;
 
 		} catch (FrameworkException fex) {
+
 			logger.error("Could not create file system view for user {}", user);
 
 		}

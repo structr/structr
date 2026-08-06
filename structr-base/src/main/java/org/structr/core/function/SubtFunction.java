@@ -31,11 +31,13 @@ public class SubtFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "subt";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
@@ -60,6 +62,7 @@ public class SubtFunction extends CoreFunction {
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
+
 				return t.getMessage();
 			}
 
@@ -70,6 +73,7 @@ public class SubtFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -78,24 +82,25 @@ public class SubtFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${subt(value1, value2)}"),
-				Usage.javaScript("Usage: ${{ $.subt(value1, value2) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${subt(value1, value2)}"), Usage.javaScript("Usage: ${{ $.subt(value1, value2) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Subtracts the second argument from the first argument.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${subt(5, 2)}"),
 				Example.structrScript("${subt('5', '2')}"),
@@ -107,14 +112,12 @@ public class SubtFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("val1", "minuend"),
-				Parameter.mandatory("val2", "subtrahend")
-		);
+		return List.of(Parameter.mandatory("val1", "minuend"), Parameter.mandatory("val2", "subtrahend"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Mathematical;
 	}
 }

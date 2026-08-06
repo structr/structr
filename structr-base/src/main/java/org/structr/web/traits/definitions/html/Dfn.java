@@ -27,6 +27,7 @@ import java.util.Map;
 public class Dfn extends GenericHtmlElementTraitDefinition {
 
 	public Dfn() {
+
 		super(StructrTraits.DFN);
 	}
 
@@ -37,11 +38,11 @@ public class Dfn extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

@@ -29,16 +29,19 @@ import java.util.List;
 public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
 	public MailClearInReplyTo(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailClearInReplyTo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -53,26 +56,25 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailClearInReplyTo()}"),
-			Usage.javaScript("Usage: ${{ $.mailClearInReplyTo() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailClearInReplyTo()}"), Usage.javaScript("Usage: ${{ $.mailClearInReplyTo() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes the `In-Reply-To` header from the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "Indicates that the current mail is not a reply to a message. This function automatically clears the `In-Reply-To` header of the mail.";
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mailSetInReplyTo()`)"
-		);
+
+		return List.of("This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mailSetInReplyTo()`)");
 	}
 }

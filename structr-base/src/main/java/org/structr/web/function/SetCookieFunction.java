@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
@@ -32,16 +31,17 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
 public class SetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "setCookie";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]");
 	}
 
@@ -53,7 +53,6 @@ public class SetCookieFunction extends UiAdvancedFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-
 			if (securityContext != null) {
 
 				final HttpServletResponse response = securityContext.getResponse();
@@ -63,32 +62,37 @@ public class SetCookieFunction extends UiAdvancedFunction {
 
 						final String name  = sources[0].toString();
 						final String value = sources[1].toString();
-
 						final Cookie c = new Cookie(name, value);
 
 						if (sources.length >= 3) {
+
 							c.setSecure((Boolean)sources[2]);
 						}
 
 						if (sources.length >= 4) {
+
 							c.setHttpOnly((Boolean)sources[3]);
 						}
 
 						if (sources.length >= 5) {
+
 							c.setMaxAge(((Number)sources[4]).intValue());
 						}
 
 						if (sources.length >= 6) {
+
 							c.setDomain(sources[5].toString());
 						}
 
 						if (sources.length >= 7) {
+
 							c.setPath(sources[6].toString());
 						}
 
 						response.addCookie(c);
 
 					} catch (IllegalArgumentException iae) {
+
 						logger.warn("{}: Exception creating cookie: {}", getDisplayName(), iae.getMessage());
 					}
 				}
@@ -99,17 +103,20 @@ public class SetCookieFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}"),
 			Usage.javaScript("Usage: ${{ $.setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]) }}")
@@ -118,22 +125,24 @@ public class SetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sets the given cookie.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${setCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}")
-		);
+
+		return List.of(Example.structrScript("${setCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}"));
 	}
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

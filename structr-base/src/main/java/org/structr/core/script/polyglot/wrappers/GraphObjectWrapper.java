@@ -55,6 +55,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	}
 
 	public T getOriginalObject() {
+
 		return node;
 	}
 
@@ -66,25 +67,32 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			switch (key) {
 
 				case "id":
+
 					return this.node.getUuid();
 
 				case "owner":
 					final AccessControllable ac = nodeInterface.as(AccessControllable.class);
+
 					return PolyglotWrapper.wrap(actionContext, ac.getOwnerNode());
 
 				case "_path":
+
 					return PolyglotWrapper.wrap(actionContext, nodeInterface.getPath(actionContext.getSecurityContext()));
 
 				case "createdDate":
+
 					return PolyglotWrapper.wrap(actionContext, this.node.getCreatedDate());
 
 				case "lastModifiedDate":
+
 					return PolyglotWrapper.wrap(actionContext, this.node.getLastModifiedDate());
 
 				case "visibleToPublicUsers":
+
 					return this.node.isVisibleToPublicUsers();
 
 				case "visibleToAuthenticatedUsers":
+
 					return this.node.isVisibleToAuthenticatedUsers();
 			}
 		}
@@ -104,6 +112,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					// At this point method is guaranteed to be static since earlier isStatic check was true
 					logger.warn("Tried calling a static type method in a non-static way on a type instance.");
+
 					return null;
 				}
 
@@ -111,8 +120,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			}
 
 			final Traits traits = node.getTraits();
-
 			if (traits == null) {
+
 				return null;
 			}
 
@@ -125,6 +134,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					// RelationshipProperty needs special binding
 					// ArrayProperty values need synchronized ProxyArrays as well
+
 					return new PolyglotProxyArray(actionContext, node, propKey);
 
 				} else if (propKey instanceof EndNode || propKey instanceof StartNode) {
@@ -153,6 +163,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			}
 
 			//return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
+
 			return null;
 		}
 	}
@@ -167,8 +178,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else if (node != null) {
 
 			final List<String> members = new LinkedList<>();
-
 			final Set<PropertyKey> keys = node.getPropertyKeys("all");
+
 			if (keys != null) {
 
 				members.addAll(keys.stream().map(k -> k.jsonName()).collect(Collectors.toList()));
@@ -236,7 +247,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						if (unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
 
 							final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
-
 							if (inputConverter != null) {
 
 								try {
@@ -272,7 +282,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 		final boolean isGraphObjectMap = (node instanceof GraphObjectMap);
 		final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || isGraphObjectMap;
-
 		final Traits traits       = node.getTraits();
 		final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(key) : traits.key(key));
 
@@ -281,6 +290,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			if (((GraphObjectMap) node).containsKey(propKey)) {
 
 				((GraphObjectMap) node).remove(propKey);
+
 				return true;
 
 			} else {

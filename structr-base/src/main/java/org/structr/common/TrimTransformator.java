@@ -29,6 +29,7 @@ public class TrimTransformator implements Transformer<String> {
 	public String getProperty(final GraphObject entity, final PropertyKey<String> key, final String value) {
 
 		if (value != null) {
+
 			return value.trim();
 		}
 
@@ -39,6 +40,7 @@ public class TrimTransformator implements Transformer<String> {
 	public String setProperty(final GraphObject entity, final PropertyKey<String> key, final String value) throws FrameworkException {
 
 		if (value != null) {
+
 			return value.trim();
 		}
 

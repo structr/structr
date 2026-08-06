@@ -80,6 +80,7 @@ public interface Page extends DOMNode {
 	 * @throws FrameworkException
 	 */
 	static Page createNewPage(final SecurityContext securityContext, final String name) throws FrameworkException {
+
 		return createNewPage(securityContext, null, name);
 	}
 
@@ -112,6 +113,7 @@ public interface Page extends DOMNode {
 		properties.put(enableBasicAuthKey, false);
 
 		if (uuid != null) {
+
 			properties.put(traits.key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 		}
 

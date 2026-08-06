@@ -29,20 +29,19 @@ import java.util.Set;
 public class TestObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestObjectTraitDefinition() {
+
 		super("TestObject");
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY)
-		);
+		return Map.of(PropertyView.Public, newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

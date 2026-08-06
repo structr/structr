@@ -56,7 +56,6 @@ public class Auth0AuthClient extends AbstractOAuth2Client {
 
 	public Auth0AuthClient(final HttpServletRequest request, OAuth2ProviderRegistry.ProviderConfig providerConfig) {
 
-
 		final String tenant = Settings.getOrCreateStringSetting("oauth", AUTH_SERVER, "tenant").getValue(null);
 		final String authPath = Settings.getOrCreateStringSetting("oauth", AUTH_SERVER, "authorization_path").getValue("/authorize");
 		final String tokenPath = Settings.getOrCreateStringSetting("oauth", AUTH_SERVER, "token_path").getValue("/oauth/token");
@@ -64,11 +63,15 @@ public class Auth0AuthClient extends AbstractOAuth2Client {
 		// Build URLs from tenant or use explicit configuration
 		final String authUrl;
 		final String tokenUrl;
+
 		if (tenant != null && !tenant.isEmpty()) {
+
 			final String baseUrl = tenant.startsWith("http") ? tenant : "https://" + tenant;
 			authUrl = baseUrl + authPath;
 			tokenUrl = baseUrl + tokenPath;
+
 		} else {
+
 			authUrl = Settings.getOrCreateStringSetting("oauth", AUTH_SERVER, "authorization_location").getValue("");
 			tokenUrl = Settings.getOrCreateStringSetting("oauth", AUTH_SERVER, "token_location").getValue("");
 		}
@@ -81,11 +84,13 @@ public class Auth0AuthClient extends AbstractOAuth2Client {
 		final DefaultApi20 api = new DefaultApi20() {
 			@Override
 			public String getAccessTokenEndpoint() {
+
 				return tokenUrl;
 			}
 
 			@Override
 			protected String getAuthorizationBaseUrl() {
+
 				return authUrl;
 			}
 		};
@@ -95,10 +100,14 @@ public class Auth0AuthClient extends AbstractOAuth2Client {
 
 	@Override
 	public String getAuthorizationURL(final String state) {
+
 		final Map<String, String> additionalParams = new HashMap<>();
+
 		if (audience != null && !audience.isEmpty()) {
+
 			additionalParams.put("audience", audience);
 		}
+
 		return service.createAuthorizationUrlBuilder()
 				.state(state)
 				.additionalParams(additionalParams)
@@ -107,10 +116,14 @@ public class Auth0AuthClient extends AbstractOAuth2Client {
 
 	@Override
 	protected String getDefaultUserDetailsUri() {
+
 		if (tenant != null && !tenant.isEmpty()) {
+
 			final String baseUrl = tenant.startsWith("http") ? tenant : "https://" + tenant;
+
 			return baseUrl + userInfoPath;
 		}
+
 		return "";
 	}
 }

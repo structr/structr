@@ -28,29 +28,31 @@ public class QueryStringHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "queryString";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the HTTP query string of the current request.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `queryString` keyword contains the raw query string, i.e. the part of the URL after the first `?` character, **excluding** the hash fragment (everything after the `#` character).";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
-		);
+
+		return List.of("Only available in a context where Structr is responding to an HTTP request from the outside.");
 	}
 }

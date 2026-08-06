@@ -50,11 +50,13 @@ public class FlowableFormAdapter implements BpmnVendorAdapter {
 
 	@Override
 	public String vendorName() {
+
 		return "Flowable";
 	}
 
 	@Override
 	public boolean appliesTo(final Set<String> namespaceUris) {
+
 		return namespaceUris.contains(FLOWABLE_NS) || namespaceUris.contains(ACTIVITI_NS);
 	}
 
@@ -68,6 +70,7 @@ public class FlowableFormAdapter implements BpmnVendorAdapter {
 
 			final Element userTask = (Element) userTasks.item(i);
 			final String  taskId   = StringUtils.trimToNull(userTask.getAttribute("id"));
+
 			if (taskId == null) {
 
 				continue;
@@ -93,6 +96,7 @@ public class FlowableFormAdapter implements BpmnVendorAdapter {
 				final String  label      = StringUtils.trimToNull(prop.getAttribute("name"));
 				final String  structrType = mapType(prop.getAttribute("type"));
 				final boolean required    = "true".equalsIgnoreCase(prop.getAttribute("required"));
+
 				// writable defaults to true in Flowable; only an explicit "false" is read-only.
 				final boolean readOnly    = "false".equalsIgnoreCase(prop.getAttribute("writable"));
 
@@ -117,6 +121,7 @@ public class FlowableFormAdapter implements BpmnVendorAdapter {
 		}
 
 		// "string" and "enum" map to the default (String).
+
 		return switch (flowableType.trim().toLowerCase()) {
 			case "long"    -> "Long";
 			case "boolean" -> "Boolean";

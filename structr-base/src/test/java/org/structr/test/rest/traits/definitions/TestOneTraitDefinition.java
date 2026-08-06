@@ -40,6 +40,7 @@ import java.util.Set;
 public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestOneTraitDefinition() {
+
 		super("TestOne");
 	}
 
@@ -52,6 +53,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 			@Override
 			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 				return null;
 			}
 		});
@@ -60,6 +62,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 			@Override
 			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 				return null;
 			}
 		});
@@ -68,6 +71,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 			@Override
 			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 				return null;
 			}
 		});
@@ -76,6 +80,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 			@Override
 			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 				return null;
 			}
 		});
@@ -92,13 +97,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> aLong             = new LongProperty("aLong").indexed();
 		final Property<Date> aDate             = new ISO8601DateProperty("aDate").indexed();
 
-		return newSet(
-			testFive,
-			testTwo,
-			anInt,
-			aLong,
-			aDate
-		);
+		return newSet(testFive, testTwo, anInt, aLong, aDate);
 	}
 
 	@Override
@@ -106,15 +105,12 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(
-				"name", "anInt", "aLong", "aDate"
-			)
-		);
+			PropertyView.Public, newSet("name", "anInt", "aLong", "aDate"));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

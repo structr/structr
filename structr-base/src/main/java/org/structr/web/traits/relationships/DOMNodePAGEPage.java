@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodePAGEPage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodePAGEPage() {
+
 		super(StructrTraits.DOM_NODE_PAGE_PAGE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.DOM_NODE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.PAGE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "PAGE";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

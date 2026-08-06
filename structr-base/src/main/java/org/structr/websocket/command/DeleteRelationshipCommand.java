@@ -47,6 +47,7 @@ public class DeleteRelationshipCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "DELETE_RELATIONSHIP";
 	}
 }

@@ -32,24 +32,29 @@ public class TraitsManager {
 	private static volatile TraitsInstance currentInstance = rootInstance;
 
 	public static TraitsInstance getCurrentInstance() {
+
 		return currentInstance;
 	}
 
 	public static TraitsInstance getRootInstance() {
+
 		return rootInstance;
 	}
 
 	public static TraitsInstance createCopyOfRootInstance() {
+
 		return rootInstance.createCopy(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(System.currentTimeMillis()));
 	}
 
 	public static void replaceCurrentInstance(final TraitsInstance newInstance) {
+
 		TraitsManager.currentInstance = newInstance;
 	}
 
 	public static void addAllSystemTypes(final List<Documentable> documentables) {
 
 		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
 		for (final String traitName : rootInstance.getAllTypes(t -> t.isNodeType())) {
 
 			final Traits traits = rootInstance.getTraits(traitName);

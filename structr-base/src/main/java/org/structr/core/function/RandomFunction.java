@@ -35,11 +35,13 @@ public class RandomFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "random";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("length");
 	}
 
@@ -60,11 +62,13 @@ public class RandomFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (Throwable t) {
@@ -77,6 +81,7 @@ public class RandomFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.random(num)}}. Example: ${{$.set($.this, \"password\", $.random(8))}}"),
 			Usage.structrScript("Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}")
@@ -85,32 +90,31 @@ public class RandomFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a random alphanumeric string of the given length.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function can for example be used to create default passwords etc.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${random(8)}"),
-				Example.javaScript("${{ $.random(8) }}")
-		);
+
+		return List.of(Example.structrScript("${random(8)}"), Example.javaScript("${{ $.random(8) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("length", "length of random string")
-				);
+		return List.of(Parameter.mandatory("length", "length of random string"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

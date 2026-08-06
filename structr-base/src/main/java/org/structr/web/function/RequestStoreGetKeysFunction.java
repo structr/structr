@@ -32,12 +32,15 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "requestStoreGetKeys";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -49,33 +52,31 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${requestStoreGetKeys()}."),
-			Usage.javaScript("Usage: ${{ $.requestStoreGetKeys(); }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${requestStoreGetKeys()}."), Usage.javaScript("Usage: ${{ $.requestStoreGetKeys(); }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Lists all keys stored in the request level store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${requestStoreGetKeys()}"),
-				Example.javaScript("${{ $.requestStoreGetKeys(); }}")
-		);
+
+		return List.of(Example.structrScript("${requestStoreGetKeys()}"), Example.javaScript("${{ $.requestStoreGetKeys(); }}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

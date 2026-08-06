@@ -53,17 +53,17 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String VALUE_PROPERTY     = "value";
 
 	public FeedItemContentTraitDefinition() {
+
 		super(StructrTraits.FEED_ITEM_CONTENT);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
-		return Map.of(
-			AfterCreation.class,
-			new AfterCreation() {
+		return Map.of(AfterCreation.class, new AfterCreation() {
 				@Override
 				public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
+
 					graphObject.as(AbstractFeedItem.class).updateIndex(securityContext);
 				}
 			}
@@ -78,42 +78,26 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<String> itemTypeProperty    = new StringProperty(ITEM_TYPE_PROPERTY);
 		final Property<String> valueProperty       = new StringProperty(VALUE_PROPERTY);
 
-		return newSet(
-			itemProperty,
-			modeProperty,
-			itemTypeProperty,
-			valueProperty
-		);
+		return newSet(itemProperty, modeProperty, itemTypeProperty, valueProperty);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FeedItemContent.class, (traits, node) -> new FeedItemContentTraitWrapper(traits, node)
-		);
+		return Map.of(FeedItemContent.class, (traits, node) -> new FeedItemContentTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-				PropertyView.Public,
-				newSet(
-						MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY,
-						NodeInterfaceTraitDefinition.OWNER_PROPERTY
-				),
+		return Map.of(PropertyView.Public, newSet(MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY),
 
-				PropertyView.Ui,
-				newSet(
-						MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY,
-						ITEM_PROPERTY
-				)
-		);
+				PropertyView.Ui, newSet(MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY, ITEM_PROPERTY));
 	}
 }

@@ -35,11 +35,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class CallFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "call";
 	}
 
@@ -67,14 +67,15 @@ public class CallFunction extends AdvancedScriptingFunction {
 				} else {
 
 					final int parameterCount = sources.length;
-
 					if (parameterCount % 2 == 0) {
+
 						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 					}
 
 					final Map<String, Object> newMap = new LinkedHashMap<>();
 
 					for (int c = 1; c < parameterCount; c += 2) {
+
 						newMap.put(sources[c].toString(), sources[c + 1]);
 					}
 
@@ -99,12 +100,14 @@ public class CallFunction extends AdvancedScriptingFunction {
 	 * Overridden in CallPrivilegedFunction to return a superuser context
 	 */
 	public SecurityContext getSecurityContext(final ActionContext ctx) {
+
 		return ctx.getSecurityContext();
 	}
 
 	// ----- documentation -----
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${call(key [, key, value]}. Example ${call('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
 			Usage.javaScript("Usage: ${{ $.call(key [, parameterMap]) }}. Example ${{ $.call('myEvent', { key1: 'value1', key2: 'value2' }) }}")
@@ -113,29 +116,31 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Calls the given user-defined function in the current users context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("functionName [, parameterMap ]");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("functionName", "name of the user-defined function to call"),
-			Parameter.mandatory("parameterMap", "map of parameters")
-		);
+
+		return List.of(Parameter.mandatory("functionName", "name of the user-defined function to call"), Parameter.mandatory("parameterMap", "map of parameters"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${call('updateUsers', 'param1', 'value1', 'param2', 'value2')}", "Call the user-defined function `updateUsers` with two key-value pairs as parameters"),
 			Example.javaScript("""
@@ -151,6 +156,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The method can only be executed if it is visible in the user context it's call()'ed in. This is analogous to calling user-defined functions via REST.",
 			"Useful in situations where different types have the same or similar functionality but no common base class so the method can not be attached there",
@@ -162,6 +168,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

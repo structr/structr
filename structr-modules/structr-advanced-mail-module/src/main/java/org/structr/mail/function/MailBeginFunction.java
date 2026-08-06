@@ -35,16 +35,19 @@ import java.util.List;
 public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	public MailBeginFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailBegin";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("fromAddress [, fromName[, subject[, htmlContent[, textContent[, files]]]]]");
 	}
 
@@ -91,12 +94,14 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}"),
 			Usage.javaScript("Usage: ${{ $.mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}")
@@ -105,11 +110,13 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Begins a new mail configuration.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				Begins an HTML email with the basic given configuration. Previously started configurations are cleared.
 
@@ -121,6 +128,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
 				"By default, emails are sent based on the SMTP configuration defined in structr.conf. This can be changed using `mailSetManualConfig()` and `mailResetManualConfig()`"
@@ -129,6 +137,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("fromAddress", "sender address"),
 				Parameter.optional("fromName", "sender name"),
@@ -141,6 +150,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 						${{

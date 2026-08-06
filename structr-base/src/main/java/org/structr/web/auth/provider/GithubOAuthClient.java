@@ -39,12 +39,15 @@ public class GithubOAuthClient extends AbstractOAuth2Client {
 	private static final String AUTH_SERVER = "github";
 
 	public GithubOAuthClient(final HttpServletRequest request, OAuth2ProviderRegistry.ProviderConfig providerConfig) {
+
 		super(request, AUTH_SERVER, providerConfig.getApi(), providerConfig);
 	}
 
 	@Override
 	public String getClientCredentials(final OAuth2AccessToken accessToken) {
+
 		try {
+
 			final OAuthRequest userDetailsRequest = new OAuthRequest(Verb.GET, userDetailsURI);
 			service.signRequest(accessToken, userDetailsRequest);
 
@@ -55,27 +58,39 @@ public class GithubOAuthClient extends AbstractOAuth2Client {
 			String emailResponseBody;
 
 			try (Response response = service.execute(userDetailsRequest)) {
+
 				if (!response.isSuccessful() && Settings.OAuthVerboseLogging.getValue(false)) {
+
 					logger.error("User details request to {} failed: {} - {}", provider, response.getCode(), response.getMessage());
 				}
+
 				userResponseBody = response.getBody();
 			}
 
 			try (Response response = service.execute(userEmailsRequest)) {
+
 				if (!response.isSuccessful() && Settings.OAuthVerboseLogging.getValue(false)) {
+
 					logger.error("User emails request to {} failed: {} - {}", provider, response.getCode(), response.getMessage());
 				}
+
 				emailResponseBody = response.getBody();
 			}
 
 			final String defaultEmailAddress = getDefaultUserEmailAddress(emailResponseBody);
+
 			return parseUserCredentials(userResponseBody, accessToken, defaultEmailAddress);
+
 		} catch (Exception e) {
+
 			if (Settings.OAuthVerboseLogging.getValue(false)) {
+
 				logger.error("Failed to get client credentials from {}: {}", provider, e.getMessage());
 			}
+
 			logger.debug("Client credentials error details", e);
 		}
+
 		return null;
 	}
 
@@ -88,13 +103,16 @@ public class GithubOAuthClient extends AbstractOAuth2Client {
 	 * @return The credential value (typically email)
 	 */
 	protected String parseUserCredentials(final String responseBody, final OAuth2AccessToken accessToken, final String defaultEmailAddress) {
+
 		try {
+
 			final Gson gson = new Gson();
 			final Map<String, Object> params = gson.fromJson(responseBody, Map.class);
 
 			// Add decoded access token claims to user info
 			final Map<String, Object> accessTokenClaims = decodeAccessTokenClaims(accessToken);
 			if (accessTokenClaims != null) {
+
 				params.put("accessTokenClaims", accessTokenClaims);
 			}
 
@@ -105,38 +123,52 @@ public class GithubOAuthClient extends AbstractOAuth2Client {
 
 			// email might be null, if user has set it to private
 			if (credentialValue == null) {
+
 				this.userInfo.put(getCredentialKey(), defaultEmailAddress);
+
 				return defaultEmailAddress;
 			}
 
 			return credentialValue.toString();
 
 		} catch (Exception e) {
+
 			if (Settings.OAuthVerboseLogging.getValue(false)) {
+
 				logger.error("Failed to parse user credentials from {}: {}", provider, e.getMessage());
 			}
+
 			logger.debug("Credential parsing error details", e);
 		}
+
 		return null;
 	}
 
 	protected String getDefaultUserEmailAddress(final String emailResponse) {
+
 		try {
+
 			final Gson gson = new Gson();
 			final List<Map<String, Object>> params = gson.fromJson(emailResponse, List.class);
 
 			for (Map<String, Object> param : params) {
+
 				if (param.get(getCredentialKey()) != null && (boolean) param.get("primary")) {
+
 					return param.get(getCredentialKey()).toString();
 				}
 			}
 
 		} catch (Exception e) {
+
 			if (Settings.OAuthVerboseLogging.getValue(false)) {
+
 				logger.error("Failed to parse user credentials from {}: {}", provider, e.getMessage());
 			}
+
 			logger.debug("Credential parsing error details", e);
 		}
+
 		return null;
 	}
 }

@@ -40,11 +40,13 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "ancestorTypes";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type [, blacklist ]");
 	}
 
@@ -89,17 +91,20 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the list of type names the given type has and inherits.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			   The blacklist of type names can be extended by passing a collection as the second parameter. By default, the base system types are always removed from the result set: [AccessControllable, GraphObject, NodeInterface, PropertyContainer].
 			   """;
@@ -107,10 +112,8 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("type", "type to fetch ancestor types for"),
-			Parameter.optional("blacklist", "collection of unwanted type names that are removed from the result")
-		);
+
+		return List.of(Parameter.mandatory("type", "type to fetch ancestor types for"), Parameter.optional("blacklist", "collection of unwanted type names that are removed from the result"));
 	}
 
 	@Override
@@ -124,6 +127,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${ancestorTypes(type[, blacklist])}. Example ${ancestorTypes('User', merge('Principal'))}"),
 			Usage.javaScript("Usage: ${{ $.ancestorTypes(type[, blacklist]) }}. Example ${{ $.ancestorTypes('User', ['Principal']) }}")
@@ -132,6 +136,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
 				"The types in the blacklist collection are not validated and are just removed from the result set.",
@@ -141,6 +146,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Schema;
 	}
 }

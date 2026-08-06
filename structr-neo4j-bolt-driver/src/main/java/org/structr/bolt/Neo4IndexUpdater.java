@@ -45,11 +45,13 @@ public class Neo4IndexUpdater extends IndexUpdater {
 
 	@Override
 	protected String getIndexIdentifier(final ExistingIndexInfo config) {
+
 		return config.getIdentifier();
 	}
 
 	@Override
 	protected String getIndexInfoQuery() {
+
 		return "CALL db.indexes() YIELD name, type, state, labelsOrTypes, properties WHERE (type = 'BTREE' OR type = 'TEXT' OR type = 'FULLTEXT') RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}";
 	}
 

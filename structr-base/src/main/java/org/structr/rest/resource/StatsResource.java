@@ -47,17 +47,20 @@ import java.util.Set;
 public class StatsResource extends ExactMatchEndpoint {
 
 	public StatsResource() {
+
 		super(RESTParameter.forStaticString("stats", true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new StatsResourceHandler(call);
 	}
 
 	private class StatsResourceHandler extends RESTCallHandler {
 
 		public StatsResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
@@ -72,8 +75,8 @@ public class StatsResource extends ExactMatchEndpoint {
 				final HttpServletRequest request       = securityContext.getRequest();
 				final Long interval                    = coalesce(longOrNull(request.getParameter("interval")), 60_000L);
 				final Long maxCount                    = coalesce(longOrNull(request.getParameter("max")), Long.MAX_VALUE);
-
 				final Stats getStats = stats.get("get");
+
 				if (getStats != null) {
 
 					map.put("GET", getStats.aggregate(interval, maxCount));
@@ -123,16 +126,19 @@ public class StatsResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS");
 		}
 
@@ -141,6 +147,7 @@ public class StatsResource extends ExactMatchEndpoint {
 			for (final T value : values) {
 
 				if (value != null) {
+
 					return value;
 				}
 			}
@@ -151,6 +158,7 @@ public class StatsResource extends ExactMatchEndpoint {
 		private Long longOrNull(final String value) {
 
 			if (value == null) {
+
 				return null;
 			}
 

@@ -81,8 +81,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.statusCode(201)
 
 			.when()
-				.post(resource).getHeader("Location")
-		);
+				.post(resource).getHeader("Location"));
 
 		// test default view with properties in it
 		RestAssured
@@ -109,7 +108,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 
 			.when()
 				.get(resource);
-
 
 		// test all view with properties in it
 		RestAssured
@@ -147,8 +145,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.when()
 				.get(concat(resource, "/all"));
 
-
-
 	}
 
 	@Test
@@ -157,8 +153,8 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface schemaNode = app.create(StructrTraits.SCHEMA_NODE,"ScriptTest");
-
 			final NodeInterface property = app.create(StructrTraits.SCHEMA_PROPERTY, "depth");
+
 			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
 			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function");
 			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "depth");
@@ -180,10 +176,10 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// the new test setup method requires a whole new test class for
 		// configuration changes, so this test class is a duplicate of
@@ -203,8 +199,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.statusCode(201)
 
 			.when()
-				.post(resource).getHeader("Location")
-		);
+				.post(resource).getHeader("Location"));
 
 		// create second entity
 		RestAssured
@@ -291,8 +286,8 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface schemaNode = app.create(StructrTraits.SCHEMA_NODE,"DepthTest");
-
 			final NodeInterface property = app.create(StructrTraits.SCHEMA_PROPERTY, "depth");
+
 			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
 			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function");
 			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "depth");
@@ -304,6 +299,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -335,7 +331,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 
 			.when()
 				.post(resource);
-
 
 		// test default view with properties in it
 		RestAssured
@@ -428,7 +423,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.when()
 				.get("/TestThree/" + testThreeUUID + "/all?" + RequestParameters.OutputReductionDepth.getName() + "=2");
 
-
 		Settings.JsonRedundancyReduction.getValue(true);
 	}
 
@@ -506,6 +500,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			logger.error("", t);
 			fail("Unexpected exception during test setup.");
 		}

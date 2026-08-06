@@ -27,21 +27,25 @@ public class PageHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "page";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the current page in a page rendering context.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `page` keyword allows you to access the current Page object that handles the request in which the current script is executed.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.html("""
 			<!DOCTYPE html>
@@ -56,8 +60,7 @@ public class PageHint extends PageKeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"This keyword is only available in a Page rendering context."
-		);
+
+		return List.of("This keyword is only available in a Page rendering context.");
 	}
 }

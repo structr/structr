@@ -32,6 +32,7 @@ public class LabelPredicate<T extends PropertyContainer> implements Predicate<T>
 	private String targetLabel = null;
 
 	public LabelPredicate(final String label) {
+
 		this(label, null, null);
 	}
 
@@ -44,6 +45,7 @@ public class LabelPredicate<T extends PropertyContainer> implements Predicate<T>
 
 	@Override
 	public String toString() {
+
 		return "LABEL(" + label + ")";
 	}
 
@@ -65,14 +67,17 @@ public class LabelPredicate<T extends PropertyContainer> implements Predicate<T>
 			final String relType                  = relationship.getType().name();
 
 			if (!label.equals(relType)) {
+
 				return false;
 			}
 
 			if (sourceLabel != null && !sourceNode.hasLabel(sourceLabel)) {
+
 				return false;
 			}
 
 			if (targetLabel != null && !targetNode.hasLabel(targetLabel)) {
+
 				return false;
 			}
 

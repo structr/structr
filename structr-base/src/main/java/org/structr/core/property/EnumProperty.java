@@ -41,18 +41,22 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 	private final Set<String> enumConstants = new LinkedHashSet<>();
 
 	public EnumProperty(final String name, final Class<? extends Enum> enumType) {
+
 		this(name, EnumProperty.trimAndFilterEmptyStrings(EnumProperty.extractConstants(enumType)), null);
 	}
 
 	public EnumProperty(final String name, final Set<String> constants) {
+
 		this(name, constants, null);
 	}
 
 	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants) {
+
 		this(jsonName, dbName, constants, null);
 	}
 
 	public EnumProperty(final String name, final Set<String> constants, final String defaultValue) {
+
 		this(name, name, constants, defaultValue);
 	}
 
@@ -78,46 +82,55 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 	}
 
 	public Set<String> getEnumConstants() {
+
 		return enumConstants;
 	}
 
 	@Override
 	public String format() {
+
 		return (format != null) ? format : String.join(", ", new TreeSet<>(enumConstants));
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Enum";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return String.class;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public FieldDefinition getFieldDefinition() {
+
 		return this;
 	}
 
@@ -127,6 +140,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 		if (value != null) {
 
 			if (value instanceof String) {
+
 				return value;
 			}
 		}
@@ -136,32 +150,39 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		final List<Object> constants = new LinkedList<>(enumConstants);
 		if (constants.size() > index) {
+
 			return constants.get(index);
 		}
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for string values, constrained to a fixed range of values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
@@ -176,6 +197,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 		map.put("items", items);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -195,6 +217,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 		map.put("items", items);
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 
@@ -211,6 +234,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 		int index                    = 0;
 
 		for (final Enum constant : enumType.getEnumConstants()) {
+
 			constants[index++] = constant.name();
 		}
 
@@ -230,7 +254,6 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 		for (final String s : input) {
 
 			final String trimmed = s.trim();
-
 			if (StringUtils.isNotBlank(trimmed)) {
 
 				normalized.add(trimmed);
@@ -243,6 +266,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 	// ----- interface FieldDefinition -----
 	@Override
 	public boolean hasOptions() {
+
 		return true;
 	}
 

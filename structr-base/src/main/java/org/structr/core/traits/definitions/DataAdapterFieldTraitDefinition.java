@@ -56,25 +56,23 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String COLUMN_KEY_PROPERTY          = "columnKey";
 
 	public DataAdapterFieldTraitDefinition() {
+
 		super(StructrTraits.DATA_ADAPTER_FIELD);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			DataAdapterField.class, (traits, node) -> new DataAdapterFieldTraitWrapper(traits, node)
-		);
+		return Map.of(DataAdapterField.class, (traits, node) -> new DataAdapterFieldTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance) {
 
-		return Map.of(
-			OnCreation.class,
-			new OnCreation() {
+		return Map.of(OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					// all fields are searchable by default
 					graphObject.as(DataAdapterField.class).setIsSearchable(true);
 				}
@@ -145,6 +143,7 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

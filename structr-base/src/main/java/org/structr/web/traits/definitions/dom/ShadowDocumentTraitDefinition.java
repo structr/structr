@@ -37,49 +37,55 @@ import java.util.Set;
 public class ShadowDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public ShadowDocumentTraitDefinition() {
+
 		super(StructrTraits.SHADOW_DOCUMENT);
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ShadowDocument.class, (traits, node) -> new ShadowDocumentTraitWrapper(traits, node)
-		);
+		return Map.of(ShadowDocument.class, (traits, node) -> new ShadowDocumentTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
 		return Set.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return false;
 	}
 }

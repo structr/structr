@@ -38,6 +38,7 @@ public class RegexPredicate<T extends PropertyContainer> implements org.structr.
 
 	@Override
 	public String toString() {
+
 		return "REGEX(" + key + ", " + pattern.pattern() + ")";
 	}
 

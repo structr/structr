@@ -31,6 +31,7 @@ import java.util.LinkedList;
 public class FindUnknownIdentifiersRule extends Rule {
 
 	public FindUnknownIdentifiersRule(final Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -42,7 +43,6 @@ public class FindUnknownIdentifiersRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token = tokens.pop();
-
 			if (token instanceof IdentifierToken identifierToken) {
 
 				result.add(new NamedConceptToken(new ConceptToken(ConceptType.Unknown, null), identifierToken));

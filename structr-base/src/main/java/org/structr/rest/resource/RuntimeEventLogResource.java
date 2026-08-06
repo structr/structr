@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.AndPredicate;
@@ -51,21 +50,25 @@ import java.util.stream.Collectors;
 public class RuntimeEventLogResource extends ExactMatchEndpoint {
 
 	public enum UriPart {
+
 		_runtimeEventLog
 	}
 
 	public RuntimeEventLogResource() {
+
 		super(RESTParameter.forStaticString(UriPart._runtimeEventLog.name(), true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new RuntimeEventLogResourceHandler(call);
 	}
 
 	private class RuntimeEventLogResourceHandler extends RESTCallHandler {
 
 		public RuntimeEventLogResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
@@ -94,16 +97,19 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return "RuntimeEvent";
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS", "POST");
 		}
 
@@ -115,7 +121,6 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 			if (securityContext != null && securityContext.getRequest() != null) {
 
 				final HttpServletRequest request   = securityContext.getRequest();
-
 				if (request.getParameter(RuntimeEvent.ID_PROPERTY) != null) {
 
 					final long id = Long.parseLong(request.getParameter(RuntimeEvent.ID_PROPERTY));
@@ -133,8 +138,8 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 				if (request.getParameter(RuntimeEvent.TYPE_PROPERTY) != null) {
 
 					final Set<String> filter = new LinkedHashSet<>(split(request.getParameter(RuntimeEvent.TYPE_PROPERTY)));
-
 					if (!filter.isEmpty()) {
+
 						root.addPredicate(value -> filter.contains(value.getType()));
 					}
 				}
@@ -142,11 +147,11 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 				if (request.getParameter(RuntimeEvent.THREAD_NAME_PROPERTY) != null) {
 
 					final String threadIdFilter = request.getParameter(RuntimeEvent.THREAD_NAME_PROPERTY);
-
 					if (!threadIdFilter.isEmpty()) {
 
 						root.addPredicate(value -> {
 							final String threadId = value.getThreadName();
+
 							return threadId != null && threadId.contains(threadIdFilter);
 						});
 					}
@@ -178,6 +183,7 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 		private Consumer<RuntimeEvent> getVisitor(final Map<String, Object> properties) {
 
 			if ("acknowledge".equals(properties.get("action"))) {
+
 				return t -> t.acknowledge();
 			}
 

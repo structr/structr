@@ -30,12 +30,15 @@ public class JobListFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "jobList";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -45,33 +48,36 @@ public class JobListFunction extends UiAdvancedFunction {
 		try {
 
 			return JobQueueManager.getInstance().listJobs();
+
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${jobList()}. Example: ${jobList()}"),
-			Usage.javaScript("Usage: ${{ $.jobList() }}. Example: ${{ $.jobList() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${jobList()}. Example: ${jobList()}"), Usage.javaScript("Usage: ${{ $.jobList() }}. Example: ${{ $.jobList() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a list of running jobs.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

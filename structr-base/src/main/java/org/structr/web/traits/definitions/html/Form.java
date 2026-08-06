@@ -39,6 +39,7 @@ public class Form extends GenericHtmlElementTraitDefinition {
 	public static final String TARGET_PROPERTY         = getPrefixedHTMLAttributeName("target");
 
 	public Form() {
+
 		super(StructrTraits.FORM);
 	}
 
@@ -54,9 +55,7 @@ public class Form extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> novalidateProperty    = new StringProperty(NOVALIDATE_PROPERTY);
 		final PropertyKey<String> targetProperty        = new StringProperty(TARGET_PROPERTY);
 
-		return newSet(
-			acceptCharsetProperty, actionProperty, autocompleteProperty, enctypeProperty, methodProperty, nameProperty, novalidateProperty, targetProperty
-		);
+		return newSet(acceptCharsetProperty, actionProperty, autocompleteProperty, enctypeProperty, methodProperty, nameProperty, novalidateProperty, targetProperty);
 	}
 
 	@Override

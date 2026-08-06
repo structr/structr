@@ -36,62 +36,33 @@ public class OAuth2ProviderRegistry {
 
 	static {
 
-		PROVIDERS.put("google", new ProviderConfig(
-				GoogleApi20.instance(),
-				"email",
-				"https://www.googleapis.com/oauth2/v3/userinfo",
-				"email"
-		));
+		PROVIDERS.put("google", new ProviderConfig(GoogleApi20.instance(), "email", "https://www.googleapis.com/oauth2/v3/userinfo", "email"));
 
 		// Github needs special handling with userInfoEndpoint parsing, since email can be null in default response
-		PROVIDERS.put("github", new ProviderConfig(
-				GitHubApi.instance(),
-				"email",
-				"https://api.github.com/user",
-				"user:email",
-				GithubOAuthClient::new
-		));
+		PROVIDERS.put("github", new ProviderConfig(GitHubApi.instance(), "email", "https://api.github.com/user", "user:email", GithubOAuthClient::new));
 
-		PROVIDERS.put("facebook", new ProviderConfig(
-				FacebookApi.instance(),
-				"email",
-				"https://graph.facebook.com/me",
-				"email"
-		));
+		PROVIDERS.put("facebook", new ProviderConfig(FacebookApi.instance(), "email", "https://graph.facebook.com/me", "email"));
 
-		PROVIDERS.put("linkedin", new ProviderConfig(
-				LinkedInApi20.instance(),
-				"email",
-				"https://api.linkedin.com/v2/userinfo",
-				"openid profile email"
-		));
+		PROVIDERS.put("linkedin", new ProviderConfig(LinkedInApi20.instance(), "email", "https://api.linkedin.com/v2/userinfo", "openid profile email"));
 
 		// Auth0: Requires tenant configuration
 		PROVIDERS.put("auth0", new ProviderConfig(
 				null, // API created dynamically based on tenant
 				"email",
 				"", // User info endpoint built from tenant
-				"openid profile email",
-				Auth0AuthClient::new
-		));
+				"openid profile email", Auth0AuthClient::new));
 
 		// Azure: Requires tenant_id configuration
 		PROVIDERS.put("azure", new ProviderConfig(
 				null, // API created dynamically based on tenant_id
-				"email",
-				"https://graph.microsoft.com/oidc/userinfo",
-				"openid profile email",
-				AzureOAuthClient::new
-		));
+				"email", "https://graph.microsoft.com/oidc/userinfo", "openid profile email", AzureOAuthClient::new));
 
 		// Keycloak: Requires realm and url configuration
 		PROVIDERS.put("keycloak", new ProviderConfig(
 				null, // API created dynamically based on server_url and realm
 				"email",
 				"", // User info endpoint built from server_url and realm
-				"openid profile email",
-				KeycloakAuthClient::new
-		));
+				"openid profile email", KeycloakAuthClient::new));
 	}
 
 	/**
@@ -101,6 +72,7 @@ public class OAuth2ProviderRegistry {
 	 * @return Configuration or null if not registered
 	 */
 	public static ProviderConfig get(final String provider) {
+
 		return PROVIDERS.get(provider != null ? provider.toLowerCase() : null);
 	}
 
@@ -111,6 +83,7 @@ public class OAuth2ProviderRegistry {
 	 * @return true if provider is registered
 	 */
 	public static boolean isSupported(final String provider) {
+
 		return PROVIDERS.containsKey(provider);
 	}
 
@@ -136,6 +109,7 @@ public class OAuth2ProviderRegistry {
 		 * Constructor for standard providers (use StandardOAuth2Client).
 		 */
 		public ProviderConfig(final DefaultApi20 api, final String credentialKey, final String defaultUserInfoEndpoint, final String defaultScope) {
+
 			this(api, credentialKey, defaultUserInfoEndpoint, defaultScope, null);
 		}
 
@@ -143,6 +117,7 @@ public class OAuth2ProviderRegistry {
 		 * Constructor with custom client factory.
 		 */
 		public ProviderConfig(final DefaultApi20 api, final String credentialKey, final String defaultUserInfoEndpoint, final String defaultScope, final BiFunction<HttpServletRequest, ProviderConfig, OAuth2Client> customClientFactory) {
+
 			this.api = api;
 			this.credentialKey = credentialKey;
 			this.defaultUserInfoEndpoint = defaultUserInfoEndpoint;
@@ -151,18 +126,22 @@ public class OAuth2ProviderRegistry {
 		}
 
 		public DefaultApi20 getApi() {
+
 			return api;
 		}
 
 		public String getCredentialKey() {
+
 			return credentialKey;
 		}
 
 		public String getDefaultUserInfoEndpoint() {
+
 			return defaultUserInfoEndpoint;
 		}
 
 		public String getDefaultScope() {
+
 			return defaultScope;
 		}
 
@@ -174,9 +153,13 @@ public class OAuth2ProviderRegistry {
 		 * @return OAuth2Client instance
 		 */
 		public OAuth2Client createClient(final HttpServletRequest request, final String provider) {
+
 			if (customClientFactory != null) {
+
 				return customClientFactory.apply(request, this);
+
 			} else {
+
 				return new StandardOAuth2Client(request, provider, this);
 			}
 		}

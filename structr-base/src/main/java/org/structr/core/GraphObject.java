@@ -40,7 +40,6 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.*;
 
-
 /**
  * A common base class for {@link NodeInterface} and {@link RelationshipInterface}.
  *
@@ -127,6 +126,7 @@ public interface GraphObject {
 
 	// ----- static methods -----
 	static SortOrder sorted(final PropertyKey key, final boolean sortDescending) {
+
 		return new DefaultSortOrder(key, sortDescending);
 	}
 
@@ -141,16 +141,19 @@ public interface GraphObject {
 			final Object value                        = attr.getValue();
 
 			if (key instanceof FunctionProperty) {
+
 				continue;
 			}
 
 			if (key == null) {
+
 				throw new RuntimeException("Key is null, value is " + value + ".");
 			}
 
 			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
 
 				try {
+
 					// value can be set directly, move to creation container
 					key.setProperty(securityContext, indexable, value);
 					iterator.remove();
@@ -177,20 +180,24 @@ public interface GraphObject {
 			if (converter != null) {
 
 				try {
+
 					return converter.convertForSorting(propertyValue);
 
 				} catch (Throwable t) {
+
 					t.printStackTrace();
 				}
 			}
 
 			// conversion failed, may the property value itself is comparable
 			if (propertyValue instanceof Comparable) {
+
 				return (Comparable) propertyValue;
 			}
 
 			// last try: convertFromInput to String to make comparable
 			if (propertyValue != null) {
+
 				return propertyValue.toString();
 			}
 		}
@@ -199,15 +206,18 @@ public interface GraphObject {
 	}
 
 	default void setVisibility(final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException {
+
 		setVisibleToPublicUsers(visibleToPublic);
 		setVisibleToAuthenticatedUsers(visibleToAuth);
 	}
 
 	default void setVisibleToPublicUsers(final boolean visibleToPublic) throws FrameworkException {
+
 		setProperty(getTraits().key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), visibleToPublic);
 	}
 
 	default void setVisibleToAuthenticatedUsers(final boolean visibleToAuth) throws FrameworkException {
+
 		setProperty(getTraits().key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), visibleToAuth);
 	}
 }

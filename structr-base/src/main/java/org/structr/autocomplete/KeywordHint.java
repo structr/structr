@@ -26,30 +26,39 @@ public abstract class KeywordHint extends AbstractHint {
 
 	@Override
 	public final DocumentableType getDocumentableType() {
+
 		return DocumentableType.Keyword;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		// keywords have no parameters
+
 		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// keywords have no signature
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		// keywords have no usages
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		// keywords are valid for all languages
+
 		return Language.scriptingLanguages();
 	}
 }

@@ -28,6 +28,7 @@ import org.structr.core.traits.definitions.SessionDataNodeTraitDefinition;
 public class SessionDataNodeTraitWrapper extends AbstractNodeTraitWrapper implements SessionDataNode {
 
 	public SessionDataNodeTraitWrapper(final Traits traits, final NodeInterface node) {
+
 		super(traits, node);
 	}
 

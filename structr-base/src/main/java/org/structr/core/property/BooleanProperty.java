@@ -41,53 +41,65 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
 
 	public BooleanProperty(final String name) {
+
 		super(name);
 	}
 
 	public BooleanProperty(final String jsonName, final String dbName) {
+
 		super(jsonName, dbName);
 	}
 
 	@Override
 	public Property<Boolean> indexed() {
+
 		return super.passivelyIndexed();
 	}
 
 	@Override
 	public String typeName() {
+
 		return "Boolean";
 	}
 
 	@Override
 	public String editTemplate() {
+
 		// a boolean edits as a checkbox, not the generic textfield (Property's default)
+
 		return "checkbox";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Boolean.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<Boolean, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<Boolean, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		this.securityContext = securityContext;
 		this.entity          = entity;
+
 		return new DatabaseConverter(securityContext);
 	}
 
 	@Override
 	public PropertyConverter<?, Boolean> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
@@ -99,6 +111,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		if (value != null) {
 
 			if (value instanceof Boolean) {
+
 				return value;
 			}
 
@@ -109,9 +122,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				if (entity != null) {
 
 					try {
+
 						setProperty(securityContext, entity, fixedValue);
 
 					} catch (FrameworkException fex) {
+
 						logger.error("Cound not set fixed property {} on graph object {}", fixedValue, entity);
 					}
 				}
@@ -125,28 +140,33 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property for boolean values.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return index % 2 == 0;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
@@ -154,6 +174,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	protected class DatabaseConverter extends PropertyConverter<Boolean, Object> {
 
 		public DatabaseConverter(final SecurityContext securityContext) {
+
 			super(securityContext);
 		}
 
@@ -180,6 +201,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		public Boolean convert(final Boolean source) {
 
 			if (source != null) {
+
 				return source;
 			}
 
@@ -190,6 +212,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	protected class InputConverter extends PropertyConverter<Object, Boolean> {
 
 		public InputConverter(final SecurityContext securityContext) {
+
 			super(securityContext);
 		}
 
@@ -197,6 +220,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		public Object revert(final Boolean source) throws FrameworkException {
 
 			if (source != null) {
+
 				return source;
 			}
 
@@ -212,6 +236,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 			if (source != null) {
 
 				if (source instanceof Boolean) {
+
 					return (Boolean)source;
 				}
 

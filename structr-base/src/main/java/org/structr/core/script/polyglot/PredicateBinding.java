@@ -70,6 +70,7 @@ public class PredicateBinding implements ProxyObject {
 	public Object getMember(String name) {
 
 		if (hasMember(name)) {
+
 			return new FunctionWrapper(actionContext, entity, predicateBindings.get(name));
 		}
 

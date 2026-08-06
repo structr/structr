@@ -68,6 +68,7 @@ public class AutocompleteCommand extends AbstractCommand {
 				result.addAll(hints);
 
 			} catch(FrameworkException fex) {
+
 				logger.warn("", fex);
 			}
 
@@ -84,6 +85,7 @@ public class AutocompleteCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "AUTOCOMPLETE";
 	}
 }

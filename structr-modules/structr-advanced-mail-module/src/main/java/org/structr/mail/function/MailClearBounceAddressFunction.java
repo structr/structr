@@ -29,16 +29,19 @@ import java.util.List;
 public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	public MailClearBounceAddressFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailClearBounceAddress";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -52,19 +55,19 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailClearBounceAddress()}"),
-			Usage.javaScript("Usage: ${{ $.mailClearBounceAddress() }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailClearBounceAddress()}"), Usage.javaScript("Usage: ${{ $.mailClearBounceAddress() }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes the bounce address from the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

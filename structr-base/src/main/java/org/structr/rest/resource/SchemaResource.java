@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -78,15 +77,18 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final GenericProperty<String> relationShipTargetType  = new GenericProperty<>("targetType");
 
 	public enum UriPart {
+
 		_schema
 	}
 
 	public SchemaResource() {
+
 		super(RESTParameter.forStaticString(UriPart._schema.name(), true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new SchemaResourceHandler(call);
 	}
 
@@ -99,8 +101,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 		// extract types from ModuleService
 		final Set<String> nodeEntityKeys = Traits.getAllTypes(t -> t.isNodeType());
 		final Set<String> relEntityKeys  = Traits.getAllTypes(t -> t.isRelationshipType());
-
 		Set<String> entityKeys = new HashSet<>();
+
 		entityKeys.addAll(nodeEntityKeys);
 		entityKeys.addAll(relEntityKeys);
 
@@ -109,6 +111,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 			// create & add schema information
 			Traits type           = Traits.of(rawType);
 			GraphObjectMap schema = new GraphObjectMap();
+
 			resultList.add(schema);
 
 			if (type != null) {
@@ -265,9 +268,11 @@ public class SchemaResource extends ExactMatchEndpoint {
 		switch (multiplicity) {
 
 			case One:
+
 				return "1";
 
 			case Many:
+
 				return "*";
 		}
 
@@ -277,6 +282,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 	private class SchemaResourceHandler extends RESTCallHandler {
 
 		public SchemaResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
@@ -291,16 +297,19 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS");
 		}
 	}

@@ -39,16 +39,19 @@ import java.util.List;
 public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	public MailAddAttachmentFunction(final AdvancedMailModule parent) {
+
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
+
 		return "mailAddAttachment";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("file [, name ]");
 	}
 
@@ -81,25 +84,26 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${mailAddAttachment(file[, name])}"),
-			Usage.javaScript("Usage: ${{ $.mailAddAttachment(file[, name]) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${mailAddAttachment(file[, name])}"), Usage.javaScript("Usage: ${{ $.mailAddAttachment(file[, name]) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Adds an attachment with an optional file name to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Adds a file as an attachment to the mail. The `name` parameter can be used to send the file with a different name than the filename in the virtual filesystem.
 			
@@ -109,6 +113,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("file", "file node from the virtual filesystem"),
 				Parameter.optional("name", "file name of attachment (defaults to the actual file name if omitted)")
@@ -117,12 +122,12 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"can be called multiple times to add more attachments."
-		);
+
+		return List.of("can be called multiple times to add more attachments.");
 	}
 
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {
+
 		addAttachment(amc, fileNode, fileNode.getName());
 	}
 

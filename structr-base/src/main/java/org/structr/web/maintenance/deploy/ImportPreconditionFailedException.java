@@ -43,12 +43,14 @@ public class ImportPreconditionFailedException extends RuntimeException {
 	}
 
 	public String getTitle () {
+
 		return title;
 	}
 
 	public String getMessageHtml () {
 
 		if (html != null) {
+
 			return html;
 		}
 

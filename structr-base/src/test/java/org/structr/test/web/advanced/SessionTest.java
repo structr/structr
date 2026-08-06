@@ -52,6 +52,7 @@ public class SessionTest extends StructrUiTest {
         try {
 
             try (final Tx tx = app.tx()) {
+
                 app.create(StructrTraits.SCHEMA_METHOD,
                         new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                      "doSessionTest"),
                         new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),                     "{const params = $.methodParameters; $.session[params.key] = params.value; return `${$.session[params.key]}->${$.session.id}`}")

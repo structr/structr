@@ -37,7 +37,6 @@ import static org.testng.AssertJUnit.*;
 
 public class CsvTest extends StructrCsvTest {
 
-
 	private final String testOneResource = "/TestOne";
 	private final String testOneCSVWithDefaultCharacters5EntriesNoError = "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
 			+ "\"0979aebeb9ae42a7b3594db3da12875e\";\"TestOne\";\"TestOne-1\";\"1\";\"10\";\"2012-09-18T00:33:12+0000\"\r\n"
@@ -85,6 +84,7 @@ public class CsvTest extends StructrCsvTest {
 	public void test01InitServlet() {
 
 		try {
+
 			final HttpServiceServlet servlet = (HttpServiceServlet) Class.forName(CsvServlet.class.getName()).getDeclaredConstructor().newInstance();
 
 			assertNotNull(servlet);
@@ -92,6 +92,7 @@ public class CsvTest extends StructrCsvTest {
 			assertTrue(servlet instanceof CsvServlet);
 
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+
 			ex.printStackTrace();
 			fail("Unexcepted exception");
 		}
@@ -140,7 +141,6 @@ public class CsvTest extends StructrCsvTest {
 			.body(" { 'name' : 'TestOne-7', 'anInt' : 7, 'aLong' : 70, 'aDate' : '2012-09-18T07:33:12+0200' } ")
 			.expect().statusCode(201).when().post(restUrl + testOneResource).getHeader("Location"));
 
-
 		Object result = RestAssured
 
 			.given()
@@ -184,7 +184,6 @@ public class CsvTest extends StructrCsvTest {
 			+ "\"" + test0Id + "\";\"TestOne\";\"TestOne-0\";\"0\";\"0\";\"2012-09-17T22:33:12+0000\"\r\n"
 			+ "\"" + test1Id + "\";\"TestOne\";\"TestOne-1\";\"1\";\"10\";\"2012-09-17T23:33:12+0000\"\r\n";
 
-
 		resultString = ((RestAssuredResponseImpl) result).asString();
 
 		System.out.println(StringEscapeUtils.escapeJava(expected));
@@ -206,8 +205,6 @@ public class CsvTest extends StructrCsvTest {
 		expected = "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
 			+ "\"" + test2Id + "\";\"TestOne\";\"TestOne-2\";\"2\";\"20\";\"2012-09-18T00:33:12+0000\"\r\n"
 			+ "\"" + test3Id + "\";\"TestOne\";\"TestOne-3\";\"3\";\"30\";\"2012-09-18T01:33:12+0000\"\r\n";
-
-
 
 		resultString = ((RestAssuredResponseImpl) result).asString();
 
@@ -233,6 +230,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail();
 		}
 
@@ -256,7 +254,6 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-
 			final List<NodeInterface> result = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 
 			assertEquals(2, result.size());
@@ -266,6 +263,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail();
 		}
 
@@ -299,6 +297,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail();
 		}
 
@@ -328,6 +327,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail();
 		}
 
@@ -358,6 +358,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail();
 		}
@@ -382,11 +383,11 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail();
 		}
 
 	}
-
 
 	/**
 	 * Test CSV import with
@@ -418,6 +419,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail();
 		}
 
@@ -454,6 +456,7 @@ public class CsvTest extends StructrCsvTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			fail();
 		}
 
@@ -468,7 +471,6 @@ public class CsvTest extends StructrCsvTest {
 		RestAssured.given().contentType("text/csv; charset=UTF-8")
 				.header(CsvServlet.DEFAULT_QUOTE_CHARACTER_HEADER_NAME, "'")
 				.body(testOneCSVWithSingleQuotes5EntriesNoError).expect().statusCode(201).when().post(csvUrl + testOneResource);
-
 
 		Object result = RestAssured
 
@@ -495,7 +497,6 @@ public class CsvTest extends StructrCsvTest {
 				.header(CsvServlet.DEFAULT_FIELD_SEPARATOR_HEADER_NAME, ",")
 				.body(testOneCSVWithComma5EntriesNoError).expect().statusCode(201).when().post(csvUrl + testOneResource);
 
-
 		Object result = RestAssured
 
 			.given()
@@ -521,7 +522,6 @@ public class CsvTest extends StructrCsvTest {
 				.header(CsvServlet.DEFAULT_FIELD_SEPARATOR_HEADER_NAME, ",")
 				.header(CsvServlet.DEFAULT_QUOTE_CHARACTER_HEADER_NAME, "'")
 				.body(testOneCSVWithSingleQuotesAndComma5EntriesNoError).expect().statusCode(201).when().post(csvUrl + testOneResource);
-
 
 		Object result = RestAssured
 

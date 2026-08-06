@@ -50,11 +50,13 @@ public class CamundaFormAdapter implements BpmnVendorAdapter {
 
 	@Override
 	public String vendorName() {
+
 		return "Camunda";
 	}
 
 	@Override
 	public boolean appliesTo(final Set<String> namespaceUris) {
+
 		return namespaceUris.contains(CAMUNDA_NS);
 	}
 
@@ -125,6 +127,7 @@ public class CamundaFormAdapter implements BpmnVendorAdapter {
 		}
 
 		// "string" and "enum" map to the default (String); an enum's options are a possible follow-up.
+
 		return switch (camundaType.trim().toLowerCase()) {
 			case "long"    -> "Long";
 			case "boolean" -> "Boolean";
@@ -149,6 +152,7 @@ public class CamundaFormAdapter implements BpmnVendorAdapter {
 				return true;
 			}
 		}
+
 		return false;
 	}
 }

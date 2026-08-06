@@ -27,6 +27,7 @@ import org.structr.api.util.html.Attr;
 public class Id extends Attr {
 
 	public Id(final String id) {
+
 		super("id", id);
 	}
 }

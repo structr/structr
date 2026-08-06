@@ -28,11 +28,13 @@ import org.structr.core.property.StringProperty;
 public class HtmlProperty extends StringProperty {
 	
 	public HtmlProperty(String name) {
+
 		super(PropertyView.Html.concat(name));
 	}
 	
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 }

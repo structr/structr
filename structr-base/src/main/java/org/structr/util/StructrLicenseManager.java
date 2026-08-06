@@ -128,7 +128,6 @@ public class StructrLicenseManager implements LicenseManager {
 	private void initializeLicense() {
 
 		final boolean licenseWasPresent = licensePresent;
-
 		final String currentBase64LicenseKey = getBase64LicenseKey();
 		final Map<String, String> properties = getLicenseKeyFromString(currentBase64LicenseKey);
 
@@ -140,7 +139,9 @@ public class StructrLicenseManager implements LicenseManager {
 				final boolean modulesEqual = moduleString != null && moduleString.equals(properties.get(ModulesKey));
 
 				if (!editionEqual || !modulesEqual) {
+
 					logger.warn("License Edition or Modules changed - unable to update license info without a restart. Please restart to update license info.");
+
 					return;
 				}
 			}
@@ -223,6 +224,7 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		if (endDate == null) {
+
 			// nothing to do - was unlicensed and still is
 
 		} else if (licenseExpired(endDate)) {
@@ -254,26 +256,31 @@ public class StructrLicenseManager implements LicenseManager {
 
 	@Override
 	public String getEdition() {
+
 		return edition;
 	}
 
 	@Override
 	public String getLicensee() {
+
 		return licensee;
 	}
 
 	@Override
 	public String getHardwareFingerprint() {
+
 		return createHash();
 	}
 
 	@Override
 	public Date getStartDate() {
+
 		return startDate;
 	}
 
 	@Override
 	public Date getEndDate() {
+
 		return endDate;
 	}
 
@@ -287,6 +294,7 @@ public class StructrLicenseManager implements LicenseManager {
 				return Integer.valueOf(numberOfUsersString);
 
 			} catch (Throwable t) {
+
 				logger.error("Invalid value for number of users in license key: {}: {}", numberOfUsersString, t.getMessage());
 			}
 		}
@@ -298,6 +306,7 @@ public class StructrLicenseManager implements LicenseManager {
 	private boolean isValid(final Map<String, String> properties) {
 
 		if (!licensePresent) {
+
 			return false;
 		}
 
@@ -319,6 +328,7 @@ public class StructrLicenseManager implements LicenseManager {
 		if (StringUtils.isEmpty(key)) {
 
 			logger.error("Unable to read key from license file.");
+
 			return false;
 		}
 
@@ -334,48 +344,56 @@ public class StructrLicenseManager implements LicenseManager {
 			if (!signer.verify(signature)) {
 
 				logger.error("License signature verification failed, license is not valid.");
+
 				return false;
 			}
 
 		} catch (Throwable t) {
 
 			logger.error("Unable to verify license.", t);
+
 			return false;
 		}
 
 		if (StringUtils.isEmpty(name)) {
 
 			logger.error("License file doesn't contain licensee name.");
+
 			return false;
 		}
 
 		if (StringUtils.isEmpty(edition)) {
 
 			logger.error("License file doesn't contain edition.");
+
 			return false;
 		}
 
 		if (StringUtils.isEmpty(modules)) {
 
 			logger.error("License file doesn't contain modules.");
+
 			return false;
 		}
 
 		if (StringUtils.isEmpty(hostId)) {
 
 			logger.error("License file doesn't contain host ID.");
+
 			return false;
 		}
 
 		if (StringUtils.isEmpty(dateString)) {
 
 			logger.error("License file doesn't contain license date.");
+
 			return false;
 		}
 
 		if (StringUtils.isEmpty(startDateString)) {
 
 			logger.error("License file doesn't contain start date.");
+
 			return false;
 		}
 
@@ -383,6 +401,7 @@ public class StructrLicenseManager implements LicenseManager {
 		if (!thisHostId.equals(hostId) && !"*".equals(hostId)) {
 
 			logger.error("Host ID found in license ({}) file does not match current host ID.", hostId);
+
 			return false;
 		}
 
@@ -393,6 +412,7 @@ public class StructrLicenseManager implements LicenseManager {
 		if (licenseStartDate != null && now.before(licenseStartDate) && !now.equals(licenseStartDate)) {
 
 			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(licenseStartDate.getTime()));
+
 			return false;
 		}
 
@@ -423,6 +443,7 @@ public class StructrLicenseManager implements LicenseManager {
 			if (cal.after(issuedAtPlusOneMonth)) {
 
 				logger.error("Evaluation license found in license file is not valid any more, license period ended {}.", format.format(issuedAtPlusOneMonth.getTime()));
+
 				return false;
 			}
 
@@ -432,6 +453,7 @@ public class StructrLicenseManager implements LicenseManager {
 			if (licenseExpired(licenseEndDate)) {
 
 				logger.error("License found in license file is not valid any more, license period ended {}.", format.format(licenseEndDate.getTime()));
+
 				return false;
 			}
 		}
@@ -481,14 +503,14 @@ public class StructrLicenseManager implements LicenseManager {
 	private String getBase64LicenseKey() {
 
 		final String licenseKeyFromFile = readFileToString("license.key");
-
 		if (licenseKeyFromFile != null) {
+
 			return licenseKeyFromFile;
 		}
 
 		final String licenseKey = Settings.LicenseKey.getValue();
-
 		if (StringUtils.isNotBlank(licenseKey)) {
+
 			return licenseKey;
 		}
 
@@ -520,6 +542,7 @@ public class StructrLicenseManager implements LicenseManager {
 			return properties;
 
 		} else {
+
 			return Collections.emptyMap();
 		}
 	}
@@ -533,6 +556,7 @@ public class StructrLicenseManager implements LicenseManager {
 			return CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(byteKey));
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to decode public key.", t);
 		}
 
@@ -549,6 +573,7 @@ public class StructrLicenseManager implements LicenseManager {
 			for (final NetworkInterface iface : getNetworkInterfaces()) {
 
 				try {
+
 					final byte[] hardwareAddress = iface.getHardwareAddress();
 					if (hardwareAddress != null) {
 
@@ -561,6 +586,7 @@ public class StructrLicenseManager implements LicenseManager {
 			return Hex.encodeHexString(digest.digest());
 
 		} catch (NoSuchAlgorithmException ex) {
+
 			logger.warn("Unable to create hardware hash.", ex);
 		}
 
@@ -572,6 +598,7 @@ public class StructrLicenseManager implements LicenseManager {
 		final List<NetworkInterface> interfaces = new LinkedList<>();
 
 		try {
+
 			for (final Enumeration<NetworkInterface> enumeration = NetworkInterface.getNetworkInterfaces(); enumeration.hasMoreElements();) {
 
 				interfaces.add(enumeration.nextElement());
@@ -589,6 +616,7 @@ public class StructrLicenseManager implements LicenseManager {
 			try {
 
 				final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
+
 				return alignToDay(format.parse(dateOrNull));
 
 			} catch (Throwable ignore) {}
@@ -602,6 +630,7 @@ public class StructrLicenseManager implements LicenseManager {
 		try {
 
 			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
+
 			return format.parse(format.format(date));
 
 		} catch (Throwable ignore) {}
@@ -649,17 +678,21 @@ public class StructrLicenseManager implements LicenseManager {
 
 		// end date in license file is now optional
 		if (end != null) {
+
 			properties.put(EndKey, end.trim());
 		}
+
 		properties.put(EditionKey, edition.trim());
 		properties.put(ModulesKey, modules.trim());
 		properties.put(MachineKey, hostId.trim());
 
 		if (StringUtils.isNotBlank(servers)) {
+
 			properties.put(ServersKey, servers.trim());
 		}
 
 		if (StringUtils.isNotBlank(users)) {
+
 			properties.put(UsersKey, users.trim());
 		}
 
@@ -690,6 +723,7 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to sign license.", t);
 		}
 	}
@@ -703,6 +737,7 @@ public class StructrLicenseManager implements LicenseManager {
 			writer.write(write(properties));
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to write file.", ioex);
 		}
 	}
@@ -737,7 +772,6 @@ public class StructrLicenseManager implements LicenseManager {
 			for (final String part : serversString.split("[, ]+")) {
 
 				final String address = part.trim();
-
 				if (StringUtils.isNotBlank(address)) {
 
 					try {
@@ -754,18 +788,21 @@ public class StructrLicenseManager implements LicenseManager {
 						final boolean result       = verify(expected, response);
 
 						if (result == true) {
+
 							logger.info("License verified in {} ms", System.currentTimeMillis() - t0);
 						}
 
 						return result;
 
 					} catch (Throwable t) {
+
 						logger.warn("Unable to verify volume license: {}", t.getMessage());
 					}
 				}
 			}
 
 		} catch (Throwable t) {
+
 			logger.error("", t);
 		}
 
@@ -842,6 +879,7 @@ public class StructrLicenseManager implements LicenseManager {
 				try { Thread.sleep(1234 * i); } catch (Throwable t) {}
 
 				if ((i+1) == retries) {
+
 					throw new RuntimeException("no connection to license server");
 				}
 
@@ -850,6 +888,7 @@ public class StructrLicenseManager implements LicenseManager {
 				logger.warn("Unable to verify volume license: {}, attempt {} of {}", ioex.getMessage(), (i+1), retries);
 
 				if ((i+1) == retries) {
+
 					throw new RuntimeException("verification failed");
 				}
 			}
@@ -867,6 +906,7 @@ public class StructrLicenseManager implements LicenseManager {
 		for (int i=0; i<retries; i++) {
 
 			try {
+
 				final URL url = URI.create(address).toURL();
 				URLConnection connection;
 
@@ -930,6 +970,7 @@ public class StructrLicenseManager implements LicenseManager {
 				try { Thread.sleep(1234 * (i+1)); } catch (Throwable t) {}
 
 				if ((i+1) == retries) {
+
 					throw new RuntimeException("no connection to license server");
 				}
 
@@ -938,6 +979,7 @@ public class StructrLicenseManager implements LicenseManager {
 				logger.warn("Unable to verify volume license: {}, attempt {} of {}", ioex.getMessage(), (i+1), retries);
 
 				if ((i+1) == retries) {
+
 					throw new RuntimeException("verification failed");
 				}
 			}
@@ -953,6 +995,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 		// try to read end date (new license server?)
 		try {
+
 			final String endDateString = new String(is.readNBytes(10), StandardCharsets.UTF_8);
 			if (StringUtils.isNotBlank(endDateString)) {
 
@@ -979,6 +1022,7 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to verify volume license: {}", t.getMessage());
 		}
 
@@ -1010,6 +1054,7 @@ public class StructrLicenseManager implements LicenseManager {
 			// outfile, fallback to license.key
 			String outFile = (String)attributes.get("outFile");
 			if (outFile == null) {
+
 				outFile = "license.key";
 			}
 
@@ -1036,11 +1081,13 @@ public class StructrLicenseManager implements LicenseManager {
 
 		@Override
 		public boolean requiresEnclosingTransaction() {
+
 			return false;
 		}
 
 		@Override
 		public boolean requiresFlushingOfCaches() {
+
 			return false;
 		}
 
@@ -1065,51 +1112,61 @@ public class StructrLicenseManager implements LicenseManager {
 		// ----- interface Documentable -----
 		@Override
 		public DocumentableType getDocumentableType() {
+
 			return DocumentableType.Hidden;
 		}
 
 		@Override
 		public String getName() {
+
 			return "";
 		}
 
 		@Override
 		public String getShortDescription() {
+
 			return "";
 		}
 
 		@Override
 		public String getLongDescription() {
+
 			return "";
 		}
 
 		@Override
 		public List<Parameter> getParameters() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<Example> getExamples() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<String> getNotes() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<org.structr.docs.Signature> getSignatures() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<Language> getLanguages() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<Usage> getUsages() {
+
 			return List.of();
 		}
 	}
@@ -1124,62 +1181,74 @@ public class StructrLicenseManager implements LicenseManager {
 
 		@Override
 		public boolean requiresEnclosingTransaction() {
+
 			return false;
 		}
 
 		@Override
 		public boolean requiresFlushingOfCaches() {
+
 			return false;
 		}
 
 		// ----- interface Documentable -----
 		@Override
 		public DocumentableType getDocumentableType() {
+
 			return DocumentableType.Hidden;
 		}
 
 		@Override
 		public String getName() {
+
 			return "";
 		}
 
 		@Override
 		public String getShortDescription() {
+
 			return "";
 		}
 
 		@Override
 		public String getLongDescription() {
+
 			return "";
 		}
 
 		@Override
 		public List<Parameter> getParameters() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<Example> getExamples() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<String> getNotes() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<org.structr.docs.Signature> getSignatures() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<Language> getLanguages() {
+
 			return List.of();
 		}
 
 		@Override
 		public List<Usage> getUsages() {
+
 			return List.of();
 		}
 	}

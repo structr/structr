@@ -48,7 +48,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class ValidationTest extends StructrTest {
 
-
 	@Test
 	public void testUUIDValidation() {
 
@@ -337,6 +336,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -421,7 +421,6 @@ public class ValidationTest extends StructrTest {
 
 					} catch (FrameworkException ignore) {}
 
-
 				}
 			}
 		};
@@ -433,6 +432,7 @@ public class ValidationTest extends StructrTest {
 		final Future f3                = executor.submit(tester);
 
 		try {
+
 			f1.get();
 			f2.get();
 			f3.get();
@@ -445,7 +445,6 @@ public class ValidationTest extends StructrTest {
 
 			result = app.nodeQuery(typeName).getAsList();
 
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -454,10 +453,8 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-
 		// verify that only count entities have been created.
 		assertEquals("Invalid concurrent validation result", count, result.size());
-
 
 		executor.shutdownNow();
 	}
@@ -470,7 +467,6 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType type1 = schema.addType("Item");
 			final JsonObjectType type2 = schema.addType("ItemDerived");
 
@@ -487,7 +483,6 @@ public class ValidationTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		final String baseType    = "Item";
 		final String derivedType = "ItemDerived";
@@ -531,19 +526,18 @@ public class ValidationTest extends StructrTest {
 		final Future f3                = executor.submit(tester);
 
 		try {
+
 			f1.get();
 			f2.get();
 			f3.get();
 
 		} catch (Throwable ex) {}
 
-
 		List<NodeInterface> result = null;
 
 		try (final Tx tx = app.tx()) {
 
 			result = app.nodeQuery(baseType).getAsList();
-
 
 			tx.success();
 
@@ -553,10 +547,8 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-
 		// verify that only count entities have been created.
 		assertEquals("Invalid concurrent validation result", count, result.size());
-
 
 		executor.shutdownNow();
 	}
@@ -569,7 +561,6 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType type1 = schema.addType("Item");
 
 			type1.addStringProperty("testXYZ").setUnique(true).setRequired(true);
@@ -584,10 +575,8 @@ public class ValidationTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-
 		final String type = "Item";
 		assertNotNull(type);
-
 
 		final PropertyKey testXYZ = Traits.of(type).key("testXYZ");
 		assertNotNull(testXYZ);
@@ -622,12 +611,12 @@ public class ValidationTest extends StructrTest {
 			final Future f3 = executor.submit(tester);
 
 			try {
+
 				f1.get();
 				f2.get();
 				f3.get();
 
 			} catch (Throwable ex) {}
-
 
 			List<NodeInterface> result = null;
 
@@ -642,7 +631,6 @@ public class ValidationTest extends StructrTest {
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
-
 
 			// verify that only count entities have been created.
 			assertEquals("Invalid concurrent validation result", count, result.size());
@@ -669,6 +657,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -708,6 +697,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating relationship schema.");
 		}
@@ -751,6 +741,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating base type.");
 		}
@@ -767,6 +758,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating derived type.");
 		}
@@ -810,6 +802,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating base type.");
 		}
@@ -826,6 +819,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating derived type.");
 		}
@@ -910,6 +904,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating the type.");
 		}
@@ -986,6 +981,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating initial type.");
 		}
@@ -1002,6 +998,7 @@ public class ValidationTest extends StructrTest {
 			for (final NodeInterface property : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getAsList()) {
 
 				if ("data".equals(property.getName())) {
+
 					app.delete(property);
 				}
 			}
@@ -1015,6 +1012,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Replacing a local property with one of a different type must be allowed!");
 		}
@@ -1044,6 +1042,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating the trait type.");
 		}
@@ -1061,6 +1060,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating the base type.");
 		}
@@ -1104,6 +1104,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating the trait type.");
 		}
@@ -1120,6 +1121,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception while creating the base type.");
 		}
@@ -1149,7 +1151,6 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType type1 = schema.addType("Test");
 
 			type1.addStringProperty("testUnique").setUnique(true);
@@ -1166,6 +1167,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1215,7 +1217,6 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType type1 = schema.addType("Test");
 
 			type1.addStringProperty("testUnique").setUnique(true);
@@ -1232,6 +1233,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1271,7 +1273,6 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType type1 = schema.addType("Test");
 
 			type1.addStringProperty("testUnique").setUnique(true);
@@ -1288,6 +1289,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1306,6 +1308,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
+
 					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
@@ -1341,7 +1344,6 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-
 			final JsonObjectType type1 = schema.addType("Test");
 			final JsonObjectType type2 = schema.addType("TestDerived");
 
@@ -1354,6 +1356,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1372,6 +1375,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
+
 					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
@@ -1416,6 +1420,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1440,6 +1445,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
+
 					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
@@ -1491,6 +1497,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -1620,6 +1627,7 @@ public class ValidationTest extends StructrTest {
 				assertEquals("Invalid uniqueness validation result", uuid1, token.getDetail());
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 
@@ -1667,6 +1675,7 @@ public class ValidationTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				fail("Unexpected array property validation exception.");
 			}
 		}
@@ -2614,6 +2623,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -2626,46 +2636,34 @@ public class ValidationTest extends StructrTest {
 		// test success
 		try (final Tx tx = app.tx()) {
 
-			app.create(type,
-				new NodeAttribute<>(key1, "one"),
-				new NodeAttribute<>(key2, "two"),
-				new NodeAttribute<>(key3, "three")
-			);
+			app.create(type, new NodeAttribute<>(key1, "one"), new NodeAttribute<>(key2, "two"), new NodeAttribute<>(key3, "three"));
 
 			// wait a little while so the objects are created in different milliseconds
 			try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
-			app.create(type,
-				new NodeAttribute<>(key1, "one"),
-				new NodeAttribute<>(key2, "one"),
-				new NodeAttribute<>(key3, "three")
-			);
+			app.create(type, new NodeAttribute<>(key1, "one"), new NodeAttribute<>(key2, "one"), new NodeAttribute<>(key3, "three"));
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Invalid compound indexing validation result.");
 		}
 
 		// test success
 		try (final Tx tx = app.tx()) {
 
-			app.create(type,
-				new NodeAttribute<>(key1, "one"),
-				new NodeAttribute<>(key3, "three")
-			);
+			app.create(type, new NodeAttribute<>(key1, "one"), new NodeAttribute<>(key3, "three"));
 
 			// wait a little while so the objects are created in different milliseconds
 			try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
-			app.create(type,
-				new NodeAttribute<>(key1, "one"),
-				new NodeAttribute<>(key3, "four")
-			);
+			app.create(type, new NodeAttribute<>(key1, "one"), new NodeAttribute<>(key3, "four"));
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Invalid compound indexing validation result.");
 		}
 
@@ -2674,20 +2672,12 @@ public class ValidationTest extends StructrTest {
 		// test failure
 		try (final Tx tx = app.tx()) {
 
-			uuid = app.create(type,
-				new NodeAttribute<>(key1, "one"),
-				new NodeAttribute<>(key2, "two"),
-				new NodeAttribute<>(key3, "three")
-			).getUuid();
+			uuid = app.create(type, new NodeAttribute<>(key1, "one"), new NodeAttribute<>(key2, "two"), new NodeAttribute<>(key3, "three")).getUuid();
 
 			// wait a little while so the objects are created in different milliseconds
 			try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
-			app.create(type,
-				new NodeAttribute<>(key1, "one"),
-				new NodeAttribute<>(key2, "two"),
-				new NodeAttribute<>(key3, "three")
-			);
+			app.create(type, new NodeAttribute<>(key1, "one"), new NodeAttribute<>(key2, "two"), new NodeAttribute<>(key3, "three"));
 
 			tx.success();
 
@@ -2718,6 +2708,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2819,6 +2810,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2839,6 +2831,7 @@ public class ValidationTest extends StructrTest {
 			fail("Creating a second property with the same name on the same type should fail.");
 
 		} catch (FrameworkException fex) {
+
 			checkException(fex, 1, 422, StructrTraits.SCHEMA_PROPERTY, "name", "already_exists");
 		}
 
@@ -2856,6 +2849,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Creating a property with the same name on a different type should succeed.");
 		}
@@ -2874,6 +2868,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2890,6 +2885,7 @@ public class ValidationTest extends StructrTest {
 			fail("Renaming a property to a name that already exists on the same type should fail.");
 
 		} catch (FrameworkException fex) {
+
 			checkException(fex, 1, 422, StructrTraits.SCHEMA_PROPERTY, "name", "already_exists");
 		}
 	}
@@ -2911,6 +2907,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2930,6 +2927,7 @@ public class ValidationTest extends StructrTest {
 			fail("Creating a second view with the same name on the same type should fail.");
 
 		} catch (FrameworkException fex) {
+
 			checkException(fex, 1, 422, StructrTraits.SCHEMA_VIEW, "name", "already_exists");
 		}
 
@@ -2946,6 +2944,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Creating a view with the same name on a different type should succeed.");
 		}
@@ -2959,6 +2958,7 @@ public class ValidationTest extends StructrTest {
 		for (final ErrorToken token : fex.getErrorBuffer().getErrorTokens()) {
 
 			if (errorToken.equals(token.getToken()) && property.equals(token.getProperty())) {
+
 				return;
 			}
 		}
@@ -2974,6 +2974,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Property range constraint validation failure!");
 		}
@@ -2989,11 +2990,13 @@ public class ValidationTest extends StructrTest {
 			fail("Property range constraint violated!");
 
 		} catch (FrameworkException fex) {
+
 			checkException(fex, 1, 422, "Test", "range1", "must_be_in_range");
 		}
 	}
 
 	private void checkException(final FrameworkException fex, final int numberOfTokens, final int statusCode, final String typeName, final String keyName, final String errorToken) {
+
 		checkException(fex, numberOfTokens, statusCode, typeName, keyName, errorToken, null);
 	}
 
@@ -3053,6 +3056,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -3066,11 +3070,14 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface node : app.nodeQuery(type).getAsList()) {
+
 				app.delete(node);
 			}
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}

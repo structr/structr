@@ -40,7 +40,6 @@ public class SwitchHandler implements FlowHandler {
 				for (FlowSwitchCase switchCase : cases) {
 
 					final String caseValue = switchCase.getSwitchCase();
-
 					if (caseValue != null && data != null && caseValue.equals(data.toString())) {
 
 						return switchCase.next();

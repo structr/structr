@@ -65,26 +65,32 @@ abstract class FileImportJob extends ScheduledJob {
 	}
 
 	public String getFileUuid () {
+
 		return fileUuid;
 	}
 
 	public String getFilePath () {
+
 		return filePath;
 	}
 
 	public String getFileName () {
+
 		return fileName;
 	}
 
 	public Long getFileSize () {
+
 		return fileSize;
 	}
 
 	public Integer getProcessedChunks () {
+
 		return processedChunks;
 	}
 
 	public Integer getProcessedObjects () {
+
 		return processedObjects;
 	}
 
@@ -192,7 +198,6 @@ abstract class FileImportJob extends ScheduledJob {
 	protected InputStream getFileInputStream(final SecurityContext ctx) throws IOException {
 
 		final App app = StructrApp.getInstance(ctx);
-
 		InputStream is = null;
 
 		try (final Tx tx = app.tx()) {

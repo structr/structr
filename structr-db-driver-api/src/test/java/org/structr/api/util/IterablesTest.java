@@ -42,6 +42,7 @@ public class IterablesTest {
 
 		// test that hasNext does not change the iterable
 		for (int i=0; i<10; i++) {
+
 			assertTrue("Iterator#hasNext should not modify position in Iterable", iterator.hasNext());
 		}
 
@@ -64,6 +65,7 @@ public class IterablesTest {
 
 		// test that hasNext does not change the iterable
 		for (int i=0; i<10; i++) {
+
 			assertTrue("Iterator#hasNext should not modify position in Iterable", iterator.hasNext());
 		}
 
@@ -81,7 +83,6 @@ public class IterablesTest {
 		final Iterable<Integer> source2 = Arrays.asList(null, null);
 		final Iterable<Integer> source3 = Arrays.asList(null, 10, null, 12, null, 14, 15, 16);
 		final Iterable<Integer> source4 = Arrays.asList(  17, 18,   19, 20,   21, 22, 23, 24);
-
 		final List<Iterable<Integer>> sources = new LinkedList<>();
 
 		sources.add(Iterables.map(e -> { return e; }, source1));

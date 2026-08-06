@@ -31,14 +31,17 @@ import org.structr.module.api.DeployableEntity;
 public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingElement {
 
 	public FlowReturn(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getResult() {
+
 		return wrappedObject.getProperty(traits.key(FlowReturnTraitDefinition.RESULT_PROPERTY));
 	}
 
 	public void setResult(final String result) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowReturnTraitDefinition.RESULT_PROPERTY), result);
 	}
 
@@ -57,17 +60,20 @@ public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingEl
 
 		final FlowDataSource ds = getDataSource();
 		final String _script    = getResult();
-
 		String script = _script;
+
 		if (script == null || script.equals("")) {
+
 			script = "data";
 		}
 
 		if (ds != null) {
+
 			context.setData(getUuid(), ds.get(context));
 		}
 
 		try {
+
 			return Scripting.evaluate(context.getActionContext(getSecurityContext(), this), context.getThisObject(), "${" + script.trim() + "}", "FlowReturn(" + getUuid() + ")");
 
 		} catch (FrameworkException fex) {
@@ -79,6 +85,7 @@ public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingEl
 
 	@Override
 	public FlowExceptionHandler getExceptionHandler(Context context) {
+
 		return getExceptionHandler();
 	}
 }

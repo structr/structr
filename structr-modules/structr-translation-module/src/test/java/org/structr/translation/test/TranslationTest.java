@@ -68,6 +68,7 @@ public class TranslationTest extends StructrTest {
     public void testGoogleTranslationEmptyApiKey() {
 
         TranslationModule.TranslationGoogleAPIKey.setValue("");
+
         try (final Tx tx = this.app.tx()) {
 
             final ActionContext ctx = new ActionContext(securityContext);
@@ -101,6 +102,7 @@ public class TranslationTest extends StructrTest {
     public void testDeeplTranslationEmptyApiKey() {
 
         TranslationModule.TranslationDeepLAPIKey.setValue("");
+
         try (final Tx tx = this.app.tx()) {
 
             final ActionContext ctx = new ActionContext(securityContext);

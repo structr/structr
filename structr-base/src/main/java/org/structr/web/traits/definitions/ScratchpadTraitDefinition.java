@@ -52,6 +52,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String COLLAPSED_PROPERTY          = "collapsed";
 
 	public ScratchpadTraitDefinition() {
+
 		super(StructrTraits.SCRATCHPAD);
 	}
 
@@ -72,6 +73,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Prepares next run and returns log string that will be used during it.";
 				}
 			},
@@ -86,6 +88,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Runs the scratchpad and returns the result.";
 				}
 			},
@@ -100,6 +103,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
+
 					return "Runs the scratchpad and returns the result.";
 				}
 			}
@@ -108,15 +112,14 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			Scratchpad.class, (traits, node) -> new ScratchpadTraitWrapper(traits, node)
-		);
+		return Map.of(Scratchpad.class, (traits, node) -> new ScratchpadTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -128,33 +131,24 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> lastRunTimestampProperty = new LongProperty(LAST_RUN_TIMESTAMP_PROPERTY);
 		final Property<Boolean> collapsedProperty     = new BooleanProperty(COLLAPSED_PROPERTY).defaultValue(false);
 
-		return Set.of(
-				sourceProperty,
-				resultProperty,
-				logProperty,
-				lastRunTimestampProperty,
-				collapsedProperty
-		);
+		return Set.of(sourceProperty, resultProperty, logProperty, lastRunTimestampProperty, collapsedProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Ui,
-			newSet(
-					SOURCE_PROPERTY, RESULT_PROPERTY, LOG_PROPERTY, LAST_RUN_TIMESTAMP_PROPERTY, COLLAPSED_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Ui, newSet(SOURCE_PROPERTY, RESULT_PROPERTY, LOG_PROPERTY, LAST_RUN_TIMESTAMP_PROPERTY, COLLAPSED_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean includeInDocumentation() {
+
 		return true;
 	}
 }

@@ -71,6 +71,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("Submit"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -91,6 +92,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -116,6 +118,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("Submit"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -136,6 +139,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -151,6 +155,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 		// Jsoup decodes entities on parse, so the parsed attribute value is the original.
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
+
 		assertEquals("ConstantValue: parsed attribute value must equal the stored constant", "a & b", getAttributes(button).get("data-my-param"));
 	}
 
@@ -192,6 +197,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -244,6 +250,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -273,6 +280,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("Submit"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -294,6 +302,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -323,6 +332,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("Prev"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -341,6 +351,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -371,6 +382,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("Next"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -389,6 +401,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -419,6 +432,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("First"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -437,6 +451,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -466,6 +481,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("Last"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -484,6 +500,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -514,6 +531,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			final Page page      = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page.getElementsByTagName("div").get(0);
 			final DOMElement btn = page.createElement("button");
+
 			div.appendChild(btn);
 			btn.appendChild(page.createTextNode("Submit"));
 			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
@@ -541,6 +559,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception");
 			fex.printStackTrace();
 		}
@@ -566,6 +585,7 @@ public class EAMParameterMappingTest extends StructrUiTest {
 		final Map<String, String> map = new LinkedHashMap<>();
 
 		for (final Attribute attr : element.attributes()) {
+
 			map.put(attr.getKey(), attr.getValue());
 		}
 

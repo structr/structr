@@ -80,8 +80,7 @@ public class JWTAudienceTest {
 
 		// auth0-jwt returns an empty list (not null) when the claim is absent;
 		// both signal "no audience was set".
-		assertTrue("Unexpected aud: " + decoded.getAudience(),
-			decoded.getAudience() == null || decoded.getAudience().isEmpty());
+		assertTrue("Unexpected aud: " + decoded.getAudience(), decoded.getAudience() == null || decoded.getAudience().isEmpty());
 	}
 
 	@Test
@@ -129,9 +128,12 @@ public class JWTAudienceTest {
 		final JWTVerifier verifier = JWTHelper.buildVerifier(ALG);
 
 		try {
+
 			verifier.verify(token);
 			fail("Expected verification to fail because the token has no aud claim");
+
 		} catch (final JWTVerificationException expected) {
+
 			// ok
 		}
 	}
@@ -162,9 +164,12 @@ public class JWTAudienceTest {
 			.sign(ALG);
 
 		try {
+
 			JWTHelper.buildVerifier(ALG).verify(token);
 			fail("Expected verification to fail for mismatched aud");
+
 		} catch (final JWTVerificationException expected) {
+
 			// ok
 		}
 	}
@@ -186,6 +191,7 @@ public class JWTAudienceTest {
 	}
 
 	private static Date futureDate() {
+
 		return new Date(System.currentTimeMillis() + 60_000);
 	}
 }

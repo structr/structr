@@ -31,11 +31,13 @@ public class ContainsPredicate extends AbstractPredicate {
 	private Object value = null;
 
 	public ContainsPredicate(final Object value) {
+
 		this.value = value;
 	}
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
+
 		query.key(propertyKey, value, false);
 	}
 }

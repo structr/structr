@@ -80,6 +80,7 @@ public class CreateCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CREATE";
 	}
 }

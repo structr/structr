@@ -31,11 +31,13 @@ public class NumFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "num";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("object");
 	}
 
@@ -53,36 +55,39 @@ public class NumFunction extends CoreFunction {
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
+
 				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${num(object)}"),
-				Usage.javaScript("Usage: ${{ $.num(object) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${num(object)}"), Usage.javaScript("Usage: ${{ $.num(object) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Tries the convert given object into a floating-point number with double precision.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Date values are also supported and are converted to the number of milliseconds since January 1, 1970, 00:00:00 GMT.
 			
@@ -97,9 +102,7 @@ public class NumFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number")
-		);
+		return List.of(Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number"));
 	}
 
 	@Override
@@ -114,13 +117,12 @@ public class NumFunction extends CoreFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"See also `long()`."
-		);
+		return List.of("See also `long()`.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Conversion;
 	}
 }

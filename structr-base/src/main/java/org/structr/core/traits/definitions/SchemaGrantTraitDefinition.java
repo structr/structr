@@ -64,6 +64,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
 
 	public SchemaGrantTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_GRANT);
 	}
 
@@ -72,8 +73,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -98,9 +98,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			SchemaGrant.class, (traits, node) -> new SchemaGrantTraitWrapper(traits, node)
-		);
+		return Map.of(SchemaGrant.class, (traits, node) -> new SchemaGrantTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -114,15 +112,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<Boolean> allowDelete         = new BooleanProperty(ALLOW_DELETE_PROPERTY);
 		final Property<Boolean> allowAccessControl  = new BooleanProperty(ALLOW_ACCESS_CONTROL_PROPERTY);
 
-		return newSet(
-			principal,
-			schemaNode,
-			staticSchemaNodeName,
-			allowAccessControl,
-			allowDelete,
-			allowRead,
-			allowWrite
-		);
+		return newSet(principal, schemaNode, staticSchemaNodeName, allowAccessControl, allowDelete, allowRead, allowWrite);
 	}
 
 	@Override
@@ -152,6 +142,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 

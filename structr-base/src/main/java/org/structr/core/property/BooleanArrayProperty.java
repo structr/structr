@@ -50,23 +50,26 @@ public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 		if (value != null && value instanceof String) {
 
 			String[] fixedValue = null;
-
 			final String stringValue = (String)value;
 
 			if (stringValue.contains(",")) {
+
 				fixedValue = stringValue.split(",");
 			}
 
 			if (stringValue.contains(" ")) {
+
 				fixedValue = stringValue.split(" ");
 			}
 
 			if (securityContext != null && entity != null) {
 
 				try {
+
 					setProperty(securityContext, entity, convert(Arrays.asList(fixedValue)));
 
 				} catch (FrameworkException ex) {
+
 					logger.warn("", ex);
 				}
 			}
@@ -80,6 +83,7 @@ public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 
 	@Override
 	public PropertyConverter<?, Boolean[]> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return new ArrayInputConverter(securityContext, fromString);
 	}
 
@@ -88,12 +92,14 @@ public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 		final boolean fromString;
 
 		public ArrayInputConverter(final SecurityContext securityContext, final boolean fromString) {
+
 			super(securityContext, null);
 			this.fromString = fromString;
 		}
 
 		@Override
 		public Object revert(final Boolean[] source) throws FrameworkException {
+
 			return source != null ? Arrays.asList(source) : null;
 		}
 
@@ -101,14 +107,17 @@ public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 		public Boolean[] convert(final Object source) throws FrameworkException {
 
 			if (source == null) {
+
 				return null;
 			}
 
 			if (source instanceof List) {
+
 				return BooleanArrayProperty.this.convert((List)source);
 			}
 
 			if (source.getClass().isArray()) {
+
 				return convert(Arrays.asList((Boolean[])source));
 			}
 
@@ -128,6 +137,7 @@ public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 
 					// special handling of empty search attribute
 					if (StringUtils.isBlank(s)) {
+
 						return null;
 					}
 

@@ -36,11 +36,13 @@ public class XPathFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "xpath";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("document, xpath [, returnType ]");
 	}
 
@@ -64,7 +66,6 @@ public class XPathFunction extends AdvancedScriptingFunction {
 					}
 
 					String path = sources[1].toString();
-
 					final XPathExpression expression = xpath.compile(path);
 
 					return expression.evaluate(sources[0], returnType);
@@ -72,6 +73,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 				} catch (XPathExpressionException ioex) {
 
 					logException(caller, ioex, sources);
+
 					return null;
 				}
 			}
@@ -83,6 +85,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -91,6 +94,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${xpath(xmlDocument, expression [, returnType ])}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\", \"STRING\")}"),
 			Usage.javaScript("Usage: ${{ $.xpath(xmlDocument, expression [, returnType ]) }}. Example: ${{ $.xpath(xml($.this.xmlSource), '/test/testValue', 'STRING') }}")
@@ -99,16 +103,19 @@ public class XPathFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the value of the given XPath expression from the given XML document.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING. This function can be used in conjunction with `xml()` to extract data from an XML document.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -145,6 +152,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

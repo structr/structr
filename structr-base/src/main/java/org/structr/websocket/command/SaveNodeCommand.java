@@ -47,7 +47,6 @@ public class SaveNodeCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
 		final String nodeId       = webSocketData.getId();
 		final String modifiedHtml = webSocketData.getNodeDataStringValue("source");
 		final App app             = StructrApp.getInstance(securityContext);
@@ -63,7 +62,6 @@ public class SaveNodeCommand extends AbstractCommand {
 
 				// parse page from modified source
 				final Page importedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
-				
 				if (importedPage == null) {
 
 					final String errorMessage = "Unable to parse " + modifiedHtml;

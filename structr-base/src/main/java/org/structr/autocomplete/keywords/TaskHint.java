@@ -24,16 +24,19 @@ public class TaskHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "task";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the task the enclosing partial acts on.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `task` keyword returns the TaskInstance this part of the page is about, resolved through the "
 			+ "closest VisibilityMapping's bound step: in a task list it is the row's own task, on a process "
 			+ "instance page it is the task at that step. Use it for status and assignee (`$.task.status`, "

@@ -29,16 +29,19 @@ import org.structr.core.property.PropertyKey;
 public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 
 	public NotBlankSearchAttribute(PropertyKey<T> key) {
+
 		super(key, null);
 	}
 
 	@Override
 	public String toString() {
+
 		return "NotBlankSearchAttribute()";
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return NotEmptyQuery.class;
 	}
 

@@ -64,11 +64,7 @@ public class OpenAPIMaintenanceOperationFixNodeProperties extends LinkedHashMap<
                 ),
 
                 // responses
-                Map.of(
-                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
-                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-                )
-        ));
+                Map.of("200", new OpenAPISchemaReference("#/components/responses/ok"), "401", new OpenAPISchemaReference("#/components/responses/unauthorized"))));
 
     }
 }

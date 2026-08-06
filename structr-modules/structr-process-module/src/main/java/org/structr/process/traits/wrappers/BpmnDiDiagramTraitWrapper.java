@@ -31,21 +31,25 @@ import org.structr.process.traits.definitions.BpmnDiDiagramTraitDefinition;
 public class BpmnDiDiagramTraitWrapper extends AbstractNodeTraitWrapper implements BpmnDiDiagram {
 
 	public BpmnDiDiagramTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getDiagramId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiDiagramTraitDefinition.DIAGRAM_ID_PROPERTY));
 	}
 
 	@Override
 	public String getPlaneId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiDiagramTraitDefinition.PLANE_ID_PROPERTY));
 	}
 
 	@Override
 	public String getPlaneElement() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiDiagramTraitDefinition.PLANE_ELEMENT));
 	}
 

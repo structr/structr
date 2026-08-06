@@ -32,16 +32,17 @@ import org.structr.schema.action.ActionContext;
 import java.util.Collections;
 import java.util.List;
 
-
 public class GetRequestHeaderNamesFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "getRequestHeaderNames";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
@@ -49,7 +50,6 @@ public class GetRequestHeaderNamesFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
-
 		if (securityContext != null) {
 
 			final HttpServletRequest request = securityContext.getRequest();
@@ -64,6 +64,7 @@ public class GetRequestHeaderNamesFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${getRequestHeaderNames()}. Example: ${getRequestHeaderNames()}"),
 			Usage.javaScript("Usage: ${{ $.getRequestHeaderNames() }}. Example: ${{ $.getRequestHeaderNames()}}")
@@ -72,29 +73,31 @@ public class GetRequestHeaderNamesFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a collection of all the header names the current request contains.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function can be used both in Entity Callback Functions and in the Page Rendering process to obtain the names of all the HTTP headers the requesting client has sent.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getRequestHeaderNames()}"),
-				Example.javaScript("${{ $.getRequestHeaderNames() }}")
-		);
+
+		return List.of(Example.structrScript("${getRequestHeaderNames()}"), Example.javaScript("${{ $.getRequestHeaderNames() }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of();
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

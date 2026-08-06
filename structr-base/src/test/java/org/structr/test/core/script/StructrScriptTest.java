@@ -39,7 +39,6 @@ public class StructrScriptTest extends StructrTest {
 		try {
 
 			final String script = "${ { name: '{}', test: \"moep\", value: 1, children: [ { name: '[{][' }, { name: '}}]' } ] } }";
-
 			final Object value = Scripting.evaluate(ctx, null, script,  "test");
 
 			assertEquals("StructrScript does not parse object syntax correctly", "HashMap", value.getClass().getSimpleName());
@@ -55,6 +54,7 @@ public class StructrScriptTest extends StructrTest {
 			System.out.println(value);
 
 		} catch (FrameworkException e) {
+
 			throw new RuntimeException(e);
 		}
 	}

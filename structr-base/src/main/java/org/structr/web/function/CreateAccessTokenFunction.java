@@ -38,11 +38,13 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "createAccessToken";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("user, accessTokenTimeout");
 	}
 
@@ -50,12 +52,14 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
+
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 			final User user = (User) sources[0];
 			int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
 			int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
 			if (sources.length > 1) {
+
 				accessTokenTimeout = (int) sources[1];
 			}
 
@@ -69,6 +73,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		}
@@ -76,24 +81,25 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${createAccessToken(user [, accessTokenTimeout])}"),
-			Usage.javaScript("Usage: ${{ $.createAccessToken(user [, accessTokenTimeout]); }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${createAccessToken(user [, accessTokenTimeout])}"), Usage.javaScript("Usage: ${{ $.createAccessToken(user [, accessTokenTimeout]); }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates a JWT access token for the given user entity that can be used for request authentication and authorization.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The return value of this function is a single string with the generated access token. This token can then be used in the `Authorization` HTTP header to authenticate requests against to Structr.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("user", "user entity to create a token for"),
 			Parameter.optional("accessTokenTimeout", "access token timeout in **minutes**, defaults to 1 hour (60 minutes)")
@@ -135,6 +141,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Security;
 	}
 }

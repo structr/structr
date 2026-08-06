@@ -32,6 +32,7 @@ public class IsExpression extends Expression {
 	private static final String ERROR_MESSAGE_IS = "Usage: ${is(condition, trueValue)}. Example: ${is(equal(this.name, request.name), 'selected')}";
 
 	public IsExpression(final int row, final int column) {
+
 		super("is", row, column);
 	}
 
@@ -43,8 +44,10 @@ public class IsExpression extends Expression {
 		buf.append("is(");
 
 		for (final Expression expr : expressions) {
+
 			buf.append(expr.toString());
 		}
+
 		buf.append(")");
 
 		return buf.toString();
@@ -54,6 +57,7 @@ public class IsExpression extends Expression {
 	public void add(final Expression expression) throws FrameworkException {
 
 		if (expressions.size() == 2) {
+
 			throw new FrameworkException(422, "Invalid is() expression in builtin function: too many parameters.");
 		}
 
@@ -65,16 +69,17 @@ public class IsExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (expressions.isEmpty()) {
+
 			return ERROR_MESSAGE_IS;
 		}
 
 		final Expression condition = expressions.get(0);
-
 		if (isTrue(condition.evaluate(ctx, entity))) {
 
 			if (expressions.size() > 1) {
 
 				final Expression trueExpression = expressions.get(1);
+
 				return trueExpression.evaluate(ctx, entity);
 
 			} else {
@@ -90,46 +95,49 @@ public class IsExpression extends Expression {
 	}
 
 	private boolean isTrue(final Object source) {
+
 		return source != null && (Boolean.TRUE.equals(source) || "true".equals(source));
 	}
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+
 		return source;
 	}
 
 	@Override
 	public String getName() {
+
 		return "is";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Evaluates a condition and executes an expressions if the result is `true`.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("condition", "condition to evaluate"),
-			Parameter.mandatory("trueExpression", "expression to evaluate if condition is `true`")
-		);
+
+		return List.of(Parameter.mandatory("condition", "condition to evaluate"), Parameter.mandatory("trueExpression", "expression to evaluate if condition is `true`"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${is(me.isAdmin, 'background-color-red')}", "Make the background color of an element red if the current user is an admin user")
-		);
+
+		return List.of(Example.structrScript("${is(me.isAdmin, 'background-color-red')}", "Make the background color of an element red if the current user is an admin user"));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"This function is only available in StructrScript.",
 			"This function is often used in HTML attributes, for example to conditionally output CSS classes or other attributes.",
@@ -139,25 +147,25 @@ public class IsExpression extends Expression {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return List.of(
-			Signature.structrScript("condition, trueExpression")
-		);
+
+		return List.of(Signature.structrScript("condition, trueExpression"));
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of(Language.StructrScript);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${is(condition, trueExpression)}. Example: ${is(me.isAdmin, 'background-color-red')}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${is(condition, trueExpression)}. Example: ${is(me.isAdmin, 'background-color-red')}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Logic;
 	}
 }

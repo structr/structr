@@ -58,11 +58,13 @@ public class GetAvailableLogFilesCommand extends AbstractCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public String getCommand() {
+
 		return "GET_AVAILABLE_SERVER_LOGS";
 	}
 }

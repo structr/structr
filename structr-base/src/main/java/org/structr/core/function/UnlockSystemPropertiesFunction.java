@@ -33,6 +33,7 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "unlockSystemPropertiesOnce";
 	}
 
@@ -46,58 +47,67 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 			if (sources[0] instanceof NodeInterface n) {
 
 				n.unlockSystemPropertiesOnce();
+
 				return null;
 
 			} else {
 
 				logger.warn("Parameter 1 is not a node. Parameters: {}", getParametersAsString(sources));
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${unlockSystemPropertiesOnce(node)}"),
-			Usage.javaScript("Usage: ${{ $.unlockSystemPropertiesOnce(node)}}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${unlockSystemPropertiesOnce(node)}"), Usage.javaScript("Usage: ${{ $.unlockSystemPropertiesOnce(node)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Unlocks any system property for a single access.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
 	public boolean isHidden() {
+
 		// internal function, should not be used...
+
 		return true;
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

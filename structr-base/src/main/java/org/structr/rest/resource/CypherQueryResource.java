@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -48,17 +47,20 @@ import java.util.Set;
 public class CypherQueryResource extends ExactMatchEndpoint {
 
 	public CypherQueryResource() {
+
 		super(RESTParameter.forStaticString("cypher", true));
 	}
 
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
 		return new CypherResourceHandler(call);
 	}
 
 	private class CypherResourceHandler extends RESTCallHandler {
 
 		public CypherResourceHandler(final RESTCall call) {
+
 			super(call);
 		}
 
@@ -127,16 +129,19 @@ public class CypherQueryResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return true;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("GET", "OPTIONS", "POST");
 		}
 	}

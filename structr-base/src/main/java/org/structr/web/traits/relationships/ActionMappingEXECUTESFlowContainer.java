@@ -36,46 +36,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ActionMappingEXECUTESFlowContainer extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ActionMappingEXECUTESFlowContainer() {
+
 		super(StructrTraits.ACTION_MAPPING_EXECUTES_FLOW_CONTAINER);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.ACTION_MAPPING;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.FLOW_CONTAINER;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "EXECUTES";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

@@ -45,7 +45,6 @@ public class PingCommand extends AbstractCommand {
 		logger.debug("PING received from session {}", sessionId);
 
 		final Principal currentUser = AuthHelper.getPrincipalForSessionId(SessionHelper.getShortSessionId(sessionId), true);
-
 		if (currentUser != null) {
 
 			logger.debug("User found by session id: " + currentUser.getName());
@@ -66,6 +65,7 @@ public class PingCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "PING";
 	}
 }

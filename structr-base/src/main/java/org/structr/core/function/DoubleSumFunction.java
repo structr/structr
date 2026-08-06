@@ -31,11 +31,13 @@ public class DoubleSumFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "doubleSum";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("list");
 	}
 
@@ -61,49 +63,50 @@ public class DoubleSumFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-				Usage.structrScript("Usage: ${doubleSum(list)}"),
-				Usage.javaScript("Usage: ${{ $.doubleSum(list) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${doubleSum(list)}"), Usage.javaScript("Usage: ${{ $.doubleSum(list) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the sum of all the values in the given collection as a floating-point value.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function will most likely be used in combination with the `extract()` or `merge()` functions.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("list", "list of values to sum")
-		);
+
+		return List.of(Parameter.mandatory("list", "list of values to sum"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${doubleSum(extract(find('Product'), 'itemPrice'))}", "Return the sum of all `itemPrice` values of all `Product` entities")
-		);
+
+		return List.of(Example.structrScript("${doubleSum(extract(find('Product'), 'itemPrice'))}", "Return the sum of all `itemPrice` values of all `Product` entities"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

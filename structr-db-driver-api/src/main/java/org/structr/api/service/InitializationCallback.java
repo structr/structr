@@ -25,6 +25,7 @@ public interface InitializationCallback {
 	void initializationDone();
 
 	default int priority() {
+
 		return 0;
 	}
 }

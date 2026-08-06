@@ -46,6 +46,7 @@ public class FunctionWrapper<T,R> implements ProxyExecutable {
 	public R execute(Value... arguments) {
 
 		try {
+
 			T[] args = (T[]) Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
 			return (R) PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));

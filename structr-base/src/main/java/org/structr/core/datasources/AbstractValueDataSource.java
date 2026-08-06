@@ -52,15 +52,18 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 	protected abstract String resolveDataType(final ActionContext actionContext) throws FrameworkException;
 
 	public AbstractValueDataSource(final String name) {
+
 		this.name = name;
 	}
 
 	public void setConfiguration(final ComponentConfiguration configuration) {
+
 		this.configuration = configuration;
 	}
 
 	@Override
 	public String getChannelName() {
+
 		return Functions.cleanString(name);
 	}
 
@@ -75,6 +78,7 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 
 		final String resolved = resolveDataType(actionContext);
 		if (resolved != null) {
+
 			return resolved;
 		}
 
@@ -82,6 +86,7 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 
 			final String expectedDataType = configuration.getExpectedDataType();
 			if (expectedDataType != null) {
+
 				return getTransformedDataType(expectedDataType, configuration.getTransform());
 			}
 		}
@@ -115,6 +120,7 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 						}
 
 						if (value != null) {
+
 							return ChannelResult.fromObject((T) value);
 						}
 					}
@@ -131,7 +137,6 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 
 	@Override
 	public final Map<String, FieldDefinition> getFields(final ActionContext actionContext) throws FrameworkException {
-
 
 		final Map<String, FieldDefinition> output = new LinkedHashMap<>();
 		final String dataType = getDataType(actionContext);
@@ -161,16 +166,19 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 		switch (key) {
 
 			case "name":
+
 				return name;
 
 			case "values":
 				throw new UnsupportedOperationException("values is currently not supported.");
 
 			case "dataType":
+
 				return getDataType(actionContext);
 
 			case "selectedValue":
 				// the selected object from the channel
+
 				return getValue(renderContext);
 
 			case "currentValue":
@@ -187,11 +195,9 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 		if (transform != null && Traits.exists(type)) {
 
 			final Traits traits = Traits.of(type);
-
 			if (traits.hasKey(transform)) {
 
 				final PropertyKey key = traits.key(transform);
-
 				if (key instanceof RelationProperty rel) {
 
 					return rel.getTargetType();

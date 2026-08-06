@@ -27,29 +27,31 @@ public class IPHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "ip";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the IP address of the interface on which the request was received.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
-		);
+
+		return List.of("Only available in a context where Structr is responding to an HTTP request from the outside.");
 	}
 }

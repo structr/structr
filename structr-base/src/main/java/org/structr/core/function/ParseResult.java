@@ -30,28 +30,34 @@ public class ParseResult {
 	private String expression         = null;
 
 	public List<String> getTokens() {
+
 		return tokens;
 	}
 
 	public void setRootExpression(final Expression root) {
+
 		this.root = root;
 	}
 
 	public Expression getRootExpression() {
+
 		return root;
 	}
 
 	public void setExpression(final String expression) {
+
 		this.expression = expression;
 	}
 
 	public String getExpression() {
+
 		return expression;
 	}
 
 	public String getLastToken() {
 
 		if (tokens.isEmpty()) {
+
 			return "";
 		}
 

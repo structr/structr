@@ -85,15 +85,14 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String SECURITY_LEVEL_HIGH           = "high";
 
 	public BpmnDefinitionsTraitDefinition() {
+
 		super(ProcessTraits.BPMN_DEFINITIONS);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnDefinitions.class, (traits, node) -> new BpmnDefinitionsTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnDefinitions.class, (traits, node) -> new BpmnDefinitionsTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -107,15 +106,14 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<Iterable<NodeInterface>> processes         = new EndNodes(traitsInstance, PROCESSES_PROPERTY,         ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS);
 		final Property<NodeInterface>           collaboration     = new EndNode(traitsInstance,  COLLABORATION_PROPERTY,     ProcessTraits.BPMN_DEFINITIONS_HAS_COLLABORATION);
 		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY,           ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
+
 		// Post the multi-process refactor, both ActionMapping CONTROLS and
 		// VisibilityMapping FOR target BpmnProcess (not BpmnDefinitions), so
 		// their inverse properties live on BpmnProcess. BpmnDefinitions has no
 		// incoming rels from AM / VM directly.
 		final Property<String> securityLevel                      = new EnumProperty(SECURITY_LEVEL_PROPERTY, Set.of(SECURITY_LEVEL_LOW, SECURITY_LEVEL_HIGH)).defaultValue(SECURITY_LEVEL_HIGH).indexed();
 
-		return newSet(targetNamespace, exporter, exporterVersion, namespaceDeclarations,
-			globalDefinitions, processes, collaboration, diagrams,
-			securityLevel);
+		return newSet(targetNamespace, exporter, exporterVersion, namespaceDeclarations, globalDefinitions, processes, collaboration, diagrams, securityLevel);
 	}
 
 	@Override
@@ -143,6 +141,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					if (entity instanceof NodeInterface node) {
+
 						return new BpmnExporter().exportBpmn(node.as(BpmnDefinitions.class));
 					}
 
@@ -151,6 +150,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public String getDescription() {
+
 					return "Exports this BpmnDefinitions (file root, possibly multi-process) to BPMN 2.0.2 XML and returns the XML string.";
 				}
 			},
@@ -194,6 +194,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public String getDescription() {
+
 					return "Imports a BPMN 2.0.2 XML string and creates a new BpmnDefinitions (file root) with one or more BpmnProcess children. Pass 'xml' (required) and optional 'filename' for the persisted File node.";
 				}
 			}
@@ -202,6 +203,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -216,24 +218,24 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	public static NodeInterface resolveSubject(final ActionContext actionContext, final Object arg) throws FrameworkException {
 
 		if (arg == null) {
+
 			return null;
 		}
 
 		if (arg instanceof Iterable<?> || arg.getClass().isArray()) {
 
-			throw new FrameworkException(422,
-				"startProcess accepts at most one 'subject' per call. " +
-				"For batch operations, loop and invoke startProcess once per subject."
-			);
+			throw new FrameworkException(422, "startProcess accepts at most one 'subject' per call. " +
+				"For batch operations, loop and invoke startProcess once per subject.");
 		}
 
 		if (arg instanceof NodeInterface) {
+
 			return (NodeInterface) arg;
 		}
 
 		final App app = StructrApp.getInstance(actionContext.getSecurityContext());
-
 		String uuid = null;
+
 		if (arg instanceof String) {
 
 			uuid = (String) arg;
@@ -246,18 +248,19 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 				uuid = (String) idObj;
 			}
 		}
+
 		if (uuid == null || uuid.isEmpty()) {
 
-			throw new FrameworkException(422,
-				"Cannot resolve subject from value of type " + arg.getClass().getName() +
-				" (expected NodeInterface, UUID string, or {id: \"<uuid>\"})"
-			);
+			throw new FrameworkException(422, "Cannot resolve subject from value of type " + arg.getClass().getName() +
+				" (expected NodeInterface, UUID string, or {id: \"<uuid>\"})");
 		}
+
 		final NodeInterface node = app.getNodeById(uuid);
 		if (node == null) {
 
 			throw new FrameworkException(422, "Subject with id '" + uuid + "' not found");
 		}
+
 		return node;
 	}
 }

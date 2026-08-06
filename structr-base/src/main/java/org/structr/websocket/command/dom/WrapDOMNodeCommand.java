@@ -64,6 +64,7 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 			if (nodeId == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot wrap node without nodeId").build(), true);
+
 				return;
 			}
 
@@ -72,6 +73,7 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 			if (oldNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(404).message("Node not found").build(), true);
+
 				return;
 			}
 
@@ -79,9 +81,10 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 			if (document != null) {
 
 				final DOMNode parentNode = oldNode.getParent();
-
 				if (parentNode == null) {
+
 					getWebSocket().send(MessageBuilder.status().code(404).message("Node has no parent node").build(), true);
+
 					return;
 				}
 
@@ -89,6 +92,7 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 
 					DOMNode newNode = CreateAndAppendDOMNodeCommand.createNewNode(getWebSocket(), tagName, document);
 					if (newNode == null) {
+
 						return;
 					}
 
@@ -137,11 +141,13 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "WRAP_DOM_NODE";
 	}
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 }

@@ -62,16 +62,19 @@ public class MediaModule implements StructrModule {
 
 	@Override
 	public String getName() {
+
 		return "media";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

@@ -34,6 +34,7 @@ public class NodeAttribute<T> {
 	}
 
 	public NodeAttribute(final PropertyKey<T> key, final T value) {
+
 		this.key   = key;
 		this.value = value;
 	}
@@ -42,6 +43,7 @@ public class NodeAttribute<T> {
 	 * @return the key
 	 */
 	public PropertyKey<T> getKey() {
+
 		return key;
 	}
 
@@ -49,6 +51,7 @@ public class NodeAttribute<T> {
 	 * @param key the key to set
 	 */
 	public void setKey(final PropertyKey<T> key) {
+
 		this.key = key;
 	}
 
@@ -56,6 +59,7 @@ public class NodeAttribute<T> {
 	 * @return the value
 	 */
 	public T getValue() {
+
 		return value;
 	}
 
@@ -63,6 +67,7 @@ public class NodeAttribute<T> {
 	 * @param value the value to set
 	 */
 	public void setValue(final T value) {
+
 		this.value = value;
 	}
 
@@ -80,6 +85,7 @@ public class NodeAttribute<T> {
 	public int hashCode() {
 
 		if (key != null) {
+
 			return key.hashCode();
 		}
 
@@ -90,6 +96,7 @@ public class NodeAttribute<T> {
 	public boolean equals(Object obj) {
 
 		if(obj instanceof NodeAttribute) {
+
 			return obj.hashCode() == hashCode();
 		}
 

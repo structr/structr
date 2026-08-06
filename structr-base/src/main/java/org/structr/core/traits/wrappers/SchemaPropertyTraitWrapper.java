@@ -47,26 +47,31 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	private IntegerArrayPropertyGenerator intArrayPropertyParser   = null;
 
 	public SchemaPropertyTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
 	@Override
 	public String getPropertyName() {
+
 		return getName();
 	}
 
 	@Override
 	public String getClassName() {
+
 		return getSchemaNode().getClassName();
 	}
 
 	@Override
 	public String getStaticSchemaNodeName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
@@ -174,16 +179,19 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getDbName() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.DB_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getDefaultValue() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY));
 	}
 
 	@Override
 	public String getTypeHint() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY));
 	}
 
@@ -201,15 +209,18 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getHint() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY));
 	}
 
 	@Override
 	public String getCategory() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY));
 	}
 
 	public boolean isRequired() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY));
 	}
 
@@ -251,6 +262,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public boolean isSerializationDisabled() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY));
 	}
 
@@ -268,11 +280,13 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String[] getTransformators() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY));
 	}
 
 	@Override
 	public String[] getValidators() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY));
 	}
 
@@ -306,6 +320,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getFqcn() {
+
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.FQCN_PROPERTY));
 	}
 
@@ -349,25 +364,30 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	public boolean isPropertySetNotion() {
+
 		return getNotionPropertyParser().isPropertySet();
 	}
 
 	public String getTypeReferenceForNotionProperty() {
+
 		return getNotionPropertyParser().getValueType();
 	}
 
 	@Override
 	public Set<String> getPropertiesForNotionProperty() {
+
 		return getNotionPropertyParser().getProperties();
 	}
 
 	@Override
 	public String getNotionBaseProperty() {
+
 		return getNotionPropertyParser().getBaseProperty();
 	}
 
 	@Override
 	public String getNotionMultiplicity() {
+
 		return getNotionPropertyParser().getMultiplicity();
 	}
 
@@ -375,7 +395,6 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public PropertyKey createKey(final String className) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
-
 		PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, className, this);
 
 		return generator.createKey();
@@ -391,6 +410,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	public void setFqcn(final String value) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(SchemaPropertyTraitDefinition.FQCN_PROPERTY), value);
 	}
 

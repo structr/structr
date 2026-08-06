@@ -38,6 +38,7 @@ public class BooleanSetting extends Setting<Boolean> {
 	 * @param key
 	 */
 	public BooleanSetting(final SettingsGroup group, final String key) {
+
 		this(group, key, null);
 	}
 
@@ -49,6 +50,7 @@ public class BooleanSetting extends Setting<Boolean> {
 	 * @param value
 	 */
 	public BooleanSetting(final SettingsGroup group, final String key, final Boolean value) {
+
 		this(group, null, key, value);
 	}
 
@@ -60,6 +62,7 @@ public class BooleanSetting extends Setting<Boolean> {
 	 * @param value
 	 */
 	public BooleanSetting(final SettingsGroup group, final String categoryName, final String key, final Boolean value) {
+
 		this(group, categoryName, key, value, null);
 	}
 
@@ -73,6 +76,7 @@ public class BooleanSetting extends Setting<Boolean> {
 	 * @param value
 	 */
 	public BooleanSetting(final SettingsGroup group, final String categoryName, final String key, final Boolean value, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 	}
 
@@ -84,13 +88,14 @@ public class BooleanSetting extends Setting<Boolean> {
 		renderLabel(group);
 
 		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
-
 		final Tag trueLabel  = settingInputContainer.block("label").attr(new Attr("class", "flex items-center"));
 		final Tag trueInput  = trueLabel.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value",  "true"));
+
 		trueLabel.block("span").text("Enabled");
 
 		final Tag falseLabel = settingInputContainer.block("label").attr(new Attr("class", "flex items-center"));
 		final Tag falseInput = falseLabel.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value", "false"));
+
 		falseLabel.block("span").text("Disabled");
 
 		if (getValue(false)) {
@@ -109,6 +114,7 @@ public class BooleanSetting extends Setting<Boolean> {
 	public void fromString(final String source) {
 
 		if (source == null) {
+
 			return;
 		}
 
@@ -132,6 +138,7 @@ public class BooleanSetting extends Setting<Boolean> {
 
 	@Override
 	protected Setting<Boolean> copy(final String key) {
+
 		return new BooleanSetting(group, category, key, value);
 	}
 }

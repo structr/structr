@@ -23,16 +23,19 @@ import java.util.List;
 public class AfterCreate extends LifecycleBase {
 
 	public AfterCreate() {
+
 		super("afterCreate");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called after a new object of this type is created.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `afterCreate()` lifecycle method is called after a new object of this type is created. This method runs after the creating transaction is committed, so you can be sure that the validation was successful and the object is stored in the database.
 
@@ -43,9 +46,6 @@ public class AfterCreate extends LifecycleBase {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onCreate()`."
-		);
+		return List.of("This lifecycle method can be defined on any node type.", "See also: `onCreate()`.");
 	}
 }

@@ -46,46 +46,55 @@ public abstract class JavaMethod extends AbstractMethod {
 
 	@Override
 	public String toString() {
+
 		return getFullMethodName();
 	}
 
 	@Override
 	public boolean isPrivate() {
+
 		return isPrivate;
 	}
 
 	@Override
 	public boolean isStatic() {
+
 		return isStatic;
 	}
 
 	@Override
 	public Snippet getSnippet() {
+
 		return null;
 	}
 
 	@Override
 	public String getHttpVerb() {
+
 		return "POST";
 	}
 
 	@Override
 	public Parameters getParameters() {
+
 		return parameters;
 	}
 
 	@Override
 	public String getFullMethodName() {
+
 		return "Java method ‛" + name + "‛";
 	}
 
 	@Override
 	public String getDeclaringTrait() {
+
 		return null;
 	}
 
 	@Override
 	public boolean shouldReturnRawResult() {
+
 		return returnRawResult;
 	}
 }

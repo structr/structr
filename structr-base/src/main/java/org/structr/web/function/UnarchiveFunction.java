@@ -37,11 +37,13 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "unarchive";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("archiveFile, [, parentFolder ]");
 	}
 
@@ -73,25 +75,25 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 			logException(caller, e, sources);
 		}
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder ])}."),
-			Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder ])}}.")
-		);
+		return List.of(Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder ])}."), Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder ])}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Unarchives given file to an optional parent folder.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			If the optional parent folder argument is not specified, the archive contents are extracted into the same directory as the archive file.
 			""";
@@ -99,6 +101,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}"),
 				Example.javaScript("${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}")
@@ -108,21 +111,18 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("archiveFile", "file node"),
-				Parameter.optional("parentFolder", "parent folder node")
-		);
+		return List.of(Parameter.mandatory("archiveFile", "file node"), Parameter.optional("parentFolder", "parent folder node"));
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"The supported file types are ar, arj, cpio, dump, jar, tar, zip and 7z."
-		);
+
+		return List.of("The supported file types are ar, arj, cpio, dump, jar, tar, zip and 7z.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

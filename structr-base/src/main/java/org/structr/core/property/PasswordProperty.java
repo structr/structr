@@ -46,10 +46,12 @@ public class PasswordProperty extends StringProperty {
 	private ValidationInfo validationInfo = null;
 
 	public PasswordProperty(String name) {
+
 		this(name, null);
 	}
 
 	public PasswordProperty(String name, ValidationInfo info) {
+
 		super(name);
 
 		this.validationInfo = info;
@@ -59,12 +61,14 @@ public class PasswordProperty extends StringProperty {
 	public void registrationCallback(final Trait trait) {
 
 		if (validationInfo != null && validationInfo.getErrorKey() == null) {
+
 			validationInfo.setErrorKey(this);
 		}
 	}
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 
@@ -89,7 +93,6 @@ public class PasswordProperty extends StringProperty {
 				}
 			}
 
-
 			if (obj instanceof CreationContainer) {
 
 				wrappedObject = ((CreationContainer)obj).getWrappedObject();
@@ -99,8 +102,8 @@ public class PasswordProperty extends StringProperty {
 					final Principal principal   = node.as(Principal.class);
 					final String oldSalt        = principal.getSalt();
 					final String oldEncPassword = principal.getEncryptedPassword();
-
 					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || !HashHelper.verifyPassword(clearTextPassword, oldEncPassword, oldSalt));
+
 					if (passwordChangedOrFirstPassword) {
 
 						obj.setProperty(traits.key(PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY), new Date().getTime());
@@ -112,6 +115,7 @@ public class PasswordProperty extends StringProperty {
 			returnValue = super.setProperty(securityContext, obj, HashHelper.hashPassword(clearTextPassword));
 
 			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is(StructrTraits.PRINCIPAL)) {
+
 				wrappedObject.removeProperty(traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));
 			}
 
@@ -121,10 +125,12 @@ public class PasswordProperty extends StringProperty {
 		}
 
 		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is(StructrTraits.PRINCIPAL)) {
+
 			wrappedObject.removeProperty(traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));
 		}
 
 		if (Settings.PasswordComplexityEnforce.getValue()) {
+
 			checkPasswordPolicy(obj, clearTextPassword);
 		}
 
@@ -135,17 +141,14 @@ public class PasswordProperty extends StringProperty {
 
 		final String passwordToCheck  = clearTextPassword == null ? "" : clearTextPassword;
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
-
 		final int passwordMinLength             = Settings.PasswordComplexityMinLength.getValue();
 		final boolean enforceMinUpperCase       = Settings.PasswordComplexityRequireUpperCase.getValue();
 		final boolean enforceMinLowerCase       = Settings.PasswordComplexityRequireLowerCase.getValue();
 		final boolean enforceMinDigits          = Settings.PasswordComplexityRequireDigit.getValue();
 		final boolean enforceMinNonAlphaNumeric = Settings.PasswordComplexityRequireNonAlphaNumeric.getValue();
-
 		final String passwordWithoutUpperCase   = passwordToCheck.replaceAll("[A-Z]", "");
 		final String passwordWithoutLowerCase   = passwordToCheck.replaceAll("[a-z]", "");
 		final String passwordWithoutDigits      = passwordToCheck.replaceAll("[0-9]", "");
-
 		final int passwordLength                = passwordToCheck.length();
 		final int upperCaseCharactersInPassword = passwordLength - passwordWithoutUpperCase.length();
 		final int lowerCaseCharactersInPassword = passwordLength - passwordWithoutLowerCase.length();
@@ -153,30 +156,38 @@ public class PasswordProperty extends StringProperty {
 		final int otherCharactersInPassword     = (passwordLength - upperCaseCharactersInPassword - lowerCaseCharactersInPassword - digitsInPassword);
 
 		if (passwordLength < passwordMinLength) {
+
 			errorBuffer.add(new TooShortToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, passwordMinLength));
 		}
 
 		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
+
 			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_uppercase"));
 		}
 
 		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {
+
 			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_lowercase"));
 		}
 
 		if (enforceMinDigits && digitsInPassword == 0) {
+
 			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_digits"));
 		}
 
 		if (enforceMinNonAlphaNumeric && otherCharactersInPassword == 0) {
+
 			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_non_alpha_numeric"));
 		}
 
 		if (errorBuffer.hasError()) {
 
 			if (((CreationContainer) obj).getWrappedObject() == null) {
+
 				throw new PasswordPolicyViolationException(422, "Password policy violation prevented creation of entity with ID " + ((CreationContainer) obj).getData().get("id") + "!", errorBuffer);
+
 			} else {
+
 				throw new PasswordPolicyViolationException(422, "Password policy violation prevented password change on entity with ID " + ((CreationContainer) obj).getWrappedObject().getUuid() + "!", errorBuffer);
 			}
 		}

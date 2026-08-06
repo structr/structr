@@ -18,11 +18,8 @@
  */
 package org.structr.rest.exception;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
-
-
 
 /**
  *
@@ -31,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 public class NoResultsException extends FrameworkException {
 
 	public NoResultsException(final String message) {
+
 		super(HttpServletResponse.SC_NO_CONTENT, message);
 	}
 }

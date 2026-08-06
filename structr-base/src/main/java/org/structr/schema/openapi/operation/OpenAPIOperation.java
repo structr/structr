@@ -32,18 +32,22 @@ public class OpenAPIOperation extends TreeMap<String, Object> {
 		put("operationId", operationId);
 
 		if (tags != null && !tags.isEmpty()) {
+
 			put("tags", tags);
 		}
 
 		if (requestBody != null && !requestBody.isEmpty()) {
+
 			put("requestBody",   requestBody);
 		}
 
 		if (responses != null && !responses.isEmpty()) {
+
 			put("responses",   responses);
 		}
 
 		if (parameters != null && !parameters.isEmpty()) {
+
 			put("parameters", parameters);
 		}
 	}

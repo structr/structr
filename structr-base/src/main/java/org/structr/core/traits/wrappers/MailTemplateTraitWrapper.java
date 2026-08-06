@@ -27,22 +27,27 @@ import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 public class MailTemplateTraitWrapper extends AbstractNodeTraitWrapper implements MailTemplate {
 
 	public MailTemplateTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public String getText() {
+
 		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.TEXT_PROPERTY));
 	}
 
 	public String getDescription() {
+
 		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	public String getLocale() {
+
 		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.LOCALE_PROPERTY));
 	}
 
 	public void setLocale(final String locale) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(MailTemplateTraitDefinition.LOCALE_PROPERTY), locale);
 	}
 }

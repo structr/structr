@@ -48,11 +48,13 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 	@Override
 	public String getName() {
+
 		return "getWcsHistogram";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("baseUrl, coverageId, bBox [, bins, lowValue ]");
 	}
 
@@ -86,11 +88,8 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 			final int[] bins               = histogram.getBins(0);
 			final Double binWidth          = histogram.getHighValue()[0] / (double)numBins;
 			final Map<String, Object> map  = new LinkedHashMap<>();
-
-
 			List<String> binNames    = new LinkedList<>();
 			List<Integer> binData    = new LinkedList<>();
-
 			int lastIndex    = 0;
 			int restBin      = 0;
 			double maxCount  = 0;
@@ -103,22 +102,26 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 				binData.add(bins[i]);
 
 				if (bins[i] > maxCount) {
+
 					maxCount = bins[i];
 				}
 			}
 
 			// combine all bins whose value is below a given threshold (maxCount * cutoffPercentage)
 			int threshold = Double.valueOf(maxCount * cutoffPercentage).intValue();
+
 			for (int i=0; i<bins.length; i++) {
 
 				// find index of last bin with more than x elements
 				if (bins[i] > threshold) {
+
 					lastIndex = i;
 				}
 			}
 
 			// collect the sum of all the bins below the threshold
 			for (int i=lastIndex; i<bins.length; i++) {
+
 				restBin += bins[i];
 			}
 
@@ -138,33 +141,38 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentTypeException te) {
 
 			logParameterError(caller, sources, te.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Reads coverage data from a WCS endpoint and returns it.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

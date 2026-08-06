@@ -40,11 +40,13 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "sort";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("collection [, sortKey = 'name' [, descending = false ]]");
 	}
 
@@ -82,6 +84,7 @@ public class SortFunction extends CoreFunction {
 						} else {
 
 							if (sources.length <= 3) {
+
 								// as-documented code path with 1 set of sortKey/descending (supports sortKey = null so we can use the default key descending)
 
 								final Traits type            = graphObject.getTraits();
@@ -141,6 +144,7 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.structrScript("Usage: ${sort(collection, [ sortKey = 'name' [, descending = false ]])}."),
 				Usage.javaScript("Usage: ${{ $.sort(collection, [ sortKey = 'name' [, descending = false ]]) }}.")
@@ -149,11 +153,13 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sorts a collection and returns a new sorted collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			Supported collection types:
 
@@ -164,6 +170,7 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${extract(sort(find('User'), 'name'), 'name')}"),
 				Example.structrScript("${extract(sort(find('User'), 'name', true), 'name')}"),
@@ -183,6 +190,7 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"This function is often used in conjunction with `find()`",
 				"The `sort()` and `find()` functions are often used in repeater elements in a function query, see Repeater Elements.",
@@ -192,6 +200,7 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

@@ -39,6 +39,7 @@ public class SortPredicate extends AbstractPredicate {
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
+
 		query.sort(type.key(sortKeyName), sortDescending);
 	}
 }

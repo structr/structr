@@ -35,11 +35,13 @@ public class FirstFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "first";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("collection");
 	}
 
@@ -51,10 +53,12 @@ public class FirstFunction extends CoreFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (sources[0] instanceof List list && !list.isEmpty()) {
+
 				return list.get(0);
 			}
 
 			if (sources[0] instanceof Iterable it) {
+
 				return Iterables.first(it);
 			}
 
@@ -74,6 +78,7 @@ public class FirstFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -82,6 +87,7 @@ public class FirstFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.first(collection); }}. Example: ${{ $.first($.this.children); }}"),
 			Usage.structrScript("Usage: ${first(collection)}. Example: ${first(this.children)}")
@@ -90,32 +96,31 @@ public class FirstFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the first element of the given collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function is often used in conjunction with `find()` to return the first result of a query. See also `last()` and `nth()`.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("collection", "collection to return first element of")
-		);
+		return List.of(Parameter.mandatory("collection", "collection to return first element of"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${first(find('User'))}", "Return the first of the existing users")
-		);
+		return List.of(Example.structrScript("${first(find('User'))}", "Return the first of the existing users"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Collection;
 	}
 }

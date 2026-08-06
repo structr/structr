@@ -27,7 +27,6 @@ import org.structr.api.util.html.Tag;
  */
 public class StringSetting extends Setting<String> {
 
-
 	/**
 	 * Constructor to create an empty StringSetting with NO default value.
 	 *
@@ -35,6 +34,7 @@ public class StringSetting extends Setting<String> {
 	 * @param key
 	 */
 	public StringSetting(final SettingsGroup group, final String key) {
+
 		this(group, key, null);
 	}
 
@@ -46,9 +46,9 @@ public class StringSetting extends Setting<String> {
 	 * @param value
 	 */
 	public StringSetting(final SettingsGroup group, final String key, final String value) {
+
 		this(group, null, key, value);
 	}
-
 
 	/**
 	 * Constructor to create a StringSetting with category name and default value.
@@ -58,6 +58,7 @@ public class StringSetting extends Setting<String> {
 	 * @param value
 	 */
 	public StringSetting(final SettingsGroup group, final String categoryName, final String key, final String value) {
+
 		super(group, categoryName, key, value);
 	}
 
@@ -70,6 +71,7 @@ public class StringSetting extends Setting<String> {
 	 * @param comment
 	 */
 	public StringSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final String comment) {
+
 		super(group, categoryName, key, value, comment);
 	}
 
@@ -81,12 +83,12 @@ public class StringSetting extends Setting<String> {
 		renderLabel(group);
 
 		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
-
 		final Tag input    = settingInputContainer.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final String value = getValue();
 
 		// display value if non-empty
 		if (value != null) {
+
 			input.attr(new Attr("value", value));
 		}
 
@@ -97,6 +99,7 @@ public class StringSetting extends Setting<String> {
 	public void fromString(final String source) {
 
 		if (source == null) {
+
 			return;
 		}
 
@@ -116,6 +119,7 @@ public class StringSetting extends Setting<String> {
 
 	@Override
 	protected Setting<String> copy(final String key) {
+
 		return new StringSetting(group, category, key, value);
 	}
 }

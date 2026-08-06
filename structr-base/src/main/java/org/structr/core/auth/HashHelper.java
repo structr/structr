@@ -86,6 +86,7 @@ public class HashHelper {
 
 		final byte[] hash = new byte[ARGON2_HASH_LENGTH];
 		final Argon2BytesGenerator generator = new Argon2BytesGenerator();
+
 		generator.init(params);
 		generator.generateBytes(password.toCharArray(), hash);
 
@@ -104,19 +105,23 @@ public class HashHelper {
 	public static boolean verifyPassword(final String password, final String storedHash, final String legacySalt) {
 
 		if (storedHash == null || password == null) {
+
 			return false;
 		}
 
 		if (isArgon2Hash(storedHash)) {
+
 			return verifyArgon2(password, storedHash);
 		}
 
 		// Legacy SHA-512 verification
 		if (legacySalt != null) {
+
 			return storedHash.equals(getHash(password, legacySalt));
 		}
 
 		// Very old unsalted SHA-512
+
 		return storedHash.equals(getSimpleHash(password));
 	}
 
@@ -124,6 +129,7 @@ public class HashHelper {
 	 * Check if a hash string is in Argon2 format.
 	 */
 	public static boolean isArgon2Hash(final String hash) {
+
 		return hash != null && hash.startsWith(ARGON2_PREFIX);
 	}
 
@@ -155,7 +161,6 @@ public class HashHelper {
 	private static String getTimingReferenceHash() {
 
 		String hash = timingReferenceHash;
-
 		if (hash == null) {
 
 			synchronized (HashHelper.class) {
@@ -193,6 +198,7 @@ public class HashHelper {
 	public static String getHash(final String password, final String salt) {
 
 		if (StringUtils.isEmpty(salt)) {
+
 			return getSimpleHash(password);
 		}
 
@@ -208,6 +214,7 @@ public class HashHelper {
 	 */
 	@Deprecated
 	public static String getSimpleHash(final String password) {
+
 		return DigestUtils.sha512Hex(password);
 	}
 
@@ -221,6 +228,7 @@ public class HashHelper {
 	 * enough to be ignored. Not a metric, and not synchronized beyond the atomic itself.
 	 */
 	public static long getVerificationCount() {
+
 		return VERIFICATION_COUNT.get();
 	}
 
@@ -228,6 +236,7 @@ public class HashHelper {
 	 * Resets {@link #getVerificationCount()}, for a test that is about to make one attempt.
 	 */
 	public static void resetVerificationCount() {
+
 		VERIFICATION_COUNT.set(0);
 	}
 
@@ -249,7 +258,9 @@ public class HashHelper {
 			// parts[5] = base64 hash
 
 			if (parts.length != 6) {
+
 				logger.warn("Invalid Argon2 hash format: unexpected number of segments");
+
 				return false;
 			}
 
@@ -257,6 +268,7 @@ public class HashHelper {
 			int memory = 0, iterations = 0, parallelism = 0;
 
 			for (final String param : paramString.split(",")) {
+
 				final String[] kv = param.split("=");
 				switch (kv[0]) {
 					case "m" -> memory      = Integer.parseInt(kv[1]);
@@ -267,7 +279,6 @@ public class HashHelper {
 
 			final byte[] salt         = Base64.getDecoder().decode(parts[4]);
 			final byte[] expectedHash = Base64.getDecoder().decode(parts[5]);
-
 			final Argon2Parameters params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
 				.withSalt(salt)
 				.withMemoryAsKB(memory)
@@ -277,14 +288,18 @@ public class HashHelper {
 
 			final byte[] computedHash = new byte[expectedHash.length];
 			final Argon2BytesGenerator generator = new Argon2BytesGenerator();
+
 			generator.init(params);
 			generator.generateBytes(password.toCharArray(), computedHash);
 
 			// Constant-time comparison
+
 			return java.security.MessageDigest.isEqual(expectedHash, computedHash);
 
 		} catch (Exception e) {
+
 			logger.warn("Error verifying Argon2 hash: {}", e.getMessage());
+
 			return false;
 		}
 	}

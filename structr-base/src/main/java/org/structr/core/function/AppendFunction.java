@@ -34,6 +34,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "append";
 	}
 
@@ -47,7 +48,6 @@ public class AppendFunction extends AdvancedScriptingFunction {
 			try {
 
 				final String sandboxFilename = getSandboxFileName(sources[0].toString());
-
 				if (sandboxFilename != null) {
 
 					final File file = new File(sandboxFilename);
@@ -55,6 +55,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 					try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file, true))) {
 
 						for (int i = 1; i < sources.length; i++) {
+
 							IOUtils.write(sources[i].toString(), writer);
 						}
 
@@ -70,6 +71,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -78,11 +80,13 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Appends text to a file in the `exchange/` folder.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function appends the given text to the file with the given file name in the exchange/ folder. If the file does not exist yet, it will be created.
 			
@@ -92,15 +96,14 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("filename, text");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("filename", "name of the file to append to"),
-			Parameter.optional("text", "text to append")
-		);
+
+		return List.of(Parameter.mandatory("filename", "name of the file to append to"), Parameter.optional("text", "text to append"));
 	}
 
 	@Override
@@ -114,6 +117,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `exchange/` folder itself may be a symbolic link.",
 			"The canonical path of a file has to be identical to the provided filepath in order to prevent directory traversal attacks. This means that symbolic links inside the `exchange/` folder are forbidden",
@@ -126,6 +130,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${append(filename, text)}. Example: ${append('test.txt', this.name)}"),
 			Usage.javaScript("Usage: ${{ $.append(filename, text); }}. Example: ${{ $.append('test.txt', $.this.name); }}")
@@ -134,6 +139,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

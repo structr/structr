@@ -36,6 +36,7 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {
+
 			return false;
 		}
 
@@ -141,6 +142,7 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 		}
 
 		// dont render children
+
 		return false;
 	}
 }

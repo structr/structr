@@ -48,10 +48,12 @@ public interface PropertyContainer<IDType> {
 	default int compare(final String key, final PropertyContainer a, final PropertyContainer b) {
 
 		if (!a.hasProperty(key) && b.hasProperty(key)) {
+
 			return -1;
 		}
 
 		if (a.hasProperty(key) && !b.hasProperty(key)) {
+
 			return 1;
 		}
 
@@ -59,16 +61,17 @@ public interface PropertyContainer<IDType> {
 
 			final String t1 = (String)a.getProperty(key);
 			final String t2 = (String)b.getProperty(key);
-
 			int result =  t1.compareTo(t2);
 
 			if (result != 0) {
+
 				return result;
 			}
 		}
 
 		// do not return 0 since that would cause objects without the
 		// above property to be considered equal which is not wanted.
+
 		return a.getId().compareTo(b.getId());
 	}
 }

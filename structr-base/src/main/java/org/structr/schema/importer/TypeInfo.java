@@ -46,6 +46,7 @@ public class TypeInfo {
 
 	@Override
 	public int hashCode() {
+
 		return primaryType.hashCode();
 	}
 
@@ -53,6 +54,7 @@ public class TypeInfo {
 	public boolean equals(Object other) {
 
 		if (other instanceof TypeInfo) {
+
 			return ((TypeInfo)other).hashCode() == hashCode();
 		}
 
@@ -61,18 +63,22 @@ public class TypeInfo {
 
 	@Override
 	public String toString() {
+
 		return primaryType + "(" + hierarchyLevel + ") " + propertySet.keySet();
 	}
 
 	public void registerPropertySet(final Map<String, Class> properties) {
+
 		propertySet.putAll(properties);
 	}
 
 	public void combinePropertySets(final Map<String, Class> otherProperties) {
+
 		this.propertySet.putAll(otherProperties);
 	}
 
 	public Map<String, Class> getPropertySet() {
+
 		return propertySet;
 	}
 
@@ -94,10 +100,12 @@ public class TypeInfo {
 
 		// check all hierarchy levels above ours
 		while (superType == null && level < 100) {
+
 			superType = hierarchyMap.get(++level);
 		}
 
 		if (superType != null) {
+
 			return superType.getPrimaryType();
 		}
 
@@ -105,26 +113,32 @@ public class TypeInfo {
 	}
 
 	public boolean hasSuperclass(final String type) {
+
 		return otherTypes.contains(type);
 	}
 
 	public String getPrimaryType() {
+
 		return primaryType;
 	}
 
 	public Set<String> getOtherTypes() {
+
 		return otherTypes;
 	}
 
 	public Collection<Identity> getNodeIds() {
+
 		return nodeIds;
 	}
 
 	public int getHierarchyLevel() {
+
 		return hierarchyLevel;
 	}
 
 	public void setHierarchyLevel(int level) {
+
 		this.hierarchyLevel = level;
 	}
 

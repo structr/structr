@@ -39,31 +39,37 @@ import java.util.List;
 public class BpmnProcessTraitWrapper extends AbstractNodeTraitWrapper implements BpmnProcess {
 
 	public BpmnProcessTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getProcessId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY));
 	}
 
 	@Override
 	public String getProcessName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnProcessTraitDefinition.PROCESS_NAME_PROPERTY));
 	}
 
 	@Override
 	public boolean isExecutable() {
+
 		return Boolean.TRUE.equals(wrappedObject.getProperty(traits.key(BpmnProcessTraitDefinition.PROCESS_IS_EXECUTABLE_PROPERTY)));
 	}
 
 	@Override
 	public boolean isDefaultAssigneeFromInitiator() {
+
 		return Boolean.TRUE.equals(wrappedObject.getProperty(traits.key(BpmnProcessTraitDefinition.DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY)));
 	}
 
@@ -111,15 +117,18 @@ public class BpmnProcessTraitWrapper extends AbstractNodeTraitWrapper implements
 	public BpmnElement getElementByBpmnId(final String bpmnId) {
 
 		if (bpmnId == null) {
+
 			return null;
 		}
 
 		for (final BpmnElement element : getElements()) {
 
 			if (bpmnId.equals(element.getBpmnId())) {
+
 				return element;
 			}
 		}
+
 		return null;
 	}
 
@@ -133,6 +142,7 @@ public class BpmnProcessTraitWrapper extends AbstractNodeTraitWrapper implements
 			// Only top-level start events start the process; a start event nested in
 			// a sub-process belongs to that sub-process, not the process itself.
 			if (element.isType(BpmnElementType.START_EVENT) && element.getParentElement() == null) {
+
 				startEvents.add(element);
 			}
 		}
@@ -142,6 +152,7 @@ public class BpmnProcessTraitWrapper extends AbstractNodeTraitWrapper implements
 			throw new FrameworkException(422, "Process definition has " + startEvents.size()
 				+ " top-level start events; a single start event is required to start an instance");
 		}
+
 		return startEvents.isEmpty() ? null : startEvents.get(0);
 	}
 }

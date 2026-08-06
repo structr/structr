@@ -96,7 +96,6 @@ public class AccessControlTest extends StructrTest {
 		}
 	}
 
-
 	@Test
 	public void test02PublicAccessToPublicNode() {
 
@@ -107,14 +106,13 @@ public class AccessControlTest extends StructrTest {
 
 			List<NodeInterface> users = createTestNodes(StructrTraits.USER, 1);
 			Principal user            = users.get(0).as(Principal.class);
-
 			PropertyMap props = new PropertyMap();
+
 			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			NodeInterface t1 = createTestNode("TestOne", props, user);
 			NodeInterface t2 = createTestNode("TestOne", user);
-
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
 			try (final Tx tx = app.tx()) {
@@ -146,8 +144,8 @@ public class AccessControlTest extends StructrTest {
 
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 1);
 			NodeInterface user              =  users.get(0);
-
 			PropertyMap props = new PropertyMap();
+
 			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
@@ -158,7 +156,6 @@ public class AccessControlTest extends StructrTest {
 			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			NodeInterface t2 = createTestNode("TestOne", props, user.as(User.class));
-
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
 			try (final Tx tx = app.tx()) {
@@ -189,8 +186,8 @@ public class AccessControlTest extends StructrTest {
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 2);
 			NodeInterface user1             = users.get(0);
 			NodeInterface user2             = users.get(1);
-
 			PropertyMap props = new PropertyMap();
+
 			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
@@ -235,8 +232,8 @@ public class AccessControlTest extends StructrTest {
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 2);
 			NodeInterface user1             = users.get(0);
 			NodeInterface user2             = users.get(1);
-
 			PropertyMap props = new PropertyMap();
+
 			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
@@ -336,6 +333,7 @@ public class AccessControlTest extends StructrTest {
 			final List<NodeInterface> nodes = createTestNodes(type, 10, 100);
 
 			try (final Tx tx = app.tx()) {
+
 				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
@@ -381,6 +379,7 @@ public class AccessControlTest extends StructrTest {
 
 				// add names to make sorting work...
 				for (final NodeInterface node : nodes) {
+
 					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "node0" + count++);
 				}
 
@@ -392,7 +391,6 @@ public class AccessControlTest extends StructrTest {
 			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-
 			PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			boolean sortDesc    = false;
 			int pageSize        = 2;
@@ -429,7 +427,6 @@ public class AccessControlTest extends StructrTest {
 
 			// create new node
 			createTestNode("TestOne", owner);
-
 
 			final SecurityContext userContext = SecurityContext.getInstance(owner, AccessMode.Frontend);
 			final App userApp                 = StructrApp.getInstance(userContext);
@@ -509,6 +506,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = userAppContext.tx()) {
 
 				try {
+
 					final AccessControllable t = StructrApp.getInstance(userContext).nodeQuery("TestOne").getFirst().as(AccessControllable.class);
 					t.grant(Permission.read, user);
 
@@ -580,7 +578,6 @@ public class AccessControlTest extends StructrTest {
 		String user1Id = null;
 		String user2Id = null;
 		String groupId = null;
-
 		SecurityContext user1Context = null;
 		SecurityContext user2Context = null;
 
@@ -677,8 +674,8 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			Group group = user1App.getNodeById(StructrTraits.GROUP, groupId).as(Group.class);
-
 			User user2 = user1App.getNodeById(StructrTraits.USER, user2Id).as(User.class);
+
 			assertNotNull(user2);
 
 			group.addMember(user1Context, user2);
@@ -728,6 +725,7 @@ public class AccessControlTest extends StructrTest {
 		// user2 should NOT be able to write the object
 		String testId = "";
 		String testType = "";
+
 		try (final Tx tx = user2App.tx()) {
 
 			final NodeInterface test = user2App.nodeQuery("TestOne").getFirst();
@@ -743,6 +741,7 @@ public class AccessControlTest extends StructrTest {
 			fail("User should not be able to write an object that it doesn't own.");
 
 		} catch (FrameworkException fex) {
+
 			assertEquals("Invalid group permissions result", 403, fex.getStatus());
 			//assertEquals("Modification of node " + testId + " with type " + testType + " by user " + user2Context.getUser(false).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY)) + " not permitted.", fex.getMessage());
 		}
@@ -852,8 +851,8 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			Group group = user1App.getNodeById(StructrTraits.GROUP, groupId).as(Group.class);
-
 			User user2 = user1App.getNodeById(StructrTraits.USER, user2Id).as(User.class);
+
 			assertNotNull(user2);
 
 			group.addMember(user1Context, user2);
@@ -884,7 +883,6 @@ public class AccessControlTest extends StructrTest {
 		String user2Id = null;
 		String group1Id = null;
 		String group2Id = null;
-
 		SecurityContext user1Context = null;
 		SecurityContext user2Context = null;
 
@@ -987,8 +985,8 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = user1App.tx()) {
 
 			Group group2 = user1App.getNodeById(StructrTraits.GROUP, group2Id).as(Group.class);
-
 			User user2 = user1App.getNodeById(StructrTraits.USER, user2Id).as(User.class);
+
 			assertNotNull(user2);
 
 			group2.addMember(user1Context, user2);
@@ -1062,7 +1060,6 @@ public class AccessControlTest extends StructrTest {
 		String user1Id = null;
 		String user2Id = null;
 		String groupId  = null;
-
 		SecurityContext user1Context = null;
 		SecurityContext user2Context = null;
 
@@ -1100,6 +1097,7 @@ public class AccessControlTest extends StructrTest {
 
 			AccessControllable group = user1App.create(StructrTraits.GROUP, "group").as(AccessControllable.class);
 			User user1 = user1App.getNodeById(StructrTraits.USER, user1Id).as(User.class);
+
 			assertNotNull("User should be readable", user1);
 
 			assertEquals("Invalid group owner", user1, group.getOwnerNode());
@@ -1117,7 +1115,6 @@ public class AccessControlTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// ################################################################################################################
 		// test read access to group
@@ -1141,6 +1138,7 @@ public class AccessControlTest extends StructrTest {
 		// test write access to group, expected result: 403 Modification of node {id} with type {type} not permitted.
 		String testId = "";
 		String testType = "";
+
 		try (final Tx tx = user2App.tx()) {
 
 			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).name("group").getFirst().as(Group.class);
@@ -1180,6 +1178,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.error(ex.toString());
 		}
 
@@ -1189,6 +1188,7 @@ public class AccessControlTest extends StructrTest {
 
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 1);
 			final NodeInterface invalidUser = users.getFirst();
+
 			invalidUser.setProperty(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY) , "tester");
 			invalidUser.setProperty(eMail, invalidEmailAddress);
 
@@ -1209,6 +1209,7 @@ public class AccessControlTest extends StructrTest {
 
 		// Switch user context to user1
 		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1.as(User.class), AccessMode.Frontend));
+
 		try (final Tx tx = user1App.tx()) {
 
 			final User user2 = user1App.create(StructrTraits.USER, "tester").as(User.class);
@@ -1218,6 +1219,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.error(ex.toString());
 			fail("Unexpected exception: " + ex.toString());
 		}
@@ -1249,6 +1251,7 @@ public class AccessControlTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error(ex.toString());
 			}
 
@@ -1271,6 +1274,7 @@ public class AccessControlTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.error(ex.toString());
 			}
 
@@ -1337,7 +1341,6 @@ public class AccessControlTest extends StructrTest {
 
 			final User nonAdmin = createTestNode(StructrTraits.USER, "tester").as(User.class);
 			final Traits traits = nonAdmin.getTraits();
-
 			final PropertyKey<Boolean> isAdminKey = traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY);
 			final SecurityContext userContext     = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
 
@@ -1400,6 +1403,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.error(ex.toString());
 		}
 
@@ -1409,6 +1413,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.error(ex.toString());
 		}
 
@@ -1449,10 +1454,8 @@ public class AccessControlTest extends StructrTest {
 
 		final SecurityContext user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
 		final App user1App                 = StructrApp.getInstance(user1Context);
-
 		final SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 		final App user2App                 = StructrApp.getInstance(user2Context);
-
 		String groupId = null;
 
 		// ################################################################################################################
@@ -1496,7 +1499,6 @@ public class AccessControlTest extends StructrTest {
 
 		}
 
-
 		// ################################################################################################################
 		// As admin, grant write access on user1 to user2 so user2 can modify user1
 
@@ -1514,7 +1516,6 @@ public class AccessControlTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 
 		// ################################################################################################################
 		// Try again
@@ -1629,6 +1630,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1657,6 +1659,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1672,6 +1675,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -1687,6 +1691,7 @@ public class AccessControlTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -1699,6 +1704,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface access : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
+
 				app.delete(access);
 			}
 

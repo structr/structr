@@ -55,6 +55,7 @@ public abstract class S3ClientCache {
 		if (region == null || accessKey == null || secretKey == null) {
 
 			logger.warn("Incomplete S3 connection settings: region, accessKey and secretKey are required");
+
 			return null;
 		}
 
@@ -74,6 +75,7 @@ public abstract class S3ClientCache {
 
 			// ensure the endpoint has a proper URI scheme
 			String normalizedEndpoint = endpoint;
+
 			if (!endpoint.startsWith("http://") && !endpoint.startsWith("https://")) {
 
 				// default to https if no scheme is provided

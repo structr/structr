@@ -63,6 +63,7 @@ public class EndpointTest extends StructrRestTestBase {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -78,6 +79,7 @@ public class EndpointTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -110,8 +112,11 @@ public class EndpointTest extends StructrRestTestBase {
 						.statusCode();
 
 					if (statusCode == 200) {
+
 						numSuccess.incrementAndGet();
+
 					} else {
+
 						numFailure.incrementAndGet();
 					}
 				}

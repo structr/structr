@@ -27,6 +27,7 @@ import org.structr.embedded.AdvancedCypherQuery;
 public class TypeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public TypeQueryFactory(final AbstractIndex index) {
+
 		super(index);
 	}
 
@@ -52,6 +53,7 @@ public class TypeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> 
 		}
 
 		// setting the label does not result in a modified WHERE clause
+
 		return false;
 	}
 }

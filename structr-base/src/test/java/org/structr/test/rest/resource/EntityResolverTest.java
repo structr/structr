@@ -45,6 +45,7 @@ public class EntityResolverTest extends StructrRestTestBase {
 
 				// create list of persons to test the resolver resource
 				for (final NodeInterface mailTemplate : createTestNodes(StructrTraits.MAIL_TEMPLATE, 10)) {
+
 					mailTemplateIds.add(mailTemplate.getUuid());
 				}
 
@@ -93,6 +94,7 @@ public class EntityResolverTest extends StructrRestTestBase {
 					.post("/resolver");
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -115,7 +117,6 @@ public class EntityResolverTest extends StructrRestTestBase {
 			.body("result[0].blah",    equalTo("moep"))
 			.when()
 			.get("/Test/vvv");
-
 
 		RestAssured
 

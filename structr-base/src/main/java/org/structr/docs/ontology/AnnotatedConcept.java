@@ -27,6 +27,7 @@ public class AnnotatedConcept {
 	private final Concept concept;
 
 	public AnnotatedConcept(final Concept concept) {
+
 		this.concept = concept;
 	}
 
@@ -38,22 +39,27 @@ public class AnnotatedConcept {
 
 	@Override
 	public String toString() {
+
 		return concept.toString();
 	}
 
 	public String getName() {
+
 		return concept.getName();
 	}
 
 	public Concept getConcept() {
+
 		return concept;
 	}
 
 	public FormatSpecification getFormatSpecification() {
+
 		return formatSpecification;
 	}
 
 	public void setFormatSpecification(final FormatSpecification formatSpecification) {
+
 		this.formatSpecification = formatSpecification;
 	}
 }

@@ -40,46 +40,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ActionMappingCALLSSchemaMethod extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ActionMappingCALLSSchemaMethod() {
+
 		super(StructrTraits.ACTION_MAPPING_CALLS_SCHEMA_METHOD);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.ACTION_MAPPING;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.SCHEMA_METHOD;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "CALLS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

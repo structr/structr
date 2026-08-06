@@ -54,6 +54,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 		setMethodSource("onTaskCompleted",    "{ $.create('TestOne', { name: 'evt-taskCompleted' }); }");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -93,6 +94,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 		setMethodSource("vetoComplete", "{ throw new Error('veto: not allowed'); }");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -111,6 +113,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 				// veto propagated as expected
 			}
+
 			// intentionally NOT calling tx.success() -> rollback
 		}
 
@@ -121,8 +124,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
 			final NodeInterface task = openTaskAt(inst, "Task_1");
 			assertNotNull("the task must remain open after a vetoed completion", task);
-			assertFalse("task must not be completed",
-				TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(taskStatus(task)));
+			assertFalse("task must not be completed", TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(taskStatus(task)));
 			tx.success();
 		}
 	}
@@ -138,6 +140,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 		setMethodSource("recordStartedStatus", "{ $.create('TestOne', { name: 'started-status-' + $.this.status }); }");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -184,6 +187,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 			engineAs(member).claimTask(openTaskAt(app.getNodeById(instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertMarker("evt-taskClaimed");
@@ -203,6 +207,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 			engineAs(member).declineTask(openTaskAt(app.getNodeById(instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertMarker("evt-taskDeclined");
@@ -220,6 +225,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 			engine().cancelTask(openTaskAt(app.getNodeById(instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertMarker("evt-taskCancelled");
@@ -242,10 +248,10 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface inst = app.getNodeById(instId);
-			inst.setProperty(inst.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY),
-				app.getNodeById(subject.getUuid()));
+			inst.setProperty(inst.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), app.getNodeById(subject.getUuid()));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertMarker("evt-subjectAttached");
@@ -263,12 +269,14 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 			engine().suspendProcess(app.getNodeById(instId));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertMarker("evt-suspended");
 			engine().resumeProcess(app.getNodeById(instId));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertMarker("evt-resumed");
@@ -276,6 +284,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 			engine().terminateProcess(app.getNodeById(instId));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertMarker("evt-terminated");
@@ -306,6 +315,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 			final String id = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
+
 			return id;
 		}
 	}
@@ -324,6 +334,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 			final String id = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
+
 			return id;
 		}
 	}
@@ -341,13 +352,11 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 	private void assertMarker(final String name) throws Exception {
 
-		assertEquals("expected exactly one '" + name + "' marker from a listener",
-			1, app.nodeQuery("TestOne").name(name).getAsList().size());
+		assertEquals("expected exactly one '" + name + "' marker from a listener", 1, app.nodeQuery("TestOne").name(name).getAsList().size());
 	}
 
 	private void assertNoMarker(final String name) throws Exception {
 
-		assertTrue("did not expect a '" + name + "' marker yet",
-			app.nodeQuery("TestOne").name(name).getAsList().isEmpty());
+		assertTrue("did not expect a '" + name + "' marker yet", app.nodeQuery("TestOne").name(name).getAsList().isEmpty());
 	}
 }

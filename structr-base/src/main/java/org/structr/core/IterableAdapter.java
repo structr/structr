@@ -48,6 +48,7 @@ public class IterableAdapter<S, T> implements Iterable<T> {
 
 		// try to obtain size in advance
 		if (source instanceof Collection) {
+
 			size = ((Collection)source).size();
 		}
 	}
@@ -78,11 +79,13 @@ public class IterableAdapter<S, T> implements Iterable<T> {
 						}
 
 					} catch (FrameworkException fex) {
+
 						logger.warn("Exception in iterator.", fex);
 					}
 				}
 
 				if (!found) {
+
 					finished = true;
 				}
 
@@ -95,6 +98,7 @@ public class IterableAdapter<S, T> implements Iterable<T> {
 				if (!nextConsumed) {
 
 					nextConsumed = true;
+
 					return currentValue;
 
 				} else {
@@ -104,6 +108,7 @@ public class IterableAdapter<S, T> implements Iterable<T> {
 						if (moveToNextValid()) {
 
 							nextConsumed = true;
+
 							return currentValue;
 						}
 					}
@@ -114,11 +119,13 @@ public class IterableAdapter<S, T> implements Iterable<T> {
 
 			@Override
 			public boolean hasNext() {
+
 				return !finished && (!nextConsumed || moveToNextValid());
 			}
 
 			@Override
 			public void remove() {
+
 				sourceIterator.remove();
 			}
 
@@ -126,6 +133,7 @@ public class IterableAdapter<S, T> implements Iterable<T> {
 	}
 
 	public int size() {
+
 		return size;
 	}
 }

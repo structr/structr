@@ -65,6 +65,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
+
 		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
 	}
 
@@ -261,49 +262,59 @@ public class SchemaService implements Service {
 
 	@Override
 	public String getName() {
+
 		return SchemaService.class.getName();
 	}
 
 	@Override
 	public boolean isRunning() {
+
 		return true;
 	}
 
 	public static void blacklist(final String typeName) {
+
 		SchemaService.blacklist.add(typeName);
 	}
 
 	public static Set<String> getBlacklist() {
+
 		return SchemaService.blacklist;
 	}
 
 	@Override
 	public boolean isVital() {
+
 		return true;
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return true;
 	}
 
 	@Override
 	public int getRetryCount() {
+
 		return 3;
 	}
 
 	@Override
 	public int getRetryDelay() {
+
 		return 1;
 	}
 
 	public static boolean getSchemaIsBeingReplaced() {
+
 		return schemaIsBeingReplaced.get();
 	}
 
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "core";
 	}
 
@@ -315,6 +326,7 @@ public class SchemaService implements Service {
 			if (Services.skipIndexConfiguration()) {
 
 				logger.info("Skipping index creation because of manual override.");
+
 				return;
 			}
 
@@ -323,6 +335,7 @@ public class SchemaService implements Service {
 			if (Services.isTesting()) {
 
 				logger.info("Skipping index creation in test mode.");
+
 				return;
 			}
 		}
@@ -334,12 +347,12 @@ public class SchemaService implements Service {
 				if (!IndexUpdateSemaphore.tryAcquire(3, TimeUnit.MINUTES)) {
 
 					logger.error("Unable to start index updater, waited for 3 minutes. Giving up.");
+
 					return;
 				}
 
 				final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
 				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
-
 				final Map<String, NewIndexConfig> schemaIndexConfig  = new LinkedHashMap<>();
 
 				for (final String type : traitsInstance.getAllTypes()) {
@@ -382,7 +395,6 @@ public class SchemaService implements Service {
 
 									final boolean isFulltextIndex = false;
 									final boolean isTextIndex     = String.class.equals(key.valueType());
-
 									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, isTextIndex, isFulltextIndex);
 									final String identifier     = typeName + "_" + key.dbName();
 
@@ -393,7 +405,6 @@ public class SchemaService implements Service {
 
 									final boolean isFulltextIndex = true;
 									final boolean isTextIndex     = false;
-
 									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, isTextIndex, isFulltextIndex);
 									final String identifier     = typeName + "_" + key.dbName() + "_fulltext";
 
@@ -425,6 +436,7 @@ public class SchemaService implements Service {
 	private static String getIndexingTypeName(final TraitsInstance traitsInstance, final String typeName) {
 
 		if (StructrTraits.GRAPH_OBJECT.equals(typeName)) {
+
 			return StructrTraits.NODE_INTERFACE;
 		}
 

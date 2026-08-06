@@ -41,6 +41,7 @@ public class CacheExpression extends Expression {
 	private Expression valueExpression   = null;
 
 	public CacheExpression(final int row, final int column) {
+
 		super("cache", row, column);
 	}
 
@@ -73,6 +74,7 @@ public class CacheExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (keyExpression == null) {
+
 			return "Error: cache(): key expression may not be empty.";
 		}
 
@@ -89,6 +91,7 @@ public class CacheExpression extends Expression {
 		}
 
 		if (timeoutExpression == null) {
+
 			return "Error: cache(): timeout expression may not be empty.";
 		}
 
@@ -99,6 +102,7 @@ public class CacheExpression extends Expression {
 		}
 
 		if (valueExpression == null) {
+
 			return "Error: cache(): value expression may not be empty.";
 		}
 
@@ -107,6 +111,7 @@ public class CacheExpression extends Expression {
 		// get or create new cached value
 		final Services services = Services.getInstance();
 		CachedValue cachedValue = (CachedValue)services.getCachedValue(key);
+
 		if (cachedValue == null) {
 
 			cachedValue = new CachedValue(timeout);
@@ -119,6 +124,7 @@ public class CacheExpression extends Expression {
 
 		// refresh value from value expression (this is the only place the value expression is evaluated)
 		if (cachedValue.isExpired()) {
+
 			cachedValue.refresh(valueExpression.evaluate(ctx, entity));
 		}
 
@@ -128,7 +134,6 @@ public class CacheExpression extends Expression {
 	public static boolean hasCachedValue(final String key) {
 
 		final CachedValue cachedValue = (CachedValue)Services.getInstance().getCachedValue(key);
-
 		if (cachedValue == null) {
 
 			return false;
@@ -142,7 +147,6 @@ public class CacheExpression extends Expression {
 	public static Object getCachedValue(final String key) {
 
 		final CachedValue cachedValue = (CachedValue)Services.getInstance().getCachedValue(key);
-
 		if (cachedValue == null || cachedValue.isExpired()) {
 
 			return null;
@@ -163,18 +167,22 @@ public class CacheExpression extends Expression {
 		private long timeout        = 0L;
 
 		public CachedValue(final long timeoutSeconds) {
+
 			setTimeoutSeconds(timeoutSeconds);
 		}
 
 		public final void setTimeoutSeconds(final long timeoutSeconds) {
+
 			this.timeoutSeconds = timeoutSeconds;
 		}
 
 		public final Object getValue() {
+
 			return value;
 		}
 
 		public final boolean isExpired() {
+
 			return System.currentTimeMillis() > timeout;
 		}
 
@@ -187,26 +195,31 @@ public class CacheExpression extends Expression {
 
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+
 		return source;
 	}
 
 	@Override
 	public String getName() {
+
 		return "cache";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Stores a value in the global cache.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function can be used to store a value (which is costly to obtain or should not be updated frequently) under the given key in a global cache. The method will execute the valueExpression to obtain the value, and store it for the given time (in seconds). All subsequent calls to the `cache()` method will return the stored value (until the timeout expires) instead of evaluating the valueExpression.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("key", "cache key"),
 			Parameter.mandatory("timeout", "timeout in seconds"),
@@ -216,6 +229,7 @@ public class CacheExpression extends Expression {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${cache('externalResult', 3600, GET('http://api.myservice.com/get-external-result'))}", "Fetch a value from an external API endpoint and cache the result for an hour"),
 			Example.javaScript("""
@@ -232,12 +246,12 @@ public class CacheExpression extends Expression {
 			    });
 			}}
 			""", "Fetch a value from an external API endpoint and cache the result for an hour"
-			)
-		);
+			));
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The valueExpression will be used to create the initial value.",
 			"Since subsequent calls to cache() will return the previous result it can be desirable to delete the previous value in order to be able to store a new value. This can be done via the `delete_cache_value()` function.,",
@@ -247,16 +261,19 @@ public class CacheExpression extends Expression {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, timeout, valueExpression");
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return Language.scriptingLanguages();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('data', 3600, GET('http://api.myservice.com/get-external-result'))}"),
 			Usage.javaScript("Usage: ${{ $.cache(key, timeout, valueExpression) }}. Example: ${{ $.cache('data', 3600, () => $.GET('http://api.myservice.com/get-external-result')); }}")
@@ -265,6 +282,7 @@ public class CacheExpression extends Expression {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Miscellaneous;
 	}
 }

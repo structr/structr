@@ -25,16 +25,19 @@ import java.util.List;
 public class OnCreate extends LifecycleBase {
 
 	public OnCreate() {
+
 		super("onCreate");
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Called when a new object of this type is created.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		The `onCreate()` lifecycle method is called when a new object of this type is created. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
 		
@@ -46,6 +49,7 @@ public class OnCreate extends LifecycleBase {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			{
@@ -66,9 +70,6 @@ public class OnCreate extends LifecycleBase {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onNodeCreation()`, `afterCreate()`, `error()` and `assert()`."
-		);
+		return List.of("This lifecycle method can be defined on any node type.", "See also: `onNodeCreation()`, `afterCreate()`, `error()` and `assert()`.");
 	}
 }

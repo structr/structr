@@ -29,31 +29,37 @@ import org.structr.process.traits.definitions.BpmnPerformerTraitDefinition;
 public class BpmnPerformerTraitWrapper extends AbstractNodeTraitWrapper implements BpmnPerformer {
 
 	public BpmnPerformerTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getKind() {
+
 		return wrappedObject.getProperty(traits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY));
 	}
 
 	@Override
 	public String getExpression() {
+
 		return wrappedObject.getProperty(traits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY));
 	}
 
 	@Override
 	public String getExpressionLanguage() {
+
 		return wrappedObject.getProperty(traits.key(BpmnPerformerTraitDefinition.EXPRESSION_LANGUAGE_PROPERTY));
 	}
 
 	@Override
 	public String getPerformerName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnPerformerTraitDefinition.PERFORMER_NAME_PROPERTY));
 	}
 

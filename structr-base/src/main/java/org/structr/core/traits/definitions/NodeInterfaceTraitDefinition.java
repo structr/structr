@@ -51,6 +51,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 	public static final String GRANTEES_PROPERTY  = "grantees";
 
 	public NodeInterfaceTraitDefinition() {
+
 		super(StructrTraits.NODE_INTERFACE);
 	}
 
@@ -59,13 +60,13 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 
 		return Map.of(
 
-			GetRelationships.class,
-			new GetRelationships() {
+			GetRelationships.class, new GetRelationships() {
 
 				@Override
 				public boolean hasRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode) {
 
 					if (node.getNode() != null && type != null && targetNode != null) {
+
 						return node.getNode().hasRelationshipTo(type, (Node)targetNode.getNode());
 					}
 
@@ -91,36 +92,43 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 
 				@Override
 				public Iterable<RelationshipInterface> getRelationships(final NodeInterface node) {
+
 					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getRelationshipsAsSuperUser(final NodeInterface node) {
+
 					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(), new RelationshipFactory(SecurityContext.getSuperUserInstance()));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node) {
+
 					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(Direction.INCOMING), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getOutgoingRelationships(final NodeInterface node) {
+
 					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(Direction.OUTGOING), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
 				public boolean hasRelationship(final NodeInterface node, final String type) {
+
 					return getRelationships(node, type).iterator().hasNext();
 				}
 
 				@Override
 				public boolean hasIncomingRelationships(final NodeInterface node, final String type) {
+
 					return getRelationForType(type).getSource().hasElements(node.getSecurityContext(), node.getNode(), null);
 				}
 
 				@Override
 				public boolean hasOutgoingRelationships(final NodeInterface node, final String type) {
+
 					return getRelationForType(type).getTarget().hasElements(node.getSecurityContext(), node.getNode(), null);
 				}
 
@@ -143,6 +151,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 					final Relationship relationship = template.getSource().getRawSource(node.getSecurityContext(), node.getNode(), null);
 
 					if (relationship != null) {
+
 						return factory.adapt(relationship);
 					}
 
@@ -158,6 +167,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 					final Relationship relationship = template.getSource().getRawSource(suContext, node.getNode(), null);
 
 					if (relationship != null) {
+
 						return factory.adapt(relationship);
 					}
 
@@ -191,6 +201,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 					final Relationship relationship = template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null);
 
 					if (relationship != null) {
+
 						return factory.adapt(relationship);
 					}
 
@@ -206,6 +217,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 					final Relationship relationship = template.getTarget().getRawSource(suContext, node.getNode(), null);
 
 					if (relationship != null) {
+
 						return factory.adapt(relationship);
 					}
 
@@ -222,8 +234,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 				}
 			},
 
-			VisitForUsage.class,
-			new VisitForUsage() {
+			VisitForUsage.class, new VisitForUsage() {
 
 				@Override
 				public void visitForUsage(final NodeInterface node, final Map<String, Object> data) {
@@ -238,6 +249,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -251,13 +263,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty(OWNER_ID_PROPERTY, StructrTraits.NODE_INTERFACE, OWNER_PROPERTY, StructrTraits.PRINCIPAL);
 		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes(traitsInstance, GRANTEES_PROPERTY, StructrTraits.SECURITY).readOnly();
 
-		return newSet(
-			nameProperty,
-			hiddenProperty,
-			ownerProperty,
-			ownerIdProperty,
-			granteesProperty
-		);
+		return newSet(nameProperty, hiddenProperty, ownerProperty, ownerIdProperty, granteesProperty);
 	}
 
 	@Override
@@ -265,16 +271,14 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(NAME_PROPERTY),
+			PropertyView.Public, newSet(NAME_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(NAME_PROPERTY, OWNER_PROPERTY, HIDDEN_PROPERTY)
-		);
+			PropertyView.Ui, newSet(NAME_PROPERTY, OWNER_PROPERTY, HIDDEN_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

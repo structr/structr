@@ -56,7 +56,6 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 		if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {
 
 			final Set<String> otherNodeLabels = otherNode.getTraits().getLabels();
-			
 			final boolean desiredTypeIsAssignableFromOtherNodeType = otherNodeLabels.contains(desiredType);
 
 			return desiredTypeIsAssignableFromOtherNodeType;

@@ -82,6 +82,7 @@ public class StructrApp implements App {
 	// ----- public methods -----
 	@Override
 	public NodeInterface create(final String type, final String name) throws FrameworkException {
+
 		return create(type, new NodeAttribute(Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 	}
 
@@ -89,6 +90,7 @@ public class StructrApp implements App {
 	public NodeInterface create(final String type, final PropertyMap source) throws FrameworkException {
 
 		if (type == null) {
+
 			throw new FrameworkException(422, "Empty type (null). Please supply a valid class name in the type property.");
 		}
 
@@ -155,26 +157,31 @@ public class StructrApp implements App {
 
 	@Override
 	public void delete(final NodeInterface node) throws FrameworkException {
+
 		command(DeleteNodeCommand.class).execute(node);
 	}
 
 	@Override
 	public RelationshipInterface create(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
+
 		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType);
 	}
 
 	@Override
 	public RelationshipInterface create(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties) throws FrameworkException {
+
 		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType, properties);
 	}
 
 	@Override
 	public void delete(final RelationshipInterface relationship) {
+
 		command(DeleteRelationshipCommand.class).execute(relationship);
 	}
 
 	@Override
 	public NodeInterface getNodeById(final String uuid) throws FrameworkException {
+
 		return getNodeById(null, uuid);
 	}
 
@@ -182,6 +189,7 @@ public class StructrApp implements App {
 	public NodeInterface getNodeById(final String type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
+
 			return null;
 		}
 
@@ -195,6 +203,7 @@ public class StructrApp implements App {
 
 			// set type for faster query
 			if (type != null) {
+
 				and.type(type);
 			}
 
@@ -204,6 +213,7 @@ public class StructrApp implements App {
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				nodeUuidMap.put(uuid, container.getId());
+
 				return entity;
 			}
 
@@ -218,6 +228,7 @@ public class StructrApp implements App {
 				}
 
 			} catch (NotFoundException ignore) {
+
 				nodeUuidMap.remove(uuid);
 			}
 		}
@@ -227,6 +238,7 @@ public class StructrApp implements App {
 
 	@Override
 	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException {
+
 		return getRelationshipById(null, uuid);
 	}
 
@@ -234,6 +246,7 @@ public class StructrApp implements App {
 	public RelationshipInterface getRelationshipById(final String type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
+
 			return null;
 		}
 
@@ -265,15 +278,18 @@ public class StructrApp implements App {
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				relUuidMap.put(uuid, container.getId());
+
 				return entity;
 			}
 
 		} else {
 
 			try {
+
 				return relFactory.instantiate(getDatabaseService().getRelationshipById(id));
 
 			} catch (NotFoundException ignore) {
+
 				relUuidMap.remove(uuid);
 			}
 		}
@@ -283,66 +299,79 @@ public class StructrApp implements App {
 
 	@Override
 	public Map<RelationshipInterface, Double> getRelationshipsFromFulltextIndex(final String indexName, final String searchTerm, int pageSize, int page) throws FrameworkException {
+
 		return command(FulltextSearchCommand.class).getRelationships(indexName, searchTerm, pageSize, page);
 	}
 
 	@Override
 	public Map<NodeInterface, Double> getNodesFromFulltextIndex(final String indexName, final String searchTerm, int page, int pageSize) throws FrameworkException {
+
 		return command(FulltextSearchCommand.class).getNodes(indexName, searchTerm, pageSize, page);
 	}
 
 	@Override
 	public Query<NodeInterface> nodeQuery() {
+
 		return command(SearchNodeCommand.class);
 	}
 
 	@Override
 	public QueryGroup<NodeInterface> nodeQuery(final String type) {
+
 		return command(SearchNodeCommand.class).and().type(type);
 	}
 
 	@Override
 	public Query<RelationshipInterface> relationshipQuery() {
+
 		return command(SearchRelationshipCommand.class);
 	}
 
 	@Override
 	public QueryGroup<RelationshipInterface> relationshipQuery(final String type) {
+
 		return command(SearchRelationshipCommand.class).and().type(type);
 	}
 
 	@Override
 	public Tx tx() throws FrameworkException {
+
 		return tx(true);
 	}
 
 	@Override
 	public Tx tx(final boolean doValidation) throws FrameworkException {
+
 		return tx(doValidation, true);
 	}
 
 	@Override
 	public Tx tx(final boolean doValidation, final boolean doCallbacks) throws FrameworkException {
+
 		return new Tx(securityContext, doValidation, doCallbacks).begin();
 	}
 
 	@Override
 	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) throws FrameworkException {
+
 		return new Tx(securityContext, doValidation, doCallbacks, doNotifications).begin();
 	}
 
 	@Override
 	public void shutdown() {
+
 		Services.getInstance().shutdown();
 	}
 
 	@Override
 	public void close() throws IOException {
+
 		shutdown();
 	}
 
 	@Override
 	public <T extends Command> T command(Class<T> commandType) {
+
 		return Services.getInstance().command(securityContext, commandType);
 	}
 
@@ -361,16 +390,19 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException {
+
 		Services.getInstance().command(securityContext, commandClass).execute(propertySet);
 	}
 
 	@Override
 	public Iterable<GraphObject> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException {
+
 		return Services.getInstance().command(securityContext, NativeQueryCommand.class).execute(nativeQuery, parameters);
 	}
 
 	@Override
 	public <T extends Service> T getService(final Class<T> serviceClass) {
+
 		return Services.getInstance().getService(serviceClass, "default");
 	}
 
@@ -379,6 +411,7 @@ public class StructrApp implements App {
 
 		// cache graphdb instance
 		if (graphDb == null) {
+
 			graphDb = Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
 		}
 
@@ -392,6 +425,7 @@ public class StructrApp implements App {
 		final StructrModule module               = modules.get("text-search");
 
 		if (module != null && module instanceof FulltextIndexer) {
+
 			return (FulltextIndexer)module;
 		}
 
@@ -434,6 +468,7 @@ public class StructrApp implements App {
 	}
 
 	public static ConfigurationProvider getConfiguration() {
+
 		/*
 		if (Thread.currentThread().isInterrupted()) {
 			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
@@ -444,24 +479,29 @@ public class StructrApp implements App {
 	}
 
 	public static <T extends GraphObject> URI getSchemaId(final Class<T> type) {
+
 		return typeIdMap.get(type);
 	}
 
 	public static String resolveSchemaId(final URI uri) {
+
 		return schemaIdMap.get(uri);
 	}
 
 	public static URI getSchemaBaseURI() {
+
 		return schemaBaseURI;
 	}
 
 	public static void invalidate(final String uuid) {
 
 		if (nodeUuidMap != null) {
+
 			nodeUuidMap.remove(uuid);
 		}
 
 		if (relUuidMap != null) {
+
 			relUuidMap.remove(uuid);
 		}
 	}
@@ -531,10 +571,12 @@ public class StructrApp implements App {
 	public void invalidateCache(){
 
 		if (nodeUuidMap != null) {
+
 			nodeUuidMap.clear();
 		}
 
 		if (relUuidMap != null) {
+
 			relUuidMap.clear();
 		}
 
@@ -542,11 +584,13 @@ public class StructrApp implements App {
 
 	@Override
 	public Map<String, Object> getAppContextStore() {
+
 		return appContextStore;
 	}
 
 	@Override
 	public String getInstanceId() throws FrameworkException {
+
 		return StructrApp.INSTANCE_ID;
 	}
 

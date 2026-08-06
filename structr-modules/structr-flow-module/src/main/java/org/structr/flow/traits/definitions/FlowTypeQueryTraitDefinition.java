@@ -58,10 +58,10 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DATA_TARGET_PROPERTY = "dataTarget";
 	public static final String DATA_TYPE_PROPERTY   = "dataType";
 
-
 	private static final Logger logger = LoggerFactory.getLogger(FlowTypeQueryTraitDefinition.class);
 
 	public FlowTypeQueryTraitDefinition() {
+
 		super(StructrTraits.FLOW_TYPE_QUERY);
 	}
 
@@ -70,8 +70,7 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -83,17 +82,18 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 						try (Tx tx = app.tx()) {
 
 							final String type = dataSource.getDataType();
-
 							JSONObject jsonObject = null;
-
 							final String queryString = dataSource.getQuery();
+
 							if (queryString != null) {
+
 								jsonObject = new JSONObject(queryString);
 							}
 
 							final Query query = app.nodeQuery(type);
 
 							if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
+
 								dataSource.resolveQueryObject(context, jsonObject, query);
 							}
 
@@ -112,14 +112,12 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
 
 						final FlowTypeQuery flowTypeQuery = flowBaseNode.as(FlowTypeQuery.class);
-
 						final Map<String, Object> result = new TreeMap<>();
 
 						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowTypeQuery.getUuid());
@@ -138,9 +136,7 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowTypeQuery.class, (traits, node) -> new FlowTypeQuery(traits, node)
-		);
+		return Map.of(FlowTypeQuery.class, (traits, node) -> new FlowTypeQuery(traits, node));
 	}
 
 	@Override
@@ -149,30 +145,20 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 		final Property<String> dataType                    = new StringProperty(DATA_TYPE_PROPERTY);
 
-		return newSet(
-			dataTarget,
-			dataType
-		);
+		return newSet(dataTarget, dataType);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				DATA_TARGET_PROPERTY, DATA_TYPE_PROPERTY, FlowDataSourceTraitDefinition.QUERY_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(DATA_TARGET_PROPERTY, DATA_TYPE_PROPERTY, FlowDataSourceTraitDefinition.QUERY_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				DATA_TARGET_PROPERTY, DATA_TYPE_PROPERTY, FlowDataSourceTraitDefinition.QUERY_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(DATA_TARGET_PROPERTY, DATA_TYPE_PROPERTY, FlowDataSourceTraitDefinition.QUERY_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

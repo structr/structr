@@ -147,6 +147,7 @@ public class Importer {
 		this.relativeVisibility = relativeVisibility;
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
+
 			this.address = this.address.concat("/");
 		}
 
@@ -154,19 +155,23 @@ public class Importer {
 		if (this.address != null) {
 
 			try {
+
 				originalUrl = new URL(this.address);
 
 			} catch (MalformedURLException ex) {
+
 				logger.info("Cannot convert '{}' to URL - is the protocol ok? Trying to resume anyway...", this.address);
 			}
 		}
 	}
 
 	private void init() {
+
 		app = StructrApp.getInstance(securityContext);
 	}
 
 	public void setCommentHandler(final CommentHandler handler) {
+
 		this.commentHandler = handler;
 	}
 
@@ -177,6 +182,7 @@ public class Importer {
 	 * @throws FrameworkException
 	 */
 	public boolean parse() throws FrameworkException {
+
 		return parse(false);
 	}
 
@@ -209,32 +215,34 @@ public class Importer {
 					final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
 
 					for (int i = nodes.length - 1; i > 0; i--) {
+
 					    nodes[i].remove();
 					}
 
 					for (Node node : nodes) {
+
 					    body.appendChild(node);
 					}
 
 				} else {
 
 					final Matcher matcher = Pattern.compile("^\\s*<(thead|tbody|caption|colgroup|th|tr|tfoot).*", Pattern.CASE_INSENSITIVE).matcher(code);
-
 					if (matcher.matches()) {
 
 						// if outermost tag is a table element so use <table> as context element
 						parsedDocument      = Document.createShell("");
 						final Element body  = parsedDocument.body();
 						final Element table = body.appendElement("table");
-
 						final List<Node> nodeList = Parser.parseFragment(code, table, "");
 						final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
 
 						for (int i = nodes.length - 1; i > 0; i--) {
+
 							nodes[i].remove();
 						}
 
 						for (Node node : nodes) {
+
 							table.appendChild(node);
 						}
 
@@ -263,14 +271,17 @@ public class Importer {
 		} else {
 
 			if (!isDeployment) {
+
 				logger.info("##### Start fetching {} for page {} #####", address, name);
 			}
 
 			final Map<String, Object> responseData = HttpHelper.get(address);
 			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
+
 			if (code != null) {
 
 				parsedDocument = Jsoup.parse(code);
+
 			} else {
 
 				throw new FrameworkException(422, "Could not parse requested url for import. Response body is empty.");
@@ -282,6 +293,7 @@ public class Importer {
 	}
 
 	public Page readPage() throws FrameworkException {
+
 		return readPage(null);
 	}
 
@@ -295,6 +307,7 @@ public class Importer {
 			createChildNodes(parsedDocument, page, page);
 
 			if (!isDeployment) {
+
 				logger.info("##### Finished fetching {} for page {} #####", address != null ? address : "content", name);
 			}
 		}
@@ -303,6 +316,7 @@ public class Importer {
 	}
 
 	public DOMNode createComponentChildNodes(final Page page) throws FrameworkException {
+
 		return createComponentChildNodes(null, page);
 	}
 
@@ -319,6 +333,7 @@ public class Importer {
 			head.remove();
 
 			if (!initialDocument.equals(parsedDocument.toString())) {
+
 				// also "html" element was added
 				headParent.remove();
 			}
@@ -335,6 +350,7 @@ public class Importer {
 			body.remove();
 
 			if (!initialDocument.equals(parsedDocument.toString())) {
+
 				// also "html" element was added
 				bodyParent.remove();
 			}
@@ -352,6 +368,7 @@ public class Importer {
 			createChildNodes(head, headElement, page);
 
 			// head is a special case
+
 			return headElement;
 		}
 
@@ -365,10 +382,12 @@ public class Importer {
 			createChildNodes(body, bodyElement, page);
 
 			// body is another special case
+
 			return bodyElement;
 		}
 
 		// fallback, no head no body => document is parent
+
 		return createChildNodes(parsedDocument, parent, page);
 	}
 
@@ -388,18 +407,22 @@ public class Importer {
 	}
 
 	public void setIsDeployment(final boolean isDeployment) {
+
 		this.isDeployment = isDeployment;
 	}
 
 	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> props) {
+
 		this.deferredNodesAndTheirProperties = props;
 	}
 
 	public Map<DOMNode, PropertyMap> getDeferredNodesAndTheirProperties() {
+
 		return this.deferredNodesAndTheirProperties;
 	}
 
 	public String getTableChildElement() {
+
 		return tableChildElement;
 	}
 
@@ -410,11 +433,13 @@ public class Importer {
 		for (final Node node : parsedDocument.childNodes()) {
 
 			for (final Node child : node.childNodes()) {
+
 				nodeList.add(child);
 			}
 		}
 
 		for (final Node deleteNode : nodeList) {
+
 			deleteNode.remove();
 		}
 	}
@@ -432,6 +457,7 @@ public class Importer {
 			}
 
 			if (!type.equals("#comment")) {
+
 				return createChildNodes(node, parent, page, false, 1, parent);
 			}
 		}
@@ -469,7 +495,9 @@ public class Importer {
 			return node.as(Page.class);
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to parse source:\n\n" + source);
+
 			return null;
 		}
 
@@ -477,10 +505,12 @@ public class Importer {
 
 	// ----- private methods -----
 	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
+
 		return createChildNodes(startNode, parent, page, false, 0);
 	}
 
 	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
+
 		return createChildNodes(startNode, parent, page, false, 0, null);
 	}
 
@@ -489,14 +519,15 @@ public class Importer {
 		NodeInterface rootElement = suppliedRoot;
 		Linkable linkable         = null;
 		String instructions       = null;
-
 		final List<Node> children = startNode.childNodes();
+
 		for (Node node : children) {
 
 			String tag = node.nodeName();
 
 			// clean tag, remove non-word characters except : and #
 			if (tag != null) {
+
 				tag = tag.replaceAll("[^a-zA-Z0-9#:.\\-_]+", "");
 			}
 
@@ -535,7 +566,9 @@ public class Importer {
 
 						String downloadAddress = node.attr(downloadAddressAttr);
 						linkable = downloadFile(downloadAddress, originalUrl);
+
 					} else {
+
 						linkable = null;
 					}
 				}
@@ -597,6 +630,7 @@ public class Importer {
 						content = trimTrailingNewline(((TextNode) node).getWholeText());
 
 						if (content == null || content.length() == 0) {
+
 							continue;
 						}
 
@@ -605,6 +639,7 @@ public class Importer {
 						content = trimTrailingNewline(((TextNode) node).text());
 
 						if (StringUtils.isBlank(content)) {
+
 							continue;
 						}
 					}
@@ -634,8 +669,8 @@ public class Importer {
 						newNode = page.createTextNode(content);
 
 						final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
-
 						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
+
 							newNode.setProperty(contentTypeKey, "text/css");
 						}
 					}
@@ -682,6 +717,7 @@ public class Importer {
 						} else {
 
 							template = Importer.findSharedComponentByName(src);
+
 							if (template == null) {
 
 								template = Importer.findTemplateByName(src);
@@ -753,6 +789,7 @@ public class Importer {
 				if (src != null) {
 
 					DOMNode component = null;
+
 					if (DeployCommand.isUuid(src)) {
 
 						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
@@ -764,7 +801,6 @@ public class Importer {
 					} else {
 
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
-
 						if (uuidAtEnd != null) {
 
 							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
@@ -796,8 +832,11 @@ public class Importer {
 
 						final String _html_src = newNode.getProperty(new StringProperty("_html_src"));
 						if (!StringUtils.isEmpty(_html_src)) {
+
 							node.attr("src", _html_src);
+
 						} else {
+
 							node.removeAttr("src");
 						}
 
@@ -827,11 +866,13 @@ public class Importer {
 
 				// save root element for later use
 				if (rootElement == null && !(newNode.is(StructrTraits.COMMENT))) {
+
 					rootElement = newNode;
 				}
 
 				// set linkable
 				if (linkable != null && newNode.is(StructrTraits.LINK_SOURCE)) {
+
 					newNode.as(LinkSource.class).setLinkable(linkable);
 				}
 
@@ -877,7 +918,6 @@ public class Importer {
 							if (key.startsWith(DATA_META_PREFIX)) { // convert data-structr-meta-* attributes to local camel case properties on the node,
 
 								int l = DATA_META_PREFIX.length();
-
 								String upperCaseKey = WordUtils.capitalize(key.substring(l), '-').replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
 
@@ -892,7 +932,6 @@ public class Importer {
 										if (converter != null) {
 
 											final Object convertedValue = converter.convert(value);
-
 											if (value != null && convertedValue == null) {
 
 												// DOMNode to be linked is not yet imported, so we store it to handle it later
@@ -1008,6 +1047,7 @@ public class Importer {
 								Actions.execute(securityContext, null, source, null, null);
 
 							} catch (UnlicensedScriptException ex) {
+
 								ex.log(logger);
 							}
 						}
@@ -1025,6 +1065,7 @@ public class Importer {
 								Actions.execute(securityContext, null, source, null, null);
 
 							} catch (UnlicensedScriptException ex) {
+
 								ex.log(logger);
 							}
 						}
@@ -1052,15 +1093,16 @@ public class Importer {
 							final String source = styleContentNode.toString();
 
 							try {
+
 								// Import referenced resources
 								processCss(source, originalUrl);
 
 							} catch (IOException ex) {
+
 								logger.warn("Couldn't process CSS source", ex);
 							}
 						}
 					}
-
 
 				}
 
@@ -1129,6 +1171,7 @@ public class Importer {
 		}
 
 		if (rootElement != null) {
+
 			return rootElement.as(DOMNode.class);
 		}
 
@@ -1142,8 +1185,8 @@ public class Importer {
 
 		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
 		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-
 		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).key(pathKey, path).key(checksumKey, checksum).getFirst();
+
 		if (node != null) {
 
 			return node.as(File.class);
@@ -1163,6 +1206,7 @@ public class Importer {
 		} catch (MalformedURLException ex) {
 
 			logger.error("Could not resolve address {}", address != null ? address.concat("/") : "");
+
 			return null;
 		}
 
@@ -1170,6 +1214,7 @@ public class Importer {
 
 		// Don't download the same file twice
 		if (alreadyDownloaded.containsKey(alreadyDownloadedKey)) {
+
 			return alreadyDownloaded.get(alreadyDownloadedKey);
 		}
 
@@ -1179,6 +1224,7 @@ public class Importer {
 		java.io.File tmpFile;
 
 		try {
+
 			// create temporary file on disk
 			final Path tmpFilePath = Files.createTempFile("structr", "download");
 			tmpFile                = tmpFilePath.toFile();
@@ -1186,6 +1232,7 @@ public class Importer {
 		} catch (IOException ioex) {
 
 			logger.error("Unable to create temporary file for download, aborting.");
+
 			return null;
 		}
 
@@ -1200,6 +1247,7 @@ public class Importer {
 			if (originalUrl == null || address == null) {
 
 				logger.info("Cannot download from {} without base address", downloadAddress);
+
 				return null;
 
 			}
@@ -1207,6 +1255,7 @@ public class Importer {
 			logger.warn("Unable to download from {} {}", originalUrl, downloadAddress);
 
 			try {
+
 				// Try alternative baseUrl with trailing "/"
 				if (address.endsWith("/")) {
 
@@ -1224,10 +1273,15 @@ public class Importer {
 				copyURLToFile(downloadUrl.toString(), tmpFile);
 
 			} catch (MalformedURLException ex) {
+
 				logger.error("Could not resolve address {}", address.concat("/"));
+
 				return null;
+
 			} catch (IOException ex) {
+
 				logger.warn("Unable to download from {}", address.concat("/"));
+
 				return null;
 			}
 
@@ -1257,12 +1311,11 @@ public class Importer {
 		} catch (IOException ioe) {
 
 			logger.warn("Unable to determine MIME type, size or checksum of {}", tmpFile);
+
 			return null;
 		}
 
-
-		logger.info("Download URL: {}, address: {}, cleaned address: {}, filename: {}",
-			downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName);
+		logger.info("Download URL: {}, address: {}, cleaned address: {}, filename: {}", downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName);
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
@@ -1292,7 +1345,6 @@ public class Importer {
 			path = StringUtils.substringBeforeLast(relativePath, "/");
 		}
 
-
 		logger.info("Relative path: {}, final path: {}", relativePath, path);
 
 		if (contentType.equals("text/plain")) {
@@ -1303,9 +1355,8 @@ public class Importer {
 		try {
 
 			final String fullPath = path + "/" + fileName;
-
-
 			File fileNode = fileExists(PathHelper.removeRelativeParts(fullPath), checksum);
+
 			if (fileNode == null) {
 
 				if (ImageHelper.isImageType(fileName)) {
@@ -1318,6 +1369,7 @@ public class Importer {
 				}
 
 				try (final FileInputStream is = new FileInputStream(tmpFile); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
+
 					// Copy contents of tmpFile to file in structr fs
 					IOUtils.copy(is, os);
 
@@ -1352,6 +1404,7 @@ public class Importer {
 	}
 
 	private File createFileNode(final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
+
 		return createFileNode(path, contentType, size, checksum, null);
 	}
 
@@ -1385,6 +1438,7 @@ public class Importer {
 	}
 
 	private Image createImageNode(final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
+
 		return createFileNode(path, contentType, size, checksum, StructrTraits.IMAGE).as(Image.class);
 	}
 
@@ -1393,6 +1447,7 @@ public class Importer {
 		final StringWriter sw = new StringWriter();
 
 		try (final InputStream is = fileNode.getInputStream()) {
+
 			IOUtils.copy(is, sw, "UTF-8");
 		}
 
@@ -1445,6 +1500,7 @@ public class Importer {
 	public static NodeInterface findSharedComponentByName(final String name) throws FrameworkException {
 
 		if (StringUtils.isEmpty(name)) {
+
 			return null;
 		}
 
@@ -1456,6 +1512,7 @@ public class Importer {
 
 			// only return toplevel nodes in shared components
 			if (n.getProperty(parentKey) == null) {
+
 				return n;
 			}
 		}
@@ -1466,6 +1523,7 @@ public class Importer {
 	public static NodeInterface findTemplateByName(final String name) throws FrameworkException {
 
 		if (StringUtils.isEmpty(name)) {
+
 			return null;
 		}
 
@@ -1491,10 +1549,12 @@ public class Importer {
 
 		// Leading and trailing whitespace may be replaced by a single space in HTML
 		while (workString.startsWith("\n") || workString.startsWith("\r") || workString.startsWith("\t")) {
+
 			workString = workString.substring(1);
 		}
 
 		while (workString.endsWith("\n") || workString.endsWith("\r") || workString.endsWith("\t")) {
+
 			workString = workString.substring(0, workString.length() - 1);
 		}
 
@@ -1538,6 +1598,7 @@ public class Importer {
 		final StringBuilder sb = new StringBuilder();
 
 		for (final Node c : children) {
+
 			sb.append(nodeToString(c));
 		}
 
@@ -1561,6 +1622,7 @@ public class Importer {
 		final NodeInterface newTemplate = StructrApp.getInstance(securityContext).create(StructrTraits.TEMPLATE, map);
 
 		if (parent != null) {
+
 			parent.as(DOMNode.class).appendChild(newTemplate.as(Template.class));
 		}
 
@@ -1569,6 +1631,7 @@ public class Importer {
 	}
 
 	private DOMNode createSharedComponent(final Node node) throws FrameworkException {
+
 		return createChildNodes(node, null, CreateComponentCommand.getOrCreateHiddenDocument());
 	}
 

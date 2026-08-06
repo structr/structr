@@ -67,8 +67,8 @@ public abstract class StorageProviderFactory {
 
 			if (configuration != null) {
 
-
 				for (final Entry<String, String> c : configuration.entrySet()) {
+
 					sc.addEntry(c.getKey(), c.getValue());
 				}
 			}
@@ -101,6 +101,7 @@ public abstract class StorageProviderFactory {
 				try {
 
 					// Try to instantiate requested provider with given file and config
+
 					return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageConfiguration.class).newInstance(file, config.as(StorageConfiguration.class));
 
 				} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
@@ -114,10 +115,12 @@ public abstract class StorageProviderFactory {
 	}
 
 	public static Class<? extends StorageProvider> getDefaultStorageProviderClass() {
+
 		return LocalFSStorageProvider.class;
 	}
 
 	public static StorageProvider getDefaultStorageProvider(final AbstractFile file) {
+
 		return new LocalFSStorageProvider(file);
 	}
 
@@ -131,7 +134,6 @@ public abstract class StorageProviderFactory {
 
 		// check the files parent
 		final Folder parentFolder = abstractFile.getParent();
-
 		if (parentFolder != null) {
 
 			if (parentFolder.getStorageConfiguration() != null) {
@@ -141,6 +143,7 @@ public abstract class StorageProviderFactory {
 			} else {
 
 				// Parent did not have info, so recursively go up the hierarchy
+
 				return getStorageConfigurationSupplier(parentFolder);
 			}
 		}

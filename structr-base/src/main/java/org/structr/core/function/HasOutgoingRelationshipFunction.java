@@ -36,11 +36,13 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "hasOutgoingRelationship";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
@@ -53,7 +55,6 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 
 			final Object source = sources[0];
 			final Object target = sources[1];
-
 			NodeInterface sourceNode = null;
 			NodeInterface targetNode = null;
 
@@ -65,6 +66,7 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 			} else {
 
 				logger.warn("Error: entities are not nodes. Parameters: {}", getParametersAsString(sources));
+
 				return "Error: entities are not nodes.";
 			}
 
@@ -76,8 +78,8 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 					final NodeInterface t = rel.getTargetNode();
 
 					// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
-					if (s != null & t != null
-						&& s.equals(sourceNode) && t.equals(targetNode)) {
+					if (s != null & t != null && s.equals(sourceNode) && t.equals(targetNode)) {
+
 						return true;
 					}
 				}
@@ -93,9 +95,8 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 					final NodeInterface t = rel.getTargetNode();
 
 					// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
-					if (s != null & t != null
-						&& rel.getRelType().name().equals(relType)
-						&& s.equals(sourceNode) && t.equals(targetNode)) {
+					if (s != null & t != null && rel.getRelType().name().equals(relType) && s.equals(sourceNode) && t.equals(targetNode)) {
+
 						return true;
 					}
 				}
@@ -108,6 +109,7 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -116,28 +118,26 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${hasOutgoingRelationship(from, to [, relType])}."),
-			Usage.javaScript("Usage: ${{$.hasOutgoingRelationship(from, to [, relType])}}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${hasOutgoingRelationship(from, to [, relType])}."), Usage.javaScript("Usage: ${{$.hasOutgoingRelationship(from, to [, relType])}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns true if the given entity has outgoing relationships of the given type.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "returns a boolean value indicating whether **at least one** outgoing relationship exists between the given entities, with an optional qualifying relationship type. See also `incoming()`, `outgoing()`, `has_relationship()` and `has_incoming_relationship()`.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${hasOutgoingRelationship(me, page, 'OWNS')}"),
-				Example.javaScript("${{ $.hasOutgoingRelationship($.me, $.page, 'OWNS') }}")
-		);
+
+		return List.of(Example.structrScript("${hasOutgoingRelationship(me, page, 'OWNS')}"), Example.javaScript("${{ $.hasOutgoingRelationship($.me, $.page, 'OWNS') }}"));
 	}
 
 	@Override
@@ -152,6 +152,7 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

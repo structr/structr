@@ -33,11 +33,13 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "isValidEmail";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("address");
 	}
 
@@ -55,37 +57,38 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${isValidEmail(address)}"),
-			Usage.javaScript("Usage: ${{ $.isValidEmail(address) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${isValidEmail(address)}"), Usage.javaScript("Usage: ${{ $.isValidEmail(address) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Checks if the given address is a valid email address.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The validation uses the email validation regular expression configured in `%s`".formatted(Settings.EmailValidationRegex.getKey());
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.mandatory("address", "address to validate")
-		);
+
+		return List.of(Parameter.mandatory("address", "address to validate"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("${validateEmail('john@example.com')}", "Valid email"),
 				Example.structrScript("${validateEmail('John Doe <john@example.com>')}", "Invalid email"),
@@ -109,6 +112,7 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Validation;
 	}
 }

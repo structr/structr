@@ -41,35 +41,38 @@ public class RollbackTransactionFunction extends CoreFunction {
         @Override
         public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.rollbackTransaction(); }}"),
-			Usage.structrScript("Usage: ${rollbackTransaction()}")
-		);
+		return List.of(Usage.javaScript("Usage: ${{ $.rollbackTransaction(); }}"), Usage.structrScript("Usage: ${rollbackTransaction()}"));
         }
 
         @Override
         public String getShortDescription() {
+
                 return "Marks the current transaction as failed and prevents all objects from being persisted in the database.";
         }
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
         @Override
         public List<Signature> getSignatures() {
+
 		// empty signature, no parameters
+
 		return Signature.forAllScriptingLanguages("");
         }
 
         @Override
         public String getName() {
+
                 return "rollbackTransaction";
         }
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

@@ -39,6 +39,7 @@ public class Link extends GenericHtmlElementTraitDefinition {
 	public static final String SIZES_PROPERTY    = getPrefixedHTMLAttributeName("sizes");
 
 	public Link() {
+
 		super(StructrTraits.LINK);
 	}
 
@@ -49,11 +50,11 @@ public class Link extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -72,19 +73,12 @@ public class Link extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> typeProperty     = new StringProperty(TYPE_PROPERTY);
 		final PropertyKey<String> sizesProperty    = new StringProperty(SIZES_PROPERTY);
 
-		return newSet(
-			hrefProperty, relProperty, mediaProperty, hreflangProperty, typeProperty, sizesProperty
-		);
+		return newSet(hrefProperty, relProperty, mediaProperty, hreflangProperty, typeProperty, sizesProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					HREF_PROPERTY, REL_PROPERTY, MEDIA_PROPERTY, HREFLANG_PROPERTY, TYPE_PROPERTY, SIZES_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(HREF_PROPERTY, REL_PROPERTY, MEDIA_PROPERTY, HREFLANG_PROPERTY, TYPE_PROPERTY, SIZES_PROPERTY));
 	}
 }

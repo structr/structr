@@ -37,12 +37,14 @@ public class Converter<SourceType, TargetType> implements Value<TargetType> {
 	private Value<SourceType> source = null;
 	
 	public Converter(Value<SourceType> source, PropertyConverter<SourceType, TargetType> converter) {
+
 		this.converter = converter;
 		this.source = source;
 	}
 	
 	@Override
 	public void set(SecurityContext securityContext, TargetType value) throws FrameworkException {
+
 		source.set(securityContext, converter.revert(value));
 	}
 

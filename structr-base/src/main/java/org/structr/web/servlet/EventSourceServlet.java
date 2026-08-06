@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -61,6 +60,7 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 
 	@Override
 	protected EventSource newEventSource(HttpServletRequest hsr) {
+
 		return new StructrEventSource(securityContext.getSessionId());
 	}
 
@@ -75,6 +75,7 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+
 				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
@@ -114,11 +115,13 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
+
 		return config;
 	}
 
 	@Override
 	public void registerStatsCallback(final StatsCallback stats) {
+
 		this.stats = stats;
 	}
 
@@ -149,11 +152,13 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 				if (shouldReceive == null) {
 
 					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
-
 					if (user == null) {
+
 						checkedSessionIds.put(sessionId, true);
 						es.sendEvent(name, data);
+
 					} else {
+
 						checkedSessionIds.put(sessionId, false);
 					}
 
@@ -176,11 +181,13 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 				if (shouldReceive == null) {
 
 					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
-
 					if (user != null) {
+
 						checkedSessionIds.put(sessionId, true);
 						es.sendEvent(name, data);
+
 					} else {
+
 						checkedSessionIds.put(sessionId, false);
 					}
 
@@ -212,6 +219,7 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 		boolean oneTargetSeen = false;
 
 		for (User user : uniqueUsers) {
+
 			boolean seen = sendEvent(name, data, user);
 			oneTargetSeen = seen || oneTargetSeen;
 		}
@@ -245,6 +253,7 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 	}
 
 	public static boolean sendEvent(final String name, final String data, final Group target) {
+
 		return sendEvent(name, data, Set.of(target));
 	}
 
@@ -274,6 +283,7 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 	// ---- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "ui";
 	}
 
@@ -281,6 +291,7 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 
 		final Services services = Services.getInstance();
 		if (!services.isInitialized()) {
+
 			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, services.getUnavailableMessage());
 		}
 	}
@@ -308,27 +319,35 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 
 		@Override
 		public void onClose() {
+
 			remove();
 		}
 
 		public String getSessionId() {
+
 			return sessionId;
 		}
 
 		public void sendEvent(final String name, final String data) {
+
 			try {
+
 				emitter.event(name, data);
+
 			} catch (IOException ioe) {
+
 				emitter.close();
 				remove();
 			}
 		}
 
 		public void close() {
+
 			emitter.close();
 		}
 
 		public void remove() {
+
 			eventSources.remove(this);
 		}
 	}

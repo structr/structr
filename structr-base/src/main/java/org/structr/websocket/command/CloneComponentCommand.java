@@ -48,6 +48,7 @@ public class CloneComponentCommand extends AbstractCommand {
 		final String parentId            = webSocketData.getNodeDataStringValue("parentId");
 		final String refId               = webSocketData.getNodeDataStringValue("refId");
 		final String relativePosition    = webSocketData.getNodeDataStringValue("relativePosition");
+
 		final RelativePosition position;
 
 		if (relativePosition != null) {
@@ -60,6 +61,7 @@ public class CloneComponentCommand extends AbstractCommand {
 
 				// default to Before
 				getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
+
 				return;
 			}
 
@@ -72,6 +74,7 @@ public class CloneComponentCommand extends AbstractCommand {
 		if (id == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot clone component, no id is given").build(), true);
+
 			return;
 		}
 
@@ -79,15 +82,16 @@ public class CloneComponentCommand extends AbstractCommand {
 		if (parentId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot clone component node without parentId").build(), true);
+
 			return;
 		}
 
 		// check if parent node with given ID exists
 		final DOMNode parentNode = getDOMNode(parentId);
-
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
 			return;
 		}
 
@@ -109,7 +113,6 @@ public class CloneComponentCommand extends AbstractCommand {
 				} else {
 
 					final DOMNode nextNode = refNode.getNextSibling();
-
 					if (nextNode != null) {
 
 						parentNode.insertBefore(clonedNode, nextNode);
@@ -132,6 +135,7 @@ public class CloneComponentCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CLONE_COMPONENT";
 	}
 

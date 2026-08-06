@@ -52,16 +52,19 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 	public JsonScriptProperty setSource(final String source) {
 
 		this.source = source;
+
 		return this;
 	}
 
 	@Override
 	public String getType() {
+
 		return "script";
 	}
 
 	@Override
 	public String getSource() {
+
 		return source;
 	}
 
@@ -69,11 +72,13 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 	public JsonScriptProperty setContentType(String contentType) {
 
 		this.contentType = contentType;
+
 		return this;
 	}
 
 	@Override
 	public String getContentType() {
+
 		return contentType;
 	}
 
@@ -83,10 +88,12 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 		final Map<String, Object> map = super.serialize();
 
 		if (source != null) {
+
 			map.put(JsonSchema.KEY_SOURCE, source);
 		}
 
 		if (contentType != null) {
+
 			map.put(JsonSchema.KEY_CONTENT_TYPE, contentType);
 		}
 

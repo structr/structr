@@ -27,16 +27,19 @@ public class LinkHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "link";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the linked filesystem element of an HTML element in a Page.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		Only works in `a`, `link`, `script` or `img` tags/nodes. See Filesystem and Pages Tree View for more info.
 
@@ -46,6 +49,7 @@ public class LinkHint extends PageKeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.html("""
 			<!doctype html>

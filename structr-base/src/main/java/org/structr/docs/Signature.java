@@ -26,15 +26,18 @@ public class Signature {
 	private final String signature;
 
 	public Signature(final String signature, final Language... languages) {
+
 		this.languages = List.of(languages);
 		this.signature = signature;
 	}
 
 	public List<Language> getLanguages() {
+
 		return languages;
 	}
 
 	public String getSignature() {
+
 		return signature;
 	}
 
@@ -47,6 +50,7 @@ public class Signature {
 	 * @return a Signature for the given language and signature string
 	 */
 	public static Signature of(final String signature, final Language... languages) {
+
 		return new Signature(signature, languages);
 	}
 
@@ -57,6 +61,7 @@ public class Signature {
 	 * @return
 	 */
 	public static Signature javaScript(final String signature) {
+
 		return new Signature(signature, Language.JavaScript);
 	}
 
@@ -66,6 +71,7 @@ public class Signature {
 	 * @return
 	 */
 	public static Signature structrScript(final String signature) {
+
 		return new Signature(signature, Language.StructrScript);
 	}
 
@@ -79,8 +85,6 @@ public class Signature {
 	 */
 	public static List<Signature> forAllScriptingLanguages(final String signature) {
 
-		return List.of(
-			Signature.of(signature, Language.JavaScript, Language.StructrScript)
-		);
+		return List.of(Signature.of(signature, Language.JavaScript, Language.StructrScript));
 	}
 }

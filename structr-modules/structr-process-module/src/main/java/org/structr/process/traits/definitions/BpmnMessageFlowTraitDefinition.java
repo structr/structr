@@ -54,15 +54,14 @@ public class BpmnMessageFlowTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String TARGET_ELEMENT_PROPERTY   = "targetElement";
 
 	public BpmnMessageFlowTraitDefinition() {
+
 		super(ProcessTraits.BPMN_MESSAGE_FLOW);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnMessageFlow.class, (traits, node) -> new BpmnMessageFlowTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnMessageFlow.class, (traits, node) -> new BpmnMessageFlowTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -95,6 +94,7 @@ public class BpmnMessageFlowTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

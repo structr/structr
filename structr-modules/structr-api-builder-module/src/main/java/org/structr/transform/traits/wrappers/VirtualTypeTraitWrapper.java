@@ -47,36 +47,43 @@ import java.util.function.Function;
 public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements VirtualType {
 
 	public VirtualTypeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getName() {
+
 		return wrappedObject.getName();
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.SOURCE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public Integer getPosition() {
+
 		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.POSITION_PROPERTY));
 	}
 
 	@Override
 	public String getFilterExpression() {
+
 		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.FILTER_EXPRESSION_PROPERTY));
 	}
 
 	@Override
 	public Iterable<NodeInterface> getVirtualProperties() {
+
 		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.PROPERTIES_PROPERTY));
 	}
 
 	@Override
 	public boolean isPrimitiveArray() {
+
 		return false;
 	}
 
@@ -100,11 +107,12 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 		// remove all properties for which no VirtualProperty exists
 		final Iterator<String> it = propertySet.keySet().iterator();
+
 		while (it.hasNext()) {
 
 			final String propertyName = it.next();
-
 			if (!targetNames.contains(propertyName)) {
+
 				final Logger logger = LoggerFactory.getLogger(VirtualType.class);
 				logger.debug("Removing property '{}' with value '{}' from propertyset because no matching virtual property was found", propertyName, propertySet.get(propertyName));
 				it.remove();
@@ -114,8 +122,8 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 		for (final NodeInterface node : props) {
 
 			final VirtualProperty property      = node.as(VirtualProperty.class);
-
 			final Transformation transformation = property.getTransformation(type);
+
 			transformation.transformInput(actionContext, propertySet);
 		}
 	}
@@ -166,6 +174,7 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter", null));
 
 				} catch (FrameworkException fex) {
+
 					final Logger logger = LoggerFactory.getLogger(VirtualType.class);
 					logger.warn("", fex);
 				}
@@ -188,6 +197,7 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 				final VirtualProperty property      = node.as(VirtualProperty.class);
 				final Transformation transformation = property.getTransformation(type);
+
 				if (transformation != null) {
 
 					this.transformations.add(transformation);
@@ -210,6 +220,7 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 				}
 
 			} catch (FrameworkException ex) {
+
 				final Logger logger = LoggerFactory.getLogger(VirtualType.class);
 				logger.error("", ex);
 			}

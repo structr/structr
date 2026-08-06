@@ -24,12 +24,14 @@ public class Occurrence {
 	private final int lineNumber;
 
 	public Occurrence(final String sourceFile, final int lineNumber) {
+
 		this.sourceFile = sourceFile;
 		this.lineNumber = lineNumber;
 	}
 
 	@Override
 	public int hashCode() {
+
 		return (sourceFile + ":" + lineNumber).hashCode();
 	}
 
@@ -37,6 +39,7 @@ public class Occurrence {
 	public boolean equals(Object obj) {
 
 		if (obj instanceof Occurrence other) {
+
 			return sourceFile.equals(other.sourceFile) && lineNumber == other.lineNumber;
 		}
 
@@ -44,9 +47,11 @@ public class Occurrence {
 	}
 
 	public String getSourceFile() {
+
 		return sourceFile;
 	}
 	public int getLineNumber() {
+
 		return lineNumber;
 	}
 }

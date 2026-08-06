@@ -46,11 +46,13 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "functionInfo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("[type, name]");
 	}
 
@@ -69,7 +71,6 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 			final String typeName     = sources[0].toString();
 			final String functionName = sources[1].toString();
-
 			final Traits type = Traits.of(typeName);
 
 			if (type == null) {
@@ -78,7 +79,6 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 			}
 
 			final AbstractMethod method = Methods.resolveMethod(type, functionName);
-
 			if (method == null) {
 
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_FUNCTION_ERROR_MESSAGE.formatted(getName(), typeName, functionName));
@@ -96,6 +96,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${functionInfo([type, name])}. Example ${functionInfo()}"),
 			Usage.javaScript("Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}")
@@ -104,11 +105,13 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns information about the currently running Structr method, or about the method defined in the given type and name.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 				The function returns an object with the following structure.
 
@@ -128,14 +131,13 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-				Parameter.optional("type", "type name"),
-				Parameter.optional("name", "function name")
-		);
+
+		return List.of(Parameter.optional("type", "type name"), Parameter.optional("name", "function name"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.javaScript("""
 				{
@@ -153,6 +155,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
 				"If the requested function does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned.",
@@ -170,26 +173,34 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 		info.put(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY,    method.isStatic());
 
 		if (!method.isPrivate()) {
+
 			info.put(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY, method.getHttpVerb());
 		}
 
 		if (method.getSummary() != null) {
+
 			info.put(SchemaMethodTraitDefinition.SUMMARY_PROPERTY, method.getSummary());
 		}
 
 		if (method.getDescription() != null) {
+
 			info.put(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY, method.getDescription());
 		}
 
 		if (!method.getParameters().isEmpty()) {
+
 			info.put(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY, method.getParameters());
 		}
 
 		if (method instanceof ScriptMethod sm) {
+
 			if (sm.getDeclaringClass() != null) {
+
 				info.put(FunctionInfoFunction.DECLARING_TRAIT_KEY, sm.getDeclaringClass());
 				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, false);
+
 			} else {
+
 				info.put(FunctionInfoFunction.DECLARING_TRAIT_KEY, null);
 				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, true);
 			}
@@ -200,6 +211,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Schema;
 	}
 }

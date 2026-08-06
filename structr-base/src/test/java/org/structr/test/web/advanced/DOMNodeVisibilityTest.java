@@ -56,7 +56,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class DOMNodeVisibilityTest extends StructrUiTest {
 
-
 	// =========================================================================
 	// Group 1: Default — no visibility flags set
 	// =========================================================================
@@ -68,7 +67,6 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 
 			final Page    page = Page.createSimplePage(securityContext, "test-page");
 			final DOMNode div  = page.getElementsByTagName("div").get(0);
-
 			final RenderContext ctx = makeRenderContext(RenderContext.EditMode.NONE);
 
 			assertTrue("A clean element with no visibility flags should render by default", div.shouldBeRendered(ctx));
@@ -76,6 +74,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -102,6 +101,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -124,6 +124,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -151,6 +152,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -173,6 +175,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -195,6 +198,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -218,6 +222,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -241,6 +246,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -264,6 +270,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -286,6 +293,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -313,6 +321,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -336,6 +345,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -359,6 +369,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -382,6 +393,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -405,6 +417,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -430,6 +443,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -461,6 +475,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -486,6 +501,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -514,6 +530,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -536,6 +553,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -558,6 +576,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -580,6 +599,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -604,6 +624,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -627,6 +648,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -650,6 +672,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -672,6 +695,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -694,6 +718,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -716,6 +741,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -735,7 +761,6 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 
 			final Page    page = Page.createSimplePage(securityContext, "test-page");
 			final DOMNode div  = page.getElementsByTagName("div").get(0);
-
 			final RenderContext ctx = makeRenderContext(RenderContext.EditMode.NONE);
 
 			assertTrue("Node with no visibility mappings should render (opt-in default)", div.shouldBeRendered(ctx));
@@ -743,6 +768,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -773,6 +799,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -800,6 +827,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -825,6 +853,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -852,6 +881,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -877,8 +907,8 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "eq(item.name, 'Alice')");
 
 			final NodeInterface alice = app.create("TestOne", "Alice");
-
 			final RenderContext ctx = makeRenderContext(RenderContext.EditMode.NONE);
+
 			ctx.putDataObject("item", alice);
 
 			assertTrue("Element should render when repeater item matches showConditions", div.shouldBeRendered(ctx));
@@ -886,6 +916,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			// no tx.success() → transaction rolls back, leaving no persisted data
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -902,13 +933,14 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "eq(item.name, 'Alice')");
 
 			final NodeInterface bob = app.create("TestOne", "Bob");
-
 			final RenderContext ctx = makeRenderContext(RenderContext.EditMode.NONE);
+
 			ctx.putDataObject("item", bob);
 
 			assertFalse("Element should not render when repeater item does not match showConditions", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -925,13 +957,14 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY), "eq(item.name, 'hidden')");
 
 			final NodeInterface hidden = app.create("TestOne", "hidden");
-
 			final RenderContext ctx = makeRenderContext(RenderContext.EditMode.NONE);
+
 			ctx.putDataObject("item", hidden);
 
 			assertFalse("Element should not render when repeater item matches hideConditions", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -948,13 +981,14 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY), "eq(item.name, 'hidden')");
 
 			final NodeInterface visible = app.create("TestOne", "visible");
-
 			final RenderContext ctx = makeRenderContext(RenderContext.EditMode.NONE);
+
 			ctx.putDataObject("item", visible);
 
 			assertTrue("Element should render when repeater item does not match hideConditions", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -985,6 +1019,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			assertFalse("Element should not render for the item that does not match showConditions", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -1016,6 +1051,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			assertTrue("Carol should render (not in hideConditions)", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -1046,6 +1082,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			assertFalse("Element with anInt=2 should not render", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -1071,7 +1108,6 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			final NodeInterface alice    = app.create("TestOne", "Alice");
 			final NodeInterface conflict = app.create("TestOne", "conflict");
 			final NodeInterface other    = app.create("TestOne", "other");
-
 			final RenderContext ctx = makeRenderContext(RenderContext.EditMode.NONE);
 
 			ctx.putDataObject("item", alice);
@@ -1084,6 +1120,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			assertFalse("other: hide=false, show=false → should not render", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -1126,6 +1163,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception during setup: " + fex.getMessage());
 		}
@@ -1169,6 +1207,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception during setup: " + fex.getMessage());
 		}
@@ -1209,6 +1248,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 			assertTrue("DEPLOYMENT mode must bypass hidden flag even on a repeater element", div.shouldBeRendered(ctx));
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
@@ -1219,6 +1259,7 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 	// =========================================================================
 
 	private RenderContext makeRenderContext(final RenderContext.EditMode editMode) {
+
 		return new RenderContext(securityContext, new RequestMockUp(), new ResponseMockUp(), editMode);
 	}
 

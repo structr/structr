@@ -36,28 +36,33 @@ public abstract class Tokenizer {
 
 	@Override
 	public String toString() {
+
 		return getType();
 	}
 
-
 	public void add(final char character) {
+
 		buf.append(character);
 	}
 
 	public String getContent() {
+
 		return buf.toString();
 	}
 
 	public Token getToken(final FactsContainer factsContainer) {
+
 		return new Token(factsContainer, getType(), getContent(), getQuoteChar(), row, column);
 	}
 
 	public void init(final int row, final int column) {
+
 		this.column = column;
 		this.row    = row;
 	}
 
 	public void reset() {
+
 		buf.setLength(0);
 	}
 }

@@ -52,6 +52,7 @@ public class BpmnStructrContractRoundTripTest extends AbstractProcessEngineTest 
 
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(xml);
 			final NodeInterface procNode = firstProcess(defNode);
+
 			assertNotNull("import produced a process", procNode);
 
 			assertEquals("process subject type from <structr:subject>", "Claim", subjectType(procNode));
@@ -98,18 +99,22 @@ public class BpmnStructrContractRoundTripTest extends AbstractProcessEngineTest 
 	// ----- helpers -----
 
 	private String subjectType(final NodeInterface proc) {
+
 		return proc.getProperty(proc.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY));
 	}
 
 	private String formView(final NodeInterface element) {
+
 		return element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY));
 	}
 
 	private String writableView(final NodeInterface element) {
+
 		return element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY));
 	}
 
 	private String instructions(final NodeInterface element) {
+
 		return element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY));
 	}
 }

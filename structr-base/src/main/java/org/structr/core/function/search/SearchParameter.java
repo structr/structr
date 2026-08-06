@@ -35,22 +35,27 @@ public class SearchParameter {
 
 	@Override
 	public String toString() {
+
 		return "Exact(" + key + ", " + value + ")";
 	}
 
 	public boolean isExact() {
+
 		return exact;
 	}
 
 	public String getKey() {
+
 		return key;
 	}
 
 	public Object getValue() {
+
 		return value;
 	}
 
 	public boolean isEmptyPredicate() {
+
 		return false;
 	}
 }

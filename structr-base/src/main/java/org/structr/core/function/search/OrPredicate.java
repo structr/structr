@@ -68,6 +68,7 @@ public class OrPredicate extends AbstractPredicate {
 
 		// only add group if it is not empty!
 		if (!orGroup.isEmpty()) {
+
 			query.add(orGroup);
 		}
 	}

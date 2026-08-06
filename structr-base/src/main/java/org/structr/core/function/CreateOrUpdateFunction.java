@@ -45,11 +45,13 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "createOrUpdate";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type, propertyMap");
 	}
 
@@ -74,6 +76,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 				if (type == null) {
 
 					logger.warn("Error in createOrUpdate(): type \"{}\" not found.", typeString);
+
 					return ERROR_MESSAGE_TYPE_NOT_FOUND + typeString;
 				}
 			}
@@ -82,6 +85,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 			if (type == null) {
 
 				logger.warn("Error in createOrUpdate(): no type specified. Parameters: {}", getParametersAsString(sources));
+
 				return ERROR_MESSAGE_NO_TYPE_SPECIFIED;
 			}
 
@@ -93,7 +97,6 @@ public class CreateOrUpdateFunction extends CoreFunction {
 			} else {
 
 				final int parameterCount = sources.length;
-
 				if (parameterCount % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -102,12 +105,12 @@ public class CreateOrUpdateFunction extends CoreFunction {
 				for (int c = 1; c < parameterCount; c += 2) {
 
 					if (sources[c] == null) {
+
 						throw new IllegalArgumentException();
 					}
 
 					final PropertyKey key = type.key(sources[c].toString());
 					if (key != null) {
-
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value                           = sources[c + 1];
@@ -133,6 +136,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 					obj = (NodeInterface) app.nodeQuery(type.getName()).disableSorting().pageSize(1).and().key(key, properties.get(key)).getFirst();
 
 					if (obj != null) {
+
 						break;
 					}
 				}
@@ -147,6 +151,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 			}
 
 			// create new object
+
 			return app.create(type.getName(), properties);
 
 		} catch (final IllegalArgumentException e) {
@@ -160,6 +165,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.javaScript("Usage: ${{$.createOrUpdate(type, properties)}}. Example: ${{$.createOrUpdate('User', 'email', 'tester@test.com')}}"),
 			Usage.structrScript("Usage: ${createOrUpdate(type, properties)}. Example: ${createOrUpdate('User', 'email', 'tester@test.com')}")
@@ -168,20 +174,20 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates an object with the given properties or updates an existing object if it can be identified by a unique property.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function is a shortcut for a code sequence with a query that looks up an existing object and a set() operation it if an object was found, or creates a new object with the given properties, if no object was found.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("type", "type to create or update"),
-			Parameter.mandatory("properties", "properties")
-		);
+
+		return List.of(Parameter.mandatory("type", "type to create or update"), Parameter.mandatory("properties", "properties"));
 	}
 
 	@Override
@@ -194,6 +200,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"In a StructrScript environment, parameters are passed as pairs of `'key1', 'value1'`.",
 			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
@@ -202,6 +209,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

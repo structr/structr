@@ -45,6 +45,7 @@ public class RelationshipEndNode<T extends NodeInterface> extends AbstractReadOn
 	private Notion notion = null;
 
 	public RelationshipEndNode(String name) {
+
 		this(name, null);
 	}
 
@@ -57,21 +58,25 @@ public class RelationshipEndNode<T extends NodeInterface> extends AbstractReadOn
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public String typeName() {
+
 		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public String relatedType() {
+
 		return StructrTraits.NODE_INTERFACE;
 	}
 
@@ -79,6 +84,7 @@ public class RelationshipEndNode<T extends NodeInterface> extends AbstractReadOn
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
 
 		if (notion != null) {
+
 			return notion.getEntityConverter(securityContext);
 		}
 
@@ -87,47 +93,56 @@ public class RelationshipEndNode<T extends NodeInterface> extends AbstractReadOn
 
 	@Override
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+
 		return (T)((AbstractRelationship)obj).getTargetNode();
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 }

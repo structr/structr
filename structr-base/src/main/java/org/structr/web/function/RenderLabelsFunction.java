@@ -41,11 +41,13 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 	@Override
 	public String getName() {
+
 		return "renderLabels";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("tag [, slot]");
 	}
 
@@ -82,17 +84,20 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${renderLabels(tag, slot)}. Example: ${renderLabels('li', 'label')}"),
 			Usage.javaScript("Usage: ${{ $.renderLabels(tag, slot)}}. Example: ${{ $.renderLabels('li', 'label')}}")
@@ -101,11 +106,13 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Renders labels for one or all of the fields *of one element* from the enclosing component's data source, wrapped in the given tag.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "This function renders the `label` property of the data source specification *for one element*, wrapped in the given tag. If the `slot` argument is present, only the label for the given slot is rendered. If no slot is given, this function renders all labels for one value, wrapped in the HTML element given in the `tag` argument.";
 	}
 
@@ -121,14 +128,12 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"Works only during page rendering in Template nodes.",
-			"This function will most likely be used to render the header row of a dynamic table."
-		);
+		return List.of("Works only during page rendering in Template nodes.", "This function will most likely be used to render the header row of a dynamic table.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

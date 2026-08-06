@@ -43,6 +43,7 @@ public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 		logger.debug("Processing task {}", task.getClass().getName());
 
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx(true, true, false)) {
 
 			for (DataFeed feed : task.getWorkObjects()) {
@@ -60,11 +61,13 @@ public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 
 	@Override
 	public Class getSupportedTaskType() {
+
 		return UpdateFeedTask.class;
 	}
 
 	@Override
 	public boolean createEnclosingTransaction() {
+
 		return false;
 	}
 }

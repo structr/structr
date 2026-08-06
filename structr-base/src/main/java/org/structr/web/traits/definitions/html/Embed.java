@@ -37,6 +37,7 @@ public class Embed extends GenericHtmlElementTraitDefinition {
 	public static final String HEIGHT_PROPERTY = getPrefixedHTMLAttributeName("height");
 
 	public Embed() {
+
 		super(StructrTraits.EMBED);
 	}
 
@@ -47,11 +48,11 @@ public class Embed extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -68,19 +69,12 @@ public class Embed extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> widthProperty  = new StringProperty(WIDTH_PROPERTY);
 		final PropertyKey<String> heightProperty = new StringProperty(HEIGHT_PROPERTY);
 
-		return newSet(
-			srcProperty, typeProperty, widthProperty, heightProperty
-		);
+		return newSet(srcProperty, typeProperty, widthProperty, heightProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					SRC_PROPERTY, TYPE_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(SRC_PROPERTY, TYPE_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY));
 	}
 }

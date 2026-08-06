@@ -24,16 +24,19 @@ public class AdapterHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "adapter";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the configured data adapter of the enclosing component.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `adapter` keyword allows you to access the data adapter of the enclosing component..";
 	}
 }

@@ -27,9 +27,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 
-
 public class CustomResponseHeadersTest extends StructrUiTest {
-
 
 	@Test
 	public void testCustomHtmlAttribute() {
@@ -53,9 +51,9 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
-
 
 		RestAssured.basePath = htmlUrl;
 
@@ -75,8 +73,6 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 
 		.when()
 			.get("/customHeadersTestPage");
-
-
 
 	//"Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 

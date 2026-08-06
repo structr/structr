@@ -23,11 +23,13 @@ import org.structr.docs.DocumentableType;
 public class UserDefinedFunctionHint extends MethodHint {
 
 	public UserDefinedFunctionHint(final String name, final String summary, final String description) {
+
 		super(name, summary, description);
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.UserDefinedFunction;
 	}
 }

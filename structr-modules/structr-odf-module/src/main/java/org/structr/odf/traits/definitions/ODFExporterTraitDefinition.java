@@ -74,6 +74,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final String ODF_IMAGE_DIRECTORY                   = "Pictures/";
 
 	public ODFExporterTraitDefinition() {
+
 		super(StructrTraits.ODF_EXPORTER);
 	}
 
@@ -88,6 +89,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					createDocumentFromTemplate(actionContext, entity.as(ODFExporter.class));
+
 					return null;
 				}
 			},
@@ -101,6 +103,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 					final String uuid             = (String)map.get("uuid");
 
 					exportImage(entity.as(ODFExporter.class), uuid);
+
 					return null;
 				}
 			}
@@ -114,11 +117,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<NodeInterface> documentTemplateProperty       = new EndNode(traitsInstance, DOCUMENT_TEMPLATE_PROPERTY, StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
 		final PropertyKey<NodeInterface> transformationProviderProperty = new EndNode(traitsInstance, TRANSFORMATION_PROVIDER_PROPERTY, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
 
-		return newSet(
-			resultDocumentProperty,
-			documentTemplateProperty,
-			transformationProviderProperty
-		);
+		return newSet(resultDocumentProperty, documentTemplateProperty, transformationProviderProperty);
 	}
 
 	@Override
@@ -142,13 +141,12 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ODFExporter.class, (traits, node) -> new ODFExporterTraitWrapper(traits, node)
-		);
+		return Map.of(ODFExporter.class, (traits, node) -> new ODFExporterTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -156,11 +154,13 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final File template = entity.getDocumentTemplate();
 		File output         = entity.getResultDocument();
+
 		OdfDocument templateOdt;
 
 		try {
 
 			if (template == null) {
+
 				throw new FrameworkException(422, "Template not set");
 			}
 
@@ -196,12 +196,10 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			final Image result         = app.nodeQuery(StructrTraits.IMAGE).key(Traits.of(StructrTraits.IMAGE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getFirst().as(Image.class);
 			final String imageName     = result.getName();
 			final String contentType   = result.getContentType();
-
 			String templateImagePath = null;
-
 			OdfDocument doc = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
-
 			NodeList nodes = doc.getContentRoot().getElementsByTagName(ODF_IMAGE_PARENT_NAME);
+
 			for (int i = 0; i < nodes.getLength(); i++) {
 
 				Node currentNode   = nodes.item(i);
@@ -212,6 +210,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 					NamedNodeMap childAttrs = currentNode.getFirstChild().getAttributes();
 					Node filePath = childAttrs.getNamedItem(ODF_IMAGE_ATTRIBUTE_FILE_PATH);
+
 					templateImagePath = filePath.getTextContent();
 					filePath.setTextContent(ODF_IMAGE_DIRECTORY + imageName);
 				}
@@ -219,6 +218,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 
 			OdfPackage pkg = doc.getPackage();
+
 			if (templateImagePath != null && templateImagePath.length() > 0) {
 
 				pkg.remove(templateImagePath);

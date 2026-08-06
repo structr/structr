@@ -34,11 +34,13 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "evaluateScript";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("entity, source");
 	}
 
@@ -51,6 +53,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 			GraphObject entity = (GraphObject)sources[0];
 
 			return Scripting.replaceVariables(ctx, entity, script, "evaluateScript()");
+
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -61,36 +64,32 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${evaluateScript(entity, script)}"),
-			Usage.javaScript("Usage: ${{ $.evaluateScript(entity, script); }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${evaluateScript(entity, script)}"), Usage.javaScript("Usage: ${{ $.evaluateScript(entity, script); }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Evaluates a serverside script string in the context of the given entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "You can use this function to evaluate a dynamic script in the context of a Structr application. Please note that there are many different way to exploit this function to gain privileged access to your application and the underlying server. It is almost never a good idea to use this function.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("entity", "`this` entity in the script"),
-			Parameter.mandatory("script", "script source")
-		);
+
+		return List.of(Parameter.mandatory("entity", "`this` entity in the script"), Parameter.mandatory("script", "script source"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-			Example.structrScript("${evaluateScript(me, 'print(this.name)')}", "Print the name of the current user")
-		);
+		return List.of(Example.structrScript("${evaluateScript(me, 'print(this.name)')}", "Print the name of the current user"));
 	}
 
 	@Override
@@ -105,6 +104,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

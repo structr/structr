@@ -53,6 +53,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public String getName() {
+
 		return "POSTMultiPart";
 	}
 
@@ -66,9 +67,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			final String uri                = sources[0].toString();
 			final Map<String, Object> parts = (HashMap) sources[1];
 			final String contentType        = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-
 			final Map<String, Object> responseData = this.postMultiPart(uri, parts, ctx.getHeaders(), ctx.isValidateCertificates());
-
 			final GraphObjectMap response = processResponseData(ctx, caller, responseData, contentType);
 
 			return response;
@@ -76,6 +75,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -86,12 +86,15 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 			final File file = (File) abstractFile;
 			InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
+
 			builder.addPart(partKey, inputStreamBody);
 
 		} else if (abstractFile.is(StructrTraits.FOLDER)) {
 
 			final Folder folder = (Folder) abstractFile;
+
 			for (File folderFile : folder.getFiles()) {
+
 				builder = addInputStreamToMultiPartBuilder(builder, folderFile, partKey);
 			}
 		}
@@ -104,6 +107,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		if (partValue instanceof Iterable) {
 
 			for (Object collectionPart : (Iterable) partValue) {
+
 				builder = addPartToBuilder(builder, partKey, collectionPart);
 			}
 
@@ -127,9 +131,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 			final URI uri      = new URL(address).toURI();
 			final HttpPost req = new HttpPost(uri);
-
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-
 			CloseableHttpClient client = HttpHelper.getClient(req, DEFAULT_CHARSET, null, null, null, null, null, null, headers, false, validateCertificates);
 
 			for (Map.Entry<String, Object> entry : parts.entrySet()) {
@@ -144,7 +146,6 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			req.setEntity(reqEntity);
 
 			final CloseableHttpResponse response = client.execute(req);
-
 			String content = IOUtils.toString(response.getEntity().getContent(), HttpHelper.charset(response));
 
 			content = HttpHelper.skipBOMIfPresent(content);
@@ -165,6 +166,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	// ----- documentation -----
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("url, partsMap [, responseContentType]");
 	}
 
@@ -180,6 +182,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${POSTMultiPart(URL, partsMap [, responseContentType])}. Example: ${POSTMultiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
 			Usage.javaScript("Usage: ${{ $.POSTMultiPart(URL, partsMap[, responseContentType]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
@@ -188,11 +191,13 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends a multi-part HTTP POST request to the given URL and returns the response body.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function can be used in a script to make a multi-part HTTP POST request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
@@ -210,6 +215,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
@@ -218,6 +224,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

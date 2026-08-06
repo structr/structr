@@ -34,22 +34,26 @@ public class PDFModule implements StructrModule {
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
 		Functions.put(licenseManager, new PDFFunction());
 		Functions.put(licenseManager, new PDFEncryptFunction());
 	}
 
 	@Override
 	public String getName() {
+
 		return "pdf";
 	}
 
 	@Override
 	public Set<String> getDependencies() {
+
 		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
+
 		return null;
 	}
 }

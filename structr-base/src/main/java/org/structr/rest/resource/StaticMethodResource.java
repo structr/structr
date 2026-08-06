@@ -48,10 +48,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 
 	public StaticMethodResource() {
 
-		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
-			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
-		);
+		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true), RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true));
 	}
 
 	@Override
@@ -79,6 +76,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 	private class StaticMethodResourceHandler extends RESTMethodCallHandler {
 
 		public StaticMethodResourceHandler(final RESTCall call, final AbstractMethod method) {
+
 			super(call, method);
 		}
 
@@ -129,6 +127,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 			if ("PATCH".equals(method.getHttpVerb())) {
 
 				// FIXME, only the first property set is used, we need to test this
+
 				return executeMethod(securityContext, null, NamedArguments.fromMap(propertySet.get(0)));
 
 			} else {
@@ -152,16 +151,19 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return null;
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of(method.getHttpVerb());
 		}
 	}

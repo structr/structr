@@ -24,16 +24,19 @@ public class DataSourceHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "dataSource";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the configured data source of the enclosing component.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `dataSource` keyword allows you to access the data source of the enclosing component.";
 	}
 }

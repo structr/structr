@@ -34,31 +34,37 @@ import org.structr.process.traits.definitions.BpmnElementTraitDefinition;
 public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements BpmnElement {
 
 	public BpmnElementTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getBpmnName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.BPMN_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getElementTypeName() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public BpmnElementType getElementType() {
+
 		return BpmnElementType.fromBpmnName(getElementTypeName());
 	}
 
 	@Override
 	public boolean isType(final BpmnElementType type) {
+
 		return type != null && type == getElementType();
 	}
 
@@ -80,6 +86,7 @@ public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public BpmnElement getParentElement() {
+
 		return element(wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY)));
 	}
 
@@ -93,51 +100,61 @@ public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public BpmnElement getAttachedToElement() {
+
 		return element(wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.ATTACHED_TO_PROPERTY)));
 	}
 
 	@Override
 	public String getScriptContent() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY));
 	}
 
 	@Override
 	public String getEventDefinitionType() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.EVENT_DEF_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getTimerType() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.TIMER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getTimerValue() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.TIMER_VALUE_PROPERTY));
 	}
 
 	@Override
 	public String getEventDefinitionId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.EVENT_DEF_ID_PROPERTY));
 	}
 
 	@Override
 	public String getEventDefinitionRef() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.EVENT_DEF_REF_PROPERTY));
 	}
 
 	@Override
 	public String getTimerExpressionType() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.TIMER_EXPRESSION_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getDocumentation() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.DOCUMENTATION_PROPERTY));
 	}
 
 	@Override
 	public String getBpmnAttributes() {
+
 		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
 	}
 
@@ -176,6 +193,7 @@ public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements
 	// ------------------------------------------------------------------
 
 	private BpmnElement element(final NodeInterface node) {
+
 		return node != null ? node.as(BpmnElement.class) : null;
 	}
 }

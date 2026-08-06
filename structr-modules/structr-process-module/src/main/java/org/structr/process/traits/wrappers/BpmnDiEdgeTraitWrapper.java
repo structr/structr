@@ -27,31 +27,37 @@ import org.structr.process.traits.definitions.BpmnDiEdgeTraitDefinition;
 public class BpmnDiEdgeTraitWrapper extends AbstractNodeTraitWrapper implements BpmnDiEdge {
 
 	public BpmnDiEdgeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getEdgeId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiEdgeTraitDefinition.EDGE_ID_PROPERTY));
 	}
 
 	@Override
 	public String getBpmnElementRef() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiEdgeTraitDefinition.BPMN_ELEMENT_REF_PROPERTY));
 	}
 
 	@Override
 	public String getWaypoints() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiEdgeTraitDefinition.WAYPOINTS_PROPERTY));
 	}
 
 	@Override
 	public String getLabelBounds() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiEdgeTraitDefinition.LABEL_BOUNDS_PROPERTY));
 	}
 
 	@Override
 	public String getDiAttributes() {
+
 		return wrappedObject.getProperty(traits.key(BpmnDiEdgeTraitDefinition.DI_ATTRIBUTES_PROPERTY));
 	}
 }

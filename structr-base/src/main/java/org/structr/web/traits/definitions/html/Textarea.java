@@ -45,6 +45,7 @@ public class Textarea extends GenericHtmlElementTraitDefinition {
 	public static final String COLS_PROPERTY        = getPrefixedHTMLAttributeName("cols");
 
 	public Textarea() {
+
 		super(StructrTraits.TEXTAREA);
 	}
 
@@ -55,11 +56,11 @@ public class Textarea extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

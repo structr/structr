@@ -36,36 +36,43 @@ import java.util.Date;
 public class ProcessInstanceTraitWrapper extends AbstractNodeTraitWrapper implements ProcessInstance {
 
 	public ProcessInstanceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getStatus() {
+
 		return wrappedObject.getProperty(traits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
 	}
 
 	@Override
 	public void setStatus(final String status) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), status);
 	}
 
 	@Override
 	public boolean isRunning() {
+
 		return ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(getStatus());
 	}
 
 	@Override
 	public boolean isCompleted() {
+
 		return ProcessInstanceTraitDefinition.STATUS_COMPLETED.equals(getStatus());
 	}
 
 	@Override
 	public boolean isSuspended() {
+
 		return ProcessInstanceTraitDefinition.STATUS_SUSPENDED.equals(getStatus());
 	}
 
 	@Override
 	public boolean isTerminated() {
+
 		return ProcessInstanceTraitDefinition.STATUS_TERMINATED.equals(getStatus());
 	}
 
@@ -73,31 +80,37 @@ public class ProcessInstanceTraitWrapper extends AbstractNodeTraitWrapper implem
 	public BpmnProcess getProcess() {
 
 		final NodeInterface process = wrappedObject.getProperty(traits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
+
 		return process != null ? process.as(BpmnProcess.class) : null;
 	}
 
 	@Override
 	public void setProcess(final NodeInterface process) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY), process);
 	}
 
 	@Override
 	public NodeInterface getSubject() {
+
 		return wrappedObject.getProperty(traits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 	}
 
 	@Override
 	public void setSubject(final NodeInterface subject) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), subject);
 	}
 
 	@Override
 	public NodeInterface getInitiator() {
+
 		return wrappedObject.getProperty(traits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY));
 	}
 
 	@Override
 	public void setInitiator(final NodeInterface initiator) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY), initiator);
 	}
 
@@ -127,16 +140,19 @@ public class ProcessInstanceTraitWrapper extends AbstractNodeTraitWrapper implem
 
 	@Override
 	public void setStartTime(final Date startTime) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessInstanceTraitDefinition.START_TIME_PROPERTY), startTime);
 	}
 
 	@Override
 	public Date getEndTime() {
+
 		return wrappedObject.getProperty(traits.key(ProcessInstanceTraitDefinition.END_TIME_PROPERTY));
 	}
 
 	@Override
 	public void setEndTime(final Date endTime) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(ProcessInstanceTraitDefinition.END_TIME_PROPERTY), endTime);
 	}
 }

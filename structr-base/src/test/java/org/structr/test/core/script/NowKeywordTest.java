@@ -73,6 +73,7 @@ public class NowKeywordTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -91,15 +92,20 @@ public class NowKeywordTest extends StructrTest {
 			// The result must be parseable with the default format.
 			final SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_FORMAT);
 			sdf.setLenient(false);
+
 			try {
+
 				sdf.parse(result);
+
 			} catch (ParseException ex) {
+
 				fail("${now} result \"" + result + "\" does not match default format " + DEFAULT_FORMAT);
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -119,10 +125,15 @@ public class NowKeywordTest extends StructrTest {
 
 			final SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_FORMAT);
 			final Date parsed;
+
 			try {
+
 				parsed = sdf.parse(result);
+
 			} catch (ParseException ex) {
+
 				fail("${now} result \"" + result + "\" is not parseable: " + ex.getMessage());
+
 				return;
 			}
 
@@ -133,6 +144,7 @@ public class NowKeywordTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -153,15 +165,20 @@ public class NowKeywordTest extends StructrTest {
 
 			// Confirm the result is parseable as a date using the default format.
 			final SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_FORMAT);
+
 			try {
+
 				sdf.parse(result);
+
 			} catch (ParseException ex) {
+
 				fail("replaceVariables ${now} result \"" + result + "\" does not match default format " + DEFAULT_FORMAT);
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -183,15 +200,20 @@ public class NowKeywordTest extends StructrTest {
 			// The middle part must be a valid date.
 			final String middle = result.substring("prefix-".length(), result.length() - "-suffix".length());
 			final SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_FORMAT);
+
 			try {
+
 				sdf.parse(middle);
+
 			} catch (ParseException ex) {
+
 				fail("Embedded ${now} in template yielded non-date middle part: \"" + middle + "\"");
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -203,6 +225,7 @@ public class NowKeywordTest extends StructrTest {
 		// Settings.DefaultDateFormat controls the output pattern.
 		// Changing it must change what ${now} returns.
 		final String originalFormat = Settings.DefaultDateFormat.getValue();
+
 		try (final Tx tx = app.tx()) {
 
 			Settings.DefaultDateFormat.setValue("dd.MM.yyyy");
@@ -213,25 +236,31 @@ public class NowKeywordTest extends StructrTest {
 			assertNotNull("${now} with custom format must not return null", result);
 
 			// Must match dd.MM.yyyy (e.g. "19.06.2026"), not the default ISO pattern.
-			assertTrue("${now} must use the configured format dd.MM.yyyy; got: " + result,
-				result.matches("\\d{2}\\.\\d{2}\\.\\d{4}"));
+			assertTrue("${now} must use the configured format dd.MM.yyyy; got: " + result, result.matches("\\d{2}\\.\\d{2}\\.\\d{4}"));
 
 			// Must NOT match the default ISO format.
 			final SimpleDateFormat iso = new SimpleDateFormat(DEFAULT_FORMAT);
 			iso.setLenient(false);
+
 			try {
+
 				iso.parse(result);
 				fail("With custom format dd.MM.yyyy, ${now} should not parse as ISO format");
+
 			} catch (ParseException expected) {
+
 				// correct
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
+
 		} finally {
+
 			Settings.DefaultDateFormat.setValue(originalFormat);
 		}
 	}
@@ -255,6 +284,7 @@ public class NowKeywordTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -278,6 +308,7 @@ public class NowKeywordTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -297,6 +328,7 @@ public class NowKeywordTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -319,23 +351,29 @@ public class NowKeywordTest extends StructrTest {
 			final String iso = (String) result;
 
 			// JS toISOString always produces "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" in UTC.
-			assertTrue("$.now.toISOString() must match ISO-8601 UTC pattern; got: " + iso,
-				iso.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z"));
+			assertTrue("$.now.toISOString() must match ISO-8601 UTC pattern; got: " + iso, iso.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z"));
 
 			// The represented time must fall within the test execution window.
 			final Date parsed;
+
 			try {
+
 				parsed = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(iso);
+
 			} catch (ParseException ex) {
+
 				fail("Could not parse $.now.toISOString() result: " + iso);
+
 				return;
 			}
+
 			assertTrue("$.now.toISOString() must not be earlier than test start", parsed.getTime() >= before - RECENCY_WINDOW_MS);
 			assertTrue("$.now.toISOString() must not be later than test end",     parsed.getTime() <= after  + RECENCY_WINDOW_MS);
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -360,15 +398,20 @@ public class NowKeywordTest extends StructrTest {
 
 			// Must be parseable with the default format — not raw "object" or [object Date].
 			final SimpleDateFormat sdf = new SimpleDateFormat(DEFAULT_FORMAT);
+
 			try {
+
 				sdf.parse(dateStr);
+
 			} catch (ParseException ex) {
+
 				fail("JS $.now embedded in template must serialise to default date format; got: \"" + dateStr + "\"");
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -387,7 +430,6 @@ public class NowKeywordTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext ctx = new ActionContext(securityContext);
-
 			final String structrNow = Scripting.replaceVariables(ctx, null, "${now}");
 			final String jsNow      = Scripting.replaceVariables(ctx, null, "${{ $.now; }}");
 
@@ -399,10 +441,14 @@ public class NowKeywordTest extends StructrTest {
 			final Date jsDate;
 
 			try {
+
 				structrDate = sdf.parse(structrNow);
 				jsDate      = sdf.parse(jsNow);
+
 			} catch (ParseException ex) {
+
 				fail("Could not parse now values for cross-engine comparison: structr=\"" + structrNow + "\", js=\"" + jsNow + "\"");
+
 				return;
 			}
 
@@ -412,6 +458,7 @@ public class NowKeywordTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception: " + fex.getMessage());
 			fex.printStackTrace();
 		}

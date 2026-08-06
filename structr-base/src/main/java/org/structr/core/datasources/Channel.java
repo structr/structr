@@ -43,10 +43,12 @@ import java.util.Map;
 public interface Channel<T> {
 
 	default ChannelResult<T> getResult(final ActionContext actionContext) throws FrameworkException {
+
 		return getResult(actionContext, null, null);
 	}
 
 	default ChannelResult<T> getResult(final ActionContext actionContext, final String transform) throws FrameworkException {
+
 		return getResult(actionContext, null, transform);
 	}
 
@@ -67,14 +69,17 @@ public interface Channel<T> {
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException;
 
 	default String getSortKey() {
+
 		return getChannelName().toLowerCase() + ".sort";
 	}
 
 	default String getPaginationKey() {
+
 		return getChannelName().toLowerCase() + ".page";
 	}
 
 	default String getFilterKey() {
+
 		return getChannelName().toLowerCase() + ".filter";
 	}
 
@@ -113,9 +118,11 @@ public interface Channel<T> {
 							}
 
 						}
+
 						break;
 
 					case "channel":
+
 						return new ChannelDataSource(name);
 
 				}
@@ -125,9 +132,11 @@ public interface Channel<T> {
 				switch (dataSourceName) {
 
 					case "root-folders":
+
 						return new RootFoldersDataSource("root-folders");
 
 					case "parent":
+
 						return new ParentDataSource("parent");
 
 					default:

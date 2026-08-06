@@ -149,6 +149,7 @@ public class RenderContext extends ActionContext {
 
 		// force indentation for deployment mode
 		if (EditMode.DEPLOYMENT.equals(this.editMode)) {
+
 			this.indentHtml = true;
 		}
 
@@ -163,42 +164,52 @@ public class RenderContext extends ActionContext {
 	}
 
 	public void setDetailsDataObject(final GraphObject detailsDataObject) {
+
 		this.detailsDataObject = detailsDataObject;
 	}
 
 	public GraphObject getDetailsDataObject() {
+
 		return detailsDataObject;
 	}
 
 	public void setDataObject(GraphObject currentDataObject) {
+
 		this.currentDataObject = currentDataObject;
 	}
 
 	public GraphObject getDataObject() {
+
 		return currentDataObject;
 	}
 
 	public void setSourceDataObject(GraphObject sourceDataObject) {
+
 		this.sourceDataObject = sourceDataObject;
 	}
 
 	public GraphObject getSourceDataObject() {
+
 		return sourceDataObject;
 	}
 
 	public void setListSource(Iterable<GraphObject> listSource) {
+
 		this.listSource = listSource;
 	}
 
 	public Iterable<GraphObject> getListSource() {
+
 		return listSource;
 	}
 
 	public PropertyKey getRelatedProperty() {
+
 		return relatedProperty;
 	}
 
 	public void setRelatedProperty(final PropertyKey relatedProperty) {
+
 		this.relatedProperty = relatedProperty;
 	}
 
@@ -218,6 +229,7 @@ public class RenderContext extends ActionContext {
 	public void popSecurityContext() {
 
 		if (!scStack.isEmpty()) {
+
 			this.setSecurityContext(scStack.pop());
 		}
 	}
@@ -232,14 +244,17 @@ public class RenderContext extends ActionContext {
 	 * @return edit mode
 	 */
 	public EditMode getEditMode(final Principal user) {
+
 		return (user == null || Boolean.FALSE.equals(user.isAdmin())) ? EditMode.NONE : editMode;
 	}
 
 	public static EditMode getValidatedEditMode(final Principal user, final String editModeString) {
+
 		return (user == null || Boolean.FALSE.equals(user.isAdmin())) ? EditMode.NONE : editMode(editModeString);
 	}
 
 	public void setEditMode(final EditMode edit) {
+
 		this.editMode = edit;
 	}
 
@@ -257,18 +272,22 @@ public class RenderContext extends ActionContext {
 	}
 
 	public String getISO3Country() {
+
 		return getLocale().getISO3Country();
 	}
 
 	public String getISO3Language() {
+
 		return getLocale().getISO3Language();
 	}
 
 	public HttpServletRequest getRequest() {
+
 		return request;
 	}
 
 	public HttpServletResponse getResponse() {
+
 		return response;
 	}
 
@@ -309,56 +328,69 @@ public class RenderContext extends ActionContext {
 	}
 
 	public void increaseDepth() {
+
 		this.depth++;
 	}
 
 	public void decreaseDepth() {
+
 		this.depth--;
 	}
 
 	public void setDepth(final int depth) {
+
 		this.depth = depth;
 	}
 
 	public int getDepth() {
+
 		return depth;
 	}
 
 	public void setBuffer(final AsyncBuffer buffer) {
+
 		this.buffer = buffer;
 	}
 
 	public AsyncBuffer getBuffer() {
+
 		return buffer;
 	}
 
 	public void setInBody(final boolean inBody) {
+
 		this.inBody = inBody;
 	}
 
 	public boolean inBody() {
+
 		return inBody;
 	}
 
 	public void setIsPartialRendering(final boolean isPartialRendering) {
+
 		this.isPartialRendering = isPartialRendering;
 	}
 
 	public boolean isPartialRendering() {
+
 		return isPartialRendering;
 	}
 
 	public void setTemplateRootId(final String uuid) {
+
 		this.templateRootId = uuid;
 	}
 
 	public void setTemplateId(final String uuid) {
+
 		this.templateId = uuid;
 	}
 
 	public boolean isTemplateRoot(final String uuid) {
 
 		if (uuid == null) {
+
 			return false;
 		}
 
@@ -366,53 +398,65 @@ public class RenderContext extends ActionContext {
 	}
 
 	public String getTemplateId() {
+
 		return this.templateId;
 	}
 
 	public Map<String, GraphObject> getDataObjectsMap() {
+
 		return dataObjects;
 	}
 
 	public GraphObject getDataNode(final String key) {
+
 		return dataObjects.get(key);
 	}
 
 	public void putDataObject(final String key, final GraphObject currentDataObject) {
+
 		dataObjects.put(key, currentDataObject);
 		setDataObject(currentDataObject);
 
 	}
 
 	public void clearDataObject(final String key) {
+
 		dataObjects.remove(key);
 		setDataObject(null);
 	}
 
 	public boolean hasDataForKey(final String key) {
+
 		return dataObjects.containsKey(key);
 	}
 
 	public void setPage(final Page page) {
+
 		this.page = page;
 	}
 
 	public Page getPage() {
+
 		return page;
 	}
 
 	public String getPageId() {
+
 		return (page != null ? page.getUuid() : null);
 	}
 
 	public void setAnyChildNodeCreatesNewLine(final boolean anyChildNodeCreatesNewLine) {
+
 		this.anyChildNodeCreatesNewLine = anyChildNodeCreatesNewLine;
 	}
 
 	public boolean getAnyChildNodeCreatesNewLine() {
+
 		return anyChildNodeCreatesNewLine;
 	}
 
 	public boolean shouldIndentHtml() {
+
 		return indentHtml;
 	}
 
@@ -457,6 +501,7 @@ public class RenderContext extends ActionContext {
 		// evaluate non-ui specific context
 		final Object value = super.evaluate(entity, key, data, defaultValue, depth, contextObject, row, column);
 		if (value != null) {
+
 			return value;
 		}
 
@@ -471,11 +516,13 @@ public class RenderContext extends ActionContext {
 					try {
 
 						// return output stream of HTTP response for streaming (execBinary)
+
 						return response.getOutputStream();
 
 					} catch (IOException ioex) {
 
 						LoggerFactory.getLogger(RenderContext.class).warn("", ioex);
+
 						return null;
 					}
 				}
@@ -491,8 +538,10 @@ public class RenderContext extends ActionContext {
 						if (data instanceof NodeInterface node && node.is(StructrTraits.LINK_SOURCE)) {
 
 							final LinkSource linkSource = node.as(LinkSource.class);
+
 							return linkSource.getLinkable();
 						}
+
 						break;
 				}
 
@@ -512,26 +561,33 @@ public class RenderContext extends ActionContext {
 
 							return Function.numberOrString(defaultValue);
 						}
+
 						break;
 
 					case "current":
+
 						return getDetailsDataObject();
 
 					case "theme":
+
 						return this.theme;
 
 					case "template":
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
+
 							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
+
 						break;
 
 					case "component":
 
 						if (currentComponent != null) {
+
 							return currentComponent;
 						}
+
 						return resolveClosestComponent(entity);
 
 					case "task":
@@ -547,12 +603,14 @@ public class RenderContext extends ActionContext {
 
 								GraphObject taskContext = getDataObject();
 								if (taskContext == null) {
+
 									taskContext = getDetailsDataObject();
 								}
 
 								return taskMapping.resolveTask(getSecurityContext(), (taskContext instanceof NodeInterface) ? (NodeInterface) taskContext : null);
 							}
 						}
+
 						break;
 
 					case "visibilityMapping":
@@ -565,6 +623,7 @@ public class RenderContext extends ActionContext {
 
 							return entity.as(DOMNode.class).getClosestVisibilityMapping();
 						}
+
 						break;
 
 					case "dataSource":
@@ -572,6 +631,7 @@ public class RenderContext extends ActionContext {
 						// provide access to the current data source in render templates
 						// that are included via renderEach or renderFields
 						if (currentDataSource != null) {
+
 							return currentDataSource;
 						}
 
@@ -580,6 +640,7 @@ public class RenderContext extends ActionContext {
 
 							return forDataSource.getComponentConfiguration().getDataSource();
 						}
+
 						break;
 
 					case "adapter":
@@ -587,6 +648,7 @@ public class RenderContext extends ActionContext {
 						// provide access to the current adapter in render templates
 						// that are included via renderEach or renderFields
 						if (currentAdapter != null) {
+
 							return currentAdapter;
 						}
 
@@ -602,15 +664,19 @@ public class RenderContext extends ActionContext {
 					case "page":
 						Page page = getPage();
 						if (page == null && entity.is(StructrTraits.DOM_NODE)) {
+
 							page = entity.as(DOMNode.class).getOwnerDocument();
 						}
+
 						return page;
 
 					case "parent":
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
+
 							return entity.as(DOMNode.class).getParent();
 						}
+
 						break;
 
 					case "children":
@@ -620,6 +686,7 @@ public class RenderContext extends ActionContext {
 							return Iterables.toList(entity.as(DOMNode.class).getChildren());
 
 						}
+
 						break;
 
 					// link has two different meanings
@@ -631,6 +698,7 @@ public class RenderContext extends ActionContext {
 
 							return linkSource.getLinkable();
 						}
+
 						break;
 				}
 			}
@@ -646,6 +714,7 @@ public class RenderContext extends ActionContext {
 
 	@Override
 	public boolean isRenderContext() {
+
 		return true;
 	}
 
@@ -679,12 +748,14 @@ public class RenderContext extends ActionContext {
 	 * newline-to-break conversion its content type asks for.
 	 */
 	public interface ContentPostProcessor {
+
 		String apply(final String text) throws FrameworkException;
 	}
 
 	private ContentPostProcessor contentPostProcessor = null;
 
 	public ContentPostProcessor getContentPostProcessor() {
+
 		return contentPostProcessor;
 	}
 
@@ -694,12 +765,14 @@ public class RenderContext extends ActionContext {
 	 * cleared, or a parent's print would lose its rules after a child rendered.
 	 */
 	public void setContentPostProcessor(final ContentPostProcessor postProcessor) {
+
 		this.contentPostProcessor = postProcessor;
 	}
 
 	private String postProcessContent(final String text) {
 
 		if (contentPostProcessor == null) {
+
 			return text;
 		}
 
@@ -739,6 +812,7 @@ public class RenderContext extends ActionContext {
 				gson.toJson(renderState, writer);
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 
@@ -768,50 +842,61 @@ public class RenderContext extends ActionContext {
 			}
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
 
 	public Map<String, Object> getTheme() {
+
 		return theme;
 	}
 
 	public void setCurrentAdapter(final DataAdapter newDataSource) {
+
 		this.currentAdapter = newDataSource;
 	}
 
 	public DataAdapter getCurrentAdapter() {
+
 		return currentAdapter;
 	}
 
 	public void setCurrentReloadBehaviour(final String reloadBehaviour) {
+
 		this.currentReloadBehaviour = reloadBehaviour;
 	}
 
 	public String getCurrentReloadBehaviour() {
+
 		return currentReloadBehaviour;
 	}
 
 	public void setCurrentDataSource(final Channel newDataSource) {
+
 		this.currentDataSource = newDataSource;
 	}
 
 	public Channel getCurrentDataSource() {
+
 		return currentDataSource;
 	}
 
 	public void setPossibleCurrentComponent(final Object candidate) {
 
 		if (candidate == null && candidate instanceof GraphObject g && g.is(StructrTraits.DOM_NODE)) {
+
 			this.currentComponent = g.as(DOMNode.class).getClosestComponent();
 		}
 	}
 
 	public void setCurrentComponent(final DOMNode currentComponent) {
+
 		this.currentComponent = currentComponent;
 	}
 
 	public DOMNode getCurrentComponent() {
+
 		return currentComponent;
 	}
 
@@ -822,10 +907,12 @@ public class RenderContext extends ActionContext {
 			switch (name) {
 
 				case "current":
+
 					if (detailsDataObject != null) {
 
 						return detailsDataObject.getUuid();
 					}
+
 					break;
 
 				default:
@@ -842,6 +929,7 @@ public class RenderContext extends ActionContext {
 
 	// ----- private methods -----
 	private void readConfigParameters () {
+
 		indentHtml = Settings.HtmlIndentation.getValue();
 	}
 

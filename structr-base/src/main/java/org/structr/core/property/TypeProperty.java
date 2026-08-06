@@ -86,6 +86,7 @@ public class TypeProperty extends StringProperty {
 		if (inputType == null) {
 
 			logger.warn("Not updating labels of node {}: no type given.", node != null ? node.getUuid() : null);
+
 			return;
 		}
 
@@ -108,7 +109,6 @@ public class TypeProperty extends StringProperty {
 		if (node instanceof NodeInterface && labels.size() == 1 && !dbNode.hasProperty("type")) {
 
 			final String singleLabelTypeName = labels.get(0);
-
 			if (Traits.exists(singleLabelTypeName)) {
 
 				typeCandidate = Traits.of(singleLabelTypeName);
@@ -119,6 +119,7 @@ public class TypeProperty extends StringProperty {
 
 		// collect labels that are already present on a node
 		for (final String label : labels) {
+
 			toRemove.add(label);
 		}
 
@@ -137,6 +138,7 @@ public class TypeProperty extends StringProperty {
 
 			// remove difference
 			for (final String remove : toRemove) {
+
 				dbNode.removeLabel(remove);
 			}
 		}
@@ -151,6 +153,7 @@ public class TypeProperty extends StringProperty {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return "Type";
 	}
 
@@ -163,9 +166,9 @@ public class TypeProperty extends StringProperty {
 		map.put("example", getExampleValue(1));
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
-
 
 		return map;
 	}
@@ -179,6 +182,7 @@ public class TypeProperty extends StringProperty {
 		map.put("example", getExampleValue(1));
 
 		if (this.isReadOnly()) {
+
 			map.put("readOnly", true);
 		}
 

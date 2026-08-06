@@ -18,7 +18,6 @@
  */
 package org.structr.api.search;
 
-
 public interface TypeQuery extends QueryPredicate {
 
 	String getSourceType();

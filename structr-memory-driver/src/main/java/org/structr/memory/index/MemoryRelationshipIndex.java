@@ -31,6 +31,7 @@ import java.util.Set;
 public class MemoryRelationshipIndex extends AbstractMemoryIndex<Relationship<Long>> {
 
 	public MemoryRelationshipIndex(final MemoryDatabaseService db) {
+
 		super(db);
 	}
 
@@ -38,7 +39,6 @@ public class MemoryRelationshipIndex extends AbstractMemoryIndex<Relationship<Lo
 	public Iterable<Relationship<Long>> getResult(final MemoryQuery query) {
 
 		final Set<String> labels = query.getTypeLabels();
-
 		if (labels.isEmpty()) {
 
 			return Iterables.filter(query, query.sort(db.getAllRelationships()));

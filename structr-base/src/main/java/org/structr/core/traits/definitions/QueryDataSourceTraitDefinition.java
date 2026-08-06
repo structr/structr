@@ -55,15 +55,14 @@ public class QueryDataSourceTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String QUERY_PROPERTY     = "query";
 
 	public QueryDataSourceTraitDefinition() {
+
 		super(StructrTraits.QUERY_DATA_SOURCE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			QueryDataSource.class, (traits, node) -> new QueryDataSourceTraitWrapper(traits, node)
-		);
+		return Map.of(QueryDataSource.class, (traits, node) -> new QueryDataSourceTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -96,6 +95,7 @@ public class QueryDataSourceTraitDefinition extends AbstractNodeTraitDefinition 
 					}
 
 					// no source => empty result
+
 					return new PagingIterable<>("empty result", List.of());
 				}
 
@@ -111,6 +111,7 @@ public class QueryDataSourceTraitDefinition extends AbstractNodeTraitDefinition 
 
 						// hide some internal properties
 						if (!SchemaNodeTraitDefinition.PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+
 							output.put(key.jsonName(), key.getFieldDefinition());
 						}
 					}
@@ -120,11 +121,13 @@ public class QueryDataSourceTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
+
 					return provider.as(QueryDataSource.class).getDataType();
 				}
 
 				@Override
 				public int getDimension(final DataSource provider) {
+
 					return 1;
 				}
 			}
@@ -137,10 +140,7 @@ public class QueryDataSourceTraitDefinition extends AbstractNodeTraitDefinition 
 		final PropertyKey<String> dataTypeProperty = new StringProperty(DATA_TYPE_PROPERTY);
 		final PropertyKey<String> queryProperty    = new StringProperty(QUERY_PROPERTY);
 
-		return newSet(
-			dataTypeProperty,
-			queryProperty
-		);
+		return newSet(dataTypeProperty, queryProperty);
 	}
 
 	@Override
@@ -148,22 +148,14 @@ public class QueryDataSourceTraitDefinition extends AbstractNodeTraitDefinition 
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(
-				DATA_TYPE_PROPERTY,
-				QUERY_PROPERTY
-			),
+			PropertyView.Public, newSet(DATA_TYPE_PROPERTY, QUERY_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				DATA_TYPE_PROPERTY,
-				QUERY_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(DATA_TYPE_PROPERTY, QUERY_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

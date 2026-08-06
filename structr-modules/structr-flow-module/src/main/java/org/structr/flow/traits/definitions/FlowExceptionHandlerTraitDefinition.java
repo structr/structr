@@ -52,33 +52,32 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 	public static final String DATA_TARGET_PROPERTY   = "dataTarget";
 
 	public FlowExceptionHandlerTraitDefinition() {
+
 		super(StructrTraits.FLOW_EXCEPTION_HANDLER);
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Map.of(
-				GetFlowType.class,
-				new GetFlowType() {
+		return Map.of(GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.Exception;
 					}
 				},
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 				@Override
 				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
 					return context.getData(node.getUuid());
 				}
 			},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -99,9 +98,7 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowExceptionHandler.class, (traits, node) -> new FlowExceptionHandler(traits, node)
-		);
+		return Map.of(FlowExceptionHandler.class, (traits, node) -> new FlowExceptionHandler(traits, node));
 	}
 
 	@Override
@@ -110,30 +107,20 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 		final Property<Iterable<NodeInterface>> handledNodes = new StartNodes(traitsInstance, HANDLED_NODES_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<Iterable<NodeInterface>> dataTarget   = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
-		return newSet(
-			handledNodes,
-			dataTarget
-		);
+		return newSet(handledNodes, dataTarget);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-					FlowNodeTraitDefinition.NEXT_PROPERTY, HANDLED_NODES_PROPERTY, DATA_TARGET_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(FlowNodeTraitDefinition.NEXT_PROPERTY, HANDLED_NODES_PROPERTY, DATA_TARGET_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-					FlowNodeTraitDefinition.NEXT_PROPERTY, HANDLED_NODES_PROPERTY, DATA_TARGET_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(FlowNodeTraitDefinition.NEXT_PROPERTY, HANDLED_NODES_PROPERTY, DATA_TARGET_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

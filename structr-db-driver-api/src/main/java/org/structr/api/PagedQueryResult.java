@@ -39,6 +39,7 @@ public class PagedQueryResult<T> implements Iterable<T> {
 
 	@Override
 	public Iterator<T> iterator() {
+
 		return new PagingIterator(description, result.iterator(), page, pageSize);
 	}
 }

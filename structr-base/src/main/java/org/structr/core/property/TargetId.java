@@ -41,16 +41,19 @@ public class TargetId extends Property<String> {
 	private static final Logger logger = LoggerFactory.getLogger(TargetId.class.getName());
 
 	public TargetId(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -71,6 +74,7 @@ public class TargetId extends Property<String> {
 		if (obj instanceof RelationshipInterface) {
 
 			try {
+
 				((RelationshipInterface)obj).setTargetNodeId(value);
 
 			} catch (FrameworkException fex) {
@@ -92,67 +96,80 @@ public class TargetId extends Property<String> {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
+
 		return null;
 	}
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 
 	@Override
 	public Class valueType() {
+
 		return String.class;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return null;
 	}
 
 	@Override
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
 		return Collections.EMPTY_MAP;
 	}
 }

@@ -45,15 +45,14 @@ public class BpmnParticipantTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String PROCESS_PROPERTY        = "process";
 
 	public BpmnParticipantTraitDefinition() {
+
 		super(ProcessTraits.BPMN_PARTICIPANT);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnParticipant.class, (traits, node) -> new BpmnParticipantTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnParticipant.class, (traits, node) -> new BpmnParticipantTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -81,6 +80,7 @@ public class BpmnParticipantTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

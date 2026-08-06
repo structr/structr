@@ -30,16 +30,19 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 
 	@Override
 	public String getName() {
+
 		return "removeLabels";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes the given set of labels from the given node.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
@@ -52,6 +55,7 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 		final List<String> list  = (List)sources[1];
 
 		for (final String label : list) {
+
 			node.getNode().removeLabel(label);
 		}
 
@@ -61,14 +65,12 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.javaScript("$.removeLabels(node, [ 'LABEL1', 'LABEL2' ])"),
-			Usage.structrScript("removeLabels(node, merge('LABEL1', 'LABEL2'))")
-		);
+		return List.of(Usage.javaScript("$.removeLabels(node, [ 'LABEL1', 'LABEL2' ])"), Usage.structrScript("removeLabels(node, merge('LABEL1', 'LABEL2'))"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

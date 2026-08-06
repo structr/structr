@@ -46,11 +46,13 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "createZip";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("archiveFileName, filesOrFolders [, password [, encryptionMethod ] ]");
 	}
 
@@ -66,7 +68,6 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 		String name             = null;
 		String password         = null;
-
 		EncryptionMethod encryptionMethod = EncryptionMethod.ZIP_STANDARD;
 
 		if (sources[0] instanceof String) {
@@ -132,7 +133,6 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			} else if (sources[1] instanceof Iterable) {
 
 				final List<GraphObject> filesOrFolders = Iterables.toList((Iterable) sources[1]);
-
 				if (filesOrFolders.isEmpty()) {
 
 					logParameterError(caller, sources, "Collection in parameter 1 is empty - unable to create empty zip file.", ctx.isJavaScriptContext());
@@ -159,6 +159,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 						} else {
 
 							logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 							return usage(ctx.isJavaScriptContext());
 						}
 					}
@@ -167,6 +168,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return usage(ctx.isJavaScriptContext());
 			}
 
@@ -187,11 +189,13 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Creates and returns a ZIP archive.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function creates and returns a ZIP archive from the given files and folders and stores it as a File with the given name in Structr's filesystem.
 
@@ -216,6 +220,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${createZip('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
 			Example.javaScript("""
@@ -252,9 +257,8 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"If the `archiveFileName` parameter does not end with '.zip', the ending is automatically appended"
-		);
+
+		return List.of("If the `archiveFileName` parameter does not end with '.zip', the ending is automatically appended");
 	}
 
 	@Override
@@ -268,6 +272,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 

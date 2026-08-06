@@ -44,11 +44,13 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "getOrCreate";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("type, propertyMap");
 	}
 
@@ -74,6 +76,7 @@ public class GetOrCreateFunction extends CoreFunction {
 			if (type == null) {
 
 				logger.warn("Error in getOrCreate(): no type specified. Parameters: {}", getParametersAsString(sources));
+
 				return ERROR_MESSAGE_NO_TYPE_SPECIFIED;
 			}
 
@@ -96,7 +99,6 @@ public class GetOrCreateFunction extends CoreFunction {
 			} else {
 
 				final int parameterCount = sources.length;
-
 				if (parameterCount % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -105,11 +107,13 @@ public class GetOrCreateFunction extends CoreFunction {
 				for (int c = 1; c < parameterCount; c += 2) {
 
 					if (sources[c] == null) {
+
 						throw new IllegalArgumentException();
 					}
 
 					final String keyName = sources[c].toString();
 					final PropertyKey key = type.key(keyName);
+
 					if (key != null) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
@@ -133,10 +137,12 @@ public class GetOrCreateFunction extends CoreFunction {
 			if (obj != null) {
 
 				// return existing object
+
 				return obj;
 			}
 
 			// create new object
+
 			return app.create(type.getName(), properties);
 
 		} catch (final IllegalArgumentException e) {
@@ -149,6 +155,7 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 				Usage.javaScript("Usage: ${{ $.getOrCreate(type, properties)}}. Example: ${{ $.getOrCreate(\"User\", { eMail: 'tester@test.com' }); }}"),
 				Usage.structrScript("Usage: ${getOrCreate(type, properties)}. Example: ${getOrCreate(\"User\", \"email\", \"tester@test.com\"}")
@@ -157,11 +164,13 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns an entity with the given properties, creating one if it doesn't exist.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 		`getOrCreate()` finds and returns a single object with the given properties 
 		(key/value pairs or a map of properties) and **creates** that object if it does not exist yet.
@@ -173,6 +182,7 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 				Example.structrScript("""
 						${getOrCreate('User', 'name', 'admin')}
@@ -195,13 +205,13 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"The `getOrCreate()` method will always use **exact** search, if you are interested in inexact / case-insensitive search, use `search()`.",
 				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
 				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
 		);
 	}
-
 
 	@Override
 	public List<Parameter> getParameters() {
@@ -220,6 +230,7 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Database;
 	}
 }

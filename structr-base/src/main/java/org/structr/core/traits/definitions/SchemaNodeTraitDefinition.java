@@ -99,6 +99,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}));
 
 	public SchemaNodeTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_NODE);
 	}
 
@@ -107,8 +108,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(GraphObject obj, ErrorBuffer errorBuffer) {
@@ -146,15 +146,18 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						final String thisPropertyName = property.getName();
 						if (thisPropertyName == null) {
+
 							continue;
 						}
 
 						try {
+
 							final PropertyKey key = property.createKey(typeName);
 
 							for (final String traitName : sourceTraits) {
 
 								if (!Traits.exists(traitName) || !Traits.of(traitName).hasKey(thisPropertyName)) {
+
 									continue;
 								}
 
@@ -191,8 +194,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -203,13 +205,13 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
+
 						throwExceptionIfTypeAlreadyExists(graphObject);
 					}
 
@@ -217,8 +219,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnNodeDeletion.class,
-			new OnNodeDeletion() {
+			OnNodeDeletion.class, new OnNodeDeletion() {
 
 				@Override
 				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
@@ -232,9 +233,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			SchemaNode.class, (traits, node) -> new SchemaNodeTraitWrapper(traits, node)
-		);
+		return Map.of(SchemaNode.class, (traits, node) -> new SchemaNodeTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -294,7 +293,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 							for (final String part : input.filter().split(" ")) {
 
 								final String trimmed = part.trim();
-
 								if (StringUtils.isNotBlank(trimmed)) {
 
 									// we AND together the individual parts of the filter string
@@ -333,6 +331,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// hide some internal properties
 						if (!PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+
 							output.put(key.jsonName(), key.getFieldDefinition());
 						}
 					}
@@ -342,11 +341,13 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
+
 					return provider.as(SchemaNode.class).getTypeName();
 				}
 
 				@Override
 				public int getDimension(final DataSource provider) {
+
 					return 1;
 				}
 			}
@@ -356,8 +357,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
 
-		return newSet(
-			new JavaMethod("checkValidity", false, true) {
+		return newSet(new JavaMethod("checkValidity", false, true) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
@@ -371,6 +371,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						if (matcher.matches()) {
 
 							if (StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).name(name).getFirst() != null) {
+
 								return "Type '" + name + "' already exists.";
 							}
 
@@ -382,8 +383,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return null;
 				}
-			},
-			new JavaMethod("getExampleData", false, true) {
+			}, new JavaMethod("getExampleData", false, true) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
@@ -479,6 +479,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -498,6 +499,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			// add type names to list of forbidden entity names
 			if (EntityNameBlacklist.contains(typeName)) {
+
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
 			}
 

@@ -39,6 +39,7 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<Iterab
 	private String parameterName = null;
 
 	public IdRequestParameterGraphDataSource(String parameterName) {
+
 		this.parameterName = parameterName;
 	}
 
@@ -46,8 +47,8 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<Iterab
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		
 		final SecurityContext securityContext = renderContext.getSecurityContext();
+
 		if (securityContext != null && securityContext.getRequest() != null) {
 
 			String nodeId = securityContext.getRequest().getParameter(parameterName);

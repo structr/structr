@@ -50,6 +50,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			if (parentId == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without parentId").build(), true);
+
 				return;
 			}
 
@@ -58,6 +59,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			if (parentNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
+
 				return;
 			}
 
@@ -65,6 +67,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			if (oldId == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without oldId").build(), true);
+
 				return;
 			}
 
@@ -73,6 +76,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			if (oldNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(404).message("Old node not found").build(), true);
+
 				return;
 			}
 
@@ -80,6 +84,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			if (newId == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without newId").build(), true);
+
 				return;
 			}
 
@@ -88,11 +93,12 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			if (newNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(404).message("New node not found").build(), true);
+
 				return;
 			}
 
-
 			try {
+
 				parentNode.replaceChild(newNode, oldNode);
 
 			} catch (FrameworkException dex) {
@@ -109,6 +115,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "REPLACE_DOM_NODE";
 	}
 

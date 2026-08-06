@@ -72,6 +72,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	private int inBraces                       = 0;
 
 	public StructrConsoleCommand(final SecurityContext securityContext) {
+
 		this(securityContext, ConsoleMode.JavaScript, null);
 	}
 
@@ -85,11 +86,13 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	@Override
 	public void setInputStream(final InputStream in) {
+
 		this.in = in;
 	}
 
 	@Override
 	public void setOutputStream(final OutputStream out) {
+
 		this.out = out;
 	}
 
@@ -99,6 +102,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	@Override
 	public void setExitCallback(final ExitCallback callback) {
+
 		this.callback = callback;
 	}
 
@@ -111,6 +115,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		if (userName != null) {
 
 			final App app = StructrApp.getInstance();
+
 			try (final Tx tx = app.tx()) {
 
 				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).name(userName).getFirst();
@@ -122,6 +127,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 				tx.success();
 
 			} catch (FrameworkException fex) {
+
 				logger.warn("", fex);
 			}
 
@@ -136,6 +142,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		if (user == null) {
 
 			logger.warn("Cannot start Structr shell, user not found for name {}!", userName);
+
 			return;
 		}
 
@@ -199,6 +206,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	public void handleLine(final String line) throws IOException {
 
 		try {
+
 			term.flush();
 
 			if (StringUtils.isNotBlank(line)) {
@@ -275,15 +283,19 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	public String getPrompt() {
 
 		final StringBuilder buffer = new StringBuilder();
-
 		final App app = StructrApp.getInstance();
+
 		try (Tx tx = app.tx()) {
+
 			buffer.append("\u001b[1m");
 			buffer.append(console.getPrompt());
 
 			if (insideOfBlockOrStructure() && lastBlockChars.length() > 0) {
+
 				buffer.append(lastBlockChars.charAt(lastBlockChars.length() - 1));
+
 			} else {
+
 				buffer.append("/");
 			}
 
@@ -292,6 +304,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			buffer.append(" ");
 
 			tx.success();
+
 		} catch (FrameworkException ex) {
 
 			logger.error("Unexpected exception", ex);
@@ -303,6 +316,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	// ----- private methods -----
 	@Override
 	public List<String> getCommandHistory() {
+
 		return commandHistory;
 	}
 
@@ -337,11 +351,13 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	@Override
 	public void setUser(final User user) {
+
 		this.user = user;
 	}
 
 	@Override
 	public User getUser() {
+
 		return user;
 	}
 
@@ -410,6 +426,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 	public void flush() throws IOException {
 
 		if (term != null) {
+
 			term.flush();
 		}
 	}
@@ -463,20 +480,30 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 					case '"':
 						inDoubleQuotes++;
+
 						if ((inDoubleQuotes % 2) == 0) {
+
 							lastBlockChars.setLength(Math.max(0, lastBlockChars.length() - 1));
+
 						} else {
+
 							lastBlockChars.append("\"");
 						}
+
 						break;
 
 					case '\'':
 						inSingleQuotes++;
+
 						if ((inSingleQuotes % 2) == 0) {
+
 							lastBlockChars.setLength(Math.max(0, lastBlockChars.length() - 1));
+
 						} else {
+
 							lastBlockChars.append("'");
 						}
+
 						break;
 				}
 			}
@@ -506,6 +533,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		private Writer writer = null;
 
 		public OutputStreamWritable(final OutputStream out) {
+
 			this.writer = new OutputStreamWriter(out);
 		}
 
@@ -540,12 +568,14 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 		@Override
 		public void println() throws IOException {
+
 			writer.write(10);
 			writer.write(13);
 		}
 
 		@Override
 		public void flush() throws IOException {
+
 			writer.flush();
 		}
 	}

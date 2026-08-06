@@ -34,16 +34,13 @@ import java.util.Set;
  */
 public final class BpmnVendorAdapters {
 
-	private static final List<BpmnVendorAdapter> ALL = List.of(
-		new CamundaFormAdapter(),
-		new ZeebeFormAdapter(),
-		new FlowableFormAdapter()
-	);
+	private static final List<BpmnVendorAdapter> ALL = List.of(new CamundaFormAdapter(), new ZeebeFormAdapter(), new FlowableFormAdapter());
 
 	private BpmnVendorAdapters() {}
 
 	/** Every adapter that applies to a document declaring these namespace URIs. */
 	public static List<BpmnVendorAdapter> applicableTo(final Set<String> namespaceUris) {
+
 		return ALL.stream().filter(a -> a.appliesTo(namespaceUris)).toList();
 	}
 }

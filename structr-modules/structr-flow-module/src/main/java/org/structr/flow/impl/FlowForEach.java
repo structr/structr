@@ -28,6 +28,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowForEach extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
 	public FlowForEach(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -43,6 +44,7 @@ public class FlowForEach extends FlowDataSource implements DeployableEntity, Thr
 	}
 
 	public final void setLoopBody(final FlowNode loopBody) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowForEachTraitDefinition.LOOP_BODY_PROPERTY), loopBody);
 	}
 }

@@ -27,21 +27,25 @@ public class MethodParametersHint extends SpecialKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "methodParameters";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the arguments a method was called with.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The `methodParameters` keyword allows you to access the arguments of a method call.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.javaScript("""
 			${{
@@ -54,7 +58,7 @@ public class MethodParametersHint extends SpecialKeywordHint {
 
 		@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 }

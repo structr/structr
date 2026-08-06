@@ -50,6 +50,7 @@ public class View {
 	 * @return the property keys registered in this view
 	 */
 	public Property[] properties() {
+
 		return properties;
 	}
 
@@ -57,6 +58,7 @@ public class View {
 	 * @return the name of this view
 	 */
 	public String name() {
+
 		return name;
 	}
 }

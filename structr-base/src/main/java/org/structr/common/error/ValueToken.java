@@ -37,6 +37,7 @@ public class ValueToken extends SemanticErrorToken {
 	}
 
 	private static String getContent(final Set values) {
+
 		return StringUtils.join(values, ", ");
 	}
 }

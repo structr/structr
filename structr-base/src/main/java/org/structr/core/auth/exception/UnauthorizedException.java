@@ -18,11 +18,8 @@
  */
 package org.structr.core.auth.exception;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
-
-
 
 /**
  * Thrown when a protected resource is accessed. In the REST server, this
@@ -33,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 public class UnauthorizedException extends FrameworkException {
 
 	public UnauthorizedException(final String message) {
+
 		super(HttpServletResponse.SC_UNAUTHORIZED, message);
 	}
 }

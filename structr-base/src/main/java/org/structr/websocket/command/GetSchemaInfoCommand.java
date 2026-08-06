@@ -64,6 +64,7 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "GET_SCHEMA_INFO";
 	}
 }

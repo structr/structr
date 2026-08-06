@@ -38,76 +38,91 @@ import org.structr.process.ProcessTraits;
 public class BpmnElementHasTaskListener extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public BpmnElementHasTaskListener() {
+
 		super(ProcessTraits.BPMN_ELEMENT_HAS_TASK_LISTENER);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return ProcessTraits.BPMN_ELEMENT;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return ProcessTraits.BPMN_TASK_LISTENER;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_TASK_LISTENER";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.ALWAYS;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.Both;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public String getDeltaProperties() {
+
 		return null;
 	}
 }

@@ -25,6 +25,7 @@ package org.structr.api.util.html;
 public class Block extends Tag {
 
 	public Block(final Tag parent, final String tagName) {
+
 		super(parent, tagName, false, true);
 	}
 }

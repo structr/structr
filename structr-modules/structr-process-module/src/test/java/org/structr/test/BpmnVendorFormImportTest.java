@@ -114,10 +114,8 @@ public class BpmnVendorFormImportTest extends AbstractProcessEngineTest {
 				procNode.getProperty(procNode.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY)));
 
 			// synthesized under the explicit name (not the process name)
-			assertNotNull("type synthesized under the explicit name",
-				app.nodeQuery(StructrTraits.SCHEMA_NODE).name("ProcurementSubject").getFirst());
-			assertNull("no type under the process name when an explicit one is given",
-				app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Beschaffungsanforderung").getFirst());
+			assertNotNull("type synthesized under the explicit name", app.nodeQuery(StructrTraits.SCHEMA_NODE).name("ProcurementSubject").getFirst());
+			assertNull("no type under the process name when an explicit one is given", app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Beschaffungsanforderung").getFirst());
 
 			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("ProcurementSubject").getFirst();
 			assertTrue("fields still synthesized from the Camunda forms", propertyNamesOf(schemaNode).contains("title"));
@@ -141,12 +139,10 @@ public class BpmnVendorFormImportTest extends AbstractProcessEngineTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("re-import reuses the synthesized type rather than duplicating it",
-				1, countByName(StructrTraits.SCHEMA_NODE, "Beschaffungsanforderung"));
+			assertEquals("re-import reuses the synthesized type rather than duplicating it", 1, countByName(StructrTraits.SCHEMA_NODE, "Beschaffungsanforderung"));
 
 			// Views are keyed by name too, so no duplicates of the per-step views either.
-			assertEquals("form view for the Antrag step is not duplicated",
-				1, countByName(StructrTraits.SCHEMA_VIEW, "form_Task_Antrag"));
+			assertEquals("form view for the Antrag step is not duplicated", 1, countByName(StructrTraits.SCHEMA_VIEW, "form_Task_Antrag"));
 
 			tx.success();
 		}
@@ -234,9 +230,12 @@ public class BpmnVendorFormImportTest extends AbstractProcessEngineTest {
 	private int countByName(final String type, final String name) throws FrameworkException {
 
 		int n = 0;
+
 		for (final NodeInterface ignored : app.nodeQuery(type).name(name).getResultStream()) {
+
 			n++;
 		}
+
 		return n;
 	}
 
@@ -249,8 +248,10 @@ public class BpmnVendorFormImportTest extends AbstractProcessEngineTest {
 		final Set<String> names                  = new HashSet<>();
 
 		for (final NodeInterface prop : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(nodeKey, schemaNode).getResultStream()) {
+
 			names.add(prop.getProperty(prop.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		}
+
 		return names;
 	}
 
@@ -259,12 +260,13 @@ public class BpmnVendorFormImportTest extends AbstractProcessEngineTest {
 		final Traits pt                          = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyKey<NodeInterface> nodeKey = pt.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY);
 		final PropertyKey<String> nameKey        = pt.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
 		final NodeInterface prop = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(nodeKey, schemaNode).key(nameKey, propertyName).getFirst();
+
 		if (prop == null) {
 
 			return null;
 		}
+
 		return prop.getProperty(prop.getTraits().key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY));
 	}
 
@@ -276,17 +278,21 @@ public class BpmnVendorFormImportTest extends AbstractProcessEngineTest {
 		final Map<String, String> views          = new HashMap<>();
 
 		for (final NodeInterface view : app.nodeQuery(StructrTraits.SCHEMA_VIEW).key(nodeKey, schemaNode).getResultStream()) {
+
 			final String name = view.getProperty(view.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			views.put(name, view.getProperty(ngpKey));
 		}
+
 		return views;
 	}
 
 	private String formView(final NodeInterface element) {
+
 		return element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY));
 	}
 
 	private String writableView(final NodeInterface element) {
+
 		return element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY));
 	}
 }

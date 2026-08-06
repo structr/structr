@@ -92,6 +92,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	public void setRequest(final HttpServletRequest request) {
 
 		if (this.request == null) {
+
 			this.request = request;
 		}
 	}
@@ -113,6 +114,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 				logger.warn("Ignoring new websocket connection: {}", services.getUnavailableMessage());
 
 				session.close();
+
 				return;
 			}
 		}
@@ -134,6 +136,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		if (!services.isInitialized()) {
 
 			logger.warn("Ignoring websocket close: {}", services.getUnavailableMessage());
+
 			return;
 		}
 
@@ -172,18 +175,21 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	public void onWebSocketText(final String data) {
 
 		final Services services = Services.getInstance();
-
 		if (!services.isInitialized()) {
+
 			send(MessageBuilder.status().code(503).message(services.getUnavailableMessage()).build(), true);
 		}
 
 		// wait for service layer to be initialized
 		while (!services.isInitialized()) {
+
 			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
 		}
 
 		if (data == null) {
+
 			logger.warn("Empty text message received.");
+
 			return;
 		}
 
@@ -194,7 +200,6 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		final App app                        = StructrApp.getInstance(securityContext);
 		final String command                 = webSocketData.getCommand();
 		final Class type                     = commandSet.get(command);
-
 		final String sessionIdFromMessage = webSocketData.getSessionId();
 
 		if (type != null) {
@@ -242,7 +247,6 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			// process message
 			try {
 
-
 				AbstractCommand abstractCommand = (AbstractCommand) type.getDeclaredConstructor().newInstance();
 
 				abstractCommand.setWebSocket(this);
@@ -254,18 +258,19 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 					if (securityContext != null) {
 
 						final org.eclipse.jetty.server.Session session = SessionHelper.getSessionBySessionId(securityContext.getSessionId());
-
 						if (session != null) {
 
 							session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
 
 							try {
+
 								// Workaround to update lastAccessedTime() in Jetty's session via reflection
 								final Method accessMethod = session.getClass().getDeclaredMethod("access", long.class);
 								accessMethod.setAccessible(true);
 								accessMethod.invoke(session, System.currentTimeMillis());
 
 							} catch (Exception ex) {
+
 								logger.error("Access to method Session.access() via reflection failed: ", ex);
 							}
 						}
@@ -324,6 +329,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			} catch (Throwable t) {
 
 				if (t instanceof NullPointerException) {
+
 //					t.printStackTrace();
 					logger.warn("", t);
 				}
@@ -368,6 +374,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			logger.warn("", t);
 		}
 
@@ -393,6 +400,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			tx.prefetchHint("Websocket send " + message.getCommand());
 
 			if (message.getCode() == 0) {
+
 				// default is: 200 OK
 				message.setCode(200);
 			}
@@ -404,6 +412,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
 			if (securityContext != null) {
+
 				securityContext.clearCustomView();
 			}
 
@@ -466,7 +475,6 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	public void handleFileChunk(final String uuid, final int sequenceNumber, final int chunkSize, final byte[] data, final int chunks) throws IOException {
 
 		FileUploadHandler upload = uploads.get(uuid);
-
 		if (upload == null) {
 
 			upload = handleExistingFile(uuid);
@@ -513,6 +521,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 				}
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("FXE", ex);
 			}
 		}
@@ -565,6 +574,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	public boolean isAuthenticated() {
 
 		final Principal user = getCurrentUser();
+
 		return (!timedOut && user != null && isPrivilegedUser(user));
 	}
 
@@ -592,12 +602,14 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 				if (this.console.hasStillTheSameTraitsInstance()) {
 
 					// return console and false because the traits instance has not changed
+
 					return Pair.of(this.console, false);
 
 				} else {
 
 					// return console and true because the traits instance has changed
 					this.console = new Console(securityContext, mode, null);
+
 					return Pair.of(this.console, true);
 				}
 
@@ -605,6 +617,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 				// return console and false because there was no console in the context before
 				this.console = new Console(securityContext, mode, null);
+
 				return Pair.of(this.console, false);
 			}
 		}
@@ -618,6 +631,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		securityContext.setSessionId(sessionId);
 
 		if (securityContext.getRequest() == null) {
+
 			securityContext.setRequest(request);
 		}
 
@@ -636,16 +650,26 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	private void handleWebSocketException(final Throwable t, final String context) {
 
 		if (QuietException.isQuiet(t)) {
+
 			// ignore exceptions which (by jettys standards) should be handled less verbosely
+
 		} else if (t.getCause() instanceof TimeoutException) {
+
 			// also ignore timeoutexceptions
+
 		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
+
 			// also ignore simple "Closed" exception
+
 		} else if (t instanceof EOFException && t.getMessage().equals("Reset cancel_stream_error")) {
+
 			// also ignore EOFExceptions that happen on page close
+
 		} else if (t instanceof java.nio.channels.ClosedChannelException && t.getMessage() == null) {
+
 			// only debug-log ClosedChannelException for "Session Closed" which is thrown by WebSocketSessionState.onEof
 			logger.debug("Caught ClosedChannelException exception", t);
+
 		} else {
 
 			logger.warn("{}: {}", context, t.getMessage());

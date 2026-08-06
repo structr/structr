@@ -36,6 +36,7 @@ public class FetchFoldersCommand extends Command {
 
 	@Override
 	public Class getServiceClass() {
+
 		return MailService.class;
 	}
 }

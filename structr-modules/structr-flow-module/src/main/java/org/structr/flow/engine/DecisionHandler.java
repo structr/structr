@@ -34,7 +34,6 @@ public class DecisionHandler implements FlowHandler {
 		if (condition != null) {
 
 			final Object value = condition.get(context);
-
 			if (isTrue(value)) {
 
 				return flowElement.getTrueElement();
@@ -43,6 +42,7 @@ public class DecisionHandler implements FlowHandler {
 
 				return flowElement.getFalseElement();
 			}
+
 		} else {
 
 			return flowElement.getFalseElement();

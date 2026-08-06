@@ -78,7 +78,6 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			.when()
 			.post("/registration");
 
-
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface user = app.nodeQuery(StructrTraits.USER).getFirst();
@@ -94,6 +93,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -125,6 +125,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -160,7 +161,6 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			.when()
 			.post("/registration");
 
-
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface user = app.nodeQuery(StructrTraits.USER).getFirst();
@@ -176,6 +176,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -224,6 +225,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException t) {
+
 			fail("Unexpected exception.");
 		}
 	}
@@ -257,6 +259,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -315,6 +318,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
+
 				n.setVisibility(publicToo, true);
 
 			} catch (FrameworkException fex) {}

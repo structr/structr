@@ -82,9 +82,10 @@ public class UnarchiveCommand extends AbstractCommand {
 			try (final Tx tx = app.tx()) {
 
 				final NodeInterface fileNode = app.getNodeById(StructrTraits.FILE, id);
-
 				if (fileNode == null) {
+
 					getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
+
 					return;
 				}
 
@@ -95,6 +96,7 @@ public class UnarchiveCommand extends AbstractCommand {
 				if (!supportedByArchiveStreamFactory.contains(fileExtension)) {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message("Unsupported archive format: ".concat(fileExtension)).build(), true);
+
 					return;
 				}
 
@@ -103,13 +105,13 @@ public class UnarchiveCommand extends AbstractCommand {
 				if (is == null) {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message("Could not get input stream from file ".concat(fileName)).build(), true);
+
 					return;
 				}
 
 				if (createFolder) {
 
 					final String folderName = StringUtils.substringBeforeLast(fileName, ".");
-
 					final NodeInterface newParentFolder = app.create(StructrTraits.FOLDER,
 							new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folderName),
 							new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_ID_PROPERTY), parentFolderId)
@@ -122,20 +124,12 @@ public class UnarchiveCommand extends AbstractCommand {
 			}
 
 			// send WS message to all clients about start of extraction
-			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of(
-					"id", file.getUuid(),
-					"file", file.getPath(),
-					"status", "START"
-			)).build(), true);
+			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of("id", file.getUuid(), "file", file.getPath(), "status", "START")).build(), true);
 
 			// no transaction here since this is a bulk command
 			FileHelper.unarchive(securityContext, file, parentFolderId);
 
-			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of(
-					"id", file.getUuid(),
-					"file", file.getPath(),
-					"status", "SUCCESS"
-			)).build(), true);
+			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of("id", file.getUuid(), "file", file.getPath(), "status", "SUCCESS")).build(), true);
 
 		} catch (Throwable t) {
 
@@ -161,12 +155,14 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return true;
 	}
 
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
+
 		return "UNARCHIVE";
 	}
 }

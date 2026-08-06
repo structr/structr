@@ -34,11 +34,13 @@ public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "requestStoreDelete";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -56,51 +58,50 @@ public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${requestStoreDelete(key)}."),
-			Usage.javaScript("Usage: ${{ $.requestStoreDelete(key); }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${requestStoreDelete(key)}."), Usage.javaScript("Usage: ${{ $.requestStoreDelete(key); }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Removes a stored value from the request level store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${requestStoreDelete('do_no_track')}"),
-				Example.javaScript("${{ $.requestStoreDelete('do_not_track'); }}")
-		);
+
+		return List.of(Example.structrScript("${requestStoreDelete('do_no_track')}"), Example.javaScript("${{ $.requestStoreDelete('do_not_track'); }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("key", "key to remove")
-		);
+		return List.of(Parameter.mandatory("key", "key to remove"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

@@ -38,6 +38,7 @@ public class MemoryRelationship extends MemoryEntity implements Relationship<Lon
 	private MemoryIdentity targetNode = null;
 
 	private MemoryRelationship(final MemoryDatabaseService db) {
+
 		super(db);
 	}
 
@@ -52,11 +53,13 @@ public class MemoryRelationship extends MemoryEntity implements Relationship<Lon
 
 	@Override
 	public Node<Long> getStartNode() {
+
 		return db.getNodeById(sourceNode);
 	}
 
 	@Override
 	public Node<Long> getEndNode() {
+
 		return db.getNodeById(targetNode);
 	}
 
@@ -64,6 +67,7 @@ public class MemoryRelationship extends MemoryEntity implements Relationship<Lon
 	public Node<Long> getOtherNode(Node<Long> node) {
 
 		if (node.getId().equals(sourceNode)) {
+
 			return getEndNode();
 		}
 
@@ -72,6 +76,7 @@ public class MemoryRelationship extends MemoryEntity implements Relationship<Lon
 
 	@Override
 	public RelationshipType getType() {
+
 		return relType;
 	}
 
@@ -79,6 +84,7 @@ public class MemoryRelationship extends MemoryEntity implements Relationship<Lon
 	public Direction getDirectionForNode(final Node<Long> node) {
 
 		if (sourceNode.getId() == node.getId().getId()) {
+
 			return Direction.OUTGOING;
 		}
 
@@ -86,39 +92,47 @@ public class MemoryRelationship extends MemoryEntity implements Relationship<Lon
 	}
 
 	public MemoryIdentity getSourceNodeIdentity() {
+
 		return sourceNode;
 	}
 
 	public MemoryIdentity getTargetNodeIdentity() {
+
 		return targetNode;
 	}
 
 	@Override
 	public void delete(boolean deleteRelationships) throws NotInTransactionException {
+
 		db.delete(this);
 
 	}
 
 	@Override
 	public boolean isNode() {
+
 		return false;
 	}
 
 	public boolean isEqualTo(final MemoryRelationship rel) {
+
 		return rel.getSourceNodeIdentity().equals(sourceNode) && rel.getTargetNodeIdentity().equals(targetNode) && rel.getType().name().equals(relType.name());
 	}
 
 	@Override
 	public Iterable<String> getLabels() {
+
 		return Arrays.asList(relType.name());
 	}
 
 	public String getUniquenessKey() {
+
 		return sourceNode.getId() + relType.name() + targetNode.getId();
 	}
 
 	@Override
 	protected void updateCache() {
+
 		db.updateCache(this);
 	}
 

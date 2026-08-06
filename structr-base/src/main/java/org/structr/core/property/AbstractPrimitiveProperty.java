@@ -43,7 +43,6 @@ import org.structr.schema.Transformer;
 
 import java.util.*;
 
-
 /**
  * Abstract base class for primitive properties.
  *
@@ -58,14 +57,17 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 	protected GraphObject entity              = null;
 
 	public AbstractPrimitiveProperty(final String name) {
+
 		super(name);
 	}
 
 	public AbstractPrimitiveProperty(final String jsonName, final String dbName) {
+
 		super(jsonName, dbName);
 	}
 
 	public AbstractPrimitiveProperty(final String jsonName, final String dbName, final T defaultValue) {
+
 		super(jsonName, dbName, defaultValue);
 	}
 
@@ -88,6 +90,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 	@Override
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -95,8 +98,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Object value = null;
-
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
+
 		if (propertyContainer != null) {
 
 			value = propertyContainer.getProperty(dbName());
@@ -109,6 +112,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			if (converter != null) {
 
 				try {
+
 					value = converter.revert(value);
 
 				} catch (Throwable t) {
@@ -132,6 +136,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 		// no value found, use schema default
 		if (value == null) {
+
 			value = defaultValue();
 		}
 
@@ -254,11 +259,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
@@ -268,15 +275,16 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 		final Map<String, Object> map = new TreeMap<>();
 		final Class valueType         = valueType();
-
 		final Map<String, String> openApiTypeMap = new HashMap<>();
+
 		openApiTypeMap.put("image", "object");
 		openApiTypeMap.put("double", "number");
 
 		if (valueType != null) {
-			String simpleName = valueType.getSimpleName().toLowerCase();
 
+			String simpleName = valueType.getSimpleName().toLowerCase();
 			if (openApiTypeMap.containsKey(simpleName)) {
+
 				simpleName = openApiTypeMap.get(simpleName);
 			}
 
@@ -284,10 +292,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
+
 				map.put("readOnly", true);
 			}
 
 		}
+
 		return map;
 	}
 
@@ -300,8 +310,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 		if (valueType != null) {
 
 			String valueTypeName = valueType.getSimpleName().toLowerCase();
-
 			if (StringUtils.equals(valueTypeName, "double")) {
+
 				valueTypeName = "number";
 			}
 
@@ -309,6 +319,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
+
 				map.put("readOnly", true);
 			}
 		}
@@ -319,51 +330,61 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.Property;
 	}
 
 	@Override
 	public String getName() {
+
 		return getClass().getSimpleName();
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
+
 		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return null;
 	}
 
 	@Override
 	public List<DocumentedProperty> getDocumentedProperties() {
+
 		return null;
 	}
 
 	@Override
 	public List<Setting> getSettings() {
+
 		return null;
 	}
 
@@ -422,7 +443,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 				propertyContainer.setProperty(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, System.currentTimeMillis());
 			}
-
 
 		} catch (Throwable t) {
 

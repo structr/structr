@@ -41,6 +41,7 @@ public class InsertRelativeToDOMNodeCommand extends AbstractCommand {
         final String refId                 = (String) nodeData.get("refId");
         final String parentId              = (String) nodeData.get("parentId");
         final String relativePosition      = (String) nodeData.remove("relativePosition");
+
         final RelativePosition position;
 
         if (relativePosition != null) {
@@ -53,6 +54,7 @@ public class InsertRelativeToDOMNodeCommand extends AbstractCommand {
 
                 // default to Before
                 getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
+
                 return;
             }
 
@@ -81,7 +83,6 @@ public class InsertRelativeToDOMNodeCommand extends AbstractCommand {
 
         // check if parent node with given ID exists
         final DOMNode parentNode = getDOMNode(parentId);
-
         if (parentNode == null) {
 
             getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
@@ -103,7 +104,6 @@ public class InsertRelativeToDOMNodeCommand extends AbstractCommand {
                 } else {
 
                     final DOMNode nextNode = refNode.getNextSibling();
-
                     if (nextNode != null) {
 
                         if (id.equals(nextNode.getUuid())) {
@@ -137,6 +137,7 @@ public class InsertRelativeToDOMNodeCommand extends AbstractCommand {
 
     @Override
     public String getCommand() {
+
         return "INSERT_RELATIVE_TO_DOM_NODE";
     }
 }

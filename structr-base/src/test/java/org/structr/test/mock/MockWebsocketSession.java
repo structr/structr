@@ -39,6 +39,7 @@ public class MockWebsocketSession implements Session {
 	private final Gson gson;
 
 	public MockWebsocketSession(final Gson gson) {
+
 		this.gson = gson;
 	}
 
@@ -70,6 +71,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public void sendText(String text, Callback callback) {
+
 		messages.add(text);
 	}
 
@@ -100,36 +102,43 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public SocketAddress getLocalSocketAddress() {
+
 		return null;
 	}
 
 	@Override
 	public SocketAddress getRemoteSocketAddress() {
+
 		return null;
 	}
 
 	@Override
 	public String getProtocolVersion() {
+
 		return "";
 	}
 
 	@Override
 	public UpgradeRequest getUpgradeRequest() {
+
 		return null;
 	}
 
 	@Override
 	public UpgradeResponse getUpgradeResponse() {
+
 		return null;
 	}
 
 	@Override
 	public boolean isOpen() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isSecure() {
+
 		return false;
 	}
 
@@ -140,6 +149,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public Duration getIdleTimeout() {
+
 		return null;
 	}
 
@@ -150,6 +160,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public int getInputBufferSize() {
+
 		return 0;
 	}
 
@@ -160,6 +171,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public int getOutputBufferSize() {
+
 		return 0;
 	}
 
@@ -170,6 +182,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public long getMaxBinaryMessageSize() {
+
 		return 0;
 	}
 
@@ -180,6 +193,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public long getMaxTextMessageSize() {
+
 		return 0;
 	}
 
@@ -190,6 +204,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public long getMaxFrameSize() {
+
 		return 0;
 	}
 
@@ -200,6 +215,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public boolean isAutoFragment() {
+
 		return false;
 	}
 
@@ -210,6 +226,7 @@ public class MockWebsocketSession implements Session {
 
 	@Override
 	public int getMaxOutgoingFrames() {
+
 		return 0;
 	}
 

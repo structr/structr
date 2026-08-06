@@ -34,6 +34,7 @@ public class Data extends GenericHtmlElementTraitDefinition {
 	public static final String VALUE_PROPERTY = getPrefixedHTMLAttributeName("value");
 
 	public Data() {
+
 		super(StructrTraits.DATA);
 	}
 
@@ -44,11 +45,11 @@ public class Data extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}
@@ -62,19 +63,12 @@ public class Data extends GenericHtmlElementTraitDefinition {
 
 		final PropertyKey<String> valueProperty = new StringProperty(VALUE_PROPERTY);
 
-		return newSet(
-			valueProperty
-		);
+		return newSet(valueProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					VALUE_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(VALUE_PROPERTY));
 	}
 }

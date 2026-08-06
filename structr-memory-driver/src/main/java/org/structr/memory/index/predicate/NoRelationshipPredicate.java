@@ -45,6 +45,7 @@ public class NoRelationshipPredicate<T extends PropertyContainer, V> implements 
 
 	@Override
 	public String toString() {
+
 		return "NoRelationship(" + key + ")";
 	}
 
@@ -68,6 +69,7 @@ public class NoRelationshipPredicate<T extends PropertyContainer, V> implements 
 					final MemoryNode otherNode   = (MemoryNode)rel.getOtherNode(node);
 
 					if (new LabelPredicate<>(otherLabel).accept(otherNode)) {
+
 						return false;
 					}
 

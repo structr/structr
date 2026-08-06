@@ -29,6 +29,7 @@ public interface DataSource<T extends GraphObject> extends NodeInterface, Channe
 
 	@Override
 	default String getChannelName() {
+
 		return Functions.cleanString(getName());
 	}
 }

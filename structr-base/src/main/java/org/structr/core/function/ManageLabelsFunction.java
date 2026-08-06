@@ -29,6 +29,7 @@ public abstract class ManageLabelsFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("node, labels");
 	}
 

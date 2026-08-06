@@ -89,6 +89,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String WRAP_JS_IN_MAIN_PROPERTY            = "wrapJsInMain";
 
 	public SchemaMethodTraitDefinition() {
+
 		super(StructrTraits.SCHEMA_METHOD);
 	}
 
@@ -97,8 +98,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -118,11 +118,10 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final String thisMethodName     = method.getName();
 
 					if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
-						errorBuffer.add(
-							new SemanticErrorToken(method.getType(), "name", "already_exists")
+
+						errorBuffer.add(new SemanticErrorToken(method.getType(), "name", "already_exists")
 								.withValue(thisMethodName)
-								.withDetail("A view with name '" + thisMethodName + "' already exists, cannot create method with the same name")
-						);
+								.withDetail("A view with name '" + thisMethodName + "' already exists, cannot create method with the same name"));
 						valid = false;
 					}
 
@@ -134,7 +133,6 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 						for (final NodeInterface otherSchemaMethodNode : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(schemaNodeKey, parentOrNull).getResultStream()) {
 
 							final boolean isDifferentMethod = !(method.getUuid().equals(otherSchemaMethodNode.getUuid()));
-
 							if (isDifferentMethod) {
 
 								final SchemaMethod otherSchemaMethod                = otherSchemaMethodNode.as(SchemaMethod.class);
@@ -158,8 +156,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -176,8 +173,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 				@Override
 				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -206,8 +202,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
@@ -222,8 +217,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
 
-		return newSet(
-			new JavaMethod("isReservedWord", false, true) {
+		return newSet(new JavaMethod("isReservedWord", false, true) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
@@ -244,20 +238,20 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public static boolean isReservedWord(final String word) {
 
 		if (Functions.get(word) != null) {
+
 			return true;
 		}
 
 		final List<Documentable> keywords = new LinkedList<>();
 		AbstractHintProvider.addBuiltInKeywordHints(keywords);
 		final Set<String> keywordNames = keywords.stream().map(k -> k.getName()).collect(Collectors.toSet());
-
 		if  (keywordNames.contains(word)) {
+
 			return true;
 		}
 
 		return false;
 	}
-
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
@@ -350,13 +344,12 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			SchemaMethod.class, (traits, node) -> new SchemaMethodTraitWrapper(traits, node)
-		);
+		return Map.of(SchemaMethod.class, (traits, node) -> new SchemaMethodTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 

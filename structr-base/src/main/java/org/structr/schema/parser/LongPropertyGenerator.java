@@ -38,16 +38,19 @@ import java.util.List;
 public class LongPropertyGenerator extends NumericalPropertyGenerator<Long> {
 
 	public LongPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return Long.class.getName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Long;
 	}
 
@@ -55,6 +58,7 @@ public class LongPropertyGenerator extends NumericalPropertyGenerator<Long> {
 	public Number parseNumber(final ErrorBuffer errorBuffer, final String propertyName, final String source, final String which) {
 
 		try {
+
 			return Long.parseLong(source);
 
 		} catch (Throwable t) {
@@ -67,6 +71,7 @@ public class LongPropertyGenerator extends NumericalPropertyGenerator<Long> {
 
 	@Override
 	protected Property<Long> newInstance() throws FrameworkException {
+
 		return new LongProperty(source.getPropertyName());
 	}
 

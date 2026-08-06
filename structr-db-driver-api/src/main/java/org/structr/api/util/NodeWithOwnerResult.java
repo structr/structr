@@ -38,14 +38,17 @@ public class NodeWithOwnerResult {
 	}
 
 	public Relationship getSecurityRelationship() {
+
 		return securityRelationship;
 	}
 
 	public Relationship getOwnsRelationship() {
+
 		return ownsRelationship;
 	}
 
 	public Node getNewNode() {
+
 		return newNode;
 	}
 }

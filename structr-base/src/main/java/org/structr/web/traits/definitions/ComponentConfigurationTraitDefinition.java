@@ -83,15 +83,14 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	public static final String BOUND_USER_TASK_PROPERTY        = "boundUserTask";
 
 	public ComponentConfigurationTraitDefinition() {
+
 		super(StructrTraits.COMPONENT_CONFIGURATION);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ComponentConfiguration.class, (traits, node) -> new ComponentConfigurationTraitWrapper(traits, node)
-		);
+		return Map.of(ComponentConfiguration.class, (traits, node) -> new ComponentConfigurationTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -99,8 +98,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -134,8 +132,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -151,6 +148,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
@@ -210,9 +208,6 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				// (target type lives in structr-process-module). Listed here so
 				// the General-tab dialog can read it when the trait is composed
 				// with the process module loaded; ignored otherwise.
-				BOUND_USER_TASK_PROPERTY,
-				EXPECTED_DATA_TYPE_PROPERTY
-			)
-		);
+				BOUND_USER_TASK_PROPERTY, EXPECTED_DATA_TYPE_PROPERTY));
 	}
 }

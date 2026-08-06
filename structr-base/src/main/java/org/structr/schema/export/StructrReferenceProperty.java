@@ -37,6 +37,7 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	protected final Set<String> properties = new TreeSet<>();
 
 	StructrReferenceProperty(final JsonType parent, final String name) {
+
 		super(parent, name);
 	}
 
@@ -44,6 +45,7 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	public JsonReferenceProperty setProperties(String... propertyNames) {
 
 		for (final String name : propertyNames) {
+
 			properties.add(name);
 		}
 
@@ -52,31 +54,37 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 
 	@Override
 	public Set<String> getProperties() {
+
 		return properties;
 	}
 
 	@Override
 	public int compareTo(final JsonProperty o) {
+
 		return getName().compareTo(o.getName());
 	}
 
 	@Override
 	public String getFormat() {
+
 		return format;
 	}
 
 	@Override
 	public String getDefaultValue() {
+
 		return defaultValue;
 	}
 
 	@Override
 	public boolean isRequired() {
+
 		return required;
 	}
 
 	@Override
 	public boolean isUnique() {
+
 		return unique;
 	}
 
@@ -84,6 +92,7 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	public JsonProperty setFormat(String format) {
 
 		this.format = format;
+
 		return this;
 	}
 
@@ -91,6 +100,7 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	public JsonProperty setRequired(boolean isRequired) {
 
 		this.required = isRequired;
+
 		return this;
 	}
 
@@ -98,6 +108,7 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	public JsonProperty setUnique(boolean isUnique) {
 
 		this.unique = isUnique;
+
 		return this;
 	}
 
@@ -105,6 +116,7 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	public JsonProperty setDefaultValue(String defaultValue) {
 
 		this.defaultValue = defaultValue;
+
 		return this;
 	}
 
@@ -113,9 +125,9 @@ public abstract class StructrReferenceProperty extends StructrPropertyDefinition
 	void initializeReferences() {
 	}
 
-
 	@Override
 	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty schemaProperty) {
+
 		super.deserialize(schemaNodes, schemaProperty);
 	}
 

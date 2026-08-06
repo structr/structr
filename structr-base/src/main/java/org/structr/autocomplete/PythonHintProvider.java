@@ -103,8 +103,8 @@ public class PythonHintProvider extends AbstractHintProvider {
 		for (int i=tokenCount-1; i>=0; i--) {
 
 			final String token = tokens.get(i);
-
 			if ("Structr.".equals(token)) {
+
 				startTokenIndex = i;
 				break;
 			}
@@ -128,6 +128,7 @@ public class PythonHintProvider extends AbstractHintProvider {
 	protected String getFunctionName(final String source) {
 
 		if (source.contains("_")) {
+
 			return CaseHelper.toLowerCamelCase(source);
 		}
 

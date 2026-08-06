@@ -130,6 +130,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FAILURE_SCOPE_PROPERTY                 = "failureScope";
 
 	public ActionMappingTraitDefinition() {
+
 		super(StructrTraits.ACTION_MAPPING);
 	}
 
@@ -138,16 +139,15 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					resolveTargetRelationships(graphObject);
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -159,6 +159,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 					final boolean dataTypeStringChanged = modificationQueue.isPropertyModified(graphObject, traits.key(DATA_TYPE_PROPERTY));
 
 					if (methodStringChanged || flowStringChanged || dataTypeStringChanged) {
+
 						resolveTargetRelationships(graphObject);
 					}
 				}
@@ -193,83 +194,107 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Traits traits = graphObject.getTraits();
 		final App app       = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
-
 		final String methodName   = graphObject.getProperty(traits.key(METHOD_PROPERTY));
 		final String flowName     = graphObject.getProperty(traits.key(FLOW_PROPERTY));
 		final String dataTypeName = graphObject.getProperty(traits.key(DATA_TYPE_PROPERTY));
 
 		// dataType -> SchemaNode
 		NodeInterface resolvedSchemaNode = null;
+
 		if (StringUtils.isNotBlank(dataTypeName)) {
+
 			resolvedSchemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(dataTypeName).getFirst();
+
 			if (resolvedSchemaNode == null) {
+
 				logger.debug("ActionMapping references dataType '{}' but no SchemaNode with that name exists; relationship left null.", dataTypeName);
 			}
 		}
+
 		graphObject.setProperty(traits.key(DATA_TYPE_NODE_PROPERTY), resolvedSchemaNode);
 
 		// flow -> FlowContainer
 		NodeInterface resolvedFlow = null;
+
 		if (StringUtils.isNotBlank(flowName)) {
+
 			resolvedFlow = app.nodeQuery(StructrTraits.FLOW_CONTAINER).name(flowName).getFirst();
+
 			if (resolvedFlow == null) {
+
 				logger.debug("ActionMapping references flow '{}' but no FlowContainer with that name exists; relationship left null.", flowName);
 			}
 		}
+
 		graphObject.setProperty(traits.key(FLOW_NODE_PROPERTY), resolvedFlow);
 
 		// method -> SchemaMethod (scoped by dataType when present)
 		NodeInterface resolvedMethod = null;
+
 		if (StringUtils.isNotBlank(methodName)) {
+
 			if (resolvedSchemaNode != null) {
+
 				// method on a specific type: look up among that type's methods
 				for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+
 					final NodeInterface parent = candidate.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY));
 					if (parent != null && parent.getUuid().equals(resolvedSchemaNode.getUuid())) {
+
 						resolvedMethod = candidate;
 						break;
 					}
 				}
+
 				if (resolvedMethod == null) {
+
 					logger.debug("ActionMapping references method '{}' on type '{}' but no SchemaMethod found there; relationship left null.", methodName, dataTypeName);
 				}
+
 			} else {
+
 				// top-level (user-defined) method: parent is null
 				for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+
 					final NodeInterface parent = candidate.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY));
 					if (parent == null) {
+
 						resolvedMethod = candidate;
 						break;
 					}
 				}
+
 				if (resolvedMethod == null) {
+
 					logger.debug("ActionMapping references top-level method '{}' but no matching SchemaMethod with no parent type found; relationship left null.", methodName);
 				}
 			}
 		}
+
 		graphObject.setProperty(traits.key(METHOD_NODE_PROPERTY), resolvedMethod);
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			ActionMapping.class, (traits, node) -> new ActionMappingTraitWrapper(traits, node)
-		);
+		return Map.of(ActionMapping.class, (traits, node) -> new ActionMappingTraitWrapper(traits, node));
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
@@ -284,7 +309,6 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> parameterMappings            = new EndNodes(traitsInstance, PARAMETER_MAPPINGS_PROPERTY, StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
 		final Property<Iterable<NodeInterface>> successNotificationElements  = new StartNodes(traitsInstance, SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureNotificationElements  = new StartNodes(traitsInstance, FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
-
 		final Property<String> eventProperty                                 = new StringProperty(EVENT_PROPERTY).description("DOM event which triggers the action");
 		final Property<String> actionProperty                                = new StringProperty(ACTION_PROPERTY).description("Action which will be triggered");
 		final Property<String> methodProperty                                = new StringProperty(METHOD_PROPERTY).description("Name of method to execute when triggered action is 'method'. Authoring surface; the resolved SchemaMethod node is held by 'methodNode'.");
@@ -312,17 +336,14 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> dialogTypeProperty                            = new StringProperty(DIALOG_TYPE_PROPERTY).description("Type of dialog to confirm a destructive / update action");
 		final Property<String> dialogTitleProperty                           = new StringProperty(DIALOG_TITLE_PROPERTY).description("Dialog Title");
 		final Property<String> dialogTextProperty                            = new StringProperty(DIALOG_TEXT_PROPERTY).description("Dialog Text");
-
 		final Property<String> successNotificationsProperty                  = new StringProperty(SUCCESS_NOTIFICATIONS_PROPERTY).description("Notifications after successful execution of action");
 		final Property<String> successNotificationsPartialProperty           = new StringProperty(SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY).description("CSS selector for partial to display as success notification");
 		final Property<String> successNotificationsEventProperty             = new StringProperty(SUCCESS_NOTIFICATIONS_EVENT_PROPERTY).description("Event to raise for success notifications");
 		final Property<Integer> successNotificationsDelayProperty            = new IntProperty(SUCCESS_NOTIFICATIONS_DELAY_PROPERTY).description("Delay before hiding success notifications").defaultValue(5000);
-
 		final Property<String> failureNotificationsProperty                  = new StringProperty(FAILURE_NOTIFICATIONS_PROPERTY).description("Notifications after failed execution of action");
 		final Property<String> failureNotificationsPartialProperty           = new StringProperty(FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY).description("CSS selector for partial to display as failure notification");
 		final Property<String> failureNotificationsEventProperty             = new StringProperty(FAILURE_NOTIFICATIONS_EVENT_PROPERTY).description("Event to raise for failure notifications");
 		final Property<Integer> failureNotificationsDelayProperty            = new IntProperty(FAILURE_NOTIFICATIONS_DELAY_PROPERTY).description("Delay before hiding failure notifications").defaultValue(5000);
-
 		final Property<String> successBehaviourProperty                      = new StringProperty(SUCCESS_BEHAVIOUR_PROPERTY).description("Behaviour after successful execution of action");
 		final Property<String> successPartialProperty                        = new StringProperty(SUCCESS_PARTIAL_PROPERTY).description("CSS selector for partial to refresh on success");
 		final Property<String> successURLProperty                            = new StringProperty(SUCCESS_URL_PROPERTY).description("URL to navigate to on success");
@@ -330,7 +351,6 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> successShowProperty                           = new StringProperty(SUCCESS_SHOW_PROPERTY).description("CSS selector(s) for section(s) to show on success");
 		final Property<String> successHideProperty                           = new StringProperty(SUCCESS_HIDE_PROPERTY).description("CSS selector(s) for section(s) to hide on success");
 		final Property<String> successScopeProperty                          = new StringProperty(SUCCESS_SCOPE_PROPERTY).description("Optional scope for the success show/hide selectors. 'repeater' restricts them to the repeater element containing the triggering element.");
-
 		final Property<String> failureBehaviourProperty                      = new StringProperty(FAILURE_BEHAVIOUR_PROPERTY).description("Behaviour after failed execution of action");
 		final Property<String> failurePartialProperty                        = new StringProperty(FAILURE_PARTIAL_PROPERTY).description("CSS selector for partial to refresh on failure");
 		final Property<String> failureURLProperty                            = new StringProperty(FAILURE_URL_PROPERTY).description("URL to navigate to on failure");
@@ -339,58 +359,21 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> failureHideProperty                           = new StringProperty(FAILURE_HIDE_PROPERTY).description("CSS selector(s) for section(s) to hide on failure");
 		final Property<String> failureScopeProperty                          = new StringProperty(FAILURE_SCOPE_PROPERTY).description("Optional scope for the failure show/hide selectors. 'repeater' restricts them to the repeater element containing the triggering element.");
 
-		return Set.of(
-			triggerElements,
-			successTargets,
-			failureTargets,
-			successHideTargets,
-			failureHideTargets,
-			parameterMappings,
-			successNotificationElements,
-			failureNotificationElements,
+		return Set.of(triggerElements, successTargets, failureTargets, successHideTargets, failureHideTargets, parameterMappings, successNotificationElements, failureNotificationElements,
 
-			eventProperty,
-			actionProperty,
-			methodProperty,
-			flowProperty,
-			dataTypeProperty,
-			idExpressionProperty,
-			optionsProperty,
+			eventProperty, actionProperty, methodProperty, flowProperty, dataTypeProperty, idExpressionProperty, optionsProperty,
 
-			methodNodeProperty,
-			flowNodeProperty,
-			dataTypeNodeProperty,
+			methodNodeProperty, flowNodeProperty, dataTypeNodeProperty,
 
-			dialogTypeProperty,
-			dialogTitleProperty,
-			dialogTextProperty,
+			dialogTypeProperty, dialogTitleProperty, dialogTextProperty,
 
-			successNotificationsProperty,
-			successNotificationsPartialProperty,
-			successNotificationsEventProperty,
-			successNotificationsDelayProperty,
+			successNotificationsProperty, successNotificationsPartialProperty, successNotificationsEventProperty, successNotificationsDelayProperty,
 
-			failureNotificationsProperty,
-			failureNotificationsPartialProperty,
-			failureNotificationsEventProperty,
-			failureNotificationsDelayProperty,
+			failureNotificationsProperty, failureNotificationsPartialProperty, failureNotificationsEventProperty, failureNotificationsDelayProperty,
 
-			successBehaviourProperty,
-			successPartialProperty,
-			successURLProperty,
-			successEventProperty,
-			successShowProperty,
-			successHideProperty,
-			successScopeProperty,
+			successBehaviourProperty, successPartialProperty, successURLProperty, successEventProperty, successShowProperty, successHideProperty, successScopeProperty,
 
-			failureBehaviourProperty,
-			failurePartialProperty,
-			failureURLProperty,
-			failureEventProperty,
-			failureShowProperty,
-			failureHideProperty,
-			failureScopeProperty
-		);
+			failureBehaviourProperty, failurePartialProperty, failureURLProperty, failureEventProperty, failureShowProperty, failureHideProperty, failureScopeProperty);
 	}
 
 	@Override
@@ -415,6 +398,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

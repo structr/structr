@@ -27,6 +27,7 @@ import org.structr.flow.traits.definitions.FlowConditionTraitDefinition;
 public class FlowCondition extends FlowDataSource {
 
 	public FlowCondition(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -38,6 +39,7 @@ public class FlowCondition extends FlowDataSource {
 	}
 
 	public void setConditions(final Iterable<FlowCondition> conditions) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowConditionTraitDefinition.CONDITIONS_PROPERTY), conditions);
 	}
 
@@ -49,6 +51,7 @@ public class FlowCondition extends FlowDataSource {
 	}
 
 	public void setLogicTargets(final Iterable<FlowBaseNode> logicTargets) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowConditionTraitDefinition.LOGIC_TARGETS_PROPERTY), logicTargets);
 	}
 }

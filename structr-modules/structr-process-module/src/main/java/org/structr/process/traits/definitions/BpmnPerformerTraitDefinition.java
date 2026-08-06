@@ -74,20 +74,18 @@ public class BpmnPerformerTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnPerformer.class, (traits, node) -> new BpmnPerformerTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnPerformer.class, (traits, node) -> new BpmnPerformerTraitWrapper(traits, node));
 	}
 
 	public BpmnPerformerTraitDefinition() {
+
 		super(ProcessTraits.BPMN_PERFORMER);
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
-		final Property<String> kind                = new EnumProperty(KIND_PROPERTY,
-			Set.of(KIND_PERFORMER, KIND_HUMAN_PERFORMER, KIND_POTENTIAL_OWNER)).indexed();
+		final Property<String> kind                = new EnumProperty(KIND_PROPERTY, Set.of(KIND_PERFORMER, KIND_HUMAN_PERFORMER, KIND_POTENTIAL_OWNER)).indexed();
 		final Property<String> expression          = new StringProperty(EXPRESSION_PROPERTY);
 		final Property<String> expressionLanguage  = new StringProperty(EXPRESSION_LANGUAGE_PROPERTY);
 		final Property<String> performerName       = new StringProperty(PERFORMER_NAME_PROPERTY);
@@ -108,6 +106,7 @@ public class BpmnPerformerTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

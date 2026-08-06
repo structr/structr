@@ -61,7 +61,9 @@ public class SimpleMessagingTest extends MessagingTestBase  {
 			assertEquals("testmessage", sub.getName());
 
 			tx.success();
+
 		} catch (FrameworkException ex) {
+
 			fail("Exception during test: " + ex.getMessage());
 		}
 

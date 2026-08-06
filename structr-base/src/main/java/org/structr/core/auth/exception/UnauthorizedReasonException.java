@@ -23,11 +23,13 @@ public abstract class UnauthorizedReasonException extends UnauthorizedException 
 	private final String reason;
 
 	public UnauthorizedReasonException(final String message, final String reason) {
+
 		super(message);
 		this.reason = reason;
 	}
 
 	public String getReason () {
+
 		return reason;
 	}
 }

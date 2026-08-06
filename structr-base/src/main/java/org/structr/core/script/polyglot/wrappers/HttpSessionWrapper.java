@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class HttpSessionWrapper implements ProxyObject  {
+
 	private final ActionContext actionContext;
 	private final HttpSession session;
 
@@ -50,12 +51,15 @@ public class HttpSessionWrapper implements ProxyObject  {
 	public Object getMember(String key) {
 
 		if (session == null) {
+
 			return null;
 		}
 
 		if (staticKeywords.containsKey(key)) {
+
 			return PolyglotWrapper.wrap(actionContext, staticKeywords.get(key).apply(session));
 		}
+
 		return PolyglotWrapper.wrap(actionContext,  session.getAttribute(key));
 	}
 
@@ -66,6 +70,7 @@ public class HttpSessionWrapper implements ProxyObject  {
 
 		staticKeywords.forEach((key, value) -> {
 			if (!keys.contains(key)) {
+
 				keys.add(key);
 			}
 		});
@@ -75,11 +80,13 @@ public class HttpSessionWrapper implements ProxyObject  {
 
 	@Override
 	public boolean hasMember(String key) {
+
 		return true;
 	}
 
 	@Override
 	public void putMember(String key, Value value) {
+
 		session.setAttribute(key, PolyglotWrapper.unwrap(actionContext, value));
 	}
 }

@@ -24,6 +24,7 @@ public abstract class CoreFunction extends Function<Object, Object> {
 
 	@Override
 	public String getRequiredModule() {
+
 		return "core";
 	}
 }

@@ -27,26 +27,31 @@ import org.structr.core.GraphObject;
 public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 
 	public SourceSearchAttribute() {
+
 		super(null, null);
 	}
 
 	@Override
 	public String toString() {
+
 		return "SourceSearchAttribute()";
 	}
 
 	@Override
 	public boolean isExactMatch() {
+
 		return true;
 	}
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
+
 		return true;
 	}
 
 	@Override
 	public Class getQueryType() {
+
 		return null;
 	}
 }

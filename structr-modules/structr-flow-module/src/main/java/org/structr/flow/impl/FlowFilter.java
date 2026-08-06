@@ -36,6 +36,7 @@ public class FlowFilter extends FlowDataSource implements DeployableEntity {
 	private static final Logger logger = LoggerFactory.getLogger(FlowFilter.class);
 
 	public FlowFilter(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -58,7 +59,6 @@ public class FlowFilter extends FlowDataSource implements DeployableEntity {
 		if (ds != null) {
 
 			Object data = ds.get(context);
-
 			if (data instanceof Iterable) {
 
 				if (condition != null) {
@@ -66,10 +66,13 @@ public class FlowFilter extends FlowDataSource implements DeployableEntity {
 					data = Iterables.toList((Iterable) data).stream().filter(el -> {
 
 						try {
+
 							context.setData(getUuid(), el);
+
 							return (Boolean)condition.get(context);
 
 						} catch (FlowException ex) {
+
 							logger.warn("Exception in FlowFilter filter(): " + ex.getMessage());
 						}
 

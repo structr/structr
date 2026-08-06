@@ -72,7 +72,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -83,7 +85,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant = createResourceAccess(StructrTraits.FOLDER, UiAuthenticator.FORBIDDEN);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -99,7 +103,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_GET);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -112,7 +118,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			// allow GET for non-authenticated users => access without user/pass should be allowed
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_GET);
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -125,6 +133,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -153,7 +162,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_POST);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -168,7 +179,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_POST);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -199,7 +212,6 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		final String name = "testuser-01";
 		final String password = "testpassword-01";
-
 		NodeInterface folderGrant = null;
 		NodeInterface testUser = null;
 		NodeInterface testFolder = null;
@@ -217,7 +229,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant = createResourceAccess(StructrTraits.FOLDER + "/_id", UiAuthenticator.FORBIDDEN);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
@@ -231,7 +245,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_PUT);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -245,7 +261,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -265,7 +283,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), testUser));
 
 			tx.success();
+
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -279,6 +299,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			ex.printStackTrace();
 			fail("Unexpected exception");
 
@@ -305,7 +326,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			testUser = createTestNodes(StructrTraits.USER, 1).get(0);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -319,7 +342,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant = createResourceAccess(StructrTraits.FOLDER + "/_id", UiAuthenticator.FORBIDDEN);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -333,7 +358,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.AUTH_USER_DELETE);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -347,7 +374,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.as(ResourceAccess.class).setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -366,7 +395,9 @@ public class ResourceAccessTest extends StructrUiTest {
 			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), testUser));
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -380,7 +411,9 @@ public class ResourceAccessTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/Folder/" + testFolder.getUuid());
 
 			tx.success();
+
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -417,7 +450,6 @@ public class ResourceAccessTest extends StructrUiTest {
 		}
 
 		NodeInterface test = null;
-
 		final String testClass = "Test";
 
 		try (final Tx tx = app.tx()) {
@@ -433,6 +465,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -451,6 +484,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			logger.error(fex.toString());
 			fail("Unexpected exception");
@@ -541,6 +575,7 @@ public class ResourceAccessTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface access : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
+
 				app.delete(access);
 			}
 

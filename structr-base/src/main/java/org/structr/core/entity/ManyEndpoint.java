@@ -73,6 +73,7 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 			} else {
 
 				// sort relationships by id
+
 				return Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), from.getId()), rels);
 			}
 		}
@@ -99,8 +100,8 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 				if (n != null) {
 
 					final Traits type = n.getTraits();
-
 					if (!SearchCommand.isTypeAssignableFromOtherType(targetType, type)) {
+
 						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), targetType.getName()));
 					}
 
@@ -181,11 +182,13 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 
 	@Override
 	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getMultiple(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType(), predicate);
 	}
 
 	@Override
 	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getRawSource(securityContext, dbNode, predicate).iterator().hasNext();
 	}
 }

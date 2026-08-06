@@ -31,6 +31,7 @@ import java.util.List;
 public class ResolveConceptPairsRule extends Rule {
 
 	public ResolveConceptPairsRule(Ontology ontology) {
+
 		super(ontology);
 	}
 
@@ -42,11 +43,9 @@ public class ResolveConceptPairsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.pop();
-
 			if (token1 instanceof ConceptToken concept1 && !tokens.isEmpty()) {
 
 				AbstractToken token2 = tokens.pop();
-
 				if (token2 instanceof ConceptToken concept2) {
 
 					// two concepts, check case first

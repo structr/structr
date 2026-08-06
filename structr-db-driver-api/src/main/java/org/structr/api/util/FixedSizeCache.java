@@ -44,38 +44,47 @@ public class FixedSizeCache<K, V> {
 	}
 
 	public synchronized void put(final K key, final V value) {
+
 		cache.put(key, value);
 	}
 
 	public synchronized V get(final K key) {
+
 		return cache.get(key);
 	}
 
 	public synchronized void removeAll(final Collection<K> keys) {
+
 		cache.keySet().removeAll(keys);
 	}
 
 	public synchronized V remove(final K key) {
+
 		return cache.remove(key);
 	}
 
 	public synchronized void clear() {
+
 		cache.clear();
 	}
 
 	public synchronized int size() {
+
 		return cache.size();
 	}
 
 	public synchronized Map<String, Integer> getCacheInfo() {
+
 		return Map.of("max", cache.maxSize(), "size", size());
 	}
 
 	public synchronized boolean isEmpty() {
+
 		return cache.isEmpty();
 	}
 
 	public synchronized boolean containsKey(final K key) {
+
 		return cache.containsKey(key);
 	}
 }

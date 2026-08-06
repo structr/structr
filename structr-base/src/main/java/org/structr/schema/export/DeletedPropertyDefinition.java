@@ -32,6 +32,7 @@ public class DeletedPropertyDefinition extends StructrPropertyDefinition {
 
 	@Override
 	public String getType() {
+
 		return "deleted";
 	}
 }

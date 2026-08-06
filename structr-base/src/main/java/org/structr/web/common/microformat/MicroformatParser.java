@@ -72,6 +72,7 @@ public class MicroformatParser {
 					values.put("type", classes);
 
 					for (final Element child : element.children()) {
+
 						recurse(child, values, depth+1);
 					}
 
@@ -81,10 +82,12 @@ public class MicroformatParser {
 					values.put(classes.iterator().next(), childMap);
 
 					if (content != null) {
+
 						childMap.put("name", content);
 					}
 
 					for (final Element child : element.children()) {
+
 						recurse(child, childMap, depth+1);
 					}
 				}
@@ -101,6 +104,7 @@ public class MicroformatParser {
 				if (content != null) {
 
 					for (final String type : classes) {
+
 						values.put(type, content);
 					}
 				}
@@ -114,6 +118,7 @@ public class MicroformatParser {
 		for (Iterator<String> it = source.iterator(); it.hasNext();) {
 
 			if (StringUtils.isBlank(it.next())) {
+
 				it.remove();
 			}
 		}
@@ -131,11 +136,13 @@ public class MicroformatParser {
 				if (node instanceof Element element) {
 
 					if (element.isBlock()) {
+
 						final Set<String> classes = element.classNames();
 
 						removeEmpty(classes);
 
 						if (classes.isEmpty()) {
+
 							elementsToUnwrap.add(element);
 						}
 					}
@@ -148,6 +155,7 @@ public class MicroformatParser {
 		});
 
 		for (final Element unwrap : elementsToUnwrap) {
+
 			unwrap.unwrap();
 		}
 	}
@@ -189,10 +197,12 @@ public class MicroformatParser {
 		}
 
 		if (parts.isEmpty()) {
+
 			return null;
 		}
 
 		if (parts.size() == 1) {
+
 			return parts.get(0);
 		}
 

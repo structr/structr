@@ -56,6 +56,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface init  = createUser("initiator");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -67,8 +68,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Fill");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(init.getUuid(), assigneeOf(task).getUuid());
-			assertEquals(TaskInstanceTraitDefinition.SET_BY_BPMN,
-				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_BPMN, task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
 			tx.success();
 		}
 	}
@@ -80,6 +80,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-candidate-task.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -90,8 +91,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
-			assertTrue("the Reviewers group should be a candidate assignee",
-				candidateAssigneeIds(task).size() == 1);
+			assertTrue("the Reviewers group should be a candidate assignee", candidateAssigneeIds(task).size() == 1);
 			tx.success();
 		}
 	}
@@ -102,6 +102,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		// simple-approval's user task has no performers; with the flag set the task
 		// falls back to the initiator.
 		final String procUuid = importProcess("/simple-approval.bpmn");
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface proc = app.getNodeById(procUuid);
@@ -111,6 +112,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final NodeInterface init = createUser("initiator");
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -147,8 +149,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(c.member.getUuid(), assigneeOf(task).getUuid());
-			assertEquals(TaskInstanceTraitDefinition.SET_BY_SELF,
-				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_SELF, task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
 			tx.success();
 		}
 	}
@@ -170,6 +171,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 				assertEquals(403, expected.getStatus());
 			}
+
 			tx.success();
 		}
 	}
@@ -179,6 +181,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		final NodeInterface member2 = createUser("member2");
+
 		addToGroup(c.group, member2);
 
 		try (final Tx tx = app.tx()) {
@@ -186,6 +189,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			try {
@@ -197,6 +201,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 				assertEquals(422, expected.getStatus());
 			}
+
 			tx.success();
 		}
 	}
@@ -209,16 +214,19 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	public void testReleaseReturnsTaskToPool() throws Exception {
 
 		final Ctx c = startCandidateTask();
+
 		try (final Tx tx = app.tx()) {
 
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			engineAs(c.member).releaseTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
@@ -233,6 +241,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		final NodeInterface member2 = createUser("member2");
+
 		addToGroup(c.group, member2);
 
 		try (final Tx tx = app.tx()) {
@@ -240,6 +249,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			try {
@@ -251,6 +261,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 				assertEquals(403, expected.getStatus());
 			}
+
 			tx.success();
 		}
 	}
@@ -263,11 +274,13 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	public void testDeclineRecordsVoteWithoutChangingStatus() throws Exception {
 
 		final Ctx c = startCandidateTask();
+
 		try (final Tx tx = app.tx()) {
 
 			engineAs(c.member).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
@@ -281,22 +294,24 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	public void testClaimSupersedesPriorDecline() throws Exception {
 
 		final Ctx c = startCandidateTask();
+
 		try (final Tx tx = app.tx()) {
 
 			engineAs(c.member).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			engineAs(c.member).claimTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
-			assertFalse("claim should remove the caller from declinedBy",
-				declinedByIds(task).contains(c.member.getUuid()));
+			assertFalse("claim should remove the caller from declinedBy", declinedByIds(task).contains(c.member.getUuid()));
 			tx.success();
 		}
 	}
@@ -306,6 +321,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		final NodeInterface outsider = createUser("outsider");
+
 		try (final Tx tx = app.tx()) {
 
 			try {
@@ -317,6 +333,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 				assertEquals(403, expected.getStatus());
 			}
+
 			tx.success();
 		}
 	}
@@ -336,19 +353,19 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
-			engineAs(c.member).delegateTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"),
-				app.getNodeById(delegate.getUuid()));
+			engineAs(c.member).delegateTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"), app.getNodeById(delegate.getUuid()));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(delegate.getUuid(), assigneeOf(task).getUuid());
-			assertEquals(TaskInstanceTraitDefinition.SET_BY_DELEGATION,
-				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_DELEGATION, task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
 			tx.success();
 		}
 	}
@@ -361,10 +378,10 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		try (final Tx tx = app.tx()) {
 
-			engineAs(c.member).delegateTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
-				app.getNodeById(delegate.getUuid()));
+			engineAs(c.member).delegateTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"), app.getNodeById(delegate.getUuid()));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
@@ -386,17 +403,16 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		try (final Tx tx = app.tx()) {
 
-			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
-				app.getNodeById(other.getUuid()));
+			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"), app.getNodeById(other.getUuid()));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(other.getUuid(), assigneeOf(task).getUuid());
-			assertEquals(TaskInstanceTraitDefinition.SET_BY_ADMIN,
-				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_ADMIN, task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
 			tx.success();
 		}
 	}
@@ -409,15 +425,16 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		try (final Tx tx = app.tx()) {
 
-			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
-				app.getNodeById(other.getUuid()));
+			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"), app.getNodeById(other.getUuid()));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			engine().makeTaskAvailable(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
@@ -431,15 +448,18 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	public void testCancelTaskDoesNotAdvanceProcess() throws Exception {
 
 		final Ctx c = startCandidateTask();
+
 		try (final Tx tx = app.tx()) {
 
 			engine().cancelTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface inst = app.getNodeById(c.instId);
 			final NodeInterface task = anyTaskAt(inst, "Task_Review");
+
 			assertEquals(TaskInstanceTraitDefinition.STATUS_CANCELLED, taskStatus(task));
 			assertNotNull(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.CANCELLED_TIME_PROPERTY)));
 			// The instance keeps running (admin must intervene explicitly), no tokens active.
@@ -457,22 +477,24 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	public void testCompleteAfterClaimAdvancesProcess() throws Exception {
 
 		final Ctx c = startCandidateTask();
+
 		try (final Tx tx = app.tx()) {
 
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			engineAs(c.member).completeTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"), Map.of());
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface inst = app.getNodeById(c.instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
-			assertEquals(TaskInstanceTraitDefinition.STATUS_COMPLETED,
-				taskStatus(anyTaskAt(inst, "Task_Review")));
+			assertEquals(TaskInstanceTraitDefinition.STATUS_COMPLETED, taskStatus(anyTaskAt(inst, "Task_Review")));
 			tx.success();
 		}
 	}
@@ -490,6 +512,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		final String taskId;
+
 		try (final Tx tx = app.tx()) {
 
 			taskId = openTaskAt(app.getNodeById(c.instId), "Task_Review").getUuid();
@@ -509,6 +532,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 				assertEquals(403, expected.getStatus());
 			}
+
 			tx.success();
 		}
 
@@ -518,6 +542,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 			invokeMethod(securityContext, app.getNodeById(taskId), "cancel", Map.of(), false);
 			tx.success();
 		}
+
 		try (final Tx tx = app.tx()) {
 
 			assertEquals(TaskInstanceTraitDefinition.STATUS_CANCELLED, taskStatus(app.getNodeById(taskId)));
@@ -530,7 +555,9 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		final NodeInterface other = createUser("non-admin-target");
+
 		final String taskId;
+
 		try (final Tx tx = app.tx()) {
 
 			taskId = openTaskAt(app.getNodeById(c.instId), "Task_Review").getUuid();
@@ -548,16 +575,17 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 				assertEquals(403, expected.getStatus());
 			}
+
 			try {
 
-				invokeMethod(userContext(c.member), app.getNodeById(taskId), "assignTask",
-					Map.of("assignee", other.getUuid()), false);
+				invokeMethod(userContext(c.member), app.getNodeById(taskId), "assignTask", Map.of("assignee", other.getUuid()), false);
 				fail("expected 403 invoking 'assignTask' without accessControl");
 
 			} catch (final FrameworkException expected) {
 
 				assertEquals(403, expected.getStatus());
 			}
+
 			tx.success();
 		}
 	}
@@ -575,7 +603,9 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final String procUuid    = importProcess("/engine-human-task.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
+
 			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
@@ -608,6 +638,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		final String existingSubjectId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
@@ -666,6 +697,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface group;
 		final NodeInterface member;
 		Ctx(final String instId, final NodeInterface group, final NodeInterface member) {
+
 			this.instId = instId; this.group = group; this.member = member;
 		}
 	}
@@ -674,35 +706,42 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final NodeInterface group  = createGroup("Reviewers");
 		final NodeInterface member = createUser("reviewer");
+
 		addToGroup(group, member);
 		final String procUuid = importProcess("/engine-candidate-task.bpmn");
 
 		final String instId;
+
 		try (final Tx tx = app.tx()) {
 
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
+
 		return new Ctx(instId, group, member);
 	}
 
 	private Set<String> candidateAssigneeIds(final NodeInterface task) throws FrameworkException {
 
 		final Set<String> ids = new HashSet<>();
+
 		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY)))) {
 
 			ids.add(n.getUuid());
 		}
+
 		return ids;
 	}
 
 	private Set<String> declinedByIds(final NodeInterface task) throws FrameworkException {
 
 		final Set<String> ids = new HashSet<>();
+
 		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY)))) {
 
 			ids.add(n.getUuid());
 		}
+
 		return ids;
 	}
 }

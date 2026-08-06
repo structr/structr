@@ -26,36 +26,43 @@ public class DocumentationAnnotationToken extends AbstractToken<Void> {
 	private final String location;
 
 	public DocumentationAnnotationToken(final String location) {
+
 		this.location = location;
 	}
 
 	@Override
 	public Void resolve(final Ontology ontology) {
+
 		return null;
 	}
 
 	@Override
 	public String toString() {
+
 		return "@Documentation on " + location;
 	}
 
 	@Override
 	public boolean isTerminal() {
+
 		return false;
 	}
 
 	@Override
 	public Token getToken() {
+
 		return null;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Cannot rename annotated Java elements.");
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Cannot update annotated Java elements.");
 	}
 }

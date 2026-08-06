@@ -49,7 +49,6 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
                 .post("/TestThree")
                 .getHeader("Location");
 
-
         RestAssured.given()
                 .contentType("application/json; charset=UTF-8")
                 .expect()
@@ -72,7 +71,6 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 				.when()
 				.post("/TestThree")
 				.getHeader("Location");
-
 
 		RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
@@ -99,7 +97,6 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 				.post("/TestThree")
 				.getHeader("Location");
 
-
 		RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
 				.expect()
@@ -122,7 +119,6 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 				.when()
 				.post("/TestThree")
 				.getHeader("Location");
-
 
 		RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
@@ -148,8 +144,7 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "zdtTest"),
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "zdtTest"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), """
 						{
 							let testThree = $.find('TestThree')[0];
@@ -175,6 +170,7 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 
@@ -209,8 +205,7 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.SCHEMA_METHOD,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "zdtTest"),
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "zdtTest"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), """
 						{
 							let testThree = $.find('TestThree')[0];
@@ -236,6 +231,7 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fail("Unexpected exception.");
 		}
 

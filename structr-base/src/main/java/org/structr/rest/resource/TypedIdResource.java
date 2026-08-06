@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
@@ -54,10 +53,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 	public TypedIdResource() {
 
-		super(
-			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
-			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), true, "_id")
-		);
+		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true), RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), true, "_id"));
 	}
 
 	@Override
@@ -77,6 +73,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 		}
 
 		// only return a handler if there is actually a type with the requested name
+
 		return null;
 	}
 
@@ -95,16 +92,19 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
 			return new PagingIterable<>(getURL(), Arrays.asList(getEntity(securityContext, typeName, uuid)));
 		}
 
 		@Override
 		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
 			throw new IllegalMethodException("POST not allowed on " + typeName + " entity resource", getAllowedHttpMethodsForOptionsCall());
 		}
 
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
 			return genericPut(securityContext, propertySet);
 		}
 
@@ -120,6 +120,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 			}
 
 			// redirect to doPut
+
 			return doPut(securityContext, flattenedInputs);
 		}
 
@@ -131,11 +132,9 @@ public class TypedIdResource extends ExactMatchEndpoint {
 			try (final Tx tx = app.tx(true, true, false)) {
 
 				final GraphObject obj = getEntity(securityContext, typeName, uuid);
-
 				if (obj.isNode()) {
 
 					final NodeInterface node = (NodeInterface)obj;
-
 					if (!node.isGranted(Permission.delete, securityContext)) {
 
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
@@ -159,11 +158,13 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
+
 			return typeName;
 		}
 
 		@Override
 		public boolean isCollection() {
+
 			return false;
 		}
 
@@ -185,6 +186,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
 		}
 	}

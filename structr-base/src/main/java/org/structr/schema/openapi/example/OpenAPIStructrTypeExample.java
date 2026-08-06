@@ -35,6 +35,7 @@ import java.util.TreeMap;
 public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 
 	public OpenAPIStructrTypeExample(final StructrTypeDefinition<?> type, final String viewName) {
+
 		this(type, viewName, 0);
 	}
 
@@ -60,11 +61,11 @@ public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 	private void handleProperty(final StructrTypeDefinition<?> type, final PropertyKey property, final String viewName, final int level) {
 
 		if (level > 2) {
+
 			return;
 		}
 
 		final Class valueType = property.valueType();
-
 		if (valueType != null && GraphObject.class.isAssignableFrom(valueType)) {
 
 			final JsonSchema schema = type.getSchema();

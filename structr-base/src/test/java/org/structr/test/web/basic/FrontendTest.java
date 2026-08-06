@@ -31,7 +31,6 @@ import org.structr.test.web.StructrUiTest;
 
 public abstract class FrontendTest extends StructrUiTest {
 
-
 	public static final String ADMIN_USERNAME = "admin";
 	public static final String ADMIN_PASSWORD = "admin";
 
@@ -46,6 +45,7 @@ public abstract class FrontendTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 	}
@@ -66,6 +66,7 @@ public abstract class FrontendTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -77,11 +78,11 @@ public abstract class FrontendTest extends StructrUiTest {
 		StringBuilder buf = new StringBuilder();
 
 		for (String part : body) {
+
 			buf.append(part);
 		}
 
-		return getUuidFromLocation(
-			RestAssured
+		return getUuidFromLocation(RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)

@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeInterface;
 public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, String> {
 
 	public RelationshipEndNodeTypeConverter(SecurityContext securityContext, GraphObject entity) {
+
 		super(securityContext, entity);
 	}
 
@@ -53,6 +54,7 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 
 	@Override
 	public String convert(Object source) {
+
 		return source != null ? source.toString() : null;
 	}
 }

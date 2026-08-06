@@ -43,6 +43,7 @@ public class AccessPathCache {
 		final CacheEntry entry = cache.get(cacheKey);
 
 		if (entry != null) {
+
 			return entry.mask;
 		}
 
@@ -97,6 +98,7 @@ public class AccessPathCache {
 			for (final CacheEntry entry : cache.values()) {
 
 				if (entry.uuids.contains(uuid)) {
+
 					cache.remove(entry.key);
 				}
 			}
@@ -112,6 +114,7 @@ public class AccessPathCache {
 			for (final CacheEntry entry : cache.values()) {
 
 				if (entry.relTypes.contains(relType)) {
+
 					cache.remove(entry.key);
 				}
 			}
@@ -145,12 +148,14 @@ public class AccessPathCache {
 	}
 
 	private static String cacheKey(final NodeInterface startNode, final NodeInterface endNode) {
+
 		return startNode.getUuid() + endNode.getUuid();
 	}
 
 	private static String getUuid(final PropertyContainer prop) {
 
 		if (prop.hasProperty("id")) {
+
 			return (String)prop.getProperty("id");
 		}
 

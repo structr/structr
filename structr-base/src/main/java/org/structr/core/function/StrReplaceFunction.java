@@ -35,11 +35,13 @@ public class StrReplaceFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "strReplace";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("subject, search, replacement");
 	}
 
@@ -55,49 +57,50 @@ public class StrReplaceFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (PatternSyntaxException ex) {
 
 			logParameterError(caller, sources, "Error in RegEx: " + ex.getMessage(),ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}"),
-			Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}")
-		);
+
+		return List.of(Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}"), Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Replaces **each** substring of the subject that matches the given regular expression with the given replacement.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${strReplace('Hello Wrlod!', 'Wrlod', 'World')}"),
-				Example.javaScript("${{ $.strReplace('Hello Wrlod!', 'Wrlod', 'World') }}"),
+
+		return List.of(Example.structrScript("${strReplace('Hello Wrlod!', 'Wrlod', 'World')}"), Example.javaScript("${{ $.strReplace('Hello Wrlod!', 'Wrlod', 'World') }}"),
 				Example.structrScript("""
 						${strReplace('This does not make sense!', 'does not (make) (sense)', '$1s $2')}
 						> This makes sense!
 						""", "Usage with regular expression"
-				)
-		);
+				));
 	}
 
 	@Override
@@ -112,6 +115,7 @@ public class StrReplaceFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.String;
 	}
 }

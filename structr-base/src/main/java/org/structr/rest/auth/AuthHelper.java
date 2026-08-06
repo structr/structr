@@ -73,7 +73,6 @@ public class AuthHelper {
 	// Per-user lock objects for atomic failed login counter updates
 	private static final ConcurrentHashMap<String, Object> userLocks = new ConcurrentHashMap<>();
 
-
 	/**
 	 * Find a {@link Principal} for the given credential
 	 *
@@ -128,12 +127,15 @@ public class AuthHelper {
 		for (final PropertyKey<String> key : keys) {
 
 			try {
+
 				principal = getPrincipalForPassword(key, value, password);
 
 			} catch (final AuthenticationException aex) {
 
 				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
+
 				if (failedLoginLog.allow("no principal")) {
+
 					logger.info("No principal found for {} '{}'", keyMessage, value);
 				}
 
@@ -142,6 +144,7 @@ public class AuthHelper {
 		}
 
 		if (principal == null) {
+
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
@@ -161,23 +164,26 @@ public class AuthHelper {
 	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
 		Principal principal  = null;
-
 		final String superuserName = Settings.SuperUserName.getValue();
 		final String superUserPwd  = Settings.SuperUserPassword.getValue();
 
 		if (StringUtils.isEmpty(value)) {
 
 			if (failedLoginLog.allow("empty value")) {
+
 				logger.info("Empty value for key {}", key.dbName());
 			}
+
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
 		if (StringUtils.isEmpty(password)) {
 
 			if (failedLoginLog.allow("empty password")) {
+
 				logger.info("Empty password");
 			}
+
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
@@ -222,6 +228,7 @@ public class AuthHelper {
 				HashHelper.spendVerificationTime(password);
 
 				if (failedLoginLog.allow("no principal")) {
+
 					logger.info("No principal found for {} '{}'", keyMessage, value);
 				}
 
@@ -240,6 +247,7 @@ public class AuthHelper {
 					HashHelper.spendVerificationTime(password);
 
 					if (failedLoginLog.allow("blocked")) {
+
 						logger.info("Principal {} is blocked", principal);
 					}
 
@@ -252,7 +260,6 @@ public class AuthHelper {
 
 					// let Principal decide how to check password
 					final boolean passwordValid = principal.isValidPassword(password);
-
 					if (!passwordValid) {
 
 						AuthHelper.incrementFailedLoginAttemptsCounter(principal);
@@ -297,6 +304,7 @@ public class AuthHelper {
 							try (final Tx tx = app.tx()) {
 
 								try {
+
 									final NodeInterface toDelete = app.getNodeById(uuid);
 									if (toDelete != null) {
 
@@ -304,12 +312,14 @@ public class AuthHelper {
 									}
 
 								} catch (FrameworkException fex) {
+
 									fex.printStackTrace();
 								}
 
 								tx.success();
 
 							} catch (FrameworkException fex) {
+
 								logger.warn("Unable to delete user {}: {}", uuid, fex.getMessage());
 							}
 
@@ -347,6 +357,7 @@ public class AuthHelper {
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
 		if (request.getSession(false) == null) {
+
 			SessionHelper.newSession(request);
 		}
 
@@ -451,6 +462,7 @@ public class AuthHelper {
 		if (created != null) {
 
 			final long maxValidity = created + validityPeriod * 60 * 1000L;
+
 			return (maxValidity >= System.currentTimeMillis());
 		}
 
@@ -468,6 +480,7 @@ public class AuthHelper {
 			} catch (NumberFormatException e) {
 
 				logger.warn("Invalid legacy confirmation key format");
+
 				return false;
 			}
 		}
@@ -484,8 +497,8 @@ public class AuthHelper {
 			try {
 
 				Integer failedAttempts = principal.getPasswordAttempts();
-
 				if (failedAttempts == null) {
+
 					failedAttempts = 0;
 				}
 
@@ -503,12 +516,11 @@ public class AuthHelper {
 	public static void checkTooManyFailedLoginAttempts (final Principal principal) throws TooManyFailedLoginAttemptsException {
 
 		final int maximumAllowedFailedAttempts = Settings.PasswordAttempts.getValue();
-
 		if (maximumAllowedFailedAttempts > 0) {
 
 			Integer failedAttempts = principal.getPasswordAttempts();
-
 			if (failedAttempts == null) {
+
 				failedAttempts = 0;
 			}
 
@@ -550,11 +562,9 @@ public class AuthHelper {
 	public static void handleForcePasswordChange (final Principal principal) throws PasswordChangeRequiredException {
 
 		final boolean forcePasswordChange = Settings.PasswordForceChange.getValue();
-
 		if (forcePasswordChange) {
 
 			final int passwordDays = Settings.PasswordForceChangeDays.getValue();
-
 			final Date now                = new Date();
 			final Date passwordChangeDate = (principal.getPasswordChangeDate() != null) ? principal.getPasswordChangeDate() : new Date (0); // setting date in past if not yet set
 			final int daysApart           = (int) ((now.getTime() - passwordChangeDate.getTime()) / (1000 * 60 * 60 * 24l));
@@ -569,9 +579,7 @@ public class AuthHelper {
 	public static Principal getUserForTwoFactorToken (final String twoFactorIdentificationToken) throws TwoFactorAuthenticationTokenInvalidException, FrameworkException {
 
 		final App app = StructrApp.getInstance();
-
 		Principal principal = null;
-
 		final PropertyKey<String> twoFactorTokenKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
@@ -607,6 +615,7 @@ public class AuthHelper {
 		if (created != null) {
 
 			final long maxTokenValidity = created + Settings.TwoFactorLoginTimeout.getValue() * 1000L;
+
 			return (maxTokenValidity >= System.currentTimeMillis());
 		}
 
@@ -624,6 +633,7 @@ public class AuthHelper {
 			} catch (NumberFormatException e) {
 
 				logger.warn("Invalid legacy two-factor token format");
+
 				return false;
 			}
 		}
@@ -669,21 +679,26 @@ public class AuthHelper {
 					try {
 
 						final InetAddress wlAddress = InetAddress.getByName(wlEntryParts[0]);
-
 						if (wlAddress instanceof Inet4Address && isIPv4 || wlAddress instanceof Inet6Address && isIPv6) {
 
 							int prefixLength = maxPrefix;
-							if (wlEntryParts.length == 2) {
-								try {
-									final int definedPrefix = Integer.parseInt(wlEntryParts[1]);
 
+							if (wlEntryParts.length == 2) {
+
+								try {
+
+									final int definedPrefix = Integer.parseInt(wlEntryParts[1]);
 									if (definedPrefix > 0) {
+
 										prefixLength = definedPrefix;
+
 									} else {
+
 										logger.warn("Prefix length for '{}' is invalid, using most restrictive value {}", wlEntry, maxPrefix);
 									}
 
 								} catch (NumberFormatException nfe) {
+
 									logger.warn("Unable to parse numeric prefix length for '{}', using most restrictive value {}", wlEntry, maxPrefix);
 								}
 							}
@@ -694,11 +709,11 @@ public class AuthHelper {
 							final BigInteger whiteListIpAsBigInt = new BigInteger(1, wlAddress.getAddress());
 							final BigInteger lowerBound          = whiteListIpAsBigInt.and(prefixMask);
 							final BigInteger upperBound          = lowerBound.or(wildcard);
-
 							final boolean myIp_GTE_lowerBound    = (-1 != requestIPAsBigInt.compareTo(lowerBound));
 							final boolean myIp_LTE_upperBound    = (-1 != upperBound.compareTo(requestIPAsBigInt));
 
 							if (myIp_GTE_lowerBound && myIp_LTE_upperBound) {
+
 								return true;
 							}
 						}
@@ -725,7 +740,6 @@ public class AuthHelper {
 			final int twoFactorLevel   = Settings.TwoFactorLevel.getValue();
 			boolean isTwoFactorUser    = principal.isTwoFactorUser();
 			boolean twoFactorConfirmed = principal.isTwoFactorConfirmed();
-
 			boolean userNeedsTwoFactor = twoFactorLevel == 2 || (twoFactorLevel == 1 && isTwoFactorUser == true);
 
 			if (userNeedsTwoFactor) {
@@ -782,6 +796,7 @@ public class AuthHelper {
 	}
 
 	public static String getIdentificationTokenForPrincipal () {
+
 		return generateOpaqueToken();
 	}
 
@@ -810,13 +825,12 @@ public class AuthHelper {
 		final byte[] randomBytes = new byte[16];
 		new SecureRandom().nextBytes(randomBytes);
 		final String randomHex = bytesToHex(randomBytes);
-
 		final long now = System.currentTimeMillis();
 		final byte[] timestampBytes = ByteBuffer.allocate(8).putLong(now).array();
 		final String timestampB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(timestampBytes);
-
 		final byte[] hmacKey = getTokenHmacKey();
 		final byte[] hmacInput = new byte[randomBytes.length + timestampBytes.length];
+
 		System.arraycopy(randomBytes, 0, hmacInput, 0, randomBytes.length);
 		System.arraycopy(timestampBytes, 0, hmacInput, randomBytes.length, timestampBytes.length);
 
@@ -833,6 +847,7 @@ public class AuthHelper {
 
 			// Should never happen with HmacSHA256, but fall back to legacy format
 			logger.warn("Failed to generate HMAC-signed token, falling back to legacy format: {}", e.getMessage());
+
 			return UUID.randomUUID().toString() + "!" + now;
 		}
 	}
@@ -846,11 +861,13 @@ public class AuthHelper {
 	private static Long extractTimestampFromToken(final String token) {
 
 		if (token == null) {
+
 			return null;
 		}
 
 		final String[] parts = token.split("\\.");
 		if (parts.length != 3) {
+
 			return null;
 		}
 
@@ -861,12 +878,14 @@ public class AuthHelper {
 			final byte[] providedHmac   = Base64.getUrlDecoder().decode(parts[2]);
 
 			if (timestampBytes.length != 8) {
+
 				return null;
 			}
 
 			// Recompute HMAC and verify
 			final byte[] hmacKey = getTokenHmacKey();
 			final byte[] hmacInput = new byte[randomBytes.length + timestampBytes.length];
+
 			System.arraycopy(randomBytes, 0, hmacInput, 0, randomBytes.length);
 			System.arraycopy(timestampBytes, 0, hmacInput, randomBytes.length, timestampBytes.length);
 
@@ -876,7 +895,9 @@ public class AuthHelper {
 
 			// Constant-time comparison
 			if (!java.security.MessageDigest.isEqual(expectedHmac, providedHmac)) {
+
 				logger.warn("HMAC verification failed for token");
+
 				return null;
 			}
 
@@ -885,6 +906,7 @@ public class AuthHelper {
 		} catch (Exception e) {
 
 			// Not in new format, or corrupted
+
 			return null;
 		}
 	}
@@ -898,6 +920,7 @@ public class AuthHelper {
 
 		final String jwtSecret = Settings.JWTSecret.getValue();
 		if (jwtSecret != null && jwtSecret.length() >= 32) {
+
 			return jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 		}
 
@@ -907,9 +930,12 @@ public class AuthHelper {
 	private static String bytesToHex(final byte[] bytes) {
 
 		final StringBuilder sb = new StringBuilder(bytes.length * 2);
+
 		for (final byte b : bytes) {
+
 			sb.append(String.format("%02x", b));
 		}
+
 		return sb.toString();
 	}
 
@@ -917,16 +943,20 @@ public class AuthHelper {
 
 		final int len = hex.length();
 		final byte[] data = new byte[len / 2];
+
 		for (int i = 0; i < len; i += 2) {
+
 			data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
 				+ Character.digit(hex.charAt(i + 1), 16));
 		}
+
 		return data;
 	}
 
 	// The StandardName for the given SHA algorithm.
 	// see https://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#Mac
 	private static String getCryptoAlgorithm() {
+
 		return "Hmac" + Settings.TwoFactorAlgorithm.getValue();
 	}
 }

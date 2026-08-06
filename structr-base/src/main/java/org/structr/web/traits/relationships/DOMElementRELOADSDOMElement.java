@@ -26,46 +26,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMElementRELOADSDOMElement extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementRELOADSDOMElement() {
+
 		super(StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.DOM_ELEMENT;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.DOM_ELEMENT;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "RELOADS";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

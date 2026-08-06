@@ -82,15 +82,14 @@ public class BpmnTaskListenerTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String PHASE_AFTER = "after";
 
 	public BpmnTaskListenerTraitDefinition() {
+
 		super(ProcessTraits.BPMN_TASK_LISTENER);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			BpmnTaskListener.class, (traits, node) -> new BpmnTaskListenerTraitWrapper(traits, node)
-		);
+		return Map.of(BpmnTaskListener.class, (traits, node) -> new BpmnTaskListenerTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -117,6 +116,7 @@ public class BpmnTaskListenerTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -25,46 +25,55 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class TwoOneOneToOneTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public TwoOneOneToOneTraitDefinition() {
+
 		super("TwoOneOneToOne");
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return "TestTwo";
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return "TestOne";
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "IS_AT";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 }

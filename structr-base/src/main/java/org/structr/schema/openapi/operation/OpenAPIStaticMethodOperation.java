@@ -29,6 +29,7 @@ import java.util.Set;
 public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 
 	public OpenAPIStaticMethodOperation(final StructrMethodDefinition method, final StructrTypeDefinition parentType) {
+
 		super(
 			// summary
 			StringUtils.isBlank(method.getSummary()) ? "Executes the static method " + method.getName() + "()." : method.getSummary(),
@@ -57,6 +58,7 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 	}
 
 	public OpenAPIStaticMethodOperation(final StructrMethodDefinition method, final StructrTypeDefinition parentType, Set<String> viewNames) {
+
 		super(
 				// summary
 				StringUtils.isBlank(method.getSummary()) ? "Executes the static method " + method.getName() + "()." : method.getSummary(),

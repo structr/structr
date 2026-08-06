@@ -40,6 +40,7 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	private CypherQueryHandler handler = null;
 
 	public CypherProperty(final String name, final CypherQueryHandler handler) {
+
 		super(name);
 
 		this.handler = handler;
@@ -47,52 +48,62 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public String typeName() {
+
 		return ""; // read-only
 	}
 
 	@Override
 	public Class valueType() {
+
 		return null;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
+
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return new CypherQueryConverter(securityContext, entity, handler);
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
+
 		return null;
 	}
 
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public String getShortDescription() {
+
 		return "A property that executes a Cypher query and returns the results when evaluated.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return null;
 	}
 
@@ -109,11 +120,13 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

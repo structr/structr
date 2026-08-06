@@ -55,6 +55,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String WARNINGS_PROPERTY   = "warnings";
 
 	public PagePathTraitDefinition() {
+
 		super(StructrTraits.PAGE_PATH);
 	}
 
@@ -63,17 +64,16 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				IsValid.class,
-				new IsValid() {
+				IsValid.class, new IsValid() {
 
 					@Override
 					public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
 						return ValidationHelper.isValidPropertyNotNull(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
 					}
 				},
 
-				OnCreation.class,
-				new OnCreation() {
+				OnCreation.class, new OnCreation() {
 					@Override
 					public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -82,8 +82,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 				},
 
-				OnModification.class,
-				new OnModification() {
+				OnModification.class, new OnModification() {
 					@Override
 					public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -97,12 +96,13 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
 
-		return newSet(
-			new JavaMethod("updatePathAndParameters", false, false) {
+		return newSet(new JavaMethod("updatePathAndParameters", false, false) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
 					final SecurityContext securityContext = actionContext.getSecurityContext();
+
 					return entity.as(PagePath.class).updatePathAndParameters(securityContext, arguments.toMap());
 				}
 			}
@@ -111,11 +111,13 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return Map.of();
 	}
 
@@ -124,8 +126,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PagePath.class, (traits, node) -> new PagePathTraitWrapper(traits, node)
-		);
+			PagePath.class, (traits, node) -> new PagePathTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -137,29 +138,20 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer> priorityProperty                   = new IntProperty(PRIORITY_PROPERTY);
 		final Property<String[]> warningsProperty                  = new ArrayProperty(WARNINGS_PROPERTY, String.class).indexed();
 
-		return Set.of(
-			pageProperty,
-			parametersProperty,
-			nameProperty,
-			priorityProperty,
-			warningsProperty
-		);
+		return Set.of(pageProperty, parametersProperty, nameProperty, priorityProperty, warningsProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY),
+		return Map.of(PropertyView.Public, newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY)
-		);
+			PropertyView.Ui, newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

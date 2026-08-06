@@ -31,18 +31,22 @@ import org.structr.module.api.DeployableEntity;
 public class FlowAction extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
 	public FlowAction(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	public final String getScript() {
+
 		return wrappedObject.getProperty(traits.key(FlowActionTraitDefinition.SCRIPT_PROPERTY));
 	}
 
 	public final void setScript(final String script) throws FrameworkException {
+
 		wrappedObject.setProperty(traits.key(FlowActionTraitDefinition.SCRIPT_PROPERTY), script);
 	}
 
 	public final void execute(final Context context) throws FlowException {
+
 		traits.getMethod(ActionOperations.class).execute(context, this);
 	}
 }

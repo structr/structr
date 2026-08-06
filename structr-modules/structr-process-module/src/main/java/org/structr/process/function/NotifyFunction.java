@@ -88,11 +88,13 @@ public class NotifyFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
+
 		return "notify";
 	}
 
 	@Override
 	public String getRequiredModule() {
+
 		return null;
 	}
 
@@ -111,10 +113,12 @@ public class NotifyFunction extends Function<Object, Object> {
 			switch (channel) {
 
 				case "email":
+
 					return sendEmailNotification(recipient, subject, message);
 
 				case "log":
 					logger.info("NOTIFY [{}] to={} subject={} message={}", channel, recipient, subject, message);
+
 					return true;
 
 				default:
@@ -125,6 +129,7 @@ public class NotifyFunction extends Function<Object, Object> {
 		} catch (ArgumentNullException | ArgumentCountException ex) {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -137,17 +142,14 @@ public class NotifyFunction extends Function<Object, Object> {
 
 		final String smtpUserSetting      = Settings.SmtpUser.getValue();
 		final String defaultSenderAddress = (Settings.isValidEmail(smtpUserSetting)) ? smtpUserSetting : "structr-mail-daemon@localhost";
-
 		final String fromAddress = getTemplateText(TemplateKey.PROCESS_NOTIFICATION_SENDER_ADDRESS, defaultSenderAddress, Locale.getDefault().toString());
 		final String fromName    = getTemplateText(TemplateKey.PROCESS_NOTIFICATION_SENDER_NAME, "Structr Mail Daemon", Locale.getDefault().toString());
 
 		try {
 
 			// Send as HTML with plaintext fallback
-			return MailHelper.sendHtmlMail(
-				fromAddress,
-				fromName,
-				recipient,
+
+			return MailHelper.sendHtmlMail(fromAddress, fromName, recipient,
 				recipient,   // toName = recipient address (no separate name available)
 				null,        // cc
 				null,        // bcc
@@ -170,6 +172,7 @@ public class NotifyFunction extends Function<Object, Object> {
 			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).name(key.name());
 
 			if (localeString != null) {
+
 				query.key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
 			}
 
@@ -177,6 +180,7 @@ public class NotifyFunction extends Function<Object, Object> {
 			if (template != null) {
 
 				final String text = template.as(MailTemplate.class).getText();
+
 				return text != null ? text : defaultValue;
 
 			} else {
@@ -196,20 +200,19 @@ public class NotifyFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("channel, recipient, subject, message");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.structrScript("Usage: ${notify(channel, recipient, subject, message)}"),
-			Usage.javaScript("Usage: ${{$.notify(channel, recipient, subject, message)}}")
-		);
+		return List.of(Usage.structrScript("Usage: ${notify(channel, recipient, subject, message)}"), Usage.javaScript("Usage: ${{$.notify(channel, recipient, subject, message)}}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends a notification via the specified channel.";
 	}
 
@@ -265,6 +268,7 @@ public class NotifyFunction extends Function<Object, Object> {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Miscellaneous;
 	}
 }

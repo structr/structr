@@ -42,11 +42,13 @@ public class StructrZonedDateTimeProperty extends StructrStringProperty implemen
 	public JsonDateProperty setDatePattern(final String datePattern) {
 
 		this.datePattern = datePattern;
+
 		return this;
 	}
 
 	@Override
 	public String getDatePattern() {
+
 		return datePattern;
 	}
 
@@ -57,6 +59,7 @@ public class StructrZonedDateTimeProperty extends StructrStringProperty implemen
 		final Map<String, Object> map = super.serialize();
 
 		if (datePattern != null) {
+
 			map.put(JsonSchema.KEY_DATE_PATTERN, datePattern);
 		}
 
@@ -69,6 +72,7 @@ public class StructrZonedDateTimeProperty extends StructrStringProperty implemen
 		super.deserialize(source);
 
 		if (source.containsKey(JsonSchema.KEY_DATE_PATTERN)) {
+
 			this.datePattern = (String) source.get(JsonSchema.KEY_DATE_PATTERN);
 		}
 	}
@@ -83,12 +87,14 @@ public class StructrZonedDateTimeProperty extends StructrStringProperty implemen
 
 	@Override
 	public String getFormat() {
+
 		return datePattern;
 	}
 
 	// ----- protected methods -----
 	@Override
 	protected SchemaHelper.Type getTypeToSerialize() {
+
 		return SchemaHelper.Type.ZonedDateTime;
 	}
 }

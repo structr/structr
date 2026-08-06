@@ -45,11 +45,13 @@ public class ToCsvFunction extends CsvFunction {
 
 	@Override
 	public String getName() {
+
 		return "toCsv";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("nodes, propertiesOrView [, delimiterChar, quoteChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain ]");
 	}
 
@@ -61,7 +63,9 @@ public class ToCsvFunction extends CsvFunction {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 8);
 
 			if ( !(sources[0] instanceof Iterable) ) {
+
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 				return "ERROR: First parameter must be a collection!".concat(usage(ctx.isJavaScriptContext()));
 			}
 
@@ -95,12 +99,14 @@ public class ToCsvFunction extends CsvFunction {
 						if (properties.size() == 0) {
 
 							logger.info("toCsv(): Unable to create CSV if list of properties is empty - returning empty CSV");
+
 							return "";
 						}
 
 					} else {
 
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
+
 						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
 					}
 				}
@@ -110,6 +116,7 @@ public class ToCsvFunction extends CsvFunction {
 			if (nodes.size() == 0 && propertyView != null) {
 
 				logger.info("toCsv(): Can not create CSV if no nodes are given - returning empty CSV");
+
 				return "";
 			}
 
@@ -144,18 +151,21 @@ public class ToCsvFunction extends CsvFunction {
 			} catch (Throwable t) {
 
 				logger.warn("toCsv(): Exception occurred", t);
+
 				return "";
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}"),
 			Usage.javaScript("Usage: ${{ $.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]]) }}")
@@ -164,24 +174,25 @@ public class ToCsvFunction extends CsvFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a CSV representation of the given nodes.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${toCsv(find('Page'), 'ui')}"),
-				Example.javaScript("${{ $.toCsv($.find('Page'), 'ui')) }}")
-		);
+
+		return List.of(Example.structrScript("${toCsv(find('Page'), 'ui')}"), Example.javaScript("${{ $.toCsv($.find('Page'), 'ui')) }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 				Parameter.mandatory("nodes", "A collection of objects (these objects can be database nodes or javascript objects)"),
 				Parameter.optional("propertiesOrView","The name of a view (e.g. ui or public) or a collection of property names (e.g. merge('id', 'name') in StructrScript or ['id', 'name'] in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used."),
@@ -196,6 +207,7 @@ public class ToCsvFunction extends CsvFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 				"If the column values contain the quote character, a `\\` is prepended before that instance of the quote character",
 				"All instances of `\n` or `\r` in the column values are replaced by `\\n` and `\\r` respectively so we can guarantee that only intended newlines (i.e. the record separator) occurr inside the produced CSV",
@@ -207,9 +219,9 @@ public class ToCsvFunction extends CsvFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
-
 
 	public static void writeCsv(
 			final ResultStream result,
@@ -255,32 +267,46 @@ public class ToCsvFunction extends CsvFunction {
 			if (propertyView != null) {
 
 				final Object obj = list.get(0);
-
 				if (obj instanceof GraphObject) {
+
 					for (PropertyKey key : ((GraphObject)obj).getPropertyKeys(propertyView)) {
+
 						String value = key.dbName();
+
 						if (localizeHeader) {
+
 							try {
+
 								value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
+
 							} catch (FrameworkException fex) {
+
 								logger.warn("toCsv(): Exception", fex);
 							}
 						}
 
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
+
 				} else {
+
 					row.append("Error: Object is not of type GraphObject, can not determine properties of view for header row");
 				}
 
 			} else if (properties != null) {
 
 				for (final String colName : properties) {
+
 					String value = colName;
+
 					if (localizeHeader) {
+
 						try {
+
 							value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
+
 						} catch (FrameworkException fex) {
+
 							logger.warn("toCsv(): Exception", fex);
 						}
 					}
@@ -307,7 +333,9 @@ public class ToCsvFunction extends CsvFunction {
 						final Object value = ((GraphObject)obj).getProperty(key);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
+
 				} else {
+
 					row.append("Error: Object is not of type GraphObject, can not determine properties of object");
 				}
 
@@ -318,6 +346,7 @@ public class ToCsvFunction extends CsvFunction {
 					final Map convertedMap = ((GraphObjectMap)obj).toMap();
 
 					for (final String colName : properties) {
+
 						final Object value = convertedMap.get(colName);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
@@ -337,6 +366,7 @@ public class ToCsvFunction extends CsvFunction {
 					final Map map = (Map)obj;
 
 					for (final String colName : properties) {
+
 						final Object value = map.get(colName);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
@@ -352,9 +382,12 @@ public class ToCsvFunction extends CsvFunction {
 	}
 
 	private static boolean appendColumnString (final StringBuilder row, final Object value, boolean isFirstColumn, final char quoteChar, final char delimiter) {
+
 		if (!isFirstColumn) {
+
 			row.append(delimiter);
 		}
+
 		row.append(escapeForCsv(value, quoteChar));
 
 		return false;
@@ -365,6 +398,7 @@ public class ToCsvFunction extends CsvFunction {
 		final String result = CsvServlet.escapeForCsv(value, quoteChar);
 
 		// post-process escaped string
+
 		return "".concat(""+quoteChar).concat(StringUtils.replace(StringUtils.replace(result, "\r\n", "\\n"), "\r", "\\n")).concat(""+quoteChar);
 	}
 

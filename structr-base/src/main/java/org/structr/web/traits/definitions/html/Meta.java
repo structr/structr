@@ -37,6 +37,7 @@ public class Meta extends GenericHtmlElementTraitDefinition {
 	public static final String CHARSET_PROPERTY    = getPrefixedHTMLAttributeName("charset");
 
 	public Meta() {
+
 		super(StructrTraits.META);
 	}
 
@@ -47,11 +48,11 @@ public class Meta extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			IsVoidElement.class,
-			new IsVoidElement() {
+			IsVoidElement.class, new IsVoidElement() {
 
 				@Override
 				public boolean isVoidElement() {
+
 					return true;
 				}
 			}
@@ -68,19 +69,12 @@ public class Meta extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> contentProperty   = new StringProperty(CONTENT_PROPERTY);
 		final PropertyKey<String> charsetProperty   = new StringProperty(CHARSET_PROPERTY);
 
-		return newSet(
-			nameProperty, httpEquivProperty, contentProperty, charsetProperty
-		);
+		return newSet(nameProperty, httpEquivProperty, contentProperty, charsetProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					NAME_PROPERTY, HTTP_EQUIV_PROPERTY, CONTENT_PROPERTY, CHARSET_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(NAME_PROPERTY, HTTP_EQUIV_PROPERTY, CONTENT_PROPERTY, CHARSET_PROPERTY));
 	}
 }

@@ -38,11 +38,13 @@ public class MakePolygonValidFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "makePolygonValid";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("polygon");
 	}
 
@@ -71,28 +73,32 @@ public class MakePolygonValidFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Makes a polygon valid.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

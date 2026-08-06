@@ -68,11 +68,7 @@ public class CollectionPropertyTest extends StructrRestTestBase {
 		.when()
 			.get("/TestFive/" + testFiveId);
 
-
 	}
-
-
-
 
 	/**
 	 * Test the creation of a test object with a non-existing collection
@@ -136,9 +132,7 @@ public class CollectionPropertyTest extends StructrRestTestBase {
 	@Test
 	public void testOneToMany() throws Exception {
 
-
 	}
-
 
 	/**
 	 * Test of typeName method, of class CollectionProperty.

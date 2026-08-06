@@ -59,6 +59,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationResourceHandler.class.getName());
 
 	private enum TemplateKey {
+
 		CONFIRM_REGISTRATION_SENDER_NAME,
 		CONFIRM_REGISTRATION_SENDER_ADDRESS,
 		CONFIRM_REGISTRATION_SUBJECT,
@@ -74,6 +75,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	}
 
 	public RegistrationResourceHandler(final RESTCall call) {
+
 		super(call);
 	}
 
@@ -89,6 +91,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			final String emailString              = (String) propertySet.get(eMailKey.jsonName());
 
 			if (StringUtils.isEmpty(emailString)) {
+
 				throw new FrameworkException(422, "No e-mail address given.");
 			}
 
@@ -97,17 +100,19 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			// so the client cannot distinguish "blocked" from "accepted".
 			final String remoteIp = securityContext.getRequest() != null ? securityContext.getRequest().getRemoteAddr() : "unknown";
 			if (!EmailRateLimiter.allow("registration", remoteIp, 20, emailString.trim().toLowerCase(), 3)) {
+
 				logger.warn("Registration rate limit hit (ip={}, email={})", remoteIp, emailString);
+
 				return new RestMethodResult(HttpServletResponse.SC_CREATED);
 			}
 
 			final String localeString = (String) propertySet.get("locale");
 			final String confKey      = AuthHelper.getConfirmationKey();
-
 			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
 			final App app             = StructrApp.getInstance(ctx);
 
 			if (!Settings.CallbacksOnLogin.getValue()) {
+
 				ctx.disableInnerCallbacks();
 			}
 
@@ -157,6 +162,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 				}
 
 				// return "201 Created" in both cases to avoid leaking whether the user already existed
+
 				return new RestMethodResult(HttpServletResponse.SC_CREATED);
 
 			} else {
@@ -203,17 +209,14 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 //		}
 
 		ctx.setConstant(PrincipalTraitDefinition.EMAIL_PROPERTY, userEmail);
-		ctx.setConstant("link",
-				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+		ctx.setConstant("link", getTemplateText(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
 				+ "?" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
 				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE_KEY, HtmlServlet.TARGET_PATH_KEY, localeString)           + "=" + successPath
-				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)             + "=" + failurePath
-		);
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)             + "=" + failurePath);
 
 		final String textMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY,"Go to ${link} to finalize registration.", localeString, ctx);
 		final String htmlMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY,"<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString, ctx);
-
 		final String smtpUserSetting      = Settings.SmtpUser.getValue();
 		final String defaultSenderAddress = (Settings.isValidEmail(smtpUserSetting)) ? smtpUserSetting : "structr-mail-daemon@localhost";
 
@@ -233,6 +236,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).name(key.name());
 
 			if (localeString != null) {
+
 				query.key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
 			}
 
@@ -240,6 +244,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			if (template != null) {
 
 				final String text = template.as(MailTemplate.class).getText();
+
 				return text != null ? text : defaultValue;
 
 			} else {
@@ -410,15 +415,18 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			// eMail is mandatory and necessary
 			final String customAttributesString = PrincipalTraitDefinition.EMAIL_PROPERTY + "," + Settings.RegistrationCustomAttributes.getValue();
 			final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
-
 			final Set<PropertyKey> propsToRemove = new HashSet<>();
+
 			for (final PropertyKey key : props.keySet()) {
+
 				if (!customAttributes.contains(key.jsonName())) {
+
 					propsToRemove.add(key);
 				}
 			}
 
 			for (final PropertyKey propToRemove : propsToRemove) {
+
 				props.remove(propToRemove);
 			}
 
@@ -437,21 +445,25 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 	@Override
 	public String getTypeName(final SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean createPostTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of("OPTIONS", "POST");
 	}
 }

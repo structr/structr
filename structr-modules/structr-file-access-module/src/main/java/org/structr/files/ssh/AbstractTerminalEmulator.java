@@ -55,11 +55,13 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 
 	@Override
 	public void stopEmulator() {
+
 		this.running = false;
 	}
 
 	@Override
 	public void setTerminalHandler(final TerminalHandler handler) throws IOException {
+
 		this.terminalHandler = handler;
 	}
 
@@ -77,12 +79,12 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 		if (commandHistory != null && echo) {
 
 			final int commandBufferSize = commandHistory.size();
-
 			if (commandBufferIndex >= 0 && commandBufferIndex < commandBufferSize) {
 
 				displaySelectedCommand(commandHistory.get(commandBufferSize - commandBufferIndex - 1));
 
 				if (commandBufferIndex < commandBufferSize - 1) {
+
 					commandBufferIndex++;
 				}
 			}
@@ -98,7 +100,6 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 			if (commandBufferIndex > 0) {
 
 				final int commandBufferSize = commandHistory.size();
-
 				if (commandBufferIndex >= 0 && commandBufferIndex <= commandBufferSize) {
 
 					commandBufferIndex--;
@@ -125,8 +126,10 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 			case 4:
 
 				if (lineLength == 0) {
+
 					terminalHandler.handleLogoutRequest();
 				}
+
 				break;
 		}
 	}
@@ -275,6 +278,7 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 							// read unicode character
 							handleCharacter(c);
 						}
+
 						break;
 				}
 				writer.flush();
@@ -282,8 +286,10 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 			} catch (Throwable t) {
 
 				if (t instanceof SshChannelClosedException) {
+
 					logger.warn("SSH Channel closed unexpectedly");
 					terminalHandler.handleExit();
+
 					return;
 				}
 
@@ -296,6 +302,7 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 					writer.write('\n');
 
 				} catch (Throwable t2) {
+
 					logger.warn("", t);
 				}
 			}
@@ -321,11 +328,13 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 				}
 			}
 		}
+
 		writer.flush();
 	}
 
 	@Override
 	public void println(final Object... text) throws IOException {
+
 		print(text);
 		println();
 		writer.flush();
@@ -333,6 +342,7 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 
 	@Override
 	public void clearLineBuffer() {
+
 		lineBuffer.setLength(0);
 		cursorPosition = 0;
 		lineLength = 0;
@@ -340,21 +350,25 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 
 	@Override
 	public StringBuilder getLineBuffer() {
+
 		return lineBuffer;
 	}
 
 	@Override
 	public void setEcho(final boolean echo) {
+
 		this.echo = echo;
 	}
 
 	@Override
 	public void flush() throws IOException {
+
 		writer.flush();
 	}
 
 	@Override
 	public void clearTabCount() {
+
 		tabCount = 0;
 	}
 
@@ -373,7 +387,9 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 		lineLength = lineBuffer.length();
 
 		int loopCount = cursorPosition;
+
 		for (int i=0; i<loopCount; i++) {
+
 			handleCursorLeft();
 		}
 

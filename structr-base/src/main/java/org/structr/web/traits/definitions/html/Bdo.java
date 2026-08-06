@@ -27,6 +27,7 @@ import java.util.Map;
 public class Bdo extends GenericHtmlElementTraitDefinition {
 
 	public Bdo() {
+
 		super(StructrTraits.BDO);
 	}
 
@@ -37,11 +38,11 @@ public class Bdo extends GenericHtmlElementTraitDefinition {
 
 		frameworkMethods.put(
 
-			AvoidWhitespace.class,
-			new AvoidWhitespace() {
+			AvoidWhitespace.class, new AvoidWhitespace() {
 
 				@Override
 				public boolean avoidWhitespace() {
+
 					return true;
 				}
 			}

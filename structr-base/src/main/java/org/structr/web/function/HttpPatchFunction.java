@@ -37,6 +37,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "PATCH";
 	}
 
@@ -54,18 +55,18 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 			// override default content type
 			if (sources.length >= 3 && sources[2] != null) {
+
 				contentType = sources[2].toString();
 			}
 
 			// override default content type
 			if (sources.length >= 4 && sources[3] != null) {
+
 				charset = sources[3].toString();
 			}
 
 			final Map<String, Object> responseData = HttpHelper.patch(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
-
 			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? responseData.get(HttpHelper.FIELD_BODY).toString() : null;
-
 			final GraphObjectMap response = new GraphObjectMap();
 
 			if ("application/json".equals(contentType)) {
@@ -92,12 +93,14 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("url, body [, contentType, charset ]");
 	}
 
@@ -114,6 +117,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${PATCH(URL, body [, contentType, charset])}. Example: ${PATCH('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}"),
 			Usage.javaScript("Usage: ${{ $.PATCH(URL, body [, contentType, charset])}}. Example: ${{ $.PATCH('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}")
@@ -122,11 +126,13 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Sends an HTTP PATCH request to the given URL and returns the response headers and body.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function can be used in a script to make an HTTP PATCH request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
@@ -142,6 +148,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `PATCH()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
@@ -150,6 +157,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Http;
 	}
 }

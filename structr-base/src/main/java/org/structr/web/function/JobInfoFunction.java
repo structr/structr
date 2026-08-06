@@ -33,11 +33,13 @@ public class JobInfoFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "jobInfo";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("jobId");
 	}
 
@@ -45,18 +47,21 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
+
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (!(sources[0] instanceof Number)) {
+
 				throw new IllegalArgumentException("jobInfo(): JobId must be numeric");
 			}
 
 			final Long jobId = ((Number)sources[0]).longValue();
-
 			final Map<String, Object> jobInfo = JobQueueManager.getInstance().jobInfo(jobId);
 
 			if (jobInfo == null) {
+
 				logger.warn("jobInfo(): Job with ID {} not found", jobId);
+
 				return false;
 			}
 
@@ -65,25 +70,26 @@ public class JobInfoFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${jobInfo(jobId)}"),
-			Usage.javaScript("Usage: ${{ $.jobInfo(jobId) }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${jobInfo(jobId)}"), Usage.javaScript("Usage: ${{ $.jobInfo(jobId) }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns information about the job with the given job ID.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			If the job does not exist (anymore) the function returns `false`.
 	
@@ -117,20 +123,19 @@ public class JobInfoFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("jobId", "ID of the job to query")
-		);
+
+		return List.of(Parameter.mandatory("jobId", "ID of the job to query"));
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.structrScript("${jobInfo(1)}", "Return information about the job with ID 1")
-		);
+
+		return List.of(Example.structrScript("${jobInfo(1)}", "Return information about the job with ID 1"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

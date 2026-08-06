@@ -34,11 +34,13 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "requestStorePut";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
@@ -47,12 +49,13 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 
 		try {
 
-
 			if (sources.length != 2) {
+
 				throw ArgumentCountException.notEqual(sources.length, 2);
 			}
 
 			if (sources[0] == null) {
+
 				throw new ArgumentNullException();
 			}
 
@@ -61,52 +64,50 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${requestStorePut(key,value)}."),
-			Usage.javaScript("Usage: ${{ $.requestStorePut(key,value); }}.")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${requestStorePut(key,value)}."), Usage.javaScript("Usage: ${{ $.requestStorePut(key,value); }}."));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Stores a value in the request level store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${requestStorePut('do_no_track', true)}"),
-				Example.javaScript("${{ $.requestStorePut('do_not_track', true); }}")
-		);
+
+		return List.of(Example.structrScript("${requestStorePut('do_no_track', true)}"), Example.javaScript("${{ $.requestStorePut('do_not_track', true); }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("key", "given key"),
-				Parameter.optional("value", "value for given key")
-				);
+		return List.of(Parameter.mandatory("key", "given key"), Parameter.optional("value", "value for given key"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

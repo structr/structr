@@ -26,6 +26,7 @@ import org.structr.web.entity.css.CssSemanticClass;
 public class CssSemanticClassTraitWrapper extends AbstractNodeTraitWrapper implements CssSemanticClass {
 
 	public CssSemanticClassTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

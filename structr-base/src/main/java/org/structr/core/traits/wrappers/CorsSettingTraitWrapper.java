@@ -25,6 +25,7 @@ import org.structr.core.traits.Traits;
 public class CorsSettingTraitWrapper extends AbstractNodeTraitWrapper implements CorsSetting {
 
 	public CorsSettingTraitWrapper(Traits traits, NodeInterface node) {
+
 		super(traits, node);
 	}
 }

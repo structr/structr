@@ -37,7 +37,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class PropertyTest extends StructrUiTest {
 
-
 	/**
 	 * This test creates a new type "Test" with a Notion property that references a type (User)
 	 * which is only present in the ui module.

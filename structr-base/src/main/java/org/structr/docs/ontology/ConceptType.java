@@ -26,16 +26,14 @@ public enum ConceptType {
 	Category("category"),
 
 	// output formats
-	Table("table"), List("list"), Heading("heading"), SortedChildren("sorted-children"),
-	TableWithDetails("table-with-details"),
+	Table("table"), List("list"), Heading("heading"), SortedChildren("sorted-children"), TableWithDetails("table-with-details"),
 
 	// external sources
 	MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), MarkdownHeading("markdown-heading"),
 	MarkdownTopic("markdown-topic"), CodeSource("code-source"), EnumSource("enum-source"), JavascriptFile("javascript-file"),
 
 	// concepts for user interface elements
-	Screen("screen"), Form("form"), Area("area"), Tab("tab"), Flyout("flyout"), Menu("menu"), Dialog("dialog"),
-	Button("button"),
+	Screen("screen"), Form("form"), Area("area"), Tab("tab"), Flyout("flyout"), Menu("menu"), Dialog("dialog"), Button("button"),
 
 	// technical concepts
 	Logfile("logfile"), Value("value"), LifecycleMethod("lifecycle-method"), HttpVerb("http-verb"),
@@ -44,8 +42,7 @@ public enum ConceptType {
 	ParameterType("parameter-type"), Constant("constant"),
 
 	// metadata
-	Hint("hint"), Note("note"), Description("description"), Info("info"), Configuration("configuration"),
-	Synonym("synonym"), Text("text"), Glossary("glossary"), GlossaryEntry("glossary-entry"),
+	Hint("hint"), Note("note"), Description("description"), Info("info"), Configuration("configuration"), Synonym("synonym"), Text("text"), Glossary("glossary"), GlossaryEntry("glossary-entry"),
 
 	// java types
 	Keyword("keyword"), Method("method"), Property("property"), UserDefinedFunction("user-defined-function"),
@@ -57,10 +54,12 @@ public enum ConceptType {
 	private final String identifier;
 
 	ConceptType(final String identifier) {
+
 		this.identifier = identifier;
 	}
 
 	public String getIdentifier() {
+
 		return identifier;
 	}
 }

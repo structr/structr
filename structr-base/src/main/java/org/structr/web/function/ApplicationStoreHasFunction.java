@@ -35,11 +35,13 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "applicationStoreHas";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -55,17 +57,20 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${applicationStoreHas(key)}. Example: ${applicationStoreHas('doNoTrack')}"),
 			Usage.javaScript("Usage: ${{ $.applicationStoreHas(key); }}. Example: ${{ $.applicationStoreHas('doNotTrack'); }}")
@@ -74,23 +79,25 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Checks if a key is present in the application level store.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "The application store can be used to store data in-memory as long as the instance is running. You can use it to store primitive data and objects / arrays. Do NOT use the application store to store nodes or relationships since those are transaction-bound and cannot be cached.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("key", "key under which the desired value is stored")
-		);
+
+		return List.of(Parameter.mandatory("key", "key under which the desired value is stored"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.Scripting;
 	}
 }

@@ -33,9 +33,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-
 public class CustomHtmlAttributeTest extends StructrUiTest {
-
 
 	@Test
 	public void testCustomHtmlAttribute() {
@@ -44,15 +42,13 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 
 			// create a page
 			final Page newPage = Page.createNewPage(securityContext, "customAttributeTestPage");
-
 			final DOMElement html  = createElement(newPage, newPage, "html");
 			final DOMElement head  = createElement(newPage, html, "head");
 			final DOMElement title = createElement(newPage, head, "title", "Test Page for custom html attributes");
 			final DOMElement body  = createElement(newPage, html, "body");
-
 			final PropertyKey<String> classKey = Traits.of("Div").key("_html_class");
-
 			final DOMElement div1     = createElement(newPage, body, "div", "DIV with old-style data attribute");
+
 			div1.setProperty(new GenericProperty<String>("data-test-attribute-old-style"), "old-style data attribute");
 
 			final DOMElement div2     = createElement(newPage, body, "div", "DIV with new-style custom html attribute");
@@ -72,7 +68,6 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 			final DOMElement div6     = createElement(newPage, body, "div", "DIV with empty string as (new-style) custom data-attribute and class attribute");
 			div6.setProperty(new GenericProperty<String>("_custom_html_data-test-attribute-new-style"), "");
 			div6.setProperty(classKey, "");
-
 
 			final RenderContext renderContext = new RenderContext(securityContext);
 			newPage.render(renderContext, 0);
@@ -100,6 +95,7 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}

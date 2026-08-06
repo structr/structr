@@ -32,11 +32,13 @@ import org.structr.process.traits.definitions.BpmnCollaborationTraitDefinition;
 public class BpmnCollaborationTraitWrapper extends AbstractNodeTraitWrapper implements BpmnCollaboration {
 
 	public BpmnCollaborationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 

@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-
 import jakarta.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -33,16 +32,17 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-
 public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "removeSessionAttribute";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("key");
 	}
 
@@ -59,7 +59,9 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 			if (session != null) {
 
 				sessionWrapper.removeMember(sources[0].toString());
+
 			} else {
+
 				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
@@ -68,52 +70,50 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${removeSessionAttribute(key)}. Example: "),
-			Usage.javaScript("Usage: ${{$.removeSessionAttribute(key)}}. Example: $")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${removeSessionAttribute(key)}. Example: "), Usage.javaScript("Usage: ${{$.removeSessionAttribute(key)}}. Example: $"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Remove key/value pair from the user session.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(
-				Example.structrScript("${removeSessionAttribute('do_no_track')}"),
-				Example.javaScript("${{ $.removeSessionAttribute('do_not_track') }}")
-		);
+		return List.of(Example.structrScript("${removeSessionAttribute('do_no_track')}"), Example.javaScript("${{ $.removeSessionAttribute('do_not_track') }}"));
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("key", "key to remove from session")
-				);
+		return List.of(Parameter.mandatory("key", "key to remove from session"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

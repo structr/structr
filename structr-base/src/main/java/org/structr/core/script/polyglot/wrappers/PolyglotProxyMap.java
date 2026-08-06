@@ -37,21 +37,25 @@ public class PolyglotProxyMap implements ProxyObject {
 	}
 
 	public Map<String, Object> getOriginalObject() {
+
 		return this.map;
 	}
 
 	@Override
 	public Object getMember(String key) {
+
 		return PolyglotWrapper.wrap(actionContext, map.get(key));
 	}
 
 	@Override
 	public Object getMemberKeys() {
+
 		return map.keySet().toArray();
 	}
 
 	@Override
 	public boolean hasMember(String key) {
+
 		return map.containsKey(key);
 	}
 
@@ -64,6 +68,7 @@ public class PolyglotProxyMap implements ProxyObject {
 			if (unwrappedValue == null) {
 
 				map.remove(key);
+
 			} else {
 
 				map.put(key, unwrappedValue);

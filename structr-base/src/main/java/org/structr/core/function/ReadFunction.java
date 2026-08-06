@@ -38,6 +38,7 @@ public class ReadFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
+
 		return "read";
 	}
 
@@ -68,11 +69,13 @@ public class ReadFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -81,11 +84,13 @@ public class ReadFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Reads text from a file in the `exchange/` folder.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
 			This function reads text from the file with the given file name in the exchange/ folder. If the file does not exist, nothing will be returned, but no error will be thrown.
 			
@@ -95,14 +100,14 @@ public class ReadFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("filename");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of(
-			Parameter.mandatory("filename", "name of the file to read from")
-		);
+
+		return List.of(Parameter.mandatory("filename", "name of the file to read from"));
 	}
 
 	@Override
@@ -116,6 +121,7 @@ public class ReadFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"The `exchange/` folder itself may be a symbolic link.",
 			"The canonical path of a file has to be identical to the provided filepath in order to prevent directory traversal attacks. This means that symbolic links inside the `exchange/` folder are forbidden",
@@ -128,14 +134,13 @@ public class ReadFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${read(filename)}. Example: ${read('test.txt')}"),
-			Usage.javaScript("Usage: ${{ $.read(filename); }}. Example: ${{ $.read('test.txt'); }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${read(filename)}. Example: ${read('test.txt')}"), Usage.javaScript("Usage: ${{ $.read(filename); }}. Example: ${{ $.read('test.txt'); }}"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.InputOutput;
 	}
 }

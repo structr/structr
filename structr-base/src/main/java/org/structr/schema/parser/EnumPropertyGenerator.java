@@ -36,16 +36,19 @@ import org.structr.schema.SchemaHelper.Type;
 public class EnumPropertyGenerator extends PropertyGenerator<String> {
 
 	public EnumPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
+
 		super(errorBuffer, className, params);
 	}
 
 	@Override
 	public String getValueType() {
+
 		return String.class.getName();
 	}
 
 	@Override
 	public Type getPropertyType() {
+
 		return Type.Enum;
 	}
 
@@ -74,6 +77,7 @@ public class EnumPropertyGenerator extends PropertyGenerator<String> {
 
 	@Override
 	public String getDefaultValue() {
+
 		return source.getDefaultValue();
 	}
 }

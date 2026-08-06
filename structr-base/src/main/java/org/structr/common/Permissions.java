@@ -38,6 +38,7 @@ public class Permissions {
 	}
 
 	public static Permission valueOf(final String permissionString) {
+
 		return permissionMap.get(permissionString);
 	}
 }

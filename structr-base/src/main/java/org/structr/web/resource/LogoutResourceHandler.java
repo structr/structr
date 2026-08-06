@@ -34,6 +34,7 @@ import java.util.Set;
 public class LogoutResourceHandler extends RESTCallHandler {
 
 	public LogoutResourceHandler(final RESTCall call) {
+
 		super(call);
 	}
 
@@ -41,6 +42,7 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (!Settings.CallbacksOnLogout.getValue()) {
+
 			securityContext.disableInnerCallbacks();
 		}
 
@@ -58,21 +60,25 @@ public class LogoutResourceHandler extends RESTCallHandler {
 
 	@Override
 	public String getTypeName(final SecurityContext securityContext) {
+
 		return null;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean createPostTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+
 		return Set.of("OPTIONS", "POST");
 	}
 }

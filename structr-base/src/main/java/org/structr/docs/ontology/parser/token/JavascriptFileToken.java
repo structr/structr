@@ -61,12 +61,14 @@ public class JavascriptFileToken extends NamedConceptToken {
 				}
 
 			} catch (Throwable t) {
+
 				t.printStackTrace();
 			}
 		}
 	}
 
 	public boolean isUnknown() {
+
 		return "unknown".equals(conceptToken.getToken());
 	}
 
@@ -81,6 +83,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 		if (Files.exists(path)) {
 
 			try {
+
 				final List<String> lines  = Files.readAllLines(path);
 				int sourceLineNumber      = 1;
 				boolean inHtml            = false;
@@ -105,6 +108,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 								text = matcher.group(2);
 
 								if (StringUtils.isNumeric(text) || text.length() < minLength || text.matches("'[0-9]+[a-z]+'")) {
+
 									continue;
 								}
 							}
@@ -127,6 +131,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 				}
 
 			} catch (IOException ioex) {
+
 				ioex.printStackTrace();
 			}
 		}
@@ -154,10 +159,12 @@ public class JavascriptFileToken extends NamedConceptToken {
 	private boolean isCode(final String text) {
 
 		if (text.contains("=>") && text.contains("{") && text.contains(" ")) {
+
 			return true;
 		}
 
 		if (text.contains("'") && (text.contains("{") || text.contains("}"))) {
+
 			return true;
 		}
 
@@ -166,14 +173,17 @@ public class JavascriptFileToken extends NamedConceptToken {
 		}
 
 		if (text.contains("&#") || text.contains("&&") || text.contains("||")) {
+
 			return true;
 		}
 
 		if (text.contains("===") || text.contains("==") || text.contains("---")) {
+
 			return true;
 		}
 
 		if (text.contains("&mdash")) {
+
 			return true;
 		}
 
@@ -189,7 +199,6 @@ public class JavascriptFileToken extends NamedConceptToken {
 			if (StringUtils.isNotBlank(cleaned)) {
 
 				final int len = cleaned.length();
-
 				if (StringUtils.isNotBlank(cleaned) && len >= minLength && len <= maxLength && !isCode(cleaned)) {
 
 					final Concept concept = ontology.getOrCreateConcept(this, type, cleaned, false);
@@ -223,8 +232,8 @@ public class JavascriptFileToken extends NamedConceptToken {
 		if (line.contains("data-comment=")) {
 
 			final StringBuilder lineBuffer = new StringBuilder();
-
 			int pos = line.indexOf("data-comment=") + 14;
+
 			if (pos > 0 && pos < line.length()) {
 
 				lineBuffer.append(line.substring(0, pos));
@@ -240,6 +249,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 					// skip escaped chars
 					if (c == '\\') {
+
 						comment.append(line.charAt(pos));
 						pos++;
 					}
@@ -265,8 +275,8 @@ public class JavascriptFileToken extends NamedConceptToken {
 		if (line.contains("style=")) {
 
 			final StringBuilder lineBuffer = new StringBuilder();
-
 			int pos = line.indexOf("style=") + 7;
+
 			if (pos > 0 && pos < line.length()) {
 
 				lineBuffer.append(line.substring(0, pos));
@@ -282,6 +292,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 					// skip escaped chars
 					if (c == '\\') {
+
 						comment.append(line.charAt(pos));
 						pos++;
 					}
@@ -301,6 +312,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 	private String clean(final String name) {
 
 		if (StringUtils.isNumeric(name)) {
+
 			return null;
 		}
 
@@ -313,7 +325,6 @@ public class JavascriptFileToken extends NamedConceptToken {
 			hasChanged = false;
 
 			final char first = cleaned.charAt(0);
-
 			if (!Character.isAlphabetic(first) && !Character.isDigit(first) && first != '(') {
 
 				cleaned = cleaned.substring(1);
@@ -332,7 +343,6 @@ public class JavascriptFileToken extends NamedConceptToken {
 			hasChanged = false;
 
 			final char last = cleaned.charAt(len - 1);
-
 			if (!Character.isAlphabetic(last) && !Character.isDigit(last) && last != ')') {
 
 				cleaned = cleaned.substring(0, len - 1);

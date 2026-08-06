@@ -36,16 +36,19 @@ public class LocalFSHelper {
 	private final StorageConfiguration config;
 
 	public LocalFSHelper(final StorageConfiguration config) {
+
 		this.config = config;
 	}
 
 	public java.io.File getFileOnDisk(final AbstractFile thisFile) {
+
 		return getFileOnDisk(thisFile, false);
 	}
 
 	public java.io.File getFileOnDisk(final AbstractFile thisFile, final boolean create) {
 
 		final Folder parentFolder = thisFile.getParent();
+
 		return getFileOnDisk(parentFolder, thisFile.as(File.class), create);
 	}
 
@@ -57,7 +60,6 @@ public class LocalFSHelper {
 
 			final AbstractFile configSupplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
 			final Path relativeParentPath     = parentFolder != null ? Path.of(configSupplier.getPath()).relativize(Path.of(parentFolder.getPath())) : Path.of("/");
-
 			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getName());
 			final java.io.File fileOnDisk     = new java.io.File(fullPath);
 
@@ -68,7 +70,6 @@ public class LocalFSHelper {
 				try {
 
 					final boolean fileCreated = fileOnDisk.createNewFile();
-
 					if (!fileCreated) {
 
 						throw new FileAlreadyExistsException(fileOnDisk.getAbsolutePath());
@@ -86,6 +87,7 @@ public class LocalFSHelper {
 		}
 
 		// default implementation (store in UUID-indexed tree)
+
 		return AbstractFile.defaultGetFileOnDisk(file, create);
 	}
 }

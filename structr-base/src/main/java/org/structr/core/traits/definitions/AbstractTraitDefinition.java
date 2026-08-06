@@ -35,6 +35,7 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 	protected final String label;
 
 	public AbstractTraitDefinition(final String name) {
+
 		this(name, name);
 	}
 
@@ -48,51 +49,61 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 
 	@Override
 	public int compareTo(final TraitDefinition o) {
+
 		return getName().compareTo(o.getName());
 	}
 
 	@Override
 	public String getName() {
+
 		return name;
 	}
 
 	@Override
 	public String getLabel() {
+
 		return label;
 	}
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance) {
+
 		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+
 		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return new LinkedHashMap<>();
 	}
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
+
 		return Set.of();
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
 		return Set.of();
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
+
 		return new LinkedHashMap<>();
 	}
 
@@ -108,6 +119,7 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 		for (final T option : options) {
 
 			if (option != null) {
+
 				return option;
 			}
 		}

@@ -68,6 +68,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_CONNECTED_PROPERTY     = "isConnected";
 
 	public XMPPClientTraitDefinition() {
+
 		super(StructrTraits.XMPP_CLIENT);
 	}
 
@@ -76,22 +77,20 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 					final XMPPClient client = graphObject.as(XMPPClient.class);
-
 					if (client.getIsEnabled()) {
+
 						XMPPContext.connect(client);
 					}
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -102,16 +101,19 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 					if (!enabled) {
 
 						if (connection != null && connection.isConnected()) {
+
 							connection.disconnect();
 						}
 
 					} else {
 
 						if (connection == null || !connection.isConnected()) {
+
 							XMPPContext.connect(client);
 						}
 
 						connection = XMPPContext.getClientForId(client.getUuid());
+
 						if (connection != null) {
 
 							if (connection.isConnected()) {
@@ -128,8 +130,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			OnDeletion.class,
-			new OnDeletion() {
+			OnDeletion.class, new OnDeletion() {
 
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -153,9 +154,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			XMPPClient.class, (traits, node) -> new XMPPClientTraitWrapper(traits, node)
-		);
+		return Map.of(XMPPClient.class, (traits, node) -> new XMPPClientTraitWrapper(traits, node));
 	}
 
 	@Override
@@ -249,7 +248,6 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
-
 					if (client.getIsEnabled()) {
 
 						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
@@ -401,6 +399,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

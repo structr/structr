@@ -45,11 +45,13 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
+
 		return "maintenance";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("command [, arguments...]");
 	}
 
@@ -77,7 +79,6 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 				} else {
 
 					final int parameterCount = sources.length;
-
 					if (parameterCount % 2 == 0) {
 
 						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -113,6 +114,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 								app.command(FlushCachesCommand.class).execute(Collections.EMPTY_MAP);
 
 							} catch (FrameworkException ex) {
+
 								logger.warn("Flush caches failed before maintenance command {}: {}", commandName, ex.getMessage());
 							}
 						}
@@ -128,6 +130,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 								return cmd.getCommandResult();
 
 							} catch (FrameworkException ex) {
+
 								logger.warn("Unable to execute maintenance command {}: {}", commandName, ex.getMessage());
 							}
 
@@ -140,6 +143,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 								return cmd.getCommandResult();
 
 							} catch (FrameworkException ex) {
+
 								logger.warn("Unable to execute maintenance command {}: {}", commandName, ex.getMessage());
 							}
 						}
@@ -164,12 +168,14 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+
 			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${maintenance(command [, key, value [, ... ]])}. Example: ${maintenance('rebuildIndex', 'mode', 'nodesOnly'))')}"),
 			Usage.javaScript("Usage: ${{ $.maintenance(command [, key, value [, ... ]])}}. Example: ${{ $.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}")
@@ -178,6 +184,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+
 		return "Allows an admin user to execute a maintenance command from within a scripting context.";
 	}
 
@@ -205,10 +212,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-			Parameter.mandatory("command", "name of the command to execute"),
-			Parameter.optional("arguments...", "map (or key-value pairs) of arguments (depends on the command)")
-		);
+		return List.of(Parameter.mandatory("command", "name of the command to execute"), Parameter.optional("arguments...", "map (or key-value pairs) of arguments (depends on the command)"));
 	}
 
 	@Override
@@ -226,14 +230,12 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 
-		return List.of(
-			"In a StructrScript environment arguments are passed as pairs of 'key1', 'value1'.",
-			"In a JavaScript environment, this function takes a map as the second argument."
-		);
+		return List.of("In a StructrScript environment arguments are passed as pairs of 'key1', 'value1'.", "In a JavaScript environment, this function takes a map as the second argument.");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 
@@ -242,6 +244,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 		final List<Documentable> hints = new LinkedList<>();
 		
 		if (lastToken == null) {
+
 			return hints;
 		}
 
@@ -252,7 +255,6 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 			if (!DocumentableType.Hidden.equals(documentable.getDocumentableType())) {
 
 				final String name = documentable.getName();
-
 				if (StringUtils.isNotBlank(name)) {
 
 					hints.add(new WrappingHint(documentable, quoteChar + name + quoteChar));

@@ -94,21 +94,25 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public int hashCode() {
+
 		return id.hashCode();
 	}
 
 	@Override
 	public final Traits getTraits() {
+
 		return typeHandler;
 	}
 
 	@Override
 	public <T> T as(final Class<T> type) {
+
 		return typeHandler.as(type, this);
 	}
 
 	@Override
 	public boolean is(final String type) {
+
 		return typeHandler.contains(type);
 	}
 
@@ -125,25 +129,30 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public void clearCaches() {
+
 		AccessControllableTraitDefinition.clearCaches();
 	}
 
 	@Override
 	public final long getSourceTransactionId() {
+
 		return sourceTransactionId;
 	}
 
 	@Override
 	public final void setSecurityContext(SecurityContext securityContext) {
+
 		this.securityContext = securityContext;
 	}
 
 	@Override
 	public final SecurityContext getSecurityContext() {
+
 		return securityContext;
 	}
 
 	public String toString() {
+
 		return getUuid();
 	}
 
@@ -156,17 +165,20 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final void unlockReadOnlyPropertiesOnce() {
+
 		this.readOnlyPropertiesUnlocked = true;
 	}
 
 	@Override
 	public final void lockReadOnlyProperties() {
+
 		this.readOnlyPropertiesUnlocked = false;
 
 	}
 
 	@Override
 	public final boolean isGranted(final Permission permission, SecurityContext securityContext) {
+
 		return isGranted(permission, securityContext, false);
 	}
 
@@ -199,6 +211,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 		final AddToIndex callback = typeHandler.getMethod(AddToIndex.class);
 		if (callback != null) {
+
 			callback.addToIndex(this);
 		}
 	}
@@ -217,6 +230,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		for (final OnCreation callback : typeHandler.getMethods(OnCreation.class)) {
+
 			callback.onCreation(this, securityContext, errorBuffer);
 		}
 	}
@@ -225,6 +239,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		for (final OnModification callback : typeHandler.getMethods(OnModification.class)) {
+
 			callback.onModification(this, securityContext, errorBuffer, modificationQueue);
 		}
 	}
@@ -233,6 +248,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 
 		for (final OnDeletion callback : typeHandler.getMethods(OnDeletion.class)) {
+
 			callback.onDeletion(this, securityContext, errorBuffer, properties);
 		}
 	}
@@ -241,6 +257,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void afterCreation(final SecurityContext securityContext) throws FrameworkException {
 
 		for (final AfterCreation callback : typeHandler.getMethods(AfterCreation.class)) {
+
 			callback.afterCreation(this, securityContext);
 		}
 	}
@@ -249,6 +266,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void afterModification(final SecurityContext securityContext) throws FrameworkException {
 
 		for (final AfterModification callback : typeHandler.getMethods(AfterModification.class)) {
+
 			callback.afterModification(this, securityContext);
 		}
 	}
@@ -257,6 +275,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void afterDeletion(final SecurityContext securityContext, final PropertyMap properties) {
 
 		for (final AfterDeletion callback : typeHandler.getMethods(AfterDeletion.class)) {
+
 			callback.afterDeletion(this, securityContext, properties);
 		}
 	}
@@ -265,6 +284,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void ownerModified(final SecurityContext securityContext) {
 
 		for (final OwnerModified callback : typeHandler.getMethods(OwnerModified.class)) {
+
 			callback.ownerModified(this, securityContext);
 		}
 	}
@@ -273,6 +293,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void securityModified(final SecurityContext securityContext) {
 
 		for (final SecurityModified callback : typeHandler.getMethods(SecurityModified.class)) {
+
 			callback.securityModified(this, securityContext);
 		}
 	}
@@ -281,6 +302,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void locationModified(final SecurityContext securityContext) {
 
 		for (final LocationModified callback : typeHandler.getMethods(LocationModified.class)) {
+
 			callback.locationModified(this, securityContext);
 		}
 	}
@@ -289,6 +311,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	public final void propagatedModification(final SecurityContext securityContext) {
 
 		for (final PropagatedModification callback : typeHandler.getMethods(PropagatedModification.class)) {
+
 			callback.propagatedModification(this, securityContext);
 		}
 	}
@@ -302,22 +325,26 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final void unlockSystemPropertiesOnce() {
+
 		this.internalSystemPropertiesUnlocked = true;
 		unlockReadOnlyPropertiesOnce();
 	}
 
 	@Override
 	public final void lockSystemProperties() {
+
 		this.internalSystemPropertiesUnlocked = true;
 	}
 
 	@Override
 	public final boolean readOnlyPropertiesUnlocked() {
+
 		return readOnlyPropertiesUnlocked;
 	}
 
 	@Override
 	public final boolean systemPropertiesUnlocked() {
+
 		return internalSystemPropertiesUnlocked;
 	}
 
@@ -328,6 +355,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public boolean isVisibleToPublicUsers() {
+
 		return typeHandler.getMethod(GetVisibilityFlags.class).isVisibleToPublicUsers(this);
 	}
 
@@ -338,6 +366,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
+
 		return typeHandler.getMethod(GetVisibilityFlags.class).isVisibleToAuthenticatedUsers(this);
 	}
 
@@ -367,16 +396,19 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final Date getCreatedDate() {
+
 		return getProperty(typeHandler.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY));
 	}
 
 	@Override
 	public final Date getLastModifiedDate() {
+
 		return getProperty(typeHandler.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY));
 	}
 
 	@Override
 	public final void setLastModifiedDate(final Date date) throws FrameworkException {
+
 		setProperty(typeHandler.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY), date);
 	}
 
@@ -390,11 +422,13 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final Set<PropertyKey> getPropertyKeys(final String propertyView) {
+
 		return typeHandler.getMethod(GetPropertyKeys.class).getPropertyKeys(this, propertyView);
 	}
 
 	@Override
 	public Set<PropertyKey> getFullPropertySet() {
+
 		return typeHandler.getMethod(GetPropertySet.class).getAllPropertyKeys(this);
 	}
 
@@ -408,48 +442,58 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public final <T> T getProperty(final PropertyKey<T> key) {
+
 		return getProperty(key, null);
 	}
 
 	@Override
 	public final <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
+
 		return typeHandler.getMethod(GetProperty.class).getProperty(this, key, predicate);
 	}
 
 	@Override
 	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+
 		return setProperty(key, value, false);
 	}
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
+
 		cachedUuid = null;
+
 		return typeHandler.getMethod(SetProperty.class).setProperty(this, key, value, isCreation);
 	}
 
 	@Override
 	public void setProperties(SecurityContext securityContext, PropertyMap properties) throws FrameworkException {
+
 		setProperties(securityContext, properties, false);
 	}
 
 	@Override
 	public final void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+
 		cachedUuid = null;
 		typeHandler.getMethod(SetProperties.class).setProperties(this, securityContext, properties, isCreation);
 	}
 
 	@Override
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
+
 		typeHandler.getMethod(RemoveProperty.class).removeProperty(this, key);
 	}
 
 	@Override
 	public final boolean isNode() {
+
 		return typeHandler.isNodeType();
 	}
 
 	@Override
 	public final boolean isRelationship() {
+
 		return !typeHandler.isNodeType();
 	}
 
@@ -474,21 +518,25 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
+
 		return List.of();
 	}
 
 	@Override
 	public NodeInterface getSyncNode() {
+
 		return null;
 	}
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
+
 		return null;
 	}
 
 	@Override
 	public boolean changelogEnabled() {
+
 		return typeHandler.changelogEnabled();
 	}
 }

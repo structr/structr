@@ -90,7 +90,6 @@ public class StructrHttpsLicenseVerifier {
 
 			final InetSocketAddress address = new InetSocketAddress(80);
 			final HttpServer server         = HttpServer.create();
-
 			final HttpContext context = server.createContext("/", new HttpHandler() {
 
 				@Override
@@ -113,6 +112,7 @@ public class StructrHttpsLicenseVerifier {
 							byte[] response = responseString.getBytes("utf-8");
 
 							exchange.sendResponseHeaders(200, response.length);
+
 							try (final OutputStream out = exchange.getResponseBody()) {
 
 								out.write(response);
@@ -126,7 +126,6 @@ public class StructrHttpsLicenseVerifier {
 							final int bufSize     = 4096;
 							final byte[] buf      = new byte[bufSize];
 							int count             = 0;
-
 							final byte[] sessionKeySource = IOUtils.readFully(is, 256);
 							final byte[] ivSpecSource     = IOUtils.readFully(is, 256);
 
@@ -146,6 +145,7 @@ public class StructrHttpsLicenseVerifier {
 								count = is.read(buf, 0, bufSize);
 
 							} catch (IOException exception) {
+
 								logger.warn("Exception reading request input stream {}", exception.getMessage());
 							}
 
@@ -227,6 +227,7 @@ public class StructrHttpsLicenseVerifier {
 			server.start();
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to start license server: {}", t.getMessage());
 		}
 	}
@@ -312,7 +313,6 @@ public class StructrHttpsLicenseVerifier {
 							logger.info("count: {}, limit: {}, end date {}", count, limit, valid.getEndDate());
 						}
 
-
 						// update host ID count
 						hostIdMapping.put(hostId, hostIdCount + 1);
 
@@ -347,6 +347,7 @@ public class StructrHttpsLicenseVerifier {
 	}
 
 	private List<String> split(final String src) {
+
 		return Arrays.asList(src.split("\n"));
 	}
 
@@ -357,6 +358,7 @@ public class StructrHttpsLicenseVerifier {
 			return gson.fromJson(reader, Map.class);
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to open license config {}: {}", name, ioex.getMessage());
 		}
 
@@ -370,6 +372,7 @@ public class StructrHttpsLicenseVerifier {
 			gson.toJson(config, writer);
 
 		} catch (IOException ioex) {
+
 			logger.warn("Unable to store license config {}: {}", name, ioex.getMessage());
 		}
 	}
@@ -419,7 +422,6 @@ public class StructrHttpsLicenseVerifier {
 		try (final InputStream is = new FileInputStream(passwordFileName)) {
 
 			final List<String> lines = IOUtils.readLines(is, "utf-8");
-
 			if (!lines.isEmpty()) {
 
 				return lines.get(0);
@@ -433,7 +435,6 @@ public class StructrHttpsLicenseVerifier {
 	private static Pair keyValue(final String line) {
 
 		final String[] parts = line.split("=", 2);
-
 		if (parts.length == 2) {
 
 			final String key   = parts[0].trim();
@@ -443,6 +444,7 @@ public class StructrHttpsLicenseVerifier {
 		}
 
 		// ignore invalid lines
+
 		return null;
 	}
 
@@ -452,15 +454,18 @@ public class StructrHttpsLicenseVerifier {
 		private String right = null;
 
 		public Pair(final String left, final String right) {
+
 			this.left = left;
 			this.right = right;
 		}
 
 		public String getLeft() {
+
 			return left;
 		}
 
 		public String getRight() {
+
 			return right;
 		}
 	}
@@ -474,6 +479,7 @@ public class StructrHttpsLicenseVerifier {
 		private Key key = null;
 
 		public Ciphers(final String keystoreFileName, final String passwordFileName) throws KeyStoreException, NoSuchPaddingException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, IOException, InvalidKeyException {
+
 			initialize(keystoreFileName, passwordFileName);
 		}
 

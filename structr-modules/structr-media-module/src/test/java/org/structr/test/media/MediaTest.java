@@ -50,12 +50,16 @@ public class MediaTest extends StructrUiTest {
 	public void test01() {
 
 		if (!AVConv.isAVConvInstalled()) {
+
 			logger.info("Not performing test because `avconv` is not installed!");
+
 			return;
 		}
 
 		if (System.getProperty("os.name").equals("Mac OS X")) {
+
 			logger.info("Not performing test because `avconv` behaves differently on Mac!");
+
 			return;
 		}
 
@@ -67,12 +71,14 @@ public class MediaTest extends StructrUiTest {
 
 			// create AutoClosable input stream
 			try (final InputStream is = MediaTest.class.getResourceAsStream("/test.mp4")) {
+
 				FileHelper.createFile(securityContext, is, null, type, "test.mp4");
 			}
 
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -118,6 +124,7 @@ public class MediaTest extends StructrUiTest {
 
 			final SchemaNode videoFile = app.create(StructrTraits.SCHEMA_NODE, new Name("VideoFile")).as(SchemaNode.class);
 			final User tester = app.create(StructrTraits.USER, new Name("tester")).as(User.class);
+
 			tester.setPassword("test");
 
 			final Group group = app.create(StructrTraits.GROUP, new Name("group")).as(Group.class);
@@ -145,6 +152,7 @@ public class MediaTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 

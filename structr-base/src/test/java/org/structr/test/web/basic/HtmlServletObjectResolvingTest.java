@@ -81,6 +81,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 				Content textNode = newPage.createTextNode("${current.id}");
 
 				try {
+
 					// add HTML element to page
 					newPage.appendChild(html);
 					html.appendChild(head);
@@ -98,6 +99,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 
@@ -154,6 +156,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -176,6 +179,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 		}
 	}
@@ -186,7 +190,6 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 		final String fileContent = "this is a test";
 		final String initialFolderPath = "/test/test1/test2";
 		final String fileName = "test.txt";
-
 		final String folderNameBeforeRename = "test1";
 		final String folderNameAfterRename  = "changedName";
 
@@ -200,6 +203,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 
@@ -227,6 +231,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			t.printStackTrace();
 		}
 

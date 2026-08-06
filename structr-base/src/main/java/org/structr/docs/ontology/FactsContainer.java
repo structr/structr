@@ -79,10 +79,12 @@ public abstract class FactsContainer {
 
 	// ----- protected methods -----
 	protected List<Token> tokenize(final String text) {
+
 		return new FactsTokenizer().tokenize(this, text);
 	}
 
 	public void remove(final Token token) {
+
 		getTokens().remove(token);
 	}
 }

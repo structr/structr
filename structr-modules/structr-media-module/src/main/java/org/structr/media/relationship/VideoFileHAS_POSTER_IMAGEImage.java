@@ -28,71 +28,85 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class VideoFileHAS_POSTER_IMAGEImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public VideoFileHAS_POSTER_IMAGEImage() {
+
 		super(StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return StructrTraits.VIDEO_FILE;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "HAS_POSTER_IMAGE";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.Both;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Add;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Keep;
 	}
 }

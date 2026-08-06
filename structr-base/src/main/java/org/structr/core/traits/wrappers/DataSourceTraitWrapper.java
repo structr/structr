@@ -38,6 +38,7 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	private Map<ChannelInput, ChannelResult<GraphObject>> cachedResults = new LinkedHashMap<>();
 
 	public DataSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
@@ -57,21 +58,25 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 	@Override
 	public final Map<String, FieldDefinition> getFields(final ActionContext actionContext) throws FrameworkException {
+
 		return traits.getMethod(DataSourceOperations.class).getFields(actionContext, this);
 	}
 
 	@Override
 	public String getDataType(final ActionContext actionContext) throws FrameworkException {
+
 		return traits.getMethod(DataSourceOperations.class).getDataType(actionContext, this);
 	}
 
 	@Override
 	public int getDimension() {
+
 		return traits.getMethod(DataSourceOperations.class).getDimension(this);
 	}
 
 	@Override
 	public boolean includeHidden() {
+
 		return wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.INCLUDE_HIDDEN_PROPERTY));
 	}
 }

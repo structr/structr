@@ -60,15 +60,14 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 	public static final String SCHEDULED_FOR_INDEXING_PROPERTY = "scheduledForIndexing";
 
 	public FlowContainerPackageTraitDefinition() {
+
 		super(StructrTraits.FLOW_CONTAINER_PACKAGE);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowContainerPackage.class, (traits, node) -> new FlowContainerPackage(traits, node)
-		);
+		return Map.of(FlowContainerPackage.class, (traits, node) -> new FlowContainerPackage(traits, node));
 	}
 
 	@Override
@@ -76,8 +75,7 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -93,17 +91,16 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 				}
 			},
 
-			OnCreation.class,
-			new OnCreation() {
+			OnCreation.class, new OnCreation() {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
 					graphObject.setVisibility(true, true);
 				}
 			},
 
-			OnModification.class,
-			new OnModification() {
+			OnModification.class, new OnModification() {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -112,6 +109,7 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 					final Traits traits = graphObject.getTraits();
 
 					if (props.contains(SCHEDULED_FOR_INDEXING_PROPERTY) || props.contains(NAME_PROPERTY) || props.contains(PACKAGES_PROPERTY) || props.contains(FLOWS_PROPERTY)) {
+
 						graphObject.as(FlowContainerPackage.class).scheduleIndexingForRelatedEntities();
 					}
 
@@ -119,11 +117,11 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 				}
 			},
 
-			OnNodeDeletion.class,
-			new OnNodeDeletion() {
+			OnNodeDeletion.class, new OnNodeDeletion() {
 
 				@Override
 				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+
 					nodeInterface.as(FlowContainerPackage.class).deleteChildren();
 				}
 			}
@@ -135,8 +133,7 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 
 		return Map.of(
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -233,14 +230,7 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 				""").typeHint("String");
 		final Property<Boolean> scheduledForIndexing     = new BooleanProperty(SCHEDULED_FOR_INDEXING_PROPERTY).defaultValue(false);
 
-		return newSet(
-			parent,
-			packages,
-			flows,
-			name,
-			effectiveName,
-			scheduledForIndexing
-		);
+		return newSet(parent, packages, flows, name, effectiveName, scheduledForIndexing);
 	}
 
 	@Override
@@ -260,6 +250,7 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

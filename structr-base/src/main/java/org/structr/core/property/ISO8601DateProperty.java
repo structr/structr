@@ -38,16 +38,19 @@ import java.util.Date;
 public class ISO8601DateProperty extends DateProperty {
 
 	public ISO8601DateProperty(final String name) {
+
 		super(name);
 	}
 
 	@Override
 	public PropertyConverter<Date, Long> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+
 		return new DatabaseConverter(securityContext, entity);
 	}
 
 	@Override
 	public PropertyConverter<Object, Date> inputConverter(SecurityContext securityContext, boolean fromString) {
+
 		return new InputConverter(securityContext);
 	}
 
@@ -84,6 +87,7 @@ public class ISO8601DateProperty extends DateProperty {
 	private class InputConverter extends PropertyConverter<Object, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
+
 			super(securityContext, null);
 		}
 
@@ -93,14 +97,16 @@ public class ISO8601DateProperty extends DateProperty {
 			if (source != null) {
 
 				final Date convertedDate = TemporalDateConverter.convert(source);
-
 				if (convertedDate != null) {
 
 					return convertedDate;
+
 				} else if (source instanceof Long l) {
 
 					return DatePropertyGenerator.parseISO8601DateString(Date.from(Instant.ofEpochMilli(l)).toString());
+
 				} else if (source instanceof String sourceString) {
+
 					if (StringUtils.isNotBlank(sourceString)) {
 
 						Date result = DatePropertyGenerator.parseISO8601DateString(sourceString);

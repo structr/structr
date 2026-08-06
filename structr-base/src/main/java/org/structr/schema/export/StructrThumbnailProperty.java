@@ -29,15 +29,16 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 
-
 public class StructrThumbnailProperty extends StructrStringProperty {
 
 	public StructrThumbnailProperty(StructrTypeDefinition parent, String name) {
+
 		super(parent, name);
 	}
 
 	@Override
 	public String getType() {
+
 		return "thumbnail";
 	}
 

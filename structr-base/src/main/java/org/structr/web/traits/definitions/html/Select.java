@@ -39,6 +39,7 @@ public class Select extends GenericHtmlElementTraitDefinition {
 	public static final String REQUIRED_PROPERTY  = getPrefixedHTMLAttributeName("required");
 
 	public Select() {
+
 		super(StructrTraits.SELECT);
 	}
 
@@ -54,19 +55,12 @@ public class Select extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> autofocusProperty = new StringProperty(AUTOFOCUS_PROPERTY);
 		final PropertyKey<String> requiredProperty  = new StringProperty(REQUIRED_PROPERTY);
 
-		return newSet(
-			nameProperty, disabledProperty, acceptProperty, formProperty, sizeProperty, multipleProperty, autofocusProperty, requiredProperty
-		);
+		return newSet(nameProperty, disabledProperty, acceptProperty, formProperty, sizeProperty, multipleProperty, autofocusProperty, requiredProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Html,
-			newSet(
-					NAME_PROPERTY, DISABLED_PROPERTY, ACCEPT_PROPERTY, FORM_PROPERTY, SIZE_PROPERTY, MULTIPLE_PROPERTY, AUTOFOCUS_PROPERTY, REQUIRED_PROPERTY
-			)
-		);
+		return Map.of(PropertyView.Html, newSet(NAME_PROPERTY, DISABLED_PROPERTY, ACCEPT_PROPERTY, FORM_PROPERTY, SIZE_PROPERTY, MULTIPLE_PROPERTY, AUTOFOCUS_PROPERTY, REQUIRED_PROPERTY));
 	}
 }

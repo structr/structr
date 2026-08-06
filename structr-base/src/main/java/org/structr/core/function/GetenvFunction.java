@@ -34,11 +34,13 @@ public class GetenvFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
+
 		return "getenv";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("[variable]");
 	}
 
@@ -76,27 +78,26 @@ public class GetenvFunction extends CoreFunction {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${getenv()}. Example: ${getenv('JAVA_HOME')}"),
-			Usage.javaScript("Usage: ${{ $.getenv() }. Example: ${{ $.getenv('JAVA_HOME'); }}")
-		);
+
+		return List.of(Usage.structrScript("Usage: ${getenv()}. Example: ${getenv('JAVA_HOME')}"), Usage.javaScript("Usage: ${{ $.getenv() }. Example: ${{ $.getenv('JAVA_HOME'); }}"));
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns the value of the specified environment variable. If no value is specified, all environment variables are returned as a map. An environment variable is a system-dependent external named value.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-				Example.structrScript("${getenv('JAVA_HOME')}"),
+
+		return List.of(Example.structrScript("${getenv('JAVA_HOME')}"),
 				Example.javaScript("""
 		        ${{ return $.getenv().PATH; }}
 		        ${{ return $.getenv('PATH'); }}
@@ -106,22 +107,19 @@ public class GetenvFunction extends CoreFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"This function was added in v4.0"
-		);
-	}
 
+		return List.of("This function was added in v4.0");
+	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.optional("variable", "name of enviroment variable")
-				);
+		return List.of(Parameter.optional("variable", "name of enviroment variable"));
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
+
 		return FunctionCategory.System;
 	}
 }

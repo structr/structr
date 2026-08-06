@@ -45,21 +45,25 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return Integer.class;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Integer;
 	}
 
 	@Override
 	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -71,7 +75,6 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 		for (Property<Integer> prop : sumProperties) {
 
 			Integer value = obj.getProperty(prop);
-
 			if (value != null) {
 
 				sum = sum + value.intValue();
@@ -83,22 +86,26 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return index;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

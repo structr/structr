@@ -62,6 +62,7 @@ final class RustFsTestSupport {
 	static synchronized void start() {
 
 		if (container != null) {
+
 			return;
 		}
 
@@ -93,18 +94,13 @@ final class RustFsTestSupport {
 	}
 
 	static String getEndpoint() {
+
 		return endpoint;
 	}
 
 	static Map<String, String> providerConfig(final String bucket) {
 
-		return Map.of(
-			"endpoint",   endpoint,
-			"bucketName", bucket,
-			"region",     REGION,
-			"accessKey",  ACCESS_KEY,
-			"secretKey",  SECRET_KEY
-		);
+		return Map.of("endpoint",   endpoint, "bucketName", bucket, "region",     REGION, "accessKey",  ACCESS_KEY, "secretKey",  SECRET_KEY);
 	}
 
 	/**
@@ -121,6 +117,7 @@ final class RustFsTestSupport {
 			try {
 
 				client.createBucket(CreateBucketRequest.builder().bucket(name).build()).get();
+
 				return;
 
 			} catch (InterruptedException iex) {
@@ -146,6 +143,7 @@ final class RustFsTestSupport {
 			final PutObjectRequest.Builder builder = PutObjectRequest.builder().bucket(bucket).key(key);
 
 			if (metadata != null) {
+
 				builder.metadata(metadata);
 			}
 
@@ -157,6 +155,7 @@ final class RustFsTestSupport {
 			throw new RuntimeException("Interrupted while putting object " + key, iex);
 
 		} catch (ExecutionException eex) {
+
 			throw new RuntimeException("Unable to put object " + key, eex.getCause());
 		}
 	}
@@ -178,6 +177,7 @@ final class RustFsTestSupport {
 		} catch (ExecutionException eex) {
 
 			if (eex.getCause() instanceof S3Exception s3e && s3e.statusCode() == 404) {
+
 				return null;
 			}
 
@@ -197,6 +197,7 @@ final class RustFsTestSupport {
 			throw new RuntimeException("Interrupted while getting object " + key, iex);
 
 		} catch (ExecutionException eex) {
+
 			throw new RuntimeException("Unable to get object " + key, eex.getCause());
 		}
 	}
@@ -213,6 +214,7 @@ final class RustFsTestSupport {
 			throw new RuntimeException("Interrupted while deleting object " + key, iex);
 
 		} catch (ExecutionException eex) {
+
 			throw new RuntimeException("Unable to delete object " + key, eex.getCause());
 		}
 	}

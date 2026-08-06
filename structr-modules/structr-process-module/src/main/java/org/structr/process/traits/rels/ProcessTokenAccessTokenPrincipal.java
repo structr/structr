@@ -30,76 +30,91 @@ import org.structr.process.ProcessTraits;
 public class ProcessTokenAccessTokenPrincipal extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ProcessTokenAccessTokenPrincipal() {
+
 		super(ProcessTraits.PROCESS_TOKEN_ACCESS_TOKEN_PRINCIPAL);
 	}
 
 	@Override
 	public String getSourceType() {
+
 		return ProcessTraits.PROCESS_TOKEN;
 	}
 
 	@Override
 	public String getTargetType() {
+
 		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override
 	public String getRelationshipType() {
+
 		return "ACCESS_TOKEN_PRINCIPAL";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
+
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
+
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
+
 		return Relation.NONE;
 	}
 
 	@Override
 	public boolean isInternal() {
+
 		return false;
 	}
 
 	@Override
 	public PropagationDirection getPropagationDirection() {
+
 		return PropagationDirection.None;
 	}
 
 	@Override
 	public PropagationMode getReadPropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getWritePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
+
 		return PropagationMode.Keep;
 	}
 
 	@Override
 	public String getDeltaProperties() {
+
 		return null;
 	}
 }

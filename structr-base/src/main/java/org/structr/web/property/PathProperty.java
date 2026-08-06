@@ -57,26 +57,31 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	private static final Logger logger = LoggerFactory.getLogger(PathProperty.class.getName());
 
 	public PathProperty(String name) {
+
 		super(name);
 	}
 
 	@Override
 	public String relatedType() {
+
 		return null;
 	}
 
 	@Override
 	public Class valueType() {
+
 		return String.class;
 	}
 
 	@Override
 	public String typeName() {
+
 		return "String";
 	}
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -95,16 +100,19 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public boolean isCollection() {
+
 		return false;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return false;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
@@ -118,6 +126,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 			final ArrayList<String> parts = new ArrayList<>(Arrays.asList(PathHelper.getParts(searchValue)));
 			if (!parts.isEmpty()) {
+
 				searchRecursively(app, null, attr, parts);
 			}
 
@@ -133,7 +142,6 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		final String currentPart      = parts.remove(0);
 		final Traits traits           = Traits.of(StructrTraits.FILE);
-
 		final List<NodeInterface> res = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent).key(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), currentPart).getAsList();
 
 		if (parts.isEmpty()) {
@@ -146,6 +154,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		} else {
 
 			for (final NodeInterface folder : res) {
+
 				searchRecursively(app, folder, attr, (ArrayList<String>) parts.clone());
 			}
 		}
@@ -154,11 +163,13 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

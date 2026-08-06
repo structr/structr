@@ -110,9 +110,7 @@ public class BpmnPageSkeletonLogicTest {
 
 		final Map<BpmnElementType, Set<String>> expected = Map.of(
 
-			BpmnElementType.USER_TASK, Set.of(
-				VisibilityMappingTraitDefinition.STATE_TASK_AVAILABLE,
-				VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME),
+			BpmnElementType.USER_TASK, Set.of(VisibilityMappingTraitDefinition.STATE_TASK_AVAILABLE, VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME),
 
 			BpmnElementType.START_EVENT, Set.of(VisibilityMappingTraitDefinition.STATE_NO_INSTANCE),
 			BpmnElementType.MANUAL_TASK, Set.of(VisibilityMappingTraitDefinition.STATE_TOKEN_WAITING_HERE),
@@ -144,8 +142,7 @@ public class BpmnPageSkeletonLogicTest {
 	@Test
 	public void testSubProcessLikeTypes() {
 
-		final Set<BpmnElementType> containers = Set.of(
-			BpmnElementType.SUB_PROCESS, BpmnElementType.TRANSACTION, BpmnElementType.AD_HOC_SUB_PROCESS);
+		final Set<BpmnElementType> containers = Set.of(BpmnElementType.SUB_PROCESS, BpmnElementType.TRANSACTION, BpmnElementType.AD_HOC_SUB_PROCESS);
 
 		for (final BpmnElementType type : BpmnElementType.values()) {
 

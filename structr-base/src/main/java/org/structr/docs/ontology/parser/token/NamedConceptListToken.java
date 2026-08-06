@@ -39,6 +39,7 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 
 	@Override
 	public String toString() {
+
 		return "NamedConceptListToken(" + tokens + ")";
 	}
 
@@ -55,6 +56,7 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 	public void addTokens(final NamedConceptListToken tokens) {
 
 		for (final NamedConceptToken token : tokens.getAllTokens()) {
+
 			addToken(token);
 		}
 	}
@@ -82,6 +84,7 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 		boolean terminal = true;
 
 		for (NamedConceptToken token : tokens) {
+
 			terminal &= token.isTerminal();
 		}
 
@@ -89,6 +92,7 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 	}
 
 	public  List<NamedConceptToken> getAllTokens() {
+
 		return tokens;
 	}
 
@@ -98,6 +102,7 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 		final List<Token> result = new LinkedList<>();
 
 		for (final NamedConceptToken token : tokens) {
+
 			result.addAll(token.getAllSourceTokens());
 		}
 
@@ -106,16 +111,19 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 
 	@Override
 	public Token getToken() {
+
 		return null;
 	}
 
 	@Override
 	public void renameTo(final String newName) {
+
 		throw new UnsupportedOperationException("Cannot rename list.");
 	}
 
 	@Override
 	public void updateContent(final String key, final String value) {
+
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -147,6 +155,7 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 	}
 
 	public void moveChild(int fromIndex, int toIndex) {
+
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 }

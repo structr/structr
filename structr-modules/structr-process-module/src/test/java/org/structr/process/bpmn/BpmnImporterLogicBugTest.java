@@ -107,16 +107,14 @@ public class BpmnImporterLogicBugTest {
 		// execution.setVariable -> $.process write, wrapped as a JS method body.
 		final String setVar = camundaListenerBody("${execution.setVariable('startedAt', 5)}");
 		assertTrue("must be a JS method body ({...}); got:\n" + setVar, setVar.startsWith("{") && setVar.endsWith("}"));
-		assertTrue("execution.setVariable must transpile to a $.process write; got:\n" + setVar,
-			setVar.contains("$.process.startedAt = 5"));
+		assertTrue("execution.setVariable must transpile to a $.process write; got:\n" + setVar, setVar.contains("$.process.startedAt = 5"));
 
 		// A bean/service call is rewritten to a Structr service-class call: the receiver
 		// becomes a capitalized $.<Type> and the method is preserved. The importer scaffolds
 		// NotificationService with a static notifyReviewer stub so this runs.
 		final String call = camundaListenerBody("${notificationService.notifyReviewer(task)}");
 		assertTrue(call.startsWith("{") && call.endsWith("}"));
-		assertTrue("bean call should bind to a service class; got:\n" + call,
-			call.contains("$.NotificationService.notifyReviewer(task)"));
+		assertTrue("bean call should bind to a service class; got:\n" + call, call.contains("$.NotificationService.notifyReviewer(task)"));
 
 		// A class / delegate reference has no Structr equivalent -> inert body.
 		final String clazz = camundaListenerBody("com.acme.NotifyDelegate");
@@ -129,16 +127,11 @@ public class BpmnImporterLogicBugTest {
 	public void testSanitizeMethodNameAlwaysMatchesPattern() {
 
 		for (final String payload : new String[] {
-			"${notificationService.notifyReviewer(task)}",
-			"com.acme.listeners.Audit$Inner",
-			"${bean}",
-			"do-a-thing!!!",
-			"42",
-			"a.b.c.d"
+
+			"${notificationService.notifyReviewer(task)}", "com.acme.listeners.Audit$Inner", "${bean}", "do-a-thing!!!", "42", "a.b.c.d"
 		}) {
 			final String name = sanitizeMethodName(payload);
-			assertTrue("sanitized '" + payload + "' -> '" + name + "' must be a valid method name",
-				VALID.matcher(name).matches());
+			assertTrue("sanitized '" + payload + "' -> '" + name + "' must be a valid method name", VALID.matcher(name).matches());
 		}
 	}
 

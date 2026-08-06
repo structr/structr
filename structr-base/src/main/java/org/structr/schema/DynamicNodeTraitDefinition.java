@@ -34,6 +34,7 @@ import java.util.Set;
 public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<SchemaNode> {
 
 	public DynamicNodeTraitDefinition(final TraitsInstance traitsInstance, final SchemaNode schemaNode) {
+
 		super(traitsInstance, schemaNode);
 	}
 
@@ -56,11 +57,13 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 
 				@Override
 				public boolean isVisibleToPublicUsers(final GraphObject obj) {
+
 					return visibleToPublic;
 				}
 
 				@Override
 				public boolean isVisibleToAuthenticatedUsers(final GraphObject obj) {
+
 					return visibleToAuth;
 				}
 			});
@@ -71,18 +74,22 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 			final String principalId = grant.getPrincipal().getUuid();
 
 			if (grant.allowRead()) {
+
 				readPermissions.add(principalId);
 			}
 
 			if (grant.allowWrite()) {
+
 				writePermissions.add(principalId);
 			}
 
 			if (grant.allowDelete()) {
+
 				deletePermissions.add(principalId);
 			}
 
 			if (grant.allowAccessControl()) {
+
 				accessControlPermissions.add(principalId);
 			}
 
@@ -123,6 +130,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 				propertyKeys.add(outRel.createKey(traitsInstance, schemaNode, true));
 
 			} catch (FrameworkException e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -134,6 +142,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 				propertyKeys.add(inRel.createKey(traitsInstance, schemaNode, false));
 
 			} catch (FrameworkException e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -144,16 +153,19 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 
 	@Override
 	public boolean isRelationship() {
+
 		return false;
 	}
 
 	@Override
 	public int compareTo(final TraitDefinition o) {
+
 		return getName().compareTo(o.getName());
 	}
 }

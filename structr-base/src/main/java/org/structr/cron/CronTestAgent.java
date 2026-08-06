@@ -36,6 +36,7 @@ public class CronTestAgent extends Agent {
 
 	@Override
 	public Class getSupportedTaskType() {
+
 		return CronTestTask.class;
 	}
 

@@ -76,6 +76,7 @@ public class NodeService implements SingletonService {
 		String errorMessage         = null;
 
 		databaseService = DatabaseService.loadByClassName(databaseDriver);
+
 		if (databaseService != null) {
 
 			if (databaseService.initialize(serviceName, services.getVersion(), services.getInstanceName())) {
@@ -104,8 +105,6 @@ public class NodeService implements SingletonService {
 
 					logger.info("Indexes successfully initialized.");
 
-
-
 				} catch (Throwable t) {
 
 					logger.warn("Error while initializing indexes: {}", t.getMessage());
@@ -125,13 +124,14 @@ public class NodeService implements SingletonService {
 
 		// check for empty database and seed file
 		String basePath = Settings.getBasePath();
-
 		if (StringUtils.isEmpty(basePath)) {
+
 			basePath = ".";
 		}
 
 		// don't check cache sizes when testing..
 		if (!Services.isTesting()) {
+
 			checkCacheSizes();
 		}
 
@@ -153,10 +153,12 @@ public class NodeService implements SingletonService {
 
 	@Override
 	public String getName() {
+
 		return NodeService.class.getSimpleName();
 	}
 
 	public <T> DatabaseService<T> getDatabaseService() {
+
 		return databaseService;
 	}
 
@@ -168,29 +170,35 @@ public class NodeService implements SingletonService {
 
 	@Override
 	public boolean isVital() {
+
 		return true;
 	}
 
 	@Override
 	public int getRetryDelay() {
+
 		return Settings.NodeServiceStartTimeout.getValue();
 	}
 
 	@Override
 	public int getRetryCount() {
+
 		return Settings.NodeServiceStartRetries.getValue();
 	}
 
 	@Override
 	public boolean waitAndRetry() {
+
 		return true;
 	}
 
 	public Index<Node> getNodeIndex() {
+
 		return nodeIndex;
 	}
 
 	public Index<Relationship> getRelationshipIndex() {
+
 		return relIndex;
 	}
 
@@ -205,6 +213,7 @@ public class NodeService implements SingletonService {
 			return result;
 
 		} catch (Throwable t) {
+
 			logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
 		}
 
@@ -212,6 +221,7 @@ public class NodeService implements SingletonService {
 	}
 
 	public CountResult getCurrentCounts() {
+
 		return databaseService.getNodeAndRelationshipCount();
 	}
 
@@ -274,6 +284,7 @@ public class NodeService implements SingletonService {
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
+
 		return "core";
 	}
 }

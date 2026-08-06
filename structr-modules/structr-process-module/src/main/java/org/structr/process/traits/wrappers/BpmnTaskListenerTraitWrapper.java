@@ -28,26 +28,31 @@ import org.structr.process.traits.definitions.BpmnTaskListenerTraitDefinition;
 public class BpmnTaskListenerTraitWrapper extends AbstractNodeTraitWrapper implements BpmnTaskListener {
 
 	public BpmnTaskListenerTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 
 	@Override
 	public String getBpmnId() {
+
 		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
 	public String getEvent() {
+
 		return wrappedObject.getProperty(traits.key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY));
 	}
 
 	@Override
 	public String getPhase() {
+
 		return wrappedObject.getProperty(traits.key(BpmnTaskListenerTraitDefinition.PHASE_PROPERTY));
 	}
 
 	@Override
 	public NodeInterface getMethod() {
+
 		return wrappedObject.getProperty(traits.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY));
 	}
 }

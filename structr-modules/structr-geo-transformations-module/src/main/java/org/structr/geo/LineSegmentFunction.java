@@ -41,11 +41,13 @@ public class LineSegmentFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
+
 		return "lineSegment";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return Signature.forAllScriptingLanguages("point, azimuth, length");
 	}
 
@@ -57,7 +59,6 @@ public class LineSegmentFunction extends GeoFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			final Coordinate coordinate = getCoordinate(sources[0]);
-
 			if (coordinate != null && sources[1] instanceof Number && sources[2] instanceof Number) {
 
 				try {
@@ -86,28 +87,32 @@ public class LineSegmentFunction extends GeoFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Returns a line segment with start point, azimuth and length.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 }

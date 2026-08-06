@@ -37,6 +37,7 @@ import java.util.Set;
 public class TestThirteenTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestThirteenTraitDefinition() {
+
 		super("TestThirteen");
 	}
 
@@ -45,8 +46,7 @@ public class TestThirteenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+			IsValid.class, new IsValid() {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
@@ -64,18 +64,18 @@ public class TestThirteenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<String> notNull = new StringProperty("notNull").indexed().indexedWhenEmpty().notNull();
 
-		return newSet(
-			notNull
-		);
+		return newSet(notNull);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

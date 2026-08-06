@@ -55,6 +55,7 @@ public class OneStartpoint extends AbstractEndpoint implements Source<Relationsh
 		final Relationship rel        = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
+
 			return nodeFactory.instantiate(rel.getStartNode(), rel.getId());
 		}
 
@@ -77,6 +78,7 @@ public class OneStartpoint extends AbstractEndpoint implements Source<Relationsh
 			final Traits type       = actualSourceNode.getTraits();
 
 			if (!SearchCommand.isTypeAssignableFromOtherType(sourceType, type)) {
+
 				throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), sourceType.getName()));
 			}
 
@@ -96,11 +98,13 @@ public class OneStartpoint extends AbstractEndpoint implements Source<Relationsh
 
 	@Override
 	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getSingle(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType());
 	}
 
 	@Override
 	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
+
 		return getRawSource(securityContext, dbNode, predicate) != null;
 	}
 }

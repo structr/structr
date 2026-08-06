@@ -73,25 +73,30 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	public String getDeclaringClass() {
+
 		return this.declaringClass;
 	}
 
 	public String getRawSource() {
+
 		return this.source;
 	}
 
 	@Override
 	public String toString() {
+
 		return name + "(" + parameters.toString() + "): " + getSnippet().getSource();
 	}
 
 	@Override
 	public boolean isPrivate() {
+
 		return isPrivateMethod;
 	}
 
 	@Override
 	public boolean isStatic() {
+
 		return isStaticMethod;
 	}
 
@@ -103,11 +108,11 @@ public class ScriptMethod extends AbstractMethod {
 		if (source != null) {
 
 			final String[] splitSource = Scripting.splitSnippetIntoEngineAndScript(source.trim());
-
 			if ("js".equals(splitSource[0])) {
 
 				snippet = new Snippet(name, splitSource[1], this.wrapJsInMain);
 				snippet.setMimeType("application/javascript+module");
+
 			} else {
 
 				snippet = new Snippet(name, splitSource[1], false);
@@ -122,26 +127,31 @@ public class ScriptMethod extends AbstractMethod {
 
 	@Override
 	public String getHttpVerb() {
+
 		return httpVerb;
 	}
 
 	@Override
 	public Parameters getParameters() {
+
 		return parameters;
 	}
 
 	@Override
 	public String getFullMethodName() {
+
 		return fullName;
 	}
 
 	@Override
 	public String getDeclaringTrait() {
+
 		return declaringClass;
 	}
 
 	@Override
 	public boolean shouldReturnRawResult() {
+
 		return this.returnRawResult;
 	}
 
@@ -160,8 +170,11 @@ public class ScriptMethod extends AbstractMethod {
 			return Actions.execute(actionContext.getSecurityContext(), entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, scriptConfig);
 
 		} catch (AssertException e)   {
+
 			throw new FrameworkException(e.getStatus(), e.getMessage());
+
 		} catch (IllegalArgumentTypeException iatx) {
+
 			throwIllegalArgumentExceptionForMapBasedArguments();
 		}
 

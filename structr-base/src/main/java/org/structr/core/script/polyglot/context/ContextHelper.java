@@ -22,20 +22,23 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 public abstract class ContextHelper {
+
     public static final String BINDING_REFERENCE_COUNT_KEY = "__structr.context.referenceCount";
 
     public static int getReferenceCount(final Context context) {
 
         if (context == null) {
+
             throw new IllegalArgumentException("Given context is null. Cannot retrieve reference count.");
         }
 
         synchronized (context) {
-            final Value countValue = context.getPolyglotBindings().getMember(BINDING_REFERENCE_COUNT_KEY);
 
+            final Value countValue = context.getPolyglotBindings().getMember(BINDING_REFERENCE_COUNT_KEY);
             if (countValue != null && countValue.fitsInInt()) {
 
                 return countValue.asInt();
+
             } else if (countValue == null) {
 
                 return 0;
@@ -48,14 +51,17 @@ public abstract class ContextHelper {
     public static void setReferenceCount(final Context context, final int referenceCount) {
 
         if (context == null) {
+
             throw new IllegalArgumentException("Given context is null. Cannot set reference count.");
         }
 
         if (referenceCount < 0) {
+
             throw new IllegalArgumentException("Reference count must be greater or equal to zero.");
         }
 
         synchronized (context) {
+
             context.getPolyglotBindings().putMember(BINDING_REFERENCE_COUNT_KEY, referenceCount);
         }
     }
@@ -63,6 +69,7 @@ public abstract class ContextHelper {
     public static void incrementReferenceCount(final Context context) {
 
         if (context == null) {
+
             throw new IllegalArgumentException("Given context is null. Cannot retrieve reference count.");
         }
 
@@ -75,15 +82,17 @@ public abstract class ContextHelper {
     public static void decrementReferenceCount(final Context context) {
 
         if (context == null) {
+
             throw new IllegalArgumentException("Given context is null. Cannot retrieve reference count.");
         }
 
         synchronized (context) {
-            final int currentReferenceCount = getReferenceCount(context);
 
+            final int currentReferenceCount = getReferenceCount(context);
             if (currentReferenceCount >= 1) {
 
                 setReferenceCount(context, currentReferenceCount - 1);
+
             } else {
 
                 throw new IllegalStateException("Reference count cannot be reduced below 0.");

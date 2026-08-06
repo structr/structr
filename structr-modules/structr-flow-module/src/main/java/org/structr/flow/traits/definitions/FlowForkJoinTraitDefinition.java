@@ -48,8 +48,8 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
 
-
 	public FlowForkJoinTraitDefinition() {
+
 		super(StructrTraits.FLOW_FORK_JOIN);
 	}
 
@@ -58,17 +58,16 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				GetFlowType.class,
-				new GetFlowType() {
+				GetFlowType.class, new GetFlowType() {
 
 					@Override
 					public FlowType getFlowType(FlowNode flowNode) {
+
 						return FlowType.Action;
 					}
 				},
 
-				ActionOperations.class,
-				new ActionOperations() {
+				ActionOperations.class, new ActionOperations() {
 
 					@Override
 					public void execute(final Context context, final FlowAction action) throws FlowException {
@@ -76,6 +75,7 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 						try {
 
 							final Queue<Future> futures = context.getForkFutures();
+
 							while(!futures.isEmpty()) {
 
 								//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
@@ -98,9 +98,7 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowForkJoin.class, (traits, node) -> new FlowForkJoin(traits, node)
-		);
+		return Map.of(FlowForkJoin.class, (traits, node) -> new FlowForkJoin(traits, node));
 	}
 
 	@Override
@@ -108,9 +106,7 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> exceptionHandler = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 
-		return newSet(
-			exceptionHandler
-		);
+		return newSet(exceptionHandler);
 	}
 
 	@Override
@@ -130,6 +126,7 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

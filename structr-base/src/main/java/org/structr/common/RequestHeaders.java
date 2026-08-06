@@ -65,21 +65,25 @@ public enum RequestHeaders implements Documentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.RequestHeader;
 	}
 
 	@Override
 	public String getName() {
+
 		return identifier;
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
+
 		return identifier;
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return shortDescription;
 	}
 }

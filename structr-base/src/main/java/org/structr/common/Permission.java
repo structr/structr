@@ -26,7 +26,6 @@ public interface Permission {
 	Permission write            = new PermissionImpl("write");
 	Permission delete           = new PermissionImpl("delete");
 	Permission accessControl    = new PermissionImpl("accessControl");
-
 	Permission[] allPermissions = { read, write, delete, accessControl };
 
 	String name();
@@ -42,6 +41,7 @@ public interface Permission {
 
 		@Override
 		public String name() {
+
 			return name;
 		}
 	}

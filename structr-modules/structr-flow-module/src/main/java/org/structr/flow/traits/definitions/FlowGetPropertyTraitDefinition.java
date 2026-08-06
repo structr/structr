@@ -56,6 +56,7 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 	private static final Logger logger = LoggerFactory.getLogger(FlowGetPropertyTraitDefinition.class);
 
 	public FlowGetPropertyTraitDefinition() {
+
 		super(StructrTraits.FLOW_GET_PROPERTY);
 	}
 
@@ -64,8 +65,7 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 
 		return Map.of(
 
-				DataSourceOperations.class,
-				new DataSourceOperations() {
+				DataSourceOperations.class, new DataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {
@@ -86,8 +86,11 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 									Object mapKey;
 
 									if (_nameSource != null) {
+
 										mapKey = _nameSource.get(context);
+
 									} else {
+
 										mapKey = _propertyName;
 									}
 
@@ -156,8 +159,7 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 					}
 				},
 
-				GetExportData.class,
-				new GetExportData() {
+				GetExportData.class, new GetExportData() {
 
 					@Override
 					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
@@ -179,9 +181,7 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		return Map.of(
-			FlowGetProperty.class, (traits, node) -> new FlowGetProperty(traits, node)
-		);
+		return Map.of(FlowGetProperty.class, (traits, node) -> new FlowGetProperty(traits, node));
 	}
 
 	@Override
@@ -191,31 +191,20 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<NodeInterface> propertyNameSource = new StartNode(traitsInstance, PROPERTY_NAME_SOURCE_PROPERTY, StructrTraits.FLOW_NAME_DATA_SOURCE);
 		final Property<String> propertyName              = new StringProperty(PROPERTY_NAME_PROPERTY);
 
-		return newSet(
-			nodeSource,
-			propertyNameSource,
-			propertyName
-		);
+		return newSet(nodeSource, propertyNameSource, propertyName);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(
-				NODE_SOURCE_PROPERTY, PROPERTY_NAME_SOURCE_PROPERTY, PROPERTY_NAME_PROPERTY
-			),
+		return Map.of(PropertyView.Public, newSet(NODE_SOURCE_PROPERTY, PROPERTY_NAME_SOURCE_PROPERTY, PROPERTY_NAME_PROPERTY),
 
-			PropertyView.Ui,
-			newSet(
-				NODE_SOURCE_PROPERTY, PROPERTY_NAME_SOURCE_PROPERTY, PROPERTY_NAME_PROPERTY
-			)
-		);
+			PropertyView.Ui, newSet(NODE_SOURCE_PROPERTY, PROPERTY_NAME_SOURCE_PROPERTY, PROPERTY_NAME_PROPERTY));
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 

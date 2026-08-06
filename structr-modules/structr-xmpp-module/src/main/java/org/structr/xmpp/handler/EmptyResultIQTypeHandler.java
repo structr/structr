@@ -29,6 +29,7 @@ public class EmptyResultIQTypeHandler implements TypeHandler<EmptyResultIQ> {
 
 	@Override
 	public void handle(final StructrXMPPConnection connection, final EmptyResultIQ result) {
+
 		// not implemented yet...
 	}
 }

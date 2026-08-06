@@ -48,58 +48,72 @@ public class Snippet {
 	}
 
 	public String getName() {
+
 		return name;
 	}
 
 	public String getSource() {
+
 		return source;
 	}
 
 	public boolean embed() {
+
 		return this.embed;
 	}
 
 	public void setEmbed(final boolean embed) {
+
 		this.embed = embed;
 	}
 
 	public void setStartRow(final int startRow) {
+
 		this.startRow = startRow;
 	}
 
 	public int getStartRow() {
+
 		return this.startRow;
 	}
 
 	public void setCodeSource(final String codeSource) {
+
 		this.codeSource = codeSource;
 	}
 
 	public String getCodeSource() {
+
 		return codeSource;
 	}
 
 	public String getMimeType() {
+
 		return mimeType;
 	}
 
 	public void setMimeType(final String mimeType) {
+
 		this.mimeType = mimeType;
 	}
 
 	public String getTranscribedSource() {
+
 		return this.transcribedSource;
 	}
 
 	public void setTranscribedSource(final String transcribedSource) {
+
 		this.transcribedSource = transcribedSource;
 	}
 
 	public String getEngineName() {
+
 		return this.engineName;
 	}
 
 	public void setEngineName(final String engineName) {
+
 		this.engineName = engineName;
 	}
 }

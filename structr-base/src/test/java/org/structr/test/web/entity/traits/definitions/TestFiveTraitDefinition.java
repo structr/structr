@@ -33,6 +33,7 @@ import java.util.Set;
 public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TestFiveTraitDefinition() {
+
 		super("TestFive");
 	}
 
@@ -41,23 +42,24 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> testTwo = new StartNode(traitsInstance, "testTwo", "TwoFiveOneToMany");
 
-		return newSet(
-			testTwo
-		);
+		return newSet(testTwo);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of();
 	}
 
 	@Override
 	public Relation getRelation() {
+
 		return null;
 	}
 }

@@ -26,6 +26,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowLog extends FlowAction implements DeployableEntity, ThrowingElement {
 
 	public FlowLog(final Traits traits, final NodeInterface wrappedObject) {
+
 		super(traits, wrappedObject);
 	}
 }

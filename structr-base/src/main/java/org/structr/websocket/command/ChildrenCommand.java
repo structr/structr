@@ -92,6 +92,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "CHILDREN";
 	}
 }

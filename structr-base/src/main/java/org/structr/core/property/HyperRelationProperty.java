@@ -48,6 +48,7 @@ public class HyperRelationProperty<S extends NodeInterface, T extends NodeInterf
 
 	@Override
 	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -70,37 +71,44 @@ public class HyperRelationProperty<S extends NodeInterface, T extends NodeInterf
 
 	@Override
 	public String relatedType() {
+
 		return step2.relatedType();
 	}
 
 	@Override
 	public Class valueType() {
+
 		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+
 		return true;
 	}
 
 	@Override
 	public boolean isArray() {
+
 		return true;
 	}
 
 	@Override
 	public SortType getSortType() {
+
 		return SortType.Default;
 	}
 
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
+
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+
 		return null;
 	}
 }

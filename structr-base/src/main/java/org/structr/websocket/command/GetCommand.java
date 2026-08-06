@@ -39,11 +39,11 @@ public class GetCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-
 		final String nodeId                    = webSocketData.getNodeDataStringValue("nodeId");
 		final String properties                = webSocketData.getNodeDataStringValue("properties");
 
 		if (properties != null) {
+
 			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
 
@@ -71,6 +71,7 @@ public class GetCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
+
 		return "GET";
 	}
 }

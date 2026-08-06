@@ -23,5 +23,6 @@ import org.structr.common.error.FrameworkException;
 /**
  */
 public interface ErrorReporter {
+
 	void reportError(final String message, final int row, final int column) throws FrameworkException;
 }

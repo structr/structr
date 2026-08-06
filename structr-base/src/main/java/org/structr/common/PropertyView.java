@@ -68,6 +68,7 @@ public interface PropertyView {
 	String Schema =	"schema";
 
 	public static boolean isManagedView(final String viewName) {
+
 		return viewName.equals(All) || viewName.equals(Custom);
 	}
 }

@@ -64,11 +64,13 @@ public class FileCleanupVisitor implements FileVisitor<Path> {
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
 		logger.warn("Exception while running cleanup at {}: {}", file.toString(), exc.getMessage());
+
 		return FileVisitResult.CONTINUE;
 	}
 
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
+
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -76,7 +78,6 @@ public class FileCleanupVisitor implements FileVisitor<Path> {
 	private void deletePathIfNotInMetadata (final Path path) {
 
 		final String absolutePath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
-
 		if (!metadata.containsKey(absolutePath)) {
 
 			try {
@@ -107,12 +108,12 @@ public class FileCleanupVisitor implements FileVisitor<Path> {
 		Files.delete(path);
 	}
 
-
 	private String harmonizeFileSeparators(final String... sources) {
 
 		final StringBuilder buf = new StringBuilder();
 
 		for (final String src : sources) {
+
 			buf.append(src);
 		}
 

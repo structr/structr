@@ -27,27 +27,31 @@ public class DataHint extends SpecialKeywordHint {
 
 	@Override
 	public String getName() {
+
 		return "data";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Refers to the current element in an `each()` loop iteration or in a `filter()` expression.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
+
 		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+
+		return List.of();
 	}
 }

@@ -21,29 +21,36 @@ package org.structr.core.script.polyglot.config;
 import org.structr.core.api.AbstractMethod;
 
 public class ScriptConfigBuilder {
+
     private final ScriptConfig config = new ScriptConfig();
 
     public ScriptConfigBuilder() {
     }
 
     public ScriptConfigBuilder wrapJsInMain(final boolean wrapJsInMain) {
+
         config.setWrapJsInMain(wrapJsInMain);
+
         return this;
     }
 
     public ScriptConfigBuilder keepContextOpen(final boolean keepContextOpen) {
+
         config.setKeepContextOpen(keepContextOpen);
+
         return this;
     }
 
     public ScriptConfigBuilder currentMethod(final AbstractMethod currentMethod) {
+
         config.setCurrentMethod(currentMethod);
+
         return this;
     }
 
     public ScriptConfig build() {
+
         return config;
     }
-
 
 }
