@@ -542,6 +542,26 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Page page = node.getOwnerDocument();
 
+					/**
+					 * Only a REAL document is propagated. This used to write the parent's ownerDocument
+					 * unconditionally, so attaching a child to a parent that had no document CLEARED the
+					 * child's own document, and the loop below did the same to its entire subtree.
+					 *
+					 * That made a single page-less node contagious. Every subsequent append anywhere
+					 * beneath it detached what was attached, however healthy that subtree was, and the
+					 * damage is invisible: the nodes still render through their parent. Deployment export
+					 * walks documents, so it silently omits them while the pages referencing them keep
+					 * their references, and the next import produces empty page shells (or fails outright
+					 * when a page's ROOT is such a node). One app shipped 31 of 48 pages that way.
+					 *
+					 * Nothing can depend on having its document nulled here: this method exists to
+					 * propagate a document DOWN into a newly attached subtree, which is also why the loop
+					 * below is the recursive counterpart to the shallow doAdopt.
+					 */
+					if (page == null) {
+						return;
+					}
+
 					newChild.setOwnerDocument(page);
 
 					for (final NodeInterface child : newChild.getAllChildNodes()) {
