@@ -552,6 +552,56 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	/**
+	 * Says out loud what this export is about to leave out.
+	 *
+	 * The export walks documents, so a DOM node that belongs to none is skipped - while the pages that
+	 * reference it keep their references. The result imports as an empty page shell, or fails outright
+	 * when a page's ROOT is such a node, and nothing anywhere says why. One app shipped 31 of 48 pages
+	 * broken exactly like that, and the export that produced it reported success.
+	 *
+	 * It warns rather than fails: an export that refuses to run would be worse for someone who needs a
+	 * backup right now. The detachedNodes maintenance command repairs what this reports, and the same
+	 * repair runs at startup.
+	 */
+	private void warnAboutDetachedNodes() {
+
+		try {
+
+			final List<DetachedNodes.Finding> damaged = DetachedNodes.damaged(DetachedNodes.scan(StructrApp.getInstance()));
+
+			if (damaged.isEmpty()) {
+				return;
+			}
+
+			final StringBuilder text = new StringBuilder();
+
+			text.append("<div>").append(damaged.size()).append(" DOM node(s) belong to no page and are NOT part of this export, ");
+			text.append("although pages may still reference them. Such an export imports as empty page shells. ");
+			text.append("Run the <code>detachedNodes</code> maintenance command to repair them, then export again.</div><ul>");
+
+			for (final DetachedNodes.Finding finding : damaged) {
+				text.append("<li>").append(finding.describe()).append("</li>");
+			}
+
+			text.append("</ul>");
+
+			logger.warn("Deployment export: {} DOM node(s) belong to no page and are NOT being exported: {}",
+				damaged.size(), DetachedNodes.countByKind(damaged));
+
+			for (final DetachedNodes.Finding finding : damaged) {
+				logger.warn("  {}", finding.describe());
+			}
+
+			publishWarningMessage("Incomplete export: " + damaged.size() + " detached DOM node(s)", text.toString());
+
+		} catch (FrameworkException fex) {
+
+			// a check that cannot run must not stop the export the user asked for
+			logger.warn("Deployment export: could not check for detached DOM nodes: {}", fex.getMessage());
+		}
+	}
+
 	protected void doExport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final String path = (String) attributes.get("target");
@@ -664,6 +714,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Action Mapping");
 			exportActionMapping(actionMappingConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Checking for detached DOM nodes");
+			warnAboutDetachedNodes();
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Pages");
 			exportPages(pages, pagesConf);
