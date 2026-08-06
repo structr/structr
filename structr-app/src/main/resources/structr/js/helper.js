@@ -1042,6 +1042,21 @@ let _Helpers = {
 
 		return data;
 	},
+	ensureDesiredModuleIsActive: async (module) => {
+
+		if (!location.hash.startsWith('#' + module._moduleName)) {
+
+			location.hash = module._moduleName;
+		}
+
+		await _Helpers.waitForElement('.' + _Helpers.getModuleReadinessClass(module), { childList: true, subtree: true, attributes: true });
+
+		return true;
+	},
+	getModuleReadinessClass: (module) => module._moduleName + '-area-ready',
+	setModuleReadyIndicator: (module, element) => {
+		element.classList.add(_Helpers.getModuleReadinessClass(module));
+	}
 };
 
 /**

@@ -1950,7 +1950,7 @@ let Structr = {
 		init: () => {
 
 			let form        = document.querySelector('#global-search-node-form');
-			let searchField = form.querySelector('[name="queryString"]');
+			let searchField = form.querySelector('[name="searchString"]');
 
 			let debouncedSearchFunction = _Helpers.debounce(Structr.globalSearch.doSearch, 300);
 
@@ -1986,7 +1986,7 @@ let Structr = {
 
 			Structr.globalSearch.clear();
 
-			if (data.queryString.length > 0) {
+			if (data.searchString.length > 0) {
 
 				let results        = await Command.searchNodes(data);
 				let resultsElement = document.querySelector('#global-search-results tbody');
@@ -2013,13 +2013,25 @@ let Structr = {
 		},
 		goTo: (result, key, searchData) => {
 
-			if (result.isDOMElement) {
+			if (result.isDOMElement || result.isSiteElement) {
 
 				_Pages.search.goTo(result, key, searchData);
 
 			} else if (result.isSchemaElement) {
 
 				_Code.search.goToResult(result, key, searchData);
+
+			} else if (result.isFilesystemElement) {
+
+				_Files.search.goToResult(result, key, searchData);
+
+			} else if (result.isLocalizationElement) {
+
+				_Localization.search.goToResult(result, key, searchData);
+
+			} else if (result.isMailTemplateElement) {
+
+				_MailTemplates.search.goToResult(result, key, searchData);
 
 			} else {
 
@@ -2028,12 +2040,16 @@ let Structr = {
 		},
 		getBasicFormData: (form) => {
 
-			let data = {};
+			let data = {
+				searchContexts: []
+			};
 
 			for (let el of form.elements) {
 				switch(el.type) {
 					case 'checkbox':
-						data[el.name] = el.checked;
+						if (el.checked) {
+							data.searchContexts.push(el.name);
+						}
 						break;
 					default:
 						data[el.name] = el.value;
@@ -2077,7 +2093,7 @@ let Structr = {
 
 				return `${key.substring(6)} <div class="attr html-attr">html</div>`;
 
-			} else if (key === 'content') {
+			} else if (key === 'content' || key === 'extractedContent') {
 
 				return '<div class="attr content-attr">content</div>';
 
@@ -2096,12 +2112,15 @@ let Structr = {
 							<div class="mx-4 my-4">
 								<form id="global-search-node-form" class="flex flex-col gap-2">
 									<div class="flex gap-2">
-										<input class="global-search-input" type="search" name="queryString" required placeholder="Search across selected areas..." autocomplete="off" autofocus>
+										<input class="global-search-input" type="search" name="searchString" required placeholder="Search across selected areas..." autocomplete="off" autofocus>
 									</div>
-									<div class="flex gap-8">
-										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
-										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema/Code</label>
-										<!--	<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
+									<div class="flex flex-wrap gap-x-8 gap-y-2">
+										<label class="flex items-center"><input type="checkbox" checked name="dom">Page Elements</label>
+										<label class="flex items-center"><input type="checkbox" checked name="schema">Schema/Code</label>
+										<label class="flex items-center"><input type="checkbox" checked name="files">Files/Folders</label>
+										<label class="flex items-center"><input type="checkbox" checked name="localizations">Localizations</label>
+										<label class="flex items-center"><input type="checkbox" checked name="mail-templates">Mail Templates</label>
+										<!--	<label class="flex items-center"><input type="checkbox" checked name="flows">Flow Nodes</label>-->
 									</div>
 								</form>
 		
@@ -2122,7 +2141,7 @@ let Structr = {
 				</div>
 			`,
 			result: (result, key) => `
-				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" title="${key}">
+				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" data-type="${result.type}" title="${key}">
 					<td title="${result.id}" class="show-ellipsis-r">${result.id.substring(1, 5)}</td>
 					<td class="name">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
 					<td class="key">${Structr.globalSearch.htmlCodeForKey(key)}</td>

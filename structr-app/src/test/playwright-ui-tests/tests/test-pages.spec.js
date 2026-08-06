@@ -20,29 +20,29 @@
 import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
-import {createAndRenamePage, focusCenterPaneMonacoEditor, resizeRightFlyout} from "./helpers/pages";
+import {createAndRenamePage, focusCenterPaneMonacoEditor, resizeRightFlyout, createParametersAndReturnInputDropzones} from "./helpers/pages";
 
 test.beforeAll(async ({playwright}) => {
-    await initialize(playwright);
+	await initialize(playwright);
 });
 
 test('pages', async ({page}, testInfo) => {
 
-    console.log(testInfo.title);
+	console.log(testInfo.title);
 
-    await login(page);
+	await login(page);
 
 	await goToModule(page, '#pages_');
 
-    // Wait for Pages UI to load all components
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages.png'});
+	// Wait for Pages UI to load all components
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/pages.png'});
 
-    // enable page preview edit features
-    await page.locator('#ui-settings-popup button').click();
-    await page.getByText('Enable edit features in page').click();
+	// enable page preview edit features
+	await page.locator('#ui-settings-popup button').click();
+	await page.getByText('Enable edit features in page').click();
 
-    // Open import dialog and create a screenshot
+	// Open import dialog and create a screenshot
 	{
 		await page.locator('#create_page').click();
 		await page.locator('#template-tiles .page-tile:nth-child(3)').click();
@@ -53,7 +53,7 @@ test('pages', async ({page}, testInfo) => {
 		await waitForDialogBoxToClose(page);
 	}
 
-    // Create new page
+	// Create new page
 	{
 		await page.locator('#create_page').click();
 		await page.waitForTimeout(1000);
@@ -63,7 +63,7 @@ test('pages', async ({page}, testInfo) => {
 		await waitForDialogBoxToClose(page);
 	}
 
-    // Open Access Control dialog to create a screenshot
+	// Open Access Control dialog to create a screenshot
 	{
 		await page.getByRole('img', {name: 'Access Control'}).first().click();
 		await page.waitForTimeout(1000);
@@ -73,46 +73,46 @@ test('pages', async ({page}, testInfo) => {
 		await waitForDialogBoxToClose(page);
 	}
 
-    await page.locator('#pagesTree .node-container:nth-child(1)').waitFor({state: 'visible'});
-    await page.locator('#pagesTree .node-container:nth-child(1)').click();
-    await page.getByRole('link', {name: 'General'}).click();
-    await page.locator('#name-input').fill('projects');
-    await page.locator('#pagesTree').click();
+	await page.locator('#pagesTree .node-container:nth-child(1)').waitFor({state: 'visible'});
+	await page.locator('#pagesTree .node-container:nth-child(1)').click();
+	await page.getByRole('link', {name: 'General'}).click();
+	await page.locator('#name-input').fill('projects');
+	await page.locator('#pagesTree').click();
 
 	await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_page-created.png'});
+	await page.screenshot({path: 'screenshots/pages_page-created.png'});
 
-    await page.locator('#pagesTree .node-container:nth-child(1)').click({button: 'right'});
-    await page.getByText('Expand / Collapse').waitFor({state: 'visible'});
-    await page.getByText('Expand / Collapse').hover();
-    await page.getByText('Expand subtree recursively').waitFor({state: 'visible'});
-    await page.getByText('Expand subtree recursively').click();
+	await page.locator('#pagesTree .node-container:nth-child(1)').click({button: 'right'});
+	await page.getByText('Expand / Collapse').waitFor({state: 'visible'});
+	await page.getByText('Expand / Collapse').hover();
+	await page.getByText('Expand subtree recursively').waitFor({state: 'visible'});
+	await page.getByText('Expand subtree recursively').click();
 
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_page-expanded.png'});
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/pages_page-expanded.png'});
 
-    // click through the different tabs and take a screenshot of each tab
-    await page.getByRole('link', {name: 'Advanced'}).click();
+	// click through the different tabs and take a screenshot of each tab
+	await page.getByRole('link', {name: 'Advanced'}).click();
 	await page.waitForTimeout(200);
-    await page.screenshot({path: 'screenshots/pages_page-details-advanced.png'});
+	await page.screenshot({path: 'screenshots/pages_page-details-advanced.png'});
 
 	await page.getByRole('link', {name: 'Security'}).nth(1).click();
 	await page.waitForTimeout(200);
-    await page.screenshot({path: 'screenshots/pages_page-details-security.png'});
+	await page.screenshot({path: 'screenshots/pages_page-details-security.png'});
 
 	await page.getByRole('link', {name: 'Active Elements'}).click();
 	await page.waitForTimeout(200);
-    await page.screenshot({path: 'screenshots/pages_page-details-active-elements.png'});
+	await page.screenshot({path: 'screenshots/pages_page-details-active-elements.png'});
 
 	await page.getByRole('link', {name: 'URL Routing'}).click();
 	await page.waitForTimeout(200);
-    await page.screenshot({path: 'screenshots/pages_page-details-url-routing.png'});
+	await page.screenshot({path: 'screenshots/pages_page-details-url-routing.png'});
 
 	await page.getByRole('link', {name: 'Preview'}).click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_page-preview.png'});
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/pages_page-preview.png'});
 
-    // Drag 'Simple Table' widget onto 'Main Container'
+	// Drag 'Simple Table' widget onto 'Main Container'
 	{
 		await page.locator('#widgetsTab').click();
 
@@ -165,13 +165,13 @@ test('pages', async ({page}, testInfo) => {
 		await page.locator('#widgetsTab').click();
 	}
 
-    // Modify table to display project objects
-    const preview = page.frameLocator('.previewBox iframe');
+	// Modify table to display project objects
+	const preview = page.frameLocator('.previewBox iframe');
 	let title = preview.getByText('Title', {exact: true});
-    await title.click();
+	await title.click();
 	await expect(title).toHaveAttribute('contenteditable');
-    await title.fill('${localize("milestones", "table-header")}');
-    await page.locator('#pagesTree').click();
+	await title.fill('${localize("milestones", "table-header")}');
+	await page.locator('#pagesTree').click();
 
 	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
 	await page.getByRole('link', {name: 'General'}).click();
@@ -179,84 +179,83 @@ test('pages', async ({page}, testInfo) => {
 
 
 	let name = preview.getByText('Firstname Lastname', {exact: true});
-    await name.click();
+	await name.click();
 	await expect(name).toHaveAttribute('contenteditable');
-    await name.fill('${project.name}');
-    await page.locator('#pagesTree').click();
+	await name.fill('${project.name}');
+	await page.locator('#pagesTree').click();
 
 	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
 	await page.getByRole('link', {name: 'General'}).click();
 	await page.getByRole('link', {name: 'Preview'}).click();
 
 	let milestones = preview.getByText('Example Job Title', {exact: true}) ;
-    await milestones.click();
+	await milestones.click();
 	await expect(milestones).toHaveAttribute('contenteditable');
-    await milestones.fill('${join(extract(project.milestones, "name"), ", ")}');
-    await page.locator('#pagesTree').click();
+	await milestones.fill('${join(extract(project.milestones, "name"), ", ")}');
+	await page.locator('#pagesTree').click();
 
 	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
 	await page.getByRole('link', {name: 'General'}).click();
 	await page.getByRole('link', {name: 'Preview'}).click();
 
-    await preview.getByText('firstname.lastname@example.com', {exact: true}).click({button: 'right'});
-    await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
+	await preview.getByText('firstname.lastname@example.com', {exact: true}).click({button: 'right'});
+	await page.locator('#context-menu-dialog .context_menu_icon').click();
+	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
 
-    await preview.getByText('Email', {exact: true}).click({button: 'right'});
-    await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
+	await preview.getByText('Email', {exact: true}).click({button: 'right'});
+	await page.locator('#context-menu-dialog .context_menu_icon').click();
+	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
 
-    await preview.getByText('Example Role', {exact: true}).click({button: 'right'});
-    await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
+	await preview.getByText('Example Role', {exact: true}).click({button: 'right'});
+	await page.locator('#context-menu-dialog .context_menu_icon').click();
+	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
 
-    await preview.getByText('Role', {exact: true}).click({button: 'right'});
-    await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
+	await preview.getByText('Role', {exact: true}).click({button: 'right'});
+	await page.locator('#context-menu-dialog .context_menu_icon').click();
+	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
 
 	await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_output-expression.png'});
+	await page.screenshot({path: 'screenshots/pages_output-expression.png'});
 
-    // Add repeater to display the projects
-    await page.locator('#pagesTree div.node:has(> div > span > b[title="tbody"]) div.node b[title="tr"]').click();
-    await page.getByRole('link', {name: 'Repeater'}).click();
-    await page.getByText('Function Query').click();
+	// Add repeater to display the projects
+	await page.locator('#pagesTree div.node:has(> div > span > b[title="tbody"]) div.node b[title="tr"]').click();
+	await page.getByRole('link', {name: 'Repeater'}).click();
+	await page.getByText('Function Query').click();
 	await focusCenterPaneMonacoEditor(page);
-    await page.keyboard.type('find(\'Project\')');
-    await page.locator('.save-repeater-query').click();
-    await page.locator('.repeater-datakey').fill('project');
-    await page.locator('.save-repeater-datakey').click();
+	await page.keyboard.type('find(\'Project\')');
+	await page.locator('.save-repeater-query').click();
+	await page.locator('.repeater-datakey').fill('project');
+	await page.locator('.save-repeater-datakey').click();
 
 	await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_element-details_repeater.png'});
+	await page.screenshot({path: 'screenshots/pages_element-details_repeater.png'});
 
-    await page.getByRole('link', {name: 'Preview'}).click();
-
-	await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_repeater.png'});
-
-    await page.getByRole('link', {name: 'General'}).click();
-
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_element-details_general.png'});
-
-    await page.getByRole('link', {name: 'HTML'}).click();
-
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_element-details_html.png'});
-
-    await page.getByRole('link', {name: 'Events'}).click();
-    await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).click();
-    await page.keyboard.type('click');
-    await page.keyboard.press('Tab');
-    await page.locator('#action-select').selectOption('Create new object');
-    await page.locator('.m-2 > svg > use').first().click();
-    await page.getByRole('textbox', {name: 'Name', exact: true}).fill('name');
-    await page.getByRole('combobox').nth(5).selectOption('User Input');
+	await page.getByRole('link', {name: 'Preview'}).click();
 
 	await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_element-details_events.png'});
+	await page.screenshot({path: 'screenshots/pages_repeater.png'});
 
-    await logout(page);
+	await page.getByRole('link', {name: 'General'}).click();
+
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/pages_element-details_general.png'});
+
+	await page.getByRole('link', {name: 'HTML'}).click();
+
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/pages_element-details_html.png'});
+
+	await page.getByRole('link', {name: 'Events'}).click();
+	await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).click();
+	await page.keyboard.type('click');
+	await page.keyboard.press('Tab');
+	await page.locator('#action-select').selectOption('Create new object');
+
+	await createParametersAndReturnInputDropzones(page, [ 'name' ]);
+
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/pages_element-details_events.png'});
+
+	await logout(page);
 });
 

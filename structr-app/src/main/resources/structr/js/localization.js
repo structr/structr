@@ -113,6 +113,8 @@ let _Localization = {
 			Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
 
 			Structr.resize();
+
+			_Helpers.setModuleReadyIndicator(_Localization, _Localization.getLocalizationsMain());
 		});
 	},
 	uiElements: {
@@ -239,12 +241,13 @@ let _Localization = {
 			}
 		}
 	},
+	getLocalizationsMain: () => document.getElementById('localization-main'),
 	showMain: () => {
-		document.getElementById('localization-main').style.display = 'flex';
+		_Localization.getLocalizationsMain().style.display = 'flex';
 		_Localization.moveResizer();
 	},
 	hideMain: () => {
-		document.getElementById('localization-main').style.display = 'none';
+		_Localization.getLocalizationsMain().style.display = 'none';
 	},
 	checkMainVisibility: () => {
 		let rows = document.querySelectorAll('.localization-row');
@@ -629,6 +632,43 @@ let _Localization = {
 
 				_Localization.keyAndDomainPager.refresh();
 				_Localization.checkMainVisibility();
+			});
+		}
+	},
+	search: {
+		// search from global search widget
+		goToResult: (result, key, searchData) => {
+
+			_Helpers.ensureDesiredModuleIsActive(_Localization).then(() => Command.getPromise(result.id)).then(node => {
+
+				// clear potential other filters
+				let otherFilters = ['localizedName'];
+				for (let filter of otherFilters) {
+
+					let filterEl = document.querySelector(`#localization-pager .filter[data-attribute="${filter}"]`);
+					filterEl.value = '';
+					_Pager.pagerFilters.localizations[filter] = '';
+				}
+
+				let nameFilterEl     = document.querySelector('#localization-pager .filter[data-attribute="name"]');
+				nameFilterEl.value   = node.name;
+				_Pager.pagerFilters.localizations['name'] = node.name;
+
+				let domainFilterEl   = document.querySelector('#localization-pager .filter[data-attribute="domain"]');
+				domainFilterEl.value = node.domain;
+				_Pager.pagerFilters.localizations['domain'] = node.domain;
+
+				let kbEvent = new KeyboardEvent('keyup', {
+					key: 'Enter',
+					code: 'Enter',
+					keyCode: 13,
+					which: 13,
+					bubbles: true,
+					cancelable: true
+				});
+				nameFilterEl.dispatchEvent(kbEvent);
+
+				_Helpers.waitForElement('#localization-table .localization-row.key-domain-pair').then(element => element.click());
 			});
 		}
 	},

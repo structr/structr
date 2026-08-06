@@ -133,7 +133,7 @@ let _Files = {
 
 			_TreeHelper.makeAllTreeElementsDroppable(_Files.getFilesTree(), _Dragndrop.files.enableTreeElementDroppable);
 
-			_Files.loadAndSetWorkingDir(function () {
+			_Files.loadAndSetWorkingDir().then(() => {
 
 				let lastOpenFolder = LSWrapper.getItem(_Files.filesLastOpenFolderKey);
 
@@ -152,6 +152,8 @@ let _Files = {
 						$('#root_anchor').click();
 					}
 				}
+
+				_Helpers.setModuleReadyIndicator(_Files, _Files.getFilesMainElement()[0]);
 			});
 		});
 
@@ -629,7 +631,7 @@ let _Files = {
 			}
 		}
 	},
-	loadAndSetWorkingDir: async (callback) => {
+	loadAndSetWorkingDir: async () => {
 
         let response = await fetch(`${Structr.rootUrl}me`, {
 			headers: {
@@ -643,8 +645,6 @@ let _Files = {
 		} else {
 			_Files.currentWorkingDir = null;
 		}
-
-		callback();
 	},
 	load: (id, callback) => {
 
@@ -2043,6 +2043,32 @@ let _Files = {
 
 			_Files.getFolderContentsElement().querySelector('#search-results')?.remove();
 		},
+
+		// search from global search widget
+		goToResult: (result, key, searchData) => {
+
+			_Helpers.ensureDesiredModuleIsActive(_Files).then(() => Command.getPromise(result.id)).then(node => {
+
+				let folderId = null;
+				if (node.isFolder) {
+					folderId = node.id;
+				} else {
+					folderId = node.parentId;
+				}
+
+				if (folderId) {
+					_Files.currentWorkingDir = { id: folderId };
+					_Files.deepOpen(_Files.currentWorkingDir);
+				} else {
+					_Files.currentWorkingDir = null;
+					$('#root_anchor').click();
+				}
+
+				if (node.isFile) {
+					_Files.editFile(node);
+				}
+			});
+		}
 	},
 	helpers: {
 		isDisplayingFavorites: () => {
@@ -2050,7 +2076,7 @@ let _Files = {
 		},
 		isDisplayingSearchResults: () => {
 			return !!_Files.getFolderContentsElement().querySelector('#search-results');
-		}
+		},
 	},
 
 	templates: {

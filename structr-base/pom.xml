@@ -661,7 +661,7 @@
                                                 </ports>
                                                 <wait>
                                                     <log>(.?)Bolt enabled on(.?)</log>
-                                                    <time>20000</time>
+                                                    <time>30000</time>
                                                 </wait>
                                                 <env>
                                                     <NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>

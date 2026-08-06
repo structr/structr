@@ -125,7 +125,8 @@ public class SortFunction extends CoreFunction {
 
 					} else {
 
-						logger.warn("{}(): Only collections of nodes or strings are supported. Returning input as-is. Parameters: {}", getName(), getParametersAsString(sources));
+						logger.error("{}(): Only collections of nodes or strings are supported. Returning input as-is. Caller: {}, class: {}", getName(), caller, sources[0].getClass().getSimpleName());
+						logger.debug("{}(): Parameters: {}", getName(), getParametersAsString(sources));
 					}
 				}
 			}

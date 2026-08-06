@@ -37,7 +37,6 @@ let _Code = {
 	additionalDirtyChecks: [],
 	defaultPageSize: 10000,
 	defaultPage: 1,
-	classIndicatorEverythingReady: 'code-area-ready',
 
 	init: () => {
 	},
@@ -114,7 +113,7 @@ let _Code = {
 			_Code.codeTree.on('select_node.jstree', _Code.tree.handleTreeClick);
 			_Code.codeTree.on('refresh.jstree', _Code.tree.activateLastClicked);
 			_Code.codeTree.on('ready.jstree', () => {
-				_Code.codeMain[0].classList.add(_Code.classIndicatorEverythingReady);
+				_Helpers.setModuleReadyIndicator(_Code, _Code.codeMain[0]);
 			});
 
 			_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
@@ -3057,17 +3056,6 @@ let _Code = {
 		getElementForKey: (key) => {
 			return document.querySelector(`#code-contents [data-property=${key}]`);
 		},
-		ensureCodeAreaIsActive: async () => {
-
-			if (!location.hash.startsWith('#code')) {
-
-				location.hash = 'code';
-			}
-
-			await _Helpers.waitForElement('.' + _Code.classIndicatorEverythingReady, { childList: true, subtree: true, attributes: true });
-
-			return true;
-		},
 	},
 	persistence: {
 		saveEntityAction: (entity, callback, optionalFormDataModificationFunctions = []) => {
@@ -3442,11 +3430,9 @@ let _Code = {
 		// search from global search widget
 		goToResult: (result, key, searchData) => {
 
-			_Code.helpers.ensureCodeAreaIsActive().then(() => Command.getPromise(result.id)).then(node => {
+			_Helpers.ensureDesiredModuleIsActive(_Code).then(() => Command.getPromise(result.id)).then(node => {
 
-				// console.log(node);
 				let path = _Code.search.getPathForNode(node);
-				// console.log(path);
 
 				if (result.type === 'SchemaMethod' && key === 'source') {
 

@@ -165,7 +165,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	@Override
 	public void onWebSocketError(Throwable t) {
 
-		handleWebSocketException(t);
+		handleWebSocketException(t, "WebSocket error");
 	}
 
 	@Override
@@ -422,7 +422,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 		} catch (Throwable t) {
 
-			handleWebSocketException(t);
+			handleWebSocketException(t, "Unable to send websocket message to remote client");
 		}
 	}
 
@@ -626,7 +626,14 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		timedOut = false;
 	}
 
-	private void handleWebSocketException(Throwable t) {
+	/**
+	 * Logs a websocket-related exception, unless it is one of the exceptions that are
+	 * expected on a closing connection. The context describes what was being attempted:
+	 * this handler is reached both from the send path and from Jetty's error callback,
+	 * which also covers failures while reading and parsing an incoming frame, so a fixed
+	 * "unable to send" wording would misattribute half of them.
+	 */
+	private void handleWebSocketException(final Throwable t, final String context) {
 
 		if (QuietException.isQuiet(t)) {
 			// ignore exceptions which (by jettys standards) should be handled less verbosely
@@ -641,7 +648,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			logger.debug("Caught ClosedChannelException exception", t);
 		} else {
 
-			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
+			logger.warn("{}: {}", context, t.getMessage());
 
 		}
 	}

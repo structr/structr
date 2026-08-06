@@ -18,11 +18,14 @@
  */
 package org.structr.core.property;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -33,6 +36,8 @@ import java.util.*;
 /**
  */
 public class TypeProperty extends StringProperty {
+
+	private static final Logger logger = LoggerFactory.getLogger(TypeProperty.class.getName());
 
 	public TypeProperty() {
 
@@ -48,6 +53,17 @@ public class TypeProperty extends StringProperty {
 	@Override
 	public Object setProperty(SecurityContext securityContext, final GraphObject obj, String value) throws FrameworkException {
 
+		/* The value is a TYPE NAME, and the write below relabels the node to that type, so a name no type
+		   answers to has to be refused HERE. Traits.of() is a plain map lookup that returns null for an
+		   unknown name (TraitsInstance.getType), and updateLabels then dereferenced it: the caller got
+		   "Cannot invoke Traits.getLabels() because typeCandidate is null" - a NullPointerException from
+		   inside label maintenance, naming an internal variable, for what is simply a wrong value. */
+		if (value != null && !Traits.exists(value)) {
+
+			throw new FrameworkException(422, "Cannot set ‛type‛ to ‛" + value + "‛: no such type",
+				new InvalidPropertySchemaToken(obj.getType(), jsonName(), value, "no_such_type", "There is no type named ‛" + value + "‛"));
+		}
+
 		super.setProperty(securityContext, obj, value);
 
 		if (obj instanceof NodeInterface node) {
@@ -61,6 +77,17 @@ public class TypeProperty extends StringProperty {
 	}
 
 	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Traits inputType, final boolean removeUnused) {
+
+		/* No type, nothing to derive labels from. This is public API, so the guard stays even though
+		   setProperty above now rejects an unknown type name before it gets here: with removeUnused
+		   the alternative to returning would be stripping every label off the node, and a node with no
+		   labels resolves to no type at all - unreachable and undeletable. Leave the labels alone and
+		   say so, rather than fail with a NullPointerException three lines down. */
+		if (inputType == null) {
+
+			logger.warn("Not updating labels of node {}: no type given.", node != null ? node.getUuid() : null);
+			return;
+		}
 
 		final Set<String> intersection = new LinkedHashSet<>();
 		final Set<String> toRemove     = new LinkedHashSet<>();

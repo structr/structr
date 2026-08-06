@@ -122,11 +122,15 @@ test('schema', async ({page}, testInfo) => {
 	await page.getByRole('button', {name: 'Read'}).click();
 	await focusMonacoEditorInContainer(page, '#dialogBox');
 	await page.keyboard.type('this.project.projectId');
-	await page.getByRole('button', {name: 'Save and Close'}).click();
+	await page.getByRole('button', {name: 'Save', exact: true}).click();
+	await expect(page.getByRole('button', {name: 'Save', exact: true})).toHaveClass(/disabled/);
+	await page.getByRole('button', {name: 'Back'}).click();
 	await page.getByRole('button', {name: 'Write'}).click();
 	await focusMonacoEditorInContainer(page, '#dialogBox');
 	await page.keyboard.type('set(this, \'project\', first(find(\'Project\', \'projectId\', value)))');
-	await page.getByRole('button', {name: 'Save and Close'}).click();
+	await page.getByRole('button', {name: 'Save', exact: true}).click();
+	await expect(page.getByRole('button', {name: 'Save', exact: true})).toHaveClass(/disabled/);
+	await page.getByRole('button', {name: 'Back'}).click();
 
 	await page.waitForTimeout(500);
 	await page.screenshot({path: 'screenshots/schema_added-Milestone-properties.png'});
@@ -184,11 +188,15 @@ test('schema', async ({page}, testInfo) => {
 	await page.getByRole('button', {name: 'Read'}).click();
 	await focusMonacoEditorInContainer(page, '#dialogBox');
 	await page.keyboard.type('this.project.projectId');
-	await page.getByRole('button', {name: 'Save and Close'}).click();
+	await page.getByRole('button', {name: 'Save', exact: true}).click();
+	await expect(page.getByRole('button', {name: 'Save', exact: true})).toHaveClass(/disabled/);
+	await page.getByRole('button', {name: 'Back'}).click();
 	await page.getByRole('button', {name: 'Write'}).click();
 	await focusMonacoEditorInContainer(page, '#dialogBox');
 	await page.keyboard.type('set(this, \'project\', first(find(\'Project\', \'projectId\', value)))');
-	await page.getByRole('button', {name: 'Save and Close'}).click();
+	await page.getByRole('button', {name: 'Save', exact: true}).click();
+	await expect(page.getByRole('button', {name: 'Save', exact: true})).toHaveClass(/disabled/);
+	await page.getByRole('button', {name: 'Back'}).click();
 	await page.screenshot({path: 'screenshots/schema_added-Task-properties.png'});
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 

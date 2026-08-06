@@ -340,3 +340,31 @@ export async function waitForPartialReload(page: Page, componentSelector: string
 
 	return await page.getAttribute(componentSelector, 'data-last-refresh');
 }
+
+export async function createParametersAndReturnInputDropzones(page: Page, parameters = []) {
+
+    let dropzones = [];
+
+    let parameterMappingsContainer = page.locator('.em-parameter-mappings-container');
+
+
+    for (const [idx, paramName] of Array.from(parameters.entries())) {
+
+        await page.locator('.em-add-parameter-mapping-button').click();
+
+        let row = parameterMappingsContainer.locator('.em-parameter-mapping').nth(idx);
+        await expect(row).toBeVisible();
+
+        await expect(parameterMappingsContainer.locator('.em-parameter-mapping')).toHaveCount(idx+1)
+
+        await row.locator('.parameter-name-input').fill(paramName);
+        await row.locator('.parameter-type-select').selectOption('User Input');
+
+        let dropzone = row.locator('.parameter-user-input');
+        await expect(dropzone).toBeVisible();
+
+        dropzones.push(dropzone);
+    }
+
+    return dropzones;
+};

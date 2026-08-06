@@ -55,7 +55,6 @@ import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
 
@@ -227,8 +226,21 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 							}
 						}
 
-						// render content with support for async output
-						renderContentWithScripts(content.getContent(), handler);
+						/* the same post-processing for BOTH ways a script can emit text: the value it
+						   returns goes through handler.transform() below, and print() reaches it through
+						   the render context while this node is the one rendering */
+						final RenderContext.ContentPostProcessor previous = renderContext.getContentPostProcessor();
+						renderContext.setContentPostProcessor(handler::transform);
+
+						try {
+
+							// render content with support for async output
+							renderContentWithScripts(content.getContent(), handler);
+
+						} finally {
+
+							renderContext.setContentPostProcessor(previous);
+						}
 
 						// empty content placeholder for Structr UI
 						if (EditMode.CONTENT.equals(edit)) {
@@ -600,10 +612,10 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 						String content = null;
 
-						// Convert binary data to String with charset from response
+						// Convert binary data to String with the charset of the render context
 						if (value instanceof byte[]) {
 
-							content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+							content = StringUtils.toEncodedString((byte[]) value, renderContext.getCharset());
 
 						} else {
 
@@ -651,7 +663,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 		public void possibleStartOfScript(final int row, final int column) {
 		}
 
-		private String transform(final String src) throws FrameworkException {
+		public String transform(final String src) throws FrameworkException {
 
 			String content = src;
 

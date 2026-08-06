@@ -20,6 +20,7 @@
 import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
+import {openFileContextMenuFor, createFileWithContentAndContentType} from "./helpers/files";
 
 test.beforeAll(async ({playwright}) => {
 	await initialize(playwright, {
@@ -28,39 +29,6 @@ test.beforeAll(async ({playwright}) => {
 		]
 	});
 });
-
-async function openFileContextMenuFor(page, name) {
-
-	await page.getByText(name).hover();
-	await page.locator('tr').filter({hasText: name}).getByRole('img', {name: 'Context-Menu'}).click();
-}
-
-async function createFileWithContentAndContentType(page, name, content, contentType) {
-
-	// create file, rename it, set content type and open import dialogs to make screenshots
-	await page.locator('button[data-test-purpose="create-file"]').click();
-	await page.getByText('New File ').click();
-	await page.keyboard.type(name);
-	await page.keyboard.press('Enter');
-	await openFileContextMenuFor(page, name);
-	await page.getByText('Edit File').click();
-	await page.locator('.view-line').click();
-
-	for (let row of content) {
-		await page.keyboard.type(row);
-		await page.keyboard.press('Enter');
-	}
-	await page.getByRole('button', {name: 'Save and close', exact: true}).click();
-
-	await waitForDialogBoxToClose(page);
-
-	// set content type
-	await openFileContextMenuFor(page, name);
-	await page.getByText('General').click();
-	await page.getByRole('textbox', {name: 'Content Type'}).fill(contentType);
-	await page.keyboard.press('Enter');
-	await page.getByRole('button', {name: 'Close', exact: true}).click();
-}
 
 test('files', async ({page}, testInfo) => {
 

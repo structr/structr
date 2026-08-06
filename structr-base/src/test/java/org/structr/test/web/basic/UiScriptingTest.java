@@ -2259,6 +2259,80 @@ public class UiScriptingTest extends StructrUiTest {
 		assertEquals("Invalid JavaScript evaluation result", expected, String.join("", context.getBuffer().getQueue()).trim());
 	}
 
+	@Test
+	public void testArchiveFunctions() {
+
+		// Creates a file with content, zips and unzips to root and to target folder and verify the content of the file.
+
+		final String content = "Example Test Content String";
+
+		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
+
+		try (final Tx tx = app.tx()) {
+
+			Scripting.evaluate(renderContext, null, """
+				${{
+					let content      = 'Example Test Content String';
+
+					let sourceFolder = $.create('Folder', { name: 'source' });
+					let sourceFile   = $.create('File',   { name: 'content.txt', parent: sourceFolder });
+					$.setContent(sourceFile, content);
+
+					let archive      = $.createZip('archive', sourceFile);
+
+					$.unarchive(archive);
+
+					let targetFolder = $.create('Folder', { name: 'target' });
+					$.unarchive(archive, targetFolder);
+				}}
+				""", "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			final Object rootContent = Scripting.evaluate(renderContext, null, """
+				${{
+					let file = $.first($.find('File', {name: 'content.txt', parent: null}));
+					$.getContent(file, 'UTF-8');
+				}}
+				""", "test");
+
+			assertEquals("Content of file unarchived into root must be identical to the source", content, rootContent);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Object targetContent = Scripting.evaluate(renderContext, null, """
+				${{
+					let parent = $.first($.find('Folder', 'name', 'target'));
+					let file = $.first($.find('File', {name: 'content.txt', parent: parent}));
+					$.getContent(file, 'UTF-8');
+				}}
+				""", "test");
+
+			assertEquals("Content of file unarchived into target folder must be identical to the source", content, targetContent);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 	public class RequestMockUp implements HttpServletRequest {
 
 		@Override

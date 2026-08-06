@@ -41,6 +41,9 @@ import org.structr.web.traits.definitions.html.*;
 import org.structr.web.traits.relationships.*;
 import org.structr.web.maintenance.deploy.StorageConfigurationDeploymentHandler;
 
+import org.structr.schema.SchemaHelper;
+import org.structr.web.schema.parser.ThumbnailPropertySourceGenerator;
+
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Set;
@@ -60,6 +63,9 @@ public class UiModule implements StructrModule {
 		DataSources.put("ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
 		DataSources.put("ui", "cypherDataSource",             new CypherGraphDataSource());
 		DataSources.put("ui", "functionDataSource",           new FunctionDataSource(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
+
+		// schema property generators (web-specific): register the Thumbnail property type
+		SchemaHelper.generatorMap.put(SchemaHelper.Type.Thumbnail, (e, t, p) -> new ThumbnailPropertySourceGenerator(e, t, p));
 
 		// relationships: traits
 		StructrTraits.registerTrait(new AbstractFileCONFIGURED_BYStorageConfiguration());

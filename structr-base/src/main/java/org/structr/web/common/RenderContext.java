@@ -56,6 +56,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
@@ -269,6 +270,42 @@ public class RenderContext extends ActionContext {
 
 	public HttpServletResponse getResponse() {
 		return response;
+	}
+
+	/**
+	 * Returns the charset that binary values should be decoded with when they are rendered
+	 * into the output. A render context does not always have a response: a websocket command
+	 * or a context created by include() or render() outside of a page render has none, and in
+	 * the websocket case there is no response anywhere to be had. The security context is
+	 * therefore asked next, and UTF-8 is the last resort. Since the servlets that render pages
+	 * all set UTF-8 on the response, that fallback matches what a response would have reported.
+	 */
+	public Charset getCharset() {
+
+		HttpServletResponse effectiveResponse = response;
+		if (effectiveResponse == null) {
+
+			effectiveResponse = getSecurityContext().getResponse();
+		}
+
+		if (effectiveResponse != null) {
+
+			final String encoding = effectiveResponse.getCharacterEncoding();
+			if (StringUtils.isNotBlank(encoding)) {
+
+				try {
+
+					return Charset.forName(encoding);
+
+				} catch (final IllegalArgumentException iae) {
+
+					// unknown or illegal charset name, fall back to UTF-8 below
+					LoggerFactory.getLogger(RenderContext.class).warn("Unsupported character encoding {} in response, using UTF-8 instead.", encoding);
+				}
+			}
+		}
+
+		return StandardCharsets.UTF_8;
 	}
 
 	public void increaseDepth() {
@@ -617,17 +654,65 @@ public class RenderContext extends ActionContext {
 
 		if (caller instanceof NodeInterface n && (n.is(StructrTraits.TEMPLATE) || n.is(StructrTraits.CONTENT))) {
 
+			/* Printed output is written into the page buffer AT THE POINT OF THE CALL - that is what keeps
+			   print(), include_child() and print() in source order, and two tests in UiScriptingTest own
+			   that guarantee. But it used to be appended RAW, so the node's own post-processing was skipped:
+			   text/plain stopped escaping (printed user data rendered as live HTML) and newlines never
+			   became <br>, while the identical string RETURNED from the script got both. So the text still
+			   goes straight to the buffer, and now through the same post-processing the returned value gets. */
 			for (final Object obj : objects) {
 
 				if (obj != null) {
 
-					this.buffer.append(Scripting.formatToDefaultDateOrString(obj));
+					this.buffer.append(postProcessContent(Scripting.formatToDefaultDateOrString(obj)));
 				}
 			}
 
 		} else {
 
 			super.print(objects, null);
+		}
+	}
+
+	/**
+	 * How the Content or Template being rendered right now post-processes its text: escaping and the
+	 * newline-to-break conversion its content type asks for.
+	 */
+	public interface ContentPostProcessor {
+		String apply(final String text) throws FrameworkException;
+	}
+
+	private ContentPostProcessor contentPostProcessor = null;
+
+	public ContentPostProcessor getContentPostProcessor() {
+		return contentPostProcessor;
+	}
+
+	/**
+	 * Installed by the node that is about to render, and restored afterwards - rendering nests (a template
+	 * renders its children inside its own evaluation), so the previous one has to come back rather than be
+	 * cleared, or a parent's print would lose its rules after a child rendered.
+	 */
+	public void setContentPostProcessor(final ContentPostProcessor postProcessor) {
+		this.contentPostProcessor = postProcessor;
+	}
+
+	private String postProcessContent(final String text) {
+
+		if (contentPostProcessor == null) {
+			return text;
+		}
+
+		try {
+
+			return contentPostProcessor.apply(text);
+
+		} catch (FrameworkException fex) {
+
+			// output is never lost over a failed conversion; the raw text is still better than nothing
+			LoggerFactory.getLogger(RenderContext.class).warn("Could not post-process printed content: {}", fex.getMessage());
+
+			return text;
 		}
 	}
 
