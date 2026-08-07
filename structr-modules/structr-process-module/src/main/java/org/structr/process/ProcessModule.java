@@ -18,7 +18,9 @@
  */
 package org.structr.process;
 
+import com.google.gson.Gson;
 import org.structr.api.service.LicenseManager;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.function.Functions;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.StartNode;
@@ -37,12 +39,14 @@ import org.structr.process.function.NotifyFunction;
 import org.structr.process.function.ProcessInstanceUrlFunction;
 import org.structr.process.function.ProcessTokenFunction;
 import org.structr.process.function.ValidateProcessTokenFunction;
+import org.structr.process.deployment.BpmnDeploymentHandler;
 import org.structr.process.traits.definitions.*;
 import org.structr.process.traits.rels.*;
 import org.structr.process.websocket.BpmnDiagramBatchCommand;
 import org.structr.process.websocket.BpmnPageSkeletonCommand;
 import org.structr.websocket.StructrWebSocket;
 
+import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -294,5 +298,30 @@ public class ProcessModule implements StructrModule {
 	public Set<String> getFeatures() {
 
 		return null;
+	}
+
+	// ----- deployment -----
+
+	/**
+	 * The design-time BPMN graph is part of an application and travels with a deployment export.
+	 * DeployCommand's own export set is hard-coded and module-agnostic, so without this hook a
+	 * deployment archive contained a process page but no process -- see BpmnDeploymentHandler.
+	 */
+	@Override
+	public boolean hasDeploymentData() {
+
+		return true;
+	}
+
+	@Override
+	public void exportDeploymentData(final Path target, final Gson gson) throws FrameworkException {
+
+		BpmnDeploymentHandler.doExport(target, gson);
+	}
+
+	@Override
+	public void importDeploymentData(final Path source, final Gson gson) throws FrameworkException {
+
+		BpmnDeploymentHandler.doImport(source, gson);
 	}
 }
