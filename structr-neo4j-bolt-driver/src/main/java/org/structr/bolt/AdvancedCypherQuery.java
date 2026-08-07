@@ -382,28 +382,22 @@ public class AdvancedCypherQuery implements CypherQuery {
 	}
 
 	/**
-	 * FIXME: this ignores the endpoint label, unlike every other path through this class.
+	 * Emit "this node has no relationship of this type TO A NODE OF THIS TYPE", the search
+	 * counterpart of reading a relationship-backed property that is empty.
 	 *
-	 * <p>A search for a relationship-backed property with a null value becomes
-	 * {@code not (n)<-[:REL]-()}, which asks "has no relationship of this type at all". But the
-	 * property is typed, and the non-null path DOES constrain the other endpoint (see
-	 * {@code getGraphPartForMatch}, which appends {@code part.getOtherLabel()}), as does the read
-	 * path in {@code AbstractEndpoint} via OtherNodeTypeFilter. So the same key answers one way
-	 * when read and another way when searched for null, as soon as two relationship definitions
-	 * share a raw relationship type with different endpoint types.</p>
-	 *
-	 * <p>That is what {@code BpmnNullRelationshipQueryContractTest} pins down: it passes on the
-	 * in-memory driver, whose NoRelationshipPredicate checks the label, and failed here. The
-	 * immediate victim (BPMN handler methods reusing "HAS_METHOD") was fixed in the process module
-	 * by giving those relationships their own type, so nothing is broken today -- but the
-	 * inconsistency remains and will bite the next relationship that shares a type.</p>
-	 *
-	 * <p>The fix is to accept the other label and emit {@code not (n)<-[:REL]-(:Label)}.
-	 * {@code GraphSearchAttribute.getOtherLabel()} already provides it and the caller in
-	 * {@code factory/GraphQueryFactory} already has it in hand. It changes the meaning of every
-	 * null relationship-key query on Bolt, so it wants its own change and a full Neo4j suite run.</p>
+	 * <p>The endpoint label is essential, not decoration: several properties can share one database
+	 * relationship type and be told apart only by the type at the other end -- Folder's
+	 * {@code files}, {@code folders}, {@code images} and {@code children} are all {@code CONTAINS}.
+	 * Without the label this asked "has no CONTAINS at all", so a folder containing a sub-folder
+	 * dropped out of a search for folders without files, disagreeing both with the read path
+	 * (which filters endpoints by type) and with this class's own non-null path (see
+	 * {@link #getGraphPartForMatch}, which appends the other label). Pinned by
+	 * {@code NullRelationshipKeyQueryTest}.</p>
 	 */
-	public void addNullObjectParameter(final Direction direction, final String relationship) {
+	public void addNullObjectParameter(final Direction direction, final String relationship, final String otherLabel) {
+
+		final DatabaseService db = index.getDatabaseService();
+		final String tenantId    = db.getTenantIdentifier();
 
 		buffer.append("not (n)");
 
@@ -425,7 +419,24 @@ public class AdvancedCypherQuery implements CypherQuery {
 				break;
 		}
 
-		buffer.append("()");
+		buffer.append("(");
+
+		// same notion of "a node of that type" as the non-null path, so both agree
+		if (otherLabel != null && !otherLabel.isEmpty()) {
+
+			buffer.append(":NodeInterface");
+
+			if (tenantId != null) {
+
+				buffer.append(":");
+				buffer.append(tenantId);
+			}
+
+			buffer.append(":");
+			buffer.append(otherLabel);
+		}
+
+		buffer.append(")");
 	}
 
 	public void addPatternParameter(final Direction direction, final String relationship, final String identifier) {

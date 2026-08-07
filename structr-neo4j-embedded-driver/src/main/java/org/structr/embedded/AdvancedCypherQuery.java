@@ -381,7 +381,16 @@ public class AdvancedCypherQuery implements CypherQuery {
 		}
 	}
 
-	public void addNullObjectParameter(final Direction direction, final String relationship) {
+	/**
+	 * Emit "this node has no relationship of this type TO A NODE OF THIS TYPE" -- see the Bolt
+	 * driver's copy of this method for why the endpoint label matters (several properties share one
+	 * database relationship type and differ only by the type at the other end, e.g. Folder's files /
+	 * folders / images / children over CONTAINS). Kept identical to Bolt so the drivers agree.
+	 */
+	public void addNullObjectParameter(final Direction direction, final String relationship, final String otherLabel) {
+
+		final DatabaseService db = index.getDatabaseService();
+		final String tenantId    = db.getTenantIdentifier();
 
 		buffer.append("not (n)");
 
@@ -403,7 +412,23 @@ public class AdvancedCypherQuery implements CypherQuery {
 				break;
 		}
 
-		buffer.append("()");
+		buffer.append("(");
+
+		if (otherLabel != null && !otherLabel.isEmpty()) {
+
+			buffer.append(":NodeInterface");
+
+			if (tenantId != null) {
+
+				buffer.append(":");
+				buffer.append(tenantId);
+			}
+
+			buffer.append(":");
+			buffer.append(otherLabel);
+		}
+
+		buffer.append(")");
 	}
 
 	public void addPatternParameter(final Direction direction, final String relationship, final String identifier) {

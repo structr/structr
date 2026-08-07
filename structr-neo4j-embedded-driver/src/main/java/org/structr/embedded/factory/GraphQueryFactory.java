@@ -53,7 +53,7 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 		if (values.isEmpty() || onlyEmptyValues(values)) {
 
-			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
+			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship(), graphQuery.getOtherLabel());
 
 		} else {
 
