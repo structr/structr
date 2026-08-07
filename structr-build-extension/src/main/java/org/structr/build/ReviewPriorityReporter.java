@@ -26,25 +26,25 @@ import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.execution.MavenSession;
 
 /**
- * Maven lifecycle participant that prints the review-need summary at the very end of the reactor.
+ * Maven lifecycle participant that prints the review-priority summary at the very end of the reactor.
  *
  * <p>{@code afterSessionEnd} is Maven's only hook that runs once, after every module has built,
  * on success and on failure alike -- which is exactly the requirement here (a per-module plugin
  * binding would run mid-reactor and would be skipped when an earlier module, e.g. the Playwright
- * container, fails). It simply shells out to the single-source {@code config/style/ReviewNeed.java}
+ * container, fails). It simply shells out to the single-source {@code config/style/ReviewPriority.java}
  * via the JDK source launcher, so the scoring logic lives in one place and no Python is needed.</p>
  *
  * <p>Never throws: a triage report must not be able to break a build. Disable with
- * {@code -DskipReviewNeed=true}.</p>
+ * {@code -DskipReviewPriority=true}.</p>
  */
 @Named
 @Singleton
-public class ReviewNeedReporter extends AbstractMavenLifecycleParticipant {
+public class ReviewPriorityReporter extends AbstractMavenLifecycleParticipant {
 
 	@Override
 	public void afterSessionEnd(final MavenSession session) {
 
-		if (session != null && Boolean.parseBoolean(session.getUserProperties().getProperty("skipReviewNeed", "false"))) {
+		if (session != null && isSkipped(session)) {
 
 			return;
 		}
@@ -57,7 +57,7 @@ public class ReviewNeedReporter extends AbstractMavenLifecycleParticipant {
 				return;
 			}
 
-			final File script = new File(root, "config/style/ReviewNeed.java");
+			final File script = new File(root, "config/style/ReviewPriority.java");
 			if (!script.isFile()) {
 
 				return;
@@ -65,7 +65,11 @@ public class ReviewNeedReporter extends AbstractMavenLifecycleParticipant {
 
 			final boolean windows = System.getProperty("os.name", "").toLowerCase().contains("win");
 			final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + (windows ? "java.exe" : "java");
-			final ProcessBuilder pb = new ProcessBuilder(javaBin, script.getAbsolutePath(), "--summary", "--main-only", root.getAbsolutePath());
+
+			// The analyzer runs as a child process with its output piped back here, so it cannot
+			// detect a terminal itself -- its own "auto" would always come out false. Decide here,
+			// where the real console is, and pass the answer explicitly.
+			final ProcessBuilder pb = new ProcessBuilder(javaBin, script.getAbsolutePath(), "--summary", "--main-only", "--color", useColor() ? "always" : "never", root.getAbsolutePath());
 
 			// Emit the report on STDERR, never STDOUT: a build's stdout may be captured (e.g.
 			// `VERSION=$(mvn help:evaluate -q -DforceStdout)` in CI), and appending the report there
@@ -83,7 +87,46 @@ public class ReviewNeedReporter extends AbstractMavenLifecycleParticipant {
 
 		} catch (final Exception e) {
 
-			System.err.println("[review-need] skipped (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
+			System.err.println("[review-priority] skipped (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
 		}
+	}
+
+	/**
+	 * Whether the report is switched off. {@code -DskipReviewNeed} is still honoured: the tool was
+	 * called "review-need" until it was renamed, and that flag is baked into scripts and CI jobs
+	 * that must not start printing a report because we picked a better name.
+	 */
+	private boolean isSkipped(final MavenSession session) {
+
+		final String current = session.getUserProperties().getProperty("skipReviewPriority", "false");
+		final String legacy  = session.getUserProperties().getProperty("skipReviewNeed", "false");
+
+		return Boolean.parseBoolean(current) || Boolean.parseBoolean(legacy);
+	}
+
+	/**
+	 * Whether to colourise the report. Honours Maven's own {@code -Dstyle.color} first (so
+	 * {@code -Dstyle.color=never} silences ours too, and {@code always} works when piping), then
+	 * the NO_COLOR convention, then falls back to "is there a console".
+	 */
+	private boolean useColor() {
+
+		final String style = System.getProperty("style.color");
+		if ("never".equalsIgnoreCase(style) || "false".equalsIgnoreCase(style)) {
+
+			return false;
+		}
+
+		if ("always".equalsIgnoreCase(style) || "true".equalsIgnoreCase(style)) {
+
+			return true;
+		}
+
+		if (System.getenv("NO_COLOR") != null) {
+
+			return false;
+		}
+
+		return System.console() != null;
 	}
 }

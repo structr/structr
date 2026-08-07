@@ -14,8 +14,8 @@
 	<artifactId>structr-build-extension</artifactId>
 	<name>Structr Build Extension</name>
 	<description>
-		Maven core lifecycle extension. Its only job is to print the review-need summary
-		(config/style/ReviewNeed.java) at the very end of the reactor -- after every module and the
+		Maven core lifecycle extension. Its only job is to print the review-priority summary
+		(config/style/ReviewPriority.java) at the very end of the reactor -- after every module and the
 		Playwright container, on success and on failure alike -- so developers always see the report.
 		Registered in .mvn/extensions.xml; loaded at Maven startup, so it must be installed once
 		(mvn -o -pl structr-build-extension install) before a full build can resolve it.

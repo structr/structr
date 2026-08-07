@@ -213,6 +213,7 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 	public void testHandlerMethodsAreReattachedAfterRoundtrip() {
 
 		final List<String> before = new LinkedList<>();
+		final String procUuid;
 
 		try (final Tx tx = app.tx()) {
 
@@ -220,6 +221,8 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 			final NodeInterface procNode = firstProcess(defNode);
 
 			assertNotNull("fixture should have a process", procNode);
+
+			procUuid = procNode.getUuid();
 
 			before.addAll(attachedMethodNames(procNode));
 
@@ -238,7 +241,12 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface process = app.nodeQuery(ProcessTraits.BPMN_PROCESS).getFirst();
+			// By UUID, not "the first process in the database": StructrUiTest#cleanDatabase skips
+			// the FIRST method of a class, so in a full-suite run this class starts on the previous
+			// class's graph -- and the process-engine tests use these same fixtures. Picking an
+			// arbitrary process then found a leftover one with no handlers attached and failed here
+			// while passing in isolation. Identity survives the import by design, so use it.
+			final NodeInterface process = app.getNodeById(procUuid);
 			assertNotNull("the process must survive the round trip", process);
 
 			final List<String> after = attachedMethodNames(process);
@@ -270,6 +278,7 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 	public void testRunningInstancesSurviveDeploymentOntoLiveInstance() {
 
 		final String instanceId;
+		final String procUuid;
 
 		try (final Tx tx = app.tx()) {
 
@@ -277,6 +286,8 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 			final NodeInterface procNode = firstProcess(defNode);
 
 			assertNotNull("fixture should have a process", procNode);
+
+			procUuid = procNode.getUuid();
 
 			BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, procNode.as(BpmnProcess.class), null);
 
@@ -293,7 +304,9 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface instance = app.nodeQuery(ProcessTraits.PROCESS_INSTANCE).getFirst();
+			// the instance OF THIS process: a leftover instance from an earlier test class would
+			// otherwise be picked up here (see the comment in the reattach test)
+			final NodeInterface instance = instanceOf(procUuid);
 
 			assertNotNull("starting the process must create an instance", instance);
 			assertNotNull("the fresh instance must reference its process", processOf(instance));
@@ -424,6 +437,7 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 			doImport(archive);
 
 			final List<String> afterFirst = graphSnapshot();
+			final int processesAfterFirst = processCount();
 
 			doImport(archive);
 
@@ -433,7 +447,10 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				assertEquals("re-importing must not create a second process version", 1, app.nodeQuery(ProcessTraits.BPMN_PROCESS).getAsList().size());
+				// a delta, not an absolute count: leftovers from an earlier test class may already
+				// be in the graph (see the comment in the reattach test), and what matters here is
+				// that the second import added nothing
+				assertEquals("re-importing must not create a second process version", processesAfterFirst, app.nodeQuery(ProcessTraits.BPMN_PROCESS).getAsList().size());
 
 				tx.success();
 			}
@@ -553,6 +570,33 @@ public class BpmnDeploymentRoundTripTest extends DeploymentTestBase {
 		}
 
 		return null;
+	}
+
+	/** The ProcessInstance of the process with this uuid, or null. */
+	private NodeInterface instanceOf(final String procUuid) throws FrameworkException {
+
+		for (final NodeInterface instance : app.nodeQuery(ProcessTraits.PROCESS_INSTANCE).getAsList()) {
+
+			final NodeInterface process = processOf(instance);
+			if (process != null && procUuid.equals(process.getUuid())) {
+
+				return instance;
+			}
+		}
+
+		return null;
+	}
+
+	private int processCount() throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final int count = app.nodeQuery(ProcessTraits.BPMN_PROCESS).getAsList().size();
+
+			tx.success();
+
+			return count;
+		}
 	}
 
 	private NodeInterface processByProcessId(final String processId) throws FrameworkException {

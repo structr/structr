@@ -23,7 +23,7 @@ import java.util.regex.*;
 import java.util.stream.*;
 
 /**
- * Review-need triage scorer for Java files. A heuristic prioritiser (NOT a quality verdict):
+ * Review-priority triage scorer for Java files. A heuristic prioritiser (NOT a quality verdict):
  * it ranks files by how much they are likely to reward a human review, from signals drawn from
  * established metrics (cyclomatic/cognitive complexity, Maintainability Index, PMD/SonarQube
  * smells) plus Structr-specific smells. Regex + brace-depth heuristics, no parser — expect some
@@ -31,7 +31,7 @@ import java.util.stream.*;
  * are excluded from scoring, so test-method bodies don't skew the metrics.
  *
  * Single-file program; runs with the JDK source launcher (no build, no dependencies, no Python):
- *     java config/style/ReviewNeed.java [--top N] [--min SCORE] [--by SIGNAL] [--main-only] [--summary] [--detail N] [paths...]
+ *     java config/style/ReviewPriority.java [--top N] [--min SCORE] [--by SIGNAL] [--main-only] [--summary] [--detail N] [paths...]
  *
  * Files scoring below --min (default 1 — i.e. any file with zero findings is dropped) are omitted
  * from both the ranking and the counts; raise it (e.g. --min 20) to see only the noisier files.
@@ -45,20 +45,67 @@ import java.util.stream.*;
  * With no path it scans the current directory. The Maven build invokes it with --summary
  * --main-only over the repo (non-failing; see the root pom).
  *
- * Accepting a flagged file ("I reviewed it, it's fine"): put the marker  @review-need:accept
+ * Accepting a flagged file ("I reviewed it, it's fine"): put the marker  @review-priority:accept
  * anywhere in the file, in any comment style, with your reason written next to it. The tool only
  * checks that the marker string is present -- it never reads the reason -- and drops the file from
  * the ranking. Remove the marker to un-accept. List the accepted files with --show-accepted.
  */
-public class ReviewNeed {
+public class ReviewPriority {
 
-	// @review-need:accept -- this analyzer is regex-heavy, prints its results to stdout, and wraps
+	// @review-priority:accept -- this analyzer is regex-heavy, prints its results to stdout, and wraps
 	// everything in a broad catch BY DESIGN (it is a regex scanner + a CLI that must never fail the
 	// build). Those signals are its nature, not defects to refactor; see the class documentation.
 
 	// Built by concatenation so the tool does not match its own detection code -- only an intentional
 	// marker (like the one above) accepts a file.
-	static final String ACCEPT_MARKER = "@review-need" + ":accept";
+	static final String ACCEPT_MARKER = "@review-priority" + ":accept";
+
+	/**
+	 * Label for the build-summary lines. Deliberately NOT on Maven's severity axis
+	 * (INFO/WARNING/ERROR): this report prioritises, it does not judge, so it is printed in
+	 * magenta rather than the yellow or red that would imply something is wrong.
+	 */
+	static final String LABEL = "review-priority";
+
+	static final String MAGENTA = "\u001B[95m";
+	static final String BOLD    = "\u001B[1m";
+	static final String DIM     = "\u001B[2m";
+	static final String RESET   = "\u001B[0m";
+
+	/** auto: colour only when stderr/stdout is a terminal and the environment does not forbid it. */
+	static boolean color = detectColor();
+
+	static boolean detectColor() {
+
+		if (System.getenv("NO_COLOR") != null) {
+
+			return false;
+		}
+
+		final String term = System.getenv("TERM");
+		if ("dumb".equals(term)) {
+
+			return false;
+		}
+
+		return System.console() != null;
+	}
+
+	/** The "[review-priority]" prefix every summary line carries, coloured when enabled. */
+	static String prefix() {
+
+		return color ? MAGENTA + "[" + LABEL + "]" + RESET : "[" + LABEL + "]";
+	}
+
+	static String bold(final String text) {
+
+		return color ? BOLD + text + RESET : text;
+	}
+
+	static String dim(final String text) {
+
+		return color ? DIM + text + RESET : text;
+	}
 
 	static final int LONG_METHOD = 60, CX = 12, DEEP = 4;
 
@@ -747,14 +794,15 @@ public class ReviewNeed {
 			System.err.println("error: " + err);
 		}
 
-		System.out.println("usage: java config/style/ReviewNeed.java [options] [paths...]");
+		System.out.println("usage: java config/style/ReviewPriority.java [options] [paths...]");
 		System.out.println("  --top N          keep the top N rows in the CLI table (default 25)");
 		System.out.println("  --min SCORE      omit files scoring below SCORE (default 1; score 0 = no findings)");
 		System.out.println("  --by SIGNAL      rank by one signal's count instead of the composite score");
 		System.out.println("  --detail N       list every finding in the file at ranking position N");
 		System.out.println("  --main-only      scan only src/main (skip test sources)");
-		System.out.println("  --summary        one line per file, [review-need]-prefixed (used by the build)");
-		System.out.println("  --show-accepted  include @review-need:accept files in the listing");
+		System.out.println("  --summary        one line per file, [" + LABEL + "]-prefixed (used by the build)");
+		System.out.println("  --show-accepted  include @review-priority:accept files in the listing");
+		System.out.println("  --color MODE     always | never | auto (default auto: only on a terminal)");
 		System.out.println("  --help, -h       show this help");
 		System.out.println("  paths...         files or directories to scan (default: current directory)");
 		System.out.println("  signals for --by: " + W.keySet());
@@ -807,6 +855,19 @@ public class ReviewNeed {
 				case "--summary"       -> summary = true;
 				case "--main-only"     -> mainOnly = true;
 				case "--show-accepted" -> showAccepted = true;
+				case "--color"         -> {
+
+					final String mode = argValue(a, i, arg);
+					i++;
+
+					switch (mode) {
+
+						case "always" -> color = true;
+						case "never"  -> color = false;
+						case "auto"   -> color = detectColor();
+						default       -> usage("--color expects always, never or auto, got: " + mode);
+					}
+				}
 				case "--help", "-h"    -> usage(null);
 				case "--detail"        -> {
 
@@ -947,27 +1008,27 @@ public class ReviewNeed {
 
 				if (visible.isEmpty()) {
 
-					System.out.println("[review-need] " + all.size() + " files scored, 0 to review (" + counts + ").");
+					System.out.println(prefix() + " " + all.size() + " files scored, 0 to review (" + counts + ").");
 
 					return;
 				}
 
 				final int n = Math.min(10, visible.size());
-				System.out.println("[review-need] " + visible.size() + " of " + all.size() + " files need review (score >= " + min + "; " + counts + "). Top " + n + ":");
+				System.out.println(prefix() + " " + bold(visible.size() + " of " + all.size() + " files need review") + " (score >= " + min + "; " + counts + "). Top " + n + ":");
 
 				for (int i = 0; i < n; i++) {
 
 					final Row r = visible.get(i);
 					final String tag = r.accepted() ? "  [accepted]" : "";
 
-					System.out.printf("[review-need]  #%-2d %s  (score %d)%s  %s%n", i + 1, rel(base, r.path()), r.score(), tag, signals(r.sub()));
+					System.out.printf("%s  #%-2d %s  (score %d)%s  %s%n", prefix(), i + 1, rel(base, r.path()), r.score(), tag, signals(r.sub()));
 				}
 
-				System.out.println("[review-need]  legend:");
+				System.out.println(prefix() + "  " + dim("legend:"));
 
 				for (final String line : legend(visible.subList(0, n))) {
 
-					System.out.println("[review-need]    " + line);
+					System.out.println(prefix() + "    " + dim(line));
 				}
 
 				return;
@@ -1007,7 +1068,7 @@ public class ReviewNeed {
 
 		} catch (Throwable t) {
 
-			System.out.println("[review-need] skipped (" + t.getClass().getSimpleName() + ": " + t.getMessage() + ")");
+			System.out.println(prefix() + " skipped (" + t.getClass().getSimpleName() + ": " + t.getMessage() + ")");
 		}
 	}
 }

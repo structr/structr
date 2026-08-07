@@ -19,6 +19,7 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
+import org.structr.api.NotFoundException;
 import org.structr.api.schema.JsonProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -44,8 +45,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -57,9 +61,11 @@ public class CacheTest extends StructrUiTest {
 
 		try { Thread.sleep(2000); } catch (Throwable t) {}
 
-		final ExecutorService service    = Executors.newCachedThreadPool();
-		final Queue<NodeInterface> queue = new ConcurrentLinkedQueue<>();
-		final AtomicBoolean doRun        = new AtomicBoolean(true);
+		final ExecutorService service           = Executors.newCachedThreadPool();
+		final Queue<NodeInterface> queue        = new ConcurrentLinkedQueue<>();
+		final AtomicBoolean doRun               = new AtomicBoolean(true);
+		final AtomicReference<Throwable> failed = new AtomicReference<>();
+		final AtomicInteger reads               = new AtomicInteger();
 
 		service.submit(() -> {
 
@@ -75,11 +81,28 @@ public class CacheTest extends StructrUiTest {
 					try (final Tx tx = app.tx()) {
 
 						obj.getProperty(Traits.of("TestTwo").key("testFives"));
+						reads.incrementAndGet();
 						tx.success();
+
+					} catch (final NotFoundException nfe) {
+
+						// The object is handed over from inside the creating transaction, so this
+						// thread can get there before the commit does and the node is legitimately
+						// not visible yet -- that is the race this test sets up, not a defect. Put
+						// it back and read it once it exists. (The in-memory driver hands out a null
+						// node here instead of throwing, which is why this only shows on Neo4j.)
+						queue.add(obj);
+
+						try { Thread.sleep(10); } catch (final InterruptedException ie) {}
 
 					} catch (Throwable t) {
 
-						t.printStackTrace();
+						// Anything else is recorded and fails the test at the end: this thread's
+						// read is the whole point (it is what pollutes the cache), so swallowing an
+						// error here let the test pass without exercising what it claims to. The
+						// stack traces also went straight into the build log, where they looked like
+						// a failure in whichever unrelated test happened to be running.
+						failed.compareAndSet(null, t);
 					}
 
 				}
@@ -144,6 +167,15 @@ public class CacheTest extends StructrUiTest {
 		doRun.set(false);
 
 		service.shutdown();
+
+		if (failed.get() != null) {
+
+			failed.get().printStackTrace();
+
+			fail("The concurrent reader failed, so the cache was never put under contention and this test proved nothing: " + failed.get());
+		}
+
+		assertTrue("The concurrent reader never managed to read a single object, so the cache was never put under contention and this test proved nothing", reads.get() > 0);
 	}
 
 	@Test

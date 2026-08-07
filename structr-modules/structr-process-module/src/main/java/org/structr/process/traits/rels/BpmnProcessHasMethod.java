@@ -59,10 +59,28 @@ public class BpmnProcessHasMethod extends AbstractRelationshipTraitDefinition im
 		return StructrTraits.SCHEMA_METHOD;
 	}
 
+	/**
+	 * Deliberately NOT "HAS_METHOD", which is what {@code SchemaNodeMethodDefinition} uses for
+	 * AbstractSchemaNode -> SchemaMethod ownership.
+	 *
+	 * <p>Sharing that raw type made a handler method indistinguishable, at the database level, from
+	 * a method owned by a schema type: the endpoint type was the only difference. Queries for
+	 * {@code schemaNode == null} rely on exactly that distinction, and the Bolt driver's
+	 * null-relationship predicate ignores the endpoint label ({@code not (n)<-[:HAS_METHOD]-()}),
+	 * so on Neo4j every BPMN handler looked like it had a schemaNode. Consequences, all silent:
+	 * handler code was omitted from deployment exports, the SchemaMethod uniqueness validator
+	 * skipped handlers, and global user-function resolution could not find them -- while the
+	 * in-memory driver, which does check the label, behaved correctly. See
+	 * {@code BpmnNullRelationshipQueryContractTest}.</p>
+	 *
+	 * <p>Using our own type removes the ambiguity instead of compensating for it, and does so
+	 * without changing query semantics for every other relationship in the product. The driver
+	 * inconsistency is a separate bug and still worth fixing.</p>
+	 */
 	@Override
 	public String getRelationshipType() {
 
-		return "HAS_METHOD";
+		return "HAS_BPMN_METHOD";
 	}
 
 	@Override

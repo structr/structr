@@ -381,6 +381,28 @@ public class AdvancedCypherQuery implements CypherQuery {
 		}
 	}
 
+	/**
+	 * FIXME: this ignores the endpoint label, unlike every other path through this class.
+	 *
+	 * <p>A search for a relationship-backed property with a null value becomes
+	 * {@code not (n)<-[:REL]-()}, which asks "has no relationship of this type at all". But the
+	 * property is typed, and the non-null path DOES constrain the other endpoint (see
+	 * {@code getGraphPartForMatch}, which appends {@code part.getOtherLabel()}), as does the read
+	 * path in {@code AbstractEndpoint} via OtherNodeTypeFilter. So the same key answers one way
+	 * when read and another way when searched for null, as soon as two relationship definitions
+	 * share a raw relationship type with different endpoint types.</p>
+	 *
+	 * <p>That is what {@code BpmnNullRelationshipQueryContractTest} pins down: it passes on the
+	 * in-memory driver, whose NoRelationshipPredicate checks the label, and failed here. The
+	 * immediate victim (BPMN handler methods reusing "HAS_METHOD") was fixed in the process module
+	 * by giving those relationships their own type, so nothing is broken today -- but the
+	 * inconsistency remains and will bite the next relationship that shares a type.</p>
+	 *
+	 * <p>The fix is to accept the other label and emit {@code not (n)<-[:REL]-(:Label)}.
+	 * {@code GraphSearchAttribute.getOtherLabel()} already provides it and the caller in
+	 * {@code factory/GraphQueryFactory} already has it in hand. It changes the meaning of every
+	 * null relationship-key query on Bolt, so it wants its own change and a full Neo4j suite run.</p>
+	 */
 	public void addNullObjectParameter(final Direction direction, final String relationship) {
 
 		buffer.append("not (n)");

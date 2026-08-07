@@ -219,7 +219,11 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			} catch (Exception ex) {
 
-				logger.warn("Exception while stopping Jetty: {}", ex.getMessage());
+				// toString(), not getMessage(): these exceptions routinely carry no message, so the
+				// warning read "Exception while stopping Jetty: null" and named neither the type nor
+				// the cause. Stack trace at debug.
+				logger.warn("Exception while stopping Jetty: {}", ex.toString());
+				logger.debug("Exception while stopping Jetty", ex);
 			}
 		}
 
@@ -454,24 +458,37 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			if (baseResource == null) {
 
-				logger.error("Unable to locate static UI resources (no source dir, no ./structr override, and no 'structr' resources on the class path).");
+				// A ResourceHandler with no base resource cannot serve anything and makes Jetty warn
+				// on every pass ("Base Resource should not be null"), so do not register it at all.
+				// In a test JVM there is no UI on disk or class path and that is expected, which is
+				// why this is not an error there -- it used to log one per started service.
+				if (Services.isTesting()) {
+
+					logger.info("No static UI resources found, not serving /structr (expected when running tests).");
+
+				} else {
+
+					logger.error("Unable to locate static UI resources (no source dir, no ./structr override, and no 'structr' resources on the class path).");
+				}
+
+			} else {
+
+				resourceHandler.setDirAllowed(false);
+				resourceHandler.setWelcomeFiles("index.html");
+
+				resourceHandler.setBaseResource(baseResource);
+				resourceHandler.setCacheControl("max-age=0");
+				//resourceHandler.setEtags(true);
+
+				final ContextHandler context = new ContextHandler("/structr");
+				context.setHandler(resourceHandler);
+				context.clearAliasChecks();
+				context.addAliasCheck((pathInContext, resource) -> resource.exists());
+
+				contexts.addHandler(context);
+
+				exportedResourceHandler = resourceHandler;
 			}
-
-			resourceHandler.setDirAllowed(false);
-			resourceHandler.setWelcomeFiles("index.html");
-
-			resourceHandler.setBaseResource(baseResource);
-			resourceHandler.setCacheControl("max-age=0");
-			//resourceHandler.setEtags(true);
-
-			final ContextHandler context = new ContextHandler("/structr");
-			context.setHandler(resourceHandler);
-			context.clearAliasChecks();
-			context.addAliasCheck((pathInContext, resource) -> resource.exists());
-
-			contexts.addHandler(context);
-
-			exportedResourceHandler = resourceHandler;
 		}
 
 		if (Settings.ConfigServletEnabled.getValue()) {

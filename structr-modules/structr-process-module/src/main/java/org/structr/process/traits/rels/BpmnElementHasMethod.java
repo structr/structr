@@ -67,10 +67,16 @@ public class BpmnElementHasMethod extends AbstractRelationshipTraitDefinition im
 		return StructrTraits.SCHEMA_METHOD;
 	}
 
+	/**
+	 * Deliberately NOT "HAS_METHOD" -- see the same method on {@code BpmnProcessHasMethod} for the
+	 * full reasoning: sharing that raw type with AbstractSchemaNode -> SchemaMethod ownership made
+	 * BPMN handlers invisible to {@code schemaNode == null} queries on Neo4j, which silently cost
+	 * deployment exports, uniqueness validation and user-function resolution.
+	 */
 	@Override
 	public String getRelationshipType() {
 
-		return "HAS_METHOD";
+		return "HAS_BPMN_METHOD";
 	}
 
 	@Override

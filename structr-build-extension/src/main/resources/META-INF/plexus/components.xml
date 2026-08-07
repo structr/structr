@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Registers ReviewNeedReporter as a Maven lifecycle participant. A Plexus component descriptor is
+  Registers ReviewPriorityReporter as a Maven lifecycle participant. A Plexus component descriptor is
   the most reliable way to expose a component from a core (.mvn/extensions.xml) extension realm;
   the Sisu @Named index is not consistently scanned for these realms.
 -->
@@ -8,8 +8,8 @@
 	<components>
 		<component>
 			<role>org.apache.maven.AbstractMavenLifecycleParticipant</role>
-			<role-hint>structr-review-need</role-hint>
-			<implementation>org.structr.build.ReviewNeedReporter</implementation>
+			<role-hint>structr-review-priority</role-hint>
+			<implementation>org.structr.build.ReviewPriorityReporter</implementation>
 		</component>
 	</components>
 </component-set>

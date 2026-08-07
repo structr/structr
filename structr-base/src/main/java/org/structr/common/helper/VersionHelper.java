@@ -164,7 +164,11 @@ public class VersionHelper {
 			return VersionHelper.getFullVersionInfoFromModule(structrBaseModule);
 		}
 
-		return "Could not determine version string";
+		// A noun phrase, not a sentence: this value is interpolated into messages such as
+		// "Started Structr {}" and stored as a deployment property, and the old sentence produced
+		// "Started Structr Could not determine version string".
+
+		return "unknown version";
 	}
 
 	private static String getFullVersionInfoFromModule(final Map<String, String> module) {

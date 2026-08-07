@@ -79,15 +79,15 @@ actively **destroy** them by normalizing blank lines, so we do not adopt one. In
   whitespace-only merge guarded against comments, annotations and text blocks, so it still preserves
   tokens and behaviour (a chain that would still exceed 200 is left wrapped). Not wired into the
   build; run on demand.
-- **Review-need scorer** (`config/style/ReviewNeed.java`) — a heuristic *triage* tool (not a gate)
+- **Review-priority scorer** (`config/style/ReviewPriority.java`) — a heuristic *triage* tool (not a gate)
   that ranks files by likely review value from ~20 signals (cyclomatic/cognitive complexity, long
   methods, C-style int loops, hand-rolled parsing, excessive switch, should-be-enum string clusters,
   broad/empty catches, reflection, concurrency, magic numbers, over-long lines, …). Run ad-hoc via the JDK source
-  launcher (no Python, no build): `java config/style/ReviewNeed.java [--top N] [--by SIGNAL]
+  launcher (no Python, no build): `java config/style/ReviewPriority.java [--top N] [--by SIGNAL]
   [--main-only] <paths>`. On every build **run from the repo root**, a Maven **lifecycle extension**
-  prints the `[review-need]` top-list as the **last output — after the reactor summary, on success
+  prints the `[review-priority]` top-list as the **last output — after the reactor summary, on success
   and failure alike** (it hooks `afterSessionEnd`, the only spot that always runs, and shells out to
-  `ReviewNeed.java`). It always exits cleanly, so it **never fails the build**; `-DskipReviewNeed=true`
+  `ReviewPriority.java`). It always exits cleanly, so it **never fails the build**; `-DskipReviewPriority=true`
   turns it off, and running `mvn` from a submodule directory simply skips it (never fails). The
   extension ships **prebuilt and committed** at `.mvn/lib/structr-build-extension.jar`, loaded straight
   from that path via `.mvn/maven.config` (`-Dmaven.ext.class.path=…`) — so a fresh clone needs **no
@@ -95,7 +95,18 @@ actively **destroy** them by normalizing blank lines, so we do not adopt one. In
   module; if you change it, refresh the committed jar with
   `mvn -o -pl structr-build-extension package && cp structr-build-extension/target/structr-build-extension.jar .mvn/lib/`
   and commit the jar. Reviewed-and-acceptable files are dismissed **in the
-  source file**: put the marker `@review-need:accept` in any comment with your reason next to it
+  source file**: put the marker `@review-priority:accept` in any comment with your reason next to it
   (the tool only checks that the marker string is present — it never reads the reason) and the
   file drops off the list, in the CLI and the build alike. Remove the marker to un-accept;
   `--show-accepted` lists what's hidden.
+
+- **Test-log reviewer** (`config/testlog/TestLogReview.java`) — triage for a Maven/TestNG log,
+  because a green build hides plenty: exceptions that were logged and swallowed, WARN storms,
+  messages at the wrong level, tests that pass only because a negative case fired. Surefire reports
+  contain none of that. Normalises away timestamps, UUIDs, numbers, tenant ids and paths so hundreds
+  of occurrences of one message collapse to a single counted line, then ranks: logged/swallowed
+  exceptions first (the valuable ones — no test reports them), then errors, warnings by logger,
+  problem phrasings at INFO level, and the slowest classes. Run
+  `mvn … 2>&1 | tee /tmp/run.log && java config/testlog/TestLogReview.java /tmp/run.log`;
+  `--top N`, `--min-count N`, `--section NAME`, `--ignore REGEX` (repeatable, for known-expected
+  noise such as deliberate negative tests). A count is a pointer, not a verdict.

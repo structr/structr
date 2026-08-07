@@ -34,6 +34,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -71,6 +72,16 @@ public abstract class AbstractEndpoint {
 	}
 
 	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final String otherNodeType, final Predicate<GraphObject> predicate) {
+
+		// A node handle can be null when the NodeInterface it came from is not backed by a node
+		// visible here -- most commonly when an object created in one thread's transaction is read
+		// from another thread (see CacheTest#testCaching). "No node" means "no relationships"; the
+		// alternative was a NullPointerException from the graph layer, which told the caller
+		// nothing and, being logged and swallowed, hid the fact that the read never happened.
+		if (dbNode == null) {
+
+			return List.of();
+		}
 
 		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType));
 	}
