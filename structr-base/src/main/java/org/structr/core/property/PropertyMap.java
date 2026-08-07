@@ -517,7 +517,11 @@ public class PropertyMap {
 
 		PropertyMap map = new PropertyMap();
 
-		logger.error("Using GenericProperty for input {}", source);
+		// debug, not error: falling back to GenericProperty is a decision, not a failure. The
+		// reason ("No entity type found in source map") is already logged at warn level by the
+		// caller, and callers that cannot live without a type (e.g. the websocket CREATE
+		// command) reject the input with a 422 right after.
+		logger.debug("Using GenericProperty for input {}", source);
 		//Thread.dumpStack();
 
 		if (source != null) {

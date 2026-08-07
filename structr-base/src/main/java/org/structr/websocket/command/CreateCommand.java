@@ -73,7 +73,11 @@ public class CreateCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Could not create node.", fex);
+			// Message at warn, stack trace at debug: this is almost always invalid client
+			// input (a missing or unknown type), which is answered with the status below, so a
+			// stack trace per bad request is noise. Same shape as the PasswordPolicy branch above.
+			logger.warn("Could not create node: {}", fex.getMessage());
+			logger.debug("Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 		}
 	}
