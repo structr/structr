@@ -34,7 +34,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.process.ProcessTraits;
+import org.structr.process.bpmn.BpmnHandlerNames;
 import org.structr.schema.action.ActionContext;
 import java.util.LinkedList;
 import java.util.List;
@@ -271,6 +274,97 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 				public String getDescription() {
 
 					return "Replace humanPerformer / potentialOwner configuration on this BpmnElement. Each kind accepts an expression string (\"${initiator}\" / \"user(alice)\" syntax) and a list of Principal UUIDs. The performer is removed when both are empty; otherwise a single BpmnPerformer of the kind is created / updated to carry both. Generic <performer> entries are not touched.";
+				}
+			},
+
+			// Create (or rename) a task-listener handler method on this element under a
+			// name scoped to (process, version, element).
+			//
+			// This exists so the process editor never has to build a handler's graph name
+			// itself: the scoping scheme lives in BpmnHandlerNames (server side) and
+			// mirroring it in JavaScript would fork the one thing that must not be forked.
+			// The editor passes the AUTHORED name it wants ("reviewLeaveRequest_afterCompleted")
+			// and gets back a method whose graph name is unique across processes, versions
+			// and elements -- which is what keeps two processes from colliding on
+			// already_exists in the global user-function namespace.
+			//
+			// Argument keys:
+			//   name   -> String, the authored handler name (required)
+			//   method -> String UUID of an existing method to rename; omit to create one
+			//
+			// Returns the method's UUID.
+			new JavaMethod("ensureHandlerMethod", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final NodeInterface element = (NodeInterface) entity;
+					final App app               = StructrApp.getInstance(actionContext.getSecurityContext());
+					final Map<String, Object> args = arguments.toMap();
+					final Object nameArg        = args.get("name");
+					final String authoredName   = (nameArg instanceof String) ? ((String) nameArg).trim() : null;
+
+					if (authoredName == null || authoredName.isEmpty()) {
+
+						throw new FrameworkException(422, "ensureHandlerMethod: 'name' (the authored handler name) is required");
+					}
+
+					final Traits elemTraits      = element.getTraits();
+					final NodeInterface procNode = element.getProperty(elemTraits.key(PROCESS_PROPERTY));
+					final String elementBpmnId   = element.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+					final String processId       = (procNode != null)
+						? procNode.getProperty(procNode.getTraits().key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY)) : null;
+					final String version         = (procNode != null)
+						? procNode.getProperty(procNode.getTraits().key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY))
+						: element.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY));
+
+					final String graphName       = BpmnHandlerNames.qualify(authoredName, processId, version, elementBpmnId);
+					final Traits methodTraits    = Traits.of(StructrTraits.SCHEMA_METHOD);
+					final Object methodArg       = args.get("method");
+					final String methodId        = (methodArg instanceof String) ? ((String) methodArg).trim() : null;
+
+					// Rename path: the editor keeps an auto-named handler in sync with its
+					// (event, phase), and the new name has to be re-scoped, not written raw.
+					if (methodId != null && !methodId.isEmpty()) {
+
+						final NodeInterface existing = app.getNodeById(StructrTraits.SCHEMA_METHOD, methodId);
+						if (existing == null) {
+
+							throw new FrameworkException(422, "ensureHandlerMethod: no SchemaMethod found with id " + methodId);
+						}
+
+						existing.setProperty(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), graphName);
+
+						return existing.getUuid();
+					}
+
+					// "ensure": a handler of that scoped name already on this element is
+					// returned as-is rather than duplicated (which would fail uniqueness).
+					final Iterable<NodeInterface> current = element.getProperty(elemTraits.key(METHODS_PROPERTY));
+					if (current != null) {
+
+						for (final NodeInterface m : current) {
+
+							if (graphName.equals(m.getProperty(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)))) {
+
+								return m.getUuid();
+							}
+						}
+					}
+
+					final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
+
+					method.setProperty(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   graphName);
+					method.setProperty(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),  "");
+					method.setProperty(methodTraits.key(ProcessTraits.SCHEMA_METHOD_BPMN_ELEMENT_KEY), element);
+
+					return method.getUuid();
+				}
+
+				@Override
+				public String getDescription() {
+
+					return "Create a task-listener handler SchemaMethod on this BpmnElement, or rename an existing one, using a graph name scoped to (process, version, element) so the same authored handler name may be used by other elements, processes and versions without colliding. Pass 'name' (the authored name, e.g. reviewLeaveRequest_afterCompleted) and optionally 'method' (UUID of an existing method to rename). Returns the method's UUID.";
 				}
 			}
 		);

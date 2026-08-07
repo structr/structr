@@ -33,13 +33,17 @@ public class RetryAnalyzer implements IRetryAnalyzer {
 	@Override
 	public boolean retry(final ITestResult result) {
 
+		final String test = result.getTestClass().getName() + "." + result.getName();
+
 		if (count < MAX_RETRY) {
 
 			count++;
-			logger.warn("Retrying failed test {}.{} (attempt {}/{})", result.getTestClass().getName(), result.getName(), count, MAX_RETRY);
+			logger.warn("Test {} failed -- retrying ({}/{}).", test, count, MAX_RETRY);
 
 			return true;
 		}
+
+		logger.error("Test {} failed on all {} attempts (retries exhausted) -- consistently failing, not flaky.", test, MAX_RETRY + 1);
 
 		return false;
 	}

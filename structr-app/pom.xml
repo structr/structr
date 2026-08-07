@@ -322,6 +322,34 @@
             </activation>
             <build>
                 <plugins>
+                    <!-- Create the screenshot bind-mount target BEFORE any container starts.
+                         The Playwright image (mcr.microsoft.com/playwright, no USER) runs as root,
+                         and Docker creates a missing bind-mount source on the host as root:root.
+                         That left target/playwright-screenshots owned by root, which made the next
+                         `mvn clean` fail for the (non-root) build user. Pre-creating it here means
+                         Docker reuses the existing user-owned directory: the screenshots written
+                         into it are still root-owned, but unlinking a file depends on write
+                         permission of the CONTAINING directory, not on file ownership, so `clean`
+                         can remove them again. -->
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>ui-tests-create-screenshot-dir</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${skipUITests}</skip>
+                                    <target>
+                                        <mkdir dir="${project.basedir}/target/playwright-screenshots"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>

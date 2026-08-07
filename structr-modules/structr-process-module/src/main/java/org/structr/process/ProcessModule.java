@@ -243,8 +243,8 @@ public class ProcessModule implements StructrModule {
 		// element.methods or process.methods is assigned. The two rel types must already
 		// be registered above (BPMN_PROCESS_HAS_METHOD and BPMN_ELEMENT_HAS_METHOD), since
 		// the StartNode constructor eagerly resolves the rel type.
-		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(new StartNode(TraitsManager.getRootInstance(), "bpmnProcess", ProcessTraits.BPMN_PROCESS_HAS_METHOD));
-		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(new StartNode(TraitsManager.getRootInstance(), "bpmnElement", ProcessTraits.BPMN_ELEMENT_HAS_METHOD));
+		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(new StartNode(TraitsManager.getRootInstance(), ProcessTraits.SCHEMA_METHOD_BPMN_PROCESS_KEY, ProcessTraits.BPMN_PROCESS_HAS_METHOD));
+		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(new StartNode(TraitsManager.getRootInstance(), ProcessTraits.SCHEMA_METHOD_BPMN_ELEMENT_KEY, ProcessTraits.BPMN_ELEMENT_HAS_METHOD));
 		// Inverse for BpmnTaskListener -[CALLS]-> SchemaMethod (Many-to-One), so
 		// ensureCardinality can resolve the source side when listener.method is set.
 		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(

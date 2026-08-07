@@ -135,6 +135,14 @@ public class BpmnImporter {
 	 */
 	private String currentVersion;
 
+	/**
+	 * processId of the <bpmn:process> currently being imported. Together with
+	 * currentVersion it scopes the graph names of that process's handler methods
+	 * (see BpmnHandlerNames). Set per process, so a multi-process file qualifies
+	 * each process's handlers with its own id.
+	 */
+	private String currentProcessId;
+
 	public BpmnImporter(final SecurityContext securityContext) {
 
 		this.securityContext = securityContext;
@@ -305,6 +313,9 @@ public class BpmnImporter {
 			procNode.setProperty(procTraits.key("name"), StringUtils.isNotEmpty(procName) ? procName : processIdAttr);
 
 			processMap.put(processIdAttr, procNode);
+
+			// Scope for this process's handler-method graph names (see BpmnHandlerNames).
+			this.currentProcessId = processIdAttr;
 
 			// Resolve previous version of THIS process (by processId).
 			final NodeInterface previousProc = findPreviousProcess(app, processIdAttr, procNode.getUuid());
@@ -1854,6 +1865,13 @@ public class BpmnImporter {
 		// payload as the method body so it is not lost.
 		final String safeName                                 = sanitizeMethodName(methodName);
 		scaffoldServiceClasses(app, methodName); // service-class stubs for bean/service calls in listener bodies
+
+		// The graph name is scoped to (process, version, element) so that the same authored
+		// handler name may occur in another element, another process or another version of
+		// this process without colliding in the global user-function namespace. The authored
+		// name is what the BPMN file carries; see BpmnHandlerNames for the full rationale.
+		final String elementBpmnId                            = elemNode.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+		final String graphName                                = BpmnHandlerNames.qualify(safeName, currentProcessId, currentVersion, elementBpmnId);
 		final List<NodeInterface> existing                    = new LinkedList<>();
 		final Iterable<NodeInterface> current                 = elemNode.getProperty(methodsKey);
 
@@ -1861,7 +1879,7 @@ public class BpmnImporter {
 
 			for (final NodeInterface m : current) {
 
-				if (safeName.equals(m.getProperty(nameKey))) {
+				if (graphName.equals(m.getProperty(nameKey))) {
 
 					return m;
 				}
@@ -1872,7 +1890,7 @@ public class BpmnImporter {
 
 		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 
-		method.setProperty(nameKey, safeName);
+		method.setProperty(nameKey, graphName);
 
 		if (!safeName.equals(methodName)) {
 
@@ -2364,6 +2382,9 @@ public class BpmnImporter {
 		// name and keep the original as the body when it had to be rewritten.
 		final String safeName                                 = sanitizeMethodName(methodName);
 		scaffoldServiceClasses(app, methodName); // service-class stubs for bean/service calls in listener bodies
+
+		// Scoped to (process, version) -- no element component for a process-level handler.
+		final String graphName                                = BpmnHandlerNames.qualify(safeName, currentProcessId, currentVersion, null);
 		final List<NodeInterface> existing                    = new LinkedList<>();
 		final Iterable<NodeInterface> current                 = procNode.getProperty(methodsKey);
 
@@ -2371,7 +2392,7 @@ public class BpmnImporter {
 
 			for (final NodeInterface m : current) {
 
-				if (safeName.equals(m.getProperty(nameKey))) {
+				if (graphName.equals(m.getProperty(nameKey))) {
 
 					return m;
 				}
@@ -2382,7 +2403,7 @@ public class BpmnImporter {
 
 		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 
-		method.setProperty(nameKey, safeName);
+		method.setProperty(nameKey, graphName);
 
 		if (!safeName.equals(methodName)) {
 
@@ -3047,11 +3068,19 @@ public class BpmnImporter {
 			return;
 		}
 
+		// Each clone is renamed into the NEW version's scope: the old and new names differ
+		// only by their version component, so the previous version keeps its own methods and
+		// nothing collides in the global user-function namespace (see BpmnHandlerNames).
+		// The process listeners are wired afterwards and will find these clones by name.
+		final PropertyKey<String> methodNameKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final List<NodeInterface> clonedMethods = new LinkedList<>();
 
 		for (final NodeInterface oldMethod : previousMethods) {
 
-			clonedMethods.add(cloneSchemaMethod(app, oldMethod));
+			final String authored = BpmnHandlerNames.authoredOf(oldMethod.getProperty(methodNameKey));
+			final String newName  = BpmnHandlerNames.qualify(authored, currentProcessId, currentVersion, null);
+
+			clonedMethods.add(cloneSchemaMethod(app, oldMethod, newName));
 		}
 
 		appendMethods(newProcNode, methodsKey, clonedMethods);
@@ -3108,12 +3137,16 @@ public class BpmnImporter {
 			// cloned in as new nodes. Appending a fresh clone instead would leave the
 			// listener pointing at the empty stub and accumulate duplicate methods on
 			// every re-import.
+			// Match old to new by AUTHORED name: the graph names differ by version scope, so
+			// comparing them literally would never match and would clone a duplicate on every
+			// re-import (see BpmnHandlerNames).
 			final List<NodeInterface> clonedMethods = new LinkedList<>();
 
 			for (final NodeInterface oldMethod : oldElemMethods) {
 
-				final String name             = oldMethod.getProperty(methodNameKey);
-				final NodeInterface existing   = (name != null) ? findMethodByName(newElem, elemMethodsKey, methodNameKey, name) : null;
+				final String authored        = BpmnHandlerNames.authoredOf(oldMethod.getProperty(methodNameKey));
+				final String newName         = BpmnHandlerNames.qualify(authored, currentProcessId, currentVersion, oldBpmnId);
+				final NodeInterface existing = (newName != null) ? findMethodByName(newElem, elemMethodsKey, methodNameKey, newName) : null;
 
 				if (existing != null) {
 
@@ -3121,7 +3154,7 @@ public class BpmnImporter {
 
 				} else {
 
-					clonedMethods.add(cloneSchemaMethod(app, oldMethod));
+					clonedMethods.add(cloneSchemaMethod(app, oldMethod, newName));
 				}
 			}
 
@@ -3155,19 +3188,31 @@ public class BpmnImporter {
 	 * Create a new SchemaMethod node and copy the scalar properties from the
 	 * source. Used by both per-process and per-element cloning paths.
 	 */
-	private NodeInterface cloneSchemaMethod(final App app, final NodeInterface source) throws FrameworkException {
+	/**
+	 * Clone a SchemaMethod under an explicitly given name. The name is never copied from the
+	 * source: a handler's graph name is scoped to its process version (see BpmnHandlerNames),
+	 * so a clone made for a new version must be renamed into that version's scope, and the
+	 * caller is the only one that knows the target scope.
+	 */
+	private NodeInterface cloneSchemaMethod(final App app, final NodeInterface source, final String name) throws FrameworkException {
 
+		final Traits methodTraits  = Traits.of(StructrTraits.SCHEMA_METHOD);
 		final NodeInterface cloned = app.create(StructrTraits.SCHEMA_METHOD);
 
-		copyMethodScalars(source, cloned, Traits.of(StructrTraits.SCHEMA_METHOD));
+		copyMethodScalars(source, cloned, methodTraits);
+		cloned.setProperty(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 		return cloned;
 	}
 
 	/** Copy the scalar SchemaMethod properties (name, source, flags, ...) from source to target. */
+	/**
+	 * Copy a method's authored content. NAME is deliberately NOT copied: it carries the
+	 * process-version scope (see BpmnHandlerNames), so the target keeps the name belonging
+	 * to ITS scope while receiving the source's body and metadata.
+	 */
 	private void copyMethodScalars(final NodeInterface source, final NodeInterface target, final Traits methodTraits) throws FrameworkException {
 
-		copyProp(source, target, methodTraits, NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.SOURCE_PROPERTY);
 		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.SUMMARY_PROPERTY);
 		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY);

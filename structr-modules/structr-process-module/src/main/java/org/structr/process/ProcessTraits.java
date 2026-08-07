@@ -89,6 +89,12 @@ public class ProcessTraits {
 	public static final String VISIBILITY_MAPPING_FOR_BPMN_PROCESS     = "VisibilityMappingFORBpmnProcess";
 	public static final String VISIBILITY_MAPPING_AT_BPMN_ELEMENT      = "VisibilityMappingATBpmnElement";
 
+	// Inverse property keys this module attaches to the core SCHEMA_METHOD trait
+	// (registered in ProcessModule): the BpmnElement / BpmnProcess that owns a
+	// handler method via HAS_METHOD.
+	public static final String SCHEMA_METHOD_BPMN_ELEMENT_KEY          = "bpmnElement";
+	public static final String SCHEMA_METHOD_BPMN_PROCESS_KEY          = "bpmnProcess";
+
 	// Process Engine runtime relationship types
 	public static final String PROCESS_INSTANCE_OF_PROCESS             = "ProcessInstanceINSTANCE_OFBpmnProcess";
 	public static final String PROCESS_INSTANCE_INITIATED_BY           = "ProcessInstanceINITIATED_BYPrincipal";

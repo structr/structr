@@ -713,13 +713,16 @@ public class BpmnExporter {
 		final String phase  = listener.getPhase();
 		final String bpmnId = listener.getBpmnId();
 
-		// Method is now a relationship to a SchemaMethod; emit its name.
+		// Method is now a relationship to a SchemaMethod; emit its AUTHORED name. The graph
+		// name is scoped to (process, version, element) to stay unique in the global
+		// user-function namespace, but the BPMN file must carry the portable name the author
+		// wrote -- see BpmnHandlerNames.
 		String methodName = null;
 		final NodeInterface method = listener.getMethod();
 
 		if (method != null) {
 
-			methodName = method.getName();
+			methodName = BpmnHandlerNames.authoredOf(method.getName());
 		}
 
 		w.writeEmptyElement("structr", "processListener", STRUCTR_NS);
@@ -743,6 +746,16 @@ public class BpmnExporter {
 			return;
 		}
 
+		// Engine-generated listener handlers are already fully described by their own
+		// <structr:taskListener>/<structr:processListener> element, which carries the
+		// authored method name. Emitting them again as a methodRef would duplicate them and,
+		// on re-import, ask the name-based methodRef resolver to resolve a name that
+		// deliberately no longer exists unqualified in the graph (see BpmnHandlerNames).
+		if (BpmnHandlerNames.isQualified(name)) {
+
+			return;
+		}
+
 		w.writeEmptyElement("structr", "methodRef", STRUCTR_NS);
 		w.writeAttribute("name", name);
 	}
@@ -758,13 +771,16 @@ public class BpmnExporter {
 		final String phase  = listener.getPhase();
 		final String bpmnId = listener.getBpmnId();
 
-		// Method is now a relationship to a SchemaMethod; emit its name.
+		// Method is now a relationship to a SchemaMethod; emit its AUTHORED name. The graph
+		// name is scoped to (process, version, element) to stay unique in the global
+		// user-function namespace, but the BPMN file must carry the portable name the author
+		// wrote -- see BpmnHandlerNames.
 		String methodName = null;
 		final NodeInterface method = listener.getMethod();
 
 		if (method != null) {
 
-			methodName = method.getName();
+			methodName = BpmnHandlerNames.authoredOf(method.getName());
 		}
 
 		// Pass the prefix explicitly. The 2-arg writeEmptyElement(uri, localName)

@@ -25,6 +25,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.process.ProcessTraits;
+import org.structr.process.bpmn.BpmnHandlerNames;
 import org.structr.process.bpmn.BpmnImporter;
 import org.structr.process.traits.definitions.BpmnBaseNodeTraitDefinition;
 import org.structr.process.traits.definitions.BpmnDefinitionsTraitDefinition;
@@ -235,9 +236,11 @@ public class BpmnImporterBugReproTest extends StructrUiTest {
 
 		if (methods != null) {
 
+			// authored names: graph names carry a (process, version, element) scope,
+			// see BpmnHandlerNames
 			for (final NodeInterface m : methods) {
 
-				names.add(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+				names.add(BpmnHandlerNames.authoredOf(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY))));
 			}
 		}
 

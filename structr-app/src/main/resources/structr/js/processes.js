@@ -213,6 +213,31 @@ let _Processes = {
 			return json;
 		},
 
+		/**
+		 * Create (or rename) a listener handler method server-side and return its UUID.
+		 *
+		 * A handler's graph name is scoped to (process, version, element) so the same
+		 * authored name can be used by other elements, processes and versions without
+		 * colliding in the global user-function namespace. That scoping scheme lives in
+		 * BpmnHandlerNames on the server and must NOT be mirrored here -- so we hand the
+		 * backend the authored name and let BpmnElement/BpmnProcess.ensureHandlerMethod
+		 * build the real name. Pass methodId to rename an existing handler in place.
+		 */
+		ensureHandlerMethod: async (ownerType, ownerId, authoredName, methodId = null) => {
+
+			const params = { name: authoredName };
+			if (methodId) params.method = methodId;
+
+			const json = await _Processes.rest.callEntityMethod(ownerType, ownerId, 'ensureHandlerMethod', params);
+			const res  = json?.result;
+
+			// The method returns a bare UUID string; tolerate an object envelope too.
+			const id = (typeof res === 'string') ? res : (res?.id ?? null);
+			if (!id) throw new Error('handler method creation returned no id');
+
+			return id;
+		},
+
 		setProperty: async (type, id, key, value) => {
 
 			let url = `${Structr.rootUrl}${type}/${id}`;
@@ -1446,8 +1471,11 @@ let _ProcessDiagram = {
 						try {
 							await setProps(listenerId, { event, phase });
 							// Keep the auto-named method reflective of (event, phase). Best-effort.
+							// Renaming goes through the backend so the name keeps its
+							// (process, version, element) scope -- writing the bare authored
+							// name here would strip it. See BpmnHandlerNames.
 							if (methodId) {
-								try { await setProps(methodId, { name: buildMethodName(phase, event) }); }
+								try { await _Processes.rest.ensureHandlerMethod('BpmnElement', elementId, buildMethodName(phase, event), methodId); }
 								catch (_) {}
 							}
 							await loadRows();
@@ -1535,15 +1563,14 @@ let _ProcessDiagram = {
 					try {
 						const methodName = buildMethodName(phase, event);
 
-						// 1. Create the handler method already linked to the element
-						// via its `bpmnElement` inverse rel. We set the rel on the
-						// method (not the element's `methods` collection): rewriting
-						// the collection from the stale in-memory elem.methods would
-						// detach every method added earlier in the session.
-						const methodId = await new Promise((resolve, reject) => {
-							Command.create({ type: 'SchemaMethod', name: methodName, source: '', bpmnElement: elementId },
-								(m) => (m && m.id) ? resolve(m.id) : reject(new Error('SchemaMethod creation failed')));
-						});
+						// 1. Create the handler method server-side, linked to the element via
+						// its `bpmnElement` inverse rel. The backend owns the naming: it scopes
+						// the graph name to (process, version, element) so two processes using
+						// the same authored handler name don't collide. We set the rel on the
+						// method (not the element's `methods` collection): rewriting the
+						// collection from the stale in-memory elem.methods would detach every
+						// method added earlier in the session.
+						const methodId = await _Processes.rest.ensureHandlerMethod('BpmnElement', elementId, methodName);
 
 						// 2. Create the listener pointing at the method.
 						await new Promise((resolve, reject) => {
@@ -2274,7 +2301,9 @@ let _ProcessDiagram = {
 						eventSel.disabled = phaseSel.disabled = true;
 						try {
 							await plSetProps(listenerId, { event, phase });
-							if (methodId) { try { await plSetProps(methodId, { name: plMethodName(phase, event) }); } catch (_) {} }
+							// Rename via the backend so the name keeps its (process, version)
+							// scope -- see BpmnHandlerNames.
+							if (methodId) { try { await _Processes.rest.ensureHandlerMethod('BpmnProcess', procId, plMethodName(phase, event), methodId); } catch (_) {} }
 							await plLoadRows();
 						} catch (err) {
 							new ErrorMessage().text(`Update handler failed: ${err.message ?? err}`).show();
@@ -2347,10 +2376,11 @@ let _ProcessDiagram = {
 					plAddBtn.disabled = true;
 					try {
 						const methodName = plMethodName(phase, event);
-						const methodId = await new Promise((resolve, reject) => {
-							Command.create({ type: 'SchemaMethod', name: methodName, source: '', bpmnProcess: procId },
-								(m) => (m && m.id) ? resolve(m.id) : reject(new Error('SchemaMethod creation failed')));
-						});
+
+						// Backend-side naming: the graph name is scoped to (process, version)
+						// so the same authored handler name may exist on other processes and
+						// versions without colliding. See BpmnHandlerNames.
+						const methodId = await _Processes.rest.ensureHandlerMethod('BpmnProcess', procId, methodName);
 						await new Promise((resolve, reject) => {
 							Command.create({ type: 'BpmnProcessListener', process: procId, event, phase, method: methodId },
 								(n) => (n && n.id) ? resolve(n.id) : reject(new Error('BpmnProcessListener creation failed')));
