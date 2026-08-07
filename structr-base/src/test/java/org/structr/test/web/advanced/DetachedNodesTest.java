@@ -197,6 +197,52 @@ public class DetachedNodesTest extends StructrUiTest {
 		}
 	}
 
+	/**
+	 * The shape observed on a real instance, and the one the first version of this repair got WRONG.
+	 *
+	 * A page's own child is detached, and so is its child: the chain therefore ends at the PAGE itself,
+	 * whose ownerDocument is null because a Page IS a document. A walk that only reads ownerDocument
+	 * concludes "nothing above has a document" and files live page content under RECYCLE_BIN, so the
+	 * repair skips exactly the damage it exists to fix. On the instance that produced it, two nested
+	 * Templates under the page "contracts" were reported as deleted content and left in place.
+	 */
+	@Test
+	public void aSubtreeHangingDirectlyUnderThePageIsDamageNotRecycleBin() throws FrameworkException {
+
+		final String outerId, innerId;
+
+		try (final Tx tx = app.tx()) {
+
+			/* Templates, because that is what a Page accepts as its document element - and what the real
+			   instance had: the frame Template of a template-first page, with another Template inside it. */
+			final Page page     = Page.createNewPage(securityContext, "contracts");
+			final DOMNode outer = page.createTemplate("<html><body>${render(children)}</body></html>").as(DOMNode.class);
+			final DOMNode inner = page.createTemplate("<div>sidebar</div>").as(DOMNode.class);
+
+			page.appendChild(outer);
+			outer.appendChild(inner);
+
+			// nothing between these nodes and the Page has a document of its own
+			outer.setOwnerDocument(null);
+			inner.setOwnerDocument(null);
+
+			outerId = outer.getUuid();
+			innerId = inner.getUuid();
+
+			tx.success();
+		}
+
+		assertEquals("the page's own child is adoptable, not deleted content",
+			DetachedNodes.Kind.ADOPTABLE, findingFor(outerId).kind());
+		assertEquals("and so is the one below it",
+			DetachedNodes.Kind.ADOPTABLE, findingFor(innerId).kind());
+
+		assertEquals(2, repair());
+
+		assertEquals("contracts", documentNameOf(outerId));
+		assertEquals("contracts", documentNameOf(innerId));
+	}
+
 	@Test
 	public void aMasterThatLostTheShadowDocumentGoesBackToIt() throws FrameworkException {
 
