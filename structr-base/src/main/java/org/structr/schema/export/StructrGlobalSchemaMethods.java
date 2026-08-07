@@ -93,6 +93,7 @@ public class StructrGlobalSchemaMethods {
 				entry.put(JsonSchema.KEY_IS_PRIVATE,          schemaMethod.isPrivateMethod());
 				entry.put(JsonSchema.KEY_RETURN_RAW_RESULT,   schemaMethod.returnRawResult());
 				entry.put(JsonSchema.KEY_HTTP_VERB,           schemaMethod.getHttpVerb());
+				entry.put(JsonSchema.KEY_WRAP_JS_IN_MAIN,     schemaMethod.wrapJsInMain());
 
 				// TODO: remove
 				entry.put(SchemaMethodTraitDefinition.VIRTUAL_FILE_NAME_PROPERTY,             schemaMethod.getVirtualFileName());

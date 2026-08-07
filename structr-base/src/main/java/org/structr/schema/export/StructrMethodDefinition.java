@@ -72,6 +72,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean isStatic                                  = false;
 	private boolean isPrivate                                 = false;
 	private boolean returnRawResult                           = false;
+	private boolean wrapJsInMain                              = true;
 	private JsonType parent                                   = null;
 	private String httpVerb                                   = "POST";
 	private String openAPIReturnType                          = null;
@@ -284,6 +285,20 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public boolean wrapJsInMain() {
+
+		return wrapJsInMain;
+	}
+
+	@Override
+	public JsonMethod setWrapJsInMain(final boolean wrapJsInMain) {
+
+		this.wrapJsInMain = wrapJsInMain;
+
+		return this;
+	}
+
+	@Override
 	public JsonMethod setHttpVerb(final String httpVerb) {
 
 		this.httpVerb = httpVerb;
@@ -436,6 +451,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY),                  isStatic());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY),                 isPrivate());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY),          returnRawResult());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY),            wrapJsInMain());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY),                  getHttpVerb());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY),        includeInOpenAPI());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY),       getOpenAPIReturnType());
@@ -535,6 +551,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.returnRawResult = (Boolean)_returnRawResult;
 		}
 
+		final Object _wrapJsInMain = source.get(JsonSchema.KEY_WRAP_JS_IN_MAIN);
+		if (_wrapJsInMain != null && _wrapJsInMain instanceof Boolean) {
+
+			this.wrapJsInMain = (Boolean)_wrapJsInMain;
+		}
+
 		final Object _httpVerb = source.get(JsonSchema.KEY_HTTP_VERB);
 		if (_httpVerb != null && _httpVerb instanceof String) {
 
@@ -608,6 +630,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setIsStatic(method.isStaticMethod());
 		setIsPrivate(method.isPrivateMethod());
 		setReturnRawResult(method.returnRawResult());
+		setWrapJsInMain(method.wrapJsInMain());
 		setHttpVerb(method.getHttpVerb());
 		setOverridesExisting(method.overridesExisting());
 		setDoExport(method.doExport());
@@ -657,6 +680,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
 		map.put(JsonSchema.KEY_IS_PRIVATE, isPrivate);
 		map.put(JsonSchema.KEY_RETURN_RAW_RESULT, returnRawResult);
+		map.put(JsonSchema.KEY_WRAP_JS_IN_MAIN, wrapJsInMain);
 		map.put(JsonSchema.KEY_HTTP_VERB, httpVerb);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
