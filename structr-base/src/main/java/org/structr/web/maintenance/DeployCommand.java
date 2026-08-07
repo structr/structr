@@ -568,9 +568,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	 */
 	private void warnAboutDetachedNodes() {
 
-		try {
+		final List<DetachedNodes.Finding> damaged;
 
-			final List<DetachedNodes.Finding> damaged = DetachedNodes.damaged(DetachedNodes.scan(StructrApp.getInstance()));
+		/* the export runs WITHOUT an enclosing transaction (see requiresEnclosingTransaction), so the scan
+		   has to open its own; and a check must never be able to break the export it is checking, so
+		   everything it can throw is caught, not just FrameworkException */
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			damaged = DetachedNodes.damaged(DetachedNodes.scan(StructrApp.getInstance()));
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			logger.warn("Deployment export: could not check for detached DOM nodes: {}", t.getMessage());
+			return;
+		}
+
+		try {
 
 			if (damaged.isEmpty()) {
 				return;
@@ -597,10 +612,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishWarningMessage("Incomplete export: " + damaged.size() + " detached DOM node(s)", text.toString());
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
 			// a check that cannot run must not stop the export the user asked for
-			logger.warn("Deployment export: could not check for detached DOM nodes: {}", fex.getMessage());
+			logger.warn("Deployment export: could not report detached DOM nodes: {}", t.getMessage());
 		}
 	}
 
