@@ -221,12 +221,25 @@ public class DetachedNodes {
 		return repaired;
 	}
 
-	/** the nearest ancestor's document, walking THROUGH page-less ancestors */
+	/**
+	 * The document an ancestor puts this node in, walking THROUGH page-less ancestors.
+	 *
+	 * An ancestor answers in one of two ways, and BOTH have to be asked. A page's own ownerDocument is
+	 * null, because a Page IS a document rather than belonging to one, so asking only for ownerDocument
+	 * walks straight past the page at the top of the chain and reports "nothing above has a document".
+	 * On a real instance that misread a detached subtree hanging directly under a Page - the exact shape
+	 * this class exists to repair - as deleted content, and left it alone.
+	 */
 	private static Page documentOfAncestors(final DOMNode node) throws FrameworkException {
 
 		DOMNode current = node.getParent();
 
 		while (current != null) {
+
+			// the ancestor IS the document (a Page, or the ShadowDocument holding a component master)
+			if (current.is(StructrTraits.PAGE)) {
+				return current.as(Page.class);
+			}
 
 			final Page document = current.getOwnerDocument();
 
