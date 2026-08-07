@@ -26,6 +26,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.process.ProcessTraits;
 import org.structr.process.bpmn.BpmnExporter;
+import org.structr.process.bpmn.BpmnHandlerNames;
 import org.structr.process.bpmn.BpmnImporter;
 import org.structr.process.engine.ProcessEngine;
 import org.structr.process.entity.BpmnDefinitions;
@@ -709,9 +710,11 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 		final Iterable<NodeInterface> methods = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.METHODS_PROPERTY));
 		if (methods != null) {
 
+			// match on the AUTHORED name: graph names carry a (process, version, element)
+			// scope, see BpmnHandlerNames
 			for (final NodeInterface m : methods) {
 
-				if (name.equals(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)))) {
+				if (name.equals(BpmnHandlerNames.authoredOf(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY))))) {
 
 					return m;
 				}
@@ -730,7 +733,7 @@ public class ProcessModuleReviewBugTest extends AbstractProcessEngineTest {
 
 			for (final NodeInterface m : methods) {
 
-				names.add(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+				names.add(BpmnHandlerNames.authoredOf(m.getProperty(m.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY))));
 			}
 		}
 

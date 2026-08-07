@@ -135,10 +135,17 @@ test('pages', async ({page}, testInfo) => {
 
 	await page.getByText('dueDate formatted-date ⠿').click();
 
-	// open "Render Template Settings"
-	await page.getByText('Render Template Settings').click();
+	// "Render Template Settings" now exists once per configured field and is expanded by
+	// default, so scope it to the dueDate field's details editor and only click the summary
+	// when it is collapsed -- clicking an already-open section would hide its inputs.
+	let dueDateFieldDetails      = page.locator('.field-details-editor[data-field-name="dueDate"]');
+	let dueDateRenderTplSettings = dueDateFieldDetails.locator('details').filter({ hasText: 'Render Template Settings' });
 
-	await page.locator('input[name="dateFormat"]').fill('dd.MM.yyyy');
+	if (await dueDateRenderTplSettings.evaluate(el => !el.open)) {
+		await dueDateRenderTplSettings.locator('summary').click();
+	}
+
+	await dueDateFieldDetails.locator('input[name="dateFormat"]').fill('dd.MM.yyyy');
 
 	await page.screenshot({path: 'screenshots/widgets_table-fields.png'});
 

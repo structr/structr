@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.process.bpmn.BpmnHandlerNames;
 import org.structr.process.bpmn.BpmnImporter;
 import org.structr.process.traits.definitions.BpmnBaseNodeTraitDefinition;
 import org.structr.process.traits.definitions.BpmnElementTraitDefinition;
@@ -299,9 +300,24 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 
 	// ----- helpers -----
 
+	/**
+	 * Every SchemaMethod whose AUTHORED name is {@code name}. Handler graph names are scoped
+	 * to (process, version, element), so a query on the bare name would never find them --
+	 * see BpmnHandlerNames.
+	 */
 	private List<NodeInterface> methodsNamed(final String name) throws FrameworkException {
 
-		return app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(name).getAsList();
+		final List<NodeInterface> matching = new ArrayList<>();
+
+		for (final NodeInterface m : app.nodeQuery(StructrTraits.SCHEMA_METHOD).getResultStream()) {
+
+			if (name.equals(BpmnHandlerNames.authoredOf(m.getName()))) {
+
+				matching.add(m);
+			}
+		}
+
+		return matching;
 	}
 
 	private void appendElementMethod(final NodeInterface element, final NodeInterface method) throws FrameworkException {
@@ -317,9 +333,10 @@ public class BpmnMethodRefResolutionTest extends AbstractProcessEngineTest {
 
 		final List<String> names = new ArrayList<>();
 
+		// authored names, so assertions read in the terms the BPMN file uses
 		for (final NodeInterface m : collect(element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.METHODS_PROPERTY)))) {
 
-			names.add(m.getName());
+			names.add(BpmnHandlerNames.authoredOf(m.getName()));
 		}
 
 		return names;

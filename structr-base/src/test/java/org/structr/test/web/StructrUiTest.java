@@ -736,7 +736,11 @@ public abstract class StructrUiTest {
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
-			method.execute(new ActionContext(securityContext), node, NamedArguments.fromMap(parameters));
+			// return the result: without this, a successfully executed method fell through
+			// to the throw below, so every caller passing throwIfNotExists saw a bogus
+			// "not found" and no caller could ever see a return value
+
+			return method.execute(new ActionContext(securityContext), node, NamedArguments.fromMap(parameters));
 		}
 
 		if (throwIfNotExists) {

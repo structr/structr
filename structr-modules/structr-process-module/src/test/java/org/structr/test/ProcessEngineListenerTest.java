@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.process.bpmn.BpmnHandlerNames;
 import org.structr.process.traits.definitions.ProcessInstanceTraitDefinition;
 import org.structr.process.traits.definitions.TaskInstanceTraitDefinition;
 import org.testng.annotations.Test;
@@ -343,7 +344,20 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getFirst();
+			// Look the handler up by its AUTHORED name: the importer scopes handler graph
+			// names to (process, version, element), so a name query would miss it -- see
+			// BpmnHandlerNames.
+			NodeInterface method = null;
+
+			for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).getResultStream()) {
+
+				if (methodName.equals(BpmnHandlerNames.authoredOf(candidate.getName()))) {
+
+					method = candidate;
+					break;
+				}
+			}
+
 			assertNotNull("importer should have created a SchemaMethod named " + methodName, method);
 			method.setProperty(method.getTraits().key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), source);
 			tx.success();

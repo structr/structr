@@ -33,7 +33,11 @@ import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.process.ProcessTraits;
+import org.structr.process.bpmn.BpmnHandlerNames;
 import org.structr.process.engine.ProcessEngine;
 import org.structr.schema.action.ActionContext;
 
@@ -226,6 +230,83 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 				public String getDescription() {
 
 					return "Returns a map of element bpmnId -> number of completed tokens that finished at that element, aggregated across all instances of this process. Powers the editor's finished-instance-count overlay (shown alongside the live/active badge).";
+				}
+			},
+
+			// Create (or rename) a process-listener handler method on this process under a
+			// name scoped to (process, version). The element-level counterpart lives on
+			// BpmnElement; see BpmnHandlerNames for why the editor must not build these
+			// names itself.
+			//
+			// Argument keys:
+			//   name   -> String, the authored handler name (required)
+			//   method -> String UUID of an existing method to rename; omit to create one
+			//
+			// Returns the method's UUID.
+			new JavaMethod("ensureHandlerMethod", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final NodeInterface procNode   = (NodeInterface) entity;
+					final App app                  = StructrApp.getInstance(actionContext.getSecurityContext());
+					final Map<String, Object> args = arguments.toMap();
+					final Object nameArg           = args.get("name");
+					final String authoredName      = (nameArg instanceof String) ? ((String) nameArg).trim() : null;
+
+					if (authoredName == null || authoredName.isEmpty()) {
+
+						throw new FrameworkException(422, "ensureHandlerMethod: 'name' (the authored handler name) is required");
+					}
+
+					final Traits procTraits   = procNode.getTraits();
+					final String processId    = procNode.getProperty(procTraits.key(PROCESS_ID_PROPERTY));
+					final String version      = procNode.getProperty(procTraits.key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY));
+					final String graphName    = BpmnHandlerNames.qualify(authoredName, processId, version, null);
+					final Traits methodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
+					final Object methodArg    = args.get("method");
+					final String methodId     = (methodArg instanceof String) ? ((String) methodArg).trim() : null;
+
+					if (methodId != null && !methodId.isEmpty()) {
+
+						final NodeInterface existing = app.getNodeById(StructrTraits.SCHEMA_METHOD, methodId);
+						if (existing == null) {
+
+							throw new FrameworkException(422, "ensureHandlerMethod: no SchemaMethod found with id " + methodId);
+						}
+
+						existing.setProperty(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), graphName);
+
+						return existing.getUuid();
+					}
+
+					// "ensure": a handler of that scoped name already on this process is
+					// returned as-is rather than duplicated (which would fail uniqueness).
+					final Iterable<NodeInterface> current = procNode.getProperty(procTraits.key(METHODS_PROPERTY));
+					if (current != null) {
+
+						for (final NodeInterface m : current) {
+
+							if (graphName.equals(m.getProperty(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)))) {
+
+								return m.getUuid();
+							}
+						}
+					}
+
+					final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
+
+					method.setProperty(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   graphName);
+					method.setProperty(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),  "");
+					method.setProperty(methodTraits.key(ProcessTraits.SCHEMA_METHOD_BPMN_PROCESS_KEY), procNode);
+
+					return method.getUuid();
+				}
+
+				@Override
+				public String getDescription() {
+
+					return "Create a process-listener handler SchemaMethod on this BpmnProcess, or rename an existing one, using a graph name scoped to (process, version) so the same authored handler name may be used by other processes and versions without colliding. Pass 'name' (the authored name) and optionally 'method' (UUID of an existing method to rename). Returns the method's UUID.";
 				}
 			}
 		);

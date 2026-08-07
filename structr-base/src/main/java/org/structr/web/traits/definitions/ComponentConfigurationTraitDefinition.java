@@ -127,6 +127,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 						componentConfiguration.setProperty(componentTraits.key(DISPLAY_MODE_PROPERTY), "output");
 					}
+
+					componentConfiguration.checkCompatibility();
 				}
 			},
 
@@ -136,8 +138,19 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
+					final Traits traits                                 = componentConfiguration.getTraits();
 
 					componentConfiguration.updateFieldSetForChildren();
+
+					// Validate compatibility only when the properties it depends on (data source, transform)
+					// change -- not on every modification. A cascading delete of the shared component tears
+					// down the component relationship (marking this config modified) but touches neither, so
+					// the delete is not blocked by a stale compatibility check.
+					if (modificationQueue.isPropertyModified(graphObject, traits.key(DATA_SOURCE_PROPERTY))
+						|| modificationQueue.isPropertyModified(graphObject, traits.key(TRANSFORM_PROPERTY))) {
+
+						componentConfiguration.checkCompatibility();
+					}
 				}
 			}
 		);
