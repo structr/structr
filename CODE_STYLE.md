@@ -1,112 +1,102 @@
 # Structr Code Style
 
-The Java house style for Structr. New and changed code should match it, and it's what we look
-for on review. `CONTRIBUTING.md` links here.
+A short guide to how Structr code is written. Most of it is about consistency rather than taste: when
+everything is laid out the same way, a diff shows what actually changed and nothing else.
+`CONTRIBUTING.md` links here.
 
-## Formatting conventions
+## Formatting
 
-Indentation is **tabs**; every source file carries the AGPL header and ends with a single
-trailing newline. No trailing whitespace, and never more than one consecutive blank line.
-Braces are K&R (opening brace at the end of the line) and **every** control statement is
-braced, even a single-statement `if`/`for`. Method and constructor parameters are always
-declared `final`. Lines stay under **200 columns** — a soft ceiling for side-by-side diffs and
-review panes, not the old 80/100 rule; wrap only past it, and break at meaningful boundaries
-(one argument per line, or before each `&&`), never arbitrarily at a column.
+Indent with **tabs**. End every file with a single newline, skip trailing whitespace, and avoid two
+blank lines in a row.
 
-Blank lines are used *semantically* — the spacing is a readability signal, not uniform
-padding — so they cannot be reproduced by an auto-reformatter (see **Tooling** below):
+Each file starts with the license header of its own module. The wording differs between modules, so
+the easiest way to get it right is to copy `<module>/header.txt`, or let `mvn license:format` insert
+it for you.
 
-1. **Method / type bodies:** a blank line after the opening `{` of *every* body — including
-   single-statement getters and delegators. No compact one-liners.
-2. **Assignments group together:** a run of consecutive declarations/assignments has no
-   blank lines between them; the blank goes *after* the group, before the logic begins.
-   **This grouping takes precedence over guard binding (rule 3), always:** a guard that
-   follows a *group* of two or more assignments is separated from it by the group's trailing
-   blank line — the group is never broken open to weld a guard onto its last line. Only a
-   *single* preceding assignment binds a guard with no blank between them.
-3. **Guards bind to the assignment above.** A short check on the variable a line just
-   assigned — a null/empty/blank check (`== null`, `.isEmpty()`, `StringUtils.isBlank(...)`)
-   *or a numeric-sentinel check* (`indexOf(...) < 0`, `== -1`, `size() == 0`, …) — that
-   immediately follows that assignment has **no** blank line between it and the `if`; the
-   check belongs to the line above. (Per rule 2, a *group* of 2+ assignments still wins: its
-   trailing blank separates the guard.) This is only about the blank *before* the `if`; the
-   blank *after* the `{` is still required — see rule 4.
-4. **Every control block gets a blank line after its opening `{`** — `if` (guards included),
-   `for`, `while`, `try`, and the `else`/`catch`/`finally` continuations — and is separated
-   from the surrounding code by a blank line: one before it, one after its closing `}`, and one
-   before each `else`/`catch`/`finally` (which stay cuddled: `} else {`). A guard therefore reads:
-   ```java
-   final Node child = children.item(i);
-   if (child == null) {
+The opening brace goes at the end of the line that starts the block, not on a line of its own, and
+blocks are always braced, even when the body is a single statement:
 
-       continue;
-   }
-   ```
-5. **Returns:** a blank line before *every* `return` — a guard's return already gets it from
-   the blank after its `{` (rule 4). No blank line after a `return` that ends the method, and
-   no compact one-line exits (`if (x == null) { return; }` gets the blank, per rule 4).
+```
+if (child == null) {
 
-Column-aligning assignments is *not* required. `structr-modules/structr-process-module/src/main/java/org/structr/process/bpmn/interop/Xml.java` is a compact reference for all of the above.
+    continue;
+}
+```
 
-## Tooling
+Method and constructor parameters are declared `final`.
 
-No auto-formatter can *produce* the semantic blank-line rules above; opinionated
-reformatters (google-java-format, Palantir, aggressive Eclipse/IntelliJ profiles) will
-actively **destroy** them by normalizing blank lines, so we do not adopt one. Instead:
+Lines can run up to **200 columns**. That is deliberately generous, so that wrapping is something you
+do when a line really is long rather than a habit. When you do wrap, break where it helps the reader:
+one argument per line, or before each `&&`. Aligning assignments into columns is fine but never
+expected.
 
-- **`.editorconfig`** (repo root) — tabs, final newline, trailing-whitespace trim; honored
-  natively by IntelliJ, Eclipse and VS Code.
-- **Checkstyle** (`config/checkstyle/checkstyle.xml`) — the mechanical/structural rules
-  (always-brace, K&R, final parameters, 200-column line length, no trailing whitespace, no double
-  blank lines, one-statement-per-line).
-  Opt-in and non-failing: it does **not** run on a normal build; invoke `mvn -Pcheckstyle
-  checkstyle:check` to get it as **warnings** (`failOnViolation=false`). It cannot express the
-  semantic blank-line rules.
-- **AGPL header** — already enforced by `com.mycila:license-maven-plugin` (`mvn license:check`;
-  `mvn license:format` inserts it). Deliberately not re-checked by Checkstyle, to avoid duplication.
-- **IDE reformat**, if used, must be set to *preserve* blank lines (IntelliJ: "Keep maximum
-  blank lines in code" = 1; do not enable blank-line enforcement).
-- **Semantic linter** (`config/style/StyleLint.java`) — a single-file Java program run via the
-  JDK source launcher (no Python, no build): `java config/style/StyleLint.java --check <paths>`
-  reports, `--fix <paths>` applies (and converges). It *inserts* a blank after every method/type
-  open and every control-block open (`else`/`catch`/`finally` included), before every control block
-  that follows a statement (except a guard bound to the assignment above), after every control
-  block's closing `}` and before every `else`/`catch`/`finally`, after every run of two or more
-  consecutive assignments, and before every `return`; and *removes* stray blanks (a blank between an
-  assignment and its bound guard, blanks that split a run of consecutive assignments, runs of 2+
-  blank lines). It also *joins* a wrapped `&&`/`||` chain or argument list back onto one line when
-  the result fits in 200 columns (R9) — the one rule that edits code rather than blank lines, but a
-  whitespace-only merge guarded against comments, annotations and text blocks, so it still preserves
-  tokens and behaviour (a chain that would still exceed 200 is left wrapped). Not wired into the
-  build; run on demand.
-- **Review-priority scorer** (`config/style/ReviewPriority.java`) — a heuristic *triage* tool (not a gate)
-  that ranks files by likely review value from ~20 signals (cyclomatic/cognitive complexity, long
-  methods, C-style int loops, hand-rolled parsing, excessive switch, should-be-enum string clusters,
-  broad/empty catches, reflection, concurrency, magic numbers, over-long lines, …). Run ad-hoc via the JDK source
-  launcher (no Python, no build): `java config/style/ReviewPriority.java [--top N] [--by SIGNAL]
-  [--main-only] <paths>`. On every build **run from the repo root**, a Maven **lifecycle extension**
-  prints the `[review-priority]` top-list as the **last output — after the reactor summary, on success
-  and failure alike** (it hooks `afterSessionEnd`, the only spot that always runs, and shells out to
-  `ReviewPriority.java`). It always exits cleanly, so it **never fails the build**; `-DskipReviewPriority=true`
-  turns it off, and running `mvn` from a submodule directory simply skips it (never fails). The
-  extension ships **prebuilt and committed** at `.mvn/lib/structr-build-extension.jar`, loaded straight
-  from that path via `.mvn/maven.config` (`-Dmaven.ext.class.path=…`) — so a fresh clone needs **no
-  install, no Nexus, no bootstrap**: the report just appears. Its source is the `structr-build-extension`
-  module; if you change it, refresh the committed jar with
-  `mvn -o -pl structr-build-extension package && cp structr-build-extension/target/structr-build-extension.jar .mvn/lib/`
-  and commit the jar. Reviewed-and-acceptable files are dismissed **in the
-  source file**: put the marker `@review-priority:accept` in any comment with your reason next to it
-  (the tool only checks that the marker string is present — it never reads the reason) and the
-  file drops off the list, in the CLI and the build alike. Remove the marker to un-accept;
-  `--show-accepted` lists what's hidden.
+## Blank lines
 
-- **Test-log reviewer** (`config/testlog/TestLogReview.java`) — triage for a Maven/TestNG log,
-  because a green build hides plenty: exceptions that were logged and swallowed, WARN storms,
-  messages at the wrong level, tests that pass only because a negative case fired. Surefire reports
-  contain none of that. Normalises away timestamps, UUIDs, numbers, tenant ids and paths so hundreds
-  of occurrences of one message collapse to a single counted line, then ranks: logged/swallowed
-  exceptions first (the valuable ones — no test reports them), then errors, warnings by logger,
-  problem phrasings at INFO level, and the slowest classes. Run
-  `mvn … 2>&1 | tee /tmp/run.log && java config/testlog/TestLogReview.java /tmp/run.log`;
-  `--top N`, `--min-count N`, `--section NAME`, `--ignore REGEX` (repeatable, for known-expected
-  noise such as deliberate negative tests). A count is a pointer, not a verdict.
+This is the part that surprises most people, so it is worth reading once. Blank lines are used to
+group code, which means they carry information and no autoformatter can put them back if they are
+lost.
+
+The result is an airy layout, and that is the intention rather than an accident: about a quarter of a
+Structr source file is blank. What it buys is that you can see the shape of a method before you read
+it, which counts for more as the codebase grows. What it costs is lines on screen. So if the spacing
+looks over-generous, it is meant to be, and closing it up file by file mostly makes the code less
+predictable to read.
+
+The pattern is easier to absorb from a file than from a list, and
+`structr-modules/structr-process-module/src/main/java/org/structr/process/bpmn/interop/Xml.java` is a
+good short example. In words:
+
+1. **After an opening `{`.** Every method and type body starts with a blank line, and so does every
+   `if`, `for`, `while`, `try`, `else`, `catch` and `finally`. Yes, this includes one-line getters.
+2. **Assignments stay together.** A run of declarations or assignments has no blank lines inside it.
+   The blank line goes after the run, where the logic begins.
+3. **A check sticks to the line it checks.** When you assign something and immediately test it for
+   null, empty or a sentinel value like `indexOf(...) < 0`, leave no blank line before the `if`,
+   because the check belongs with the assignment above it. If two or more assignments come first,
+   rule 2 wins and the run keeps its trailing blank line.
+4. **Blocks stand alone.** A control block has a blank line before it and after its closing `}`, and
+   `else`, `catch` and `finally` stay on the same line as the brace, as `} else {`.
+5. **Before `return`.** Every `return` has a blank line in front of it, unless it is the first thing
+   in a block and rule 1 already put one there. Nothing follows a `return` that ends a method.
+
+## Naming, imports and layout
+
+Names follow ordinary Java conventions. Most constants use upper snake case, though a good number of
+long-lived objects, such as the entries in `Settings`, use camel case instead, so the practical advice
+is to match the file you are in. A class logger is called `logger` and is the first member of the
+class, with constants, fields, constructors and then methods after it.
+
+Imports put `java.*` and `javax.*` last, after everything else, with static imports at the very
+bottom. Wildcard imports are common in the codebase and there is no campaign to expand them.
+
+## Comments
+
+Comments are where the reasoning lives, so they are worth writing carefully. The useful ones explain
+why the code is the way it is, particularly when that is not the obvious way: the constraint you ran
+into, the bug that motivated it, the simpler approach that turned out not to work. Length is fine when
+the reason is real, and a note like that does far more good next to the code than in a document,
+because it is what keeps someone from quietly removing the odd-looking line next year. What the code
+does is usually best left to the code.
+
+## Tools
+
+Formatters with opinions of their own (google-java-format, Palantir, strict Eclipse or IntelliJ
+profiles) normalise blank lines away, which loses the grouping described above, so we do not use one.
+These help instead:
+
+- **`.editorconfig`** in the repo root sets tabs, the final newline and whitespace trimming. IntelliJ,
+  Eclipse and VS Code all read it without a plugin.
+- **`config/style/StyleLint.java`** takes care of the blank-line rules for you. It is a single Java
+  file, so there is nothing to install: `java config/style/StyleLint.java --check <paths>` lists what
+  it would change and `--fix <paths>` applies it. It also pulls a wrapped condition or argument list
+  back onto one line when it fits, and it only ever moves whitespace around. It is not part of the
+  build, so run it when you feel like it.
+- **Checkstyle** (`config/checkstyle/checkstyle.xml`) covers the mechanical points: braces, final
+  parameters, line length, trailing whitespace, one statement per line. It is opt-in and only ever
+  warns: `mvn -Pcheckstyle checkstyle:check`.
+- **License headers** are checked by `mvn license:check` and inserted by `mvn license:format`.
+- **If you reformat in an IDE**, tell it to leave blank lines alone. In IntelliJ that is "Keep maximum
+  blank lines in code" set to 1, with blank-line enforcement switched off.
+
+Two more reports run on every build and look at the code and the test logs rather than at formatting.
+They are described under **Build reports** in [CONTRIBUTING.md](CONTRIBUTING.md).

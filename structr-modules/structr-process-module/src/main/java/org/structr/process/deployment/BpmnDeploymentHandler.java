@@ -118,9 +118,9 @@ import java.util.TreeMap;
  *     identical and is harmless because a mapping carries no runtime state. It is why an import
  *     report shows them as "created" even when nothing changed.</li>
  * <li>An obsolete design-time node that runtime state still refers to is KEPT rather than
- *     pruned, and reported. A definition instances are still executing outlives its removal
+ *     pruned, and reported. A definition whose instances are still executing outlives its removal
  *     from the application; it disappears once those instances are gone.</li>
- * <li>Pruning runs with {@code doCascadingDelete(false)}. HAS_METHOD is SOURCE_TO_TARGET, so
+ * <li>Pruning runs with {@code doCascadingDelete(false)}. HAS_BPMN_METHOD is SOURCE_TO_TARGET, so
  *     deleting a process or element would otherwise cascade into the handler SchemaMethods
  *     {@code DeployCommand} has just recreated from {@code _globalMethods} -- deleting the
  *     user's handler code as a side effect of importing it.</li>
@@ -511,7 +511,7 @@ public class BpmnDeploymentHandler {
 		context.setDoTransactionNotifications(false);
 		context.setIgnoreMissingNodesInDeserialization(true);
 
-		// HAS_METHOD is SOURCE_TO_TARGET: without this, deleting an obsolete process or element
+		// HAS_BPMN_METHOD is SOURCE_TO_TARGET: without this, deleting an obsolete process or element
 		// would cascade into the handler SchemaMethods DeployCommand has just recreated from
 		// _globalMethods -- deleting the user's handler code as a side effect of importing it.
 		context.setDoCascadingDelete(false);

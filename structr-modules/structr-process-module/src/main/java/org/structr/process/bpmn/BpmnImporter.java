@@ -2539,7 +2539,7 @@ public class BpmnImporter {
 	/**
 	 * Resolve a {@code <structr:methodRef name="..."/>} to exactly one SchemaMethod, or to
 	 * nothing at all. The reference carries only a name (see BpmnExporter#exportMethodRef),
-	 * so resolution has to be strict: HAS_METHOD is One-to-Many, so attaching a method that
+	 * so resolution has to be strict: HAS_BPMN_METHOD is One-to-Many, so attaching a method that
 	 * already belongs to another process/element would silently STEAL it -- ensureCardinality
 	 * drops the previous owner's relationship. The rules are therefore:
 	 *

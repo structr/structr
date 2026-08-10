@@ -279,7 +279,6 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -296,7 +295,6 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -314,7 +312,6 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -332,7 +329,6 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
 	 * Do not auto-create a new user.
 	 *
 	 * @param securityContext
@@ -351,8 +347,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	/**
 	 * Create a new user.
 	 *
-	 * If a {@link PersonTraitDefinition} is found, convert that object to a {@link User} object.
-	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
+	 * If autoCreate is true, create a new user even when no existing object matches.
 	 *
 	 * @param securityContext
 	 * @param credentialKey

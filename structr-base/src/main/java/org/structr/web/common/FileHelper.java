@@ -855,8 +855,8 @@ public class FileHelper {
 	/**
 	 * Create one folder per path item and return the last folder.
 	 *
-	 * F.e.: /a/b/c => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"]
-	 * --HAS_CHILD--> Folder["name":"c"], returns Folder["name":"c"]
+	 * F.e.: /a/b/c => Folder["name":"a"] --CONTAINS--> Folder["name":"b"]
+	 * --CONTAINS--> Folder["name":"c"], returns Folder["name":"c"]
 	 *
 	 * @param securityContext
 	 * @param path

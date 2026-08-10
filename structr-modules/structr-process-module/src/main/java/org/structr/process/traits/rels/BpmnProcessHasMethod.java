@@ -27,10 +27,10 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 /**
- * BpmnProcess -[HAS_METHOD]-> SchemaMethod. Per-process method namespace,
+ * BpmnProcess -[HAS_BPMN_METHOD]-> SchemaMethod. Per-process method namespace,
  * replacing the old per-definitions namespace once the model split lands.
  *
- * <p>HAS_METHOD means ownership, so cascading delete is ON: deleting a process
+ * <p>The relationship means ownership, so cascading delete is ON: deleting a process
  * deletes the methods attached to it, exactly like deleting a type deletes its
  * methods (SchemaNodeMethodDefinition). Without it, every deleted process left
  * its listener handlers behind as free-floating user-defined functions, and a

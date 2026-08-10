@@ -27,7 +27,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 /**
- * BpmnElement -[HAS_METHOD]-> SchemaMethod.
+ * BpmnElement -[HAS_BPMN_METHOD]-> SchemaMethod.
  *
  * <p>Per-element method namespace -- the primary home for code bound to a
  * specific (process, step, event) triple. A BpmnTaskListener carries
