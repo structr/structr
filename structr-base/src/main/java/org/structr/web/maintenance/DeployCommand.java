@@ -222,6 +222,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				// keys are paths: normalized on the way in so every later comparison against a
 				// filesystem path or a node name is a plain string comparison (see DeploymentPaths)
+
 				return new HashMap<>(DeploymentPaths.normalizeKeys(getGson().fromJson(reader, Map.class)));
 
 			} catch (IOException ioex) {
@@ -584,12 +585,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (Throwable t) {
 
 			logger.warn("Deployment export: could not check for detached DOM nodes: {}", t.getMessage());
+
 			return;
 		}
 
 		try {
 
 			if (damaged.isEmpty()) {
+
 				return;
 			}
 
@@ -600,15 +603,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			text.append("Run the <code>detachedNodes</code> maintenance command to repair them, then export again.</div><ul>");
 
 			for (final DetachedNodes.Finding finding : damaged) {
+
 				text.append("<li>").append(finding.describe()).append("</li>");
 			}
 
 			text.append("</ul>");
 
-			logger.warn("Deployment export: {} DOM node(s) belong to no page and are NOT being exported: {}",
-				damaged.size(), DetachedNodes.countByKind(damaged));
+			logger.warn("Deployment export: {} DOM node(s) belong to no page and are NOT being exported: {}", damaged.size(), DetachedNodes.countByKind(damaged));
 
 			for (final DetachedNodes.Finding finding : damaged) {
+
 				logger.warn("  {}", finding.describe());
 			}
 
@@ -923,6 +927,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Folder folder = node.as(Folder.class);
 		final Traits traits                  = Traits.of(StructrTraits.FOLDER);
+
 		// see exportFile: normalized so the directory name matches the manifest key and the cleanup pass
 		final String name                    = DeploymentPaths.normalize(folder.getName());
 		final Path path                      = target.resolve(name);
@@ -976,6 +981,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final File file                      = node.as(File.class);
 		final Map<String, Object> properties = new TreeMap<>();
+
 		// the node name may be decomposed (a file uploaded from macOS is stored that way), so it is
 		// normalized before it becomes a file name: the manifest key below and the cleanup pass are
 		// both NFC, and a file written under the decomposed name would not match either

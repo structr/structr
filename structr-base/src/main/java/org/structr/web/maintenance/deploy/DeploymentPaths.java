@@ -60,6 +60,7 @@ public class DeploymentPaths {
 		for (final String part : parts) {
 
 			if (part != null) {
+
 				buf.append(part);
 			}
 		}
@@ -81,6 +82,7 @@ public class DeploymentPaths {
 	public static Map<String, Object> normalizeKeys(final Map<String, Object> source) {
 
 		if (source == null) {
+
 			return null;
 		}
 
@@ -100,6 +102,7 @@ public class DeploymentPaths {
 	public static List<String> normalizeAll(final List<String> source) {
 
 		if (source == null) {
+
 			return null;
 		}
 

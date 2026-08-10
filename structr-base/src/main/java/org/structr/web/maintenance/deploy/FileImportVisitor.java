@@ -72,7 +72,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		this.folderCache     = new HashMap<>();
 	}
 
-
 	@Override
 	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
 

@@ -1295,6 +1295,7 @@ public class DeployDataCommand extends DeployCommand {
 			try (final Reader reader = Files.newBufferedReader(metadataFile, StandardCharsets.UTF_8)) {
 
 				// entries are paths, normalized like every other manifest (see DeploymentPaths)
+
 				return new ArrayList<>(DeploymentPaths.normalizeAll(getGson().fromJson(reader, ArrayList.class)));
 
 			} catch (IOException ioex) {

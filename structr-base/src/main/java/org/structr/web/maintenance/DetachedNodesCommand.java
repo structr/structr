@@ -59,6 +59,7 @@ public class DetachedNodesCommand extends NodeServiceCommand implements Maintena
 			logger.info("Found {} DOM node(s) without an ownerDocument: {}", findings.size(), DetachedNodes.countByKind(findings));
 
 			for (final DetachedNodes.Finding finding : findings) {
+
 				logger.info("  {}", finding.describe());
 			}
 
@@ -81,32 +82,38 @@ public class DetachedNodesCommand extends NodeServiceCommand implements Maintena
 
 	@Override
 	public boolean requiresEnclosingTransaction() {
+
 		return false;
 	}
 
 	@Override
 	public boolean requiresFlushingOfCaches() {
+
 		return false;
 	}
 
 	// ----- interface Documentable -----
 	@Override
 	public DocumentableType getDocumentableType() {
+
 		return DocumentableType.MaintenanceCommand;
 	}
 
 	@Override
 	public String getName() {
+
 		return "detachedNodes";
 	}
 
 	@Override
 	public String getShortDescription() {
+
 		return "Reports (and optionally repairs) DOM nodes that belong to no page.";
 	}
 
 	@Override
 	public String getLongDescription() {
+
 		return """
         A DOM node that has no ownerDocument still renders, because rendering walks the parent, so the
         application looks healthy. Deployment export walks documents instead - the pages and the
@@ -129,23 +136,25 @@ public class DetachedNodesCommand extends NodeServiceCommand implements Maintena
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"The same repair runs automatically at startup (see MigrationService), so this command is for inspecting an instance or repairing one without restarting it."
-		);
+
+		return List.of("The same repair runs automatically at startup (see MigrationService), so this command is for inspecting an instance or repairing one without restarting it.");
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
+
 		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of();
 	}
 

@@ -552,6 +552,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					 * below is the recursive counterpart to the shallow doAdopt.
 					 */
 					if (page == null) {
+
 						return;
 					}
 
