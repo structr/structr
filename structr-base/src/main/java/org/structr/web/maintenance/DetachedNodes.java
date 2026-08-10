@@ -90,21 +90,20 @@ public class DetachedNodes {
 		for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_NODE).getResultStream()) {
 
 			if (node.is(StructrTraits.PAGE) || node.is(StructrTraits.SHADOW_DOCUMENT)) {
+
 				continue;
 			}
 
 			final DOMNode domNode = node.as(DOMNode.class);
-
 			if (domNode.getOwnerDocument() != null) {
+
 				continue;
 			}
 
 			final Page document = documentOfAncestors(domNode);
-
 			if (document != null) {
 
-				findings.add(new Finding(node.getUuid(), node.getType(), node.getName(), Kind.ADOPTABLE,
-					document.getUuid(), document.getName()));
+				findings.add(new Finding(node.getUuid(), node.getType(), node.getName(), Kind.ADOPTABLE, document.getUuid(), document.getName()));
 
 			} else if (isReferencedMaster(domNode)) {
 
@@ -137,8 +136,8 @@ public class DetachedNodes {
 		for (final Finding finding : findings) {
 
 			final NodeInterface node = app.getNodeById(StructrTraits.DOM_NODE, finding.uuid());
-
 			if (node == null) {
+
 				continue;
 			}
 
@@ -147,8 +146,8 @@ public class DetachedNodes {
 				case ADOPTABLE -> {
 
 					final NodeInterface document = app.getNodeById(StructrTraits.PAGE, finding.documentUuid());
-
 					if (document != null) {
+
 						node.as(DOMNode.class).setOwnerDocument(document.as(Page.class));
 						repaired++;
 					}
@@ -173,10 +172,12 @@ public class DetachedNodes {
 		final Map<Kind, Integer> counts = new LinkedHashMap<>();
 
 		for (final Kind kind : Kind.values()) {
+
 			counts.put(kind, 0);
 		}
 
 		for (final Finding finding : findings) {
+
 			counts.merge(finding.kind(), 1, Integer::sum);
 		}
 
@@ -191,6 +192,7 @@ public class DetachedNodes {
 		for (final Finding finding : findings) {
 
 			if (!Kind.RECYCLE_BIN.equals(finding.kind())) {
+
 				out.add(finding);
 			}
 		}
@@ -206,15 +208,16 @@ public class DetachedNodes {
 		final List<Finding> damaged    = damaged(findings);
 
 		if (damaged.isEmpty()) {
+
 			return 0;
 		}
 
 		final int repaired = repair(app, damaged);
 
-		logger.info("{}: adopted {} DOM node(s) that belonged to no document and would have been missing from a deployment export ({})",
-			context, repaired, countByKind(damaged));
+		logger.info("{}: adopted {} DOM node(s) that belonged to no document and would have been missing from a deployment export ({})", context, repaired, countByKind(damaged));
 
 		for (final Finding finding : damaged) {
+
 			logger.info("  {}", finding.describe());
 		}
 
@@ -238,12 +241,13 @@ public class DetachedNodes {
 
 			// the ancestor IS the document (a Page, or the ShadowDocument holding a component master)
 			if (current.is(StructrTraits.PAGE)) {
+
 				return current.as(Page.class);
 			}
 
 			final Page document = current.getOwnerDocument();
-
 			if (document != null) {
+
 				return document;
 			}
 

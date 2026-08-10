@@ -530,6 +530,7 @@ public class Importer {
 	private static Page documentFor(final NodeInterface parent, final Page page) {
 
 		if (page != null) {
+
 			return page;
 		}
 
@@ -538,8 +539,8 @@ public class Importer {
 		while (current != null) {
 
 			final Page document = current.getOwnerDocument();
-
 			if (document != null) {
+
 				return document;
 			}
 
@@ -780,7 +781,6 @@ public class Importer {
 							   the one that could be created page-less. An ordinary element below is only
 							   created "if (page != null)"; this is the same rule, resolved rather than skipped. */
 							final Page document = documentFor(parent, page);
-
 							if (document == null) {
 
 								logger.warn("Not importing shared component {}: neither the target element nor anything above it belongs to a document, so the instance could only be created page-less (invisible to deployment export).", src);
@@ -879,7 +879,6 @@ public class Importer {
 
 						// same as the structr:template branch: an instance must belong to a document
 						final Page document = documentFor(parent, page);
-
 						if (document == null) {
 
 							logger.warn("Not importing component {}: neither the target element nor anything above it belongs to a document, so the instance could only be created page-less (invisible to deployment export).", src);
