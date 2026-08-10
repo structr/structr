@@ -57,9 +57,15 @@ test('graph', async ({page}, testInfo) => {
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/graph_show-nodes.png'});
 
+	// Sigma reports node positions relative to the canvas, so take the canvas position from the DOM
+	// instead of assuming how tall the toolbar above it is. The previous fixed offset of 128 was the
+	// canvas top when this test was written; once the toolbar became about 20 pixels shorter, every
+	// click landed just below its node and the test failed on the properties dialog never opening,
+	// which looks like a broken dialog rather than a missed click.
+	const canvasBox  = await page.locator('#graph-canvas').boundingBox();
 	const canvasNode = await page.evaluate('_Graph.graphBrowser.getNodes()[0]');
-	const x = parseFloat(canvasNode['renderer1:x']);
-	const y = parseFloat(canvasNode['renderer1:y']) + 128;
+	const x = canvasBox.x + parseFloat(canvasNode['renderer1:x']);
+	const y = canvasBox.y + parseFloat(canvasNode['renderer1:y']);
 
 	// Hover over first node
 	await page.mouse.move(x, y);
