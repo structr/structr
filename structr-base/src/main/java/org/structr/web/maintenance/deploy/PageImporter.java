@@ -61,7 +61,7 @@ public class PageImporter extends HtmlFileImporter {
 
 	public PageImporter(final Path basePath, final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
-		this.pagesConfiguration = pagesConfiguration;
+		this.pagesConfiguration = DeploymentPaths.normalizeKeys(pagesConfiguration);
 		this.securityContext    = SecurityContext.getSuperUserInstance();
 		this.basePath           = basePath;
 		this.app                = StructrApp.getInstance(this.securityContext);
@@ -166,7 +166,9 @@ public class PageImporter extends HtmlFileImporter {
 
 	private void createPage(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String name = StringUtils.substringBeforeLast(fileName, ".html");
+		// NFC: the file name comes from the filesystem, while the pages.json key and the page name
+		// in the database come from Structr, and macOS/git disagree on how to spell an umlaut
+		final String name = DeploymentPaths.normalize(StringUtils.substringBeforeLast(fileName, ".html"));
 
 		try (final Tx tx = app.tx(true, false, false)) {
 

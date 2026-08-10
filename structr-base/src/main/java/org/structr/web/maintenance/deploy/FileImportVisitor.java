@@ -67,10 +67,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		this.securityContext = securityContext;
 		this.basePath        = basePath;
-		this.metadata        = metadata;
+		this.metadata        = DeploymentPaths.normalizeKeys(metadata);
 		this.app             = StructrApp.getInstance(this.securityContext);
 		this.folderCache     = new HashMap<>();
 	}
+
 
 	@Override
 	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
@@ -474,7 +475,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	protected Map<String, Object> getRawPropertiesForFileOrFolder(final String path) throws FrameworkException {
 
-		final Object data = metadata.get(path);
+		// the keys of metadata are normalized in the constructor, so the lookup key must be too
+		final Object data = metadata.get(DeploymentPaths.normalize(path));
 		if (data != null && data instanceof Map) {
 
 			return (Map<String, Object>)data;
@@ -502,24 +504,20 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	}
 
+	/**
+	 * Builds a deployment path from the given parts: separators are harmonized to "/" and the
+	 * result is reduced to Unicode NFC.
+	 *
+	 * Both halves exist for the same reason. A path assembled here is compared against keys that
+	 * came from a manifest or from the database, and the two sides do not necessarily agree on
+	 * how to spell the same name: Windows uses a different separator, and macOS stores an umlaut
+	 * decomposed ("u" plus a combining diaeresis) where Linux and git use the composed character.
+	 * Normalizing here means every caller comparing a filesystem path against stored metadata is
+	 * covered, instead of each one having to remember.
+	 */
 	protected String harmonizeFileSeparators(final String... sources) {
 
-		final StringBuilder buf = new StringBuilder();
-
-		for (final String src : sources) {
-
-			buf.append(src);
-		}
-
-		int pos = buf.indexOf("\\");
-
-		while (pos >= 0) {
-
-			buf.replace(pos, pos+1, "/");
-			pos = buf.indexOf("\\");
-		}
-
-		return buf.toString();
+		return DeploymentPaths.normalize(sources);
 	}
 
 	public class FileImportProblems {

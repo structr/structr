@@ -220,7 +220,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Reader reader = Files.newBufferedReader(metadataFile, StandardCharsets.UTF_8)) {
 
-				return new HashMap<>(getGson().fromJson(reader, Map.class));
+				// keys are paths: normalized on the way in so every later comparison against a
+				// filesystem path or a node name is a plain string comparison (see DeploymentPaths)
+				return new HashMap<>(DeploymentPaths.normalizeKeys(getGson().fromJson(reader, Map.class)));
 
 			} catch (IOException ioex) {
 
@@ -921,7 +923,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Folder folder = node.as(Folder.class);
 		final Traits traits                  = Traits.of(StructrTraits.FOLDER);
-		final String name                    = folder.getName();
+		// see exportFile: normalized so the directory name matches the manifest key and the cleanup pass
+		final String name                    = DeploymentPaths.normalize(folder.getName());
 		final Path path                      = target.resolve(name);
 		final Map<String, Object> properties = new TreeMap<>();
 
@@ -931,7 +934,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!properties.isEmpty()) {
 
-			String folderPath = folder.getPath();
+			// see exportFile: the key is normalized so it survives a git round-trip unchanged
+			final String folderPath = DeploymentPaths.normalize(folder.getPath());
 			config.put(folderPath, properties);
 		}
 
@@ -972,7 +976,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final File file                      = node.as(File.class);
 		final Map<String, Object> properties = new TreeMap<>();
-		final String name                    = file.getName();
+		// the node name may be decomposed (a file uploaded from macOS is stored that way), so it is
+		// normalized before it becomes a file name: the manifest key below and the cleanup pass are
+		// both NFC, and a file written under the decomposed name would not match either
+		final String name                    = DeploymentPaths.normalize(file.getName());
 		Path targetPath                      = target.resolve(name);
 		boolean doExport                     = true;
 
@@ -1001,7 +1008,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!properties.isEmpty()) {
 
-			String filePath = file.getPath();
+			// NFC, so the key matches the name git records for the file it sits next to: git
+			// precomposes decomposed (macOS) names, which would otherwise leave the key and the
+			// exported file disagreeing about the same umlaut once the export is checked out
+			final String filePath = DeploymentPaths.normalize(file.getPath());
 			config.put(filePath, properties);
 		}
 	}
