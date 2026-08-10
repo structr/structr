@@ -77,6 +77,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -219,10 +220,21 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			} catch (Exception ex) {
 
-				// toString(), not getMessage(): these exceptions routinely carry no message, so the
-				// warning read "Exception while stopping Jetty: null" and named neither the type nor
-				// the cause. Stack trace at debug.
-				logger.warn("Exception while stopping Jetty: {}", ex.toString());
+				// A TimeoutException is the graceful shutdown giving up rather than a failure to stop: the
+				// connector reports itself drained only once every connection is gone, so one client holding
+				// an idle keep-alive connection guarantees the timeout, and Jetty then stops anyway. That is
+				// information, not a warning. Test the exception type, not server.isStopped(), because a
+				// throwing doStop() never reaches STOPPED and an isStopped() check picks the wrong branch
+				// every time. toString() because these exceptions often carry no message at all.
+				if (ex instanceof TimeoutException) {
+
+					logger.info("Jetty did not shut down gracefully within {} ms, most likely because clients were still connected; shutdown continues", server.getStopTimeout());
+
+				} else {
+
+					logger.warn("Exception while stopping Jetty: {}", ex.toString());
+				}
+
 				logger.debug("Exception while stopping Jetty", ex);
 			}
 		}
@@ -753,9 +765,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 				httpsActive = false;
 
-				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
-					Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getKey(), Settings.KeystorePath.getKey(), Settings.KeystorePassword.getKey()
-				});
+				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getKey(), Settings.KeystorePath.getKey(), Settings.KeystorePassword.getKey());
 			}
 		}
 
@@ -769,7 +779,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			System.exit(0);
 		}
 
-		server.setStopTimeout(1000);
+		server.setStopTimeout(Settings.HttpServiceStopTimeout.getValue());
 		server.setStopAtShutdown(true);
 
 		setupMaintenanceServer(maintenanceModeActive);
@@ -946,7 +956,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				maintenanceServer.setConnectors(connectors.toArray(new Connector[0]));
 			}
 
-			maintenanceServer.setStopTimeout(1000);
+			maintenanceServer.setStopTimeout(Settings.HttpServiceStopTimeout.getValue());
 			maintenanceServer.setStopAtShutdown(true);
 		}
 	}
@@ -1396,7 +1406,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			} catch (IOException ex) {
 
-				logger.error("Unable to delete directory {}: {}", new Object[]{directoryName, ex.getMessage()});
+				logger.error("Unable to delete directory {}: {}", directoryName, ex.getMessage());
 			}
 
 		} else {

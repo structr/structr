@@ -177,7 +177,9 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 		} catch (Throwable t) {
 
-			logger.error("Unable to decrypt ciphertext. Falling back to previous method. If this works, it is recommended to update the value by re-encrypting it. Cause: {}: {}", t.getClass().getSimpleName(), t.getMessage());
+			// WARN, not ERROR: the fallback below usually succeeds, and a condition the code
+			// recovers from is not an error -- it is a request to re-encrypt the value.
+			logger.warn("Unable to decrypt ciphertext. Falling back to previous method. If this works, it is recommended to update the value by re-encrypting it. Cause: {}: {}", t.getClass().getSimpleName(), t.getMessage());
 
 			return decryptWithKeyHashDeprecated(encryptedText, keyHash);
 		}

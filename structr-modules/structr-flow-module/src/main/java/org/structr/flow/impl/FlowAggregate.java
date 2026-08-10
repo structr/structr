@@ -18,6 +18,8 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
@@ -29,6 +31,8 @@ import org.structr.flow.traits.definitions.FlowAggregateTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 public class FlowAggregate extends FlowDataSource implements DeployableEntity, ThrowingElement {
+
+	private static final Logger logger = LoggerFactory.getLogger(FlowAggregate.class.getName());
 
 	public FlowAggregate(final Traits traits, final NodeInterface wrappedObject) {
 
@@ -43,6 +47,11 @@ public class FlowAggregate extends FlowDataSource implements DeployableEntity, T
 	public final void setScript(final String script) throws FrameworkException {
 
 		wrappedObject.setProperty(traits.key(FlowAggregateTraitDefinition.SCRIPT_PROPERTY), script);
+	}
+
+	public final void setStartValueSource(final FlowDataSource startValueSource) throws FrameworkException {
+
+		wrappedObject.setProperty(traits.key(FlowAggregateTraitDefinition.START_VALUE_PROPERTY), startValueSource);
 	}
 
 	public final FlowDataSource getStartValueSource() {
@@ -77,6 +86,13 @@ public class FlowAggregate extends FlowDataSource implements DeployableEntity, T
 
 				context.setData(getUuid(), result);
 
+			} else {
+
+				// Doing nothing quietly cost a test all of its meaning: with no start value configured this
+				// method returned without running the script, so a FlowForEach loop body made of an
+				// aggregate was a no-op and FlowTest#testFlowForEach could not fail whatever the engine did.
+				logger.warn("FlowAggregate {} did nothing: script, data source and start value are all required (script: {}, data source: {}, start value: {})",
+					getUuid(), _script != null, ds != null, startValue != null);
 			}
 
 		} catch (FrameworkException ex) {

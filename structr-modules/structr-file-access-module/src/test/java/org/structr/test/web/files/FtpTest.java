@@ -165,8 +165,13 @@ public abstract class FtpTest extends StructrFileTestBase {
 				logger.error("Unable to create FTP user", fex);
 			}
 
+			// A NullPointerException from org.apache.ftpserver in the log around here is EXPECTED and is not
+			// ours: DefaultFtpStatistics.setLogout() looks the session's user up in a ConcurrentHashMap, and
+			// when a session closes that never logged in the user is null, which that map rejects. The whole
+			// stack is ftpserver + mina, with no Structr frame, and the only casualty is a logout statistic.
+			// ftpserver-core 1.1.1; nothing to fix on this side.
 			boolean loginSuccess = ftp.login(username, password);
-			logger.info("Tried to login as {}/{}: {}", new Object[]{ username, password, loginSuccess});
+			logger.info("Tried to login as {}/{}: {}", username, password, loginSuccess);
 			assertTrue(loginSuccess);
 
 			reply = ftp.getReplyCode();

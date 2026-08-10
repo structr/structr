@@ -29,6 +29,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.flow.engine.FlowError;
 import org.structr.flow.impl.*;
 import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
 import org.structr.flow.traits.definitions.FlowTypeQueryTraitDefinition;
@@ -107,7 +108,12 @@ public class FlowTest extends StructrUiTest {
 			container.setStartNode(forEach);
 
 			FlowDataSource ds = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
-			ds.setQuery("{return [1,2,3,4,5];}");
+
+			// No top-level "return": Settings.WrapJSInMainFunction defaults to false, so a JS snippet is
+			// not wrapped in a function and "return [1,2,3,4,5];" is a SyntaxError. It was one -- the data
+			// source failed, the loop body therefore never ran, and the scoping check below could not fire.
+			// The test passed for years without testing anything.
+			ds.setQuery("{[1,2,3,4,5]}");
 			ds.setFlowContainer(container);
 			forEach.setDataSource(ds);
 
@@ -115,13 +121,24 @@ public class FlowTest extends StructrUiTest {
 			ds2.setQuery("now");
 			ds2.setFlowContainer(container);
 
+			// FlowAggregate.aggregate() requires a script, a data source AND a start value; with any of them
+			// missing it returned silently, which is why this loop body never ran a single time.
+			FlowDataSource startValue = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
+			startValue.setQuery("0");
+			startValue.setFlowContainer(container);
+
 			FlowAggregate agg = app.create(StructrTraits.FLOW_AGGREGATE).as(FlowAggregate.class);
 			agg.setFlowContainer(container);
 			agg.setDataSource(ds2);
+			agg.setStartValueSource(startValue);
 			agg.setScript("{let data = $.get('data'); let currentData = $.get('currentData'); if (data === currentData || $.empty(currentData)) { throw 'ForEach scoping problem! Values should not be the same.' } }");
 			forEach.setLoopBody(agg);
 
-			container.evaluate(securityContext, new HashMap<>());
+			// evaluate() RETURNS the FlowError when a flow fails and otherwise only logs it, so discarding
+			// the return value is what let a broken flow count as a passing test.
+			final Object result = container.evaluate(securityContext, new HashMap<>());
+
+			assertFalse("flow must not fail: " + result, result instanceof FlowError);
 
 			tx.success();
 
@@ -479,7 +496,9 @@ public class FlowTest extends StructrUiTest {
 			flowLog.setScript("'FlowLog start node is working.'");
 			container.setStartNode(flowLog);
 
-			container.evaluate(securityContext, new HashMap<>());
+			final Object result = container.evaluate(securityContext, new HashMap<>());
+
+			assertFalse("flow must not fail: " + result, result instanceof FlowError);
 
 			tx.success();
 
