@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Registers ReviewPriorityReporter as a Maven lifecycle participant. A Plexus component descriptor is
+  Registers the two end-of-build reporters as Maven lifecycle participants. Maven does not define their
+  relative order and it cannot be set here (swapping these entries was tried and changed nothing), so
+  each report is self-contained and labelled, and neither relies on being the last thing printed.
+
+  Careful with prose in here: a double hyphen is illegal inside an XML comment, and a malformed
+  descriptor makes this extension fail to load, which silently removes BOTH reports from every build. A Plexus component descriptor is
   the most reliable way to expose a component from a core (.mvn/extensions.xml) extension realm;
   the Sisu @Named index is not consistently scanned for these realms.
 -->
@@ -8,8 +13,13 @@
 	<components>
 		<component>
 			<role>org.apache.maven.AbstractMavenLifecycleParticipant</role>
-			<role-hint>structr-review-priority</role-hint>
-			<implementation>org.structr.build.ReviewPriorityReporter</implementation>
+			<role-hint>structr-test-log</role-hint>
+			<implementation>org.structr.build.TestLogReporter</implementation>
+		</component>
+		<component>
+			<role>org.apache.maven.AbstractMavenLifecycleParticipant</role>
+			<role-hint>structr-code-quality</role-hint>
+			<implementation>org.structr.build.CodeQualityReporter</implementation>
 		</component>
 	</components>
 </component-set>

@@ -62,3 +62,7 @@ neo4j*/
 
 # files and folders created during test execution
 structr-modules/structr-file-access-module/structr_hostkey
+
+# JVM crash dumps: absolute paths, command lines and memory maps, never committed
+hs_err_pid*.log
+replay_pid*.log

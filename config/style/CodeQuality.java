@@ -31,7 +31,7 @@ import java.util.stream.*;
  * are excluded from scoring, so test-method bodies don't skew the metrics.
  *
  * Single-file program; runs with the JDK source launcher (no build, no dependencies, no Python):
- *     java config/style/ReviewPriority.java [--top N] [--min SCORE] [--by SIGNAL] [--main-only] [--summary] [--detail N] [paths...]
+ *     java config/style/CodeQuality.java [--top N] [--min SCORE] [--by SIGNAL] [--main-only] [--summary] [--detail N] [paths...]
  *
  * Files scoring below --min (default 1 — i.e. any file with zero findings is dropped) are omitted
  * from both the ranking and the counts; raise it (e.g. --min 20) to see only the noisier files.
@@ -45,27 +45,27 @@ import java.util.stream.*;
  * With no path it scans the current directory. The Maven build invokes it with --summary
  * --main-only over the repo (non-failing; see the root pom).
  *
- * Accepting a flagged file ("I reviewed it, it's fine"): put the marker  @review-priority:accept
+ * Accepting a flagged file ("I reviewed it, it's fine"): put the marker  @code-quality:accept
  * anywhere in the file, in any comment style, with your reason written next to it. The tool only
  * checks that the marker string is present -- it never reads the reason -- and drops the file from
  * the ranking. Remove the marker to un-accept. List the accepted files with --show-accepted.
  */
-public class ReviewPriority {
+public class CodeQuality {
 
-	// @review-priority:accept -- this analyzer is regex-heavy, prints its results to stdout, and wraps
+	// @code-quality:accept -- this analyzer is regex-heavy, prints its results to stdout, and wraps
 	// everything in a broad catch BY DESIGN (it is a regex scanner + a CLI that must never fail the
 	// build). Those signals are its nature, not defects to refactor; see the class documentation.
 
 	// Built by concatenation so the tool does not match its own detection code -- only an intentional
 	// marker (like the one above) accepts a file.
-	static final String ACCEPT_MARKER = "@review-priority" + ":accept";
+	static final String ACCEPT_MARKER = "@code-quality" + ":accept";
 
 	/**
 	 * Label for the build-summary lines. Deliberately NOT on Maven's severity axis
 	 * (INFO/WARNING/ERROR): this report prioritises, it does not judge, so it is printed in
 	 * magenta rather than the yellow or red that would imply something is wrong.
 	 */
-	static final String LABEL = "review-priority";
+	static final String LABEL = "code-quality";
 
 	static final String MAGENTA = "\u001B[95m";
 	static final String BOLD    = "\u001B[1m";
@@ -91,7 +91,7 @@ public class ReviewPriority {
 		return System.console() != null;
 	}
 
-	/** The "[review-priority]" prefix every summary line carries, coloured when enabled. */
+	/** The "[code-quality]" prefix every summary line carries, coloured when enabled. */
 	static String prefix() {
 
 		return color ? MAGENTA + "[" + LABEL + "]" + RESET : "[" + LABEL + "]";
@@ -794,14 +794,14 @@ public class ReviewPriority {
 			System.err.println("error: " + err);
 		}
 
-		System.out.println("usage: java config/style/ReviewPriority.java [options] [paths...]");
+		System.out.println("usage: java config/style/CodeQuality.java [options] [paths...]");
 		System.out.println("  --top N          keep the top N rows in the CLI table (default 25)");
 		System.out.println("  --min SCORE      omit files scoring below SCORE (default 1; score 0 = no findings)");
 		System.out.println("  --by SIGNAL      rank by one signal's count instead of the composite score");
 		System.out.println("  --detail N       list every finding in the file at ranking position N");
 		System.out.println("  --main-only      scan only src/main (skip test sources)");
 		System.out.println("  --summary        one line per file, [" + LABEL + "]-prefixed (used by the build)");
-		System.out.println("  --show-accepted  include @review-priority:accept files in the listing");
+		System.out.println("  --show-accepted  include @code-quality:accept files in the listing");
 		System.out.println("  --color MODE     always | never | auto (default auto: only on a terminal)");
 		System.out.println("  --help, -h       show this help");
 		System.out.println("  paths...         files or directories to scan (default: current directory)");
