@@ -716,7 +716,10 @@ public class UiAuthenticator implements Authenticator {
 
 			if (accessToken != null) {
 
-				logger.debug("Got access token {}", accessToken);
+				// The token itself is NOT logged: OAuth2AccessToken.toString() includes the raw access and
+				// refresh tokens, so turning debug on to troubleshoot a provider would write live
+				// credentials into the log. Scope and lifetime are what one actually needs to see here.
+				logger.debug("Got access token, scope {}, expires in {}s", accessToken.getScope(), accessToken.getExpiresIn());
 
 				String value = oAuth2Client.getClientCredentials(accessToken);
 

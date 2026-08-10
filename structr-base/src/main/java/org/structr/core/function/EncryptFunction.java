@@ -143,4 +143,13 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 
 		return FunctionCategory.InputOutput;
 	}
+
+	/**
+	 * The value and the optional key are credentials, and a parameter error would otherwise write them into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

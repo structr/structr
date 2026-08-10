@@ -161,4 +161,13 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 		return FunctionCategory.Security;
 	}
+
+	/**
+	 * The token is a credential, and a parameter error would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

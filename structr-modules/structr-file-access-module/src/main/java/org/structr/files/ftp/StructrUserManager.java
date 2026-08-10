@@ -174,7 +174,11 @@ public class StructrUserManager implements UserManager {
 
 			} catch (FrameworkException ex) {
 
-				logger.warn("FTP authentication attempt failed with username {} and password {}", userName, password);
+				// The password is deliberately NOT logged. A failed attempt is where a user has just
+				// mistyped something -- very often a real password, sometimes one belonging to another
+				// account entirely -- so logging it puts live credentials into server.log, where they
+				// outlive the session and are readable by anyone who can read the log.
+				logger.warn("FTP authentication attempt failed for username {}: {}", userName, ex.getMessage());
 			}
 
 			if (user != null) {

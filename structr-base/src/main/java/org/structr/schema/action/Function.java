@@ -181,7 +181,32 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
 
-		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getDisplayName(false), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
+		logger.warn("{}: {} '{}'. Parameters: {}. {}", getDisplayName(false), message, caller, parametersForLog(parameters), usage(inJavaScriptContext));
+	}
+
+	/**
+	 * Whether this function's argument VALUES may be written to the log. Argument values are valuable
+	 * when debugging a script, so they are logged by default -- but for a function whose argument is
+	 * itself a credential, a wrong parameter count would write that credential into the server log,
+	 * where it outlives the request and is readable by anyone with the log. Such functions override
+	 * this and return true; a real JWT was found in a test log exactly this way.
+	 *
+	 * @return true if the values must be kept out of the log
+	 */
+	protected boolean redactParameters() {
+
+		return false;
+	}
+
+	/** Argument values for a log message, or their count alone when they are credentials. */
+	protected String parametersForLog(final Object[] parameters) {
+
+		if (!redactParameters()) {
+
+			return getParametersAsString(parameters);
+		}
+
+		return "[" + ((parameters != null) ? parameters.length : 0) + " parameter(s), not logged because they are credentials]";
 	}
 
 	/**
@@ -193,7 +218,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 */
 	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
 
-		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getDisplayName(false), caller, getParametersAsString(parameters) });
+		logException(t, "{}: Exception in '{}' for parameters: {}", getDisplayName(false), caller, parametersForLog(parameters));
 	}
 
 	/**
@@ -203,12 +228,12 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param msg The message to be printed
 	 * @param messageParams The parameters for the message
 	 */
-	protected void logException (final Throwable t, final String msg, final Object[] messageParams) {
+	protected void logException (final Throwable t, final String msg, final Object... messageParams) {
 
 		logException(logger, t, msg, messageParams);
 	}
 
-	public static void logException (final Logger l, final Throwable t, final String msg, final Object[] messageParams) {
+	public static void logException (final Logger l, final Throwable t, final String msg, final Object... messageParams) {
 
 		if (Settings.LogFunctionsStackTrace.getValue()) {
 
@@ -453,11 +478,14 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		} catch (NumberFormatException nfe) {
 
-			logger.error("{}: Exception parsing '{}'", new Object[] { getDisplayName(false), obj });
+			// WARN, not ERROR: num('abc') on user input is an everyday scripting situation, and this method
+			// recovers by returning null for the script to handle. A condition the code recovers from is
+			// not an error.
+			logger.warn("{}: Exception parsing '{}'", getDisplayName(false), obj);
 
 		} catch (Throwable t) {
 
-			logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(false), obj });
+			logException(t, "{}: Exception parsing '{}'", getDisplayName(false), obj);
 		}
 
 		return null;
@@ -562,7 +590,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(false), obj });
+				logException(t, "{}: Exception parsing '{}'", getDisplayName(false), obj);
 			}
 		}
 

@@ -144,4 +144,13 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 		return FunctionCategory.Security;
 	}
+
+	/**
+	 * The password is a credential, and a parameter error would otherwise write it into the server log.
+	 */
+	@Override
+	protected boolean redactParameters() {
+
+		return true;
+	}
 }

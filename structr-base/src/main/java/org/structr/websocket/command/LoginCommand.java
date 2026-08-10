@@ -111,7 +111,7 @@ public class LoginCommand extends AbstractCommand {
 						String sessionId = webSocketData.getSessionId();
 						if (sessionId == null) {
 
-							logger.debug("Unable to login {}: No sessionId found", username, password);
+							logger.debug("Unable to login {}: No sessionId found", username);
 							getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 						} else {
@@ -123,7 +123,7 @@ public class LoginCommand extends AbstractCommand {
 
 							if (!user.addSessionId(sessionId)) {
 
-								logger.debug("Unable to login {}: Unable to add new sessionId", username, password);
+								logger.debug("Unable to login {}: Unable to add new sessionId", username);
 								getWebSocket().send(MessageBuilder.status().code(403).data("reason", "sessionLimitExceeded").build(), true);
 
 							} else {
