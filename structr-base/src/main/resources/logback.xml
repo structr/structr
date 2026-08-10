@@ -3,6 +3,13 @@
 
 	<conversionRule conversionWord="prefixedEx" converterClass="org.structr.logging.PrefixingThrowableConverter" />
 
+	<!--
+		%X{test} names the test that wrote a line and is always empty in a running server, so the
+		server log is unchanged. It is here because only structr-base has its own test logback.xml:
+		the other modules' tests take this configuration off the classpath, and their log output has
+		to be attributable too. See org.structr.test.common.TestContextListener.
+	-->
+
 	<appender name="SERVERLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${LOG_FILE:-logs/server.log}</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -11,12 +18,12 @@
 			<totalSizeCap>1GB</totalSizeCap>
 		</rollingPolicy>
 		<encoder>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
 		</encoder>
 	</appender>
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
 		</encoder>
 	</appender>
 	<appender name="REQUESTLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">

@@ -1,0 +1,525 @@
+# structr test-log baseline; written from a run considered clean
+# written    2026-08-10
+# from       run-b.log, 1596 test(s) in 17 module(s), build SUCCESS
+# runtime    Oracle Corporation 25.0.3
+# origin     a developer machine (regenerate on CI: a laptop bakes in its JDK version and locale)
+# kind<TAB>count<TAB>signature
+error	1	org.structr.core.script.Scripting       test:1:1: FrameworkException(422): Cannot parse input for property 'test' ErrorTokens: Test.test error must_be_numerical
+error	2	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): base64decode(): Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)
+error	2	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): base64decode(): Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.
+error	2	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): base64decode(): Unsupported charset WRONG_CHARSET (WRONG_CHARSET)
+error	2	org.structr.core.function.Functions     Unable to decrypt ciphertext: IllegalBlockSizeException: Input length must be multiple of 16 when decrypting with padded cipher
+error	1	org.structr.core.script.Scripting       test2:1:1: FrameworkException(422): dateFormat(value, pattern): dateFormat(value, pattern): Pattern must not be null: [Mon Aug 10 09:34:51 UTC <n>, null]: [Mon Aug 10 09:34:51 UTC <n>, null] (dateFormat(value, pattern): Pattern must not be null: [Mon Aug 10 09:34:51 UTC <n>, null])
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): enumInfo(): Unknown type 'DoesNotExist'.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): enumInfo(): Unknown property 'Test.doesNotExist'.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): enumInfo(): Not an Enum property 'Test.notAnEnum'
+error	1	org.structr.core.script.Scripting       test_2b:1:1: FrameworkException(422): appendContent(): Content must be of type String, byte[] or InputStream. Found: Date
+error	1	org.structr.core.script.Scripting       test_3b:1:1: FrameworkException(422): setContent(): Content must be of type String, byte[] or InputStream. Found: Date
+error	1	org.structr.core.script.Scripting       test:1:1: FrameworkException(422): functionInfo(): Unknown type 'DoesNotExist'.
+error	1	org.structr.core.script.Scripting       test:1:1: FrameworkException(422): functionInfo(): Unknown function 'Test' for type 'wrongName'.
+error	1	org.structr.core.script.Scripting       test:1:1: FrameworkException(422): functionInfo(): Expected 0 or 2 arguments but got 1.
+error	1	org.structr.core.script.Scripting       AbstractNode[<id>]:script source:1:1: FrameworkException(422): Cannot parse input for property 'anInt' ErrorTokens: TestOne.anInt NOT_AN_INTEGER must_be_numerical
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): Unknown key `doesNotExist`
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): getRelationshipTypes(): Parameter 'node' is not a node. Input: DoesNotExist
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): getRelationshipTypes(): Parameter 'lookupType' invalid. Input: INVALID_LOOKUP_TYPE
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): getRelationshipTypes(): Parameter 'direction' invalid. Input: INVALID_DIRECTION
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): inheritingTypes(): Unknown type 'DoesNotExist'.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): ancestorTypes(): Unknown type 'DoesNotExist'.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): inheritingTypes(): Not applicable to service class 'SomeServiceClass'.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): ancestorTypes(): Not applicable to service class 'SomeServiceClass'.
+error	4	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): inheritingTypes(): Expected 'blacklist' parameter to be a collection.
+error	4	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): ancestorTypes(): Expected 'blacklist' parameter to be a collection.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): propertyInfo(): Unknown type 'DoesNotExist'.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): propertyInfo(): Unknown property 'Group.DoesNotExist'.
+error	1	org.structr.core.script.Scripting       testSetAndGetOfValuesForUnknownKeys:1:1: FrameworkException(422): Cannot get value for unknown key 'does_not_exist' on type 'User' (unknown keys are not allowed)
+error	2	org.structr.core.script.Scripting       testSetAndGetOfValuesForUnknownKeys:1:1: FrameworkException(422): Cannot set value for unknown key 'does_not_exist' on type 'User' (unknown keys are not allowed)
+error	1	org.structr.core.script.Scripting       AbstractNode[<id>]:doTest04:1:1: FrameworkException(422): Cannot parse input for property ‛testEnum‛ ErrorTokens: TestSource.testEnum must_be_one_of OPEN, CLOSED, TEST
+error	1	org.structr.core.script.Scripting       test:1:46: TypeError: invokeMember (doStaticTest) on AbstractNode(<id>) failed due to: Message not supported.
+error	1	org.structr.core.script.Scripting       doDynamicTest:1:2: TypeError: invokeMember (doDynamicTest) on org.structr.core.script.polyglot.wrappers.StaticTypeWrapper@<id> failed due to: Unknown identifier: doDynamicTest
+error	1	org.structr.core.script.Scripting       doStaticTestWithThis[static]:doStaticTestWithThis:1:17: TypeError: Cannot read property 'type' of null
+error	1	org.structr.core.script.Scripting       doStaticTestWithThis:1:17: TypeError: Cannot read property 'type' of null
+error	1	org.structr.core.script.Scripting       doStaticTest:1:2: TypeError: $.StaticMethodTest.doStaticTest is not a function
+error	1	org.structr.core.script.Scripting       test1[static]:test1:1:40: TypeError: map.set is not a function
+error	1	org.structr.core.script.Scripting       test1:1:40: TypeError: map.set is not a function
+error	1	org.structr.core.script.Scripting       test3[static]:test3:1:43: TypeError: map.set is not a function
+error	1	org.structr.core.script.Scripting       test1:1:43: TypeError: map.set is not a function
+error	1	o.s.c.s.p.f.DoInNewTransactionFunction  Error in doInNewTransaction(): org.structr.api.NotFoundException: Node with ID <n> not found.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): typeInfo(): Unknown type 'DoesNotExist'.
+error	1	org.structr.core.script.Scripting       test1:1:1: FrameworkException(422): typeInfo(): Unknown view 'doesNotExist' for type 'Group'.
+error	1	org.structr.core.script.Scripting       AbstractNode[<id>]:script source:1:2: Invalid expression: mismatched closing bracket after this.alwaysNull.size
+error	1	org.structr.core.script.Scripting       globalTest1[static]:globalTest1:1:1: FrameworkException(422): Server-side scripting error ErrorTokens: Test.test test_error errorrr
+error	1	org.structr.core.script.Scripting       AbstractNode[<id>]:doTest:1:1: Assertion failed.
+error	1	o.structr.web.servlet.UploadServlet     FrameworkException(422): Server-side scripting error ErrorTokens: File.something forbidden nope
+error	1	o.structr.web.servlet.UploadServlet     FrameworkException(422): Additional file properties found which are not allowed to be set during upload: '[isTemplate]'. Only custom properties and the following properties may be set: '[parentId, name, type, visibleToPublicUsers, parent, visibleToAuthenticatedUsers]'
+error	22	o.structr.web.servlet.UploadServlet     FrameworkException(404): Upload folder not found: <id>
+error	6	o.structr.web.servlet.UploadServlet     FrameworkException(403): User is not allowed to write to given folder.
+error	9	o.structr.web.servlet.UploadServlet     FrameworkException(403): Using the 'uploadFolderPath' parameter is only allowed for authenticated users. Furthermore it is only allowed for paths underneath the configured default upload folder (or the users home directory, if that feature is enabled). Usually it is preferred to use the parameter "parent=FOLDER_UUID" to point to a specific folder.
+error	1	o.structr.web.servlet.ProxyServlet      Authorization required in 'protected' mode
+error	1	o.structr.web.servlet.ProxyServlet      Exception while processing request
+error	1	o.s.f.t.d.DataFeedTraitDefinition       Error while trying to read feed at 'url1' (<id>)
+error	2	o.a.ftpserver.impl.DefaultFtpHandler    Exception caught, closing session
+error	1	org.structr.core.script.Scripting       AbstractNode[<id>]:vetoComplete__bpmn__Process_ListenerVeto_v1_Task_1[static]:taskListener:1:1: Error: veto: not allowed
+error	2	org.structr.core.script.Scripting       conditionExpression:1:1: ReferenceError: approved is not defined
+error	1	org.structr.core.script.Scripting       conditionExpression:1:1: ReferenceError: branchA is not defined
+error	1	org.structr.core.script.Scripting       conditionExpression:1:1: ReferenceError: branchB is not defined
+error	1	org.structr.core.script.Scripting       automaticTask:1:1: Error: boom
+error	1	org.structr.core.script.Scripting       conditionExpression:1:1: ReferenceError: reviewNonExistentFunction is not defined
+error	1	o.structr.process.bpmn.BpmnImporter     Error importing BPMN XML
+error	1	org.structr.core.script.Scripting       script source:1:1: FrameworkException(422): Could not translate text: Hello World! -- Deepl API Response: {"message":"Forbidden. You can find more info in our docs: https:/<path>"}
+error	2	org.structr.core.script.Scripting       script source:1:1: FrameworkException(422): DeepL Translation API Key not configured in structr.conf
+error	1	org.structr.core.script.Scripting       script source:1:1: FrameworkException(422): Could not translate text: Hello World! -- Google API Response: API key not valid. Please pass a valid API key.
+error	2	org.structr.core.script.Scripting       script source:1:1: FrameworkException(422): Google Cloud Translation API Key not configured in structr.conf
+error	1	org.structr.core.script.Scripting       script source:1:1: FrameworkException(422): Unknown translation provider - possible values are 'google' and 'deepl'.
+warning	172	[jvm]                                   A terminally deprecated method in sun.misc.Unsafe has been called
+warning	1	[jvm]                                   sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:<path>)
+warning	1	[jvm]                                   Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+warning	3	[jvm]                                   sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+warning	1	[maven]                                 The project org.structr:structr:pom:7.0-SNAPSHOT uses prerequisites which is only intended for maven-plugin projects but not for non maven-plugin projects. For such purposes you should use the maven-enforcer-plugin. See https:/<path>
+warning	1	[maven]                                 * Required filename-based automodules detected: [flexmark-0.64.8.jar, flexmark-profile-pegdown-0.64.8.jar, flexmark-util-ast-0.64.8.jar, flexmark-util-collection-0.64.8.jar, flexmark-util-data-0.64.8.jar, flexmark-util-misc-0.64.8.jar, flexmark-util-sequence-0.64.8.jar]. Please don't publish this project to a public artifact repository! *
+warning	1	[maven]                                 <path>:[194,100] org.neo4j.driver.reactive.RxSession in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[226,103] org.neo4j.driver.reactive.RxSession in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[260,94] rxSession(org.neo4j.driver.SessionConfig) in org.neo4j.driver.Driver ist veraltet
+warning	1	[maven]                                 <path>:[264,91] asyncSession() in org.neo4j.driver.Driver ist veraltet
+warning	1	[maven]                                 <path>:[147,47] id() in org.neo4j.driver.types.Entity ist veraltet
+warning	1	[maven]                                 <path>:[165,71] id() in org.neo4j.driver.types.Entity ist veraltet
+warning	1	[maven]                                 <path>:[447,102] id() in org.neo4j.driver.types.Entity ist veraltet
+warning	1	[maven]                                 <path>:[517,102] id() in org.neo4j.driver.types.Entity ist veraltet
+warning	1	[maven]                                 <path>:[593,90] startNodeId() in org.neo4j.driver.types.Relationship ist veraltet
+warning	1	[maven]                                 <path>:[594,90] endNodeId() in org.neo4j.driver.types.Relationship ist veraltet
+warning	1	[maven]                                 <path>:[724,140] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[728,117] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[733,90] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[42,56] id() in org.neo4j.driver.types.Entity ist veraltet
+warning	1	[maven]                                 <path>:[44,39] id() in org.neo4j.driver.types.Entity ist veraltet
+warning	1	[maven]                                 <path>:[39,49] startNodeId() in org.neo4j.driver.types.Relationship ist veraltet
+warning	1	[maven]                                 <path>:[40,49] endNodeId() in org.neo4j.driver.types.Relationship ist veraltet
+warning	1	[maven]                                 <path>:[44,64] id() in org.neo4j.driver.types.Entity ist veraltet
+warning	3	[maven]                                 <path>:[45,17] org.neo4j.driver.reactive.RxSession in org.neo4j.driver.reactive ist veraltet
+warning	3	[maven]                                 <path>:[46,17] org.neo4j.driver.reactive.RxTransaction in org.neo4j.driver.reactive ist veraltet
+warning	3	[maven]                                 <path>:[50,79] org.neo4j.driver.reactive.RxSession in org.neo4j.driver.reactive ist veraltet
+warning	3	[maven]                                 <path>:[59,79] org.neo4j.driver.reactive.RxSession in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[192,31] org.neo4j.driver.reactive.RxResult in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[235,31] org.neo4j.driver.reactive.RxResult in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[283,31] org.neo4j.driver.reactive.RxResult in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[331,31] org.neo4j.driver.reactive.RxResult in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[462,31] org.neo4j.driver.reactive.RxResult in org.neo4j.driver.reactive ist veraltet
+warning	1	[maven]                                 <path>:[414,140] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[418,117] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[423,90] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[55,77] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 * Required filename-based automodules detected: [rest-assured-5.4.0.jar, urlrewritefilter-5.1.3.jar, commons-collections-3.2.2.jar, jwks-rsa-0.23.0.jar, simpleclient-0.16.0.jar, simpleclient_servlet_jakarta-0.16.0.jar, simpleclient_hotspot-0.16.0.jar, metadata-extractor-2.18.0.jar, diff-match-patch-1.1.jar, flexmark-0.64.8.jar, flexmark-profile-pegdown-0.64.8.jar, flexmark-util-ast-0.64.8.jar, flexmark-util-collection-0.64.8.jar, flexmark-util-data-0.64.8.jar, flexmark-util-misc-0.64.8.jar, flexmark-util-sequence-0.64.8.jar, textile-j-2.2.jar, scribejava-apis-8.3.1.jar, scribejava-core-8.3.1.jar, jmimemagic-0.1.5.jar, zero-allocation-hashing-0.8.jar, zip4j-2.11.5.jar, cssparser-0.9.28.jar, sac-1.3.jar, jgroups-kubernetes-2.0.1.Final.jar, jgroups-5.2.2.Final.jar]. Please don't publish this project to a public artifact repository! *
+warning	1	[maven]                                 <path>:[531,144] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[177,43] removeEnd(java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[200,32] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[188,32] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[191,40] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[199,40] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[206,60] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[897,32] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[897,81] endsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[313,40] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[107,64] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[97,56] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[74,62] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[37,24] org.apache.commons.lang3.text.WordUtils in org.apache.commons.lang3.text ist veraltet
+warning	1	[maven]                                 <path>:[73,67] org.apache.commons.lang3.text.WordUtils in org.apache.commons.lang3.text ist veraltet
+warning	1	[maven]                                 <path>:[40,35] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[45,35] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	2	[maven]                                 <path>:[<n>,66] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[61,62] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[364,90] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[375,56] JsonParser() in com.google.gson.JsonParser ist veraltet
+warning	1	[maven]                                 <path>:[516,71] parse(java.lang.String) in com.google.gson.JsonParser ist veraltet
+warning	5	[maven]                                 <path>:[55,32] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[57,57] randomAlphanumeric(int) in org.apache.commons.lang3.RandomStringUtils ist veraltet
+warning	1	[maven]                                 <path>:[77,59] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[91,51] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[133,58] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[183,35] getId() in java.lang.Thread ist veraltet
+warning	1	[maven]                                 <path>:[74,59] containsIgnoreCase(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[144,127] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[148,127] endsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[152,127] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[156,127] startsWithIgnoreCase(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[160,127] endsWithIgnoreCase(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[164,127] containsIgnoreCase(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[137,60] replaceOnce(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[55,66] getDate() in java.util.Date ist veraltet
+warning	1	[maven]                                 <path>:[57,21] setHours(int) in java.util.Date ist veraltet
+warning	1	[maven]                                 <path>:[62,21] setDate(int) in java.util.Date ist veraltet
+warning	1	[maven]                                 <path>:[135,122] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[135,102] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[100,105] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[102,98] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[179,73] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[269,32] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[158,63] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[161,55] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[532,63] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[532,43] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[535,55] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[535,35] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[553,81] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[576,81] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[599,45] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[153,28] getParams() in org.apache.http.message.AbstractHttpMessage ist veraltet
+warning	1	[maven]                                 <path>:[<n>,56] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[<n>,94] endsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[52,64] removeEnd(java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[117,53] removeEnd(java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	3	[maven]                                 <path>:[130,17] org.eclipse.jetty.server.handler.gzip.GzipHandler in org.eclipse.jetty.server.handler.gzip ist veraltet und wurde zum Entfernen markiert
+warning	1	[maven]                                 <path>:[364,43] org.eclipse.jetty.server.handler.gzip.GzipHandler in org.eclipse.jetty.server.handler.gzip ist veraltet und wurde zum Entfernen markiert
+warning	1	[maven]                                 <path>:[<n>,44] org.eclipse.jetty.server.ConnectionLimit in org.eclipse.jetty.server ist veraltet und wurde zum Entfernen markiert
+warning	1	[maven]                                 <path>:[206,97] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[269,122] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[270,96] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[346,114] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[74,33] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[133,48] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[135,61] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[161,32] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[163,45] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[783,89] nextBytes(int) in org.apache.commons.lang3.RandomUtils ist veraltet
+warning	1	[maven]                                 <path>:[269,51] equalsIgnoreCase(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[278,102] equalsIgnoreCase(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[595,48] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[609,32] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[785,96] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[785,144] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[819,80] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[911,63] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[436,32] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[441,32] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[446,32] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[451,32] contains(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[986,65] SevenZFile(java.nio.channels.SeekableByteChannel) in org.apache.commons.compress.archivers.sevenz.SevenZFile ist veraltet
+warning	1	[maven]                                 <path>:[<n>,51] ZipFile(java.io.File) in org.apache.commons.compress.archivers.zip.ZipFile ist veraltet
+warning	1	[maven]                                 <path>:[245,32] copy(java.io.InputStream,java.io.OutputStream) in org.apache.commons.compress.utils.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[55,49] escapeXml(java.lang.String) in org.apache.commons.lang3.StringEscapeUtils ist veraltet
+warning	1	[maven]                                 <path>:[94,40] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[115,47] startsWith(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[132,46] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[72,75] Nicht-varargs-Aufruf von varargs-Methode mit ungenauem Argumenttyp für den letzten Parameter.
+warning	1	[maven]                                 <path>:[159,47] URL(java.lang.String) in java.net.URL ist veraltet
+warning	11	[maven]                                 Can't extract module name from kiama_2.13-2.5.1.jar: kiama.2.13: Invalid module name: '2' is not a Java identifier
+warning	1	[maven]                                 Can't extract module name from netty-codec-4.1.130.Final.jar: Module 'io.netty.codec' is already on the module path!
+warning	1	[maven]                                 Can't extract module name from shrinkwrap-impl-base-2.0.0-beta-2.jar: Provider class implementingClassName=org.jboss.shrinkwrap.impl.base.importer.zip.ZipImporterImpl not in JAR file shrinkwrap-impl-base-2.0.0-beta-2.jar
+warning	1	[maven]                                 Can't extract module name from jakarta.activation-1.2.1.jar: Module 'jakarta.activation' is already on the module path!
+warning	11	[maven]                                 Can't extract module name from magnolia_2.13-1.1.8.jar: magnolia.2.13: Invalid module name: '2' is not a Java identifier
+warning	11	[maven]                                 Can't extract module name from sourcecode_2.13-0.4.2.jar: sourcecode.2.13: Invalid module name: '2' is not a Java identifier
+warning	3	[maven]                                 <path>:[<n>,56] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[668,41] randomAlphabetic(int) in org.apache.commons.lang3.RandomStringUtils ist veraltet
+warning	1	[maven]                                 <path>:[51,70] randomAlphabetic(int) in org.apache.commons.lang3.RandomStringUtils ist veraltet
+warning	1	[maven]                                 <path>:[85,39] Locale(java.lang.String) in java.util.Locale ist veraltet
+warning	1	[maven]                                 <path>:[114,39] Locale(java.lang.String,java.lang.String) in java.util.Locale ist veraltet
+warning	1	[maven]                                 <path>:[<n>,51] toString(java.io.InputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[282,41] randomAlphabetic(int) in org.apache.commons.lang3.RandomStringUtils ist veraltet
+warning	1	[maven]                                 <path>:[167,36] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[168,36] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[189,36] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[190,36] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[211,36] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[212,36] org.apache.commons.lang3.StringEscapeUtils in org.apache.commons.lang3 ist veraltet
+warning	1	[maven]                                 <path>:[685,40] setYear(int) in java.util.Date ist veraltet
+warning	1	[maven]                                 <path>:[686,40] setMonth(int) in java.util.Date ist veraltet
+warning	1	[maven]                                 <path>:[687,40] setDate(int) in java.util.Date ist veraltet
+warning	1	[maven]                                 <path>:[101,102] getHash(java.lang.String,java.lang.String) in org.structr.core.auth.HashHelper ist veraltet
+warning	1	[maven]                                 <path>:[262,31] Date(int,int,int,int,int,int) in java.util.Date ist veraltet
+warning	1	[maven]                                 <path>:[491,111] toString(java.io.InputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[569,39] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[570,39] equals(java.lang.CharSequence,java.lang.CharSequence) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	169	org.structr.core.Services               Java Runtime Version mismatch; expected GraalVM version 25.0.0, found 25.0.3
+warning	169	org.structr.core.Services               Weak Java Runtime Version check enabled. Continuing despite version mismatch. To enable strong Java Runtime Version check set application.runtime.enforce.recommended = true in structr.conf
+warning	169	org.structr.core.Services               Maximum heap size is smaller than recommended, this can lead to problems with large databases!
+warning	169	org.structr.core.Services               Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.
+warning	169	[jvm]                                   sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2 (file:<path>)
+warning	169	[jvm]                                   Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$2
+warning	169	[jvm]                                   sun.misc.Unsafe::allocateMemory will be removed in a future release
+warning	54	[jvm]                                   A restricted method in java.lang.System has been called
+warning	2	[jvm]                                   java.lang.System::loadLibrary has been called by io.netty.util.internal.NativeLibraryUtil in an unnamed module (file:<path>)
+warning	54	[jvm]                                   Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+warning	54	[jvm]                                   Restricted methods will be blocked in a future release unless native access is enabled
+warning	123	o.s.c.fulltext.DummyFulltextIndexer     No fulltext indexer installed, this is a dummy implementation that does nothing.
+warning	1	o.s.s.providers.s3.S3ClientCache        Incomplete S3 connection settings: region, accessKey and secretKey are required
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3stream, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3channel, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3dst, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3missing, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3empty, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3contenttype, sync root node was not created
+warning	51	[jvm]                                   java.lang.System::load has been called by com.oracle.truffle.polyglot.JDKSupport in an unnamed module (file:<path>)
+warning	1	o.s.f.sync.ExternalFileSyncHandler      Ignoring unknown uuid-only entry <id> (native key <id>) of sync target /s3ext: no node with this UUID exists and no path was supplied
+warning	3	o.s.f.sync.ExternalFileSyncHandler      Skipping entry report.pdf (native key report.pdf) of sync target /s3conflict: a node with a different physical identity already exists at this path
+warning	10	org.structr.files.sync.ScanJob          Unable to scan /s3pruned, sync root node was not created
+warning	10	org.structr.files.sync.ScanJob          Unable to scan /s3extchange, sync root node was not created
+warning	9	org.structr.files.sync.ScanJob          Unable to scan /s3ext, sync root node was not created
+warning	3	org.structr.rest.servlet.CsvServlet     CSV Import Error: Cannot parse input for property 'anInt'
+warning	6	org.structr.files.sync.ScanJob          Unable to scan /s3conflict, sync root node was not created
+warning	1	o.structr.core.property.PropertyMap     Rejecting input with unknown JSON key for type TestObject: "doesNotExist" = "test"
+warning	1	o.structr.core.property.PropertyMap     Ignoring unknown JSON key for type TestObject: "doesNotExist" = "test"
+warning	1	o.structr.core.property.PropertyMap     Accepting unknown JSON key for type TestObject: "doesNotExist" = "test"
+warning	1	o.structr.core.property.PropertyMap     Accepting unknown JSON key for type TestObject: "doesNotExist" = "null"
+warning	1	o.structr.core.property.PropertyMap     Rejecting input with unknown JSON key for type TestObject: "malicious looking " quote, right?" = "test"
+warning	1	o.structr.core.property.PropertyMap     Ignoring unknown JSON key for type TestObject: "malicious looking " quote, right?" = "test"
+warning	6	o.structr.core.property.PropertyMap     Accepting unknown JSON key for type TestObject: "malicious looking * quote, right?" = *
+warning	1	o.structr.core.property.PropertyMap     Rejecting input with unknown JSON key for type TestObject: "malicious looking ` quote, right?" = "test"
+warning	1	o.structr.core.property.PropertyMap     Ignoring unknown JSON key for type TestObject: "malicious looking ` quote, right?" = "test"
+warning	1	o.structr.core.property.PropertyMap     Rejecting input with unknown JSON key for type TestObject: "malicious looking ' quote, right?" = "test"
+warning	1	o.structr.core.property.PropertyMap     Ignoring unknown JSON key for type TestObject: "malicious looking ' quote, right?" = "test"
+warning	5	org.structr.files.sync.ScanJob          Unable to scan /s3extprune, sync root node was not created
+warning	4	org.structr.files.sync.ScanJob          Unable to scan /s3mounted, sync root node was not created
+warning	1	o.s.f.sync.ExternalFileSyncHandler      Skipping entry docs/renamed.pdf (native key other/key.bin) of sync target /mounted6: a node with a different physical identity already exists at this path
+warning	6	o.s.c.t.w.SchemaMethodTraitWrapper      Deprecation warning: method * will NOT be treated as a lifecycle method.
+warning	4	org.structr.files.sync.ScanJob          Unable to scan /s3outdelete, sync root node was not created
+warning	9	o.structr.rest.api.RESTCallHandler      Usage of deprecated request keyword _loose detected. This keyword is deprecated and will be removed in the future. Please use _inexact instead.
+warning	1	o.structr.rest.service.HttpService      Unable to instantiate servlet class org.structr.flow.servlet.FlowServlet for servlet FlowServlet
+warning	4	org.structr.files.sync.ScanJob          Unable to scan /s3extdelete, sync root node was not created
+warning	12	o.s.f.sync.ExternalFileSyncHandler      Sync root <id> of sync target /mounted3 does not exist (anymore), skipping
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /mounted6, sync root node was not created
+warning	28	org.structr.files.sync.ScanJob          Unable to scan /mounted3, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3extrename, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /s3outrename, sync root node was not created
+warning	5	org.structr.core.Services               Service org.structr.files.sync.StorageSyncService is not listed in configured.services, will not be started.
+warning	2	org.structr.core.Services               Service org.structr.agent.AgentService is not listed in configured.services, will not be started.
+warning	18	org.structr.files.sync.ScanJob          Unable to scan /outer, sync root node was not created
+warning	1	o.s.f.sync.ExternalFileSyncHandler      Sync root <id> of sync target /echo does not exist (anymore), skipping
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /outbound2, sync root node was not created
+warning	1	org.structr.core.Services               DirectoryWatchService has been replaced by StorageSyncService, please update the configured.services setting in structr.conf.
+warning	1	o.s.f.sync.ExternalFileSyncHandler      Ignoring unknown uuid-only entry <id> (native key null) of sync target /mounted5: no node with this UUID exists and no path was supplied
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /mounted5, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /recorded, sync root node was not created
+warning	1	org.structr.rest.common.HttpHelper      Blocked outbound request to internal address 127.0.0.1 (resolved from 127.0.0.1)
+warning	4	org.structr.rest.auth.AuthHelper        Unable to parse numeric prefix length for '192.168.1.1/a', using most restrictive value 32
+warning	6	org.structr.rest.auth.AuthHelper        Prefix length for '192.168.1.1/0' is invalid, using most restrictive value 32
+warning	1	org.structr.rest.auth.AuthHelper        Unable to parse whitelist entry 'xxx': xxx: Temporärer Fehler bei der Namensauflösung
+warning	19	org.structr.rest.auth.AuthHelper        Unable to parse whitelist entry 'xxx': xxx
+warning	6	org.structr.core.function.Functions     Using deprecated query syntax '$and'. This notation is less expressive than predicate notation and will be removed in an upcoming version. Please migrate to predicate notation.
+warning	2	org.structr.core.function.Functions     Using deprecated query syntax '$or'. This notation is less expressive than predicate notation and will be removed in an upcoming version. Please migrate to predicate notation.
+warning	1	org.structr.core.function.Functions     base64decode(): Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic'
+warning	1	org.structr.core.function.Functions     base64decode(): Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.
+warning	1	org.structr.core.function.Functions     base64decode(): Unsupported charset WRONG_CHARSET
+warning	2	[jvm]                                   sun.misc.Unsafe::objectFieldOffset has been called by com.oracle.truffle.runtime.hotspot.HotSpotTruffleRuntime (file:<path>)
+warning	2	[jvm]                                   Please consider reporting this to the maintainers of class com.oracle.truffle.runtime.hotspot.HotSpotTruffleRuntime
+warning	2	org.structr.core.function.Functions     Unable to decrypt ciphertext. Falling back to previous method. If this works, it is recommended to update the value by re-encrypting it. Cause: AEADBadTagException: Tag mismatch
+warning	2	org.structr.core.function.Functions     Unable to decrypt value, no secret key set.
+warning	1	o.structr.core.property.TypeProperty    Not updating labels of node <id>: no type given.
+warning	1	o.s.c.g.BulkChangeNodePropertyKeyCommand Skipping node <id>: a property with the new key newName already exists
+warning	1	org.structr.core.function.Functions     config(): null configuration keys can not exist, returning defaultValue parameter. '<id>'. Parameters: [null, 123]. Usage: ${{ $.config(key [, defaultValue = null ]) }}. Example: ${{ $.config("base.path") }}
+warning	3	org.structr.core.function.Functions     Unable to decrypt ciphertext. Falling back to previous method. If this works, it is recommended to update the value by re-encrypting it. Cause: AEADBadTagException: Input data too short to contain an expected tag length of 16bytes
+warning	2	org.structr.rest.auth.SessionHelper     Invalidating session failed: <id>.node0
+warning	1	org.structr.core.function.Functions     enumInfo(): Unknown type 'DoesNotExist'.
+warning	1	org.structr.core.function.Functions     enumInfo(): Unknown property 'Test.doesNotExist'.
+warning	1	org.structr.core.function.Functions     enumInfo(): Not an Enum property 'Test.notAnEnum'
+warning	1	o.s.c.geo.GoogleGeoCodingProvider       Unable to gecode address Darmstadt . Error: REQUEST_DENIED - You must use an API key to authenticate each request to Google Maps Platform APIs. For additional information, please refer to http:/<path>
+warning	1	o.structr.core.property.PropertyMap     Accepting unknown JSON key for type MailTemplate: "doesNotExist" = "test"
+warning	1	org.structr.core.function.Functions     getRelationshipTypes(): Parameter 'node' is not a node. Input: NotANode
+warning	1	org.structr.core.function.Functions     getRelationshipTypes(): Parameter 'lookupType' invalid. Input: invalid_lookup_type
+warning	1	org.structr.core.function.Functions     getRelationshipTypes(): Parameter 'direction' invalid. Input: invalid_direction
+warning	1	org.structr.core.function.Functions     inheritingTypes(): Unknown type 'DoesNotExist'.
+warning	1	org.structr.core.function.Functions     ancestorTypes(): Unknown type 'DoesNotExist'.
+warning	1	org.structr.core.function.Functions     inheritingTypes(): Expected 'blacklist' parameter to be a collection.
+warning	1	org.structr.core.function.Functions     ancestorTypes(): Expected 'blacklist' parameter to be a collection.
+warning	1	org.structr.core.function.Functions     inheritingTypes(): Not applicable to service class 'SomeServiceClass'.
+warning	1	org.structr.core.function.Functions     ancestorTypes(): Not applicable to service class 'SomeServiceClass'.
+warning	1	org.structr.core.function.Functions     propertyInfo(): Unknown type 'DoesNotExist'.
+warning	1	org.structr.core.function.Functions     propertyInfo(): Unknown property 'Test.doesNotExist'.
+warning	2	o.s.c.s.p.w.GraphObjectWrapper          Tried calling a static type method in a non-static way on a type instance.
+warning	1	org.structr.core.function.Functions     typeInfo(): Unknown type 'DoesNotExist'.
+warning	1	org.structr.core.function.Functions     typeInfo(): Unknown view 'doesNotExist' for type 'Group'.
+warning	1	org.structr.core.function.Functions     num(): Exception parsing 'abc'
+warning	1	org.structr.core.function.Functions     num(): Exception parsing 'String'
+warning	1	org.structr.core.function.Functions     subt(): Expected all parameters to be non-null '<id>'. Parameters: [10, null]. Usage: ${subt(value1, value2)}
+warning	1	org.structr.core.function.Functions     subt(): Expected all parameters to be non-null '<id>'. Parameters: [null, 11]. Usage: ${subt(value1, value2)}
+warning	1	org.structr.core.function.Functions     subt(): Expected all parameters to be non-null '<id>'. Parameters: [null, null]. Usage: ${subt(value1, value2)}
+warning	4	org.structr.core.function.Functions     round(): NumberFormatException occurred: For input string: *
+warning	1	org.structr.core.function.Functions     dateFormat(value, pattern): Pattern must not be null: [10, null]
+warning	1	org.structr.core.function.Functions     dateFormat(value, pattern): Wrong number of arguments: []
+warning	1	org.structr.core.function.Functions     dateFormat(value, pattern): Wrong number of arguments: [2.234]
+warning	1	org.structr.core.function.Functions     dateFormat(value, pattern): Wrong number of arguments: [2.234, 2.234, 2.234]
+warning	1	org.structr.core.function.Functions     numberFormat(): Unsupported parameter combination/count in '<id>'. Parameters: []. Usage: ${numberFormat(value, locale, pattern)}
+warning	1	org.structr.core.function.Functions     numberFormat(): Unsupported parameter combination/count in '<id>'. Parameters: [2.234]. Usage: ${numberFormat(value, locale, pattern)}
+warning	1	org.structr.core.function.Functions     numberFormat(): Unsupported parameter combination/count in '<id>'. Parameters: [2.234, 2.234]. Usage: ${numberFormat(value, locale, pattern)}
+warning	1	org.structr.core.function.Functions     numberFormat(): Unsupported parameter combination/count in '<id>'. Parameters: [2.234, 2.234, , ]. Usage: ${numberFormat(value, locale, pattern)}
+warning	1	org.structr.core.function.Functions     numberFormat(): Unsupported parameter combination/count in '<id>'. Parameters: [2.234, 2.234, , , ]. Usage: ${numberFormat(value, locale, pattern)}
+warning	4	org.structr.core.function.Functions     numberFormat(): Unsupported parameter combination/count in '<id>'. Parameters: * * * Usage: ${numberFormat(value, locale, pattern)}
+warning	1	org.structr.core.function.Functions     not(): Expected all parameters to be non-null '<id>'. Parameters: [null]. Usage: ${not(bool)}
+warning	1	org.structr.core.function.Functions     find(): No type specified. Parameters: []
+warning	1	org.structr.core.function.Functions     find(): No type specified. Parameters: [null]
+warning	1	org.structr.core.function.Functions     find(): No type specified. Parameters: [null, null]
+warning	1	org.structr.core.function.Functions     find(): Type not found: NonExistingType
+warning	1	org.structr.core.function.Functions     find(): Type GraphObject not supported in find(), please use type NodeInterface to operate on nodes of all types.
+warning	1	org.structr.core.function.Functions     create(): No type specified. Parameters: []
+warning	1	org.structr.core.function.Functions     create(): No type specified. Parameters: [null]
+warning	1	org.structr.core.function.Functions     create(): No type specified. Parameters: [null, null]
+warning	1	org.structr.core.function.Functions     create(): Type not found: NonExistingType
+warning	2	o.s.c.geo.GoogleGeoCodingProvider       Unable to gecode address Hanauer Landstraße 200. Error: REQUEST_DENIED - You must use an API key to authenticate each request to Google Maps Platform APIs. For additional information, please refer to http:/<path>
+warning	1	org.structr.api.config.Settings         Permissions for configuration file '/tmp/<id>' do not match the expected permissions (Actual: rw-rw-r--, Expected: rw-------). Please check if this should be the case and otherwise fix the permissions
+warning	5	o.structr.core.property.PropertyMap     No entity type found in source map: *
+warning	5	o.s.websocket.command.CreateCommand     Could not create node: Empty type (null). Please supply a valid class name in the type property.
+warning	1	o.structr.rest.api.RESTCallHandler      Exception in DELETE chunk #2: org.structr.api.NotFoundException: Node with ID <n> not found.
+warning	1	org.structr.web.entity.dom.DOMNode      Content node with UUID <id> has owner document Page with UUID <id> whereas this node has owner document Page with UUID <id>
+warning	7	o.structr.web.auth.UiAuthenticator      Potentially dangerous CORS configuration: Access-Control-Allow-Credentials is 'true' while accepted origins contain '*'. This allows any origin to make credentialed cross-origin requests. Consider restricting the origin list.
+warning	6	o.s.w.t.d.AbstractFileTraitDefinition   File <path> already exists, renaming to test_<date>-<n>.txt
+warning	1	o.s.w.t.d.AbstractFileTraitDefinition   File /test.txt already exists, renaming to test_<date>-<n>.txt
+warning	1	o.s.w.t.d.AbstractFileTraitDefinition   File /test.file.txt already exists, renaming to test.file.txt_<date>-<n>
+warning	1	o.s.w.t.d.AbstractFileTraitDefinition   File /test.file.txt already exists, renaming to <date>-093610347_test.file.txt
+warning	1	o.s.w.t.d.AbstractFileTraitDefinition   File /test.file.txt already exists, renaming to test.file_<date>-<n>.txt
+warning	1	o.s.r.r.DeprecatedGlobalSchemaMethodsResource Using deprecated URL <path> to call user-defined function globalTest1, please use /globalTest1 instead. Support for this path will be dropped in the near future.
+warning	4	org.structr.rest.common.HttpHelper      Unable to create file from URI https:/<path>: status code was 404
+warning	1	o.s.w.maintenance.DeployDataCommand     The following types were removed from the export set because a parent type is already being exported:
+warning	1	org.structr.schema.action.Actions       Tried to call method userDefinedFunctionNotExisting but no SchemaMethod entity was found.
+warning	2	org.structr.web.entity.File             Unable to index org.structr.web.traits.definitions.FileTraitDefinition$6@<id>: Modification of node File(<id>) by anonymous not permitted.
+warning	1	[jvm]                                   java.lang.System::load has been called by com.kenai.jffi.internal.StubLoader in an unnamed module (file:<path>)
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /mountedConfig: Mount target <path> does not exist or is not a directory
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /mountedConfig, sync root node was not created
+warning	1	org.structr.files.sync.ScanJob          Unable to scan /notExportedMount, sync root node was not created
+warning	5	o.s.w.entity.path.PagePathParameter     Unable to parse Integer from * for PagePathParameter *
+warning	3	o.s.w.entity.path.PagePathParameter     Unable to parse Float from * for PagePathParameter *
+warning	3	o.s.w.entity.path.PagePathParameter     Unable to parse Double from * for PagePathParameter *
+warning	3	o.s.w.entity.path.PagePathParameter     Unable to parse Long from * for PagePathParameter *
+warning	1	o.s.w.entity.path.PagePathParameter     Unable to parse date from string 'PQR' using pattern 'dd.MM.yyyy HH:mm:ss' for PagePathParameter 'kDate'
+warning	1	o.s.w.entity.path.PagePathParameter     Unable to parse boolean from string 'STU' for PagePathParameter 'kBool'
+warning	4	[maven]                                 * Required filename-based automodules detected: [urlrewritefilter-5.1.3.jar, commons-collections-3.2.2.jar, jwks-rsa-0.23.0.jar, simpleclient-0.16.0.jar, simpleclient_servlet_jakarta-0.16.0.jar, simpleclient_hotspot-0.16.0.jar, metadata-extractor-2.18.0.jar, diff-match-patch-1.1.jar, flexmark-0.64.8.jar, flexmark-profile-pegdown-0.64.8.jar, flexmark-util-ast-0.64.8.jar, flexmark-util-collection-0.64.8.jar, flexmark-util-data-0.64.8.jar, flexmark-util-misc-0.64.8.jar, flexmark-util-sequence-0.64.8.jar, textile-j-2.2.jar, scribejava-apis-8.3.1.jar, scribejava-core-8.3.1.jar, jmimemagic-0.1.5.jar, zero-allocation-hashing-0.8.jar, zip4j-2.11.5.jar, cssparser-0.9.28.jar, sac-1.3.jar, jgroups-kubernetes-2.0.1.Final.jar, jgroups-5.2.2.Final.jar]. Please don't publish this project to a public artifact repository! *
+warning	10	[maven]                                 Can't extract module name from jakarta.activation-api-1.2.2.jar: Module 'jakarta.activation' is already on the module path!
+warning	10	[maven]                                 Can't extract module name from structr-base-7.0-SNAPSHOT-tests.jar: Module 'structr.base' is already on the module path!
+warning	10	[maven]                                 Can't extract module name from netty-codec-base-4.2.12.Final.jar: Module 'io.netty.codec' is already on the module path!
+warning	1	[maven]                                 <path>:[653,41] randomAlphabetic(int) in org.apache.commons.lang3.RandomStringUtils ist veraltet
+warning	1	[maven]                                 <path>:[83,56] withHeader(java.lang.String...) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[83,126] withSkipHeaderRecord(boolean) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[87,56] withHeader(java.lang.String...) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[87,69] withSkipHeaderRecord(boolean) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[90,48] withQuote(char) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[91,48] withRecordSeparator(java.lang.String) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[92,48] withIgnoreEmptyLines(boolean) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[93,48] withIgnoreSurroundingSpaces(boolean) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[94,48] withQuoteMode(org.apache.commons.csv.QuoteMode) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[95,48] withEscape(char) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[97,52] CSVParser(java.io.Reader,org.apache.commons.csv.CSVFormat) in org.apache.commons.csv.CSVParser ist veraltet
+warning	1	[maven]                                 <path>:[73,92] withHeader(java.lang.String...) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[77,56] withQuote(char) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[81,56] withQuote(java.lang.Character) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[84,48] withRecordSeparator(java.lang.String) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[85,48] withIgnoreEmptyLines(boolean) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[86,48] withIgnoreSurroundingSpaces(boolean) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[87,48] withQuoteMode(org.apache.commons.csv.QuoteMode) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[88,48] withAllowMissingColumnNames(boolean) in org.apache.commons.csv.CSVFormat ist veraltet
+warning	1	[maven]                                 <path>:[90,63] CSVParser(java.io.Reader,org.apache.commons.csv.CSVFormat) in org.apache.commons.csv.CSVParser ist veraltet
+warning	1	[maven]                                 <path>:[402,86] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	1	[maven]                                 <path>:[402,66] replace(java.lang.String,java.lang.String,java.lang.String) in org.apache.commons.lang3.StringUtils ist veraltet
+warning	2	[maven]                                 Can't extract module name from jakarta.activation-api-2.1.3.jar: Module 'jakarta.activation' is already on the module path!
+warning	4	[maven]                                 Can't extract module name from jcl-over-slf4j-2.0.0.jar: Module 'org.apache.commons.logging' is already on the module path!
+warning	1	[maven]                                 * Required filename-based automodules detected: [urlrewritefilter-5.1.3.jar, commons-collections-3.2.2.jar, jwks-rsa-0.23.0.jar, simpleclient-0.16.0.jar, simpleclient_servlet_jakarta-0.16.0.jar, simpleclient_hotspot-0.16.0.jar, metadata-extractor-2.18.0.jar, diff-match-patch-1.1.jar, flexmark-0.64.8.jar, flexmark-profile-pegdown-0.64.8.jar, flexmark-util-ast-0.64.8.jar, flexmark-util-collection-0.64.8.jar, flexmark-util-data-0.64.8.jar, flexmark-util-misc-0.64.8.jar, flexmark-util-sequence-0.64.8.jar, textile-j-2.2.jar, scribejava-apis-8.3.1.jar, scribejava-core-8.3.1.jar, jmimemagic-0.1.5.jar, zero-allocation-hashing-0.8.jar, zip4j-2.11.5.jar, cssparser-0.9.28.jar, sac-1.3.jar, jgroups-kubernetes-2.0.1.Final.jar, jgroups-5.2.2.Final.jar, dec-0.1.2.jar]. Please don't publish this project to a public artifact repository! *
+warning	1	[maven]                                 <path>:[236,81] readLines(java.io.InputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 * Required filename-based automodules detected: [urlrewritefilter-5.1.3.jar, commons-collections-3.2.2.jar, jwks-rsa-0.23.0.jar, simpleclient-0.16.0.jar, simpleclient_servlet_jakarta-0.16.0.jar, simpleclient_hotspot-0.16.0.jar, metadata-extractor-2.18.0.jar, diff-match-patch-1.1.jar, flexmark-0.64.8.jar, flexmark-profile-pegdown-0.64.8.jar, flexmark-util-ast-0.64.8.jar, flexmark-util-collection-0.64.8.jar, flexmark-util-data-0.64.8.jar, flexmark-util-misc-0.64.8.jar, flexmark-util-sequence-0.64.8.jar, textile-j-2.2.jar, scribejava-apis-8.3.1.jar, scribejava-core-8.3.1.jar, jmimemagic-0.1.5.jar, zero-allocation-hashing-0.8.jar, zip4j-2.11.5.jar, cssparser-0.9.28.jar, sac-1.3.jar, jgroups-kubernetes-2.0.1.Final.jar, jgroups-5.2.2.Final.jar, dec-0.1.2.jar, rome-1.7.3.jar]. Please don't publish this project to a public artifact repository! *
+warning	1	[maven]                                 <path>:[66,49] toInputStream(java.lang.String) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[431,49] toInputStream(java.lang.String) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[481,49] toInputStream(java.lang.String) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[497,49] toInputStream(java.lang.String) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[556,49] toInputStream(java.lang.String) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[119,40] write(java.lang.String,java.io.OutputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[129,40] write(java.lang.String,java.io.OutputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[158,96] toString(java.io.InputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[159,96] toString(java.io.InputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[228,40] write(java.lang.String,java.io.OutputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[351,40] write(java.lang.String,java.io.OutputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[361,40] write(java.lang.String,java.io.OutputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[388,96] toString(java.io.InputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[456,40] write(java.lang.String,java.io.OutputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	[maven]                                 <path>:[482,95] toString(java.io.InputStream) in org.apache.commons.io.IOUtils ist veraltet
+warning	1	o.s.files.ftp.StructrUserManager        FTP authentication attempt failed for username jt978hasdl: Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!
+warning	1	o.apache.ftpserver.command.impl.PASS    User failed to log in
+warning	1	o.apache.ftpserver.command.impl.PASS    Login failure - jt978hasdl
+warning	5	o.s.files.ftp.StructrFileSystemView     No existing file found: /file1
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/file1.txt)[owner:*] java.nio.file.NoSuchFileException: /file1.txt
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/file1.txt)[dos:*] java.nio.file.NoSuchFileException: /file1.txt
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/file1.txt)[basic:*] java.nio.file.NoSuchFileException: /file1.txt
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/file1.txt)[posix:*] java.nio.file.NoSuchFileException: /file1.txt
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/file1.txt)[permissions:*] java.nio.file.NoSuchFileException: /file1.txt
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[/file1.txt[lastModifiedTime]] failed (NoSuchFileException) to resolve missing value: /file1.txt
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[/file1.txt[permissions]] failed (NoSuchFileException) to resolve missing value: /file1.txt
+warning	4	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[/file1.txt[size]] failed (NoSuchFileException) to resolve missing value: /file1.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/fileöäüß.txt)[owner:*] java.nio.file.NoSuchFileException: /fileöäüß.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/fileöäüß.txt)[dos:*] java.nio.file.NoSuchFileException: /fileöäüß.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/fileöäüß.txt)[basic:*] java.nio.file.NoSuchFileException: /fileöäüß.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/fileöäüß.txt)[posix:*] java.nio.file.NoSuchFileException: /fileöäüß.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(/fileöäüß.txt)[permissions:*] java.nio.file.NoSuchFileException: /fileöäüß.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[/fileöäüß.txt[lastModifiedTime]] failed (NoSuchFileException) to resolve missing value: /fileöäüß.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[/fileöäüß.txt[permissions]] failed (NoSuchFileException) to resolve missing value: /fileöäüß.txt
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[/fileöäüß.txt[size]] failed (NoSuchFileException) to resolve missing value: /fileöäüß.txt
+warning	7	o.s.files.ftp.StructrFileSystemView     No existing file found: /FTPdir1
+warning	2	o.s.files.ftp.StructrFileSystemView     No existing file found: /FTPdir2
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(<path>)[owner:*] java.nio.file.NoSuchFileException: <path>
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(<path>)[dos:*] java.nio.file.NoSuchFileException: <path>
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(<path>)[basic:*] java.nio.file.NoSuchFileException: <path>
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(<path>)[posix:*] java.nio.file.NoSuchFileException: <path>
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      handleReadFileAttributesException(<path>)[permissions:*] java.nio.file.NoSuchFileException: <path>
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[<path>[lastModifiedTime]] failed (NoSuchFileException) to resolve missing value: <path>
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[<path>[permissions]] failed (NoSuchFileException) to resolve missing value: <path>
+warning	1	o.a.sshd.sftp.server.SftpSubsystem      resolveMissingFileAttributes(ServerSessionImpl[ftpuser1@/127.0.0.1:<n>])[<path>[size]] failed (NoSuchFileException) to resolve missing value: <path>
+warning	1	o.s.files.ftp.StructrFileSystemView     No existing file found: /file2
+warning	6	o.s.files.ftp.StructrFileSystemView     No existing file found: <path>
+warning	1	o.s.p.b.i.SubjectTypeSynthesizer        BPMN import: form field 'amount' is declared as both 'Long' and 'String' across the tasks of process '<id>'; keeping the first ('Long').
+warning	4	o.s.process.engine.ProcessEngine        Error evaluating condition * == * Server-side scripting error
+warning	1	o.s.process.engine.ProcessEngine        Timer type 'timerStart' not yet supported -- timer <id> marked as error
+warning	1	o.s.process.auth.ProcessJWTHelper       Error validating process access token: JWT secret is not configured or too weak (must be at least 32 characters). Configure security.jwt.secret
+warning	1	o.s.process.function.NotifyFunction     Unknown notification channel: carrier-pigeon. Supported channels: email, log
+warning	1	org.structr.core.function.Functions     notify(): Expected at least 4 arguments but got 3 'null'. Parameters: [log, admin, subject]. Usage: ${notify(channel, recipient, subject, message)}
+warning	1	o.s.p.f.ProcessInstanceUrlFunction      processInstanceUrl(): first argument must be a ProcessInstance node
+warning	1	o.s.p.function.ProcessTokenFunction     Invalid expiry value 'notanumber', using default (<n> minutes)
+warning	1	org.structr.core.function.Functions     process_token(): Expected at least 3 arguments but got 2 'null'. Parameters: [pid-1, tid-1]. Usage: ${process_token(processInstanceId, taskId, action [, expiryMinutes])}
+warning	1	org.structr.core.function.Functions     validate_process_token(): Expected exactly 1 arguments but got 2 'null'. Parameters: [2 parameter(s), not logged because they are credentials]. Usage: ${validate_process_token(token)}
+warning	1	o.s.process.engine.ProcessEngine        Automatic task Script_1 failed (non-fatal): Server-side scripting error
+warning	1	o.s.p.bpmn.interop.ZeebeFormAdapter     Zeebe user task 'Task_A' references unknown form id 'does_not_exist' -- no fields extracted
+warning	1	o.s.process.engine.ProcessEngine        Error evaluating condition '${reviewNonExistentFunction()}': Server-side scripting error
+warning	6	o.structr.process.bpmn.BpmnImporter     methodRef 'refMethod' on 'UserTask_1' could not be resolved -- skipped (no SchemaMethod of that name exists in this database)
+warning	1	o.structr.process.bpmn.BpmnImporter     Process listener on process element 'Process_1' (event='started') has no method<path> payload; skipped
+warning	15	o.structr.process.bpmn.BpmnImporter     Skipped 1 BPMNEdge(s) referencing entities that were not imported.
+warning	4	o.s.p.bpmn.BpmnPageSkeletonGenerator    BPMN page skeleton: inserted a form for step 'Task_InitialReview' but found no action mapping at all; the submit is likely an inline attribute that did not expand into an ActionMapping node. The process will not advance.
+warning	4	o.s.p.bpmn.BpmnPageSkeletonGenerator    BPMN page skeleton: inserted a form for step 'Task_ManualAssessment' but found no action mapping at all; the submit is likely an inline attribute that did not expand into an ActionMapping node. The process will not advance.
+warning	10	o.s.p.bpmn.BpmnPageSkeletonGenerator    BPMN page skeleton: neither the 'Process Subject Form' nor the fallback 'Edit Form' widget is installed; user-task steps will get no subject form. Import the widget set.
+warning	1	o.structr.process.bpmn.BpmnImporter     methodRef 'refMethod' on 'UserTask_1' could not be resolved -- skipped (1 method(s) of that name belong to a type, 0 to another process element)
+warning	1	o.structr.process.bpmn.BpmnImporter     methodRef 'refMethod' on 'UserTask_1' could not be resolved -- skipped (0 method(s) of that name belong to a type, 1 to another process element)
+warning	1	o.s.process.engine.ProcessEngine        timeCycle timer expressions are not yet supported (got 'R3/PT10M'); timer not scheduled
+warning	1	o.s.process.engine.ProcessEngine        Invalid timer expression 'not-a-date' (type=timeDate): Text 'not-a-date' could not be parsed at index 0
+warning	1	o.structr.process.bpmn.BpmnImporter     Camunda execution listener event 'take' has no Structr equivalent; importing as-is
+warning	1	o.structr.process.bpmn.BpmnImporter     Camunda task listener event 'timeout' has no Structr equivalent; importing as-is
+warning	1	o.structr.process.bpmn.BpmnImporter     Camunda task listener event 'update' has no Structr equivalent; importing as-is
+warning	1	o.s.core.graph.ModificationQueue        Number of callbacks in transaction 37 by thread main has exceeded logging threshold: onCreate<path>: <n><path>, afterCreate<path>: 0<path>, indexing: <n>. This is a warning that the transaction size might be too large, or that an unusual number of callbacks are executed in this transaction. To disable this warning message, increase the value of log.callback.threshold in structr.conf.
+warning	1	[maven]                                 3 problems were encountered while building the effective model for com.miglayout:miglayout:jar:swing:3.7 during dependency collection step for project (use -X to see details)
+warning	1	[maven]                                 <path>:[72,24] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[117,24] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[135,24] URL(java.lang.String) in java.net.URL ist veraltet
+warning	1	[maven]                                 <path>:[77,55] createMultiPoint(org.locationtech.jts.geom.Coordinate[]) in org.locationtech.jts.geom.GeometryFactory ist veraltet
+warning	1	[maven]                                 <path>:[90,89] URL(java.lang.String) in java.net.URL ist veraltet
+warning	2	org.structr.geo.UTMToLatLonFunction     Unable to determine hemisphere from UTM zone, assuming NORTHERN hemisphere.
+warning	1	[maven]                                 <path>:[412,126] poll(long) in org.apache.kafka.clients.consumer.KafkaConsumer ist veraltet
+warning	1	[maven]                                 <path>:[108,53] getTableList() in org.odftoolkit.odfdom.doc.OdfDocument ist veraltet
+warning	1	[maven]                                 * Required filename-based automodules detected: [rest-assured-5.4.0.jar, urlrewritefilter-5.1.3.jar, commons-collections-3.2.2.jar, jwks-rsa-0.23.0.jar, simpleclient-0.16.0.jar, simpleclient_servlet_jakarta-0.16.0.jar, simpleclient_hotspot-0.16.0.jar, metadata-extractor-2.18.0.jar, diff-match-patch-1.1.jar, flexmark-0.64.8.jar, flexmark-profile-pegdown-0.64.8.jar, flexmark-util-ast-0.64.8.jar, flexmark-util-collection-0.64.8.jar, flexmark-util-data-0.64.8.jar, flexmark-util-misc-0.64.8.jar, flexmark-util-sequence-0.64.8.jar, textile-j-2.2.jar, scribejava-apis-8.3.1.jar, scribejava-core-8.3.1.jar, jmimemagic-0.1.5.jar, zero-allocation-hashing-0.8.jar, zip4j-2.11.5.jar, cssparser-0.9.28.jar, sac-1.3.jar, jgroups-kubernetes-2.0.1.Final.jar, jgroups-5.2.2.Final.jar, java-wkhtmltopdf-wrapper-1.1.13-RELEASE.jar]. Please don't publish this project to a public artifact repository! *
+warning	1	[maven]                                 <path>:[203,27] Pdf() in com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf ist veraltet
+warning	1	[maven]                                 <path>:[223,36] WrapperConfig() in com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig ist veraltet
+warning	1	[maven]                                 <path>:[195,75] Pdf() in com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf ist veraltet
+warning	1	[maven]                                 <path>:[101,106] setApiKey(java.lang.String) in com.google.cloud.translate.TranslateOptions.Builder ist veraltet
+warning	1	[maven]                                 <path>:[136,81] JsonParser() in com.google.gson.JsonParser ist veraltet
+warning	1	[maven]                                 <path>:[136,97] parse(java.lang.String) in com.google.gson.JsonParser ist veraltet
+warning	1	[maven]                                 <path>:[161,71] Message(org.jxmpp.jid.Jid) in org.jivesoftware.smack.packet.Message ist veraltet
+warning	1	[maven]                                 <path>:[162,54] setBody(java.lang.String) in org.jivesoftware.smack.packet.Message ist veraltet
+warning	1	[maven]                                 <path>:[248,67] Presence(org.jivesoftware.smack.packet.Presence.Type) in org.jivesoftware.smack.packet.Presence ist veraltet
+warning	1	[maven]                                 <path>:[249,49] setMode(org.jivesoftware.smack.packet.Presence.Mode) in org.jivesoftware.smack.packet.Presence ist veraltet
+warning	1	[maven]                                 <path>:[271,67] Presence(org.jivesoftware.smack.packet.Presence.Type) in org.jivesoftware.smack.packet.Presence ist veraltet
+warning	1	[maven]                                 <path>:[294,67] Presence(org.jivesoftware.smack.packet.Presence.Type) in org.jivesoftware.smack.packet.Presence ist veraltet
+warning	1	[maven]                                 <path>:[317,67] Presence(org.jivesoftware.smack.packet.Presence.Type) in org.jivesoftware.smack.packet.Presence ist veraltet
+warning	1	[maven]                                 <path>:[340,67] Presence(org.jivesoftware.smack.packet.Presence.Type) in org.jivesoftware.smack.packet.Presence ist veraltet
+trace	2	org.structr.common.error.FrameworkException: Only http and https URLs are allowed       first structr frame: at org.structr.rest.common.HttpHelper.validateUrl(HttpHelper.java:772)
+trace	2	java.lang.NullPointerException: Cannot invoke "Object.hashCode()" because "key" is null
+trace	1	org.xml.sax.SAXParseException: DOCTYPE is disallowed when the feature "http:/<path>" set to true.       first structr frame: at org.structr.process.bpmn.BpmnImporter.importBpmn(BpmnImporter.java:200)
+phrase	3	INFO o.t.utility.RegistryAuthLocator    Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.13.0, configFile: <path>, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Status 404: No config supplied. Checked in order: <path> (file not found), DOCKER_AUTH_CONFIG (not set)
+phrase	17	INFO org.structr.rest.auth.SessionHelper Clearing invalid sessions for user * (<id>)
+phrase	1	INFO o.s.websocket.command.LoginCommand Unable to login admin, probably wrong password
+phrase	1	INFO o.s.w.resource.LoginResourceHandler Invalid credentials for null
+phrase	1	INFO o.s.w.resource.LoginResourceHandler Invalid credentials for does_not_matter
+phrase	2	INFO o.s.w.resource.LoginResourceHandler Unable to process login data. All attributes must be or type String.
+phrase	1	INFO tc.keycloak/keycloak:23.0          STDOUT: <time> WARN [org.infinispan.PERSISTENCE] (keycloak-cache-init) ISPN000554: jboss-marshalling is deprecated and planned for removal
+phrase	1	INFO tc.keycloak/keycloak:23.0          STDOUT: <time> WARN [org.infinispan.CONFIG] (keycloak-cache-init) ISPN000569: Unable to persist Infinispan internal caches as no global state enabled
+phrase	5	INFO org.structr.core.Services          application.uploads.folder: Unable to save value * Default upload folder path requires a folder or folder path. Uploading to the root folder is not allowed. Resetting to default.
+phrase	1	INFO o.s.w.resource.LoginResourceHandler Invalid credentials for test@structr.com
+phrase	1	INFO o.s.p.bpmn.BpmnPageSkeletonGenerator BPMN page skeleton: widget 'Process Subject Form' not found; falling back to the standard 'Edit Form' widget.

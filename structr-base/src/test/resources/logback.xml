@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+	<!--
+		Same pattern as the production config, deliberately: a test log that renders exceptions
+		differently from the server log is a log that has to be read twice.
+
+		%X{test} is filled in by org.structr.test.common.TestContextListener and names the test that
+		wrote the line. The suite runs four forks into one merged stream, in which a line's owner is
+		otherwise unrecoverable; config/testlog/TestLogReview.java reads this field. It stays empty for
+		anything written outside a test method (background threads, pools, shutdown hooks), which is on
+		purpose: output nobody owns is worth seeing as such.
+	-->
+	<conversionRule conversionWord="prefixedEx" converterClass="org.structr.logging.PrefixingThrowableConverter" />
+
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>
-				%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
-			</pattern>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC}%X{test} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
 		</encoder>
 	</appender>
 
