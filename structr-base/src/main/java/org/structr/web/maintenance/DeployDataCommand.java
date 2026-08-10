@@ -41,6 +41,7 @@ import org.structr.docs.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.maintenance.deploy.DeletingFileImportVisitor;
+import org.structr.web.maintenance.deploy.DeploymentPaths;
 import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 
 import java.io.*;
@@ -704,7 +705,10 @@ public class DeployDataCommand extends DeployCommand {
 			}
 		}
 
-		final String path             = fileOrFolder.getPath();
+		// NFC, because this string becomes both a manifest key and a name on disk: a decomposed name
+		// (as macOS uploads leave it in the database) would be rewritten by git for the file but not
+		// for the manifest, leaving the two disagreeing about the same umlaut
+		final String path             = DeploymentPaths.normalize(fileOrFolder.getPath());
 		final boolean alreadyExported = filesAndFoldersMap.containsKey(path);
 
 		if (!alreadyExported) {
@@ -1290,7 +1294,8 @@ public class DeployDataCommand extends DeployCommand {
 
 			try (final Reader reader = Files.newBufferedReader(metadataFile, StandardCharsets.UTF_8)) {
 
-				return new ArrayList<>(getGson().fromJson(reader, ArrayList.class));
+				// entries are paths, normalized like every other manifest (see DeploymentPaths)
+				return new ArrayList<>(DeploymentPaths.normalizeAll(getGson().fromJson(reader, ArrayList.class)));
 
 			} catch (IOException ioex) {
 
