@@ -77,7 +77,9 @@ public class FileCleanupVisitor implements FileVisitor<Path> {
 	// ----- private methods -----
 	private void deletePathIfNotInMetadata (final Path path) {
 
-		final String absolutePath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
+		// DeploymentPaths.normalize matches a manifest key that spells an umlaut in the other
+		// Unicode normal form, instead of deleting the file as unknown
+		final String absolutePath = DeploymentPaths.normalize("/", basePath.relativize(path).toString());
 		if (!metadata.containsKey(absolutePath)) {
 
 			try {
@@ -108,23 +110,4 @@ public class FileCleanupVisitor implements FileVisitor<Path> {
 		Files.delete(path);
 	}
 
-	private String harmonizeFileSeparators(final String... sources) {
-
-		final StringBuilder buf = new StringBuilder();
-
-		for (final String src : sources) {
-
-			buf.append(src);
-		}
-
-		int pos = buf.indexOf("\\");
-
-		while (pos >= 0) {
-
-			buf.replace(pos, pos+1, "/");
-			pos = buf.indexOf("\\");
-		}
-
-		return buf.toString();
-	}
 }
