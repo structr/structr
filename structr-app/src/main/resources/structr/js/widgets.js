@@ -125,7 +125,7 @@ let _Widgets = {
 	importDefaultWidgetSet: async () => {
 
 		let formData = new FormData();
-		formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.1/widgets-0.1.1.zip');
+		formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.2/widgets-0.1.2.zip');
 		formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
 
 		let response = await fetch(`${Structr.deployRoot}`, {
@@ -1074,24 +1074,24 @@ let _Widgets = {
 				<dt class="font-bold">processDeploymentInfo</dt>
 				<dd>(<i>boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</dd>
 			</dl>
-			
+
 			<h3>Supported configuration attributes</h3>
 			<dl>
 				<dt class="font-bold">title</dt>
 				<dd>The title which is displayed in the left column of the "Add Widget to Page" dialog. If this value does not exist, the name of the template expression itself is used.</dd>
-				
+
 				<dt class="font-bold">placeholder</dt>
 				<dd> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used.</dd>
-				
+
 				<dt class="font-bold">default</dt>
 				<dd>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</dd>
-				
+
 				<dt class="font-bold">position</dt>
 				<dd>The options will be sorted according to this numeric attribute. If omitted, the object will occur after the objects with a set position in the natural order of the keys.</dd>
-				
+
 				<dt class="font-bold">help</dt>
 				<dd><i>(optional)</i><br> The help text which will be displayed while hovering over the information icon.</dd>
-				
+
 				<dt class="font-bold">type</dt>
 				<dd>
 					<ul>
@@ -1100,14 +1100,14 @@ let _Widgets = {
 						<li><b>select</b>: A select element</li>
 					</ul>
 				</dd>
-				
+
 				<dt class="font-bold">options</dt>
 				<dd><i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>
 					If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</dd>
-				
+
 				<dt class="font-bold">dynamicOptionsFunction</dt>
 				<dd><i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</dd>
-				
+
 				<dt class="font-bold">rows</dt>
 				<dd> <i>(only applicable to type=textarea)</i><br>The number of rows the textarea will have initially. If omitted, or not parseable as an integer, it will default to 5.</dd>
 			</dl>
@@ -1120,7 +1120,7 @@ let _Widgets = {
 			<ul>
 				<dt class="font-bold">Selectors</dt>
 				<dd>The selectors control into which elements a widget may be inserted. If a selector matches, the widget appears in the "Suggested widgets" context menu in the pages tree.</dd>
-				
+
 				<dt class="font-bold">Is Page Template</dt>
 				<dd>Check this box if the widget is a page template. The widget can the be selected when creating a page.</dd>
 			</ul>
