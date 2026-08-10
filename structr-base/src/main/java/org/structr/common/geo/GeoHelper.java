@@ -119,7 +119,7 @@ public class GeoHelper {
 				} catch (IOException ioex) {
 
 					// IOException, try again next time
-					logger.warn("Unable to obtain geocoding result using provider {}: {}", new Object[] { provider.getClass().getName(), ioex.getMessage() });
+					logger.warn("Unable to obtain geocoding result using provider {}: {}", provider.getClass().getName(), ioex.getMessage());
 				}
 			}
 

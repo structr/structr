@@ -67,9 +67,7 @@ public class PagingHelper {
 
 		} catch (Throwable t) {
 
-			logger.warn("Invalid range for sublist in paging, pageSize {}, page {}: {}", new Object[] {
-				pageSize, page, t.getMessage()
-			});
+			logger.warn("Invalid range for sublist in paging, pageSize {}, page {}: {}", pageSize, page, t.getMessage());
 		}
 
 		return Collections.EMPTY_LIST;

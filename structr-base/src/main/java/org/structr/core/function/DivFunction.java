@@ -57,7 +57,7 @@ public class DivFunction extends CoreFunction {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 
 				return nfe.getMessage();
 			}
@@ -72,7 +72,7 @@ public class DivFunction extends CoreFunction {
 
 				} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 
 					return nfe.getMessage();
 				}

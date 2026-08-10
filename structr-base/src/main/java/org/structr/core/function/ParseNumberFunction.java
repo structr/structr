@@ -81,7 +81,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 			} catch (ParseException ex) {
 
-				logException(ex, "{}: Could not parse string \"{}\" to number. Parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+				logException(ex, "{}: Could not parse string \"{}\" to number. Parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 			}
 
 		} catch (final IllegalArgumentException e) {

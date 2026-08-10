@@ -313,7 +313,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get headers from address {}, {}", new Object[]{address, t.getMessage()});
+			logger.error("Unable to get headers from address {}, {}", address, t.getMessage());
 			throw new FrameworkException(422, "Unable to get headers from address " + address + ": " + t.getMessage(), t);
 		}
 
@@ -358,7 +358,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue PATCH request to address {}, {}", new Object[]{address, t.getMessage()});
+			logger.error("Unable to issue PATCH request to address {}, {}", address, t.getMessage());
 			throw new FrameworkException(422, "Unable to issue PATCH request to address " + address + ": " + t.getMessage(), t);
 		}
 
@@ -440,7 +440,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue POST request to address {}, {}", new Object[]{address, t.getMessage()});
+			logger.error("Unable to issue POST request to address {}, {}", address, t.getMessage());
 			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
 		}
 
@@ -501,7 +501,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue PUT request to address {}, {}", new Object[]{address, t.getMessage()});
+			logger.error("Unable to issue PUT request to address {}, {}", address, t.getMessage());
 			throw new FrameworkException(422, "Unable to issue PUT request to address " + address + ": " + t.getMessage(), t);
 		}
 
@@ -549,7 +549,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue DELETE command to address {}, {}", new Object[]{address, t.getMessage()});
+			logger.error("Unable to issue DELETE command to address {}, {}", address, t.getMessage());
 			throw new FrameworkException(422, "Unable to issue DELETE command to address " + address + ": " + t.getMessage(), t);
 		}
 
@@ -585,7 +585,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get content stream from address {}, {}", new Object[]{address, t.getMessage()});
+			logger.error("Unable to get content stream from address {}, {}", address, t.getMessage());
 		}
 
 		return null;
@@ -623,7 +623,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get content stream from address {}, {}", new Object[]{address, t.getMessage()});
+			logger.error("Unable to get content stream from address {}, {}", address, t.getMessage());
 		}
 
 		return null;
@@ -708,7 +708,7 @@ public class HttpHelper {
 				// FIXME: what do we do with the content here??
 				content = skipBOMIfPresent(content);
 
-				logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{address, statusCode});
+				logger.warn("Unable to create file from URI {}: status code was {}", address, statusCode);
 			}
 
 		} catch (final Throwable t) {
@@ -862,7 +862,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue {} request to address {}, {}", new Object[]{method, address, t.getMessage()});
+			logger.error("Unable to issue {} request to address {}, {}", method, address, t.getMessage());
 			throw new FrameworkException(422, "Unable to issue " + method + " request to address " + address + ": " + t.getMessage(), t);
 		}
 

@@ -443,7 +443,7 @@ public class JWTHelper {
 
 					if (refreshTokenTimedOut(refreshToken)) {
 
-						logger.debug("RefreshToken {} timed out", new Object[]{refreshToken});
+						logger.debug("RefreshToken {} timed out", refreshToken);
 
 						user.removeRefreshToken(refreshToken);
 					}

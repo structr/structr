@@ -101,7 +101,7 @@ public class DateFormatFunction extends CoreFunction {
 
 					} catch (ParseException ex) {
 
-						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getDisplayName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
+						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", getDisplayName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources));
 
 						return sources[0];
 					}

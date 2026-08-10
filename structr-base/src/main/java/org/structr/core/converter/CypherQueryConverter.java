@@ -99,7 +99,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 			} catch(FrameworkException fex) {
 
-				logger.warn("Exception while executing cypher query {}: {}", new Object[] { query, fex.getMessage() } );
+				logger.warn("Exception while executing cypher query {}: {}", query, fex.getMessage() );
 			}
 		}
 

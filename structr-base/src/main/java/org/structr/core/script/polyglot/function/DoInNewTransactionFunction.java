@@ -146,7 +146,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 									} else if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
 
 										// Log if no error handler is given
-										Function.logException(logger, ex, "Error in doInNewTransaction(): {}", new Object[]{ ex.toString() });
+										Function.logException(logger, ex, "Error in doInNewTransaction(): {}", ex.toString());
 									}
 								}
 
@@ -166,7 +166,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 										} catch (Throwable ex) {
 
-											Function.logException(logger, ex, "Error in transaction error handler: {}", new Object[]{ex.getMessage()});
+											Function.logException(logger, ex, "Error in transaction error handler: {}", ex.getMessage());
 										}
 									}
 								}

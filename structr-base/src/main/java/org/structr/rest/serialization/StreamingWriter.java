@@ -423,9 +423,7 @@ public abstract class StreamingWriter {
 
 				} else {
 
-					logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", new Object[] {
-						key.jsonName(), key.getClass(), key.getClass().getDeclaringClass(), value.getClass().getName(), value, t.getMessage()
-					});
+					logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", key.jsonName(), key.getClass(), key.getClass().getDeclaringClass(), value.getClass().getName(), value, t.getMessage());
 				}
 			}
 

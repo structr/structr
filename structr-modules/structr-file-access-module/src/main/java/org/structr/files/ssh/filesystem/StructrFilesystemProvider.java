@@ -58,7 +58,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 	@Override
 	public synchronized FileSystem getFileSystem(final URI uri) {
 
-		logger.warn("NOT SUPPORTED: getFileSystem {}", new Object[] { uri } );
+		logger.warn("NOT SUPPORTED: getFileSystem {}", uri );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

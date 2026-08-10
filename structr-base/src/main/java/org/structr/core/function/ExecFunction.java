@@ -149,7 +149,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		} catch (IOException ex) {
 
-			Function.logException(logger, ex, "{}(): IOException encountered: {}", new Object[]{ getName(), ex.getMessage() });
+			Function.logException(logger, ex, "{}(): IOException encountered: {}", getName(), ex.getMessage());
 
 		} catch (ArgumentNullException pe) {
 

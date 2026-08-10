@@ -233,7 +233,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 					} else {
 
-						logger.warn("Tried to set internal system property {} to {}. Action was denied.", new Object[]{dbName(), convertedValue});
+						logger.warn("Tried to set internal system property {} to {}. Action was denied.", dbName(), convertedValue);
 
 					}
 				}

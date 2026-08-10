@@ -70,7 +70,7 @@ public class CacheFunction implements ProxyExecutable {
 
 		} catch (FrameworkException ex) {
 
-			Function.logException(logger, ex, "Exception in CacheFunction: {}", new Object[]{ex.getMessage()});
+			Function.logException(logger, ex, "Exception in CacheFunction: {}", ex.getMessage());
 		}
 
 		return retVal;

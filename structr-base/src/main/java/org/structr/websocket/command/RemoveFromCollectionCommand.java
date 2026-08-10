@@ -69,7 +69,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 			if (!((NodeInterface)obj).isGranted(Permission.write, getWebSocket().getSecurityContext())) {
 
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
-				logger.warn("No write permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+				logger.warn("No write permission for {} on {}", getWebSocket().getCurrentUser().toString(), obj.toString());
 
 				return;
 

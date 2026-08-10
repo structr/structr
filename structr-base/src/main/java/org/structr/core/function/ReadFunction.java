@@ -64,7 +64,7 @@ public class ReadFunction extends AdvancedScriptingFunction {
 
 		} catch (IOException ioex) {
 
-			logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+			logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 
 		} catch (ArgumentNullException pe) {
 

@@ -136,7 +136,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 			} catch (final Throwable t) {
 
-				logger.warn("Unable to find geocoding for address {}: {}", new Object[] { address, t.getMessage() });
+				logger.warn("Unable to find geocoding for address {}: {}", address, t.getMessage());
 			}
 
 		} else if ("OVER_QUERY_LIMIT".equals(status)) {
@@ -145,7 +145,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 				count++;
 
-				logger.warn("Status OVER_QUERY_LIMIT for address {}, trying again after 2 seconds.", new Object[] { address });
+				logger.warn("Status OVER_QUERY_LIMIT for address {}, trying again after 2 seconds.", address);
 
 				try {
 
@@ -157,7 +157,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 			} else {
 
-				logger.warn("Too many attempts with status OVER_QUERY_LIMIT for address {}, aborting.", new Object[] { address });
+				logger.warn("Too many attempts with status OVER_QUERY_LIMIT for address {}, aborting.", address);
 			}
 
 		} else if ("REQUEST_DENIED".equals(status)) {
@@ -175,7 +175,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		} else {
 
-			logger.warn("Status not OK for address {}: {}", new Object[] { address, status });
+			logger.warn("Status not OK for address {}: {}", address, status);
 		}
 
 		return null;

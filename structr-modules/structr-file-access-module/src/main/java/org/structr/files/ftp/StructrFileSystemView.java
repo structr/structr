@@ -195,7 +195,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 				requestedPath = StringUtils.stripEnd(basePath.equals("/") ? "/".concat(requestedPath) : basePath.concat("/").concat(requestedPath), "/");
 
-				logger.info("Base path: {}, requestedPath: {}", new Object[]{basePath, requestedPath});
+				logger.info("Base path: {}, requestedPath: {}", basePath, requestedPath);
 
 			}
 

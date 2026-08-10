@@ -104,7 +104,7 @@ public class StructrFtpUser implements User {
 
 			if (authority.canAuthorize(request)) {
 
-				logger.info("Authority {} can authorize {}", new Object[]{authority, request});
+				logger.info("Authority {} can authorize {}", authority, request);
 
 				someoneCouldAuthorize = true;
 
@@ -113,7 +113,7 @@ public class StructrFtpUser implements User {
 				// authorization failed, return null
 				if (request == null) {
 
-					logger.info("Authorization of request {} failed", new Object[]{request});
+					logger.info("Authorization of request {} failed", request);
 
 					return null;
 				}
@@ -123,7 +123,7 @@ public class StructrFtpUser implements User {
 
 		if (someoneCouldAuthorize) {
 
-			logger.info("Request {} successfully authorized", new Object[]{request});
+			logger.info("Request {} successfully authorized", request);
 
 			return request;
 

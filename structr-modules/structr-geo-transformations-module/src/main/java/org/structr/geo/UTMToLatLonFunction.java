@@ -100,7 +100,7 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 			} else {
 
-				logger.warn("Invalid argument(s), cannot convert to double: {}, {}", new Object[] { sources[0], sources[1] });
+				logger.warn("Invalid argument(s), cannot convert to double: {}, {}", sources[0], sources[1]);
 			}
 
 		} catch (ArgumentNullException ae) {

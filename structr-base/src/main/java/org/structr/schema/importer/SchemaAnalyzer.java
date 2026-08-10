@@ -303,7 +303,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 						final String combinedType = getCombinedType(startNodeType, relationshipType, endNodeType);
 
-						logger.debug("Combined relationship type {} found for rel type {}, start node type {}, end node type {}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
+						logger.debug("Combined relationship type {} found for rel type {}, start node type {}, end node type {}", combinedType, relationshipType, startNodeType, endNodeType);
 
 						rel.setProperty("type", combinedType);
 					}

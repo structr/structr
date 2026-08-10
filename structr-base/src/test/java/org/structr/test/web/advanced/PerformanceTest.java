@@ -166,7 +166,7 @@ public class PerformanceTest extends StructrUiTest {
 			Double time                 = (t1 - t0) / 1000000000.0;
 			Double rate                 = expected / ((t1 - t0) / 1000000000.0);
 
-			logger.info("Created {} relationships in {} seconds ({} per s)", new Object[] { expected, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("Created {} relationships in {} seconds ({} per s)", expected, decimalFormat.format(time), decimalFormat.format(rate));
 			assertTrue(rate > 50);
 
 		} catch (FrameworkException ex) {
@@ -312,7 +312,7 @@ public class PerformanceTest extends StructrUiTest {
 			double time                 = (t1 - t0) / 1000000000.0;
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
 
-			logger.info("Read {}x {} nodes with relationship in {} seconds ({} per s)", new Object[] { loop, number, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("Read {}x {} nodes with relationship in {} seconds ({} per s)", loop, number, decimalFormat.format(time), decimalFormat.format(rate));
 			assertTrue("Invalid read performance result", rate > 2000);
 
 		} catch (FrameworkException ex) {

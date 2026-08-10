@@ -135,7 +135,7 @@ public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<
 
 					if (sourceNode.equals(actualTargetNode)) {
 
-						logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", new Object[] { sourceNode, rel.getRelType(), actualTargetNode } );
+						logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", sourceNode, rel.getRelType(), actualTargetNode );
 
 						// skip self relationships
 						continue;

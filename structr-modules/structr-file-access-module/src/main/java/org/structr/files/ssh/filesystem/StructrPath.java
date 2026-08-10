@@ -195,35 +195,35 @@ public abstract class StructrPath implements Path {
 	@Override
 	public Path subpath(int beginIndex, int endIndex) {
 
-		logger.info("{}, {}", new Object[] { beginIndex, endIndex });
+		logger.info("{}, {}", beginIndex, endIndex);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean startsWith(Path other) {
 
-		logger.info("{}, {}", new Object[] { other });
+		logger.info("{}, {}", other);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean startsWith(String other) {
 
-		logger.info("{}, {}", new Object[] { other });
+		logger.info("{}, {}", other);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean endsWith(Path other) {
 
-		logger.info("{}, {}", new Object[] { other });
+		logger.info("{}, {}", other);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean endsWith(String other) {
 
-		logger.info("{}, {}", new Object[] { other });
+		logger.info("{}, {}", other);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -241,7 +241,7 @@ public abstract class StructrPath implements Path {
 			return other;
 		}
 
-		logger.info("{}", new Object[] { other });
+		logger.info("{}", other);
 
 		return null;
 	}
@@ -259,7 +259,7 @@ public abstract class StructrPath implements Path {
 			return this;
 		}
 
-		logger.info("{}", new Object[] { other });
+		logger.info("{}", other);
 
 		// fallback
 
@@ -269,21 +269,21 @@ public abstract class StructrPath implements Path {
 	@Override
 	public Path resolveSibling(Path other) {
 
-		logger.info("{}, {}", new Object[] { other });
+		logger.info("{}, {}", other);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Path resolveSibling(String other) {
 
-		logger.info("{}, {}", new Object[] { other });
+		logger.info("{}, {}", other);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Path relativize(Path other) {
 
-		logger.info("{}, {}", new Object[] { other });
+		logger.info("{}, {}", other);
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

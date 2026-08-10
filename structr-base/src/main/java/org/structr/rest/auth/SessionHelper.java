@@ -71,7 +71,7 @@ public class SessionHelper {
 
 			if (sessionTimeout > 0 && now > lastAccessed + sessionTimeout * 1000) {
 
-				logger.debug("Session {} timed out, last accessed at {}", new Object[]{session.getId(), Instant.ofEpochMilli(lastAccessed).toString()});
+				logger.debug("Session {} timed out, last accessed at {}", session.getId(), Instant.ofEpochMilli(lastAccessed).toString());
 
 				return true;
 			}
@@ -352,7 +352,7 @@ public class SessionHelper {
 
 		if (isNotTimedOut) {
 
-			//logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", new Object[]{session, session.getLastAccessedTime(), user});
+			//logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", session, session.getLastAccessedTime(), user);
 
 			return user;
 
@@ -360,8 +360,8 @@ public class SessionHelper {
 
 			if (user != null) {
 
-				//logger.info("Timed-out session: {}, last accessed {}, authenticated with user {}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
-				logger.debug("Logging out user {}", new Object[]{user});
+				//logger.info("Timed-out session: {}, last accessed {}, authenticated with user {}", session, (session != null ? session.getLastAccessedTime() : ""), user);
+				logger.debug("Logging out user {}", user);
 				AuthHelper.doLogout(request, user);
 				try { request.logout(); } catch (Throwable t) {}
 			}

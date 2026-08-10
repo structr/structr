@@ -577,7 +577,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
-				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
+				logger.info("Result size: {}, expected: {}", result.size(), Math.min(number, pageSize));
 				assertEquals(Math.min(number, pageSize), result.size());
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -645,7 +645,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
-				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), Math.min(number, pageSize) });
+				logger.info("Result size: {}, expected: {}", result.size(), Math.min(number, pageSize));
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -718,7 +718,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
-				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", result.size(), pageSize);
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -788,7 +788,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
-				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", result.size(), pageSize);
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < pageSize; j++) {
@@ -853,7 +853,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
-				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", result.size(), pageSize);
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < pageSize; j++) {
@@ -935,7 +935,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
-				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", result.size(), pageSize);
 				assertTrue(result.size() == Math.min(number, pageSize));
 
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
@@ -1554,7 +1554,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				result = app.nodeQuery(type).includeHidden().sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
 
-				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
+				logger.info("Result size: {}, expected: {}", result.size(), pageSize);
 				assertTrue(result.size() == pageSize);
 
 				tx.success();
@@ -2757,7 +2757,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		int startIndex = (Math.max(page, 1) - 1) * pageSize;
 
-		logger.info("Result size: {}, expected: {}, start index: {}", new Object[] { result.size(), expectedResultCount, startIndex });
+		logger.info("Result size: {}, expected: {}, start index: {}", result.size(), expectedResultCount, startIndex);
 		assertTrue(result.size() == expectedResultCount);
 
 		for (int j = 0; j < expectedResultCount; j++) {

@@ -400,7 +400,7 @@ public class CronEntry implements Delayed {
 
 		long next = TimeUnit.MILLISECONDS.convert(getDelayToNextExecutionInMillis(), unit);
 
-		logger.info("{} ms until start of task {}", new Object[] { next, name });
+		logger.info("{} ms until start of task {}", next, name);
 
 		return next;
 	}

@@ -77,7 +77,7 @@ public class ParseDateFunction extends CoreFunction {
 
 			} catch (ParseException ex) {
 
-				logger.debug("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getDisplayName(), dateString, pattern, caller, getParametersAsString(sources) });
+				logger.debug("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", getDisplayName(), dateString, pattern, caller, getParametersAsString(sources));
 
 			}
 

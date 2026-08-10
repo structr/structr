@@ -52,7 +52,7 @@ public class MinFunction extends CoreFunction {
 
 		} catch (NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 
 			return usage(ctx.isJavaScriptContext());
 

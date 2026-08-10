@@ -72,7 +72,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 			if (!(obj.isGranted(Permission.delete, securityContext))) {
 
-				logger.warn("No delete permission for {} on {}", new Object[]{ ws.getCurrentUser().toString(), obj.toString() });
+				logger.warn("No delete permission for {} on {}", ws.getCurrentUser().toString(), obj.toString());
 				ws.send(MessageBuilder.status().message("No delete permission").code(400).build(), true);
 				tx.success();
 

@@ -46,7 +46,7 @@ public class TypePredicate implements Predicate<Node> {
 
 			String value = (String)node.getProperty("type");
 
-			logger.debug("Type property: {}, expected {}", new Object[] { value, type } );
+			logger.debug("Type property: {}, expected {}", value, type );
 
 			return type.equals(value);
 

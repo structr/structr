@@ -95,7 +95,7 @@ public class ChunkCommand extends AbstractCommand {
 			final File file = fileNode.as(File.class);
 			if (file.isTemplate()) {
 
-				logger.warn("No write permission, file is in template mode: {}", new Object[] {file.toString()});
+				logger.warn("No write permission, file is in template mode: {}", file.toString());
 				getWebSocket().send(MessageBuilder.status().message("No write permission, file is in template mode").code(400).build(), true);
 
 				return;
@@ -104,7 +104,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			if (!file.isGranted(Permission.write, securityContext)) {
 
-				logger.warn("No write permission for {} on {}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
+				logger.warn("No write permission for {} on {}", getWebSocket().getCurrentUser().toString(), file.toString());
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
 
 				return;
@@ -121,7 +121,7 @@ public class ChunkCommand extends AbstractCommand {
 
 				getWebSocket().removeFileUploadHandler(uuid);
 
-				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), StorageProviderFactory.getStorageProvider(file).size()});
+				logger.debug("File upload finished. Checksum: {}, size: {}", file.getChecksum(), StorageProviderFactory.getStorageProvider(file).size());
 
 			}
 

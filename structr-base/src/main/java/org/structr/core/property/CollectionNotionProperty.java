@@ -133,7 +133,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to apply notion of type {} to property {}", new Object[] { notion.getClass(), this } );
+			logger.warn("Unable to apply notion of type {} to property {}", notion.getClass(), this );
 		}
 
 		return null;

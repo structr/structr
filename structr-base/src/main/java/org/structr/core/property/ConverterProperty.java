@@ -53,9 +53,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 
 		} catch(NoSuchMethodException nsmex) {
 
-			logger.error("Unable to instantiate converter of type {} for key {}", new Object[] {
-				converterClass.getName(), name
-			});
+			logger.error("Unable to instantiate converter of type {} for key {}", converterClass.getName(), name);
 		}
 	}
 
@@ -115,9 +113,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 
 		} catch(Throwable t) {
 
-			logger.error("Unable to instantiate converter of type {} for key {}", new Object[] {
-				constructor.getClass().getName(), dbName
-			});
+			logger.error("Unable to instantiate converter of type {} for key {}", constructor.getClass().getName(), dbName);
 		}
 
 		return null;

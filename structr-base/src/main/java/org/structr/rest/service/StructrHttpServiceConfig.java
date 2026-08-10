@@ -93,7 +93,7 @@ public class StructrHttpServiceConfig {
 
 		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
 
-			logger.error("Unable to instantiate authenticator {}: {}", new Object[] { authenticatorClass, ex.getMessage() } );
+			logger.error("Unable to instantiate authenticator {}: {}", authenticatorClass, ex.getMessage() );
 		}
 
 		return authenticator;

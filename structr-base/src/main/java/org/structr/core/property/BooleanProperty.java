@@ -185,7 +185,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 				if (!(source instanceof Boolean)) {
 
-					logger.warn("Wrong database type for {}. Expected: {}, found: {}", new Object[]{dbName, Boolean.class.getName(), source.getClass().getName()});
+					logger.warn("Wrong database type for {}. Expected: {}, found: {}", dbName, Boolean.class.getName(), source.getClass().getName());
 
 					return (Boolean) fixDatabaseProperty(source);
 
@@ -243,7 +243,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				if (source instanceof String) {
 
 					// don't log this
-					// logger.warn("Wrong input type for {}. Expected: {}, found: {}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
+					// logger.warn("Wrong input type for {}. Expected: {}, found: {}", jsonName, Boolean.class.getName(), source.getClass().getName());
 
 					returnValue = TRUE_VALUES.contains(source.toString().toLowerCase());
 

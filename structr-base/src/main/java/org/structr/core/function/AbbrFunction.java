@@ -68,7 +68,7 @@ public class AbbrFunction extends CoreFunction {
 
 		} catch (final NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException in \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] { getDisplayName(), caller, sources[1], getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", getDisplayName(), caller, sources[1], getParametersAsString(sources));
 
 			return sources[0];
 

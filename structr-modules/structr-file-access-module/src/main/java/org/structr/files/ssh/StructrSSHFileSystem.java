@@ -302,7 +302,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public void checkAccess(Path path, AccessMode... modes) throws IOException {
 
-				logger.info("Checking access", new Object[]{path, modes});
+				logger.info("Checking access", path, modes);
 			}
 
 			@Override

@@ -66,7 +66,7 @@ public class FtpService implements RunnableService {
 
 		serverFactory.addListener("default", factory.createListener());
 
-		logger.info("Starting FTP server on port {}", new Object[] { String.valueOf(port) });
+		logger.info("Starting FTP server on port {}", String.valueOf(port));
 
 		server = serverFactory.createServer();
 		server.start();

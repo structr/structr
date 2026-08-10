@@ -228,7 +228,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 				} catch (FrameworkException fex) {
 
-					logger.warn("Unable to set node property {} of node {} to {}: {}", new Object[] { propertyKey, targetNode.getUuid(), val, fex.getMessage() } );
+					logger.warn("Unable to set node property {} of node {} to {}: {}", propertyKey, targetNode.getUuid(), val, fex.getMessage() );
 				}
 			}
 		}

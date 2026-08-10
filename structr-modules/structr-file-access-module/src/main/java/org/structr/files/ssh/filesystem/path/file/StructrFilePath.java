@@ -362,7 +362,7 @@ public class StructrFilePath extends StructrPath {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to load actual file for path {}: {}", new Object[] { toString(), fex.getMessage() } );
+			logger.warn("Unable to load actual file for path {}: {}", toString(), fex.getMessage() );
 		}
 
 		return null;
