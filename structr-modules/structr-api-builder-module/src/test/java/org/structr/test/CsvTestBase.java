@@ -91,6 +91,10 @@ public abstract class CsvTestBase {
 		Settings.FilesPath.setValue(basePath + "/files");
 		Settings.DatabasePath.setValue(basePath + "/db");
 
+		// No graceful shutdown between test classes: the HTTP client keeps its connections alive, so a
+		// connector never reports itself drained and every teardown burnt the whole timeout.
+		Settings.HttpServiceStopTimeout.setValue(0);
+
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
@@ -121,9 +125,12 @@ public abstract class CsvTestBase {
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
+
+		createSchema();
 	}
 
-	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
+	// Deliberately NOT a TestNG configuration method: @BeforeClass(dependsOnMethods = "setup") cannot
+	// resolve the dependency in a subclass that overrides setup(), so it is invoked at the end of setup().
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new FourThreeOneToOne());
@@ -186,7 +193,7 @@ public abstract class CsvTestBase {
 	}
 
 	@AfterClass(alwaysRun = true)
-	public void stop() throws Exception {
+	public void teardown() throws Exception {
 
 		Services.getInstance().shutdown();
 

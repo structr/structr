@@ -14,8 +14,8 @@
 	<artifactId>structr-build-extension</artifactId>
 	<name>Structr Build Extension</name>
 	<description>
-		Maven core lifecycle extension. Its only job is to print the review-priority summary
-		(config/style/ReviewPriority.java) at the very end of the reactor -- after every module and the
+		Maven core lifecycle extension. Its only job is to print the code-quality summary
+		(config/style/CodeQuality.java) at the very end of the reactor -- after every module and the
 		Playwright container, on success and on failure alike -- so developers always see the report.
 		Registered in .mvn/extensions.xml; loaded at Maven startup, so it must be installed once
 		(mvn -o -pl structr-build-extension install) before a full build can resolve it.
@@ -33,6 +33,29 @@
 		     one-to-one refresh target (see the refresh command in CODE_STYLE.md). -->
 		<finalName>structr-build-extension</finalName>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<!-- A malformed component descriptor makes this extension fail to load, which silently
+						     removes BOTH end-of-build reports from every build and is very hard to notice. It has
+						     happened once already, from a double hyphen inside an XML comment. Fail here instead.
+						     lenient: check well-formedness only, there is no schema for this descriptor. -->
+						<id>validate-component-descriptor</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<xmlvalidate file="${project.build.outputDirectory}/META-INF/plexus/components.xml" lenient="true" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<!-- This tiny module compiles against the Maven API only; it must NOT drag in the
 				     project's annotation processor (which the parent adds for the real modules). -->

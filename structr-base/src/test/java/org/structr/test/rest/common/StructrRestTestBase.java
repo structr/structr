@@ -97,6 +97,11 @@ public abstract class StructrRestTestBase {
 		Settings.FilesPath.setValue(basePath + "/files");
 		Settings.DatabasePath.setValue(basePath + "/db");
 
+		// No graceful shutdown between test classes: the HTTP client keeps its connections alive, so a
+		// connector never reports itself drained and every teardown burnt the whole timeout -- about
+		// 93 seconds across a full suite run, waiting for connections that never close.
+		Settings.HttpServiceStopTimeout.setValue(0);
+
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 

@@ -110,7 +110,7 @@ public class StructrTest {
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
-	public void startSystem(@Optional final String testDatabaseConnection) {
+	public void setup(@Optional final String testDatabaseConnection) {
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
@@ -126,6 +126,11 @@ public class StructrTest {
 		Settings.FilesPath.setValue(basePath + "/files");
 		Settings.DatabasePath.setValue(basePath + "/db");
 
+		// No graceful shutdown between test classes: the HTTP client keeps its connections alive, so a
+		// connector never reports itself drained and every single teardown burnt the whole timeout --
+		// about 93 seconds across a full suite run, spent waiting for connections that never close.
+		Settings.HttpServiceStopTimeout.setValue(0);
+
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
@@ -139,9 +144,13 @@ public class StructrTest {
 
 		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);
+
+		createSchema();
 	}
 
-	@BeforeClass(alwaysRun = true, dependsOnMethods = "startSystem")
+	// Deliberately NOT a TestNG configuration method, matching StructrUiTest and StructrRestTestBase:
+	// @BeforeClass(dependsOnMethods = "setup") cannot resolve the dependency in a subclass that overrides
+	// setup(), so it is invoked at the end of setup() instead, which also keeps overrides working.
 	public void createSchema() {
 
 		// relationships: traits
@@ -215,7 +224,7 @@ public class StructrTest {
 	}
 
 	@AfterClass(alwaysRun = true)
-	public void stopSystem() {
+	public void teardown() {
 
 		Services.getInstance().shutdown();
 

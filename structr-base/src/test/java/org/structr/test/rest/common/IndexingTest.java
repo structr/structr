@@ -55,6 +55,10 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		Settings.FilesPath.setValue(basePath + "/files");
 		Settings.DatabasePath.setValue(basePath + "/db");
 
+		// No graceful shutdown between test classes: the HTTP client keeps its connections alive, so a
+		// connector never reports itself drained and every teardown burnt the whole timeout.
+		Settings.HttpServiceStopTimeout.setValue(0);
+
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 

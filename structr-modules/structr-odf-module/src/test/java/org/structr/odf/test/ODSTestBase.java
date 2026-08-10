@@ -34,7 +34,8 @@ import org.testng.annotations.BeforeClass;
 
 public class ODSTestBase extends StructrUiTest {
 
-	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
+	// no @BeforeClass: StructrUiTest.setup() already invokes createSchema(), and annotating the
+	// override as well ran the whole schema registration twice for every class.
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new ODFExporterEXPORTS_TOFile());

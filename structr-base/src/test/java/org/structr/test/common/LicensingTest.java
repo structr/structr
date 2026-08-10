@@ -88,7 +88,7 @@ public class LicensingTest {
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass
-	public void startSystem(@Optional String testDatabaseConnection) {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		Services.disableTestingMode();
 		Services.disableIndexConfiguration();
@@ -106,6 +106,10 @@ public class LicensingTest {
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
 		Settings.DatabasePath.setValue(basePath + "/db");
+
+		// No graceful shutdown between test classes: the HTTP client keeps its connections alive, so a
+		// connector never reports itself drained and every teardown burnt the whole timeout.
+		Settings.HttpServiceStopTimeout.setValue(0);
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
@@ -129,7 +133,7 @@ public class LicensingTest {
 	}
 
 	@AfterClass
-	public void stopSystem() {
+	public void teardown() {
 
 		Services.getInstance().shutdown();
 

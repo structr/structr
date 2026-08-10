@@ -50,7 +50,8 @@ public class CsvFunctionsTest extends StructrUiTest {
 	private static final Logger logger = LoggerFactory.getLogger(CsvFunctionsTest.class.getName());
 
 	@Override
-	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
+	// no @BeforeClass: StructrUiTest.setup() already invokes createSchema(), and annotating the
+	// override as well ran the whole schema registration twice for every class.
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new CsvTestOneTraitDefinition());

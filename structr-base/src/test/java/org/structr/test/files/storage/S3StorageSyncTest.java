@@ -73,9 +73,9 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 	@AfterClass(alwaysRun = true)
 	@Override
-	public void stop() throws Exception {
+	public void teardown() throws Exception {
 
-		super.stop();
+		super.teardown();
 
 		RustFsTestSupport.stop();
 	}
