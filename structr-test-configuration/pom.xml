@@ -31,6 +31,13 @@
 						<version>3.5.4</version>
 						<configuration>
 							<argLine>-Duser.language=en -Duser.region=GB -Duser.timezone=UTC</argLine>
+							<!-- The forked JVM's locale, not just its language: sun.jnu.encoding is taken from the
+							     environment and cannot be set with -D (tried, the JVM ignores it), so on an image
+							     without a UTF-8 locale it becomes ASCII and any file name with an umlaut fails to
+							     encode at all, with InvalidPathException from Path.resolve. -->
+							<environmentVariables>
+								<LC_ALL>C.UTF-8</LC_ALL>
+							</environmentVariables>
 							<excludes>
 								<exclude>**/*.java</exclude>
 							</excludes>
@@ -45,6 +52,13 @@
 								<include>**/*Test.java</include>
 							</includes>
 							<argLine>-Xms2g -Xmx2g -Duser.timezone=UTC -Duser.language=en -Duser.region=GB</argLine>
+							<!-- The forked JVM's locale, not just its language: sun.jnu.encoding is taken from the
+							     environment and cannot be set with -D (tried, the JVM ignores it), so on an image
+							     without a UTF-8 locale it becomes ASCII and any file name with an umlaut fails to
+							     encode at all, with InvalidPathException from Path.resolve. -->
+							<environmentVariables>
+								<LC_ALL>C.UTF-8</LC_ALL>
+							</environmentVariables>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
@@ -139,6 +153,13 @@
 								<include>**/*Test.java</include>
 							</includes>
 							<argLine>-Xms8g -Xmx8g -Duser.timezone=UTC -Duser.language=en -Duser.region=GB</argLine>
+							<!-- The forked JVM's locale, not just its language: sun.jnu.encoding is taken from the
+							     environment and cannot be set with -D (tried, the JVM ignores it), so on an image
+							     without a UTF-8 locale it becomes ASCII and any file name with an umlaut fails to
+							     encode at all, with InvalidPathException from Path.resolve. -->
+							<environmentVariables>
+								<LC_ALL>C.UTF-8</LC_ALL>
+							</environmentVariables>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
