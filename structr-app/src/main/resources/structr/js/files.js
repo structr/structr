@@ -189,6 +189,25 @@ let _Files = {
 		Structr.mainMenu.unblock(100);
 
 		Structr.resize();
+
+		document.body.addEventListener('keydown', _Files.keydownListener);
+	},
+	unload: () => {
+		document.body.removeEventListener('keydown', _Files.keydownListener);
+
+		_Files.selection.clearStack();
+	},
+	keydownListener: event => {
+
+		let keyCode = event.keyCode;
+		let code = event.code;
+
+		// ctrl-a / cmd-a
+		if ((code === 'KeyA' || keyCode === 65) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
+			event.preventDefault();
+
+			_Files.selection.selectAll();
+		}
 	},
 	handleNodeRefresh: (node) => {
 
@@ -242,7 +261,7 @@ let _Files = {
 	getContextMenuElements: (div, entity) => {
 
 		const isFile         = entity.isFile;
-		let selectedElements = document.querySelectorAll('.node.selected');
+		let selectedElements = _Files.selection.getAllSelected();
 
 		// there is a difference when right-clicking versus clicking the kebab icon
 		let fileNode = div;
@@ -252,17 +271,15 @@ let _Files = {
 			fileNode = div.querySelector('.node');
 		}
 
-		if (fileNode && !fileNode.classList.contains('selected')) {
+		if (fileNode && !_Files.selection.isSelected(fileNode)) {
 
-			for (let selNode of selectedElements) {
-				selNode.classList.remove('selected');
-			}
-			fileNode.classList.add('selected');
+			_Files.selection.selectAll(false);
+			_Files.selection.selectNode(fileNode, true);
 
-			selectedElements = document.querySelectorAll('.node.selected');
+			selectedElements = _Files.selection.getAllSelected();
 		}
 
-		let fileCount     = document.querySelectorAll('.node.file.selected').length;
+		let fileCount     = _Files.selection.getAllSelectedFiles().length;
 		let isMultiSelect = selectedElements.length > 1;
 		let elements      = [];
 		let contentType   = entity.contentType || '';
@@ -519,8 +536,6 @@ let _Files = {
 				break;
 		}
 	},
-	unload: () => {
-	},
 	activateUpload: () => {
 
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -683,12 +698,6 @@ let _Files = {
 	},
 	registerFolderLinks: () => {
 
-		let openTargetNode = (targetId, e) => {
-			_Files.getFilesTree().jstree('open_node', targetId, () => {
-				_Files.getFilesTree().jstree('activate_node', targetId, e);
-			});
-		};
-
 		for (let folderLink of _Files.getFolderContentsElement().querySelectorAll('.is-folder.file-icon')) {
 
 			folderLink.addEventListener('click', (e) => {
@@ -698,13 +707,23 @@ let _Files = {
 				let targetId = folderLink.dataset['targetId'];
 				let parentId = folderLink.dataset['parentId'];
 
-				if (!parentId || _Files.getFilesTree().jstree('is_open', parentId)) {
-					openTargetNode(targetId,e );
-				} else {
-					_Files.getFilesTree().jstree('open_node', parentId, () => {
-						openTargetNode(parentId, e);
-					});
-				}
+				_Files.openFolder(parentId, targetId, e);
+			});
+		}
+	},
+	openFolder: (parentId, targetId, e) => {
+
+		let openTargetNode = (targetId, e) => {
+			_Files.getFilesTree().jstree('open_node', targetId, () => {
+				_Files.getFilesTree().jstree('activate_node', targetId, e);
+			});
+		};
+
+		if (!parentId || _Files.getFilesTree().jstree('is_open', parentId)) {
+			openTargetNode(targetId, e);
+		} else {
+			_Files.getFilesTree().jstree('open_node', parentId, () => {
+				openTargetNode(parentId, e);
 			});
 		}
 	},
@@ -733,6 +752,8 @@ let _Files = {
 		_Files.updateFunctionBarStatus();
 
 		let handleFileChildren = (children) => {
+
+			_Files.selection.clearStack();
 
 			let currentFolder = _Files.getFolderContentsElement().dataset['currentFolder'];
 
@@ -826,7 +847,16 @@ let _Files = {
 					type: (parentId === _Files.rootFolderName) ? 'fake' : 'Folder'
 				};
 
-				_Dragndrop.files.enableDroppable(parentObj, _Files.getFolderContentsElement().querySelector('#parent-folder-link .node'));
+				let fakeParentFolder = _Files.getFolderContentsElement().querySelector('#parent-folder-link .node');
+
+				_Dragndrop.files.enableDroppable(parentObj, fakeParentFolder);
+
+				fakeParentFolder.addEventListener('dblclick', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					_Files.openFolder(parentId, parentId, e);
+				});
 			}
 		}
 	},
@@ -1093,6 +1123,8 @@ let _Files = {
 			return;
 		}
 
+		let node = div[0].closest('.node');
+
 		let nameElement = div[0].querySelector('b.name_');
 		nameElement.textContent = name;
 		nameElement.title       = name;
@@ -1103,13 +1135,13 @@ let _Files = {
 
 		_Dragndrop.enableDraggable(d, div[0], _Dragndrop.dropActions.file, false, (e) => {
 
-			let draggedElementIsSelected = div.hasClass('selected');
+			let draggedElementIsSelected = _Files.selection.isSelected(node);
 
 			if (!draggedElementIsSelected) {
-				$('.node.selected').removeClass('selected');
+				_Files.selection.selectAll(false);
 			}
 
-			_Dragndrop.files.draggedEntityIds = draggedElementIsSelected ? [...document.querySelectorAll('.node.selected')].map(x => Structr.getId(x)) : [d.id];
+			_Dragndrop.files.draggedEntityIds = draggedElementIsSelected ? _Files.selection.getAllSelected().map(x => Structr.getId(x)) : [d.id];
 
 			let dragIcon       = (draggedElementIsSelected && _Dragndrop.files.draggedEntityIds.length > 1) ? _Icons.iconFilesStack : fileIcon;
 			let dragCnt        = (draggedElementIsSelected && _Dragndrop.files.draggedEntityIds.length > 1) ? _Dragndrop.files.draggedEntityIds.length : _Dragndrop.dragEntity.name;
@@ -1140,27 +1172,135 @@ let _Files = {
 		_Entities.appendContextMenuIcon(iconsContainer[0], d);
 		_Entities.appendNewAccessControlIcon(iconsContainer, d, false);
 
-		if (d.isFile) {
+		if (node) {
 
-			div[0].closest('.node')?.addEventListener('dblclick', () => {
+			node.addEventListener('dblclick', (e) => {
 
-				if ($('b.name_', div).length > 0) {
+				if (d.isFile) {
 
-					let contentType = d.contentType || '';
+					if ($('b.name_', div).length > 0) {
 
-					if (d.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg') && d.isTemplate !== true) {
+						let contentType = d.contentType || '';
 
-						_Files.editImage(d);
+						if (d.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg') && d.isTemplate !== true) {
+
+							_Files.editImage(d);
+
+						} else {
+
+							_Files.editFile(d);
+						}
+					}
+
+				} else if (d.isFolder) {
+
+					_Files.openFolder(d.parentId, d.id, e);
+				}
+			});
+
+			node.addEventListener('click', _Files.selection.handleSelectionClick);
+		}
+	},
+	selection: {
+		stack: [],
+		clearStack: () => {
+			_Files.selection.stack = [];
+		},
+		selectNode: (node, selected) => {
+			node.classList.toggle('selected', selected);
+			if (selected) {
+				_Files.selection.stack.push(node);
+			} else {
+				_Files.selection.stack = _Files.selection.stack.filter(el => el !== node);
+			}
+		},
+		selectFromTo: (fromNode, toNode) => {
+
+			let start = false;
+
+			// select all elements from the start until the clicked element
+			for (let node of document.querySelectorAll('#files-table-body tr.row .node')) {
+
+				if (node === fromNode || fromNode === null) {
+					start = true;
+				}
+
+				if (!start) {
+					continue;
+				}
+
+				_Files.selection.stack.push(node);
+				node.classList.toggle('selected', true);
+
+				if (node === toNode) {
+					break;
+				}
+			}
+		},
+		selectAll: (selected = true) => {
+
+			for (let node of document.querySelectorAll('#files-table-body tr.row .node')) {
+				_Files.selection.stack.push(node);
+				node.classList.toggle('selected', selected);
+			}
+
+			if (selected === false) {
+				_Files.selection.clearStack();
+			}
+		},
+		handleSelectionClick: (e) => {
+
+			let clickedNode = e.target.closest('.node');
+
+			let isShift = (e.shiftKey === true);
+			let isCtrl = ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey));
+
+			let nodeIsSelected = _Files.selection.isSelected(clickedNode);
+
+			if (e.detail === 1) {
+
+				if (isCtrl) {
+
+					let selected = !nodeIsSelected;
+					_Files.selection.selectNode(clickedNode, selected);
+
+				} else if (isShift) {
+
+					let last = [..._Files.selection.stack].pop();
+
+					if (last) {
+
+						const result = last.compareDocumentPosition(clickedNode);
+
+						if (result === Node.DOCUMENT_POSITION_PRECEDING) {
+							_Files.selection.selectFromTo(clickedNode, last);
+						} else {
+							_Files.selection.selectFromTo(last, clickedNode);
+						}
 
 					} else {
 
-						_Files.editFile(d);
+						// select all elements from the start until the clicked element
+						_Files.selection.selectFromTo(null, clickedNode);
 					}
-				}
-			});
-		}
 
-		_Entities.makeSelectable(div);
+				} else {
+
+					_Files.selection.selectAll(false);
+
+					_Files.selection.selectNode(clickedNode, true);
+				}
+			}
+		},
+		getAllSelected: () => {
+			return [...document.querySelectorAll('.node.selected')];
+		},
+		getAllSelectedFiles: () => {
+			return [...document.querySelectorAll('.node.file.selected')];
+		},
+		isSelected: (node) => {
+			return node.classList.contains('selected');
+		}
 	},
 	handleMoveObjectsAction: (targetFolderId, draggedObjectIds) => {
 
