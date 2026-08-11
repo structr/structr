@@ -622,9 +622,15 @@
 									</mapper>
 								</data>
 
-								<!-- The static web UI (structr/) is served from the application jar
-									 (class path), so it is not installed as an unpacked directory.
-									 See HttpService and the dist assembly descriptor. -->
+								<data>
+									<src>${basedir}/src/main/resources/structr</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/structr</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
 
 								<data>
 									<src>${basedir}/target/deb/config</src>
