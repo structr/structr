@@ -1,773 +1,773 @@
 <?xml version='1.0' encoding='utf-8'?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <name>Structr App</name>
-    <artifactId>structr-app</artifactId>
-    <version>7.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+	<name>Structr App</name>
+	<artifactId>structr-app</artifactId>
+	<version>7.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
-    <parent>
-        <groupId>org.structr</groupId>
-        <artifactId>structr</artifactId>
-        <version>7.0-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>org.structr</groupId>
+		<artifactId>structr</artifactId>
+		<version>7.0-SNAPSHOT</version>
+	</parent>
 
-    <properties>
-        <assemblies.base.path>${project.parent.basedir}/structr-app/target</assemblies.base.path>
-        <assemblies.resources.path>${project.parent.basedir}/structr-app/src/main/resources</assemblies.resources.path>
+	<properties>
+		<assemblies.base.path>${project.parent.basedir}/structr-app/target</assemblies.base.path>
+		<assemblies.resources.path>${project.parent.basedir}/structr-app/src/main/resources</assemblies.resources.path>
 
-        <!-- Skip flags -->
-        <skipUITests>${skipTests}</skipUITests>
-        <skipZip>false</skipZip>
-        <skipDeb>false</skipDeb>
-        <skipDocker>false</skipDocker>
-        <skipDockerTestDB>true</skipDockerTestDB>
-        <skipSpiPreflight>false</skipSpiPreflight>
-    </properties>
+		<!-- Skip flags -->
+		<skipUITests>${skipTests}</skipUITests>
+		<skipZip>false</skipZip>
+		<skipDeb>false</skipDeb>
+		<skipDocker>false</skipDocker>
+		<skipDockerTestDB>true</skipDockerTestDB>
+		<skipSpiPreflight>false</skipSpiPreflight>
+	</properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
 
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-db-driver-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-neo4j-embedded-driver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-neo4j-bolt-driver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-memory-driver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-base</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-advanced-mail-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-api-builder-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-csv-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-data-feeds-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-excel-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-file-access-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-flow-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-process-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-geo-transformations-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-media-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-messaging-engine-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-odf-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-pdf-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-text-search-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-translation-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-xmpp-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-db-driver-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-neo4j-embedded-driver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-neo4j-bolt-driver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-memory-driver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-base</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-advanced-mail-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-api-builder-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-csv-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-data-feeds-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-excel-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-file-access-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-flow-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-process-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-geo-transformations-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-media-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-messaging-engine-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-odf-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-pdf-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-text-search-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-translation-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-xmpp-module</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
-    <!--
-    BUILD ORDER (Maven Lifecycle Phases):
-    - package               - Create JAR + copy dependencies to lib/
-                               [zip-dist]    Create distribution ZIP
-                               [deb-package] Create Debian package
-    - pre-integration-test  - [ui-tests] Build Docker test image 'structr-ui-tests'
-                               [ui-tests] Start Neo4j + Structr test containers
-    - integration-test      - [ui-tests] Run Playwright tests
-    - post-integration-test - [ui-tests] Stop test containers
-    - install               - [docker-build] Build production image 'structr/structr:${version}'
-    - deploy                - [docker-push] Push to Docker Hub
-    -->
+	<!--
+	BUILD ORDER (Maven Lifecycle Phases):
+	- package               - Create JAR + copy dependencies to lib/
+							   [zip-dist]    Create distribution ZIP
+							   [deb-package] Create Debian package
+	- pre-integration-test  - [ui-tests] Build Docker test image 'structr-ui-tests'
+							   [ui-tests] Start Neo4j + Structr test containers
+	- integration-test      - [ui-tests] Run Playwright tests
+	- post-integration-test - [ui-tests] Stop test containers
+	- install               - [docker-build] Build production image 'structr/structr:${version}'
+	- deploy                - [docker-push] Push to Docker Hub
+	-->
 
-    <build>
-        <!-- Artifact name: structr-6.0-SNAPSHOT-202510261155.abc12.jar -->
-        <finalName>structr-${project.version}-${structr.build.timestamp}.${buildNumber}</finalName>
+	<build>
+		<!-- Artifact name: structr-6.0-SNAPSHOT-202510261155.abc12.jar -->
+		<finalName>structr-${project.version}-${structr.build.timestamp}.${buildNumber}</finalName>
 
-        <plugins>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>replace-placeholder</id>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <target>
-                                <delete file="src/main/resources/structr/index.html"/>
+		<plugins>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>replace-placeholder</id>
+						<phase>generate-resources</phase>
+						<configuration>
+							<target>
+								<delete file="src/main/resources/structr/index.html"/>
 
-                                <copy file="src/main/resources/structr/index.template.html"
-                                      tofile="src/main/resources/structr/index.html"/>
+								<copy file="src/main/resources/structr/index.template.html"
+									  tofile="src/main/resources/structr/index.html"/>
 
-                                <replace file="src/main/resources/structr/index.html"
-                                         token="@buildNumber@"
-                                         value="${buildNumber}"/>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
+								<replace file="src/main/resources/structr/index.html"
+										 token="@buildNumber@"
+										 value="${buildNumber}"/>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
 
-                    <!-- Partition the runtime libs for JPMS launch:
-                         target/lib    = Java module path (Structr's own modules + modular third-party jars)
-                         target/lib-classpath = class path "islands" - third-party jars that are JPMS-hostile
-                                         (split packages / duplicate or invalid automatic-module names that
-                                         we cannot fix and that sit outside our control). Reached only via
-                                         the ServiceLoader SPIs from the quarantined (automatic) Structr
-                                         modules, never required directly by an explicit module.
-                         The set below is derived from the JDK module-path validator
-                         (java with the validate-modules / module-path options against target/lib);
-                         keep it in sync if dependencies change (re-run that validation after upgrades).
-                         Runs in the package phase, after copy-dependencies (prepare-package) and before
-                         the assembly/jdeb consumers (package). -->
-                    <execution>
-                        <id>partition-module-path</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <!-- Partition target/lib (flat copy-dependencies output) into the JPMS
-                                     module path (kept) and the class-path island dir (target/lib-classpath).
-                                     Shared, edition-agnostic tool: curated seed (build/island-seed.txt) +
-                                     automated detection of JPMS-hostile jars. See DEPENDENCY_MANAGEMENT.md.
-                                     The tool + seed are shipped in structr-app.jar and reused by the
-                                     enterprise build (which harvests them). -->
-                                <exec executable="${java.home}/bin/java" failonerror="true">
-                                    <arg value="${project.build.outputDirectory}/build/ModulePathPartitioner.java"/>
-                                    <arg value="${project.build.directory}/lib"/>
-                                    <arg value="${project.build.directory}/lib-classpath"/>
-                                    <arg value="${project.build.outputDirectory}/build/island-seed.txt"/>
-                                </exec>
-                            </target>
-                        </configuration>
-                    </execution>
-                    <!-- JPMS SPI preflight: after partitioning, verify that the eagerly-scanned
-                         java.util.ServiceLoader categories (ImageIO reader/writer/stream, JDBC, charset) have NO
-                         provider that fails to instantiate on the module path. Such a provider is tolerated on the
-                         class path but fatal as an automatic module (e.g. legacy jai_imageio's "vendorName == null!"),
-                         and because those scans are eager a single bad provider breaks unrelated features at runtime
-                         (it is what broke the barcode() function). Fails the build early with the fix hint. The tool
-                         must run COMPILED with the partitioned module path (source-launch + a large module graph
-                         hangs), so we javac it first. Skip with -DskipSpiPreflight=true. See build/SpiPreflight.java. -->
-                    <execution>
-                        <id>spi-preflight</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${skipSpiPreflight}</skip>
-                            <target>
-                                <mkdir dir="${project.build.directory}/spi-preflight"/>
-                                <exec executable="${java.home}/bin/javac" failonerror="true">
-                                    <arg value="-d"/>
-                                    <arg value="${project.build.directory}/spi-preflight"/>
-                                    <arg value="${project.build.outputDirectory}/build/SpiPreflight.java"/>
-                                </exec>
-                                <exec executable="${java.home}/bin/java" failonerror="true">
-                                    <arg value="--module-path"/>
-                                    <arg value="${project.build.directory}/lib"/>
-                                    <arg value="--add-modules"/>
-                                    <arg value="ALL-MODULE-PATH"/>
-                                    <arg value="-cp"/>
-                                    <arg value="${project.build.directory}/spi-preflight${path.separator}${project.build.directory}/lib-classpath/*"/>
-                                    <arg value="SpiPreflight"/>
-                                    <arg value="${project.build.directory}/lib"/>
-                                    <arg value="${project.build.directory}/lib-classpath"/>
-                                </exec>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+					<!-- Partition the runtime libs for JPMS launch:
+						 target/lib    = Java module path (Structr's own modules + modular third-party jars)
+						 target/lib-classpath = class path "islands" - third-party jars that are JPMS-hostile
+										 (split packages / duplicate or invalid automatic-module names that
+										 we cannot fix and that sit outside our control). Reached only via
+										 the ServiceLoader SPIs from the quarantined (automatic) Structr
+										 modules, never required directly by an explicit module.
+						 The set below is derived from the JDK module-path validator
+						 (java with the validate-modules / module-path options against target/lib);
+						 keep it in sync if dependencies change (re-run that validation after upgrades).
+						 Runs in the package phase, after copy-dependencies (prepare-package) and before
+						 the assembly/jdeb consumers (package). -->
+					<execution>
+						<id>partition-module-path</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<!-- Partition target/lib (flat copy-dependencies output) into the JPMS
+									 module path (kept) and the class-path island dir (target/lib-classpath).
+									 Shared, edition-agnostic tool: curated seed (build/island-seed.txt) +
+									 automated detection of JPMS-hostile jars. See DEPENDENCY_MANAGEMENT.md.
+									 The tool + seed are shipped in structr-app.jar and reused by the
+									 enterprise build (which harvests them). -->
+								<exec executable="${java.home}/bin/java" failonerror="true">
+									<arg value="${project.build.outputDirectory}/build/ModulePathPartitioner.java"/>
+									<arg value="${project.build.directory}/lib"/>
+									<arg value="${project.build.directory}/lib-classpath"/>
+									<arg value="${project.build.outputDirectory}/build/island-seed.txt"/>
+								</exec>
+							</target>
+						</configuration>
+					</execution>
+					<!-- JPMS SPI preflight: after partitioning, verify that the eagerly-scanned
+						 java.util.ServiceLoader categories (ImageIO reader/writer/stream, JDBC, charset) have NO
+						 provider that fails to instantiate on the module path. Such a provider is tolerated on the
+						 class path but fatal as an automatic module (e.g. legacy jai_imageio's "vendorName == null!"),
+						 and because those scans are eager a single bad provider breaks unrelated features at runtime
+						 (it is what broke the barcode() function). Fails the build early with the fix hint. The tool
+						 must run COMPILED with the partitioned module path (source-launch + a large module graph
+						 hangs), so we javac it first. Skip with -DskipSpiPreflight=true. See build/SpiPreflight.java. -->
+					<execution>
+						<id>spi-preflight</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<skip>${skipSpiPreflight}</skip>
+							<target>
+								<mkdir dir="${project.build.directory}/spi-preflight"/>
+								<exec executable="${java.home}/bin/javac" failonerror="true">
+									<arg value="-d"/>
+									<arg value="${project.build.directory}/spi-preflight"/>
+									<arg value="${project.build.outputDirectory}/build/SpiPreflight.java"/>
+								</exec>
+								<exec executable="${java.home}/bin/java" failonerror="true">
+									<arg value="--module-path"/>
+									<arg value="${project.build.directory}/lib"/>
+									<arg value="--add-modules"/>
+									<arg value="ALL-MODULE-PATH"/>
+									<arg value="-cp"/>
+									<arg value="${project.build.directory}/spi-preflight${path.separator}${project.build.directory}/lib-classpath/*"/>
+									<arg value="SpiPreflight"/>
+									<arg value="${project.build.directory}/lib"/>
+									<arg value="${project.build.directory}/lib-classpath"/>
+								</exec>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-            <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>maven-replacer-plugin</artifactId>
-                <version>1.4.1</version>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <file>src/main/resources/deb/bin/config</file>
-                    <outputFile>target/deb/config</outputFile>
-                    <replacements>
-                        <replacement>
-                            <token>FINAL_NAME</token>
-                            <value>${project.build.finalName}</value>
-                        </replacement>
-                    </replacements>
-                </configuration>
-            </plugin>
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>maven-replacer-plugin</artifactId>
+				<version>1.4.1</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<file>src/main/resources/deb/bin/config</file>
+					<outputFile>target/deb/config</outputFile>
+					<replacements>
+						<replacement>
+							<token>FINAL_NAME</token>
+							<value>${project.build.finalName}</value>
+						</replacement>
+					</replacements>
+				</configuration>
+			</plugin>
 
-            <!-- Copy dependencies to target/lib/ (module path); the partition step below
-                 then moves the JPMS-hostile "island" jars to target/lib-classpath/ (class path).
-                 Runs in prepare-package so the partition (package phase) and the
-                 assembly/jdeb consumers (also package phase) see the finished split. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.8.1</version>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <includeScope>runtime</includeScope>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<!-- Copy dependencies to target/lib/ (module path); the partition step below
+				 then moves the JPMS-hostile "island" jars to target/lib-classpath/ (class path).
+				 Runs in prepare-package so the partition (package phase) and the
+				 assembly/jdeb consumers (also package phase) see the finished split. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.8.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<includeScope>runtime</includeScope>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-            <!-- (the partition-module-path antrun execution lives in the maven-antrun-plugin block above) -->
-        </plugins>
-    </build>
+			<!-- (the partition-module-path antrun execution lives in the maven-antrun-plugin block above) -->
+		</plugins>
+	</build>
 
-    <profiles>
+	<profiles>
 
-        <!-- ui-tests: Playwright UI tests in Docker containers
-             - Builds Docker test image from distribution ZIP
-             - Starts Neo4j + Structr containers on custom network
-             - Installs Node.js/npm/Playwright
-             - Runs Playwright tests from src/test/ui/
-             Skip: -DskipUiTests=true -->
-        <profile>
-            <id>ui-tests</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <!-- Create the screenshot bind-mount target BEFORE any container starts.
-                         The Playwright image (mcr.microsoft.com/playwright, no USER) runs as root,
-                         and Docker creates a missing bind-mount source on the host as root:root.
-                         That left target/playwright-screenshots owned by root, which made the next
-                         `mvn clean` fail for the (non-root) build user. Pre-creating it here means
-                         Docker reuses the existing user-owned directory: the screenshots written
-                         into it are still root-owned, but unlinking a file depends on write
-                         permission of the CONTAINING directory, not on file ownership, so `clean`
-                         can remove them again. -->
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>ui-tests-create-screenshot-dir</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>${skipUITests}</skip>
-                                    <target>
-                                        <mkdir dir="${project.basedir}/target/playwright-screenshots"/>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+		<!-- ui-tests: Playwright UI tests in Docker containers
+			 - Builds Docker test image from distribution ZIP
+			 - Starts Neo4j + Structr containers on custom network
+			 - Installs Node.js/npm/Playwright
+			 - Runs Playwright tests from src/test/ui/
+			 Skip: -DskipUiTests=true -->
+		<profile>
+			<id>ui-tests</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<!-- Create the screenshot bind-mount target BEFORE any container starts.
+						 The Playwright image (mcr.microsoft.com/playwright, no USER) runs as root,
+						 and Docker creates a missing bind-mount source on the host as root:root.
+						 That left target/playwright-screenshots owned by root, which made the next
+						 `mvn clean` fail for the (non-root) build user. Pre-creating it here means
+						 Docker reuses the existing user-owned directory: the screenshots written
+						 into it are still root-owned, but unlinking a file depends on write
+						 permission of the CONTAINING directory, not on file ownership, so `clean`
+						 can remove them again. -->
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>ui-tests-create-screenshot-dir</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<skip>${skipUITests}</skip>
+									<target>
+										<mkdir dir="${project.basedir}/target/playwright-screenshots"/>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker.maven.plugin.version}</version>
-                        <configuration>
-                            <skip>${skipUITests}</skip>
-                            <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
-                            <removeMode>all</removeMode>
-                            <keepContainer>false</keepContainer>
-                        </configuration>
-                        <executions>
-                            <!-- Stop containers after tests -->
-                            <execution>
-                                <id>ui-stop</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>stop</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>${skipUITests}</skip>
-                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
-                                </configuration>
-                            </execution>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<version>${docker.maven.plugin.version}</version>
+						<configuration>
+							<skip>${skipUITests}</skip>
+							<autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+							<removeMode>all</removeMode>
+							<keepContainer>false</keepContainer>
+						</configuration>
+						<executions>
+							<!-- Stop containers after tests -->
+							<execution>
+								<id>ui-stop</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+								<configuration>
+									<skip>${skipUITests}</skip>
+									<executeStopOnVMShutdown>true</executeStopOnVMShutdown>
+								</configuration>
+							</execution>
 
-                            <!-- Build test image (requires ZIP from package phase) -->
-                            <execution>
-                                <id>ui-image-build</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>${skipUITests}</skip>
-                                    <images>
-                                        <!-- Playwright test runner image -->
-                                        <image>
-                                            <name>structr-playwright-tests</name>
-                                            <build>
-                                                <contextDir>${project.basedir}/src/test/playwright-ui-tests</contextDir>
-                                                <dockerFile>ui-tests.Dockerfile</dockerFile>
-                                            </build>
-                                        </image>
-                                        <image>
-                                            <name>structr-ui-tests</name>
-                                            <build>
-                                                <contextDir>${project.basedir}</contextDir>
-                                                <dockerFile>Dockerfile</dockerFile>
-                                                <args>
-                                                    <STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
-                                                </args>
-                                            </build>
-                                        </image>
-                                    </images>
-                                </configuration>
-                            </execution>
+							<!-- Build test image (requires ZIP from package phase) -->
+							<execution>
+								<id>ui-image-build</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>build</goal>
+								</goals>
+								<configuration>
+									<skip>${skipUITests}</skip>
+									<images>
+										<!-- Playwright test runner image -->
+										<image>
+											<name>structr-playwright-tests</name>
+											<build>
+												<contextDir>${project.basedir}/src/test/playwright-ui-tests</contextDir>
+												<dockerFile>ui-tests.Dockerfile</dockerFile>
+											</build>
+										</image>
+										<image>
+											<name>structr-ui-tests</name>
+											<build>
+												<contextDir>${project.basedir}</contextDir>
+												<dockerFile>Dockerfile</dockerFile>
+												<args>
+													<STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
+												</args>
+											</build>
+										</image>
+									</images>
+								</configuration>
+							</execution>
 
-                            <!-- Start Neo4j + Structr containers -->
-                            <execution>
-                                <id>ui-start</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>start</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>${skipUITests}</skip>
-                                    <images>
-                                        <image>
-                                            <name>neo4j:latest</name>
-                                            <alias>database</alias>
-                                            <run>
-                                                <network>
-                                                    <mode>custom</mode>
-                                                    <name>ui-test-network</name>
-                                                    <alias>neo4j-test</alias>
-                                                </network>
-                                                <wait>
-                                                    <log>(.?)Bolt enabled on(.?)</log>
-                                                    <time>30000</time>
-                                                </wait>
-                                                <env>
-                                                    <NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-                                                    <NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
-                                                    <NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
-                                                </env>
-                                            </run>
-                                        </image>
+							<!-- Start Neo4j + Structr containers -->
+							<execution>
+								<id>ui-start</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>start</goal>
+								</goals>
+								<configuration>
+									<skip>${skipUITests}</skip>
+									<images>
+										<image>
+											<name>neo4j:latest</name>
+											<alias>database</alias>
+											<run>
+												<network>
+													<mode>custom</mode>
+													<name>ui-test-network</name>
+													<alias>neo4j-test</alias>
+												</network>
+												<wait>
+													<log>(.?)Bolt enabled on(.?)</log>
+													<time>30000</time>
+												</wait>
+												<env>
+													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
+													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
+												</env>
+											</run>
+										</image>
 
-                                        <image>
-                                            <name>structr-ui-tests</name>
-                                            <run>
-                                                <network>
-                                                    <mode>custom</mode>
-                                                    <name>ui-test-network</name>
-                                                    <alias>structr-ui-tests</alias>
-                                                </network>
-                                                <wait>
-                                                    <log>(.?)Initialization complete(.?)</log>
-                                                    <time>200000</time>
-                                                </wait>
-                                                <env>
-                                                    <AGREE_TO_STRUCTR_PRIVACY_POLICY>yes</AGREE_TO_STRUCTR_PRIVACY_POLICY>
-                                                    <STRUCTR_setup_wizard_completed>false</STRUCTR_setup_wizard_completed>
-                                                    <STRUCTR_db_uri>bolt://neo4j-test:7687</STRUCTR_db_uri>
-                                                    <STRUCTR_db_username>neo4j</STRUCTR_db_username>
-                                                    <STRUCTR_db_password>admin123</STRUCTR_db_password>
-                                                </env>
-                                            </run>
-                                        </image>
-                                    </images>
-                                </configuration>
-                            </execution>
+										<image>
+											<name>structr-ui-tests</name>
+											<run>
+												<network>
+													<mode>custom</mode>
+													<name>ui-test-network</name>
+													<alias>structr-ui-tests</alias>
+												</network>
+												<wait>
+													<log>(.?)Initialization complete(.?)</log>
+													<time>200000</time>
+												</wait>
+												<env>
+													<AGREE_TO_STRUCTR_PRIVACY_POLICY>yes</AGREE_TO_STRUCTR_PRIVACY_POLICY>
+													<STRUCTR_setup_wizard_completed>false</STRUCTR_setup_wizard_completed>
+													<STRUCTR_db_uri>bolt://neo4j-test:7687</STRUCTR_db_uri>
+													<STRUCTR_db_username>neo4j</STRUCTR_db_username>
+													<STRUCTR_db_password>admin123</STRUCTR_db_password>
+												</env>
+											</run>
+										</image>
+									</images>
+								</configuration>
+							</execution>
 
-                            <!-- Run Playwright tests in container -->
-                            <execution>
-                                <id>ui-run-tests</id>
-                                <phase>integration-test</phase>
-                                <goals>
-                                    <goal>start</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>${skipUITests}</skip>
-                                    <startParallel>false</startParallel>
-                                    <images>
-                                        <image>
-                                            <name>structr-playwright-tests</name>
-                                            <alias>playwright-runner</alias>
-                                            <run>
-                                                <network>
-                                                    <mode>custom</mode>
-                                                    <name>ui-test-network</name>
-                                                    <alias>playwright-runner</alias>
-                                                </network>
-                                                <shmSize>2147483648</shmSize> <!-- 2GB shared memory -->
-                                                <env>
-                                                    <BASE_URL>http://structr-ui-tests:8082</BASE_URL>
-                                                    <DATABASE_URL>bolt://neo4j-test:7687</DATABASE_URL>
-                                                    <DATABASE_PASSWORD>admin123</DATABASE_PASSWORD>
-                                                    <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
-                                                    <DEBUG>pw:api</DEBUG>
-                                                </env>
-                                                <volumes>
-                                                    <bind>
-                                                        <volume>${project.basedir}/target/playwright-screenshots:/tests/screenshots</volume>
-                                                    </bind>
-                                                </volumes>
-                                                <wait>
-                                                    <!-- Wait for container to exit -->
-                                                    <exit>0</exit>
-                                                    <time>36000000</time> <!-- 60 minutes max -->
-                                                </wait>
-                                                <log>
-                                                    <enabled>true</enabled>
-                                                    <prefix>PLAYWRIGHT</prefix>
-                                                    <color>cyan</color>
-                                                </log>
-                                            </run>
-                                        </image>
-                                    </images>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+							<!-- Run Playwright tests in container -->
+							<execution>
+								<id>ui-run-tests</id>
+								<phase>integration-test</phase>
+								<goals>
+									<goal>start</goal>
+								</goals>
+								<configuration>
+									<skip>${skipUITests}</skip>
+									<startParallel>false</startParallel>
+									<images>
+										<image>
+											<name>structr-playwright-tests</name>
+											<alias>playwright-runner</alias>
+											<run>
+												<network>
+													<mode>custom</mode>
+													<name>ui-test-network</name>
+													<alias>playwright-runner</alias>
+												</network>
+												<shmSize>2147483648</shmSize> <!-- 2GB shared memory -->
+												<env>
+													<BASE_URL>http://structr-ui-tests:8082</BASE_URL>
+													<DATABASE_URL>bolt://neo4j-test:7687</DATABASE_URL>
+													<DATABASE_PASSWORD>admin123</DATABASE_PASSWORD>
+													<SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
+													<DEBUG>pw:api</DEBUG>
+												</env>
+												<volumes>
+													<bind>
+														<volume>${project.basedir}/target/playwright-screenshots:/tests/screenshots</volume>
+													</bind>
+												</volumes>
+												<wait>
+													<!-- Wait for container to exit -->
+													<exit>0</exit>
+													<time>36000000</time> <!-- 60 minutes max -->
+												</wait>
+												<log>
+													<enabled>true</enabled>
+													<prefix>PLAYWRIGHT</prefix>
+													<color>cyan</color>
+												</log>
+											</run>
+										</image>
+									</images>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 
-                    <plugin>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-playwright-screenshots</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${project.basedir}/src/main/resources/structr/docs</outputDirectory>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.build.directory}/playwright-screenshots</directory>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copy-playwright-screenshots</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.basedir}/src/main/resources/structr/docs</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${project.build.directory}/playwright-screenshots</directory>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 
-                </plugins>
-            </build>
-        </profile>
+				</plugins>
+			</build>
+		</profile>
 
-        <!-- zip-dist: Create distribution ZIP
-             Output: target/structr-${version}-${timestamp}.${buildNumber}-dist.zip
-             Skip: -DskipZip=true -->
-        <profile>
-            <id>zip-dist</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>3.7.1</version>
-                        <configuration>
-                            <finalName>${project.build.finalName}</finalName>
-                            <descriptors>
-                                <descriptor>src/main/resources/assemblies/dist.xml</descriptor>
-                            </descriptors>
-                            <skipAssembly>${skipZip}</skipAssembly>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+		<!-- zip-dist: Create distribution ZIP
+			 Output: target/structr-${version}-${timestamp}.${buildNumber}-dist.zip
+			 Skip: -DskipZip=true -->
+		<profile>
+			<id>zip-dist</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>3.7.1</version>
+						<configuration>
+							<finalName>${project.build.finalName}</finalName>
+							<descriptors>
+								<descriptor>src/main/resources/assemblies/dist.xml</descriptor>
+							</descriptors>
+							<skipAssembly>${skipZip}</skipAssembly>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-assembly</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 
-        <!-- deb-package: Create Debian package
-             Output: target/structr-${version}.deb
-             Skip: -DskipDeb=true -->
-        <profile>
-            <id>deb-package</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.vafer</groupId>
-                        <artifactId>jdeb</artifactId>
-                        <version>1.10</version>
-                        <configuration>
-                            <deb>${project.build.directory}/${project.build.finalName}.deb</deb>
-                            <skip>${skipDeb}</skip>
-                            <controlDir>${basedir}/src/main/resources/deb/control</controlDir>
-                            <dataSet>
-                                <data>
-                                    <src>${project.build.directory}/${project.build.finalName}.jar</src>
-                                    <type>file</type>
-                                    <dst>${project.build.finalName}.jar</dst>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/</prefix>
-                                    </mapper>
-                                </data>
+		<!-- deb-package: Create Debian package
+			 Output: target/structr-${version}.deb
+			 Skip: -DskipDeb=true -->
+		<profile>
+			<id>deb-package</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.vafer</groupId>
+						<artifactId>jdeb</artifactId>
+						<version>1.10</version>
+						<configuration>
+							<deb>${project.build.directory}/${project.build.finalName}.deb</deb>
+							<skip>${skipDeb}</skip>
+							<controlDir>${basedir}/src/main/resources/deb/control</controlDir>
+							<dataSet>
+								<data>
+									<src>${project.build.directory}/${project.build.finalName}.jar</src>
+									<type>file</type>
+									<dst>${project.build.finalName}.jar</dst>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/</prefix>
+									</mapper>
+								</data>
 
-                                <data>
-                                    <src>${basedir}/target/lib</src>
-                                    <type>directory</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/lib</prefix>
-                                        <filemode>755</filemode>
-                                    </mapper>
-                                </data>
+								<data>
+									<src>${basedir}/target/lib</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/lib</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
 
-                                <data>
-                                    <src>${basedir}/target/lib-classpath</src>
-                                    <type>directory</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/lib-classpath</prefix>
-                                        <filemode>755</filemode>
-                                    </mapper>
-                                </data>
+								<data>
+									<src>${basedir}/target/lib-classpath</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/lib-classpath</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
 
-                                <!-- The static web UI (structr/) is served from the application jar
-                                     (class path), so it is not installed as an unpacked directory.
-                                     See HttpService and the dist assembly descriptor. -->
+								<!-- The static web UI (structr/) is served from the application jar
+									 (class path), so it is not installed as an unpacked directory.
+									 See HttpService and the dist assembly descriptor. -->
 
-                                <data>
-                                    <src>${basedir}/target/deb/config</src>
-                                    <type>file</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
-                                        <filemode>644</filemode>
-                                    </mapper>
-                                </data>
+								<data>
+									<src>${basedir}/target/deb/config</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
+										<filemode>644</filemode>
+									</mapper>
+								</data>
 
-                                <data>
-                                    <src>${basedir}/src/main/resources/deb/bin/start</src>
-                                    <type>file</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
-                                        <filemode>755</filemode>
-                                    </mapper>
-                                </data>
+								<data>
+									<src>${basedir}/src/main/resources/deb/bin/start</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
 
-                                <data>
-                                    <src>${basedir}/src/main/resources/deb/bin/stop</src>
-                                    <type>file</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
-                                        <filemode>755</filemode>
-                                    </mapper>
-                                </data>
+								<data>
+									<src>${basedir}/src/main/resources/deb/bin/stop</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
 
-                                <data>
-                                    <src>${basedir}/src/main/resources/deb/init.d</src>
-                                    <type>directory</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/etc/init.d</prefix>
-                                        <filemode>755</filemode>
-                                    </mapper>
-                                </data>
+								<data>
+									<src>${basedir}/src/main/resources/deb/init.d</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/etc/init.d</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
 
-                                <data>
-                                    <src>${basedir}/src/main/resources/deb/systemd</src>
-                                    <type>directory</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/lib/systemd/system/</prefix>
-                                        <filemode>755</filemode>
-                                    </mapper>
-                                </data>
+								<data>
+									<src>${basedir}/src/main/resources/deb/systemd</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/lib/systemd/system/</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
 
-                                <data>
-                                    <src>${basedir}/src/main/resources/deb/logrotate.d</src>
-                                    <type>directory</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/etc/logrotate.d</prefix>
-                                        <filemode>644</filemode>
-                                    </mapper>
-                                </data>
-                            </dataSet>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-deb</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jdeb</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+								<data>
+									<src>${basedir}/src/main/resources/deb/logrotate.d</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/etc/logrotate.d</prefix>
+										<filemode>644</filemode>
+									</mapper>
+								</data>
+							</dataSet>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-deb</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jdeb</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 
-        <!-- docker-build: Build production Docker image
-             Requires: multiarch buildx builder
-             Skip: -DskipDocker=true -->
-        <profile>
-            <id>docker-build</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker.maven.plugin.version}</version>
-                        <configuration>
-                            <skip>${skipDocker}</skip>
-                            <images>
-                                <image>
-                                    <name>structr/structr:${project.version}</name>
-                                    <build>
-                                        <contextDir>${project.basedir}</contextDir>
-                                        <args>
-                                            <STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
-                                        </args>
-                                        <buildx>
-                                            <builderName>structr-buildx</builderName>
-                                            <platforms>
-                                                <platform>linux/amd64</platform>
-                                                <platform>linux/arm64</platform>
-                                            </platforms>
-                                        </buildx>
-                                    </build>
-                                </image>
-                                <image>
-                                    <name>registry.structr.com/structr/structr:${project.version}</name>
-                                    <build>
-                                        <contextDir>${project.basedir}</contextDir>
-                                        <args>
-                                            <STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
-                                        </args>
-                                        <buildx>
-                                            <builderName>structr-buildx</builderName>
-                                            <attestations>
-                                                <provenance>false</provenance>
-                                            </attestations>
-                                            <platforms>
-                                                <platform>linux/amd64</platform>
-                                                <platform>linux/arm64</platform>
-                                            </platforms>
-                                        </buildx>
-                                    </build>
-                                </image>
-                            </images>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>docker-build-final</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+		<!-- docker-build: Build production Docker image
+			 Requires: multiarch buildx builder
+			 Skip: -DskipDocker=true -->
+		<profile>
+			<id>docker-build</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<version>${docker.maven.plugin.version}</version>
+						<configuration>
+							<skip>${skipDocker}</skip>
+							<images>
+								<image>
+									<name>structr/structr:${project.version}</name>
+									<build>
+										<contextDir>${project.basedir}</contextDir>
+										<args>
+											<STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
+										</args>
+										<buildx>
+											<builderName>structr-buildx</builderName>
+											<platforms>
+												<platform>linux/amd64</platform>
+												<platform>linux/arm64</platform>
+											</platforms>
+										</buildx>
+									</build>
+								</image>
+								<image>
+									<name>registry.structr.com/structr/structr:${project.version}</name>
+									<build>
+										<contextDir>${project.basedir}</contextDir>
+										<args>
+											<STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
+										</args>
+										<buildx>
+											<builderName>structr-buildx</builderName>
+											<attestations>
+												<provenance>false</provenance>
+											</attestations>
+											<platforms>
+												<platform>linux/amd64</platform>
+												<platform>linux/arm64</platform>
+											</platforms>
+										</buildx>
+									</build>
+								</image>
+							</images>
+						</configuration>
+						<executions>
+							<execution>
+								<id>docker-build-final</id>
+								<phase>install</phase>
+								<goals>
+									<goal>build</goal>
+									<goal>push</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
