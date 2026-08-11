@@ -51,6 +51,8 @@ import org.structr.docs.formatter.text.RawConceptFormatter;
 import org.structr.docs.formatter.text.RawMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 import org.structr.rest.service.HttpService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +64,8 @@ import java.util.regex.Pattern;
 
 @Documentation(name="DocumentationServlet", parent="Servlets", children={ "DocumentationServlet Settings" })
 public class DocumentationServlet extends HttpServlet {
+
+	private static final Logger logger = LoggerFactory.getLogger(DocumentationServlet.class.getName());
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -145,7 +149,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.warn("Unexpected error when initializing DocumentationServlet", t);
 
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(t.getMessage());
