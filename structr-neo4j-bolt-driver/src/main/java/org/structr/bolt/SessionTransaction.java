@@ -655,6 +655,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			// add handlers / translated exceptions for DatabaseExceptions here..
 		}
 
+		// Log the status code: it is the only thing that says whether this error was worth
+		// retrying, and UnknownDatabaseException carries it but nobody ever reads it, so an
+		// unclassified error reaches the log as a bare message and cannot be classified
+		// afterwards. Add a case above once a code shows up here often enough to matter.
+		logger.warn("Unhandled database error {}: {}", dex.code(), dex.getMessage());
+
 		// wrap exception if no other cause could be found
 		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
 	}
