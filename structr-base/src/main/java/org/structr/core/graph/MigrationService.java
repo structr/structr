@@ -179,7 +179,6 @@ public class MigrationService {
 
 	public static void execute() throws FrameworkException {
 
-		//if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
 		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
 			// A migration is a hard, all-or-nothing operation: if any step fails, the
@@ -206,8 +205,6 @@ public class MigrationService {
 					migrateVisibilityMappingForToProcess();
 				}
 
-				warnAboutWrongNotionProperties();
-
 			} catch (FrameworkException fex) {
 
 				throw fex;
@@ -215,6 +212,19 @@ public class MigrationService {
 			} catch (Throwable t) {
 
 				throw new FrameworkException(500, "Schema/data migration failed and was rolled back: " + t.getMessage(), t);
+			}
+
+			// This one only logs hints about notion properties that a human has to look at, it
+			// migrates nothing, so it must not be able to abort startup: it used to sit inside
+			// the block above, where a single transient read error (Neo4j gives up compiling a
+			// query while the schema is still churning) was enough to kill the whole instance.
+			try {
+
+				warnAboutWrongNotionProperties();
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to check for notion properties in need of migration: {}", t.getMessage());
 			}
 		}
 	}

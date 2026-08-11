@@ -363,16 +363,23 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// register change handlers for various Settings
 		registerSettingsChangeHandlers();
 
-		// run migration service; a failed migration is a hard error and must abort
-		// startup rather than leaving the instance running on half-migrated data
-		try {
+		// Run migration service; a failed migration is a hard error and must abort startup
+		// rather than leaving the instance running on half-migrated data. Tests skip this:
+		// every test class starts its own instance against the shared database, so this ran
+		// ~150 times per build on a schema nothing had migrated, and the concurrent schema
+		// churn made Neo4j abandon query compilation now and then. Migration is still
+		// exercised under test where it matters, on deployment import via DeployCommand.
+		if (!isTesting()) {
 
-			MigrationService.execute();
+			try {
 
-		} catch (FrameworkException fex) {
+				MigrationService.execute();
 
-			logger.error("Database migration failed, aborting startup.", fex);
-			System.exit(3);
+			} catch (FrameworkException fex) {
+
+				logger.error("Database migration failed, aborting startup.", fex);
+				System.exit(3);
+			}
 		}
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
