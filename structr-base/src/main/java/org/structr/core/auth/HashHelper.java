@@ -24,6 +24,7 @@ import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -54,13 +55,6 @@ public class HashHelper {
 	// see getVerificationCount()
 	private static final AtomicLong VERIFICATION_COUNT = new AtomicLong();
 
-	// Argon2id parameters (OWASP 2023)
-	private static final int ARGON2_MEMORY_KB   = 65536;  // 64 MB
-	private static final int ARGON2_ITERATIONS  = 3;
-	private static final int ARGON2_PARALLELISM = 1;
-	private static final int ARGON2_HASH_LENGTH = 32;     // 256 bits
-	private static final int ARGON2_SALT_LENGTH = 16;     // 128 bits
-
 	private static final String ARGON2_PREFIX = "$argon2id$";
 
 	// ----- Argon2id methods -----
@@ -74,17 +68,17 @@ public class HashHelper {
 	 */
 	public static String hashPassword(final String password) {
 
-		final byte[] salt = new byte[ARGON2_SALT_LENGTH];
+		final byte[] salt = new byte[Settings.PasswordHashArgon2idSaltLength.getValue()];
 		SECURE_RANDOM.nextBytes(salt);
 
 		final Argon2Parameters params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
 			.withSalt(salt)
-			.withMemoryAsKB(ARGON2_MEMORY_KB)
-			.withIterations(ARGON2_ITERATIONS)
-			.withParallelism(ARGON2_PARALLELISM)
+			.withMemoryAsKB(Settings.PasswordHashArgon2idMemory.getValue())
+			.withIterations(Settings.PasswordHashArgon2idIterations.getValue())
+			.withParallelism(Settings.PasswordHashArgon2idParallelism.getValue())
 			.build();
 
-		final byte[] hash = new byte[ARGON2_HASH_LENGTH];
+		final byte[] hash = new byte[Settings.PasswordHashArgon2idHashLength.getValue()];
 		final Argon2BytesGenerator generator = new Argon2BytesGenerator();
 
 		generator.init(params);
