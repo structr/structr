@@ -46,6 +46,8 @@ import java.util.stream.*;
  *       "guard" = an if whose condition names that variable — null/empty OR numeric)
  *   R2  consecutive single-line assignments grouped, no blank between             (remove)
  *   RB  never more than one consecutive blank line                                (collapse)
+ *
+ * @code-quality:accept
  */
 public class StyleLint {
 

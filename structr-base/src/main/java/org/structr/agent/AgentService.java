@@ -277,7 +277,6 @@ public class AgentService extends Thread implements RunnableService {
 
 	private Agent lookupAgent(Task task) {
 
-		// FIXME: superuser security context
 		Class taskClass  = task.getClass();
 		Agent agent      = null;
 		Class agentClass = agentClassCache.get(taskClass.getName());

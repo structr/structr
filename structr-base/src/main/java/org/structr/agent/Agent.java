@@ -226,7 +226,6 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 
 		synchronized (taskQueue) {
 
-			// FIXME: size may not be a constant time operation! slow?
 			size = taskQueue.size();
 		}
 

@@ -18,6 +18,8 @@
  */
 package org.structr.test.web.advanced;
 
+import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -28,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -40,15 +43,26 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 import org.testng.annotations.Test;
 
+import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 public class ImageTest extends StructrUiTest {
@@ -281,6 +295,517 @@ public class ImageTest extends StructrUiTest {
 		}
 	}
 	*/
+
+	@Test
+	public void testThumbnailRelationshipProperties() {
+
+		// The THUMBNAIL relationship carries the specs a thumbnail was created for (checksum, maxWidth,
+		// maxHeight, cropToFit) and nothing else. The thumbnail's actual dimensions belong on the
+		// thumbnail node: writing them to the relationship stores properties that no key of the
+		// relationship type can read back, and that nothing needs.
+
+		final int maxWidth  = 300;   // the specs of Image.tnMid, see ImageTraitDefinition
+		final int maxHeight = 300;
+
+		try (final Tx tx = app.tx()) {
+
+			createImage(securityContext, "thumbnail-rel-test.png", "/");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// wait for asynchronous thumbnail generation
+		tryWithTimeout(() -> {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface image = app.nodeQuery(StructrTraits.IMAGE).name("thumbnail-rel-test.png").getFirst();
+				final boolean available   = image != null && image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY)) != null;
+
+				tx.success();
+
+				return available;
+
+			} catch (FrameworkException ex) {
+
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+			return false;
+
+		}, () -> fail("Exceeded timeout while waiting for the thumbnail to be available."), 30000, 1000);
+
+		final String[] thumbnailUuid = new String[1];
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node               = app.nodeQuery(StructrTraits.IMAGE).name("thumbnail-rel-test.png").getFirst();
+			final List<RelationshipInterface> rels = Iterables.toList(node.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE));
+
+			assertEquals("Expected exactly one THUMBNAIL relationship", 1, rels.size());
+
+			final RelationshipInterface rel = rels.get(0);
+			final Traits relTraits          = Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+			final Image thumbnail           = rel.getTargetNode().as(Image.class);
+
+			thumbnailUuid[0] = thumbnail.getUuid();
+
+			// the relationship type declares the thumbnail specs...
+			assertTrue("THUMBNAIL must declare maxWidth",   relTraits.hasKey(ImageTHUMBNAILImage.MAX_WIDTH_PROPERTY));
+			assertTrue("THUMBNAIL must declare maxHeight",  relTraits.hasKey(ImageTHUMBNAILImage.MAX_HEIGHT_PROPERTY));
+			assertTrue("THUMBNAIL must declare cropToFit",  relTraits.hasKey(ImageTHUMBNAILImage.CROP_TO_FIT_PROPERTY));
+			assertTrue("THUMBNAIL must declare checksum",   relTraits.hasKey(ImageTHUMBNAILImage.CHECKSUM_PROPERTY));
+
+			// ... but not the actual image dimensions
+			assertFalse("THUMBNAIL must not declare width",  relTraits.hasKey(ImageTraitDefinition.WIDTH_PROPERTY));
+			assertFalse("THUMBNAIL must not declare height", relTraits.hasKey(ImageTraitDefinition.HEIGHT_PROPERTY));
+
+			// ... and they must not be written to the relationship in the database either
+			final Relationship dbRel = rel.getRelationship();
+
+			assertFalse("width must not be stored on the relationship",  dbRel.hasProperty(ImageTraitDefinition.WIDTH_PROPERTY));
+			assertFalse("height must not be stored on the relationship", dbRel.hasProperty(ImageTraitDefinition.HEIGHT_PROPERTY));
+
+			// the dimensions are on the thumbnail node, which is where they can be read from
+			assertNotNull("thumbnail node must carry its width",  thumbnail.getWidth());
+			assertNotNull("thumbnail node must carry its height", thumbnail.getHeight());
+
+			// the specs the relationship does carry are the ones the lookup needs
+			assertEquals("relationship must carry maxWidth",  maxWidth,  (int) rel.getProperty(relTraits.key(ImageTHUMBNAILImage.MAX_WIDTH_PROPERTY)));
+			assertEquals("relationship must carry maxHeight", maxHeight, (int) rel.getProperty(relTraits.key(ImageTHUMBNAILImage.MAX_HEIGHT_PROPERTY)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Image original = app.nodeQuery(StructrTraits.IMAGE).name("thumbnail-rel-test.png").getFirst().as(Image.class);
+			final Image existing = original.getExistingThumbnail(maxWidth, maxHeight, false);
+
+			// the existing thumbnail is found without width/height on the relationship, because the
+			// lookup only uses maxWidth, maxHeight, cropToFit and checksum
+			assertNotNull("Existing thumbnail must be found without width/height on the relationship", existing);
+			assertEquals("Existing thumbnail must be the same node", thumbnailUuid[0], existing.getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testReconnectThumbnails() {
+
+		// Deployment import restores image and thumbnail nodes without the THUMBNAIL relationship
+		// between them (FileImportVisitor.handleThumbnails), so ImageHelper reconnects them. The
+		// reconnected relationship must carry the specs the thumbnail was created for, otherwise
+		// getExistingThumbnail() cannot match it and every thumbnail is silently regenerated.
+
+		try (final Tx tx = app.tx()) {
+
+			createImage(securityContext, "reconnect-test.png", "/Reconnect");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		waitForThumbnail("reconnect-test.png");
+
+		final String[] thumbnailUuid = new String[1];
+
+		// drop the relationships, i.e. the state a deployment import leaves behind
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery(StructrTraits.IMAGE).name("reconnect-test.png").getFirst();
+
+			for (final RelationshipInterface rel : node.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE)) {
+
+				thumbnailUuid[0] = rel.getTargetNode().getUuid();
+
+				app.delete(rel);
+			}
+
+			assertNotNull("Expected a thumbnail relationship to delete", thumbnailUuid[0]);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// reconnect from the original image
+		try (final Tx tx = app.tx()) {
+
+			final Image original = app.nodeQuery(StructrTraits.IMAGE).name("reconnect-test.png").getFirst().as(Image.class);
+
+			ImageHelper.findAndReconnectThumbnails(original);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Image original = app.nodeQuery(StructrTraits.IMAGE).name("reconnect-test.png").getFirst().as(Image.class);
+			final List<RelationshipInterface> rels = Iterables.toList(original.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE));
+
+			assertEquals("Thumbnail must be reconnected to the original image", 1, rels.size());
+
+			final Image existing = original.getExistingThumbnail(300, 300, false);
+
+			assertNotNull("Reconnected thumbnail must be found by its specs, otherwise it is regenerated", existing);
+			assertEquals("Reconnected thumbnail must be the original thumbnail node", thumbnailUuid[0], existing.getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testReconnectOriginalImage() {
+
+		// The counterpart of testReconnectThumbnails: deployment import walks the thumbnail node first
+		// when it is imported before its original, and reconnects from that side.
+
+		try (final Tx tx = app.tx()) {
+
+			createImage(securityContext, "reconnect-original-test.png", "/Reconnect");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		waitForThumbnail("reconnect-original-test.png");
+
+		final String[] thumbnailUuid = new String[1];
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery(StructrTraits.IMAGE).name("reconnect-original-test.png").getFirst();
+
+			for (final RelationshipInterface rel : node.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE)) {
+
+				thumbnailUuid[0] = rel.getTargetNode().getUuid();
+
+				app.delete(rel);
+			}
+
+			assertNotNull("Expected a thumbnail relationship to delete", thumbnailUuid[0]);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// reconnect from the thumbnail
+		try (final Tx tx = app.tx()) {
+
+			final Image thumbnail = app.nodeQuery(StructrTraits.IMAGE).uuid(thumbnailUuid[0]).getFirst().as(Image.class);
+
+			ImageHelper.findAndReconnectOriginalImage(thumbnail);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Image original = app.nodeQuery(StructrTraits.IMAGE).name("reconnect-original-test.png").getFirst().as(Image.class);
+			final Image existing = original.getExistingThumbnail(300, 300, false);
+
+			assertNotNull("Reconnected thumbnail must be found by its specs, otherwise it is regenerated", existing);
+			assertEquals("Reconnected thumbnail must be the original thumbnail node", thumbnailUuid[0], existing.getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testThumbnailWithoutSpecsIsNeverMatched() {
+
+		// A relationship without specs cannot say which thumbnail it points to, so it must never satisfy
+		// a lookup - not even for a thumbnail of a completely different size. Such relationships exist:
+		// findAndReconnectOriginalImage() creates one when it cannot reconstruct the specs, and older
+		// databases contain them from previous versions of the reconnect code.
+
+		final String[] smallThumbnailUuid = new String[1];
+
+		try (final Tx tx = app.tx()) {
+
+			createImage(securityContext, "no-specs-test.png", "/");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		waitForThumbnail("no-specs-test.png");
+
+		// request the small thumbnail as well, so both sizes exist
+		tryWithTimeout(() -> {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface image = app.nodeQuery(StructrTraits.IMAGE).name("no-specs-test.png").getFirst();
+				final boolean available   = image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY)) != null;
+
+				tx.success();
+
+				return available;
+
+			} catch (FrameworkException ex) {
+
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+			return false;
+
+		}, () -> fail("Exceeded timeout while waiting for the small thumbnail to be available."), 30000, 1000);
+
+		// replace both relationships by a single one without specs, pointing at the SMALL thumbnail
+		try (final Tx tx = app.tx()) {
+
+			final Image original            = app.nodeQuery(StructrTraits.IMAGE).name("no-specs-test.png").getFirst().as(Image.class);
+			final Traits relTraits          = Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+			final PropertyKey<Integer> maxW = relTraits.key(ImageTHUMBNAILImage.MAX_WIDTH_PROPERTY);
+
+			for (final RelationshipInterface rel : original.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE)) {
+
+				if (Integer.valueOf(100).equals(rel.getProperty(maxW))) {
+
+					smallThumbnailUuid[0] = rel.getTargetNode().getUuid();
+				}
+
+				app.delete(rel);
+			}
+
+			assertNotNull("Expected a small thumbnail to exist", smallThumbnailUuid[0]);
+
+			final Image smallThumbnail = app.nodeQuery(StructrTraits.IMAGE).uuid(smallThumbnailUuid[0]).getFirst().as(Image.class);
+
+			app.create(original, smallThumbnail, StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Image original = app.nodeQuery(StructrTraits.IMAGE).name("no-specs-test.png").getFirst().as(Image.class);
+
+			// the relationship exists and points at the 100x100 thumbnail, but carries no specs
+			assertEquals("Expected exactly one thumbnail relationship", 1, Iterables.toList(original.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE)).size());
+
+			// asking for the mid size must not return the small thumbnail behind that relationship
+			assertNull("A relationship without specs must not satisfy a lookup for a different size", original.getExistingThumbnail(300, 300, false));
+
+			// and asking for the small size must not return it either - the specs are what identifies it
+			assertNull("A relationship without specs must not satisfy a lookup at all", original.getExistingThumbnail(100, 100, false));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testReconnectThumbnailOfSmallImage() {
+
+		// createThumbnail() does not scale up, so the thumbnail of an image smaller than the requested
+		// size keeps the original's dimensions - and so does its name. The reconnect has to derive the
+		// name the same way, otherwise it looks for a thumbnail that never existed.
+
+		final String imageName = "small-image.png";
+
+		try (final Tx tx = app.tx()) {
+
+			// 40x30, i.e. smaller than the 100x100 of Image.tnSmall
+			final NodeInterface image = ImageHelper.createImageNode(securityContext, createPngData(40, 30), "image/png", StructrTraits.IMAGE, imageName, false);
+
+			// request thumbnail creation
+			image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+
+			tx.success();
+
+		} catch (FrameworkException | IOException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		tryWithTimeout(() -> {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface image = app.nodeQuery(StructrTraits.IMAGE).name(imageName).getFirst();
+				final boolean available   = image != null && image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY)) != null;
+
+				tx.success();
+
+				return available;
+
+			} catch (FrameworkException ex) {
+
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+			return false;
+
+		}, () -> fail("Exceeded timeout while waiting for the thumbnail to be available."), 30000, 1000);
+
+		final String[] thumbnailUuid = new String[1];
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery(StructrTraits.IMAGE).name(imageName).getFirst();
+
+			for (final RelationshipInterface rel : node.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE)) {
+
+				thumbnailUuid[0] = rel.getTargetNode().getUuid();
+
+				app.delete(rel);
+			}
+
+			assertNotNull("Expected a thumbnail relationship to delete", thumbnailUuid[0]);
+
+			// the thumbnail kept the original's dimensions, so its name must reflect them
+			final Image thumbnail = app.nodeQuery(StructrTraits.IMAGE).uuid(thumbnailUuid[0]).getFirst().as(Image.class);
+
+			assertEquals("Thumbnail of a small image must keep the original's dimensions", ImageHelper.getThumbnailName(imageName, 40, 30), thumbnail.getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			ImageHelper.findAndReconnectThumbnails(app.nodeQuery(StructrTraits.IMAGE).name(imageName).getFirst().as(Image.class));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Image original = app.nodeQuery(StructrTraits.IMAGE).name(imageName).getFirst().as(Image.class);
+			final Image existing = original.getExistingThumbnail(100, 100, false);
+
+			assertNotNull("Thumbnail of a small image must be reconnected, not regenerated", existing);
+			assertEquals("Reconnected thumbnail must be the original thumbnail node", thumbnailUuid[0], existing.getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	private byte[] createPngData(final int width, final int height) throws IOException {
+
+		final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		final Graphics2D g        = image.createGraphics();
+
+		g.setColor(Color.BLUE);
+		g.fillRect(0, 0, width, height);
+		g.dispose();
+
+		try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+			ImageIO.write(image, "png", out);
+
+			return out.toByteArray();
+		}
+	}
+
+	private void waitForThumbnail(final String imageName) {
+
+		tryWithTimeout(() -> {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface image = app.nodeQuery(StructrTraits.IMAGE).name(imageName).getFirst();
+				final boolean available   = image != null && image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY)) != null;
+
+				tx.success();
+
+				return available;
+
+			} catch (FrameworkException ex) {
+
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+			return false;
+
+		}, () -> fail("Exceeded timeout while waiting for the thumbnail to be available."), 30000, 1000);
+	}
 
 	private void createImage(final SecurityContext securityContext, final String name, final String folderPath) throws FrameworkException {
 

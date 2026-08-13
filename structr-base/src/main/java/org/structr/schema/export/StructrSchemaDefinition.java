@@ -207,14 +207,6 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		return pointer.toString();
 	}
 
-	@Override
-	public void diff(final JsonSchema schema) throws Exception {
-
-		final StructrSchemaDefinition staticSchema = (StructrSchemaDefinition)schema; // provoke ClassCastException if type doesn't match
-
-		this.typeDefinitions.diff(staticSchema.typeDefinitions);
-	}
-
 	public Map<String, Object> serialize() {
 
 		return serialize(false);

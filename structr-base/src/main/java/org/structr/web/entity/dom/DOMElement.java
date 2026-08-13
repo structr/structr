@@ -71,8 +71,6 @@ public interface DOMElement extends DOMNode  {
 	String getDelayOrInterval();
 	String getDataReloadTarget();
 
-	void setAttribute(final String key, final String value) throws FrameworkException;
-
 	boolean isManualReloadTarget();
 	boolean isTargetElement();
 	Iterable<DOMElement> getReloadSources();

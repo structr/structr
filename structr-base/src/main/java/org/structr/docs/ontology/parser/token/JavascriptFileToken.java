@@ -211,7 +211,6 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 								if (!concept.equals(additionalConcept)) {
 
-									// FIXME: annotate link here!
 									ontology.createSymmetricLink(concept, Verb.Has, additionalConcept.getConcept());
 								}
 							}

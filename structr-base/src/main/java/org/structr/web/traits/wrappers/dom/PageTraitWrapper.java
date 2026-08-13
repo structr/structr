@@ -299,8 +299,6 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 			final Logger logger = LoggerFactory.getLogger(Page.class);
 
-			// FIXME: is it really a good idea to do the
-			// recursion inside of a transaction?
 			for (final DOMNode child : domNode.getChildren()) {
 
 				// do not remove parent for child nodes
@@ -395,85 +393,45 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	@Override
-	public Content createTextNode(final String text) {
+	public Content createTextNode(final String text) throws FrameworkException {
 
-		// TODO: combine createTextNode, createTemplate and createComment
-		try {
+		final App app       = StructrApp.getInstance(getSecurityContext());
+		final Traits traits = Traits.of(StructrTraits.CONTENT);
 
-			final App app       = StructrApp.getInstance(getSecurityContext());
-			final Traits traits = Traits.of(StructrTraits.CONTENT);
+		// create new content element
+		final Content content = app.create(StructrTraits.CONTENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Content.class);
 
-			// create new content element
-			final Content content = app.create(StructrTraits.CONTENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Content.class);
+		content.setOwnerDocument(this);
 
-			content.setOwnerDocument(this);
-
-			return content;
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-
-			// FIXME: what to do with the exception here?
-			final Logger logger = LoggerFactory.getLogger(Page.class);
-			logger.warn("", fex);
-		}
-
-		return null;
+		return content;
 	}
 
 	@Override
-	public Content createTemplate(final String text) {
+	public Content createTemplate(final String text) throws FrameworkException {
 
-		// TODO: combine createTextNode, createTemplate and createComment
-		try {
+		final App app       = StructrApp.getInstance(getSecurityContext());
+		final Traits traits = Traits.of(StructrTraits.TEMPLATE);
 
-			final App app       = StructrApp.getInstance(getSecurityContext());
-			final Traits traits = Traits.of(StructrTraits.TEMPLATE);
+		// create new template element
+		final Template content = app.create(StructrTraits.TEMPLATE, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Template.class);
 
-			// create new template element
-			final Template content = app.create(StructrTraits.TEMPLATE, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Template.class);
+		content.setOwnerDocument(this);
 
-			content.setOwnerDocument(this);
-
-			return content;
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-
-			// FIXME: what to do with the exception here?
-			final Logger logger = LoggerFactory.getLogger(Page.class);
-			logger.warn("", fex);
-		}
-
-		return null;
+		return content;
 	}
 
 	@Override
-	public Comment createComment(final String comment) {
+	public Comment createComment(final String comment) throws  FrameworkException {
 
-		// TODO: combine createTextNode, createTemplate and createComment
-		try {
+		final App app       = StructrApp.getInstance(getSecurityContext());
+		final Traits traits = Traits.of(StructrTraits.COMMENT);
 
-			final App app       = StructrApp.getInstance(getSecurityContext());
-			final Traits traits = Traits.of(StructrTraits.COMMENT);
+		// create new comment element
+		final Comment commentNode = app.create(StructrTraits.COMMENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), comment)).as(Comment.class);
 
-			// create new comment element
-			final Comment commentNode = app.create(StructrTraits.COMMENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), comment)).as(Comment.class);
+		commentNode.setOwnerDocument(this);
 
-			commentNode.setOwnerDocument(this);
-
-			return commentNode;
-
-		} catch (FrameworkException fex) {
-
-			// FIXME: what to do with the exception here?
-			final Logger logger = LoggerFactory.getLogger(Page.class);
-			logger.warn("", fex);
-		}
-
-		return null;
+		return commentNode;
 	}
 
 	@Override

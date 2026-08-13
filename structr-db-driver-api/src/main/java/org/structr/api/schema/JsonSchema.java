@@ -156,7 +156,4 @@ public interface JsonSchema {
 
 	Object resolveURI(final URI uri);
 	String toJsonPointer(final URI uri);
-
-	void diff(final JsonSchema other) throws Exception;
-
 }

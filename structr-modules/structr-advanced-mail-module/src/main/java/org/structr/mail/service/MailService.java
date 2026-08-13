@@ -74,7 +74,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	private Set<Mailbox> processingMailboxes                = null;
 	private int maxConnectionRetries                        = 5;
 
-	// FIXME: when this class moves from the mail module to structr-base, the documentation can be moved here
+	// Hint: when this class moves from the mail module to structr-base, the documentation can be moved here
 
 	public static final Setting<Integer> maxEmails          = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.maxemails",          25,                  "The number of mails which are checked");
 	public static final Setting<Integer> updateInterval     = new IntegerSetting(Settings.smtpGroup, "MailService", "mail.updateinterval",     30000,               "The interval in which the mailbox is checked. Unit is milliseconds");

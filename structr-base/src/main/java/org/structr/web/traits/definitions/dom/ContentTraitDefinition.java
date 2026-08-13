@@ -118,7 +118,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 			DoImport.class, new DoImport() {
 
 				@Override
-				public DOMNode doImport(final DOMNode node, final Page page) {
+				public DOMNode doImport(final DOMNode node, final Page page) throws FrameworkException {
 
 					return page.createTextNode(node.as(Content.class).getContent());
 				}

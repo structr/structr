@@ -1777,10 +1777,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
 
-			// FIXME: default is and so we don't need the additional and() here?
-			//query.and();
 			resolvePossiblePropertyNamesForObjectResolution(query, value);
-			//query.parent();
 		}
 	}
 

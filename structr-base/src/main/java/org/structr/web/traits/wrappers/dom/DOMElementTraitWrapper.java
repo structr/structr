@@ -29,7 +29,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -66,9 +65,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 	@Override
 	public String getHtmlName() {
-
-		// FIXME ? _html_name is only defined on some elements, wont this break?
-
+		// it's safe to use _html_name even if the underlying node type doesn't declare it
 		return wrappedObject.getProperty(traits.key("_html_name"));
 	}
 
@@ -94,15 +91,6 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	public String getDataReloadTarget() {
 
 		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY));
-	}
-
-	@Override
-	public void setAttribute(final String name, final String value) throws FrameworkException {
-
-		// FIXME: no clue how this will ever be called (outside from tests)
-		final PropertyKey<String> key = findOrCreateAttributeKey(name);
-
-		wrappedObject.setProperty(key, value);
 	}
 
 	@Override
@@ -190,41 +178,6 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		return cachedIsTargetElement;
 	}
 
-	// ----- private static methods -----
-	private static int intOrOne(final String source) {
-
-		if (source != null) {
-
-			try {
-
-				return Integer.valueOf(source);
-
-			} catch (Throwable t) {
-			}
-		}
-
-		return 1;
-	}
-
-	private static String toHtmlAttributeName(final String camelCaseName) {
-
-		final StringBuilder buf = new StringBuilder();
-
-		camelCaseName.chars().forEach(c -> {
-
-			if (Character.isUpperCase(c)) {
-
-				buf.append("-");
-				c = Character.toLowerCase(c);
-
-			}
-
-			buf.append(Character.toString(c));
-		});
-
-		return buf.toString();
-	}
-
 	@Override
 	public boolean isManualReloadTarget() {
 
@@ -239,6 +192,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		return Iterables.map(n -> n.as(DOMElement.class), wrappedObject.getProperty(key));
 	}
 
+	// ----- nested classes -----
 	public class TagPredicate implements Predicate<DOMNode> {
 
 		private String tagName = null;
@@ -262,25 +216,5 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 			return false;
 		}
-	}
-
-	private HtmlProperty findOrCreateAttributeKey(final String name) {
-
-		// try to find native html property defined in DOMElement or one of its subclasses
-		if (traits.hasKey(name)) {
-
-			final PropertyKey<String> key = traits.key(name);
-			if (key instanceof HtmlProperty h) {
-
-				return h;
-			}
-		}
-
-		// create synthetic HtmlProperty
-		final HtmlProperty htmlProperty = new HtmlProperty(name);
-
-		htmlProperty.setDeclaringTrait(Traits.getTrait(StructrTraits.DOM_ELEMENT));
-
-		return htmlProperty;
 	}
 }

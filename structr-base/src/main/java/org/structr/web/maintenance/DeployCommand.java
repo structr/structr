@@ -1520,7 +1520,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (Throwable t) {
 
-			logger.error("", t);
+			logger.error("Exception while exporting schema", t);
 		}
 	}
 
@@ -1845,10 +1845,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (Throwable t) {
 
-			logger.error("", t);
+			logger.error("Exception while exporting mail templates", t);
 		}
 
-		mailTemplates.sort(new AbstractMapComparator<Object>() {
+		mailTemplates.sort(new AbstractMapComparator<>() {
 
 			@Override
 			public String getKey (final Map<String, Object> map) {
@@ -2139,10 +2139,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						if (Files.exists(targetFolder.resolve(filename))) {
 
 							filename = filename + "_" + uuid;
-
-						} else {
-
-							filename = filename;
 						}
 					}
 
@@ -2171,7 +2167,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (Throwable t) {
 
-			logger.error("", t);
+			logger.error("Exception while exporting scratchpads", t);
 		}
 
 		writeJsonToFile(targetConf, scratchpads);
@@ -3142,7 +3138,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
+					logger.error("Unable to link deferred pages, aborting with {}", t.getMessage(), t);
 				}
 			});
 
@@ -3723,7 +3719,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		return """
         Exports or imports the schema, pages, files, and security configuration. The export creates a text-based format suitable for version control.
-        
+
         This is the same mechanism used by the Dashboard deployment feature.
         """;
 	}

@@ -317,16 +317,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		viewNames.remove(StructrTypeDefinition.VIEW_BLACKLIST);
 		viewNames.remove("all");
 
-		// fixme: what does this do??
-		/*
-		viewNames = viewNames.stream().filter(viewName -> {
-			if (StringUtils.isNotEmpty(view) && !StringUtils.equals(view, viewName)) {
-				return false;
-			}
-			return StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName);
-		}).collect(Collectors.toSet());
-		*/
-
 		return viewNames;
 	}
 
@@ -492,77 +482,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		typeDefinitions.add(type);
 	}
 
-	void removeType(final StructrTypeDefinition type) {
-
-		typeDefinitions.remove(type);
-	}
-
 	Set<StructrRelationshipTypeDefinition> getRelationships() {
 
 		return relationships;
-	}
-
-	void diff(final StructrTypeDefinitions staticSchema) throws FrameworkException {
-
-		final Map<String, StructrTypeDefinition> databaseTypes = getMappedTypes();
-		final Map<String, StructrTypeDefinition> structrTypes  = staticSchema.getMappedTypes();
-		final Set<String> typesOnlyInDatabase                  = new TreeSet<>(databaseTypes.keySet());
-		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
-		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
-
-		// FIXME ? can the two remaining strings be removed? the functionality has been removed for quite some time
-		final Set<String> toMigrate = Set.of(
-			"AbstractMinifiedFileMINIFICATIONFile", StructrTraits.IMAGE_PICTURE_OF_USER, StructrTraits.IMAGE_THUMBNAIL_IMAGE, StructrTraits.USER_HOME_DIR_FOLDER, StructrTraits.USER_WORKING_DIR_FOLDER,
-			"AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile", StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE, StructrTraits.FOLDER_CONTAINS_FILE, StructrTraits.FOLDER_CONTAINS_FOLDER,
-			StructrTraits.FOLDER_CONTAINS_IMAGE, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,
-			StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION
-		);
-
-		typesOnlyInDatabase.removeAll(structrTypes.keySet());
-		typesOnlyInStructrSchema.removeAll(databaseTypes.keySet());
-		bothTypes.retainAll(structrTypes.keySet());
-
-		// types that exist in the only database
-		for (final String key : typesOnlyInDatabase) {
-
-			final StructrTypeDefinition type = databaseTypes.get(key);
-
-			if (toMigrate.contains(key)) {
-
-				//handleRemovedBuiltInType(type);
-
-			} else {
-
-				// type should be ok, probably created by user
-			}
-		}
-
-		// find detailed differences in the intersection of both schemas
-		for (final String name : bothTypes) {
-
-			final StructrTypeDefinition localType = databaseTypes.get(name);
-			final StructrTypeDefinition otherType = structrTypes.get(name);
-			final Traits nodeType                 = getNodeType(name);
-
-			// compare types
-			localType.diff(nodeType, otherType);
-		}
-	}
-
-	private Map<String, StructrTypeDefinition> getMappedTypes() {
-
-		final LinkedHashMap<String, StructrTypeDefinition> mapped = new LinkedHashMap<>();
-
-		for (final StructrTypeDefinition def : getTypes()) {
-
-			mapped.put(def.getName(), def);
-		}
-
-		return mapped;
-	}
-
-	private Traits getNodeType(final String name) {
-
-		return Traits.of(name);
 	}
 }

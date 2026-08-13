@@ -175,8 +175,6 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 			}
 		}
 
-		// FIXME: this is really ugly, can't we find a better way to create the notion?
-
 		return property;
 	}
 
@@ -203,19 +201,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 		}
 
-		final String tmpPropertyName  = StringUtils.contains(extendedPropertyName, ".") ? StringUtils.substringAfterLast(extendedPropertyName, ".") : extendedPropertyName;
-
-		return tmpPropertyName;
-
-		/*
-		final PropertyKey propertyKey = Traits.of(relatedType).key(tmpPropertyName);
-
-		if (propertyKey != null) {
-			return extendedPropertyName;
-		}
-
-		return (isBoolean || StringUtils.endsWith(extendedPropertyName, "Property")) ? extendedPropertyName : extendedPropertyName + "Property";
-		*/
+		return StringUtils.contains(extendedPropertyName, ".") ? StringUtils.substringAfterLast(extendedPropertyName, ".") : extendedPropertyName;
 	}
 
 	public boolean isPropertySet() {

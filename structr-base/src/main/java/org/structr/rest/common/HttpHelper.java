@@ -703,12 +703,10 @@ public class HttpHelper {
 
 			} else {
 
+				// consume content, but discard it
 				String content = IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset()));
 
-				// FIXME: what do we do with the content here??
-				content = skipBOMIfPresent(content);
-
-				logger.warn("Unable to create file from URI {}: status code was {}", address, statusCode);
+				logger.warn("Unable to create file from URI {}: status code was {}, discarding content", address, statusCode);
 			}
 
 		} catch (final Throwable t) {

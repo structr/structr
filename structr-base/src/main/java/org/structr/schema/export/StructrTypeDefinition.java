@@ -42,8 +42,6 @@ import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
@@ -1087,15 +1085,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final StructrMethodDefinition method : methods) {
 
-			// FIXME: this is migration code for ancient imports
-			if ("getQoS".equals(method.getName()) && "java".equals(method.getCodeType())) {
-
-				logger.warn("Preventing creation of duplicate getQoS / getQos method pair from legacy import.");
-
-			} else {
-
-				method.createDatabaseSchema(app, newSchemaNode);
-			}
+			method.createDatabaseSchema(app, newSchemaNode);
 		}
 
 		for (final StructrGrantDefinition grant : grants) {
@@ -1169,74 +1159,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		for (final StructrPropertyDefinition property : properties) {
 
 			property.initializeReferences();
-		}
-	}
-
-	void diff(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
-
-		diffMethods(nodeType, other);
-		diffProperties(nodeType, other);
-	}
-
-	void diffProperties(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
-
-		final Map<String, StructrPropertyDefinition> databaseProperties = getMappedProperties();
-		final Map<String, StructrPropertyDefinition> structrProperties  = other.getMappedProperties();
-		final Set<String> propertiesOnlyInDatabase                      = new TreeSet<>(databaseProperties.keySet());
-		final Set<String> propertiesOnlyInStructrSchema                 = new TreeSet<>(structrProperties.keySet());
-		final Set<String> bothPropertys                                 = new TreeSet<>(databaseProperties.keySet());
-
-		propertiesOnlyInDatabase.removeAll(structrProperties.keySet());
-		propertiesOnlyInStructrSchema.removeAll(databaseProperties.keySet());
-		bothPropertys.retainAll(structrProperties.keySet());
-
-		// properties that exist in the database only
-		for (final String key : propertiesOnlyInDatabase) {
-
-			final StructrPropertyDefinition property = databaseProperties.get(key);
-
-			handleRemovedProperty(nodeType, property);
-		}
-
-		// find detailed differences in the intersection of both schemas
-		for (final String name : bothPropertys) {
-
-			final StructrPropertyDefinition localProperty = databaseProperties.get(name);
-			final StructrPropertyDefinition otherProperty = structrProperties.get(name);
-
-			// compare properties in detail
-			localProperty.diff(otherProperty);
-		}
-	}
-
-	void diffMethods(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
-
-		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsByName();
-		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsByName();
-		final Set<String> methodsOnlyInDatabase                    = new TreeSet<>(databaseMethods.keySet());
-		final Set<String> methodsOnlyInStructrSchema               = new TreeSet<>(structrMethods.keySet());
-		final Set<String> bothMethods                              = new TreeSet<>(databaseMethods.keySet());
-
-		methodsOnlyInDatabase.removeAll(structrMethods.keySet());
-		methodsOnlyInStructrSchema.removeAll(databaseMethods.keySet());
-		bothMethods.retainAll(structrMethods.keySet());
-
-		// methods that exist in the database only
-		for (final String key : methodsOnlyInDatabase) {
-
-			final StructrMethodDefinition method = databaseMethods.get(key);
-
-			handleRemovedMethod(nodeType, method);
-		}
-
-		// find detailed differences in the intersection of both schemas
-		for (final String name : bothMethods) {
-
-			final StructrMethodDefinition localMethod = databaseMethods.get(name);
-			final StructrMethodDefinition otherMethod = structrMethods.get(name);
-
-			// compare methods in detail
-			localMethod.diff(otherMethod);
 		}
 	}
 
@@ -1527,84 +1449,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	private Map<String, StructrPropertyDefinition> getMappedProperties() {
-
-		final LinkedHashMap<String, StructrPropertyDefinition> mapped = new LinkedHashMap<>();
-
-		for (final StructrPropertyDefinition def : this.properties) {
-
-			mapped.put(def.getName(), def);
-		}
-
-		return mapped;
-	}
-
-	private Map<String, StructrMethodDefinition> getMappedMethodsByName() {
-
-		final LinkedHashMap<String, StructrMethodDefinition> mapped = new LinkedHashMap<>();
-
-		for (final StructrMethodDefinition def : this.methods) {
-
-			mapped.put(def.getName(), def);
-		}
-
-		return mapped;
-	}
-
-	private void handleRemovedMethod(final Traits nodeType, final StructrMethodDefinition method) throws FrameworkException {
-
-		final Set<String> deleteWhitelist = Set.of(
-			"Mailbox.getAvailableFoldersOnServer",
-			"DOMElement.renderStructrAppLib",
-			"MQTTClient.getQoS",
-			"File.getFileOnDisk",
-			"File.getMinificationTargets",
-			"Group.addMember",
-			"Group.removeMember",
-			"Page.setContent"
-		);
-
-		if ("java".equals(method.getCodeType())) {
-
-			final String typeAndName = getName() + "." + method.getName();
-			if (method.overridesExisting() || deleteWhitelist.contains(typeAndName)) {
-
-				StructrApp.getInstance().delete(method.getSchemaMethod());
-
-			} else {
-
-				// look for matching method in class
-				final Method staticMethod = getMethodOrNull(nodeType, method);
-				if (staticMethod != null) {
-
-					StructrApp.getInstance().delete(method.getSchemaMethod());
-				}
-			}
-		}
-	}
-
-	private void handleRemovedProperty(final Traits nodeType, final StructrPropertyDefinition property) throws FrameworkException {
-
-		// do not delete properties that are defined in dynamic types
-		if (nodeType != null && nodeType.getName().startsWith("org.structr.dynamic.")) {
-
-			return;
-		}
-
-		// check if property has moved to static schema
-		Field field = getFieldOrNull(nodeType, property.getName());
-		if (field == null) {
-
-			// check if property has moved to static schema, with "Property" suffix
-			field = getFieldOrNull(nodeType, property.getName() + "Property");
-		}
-
-		if (field != null || property instanceof DeletedPropertyDefinition) {
-
-			StructrApp.getInstance().delete(property.getSchemaProperty());
-		}
-	}
-
 	// ----- OpenAPI methods -----
 	public Map<String, Object> serializeOpenAPIOperations(final String tag, Set<String> viewNames) {
 
@@ -1749,20 +1593,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return inherited;
 	}
 
-	String resolveTypeReferenceForOpenAPI(final URI reference) {
-
-		// do not include static Structr Schema URIs here
-		if (reference != null && !reference.toString().startsWith("https://structr.org/v1.1/")) {
-
-			// non-default base type?
-			final String name = StringUtils.substringAfterLast(reference.getPath(), "/");
-
-			return "#/components/schemas/" + name;
-		}
-
-		return null;
-	}
-
 	private boolean intersects(final Set<String> set1, final Set<String> set2) {
 
 		final Set<String> intersection = new LinkedHashSet<>(set1);
@@ -1770,23 +1600,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		intersection.retainAll(set2);
 
 		return !intersection.isEmpty();
-	}
-
-	private String resolveStaticType(final URI uri) {
-
-		// The following code allows static Java classes to be used as endpoints for dynamic relationships.
-		// The FQCN of the class is encoded in the sourceType or targetType URI as https://structr.org/v1.1/static/<fqcn>
-		final String prefix = "static/";
-		final int start = prefix.length();
-		final URI rel = StructrApp.getSchemaBaseURI().relativize(uri);
-		final String path = rel.toString();
-
-		if (path.startsWith(prefix)) {
-
-			return path.substring(start);
-		}
-
-		return null;
 	}
 
 	protected String getStaticTypeReference(final Class type) {

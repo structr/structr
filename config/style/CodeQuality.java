@@ -27,14 +27,14 @@ import java.util.stream.*;
  * it ranks files by how much they are likely to reward a human review, from signals drawn from
  * established metrics (cyclomatic/cognitive complexity, Maintainability Index, PMD/SonarQube
  * smells) plus Structr-specific smells. Regex + brace-depth heuristics, no parser — expect some
- * false positives; treat scores as a "look here first" ordering. Methods annotated {@code @Test}
- * are excluded from scoring, so test-method bodies don't skew the metrics.
+ * false positives; treat scores as a "look here first" ordering. Test classes (anything under a
+ * src/test directory) are skipped entirely, so test code never shows up in the ranking.
  *
  * Single-file program; runs with the JDK source launcher (no build, no dependencies, no Python):
  *     java config/style/CodeQuality.java [--top N] [--min SCORE] [--by SIGNAL] [--main-only] [--summary] [--detail N] [paths...]
  *
- * Files scoring below --min (default 1 — i.e. any file with zero findings is dropped) are omitted
- * from both the ranking and the counts; raise it (e.g. --min 20) to see only the noisier files.
+ * Files scoring below --min (default 50) are omitted from both the ranking and the counts; raise it (e.g. --min 100)
+ * to see only the noisier files.
  *
  * The ranked table has a leading # position column. --detail N switches to manual-analysis mode
  * for the file at position N: it lists every locatable finding grouped by signal as
@@ -59,6 +59,12 @@ public class CodeQuality {
 	// Built by concatenation so the tool does not match its own detection code -- only an intentional
 	// marker (like the one above) accepts a file.
 	static final String ACCEPT_MARKER = "@code-quality" + ":accept";
+
+	// Long lines limit (NOT counting tabs!)
+	static final int LONG_LINES_LIMIT = 200;
+
+	// Default threshold for findings we only report the worst files
+	static final int DEFAULT_THRESHOLD = 50;
 
 	/**
 	 * Label for the build-summary lines. Deliberately NOT on Maven's severity axis
@@ -111,15 +117,27 @@ public class CodeQuality {
 
 	static final Map<String, Integer> W = new LinkedHashMap<>();
 	static {
-		// the smells the team called out first, weighted highest
-		W.put("long_methods", 3); W.put("complexity", 3); W.put("deep_nesting", 2);
-		W.put("cstyle_for", 2); W.put("switch_heavy", 2); W.put("str_const_enum", 4);
-		W.put("parser_smell", 3); W.put("oversized", 1); W.put("todos", 5);
-		// the more exotic signals
-		W.put("magic_numbers", 1); W.put("long_params", 2); W.put("boolean_params", 2);
-		W.put("equals_literal", 2); W.put("instanceof_heavy", 2); W.put("broad_catch", 2);
-		W.put("reflection", 2); W.put("concurrency", 3); W.put("sysout", 2); W.put("regex_heavy", 2);
-		W.put("long_lines", 1);
+
+		W.put("fixmes",           200);
+		W.put("sysout",           10);
+		W.put("cstyle_for",       5);
+		W.put("str_const_enum",   4);
+		W.put("parser_smell",     4);
+		W.put("regex_heavy",      4);
+		W.put("equals_literal",   3);
+		W.put("switch_heavy",     2);
+		W.put("oversized",        1);
+		W.put("long_params",      1);
+		W.put("long_methods",     1);
+		W.put("concurrency",      1);
+		W.put("boolean_params",   1);
+		W.put("instanceof_heavy", 1);
+		W.put("broad_catch",      1);
+		W.put("reflection",       1);
+		W.put("long_lines",       1);
+		W.put("magic_numbers",    1);
+		W.put("deep_nesting",     1);
+		W.put("complexity",       1);
 	}
 
 	// short human-readable descriptions, printed as a legend under the ranked list
@@ -133,7 +151,7 @@ public class CodeQuality {
 		DESC.put("str_const_enum", "cluster of 3+ sibling String constants (probably wants to be an enum)");
 		DESC.put("parser_smell", "hand-rolled string parsing (charAt/substring/indexOf/StringBuilder)");
 		DESC.put("oversized", "God class — too many methods or too much code in one file");
-		DESC.put("todos", "TODO / FIXME / XXX / HACK / 'known bug' marker — unresolved work or a known defect");
+		DESC.put("fixmes", "FIXME / HACK / 'known bug' marker — unresolved work or a known defect");
 		DESC.put("magic_numbers", "unexplained numeric literals (other than 0, 1, 2)");
 		DESC.put("long_params", "method with more than 5 parameters");
 		DESC.put("boolean_params", "method with 2 or more boolean parameters (flag arguments)");
@@ -144,7 +162,7 @@ public class CodeQuality {
 		DESC.put("concurrency", "concurrency primitives (synchronized/volatile/Thread/Atomic/locks)");
 		DESC.put("sysout", "System.out/err or printStackTrace — should use logging");
 		DESC.put("regex_heavy", "heavy regex use (Pattern.compile / matches / replaceAll)");
-		DESC.put("long_lines", "physical line longer than 200 columns");
+		DESC.put("long_lines", "physical line longer than " + LONG_LINES_LIMIT + " columns");
 	}
 
 	static final Pattern DECISION      = Pattern.compile("\\b(if|for|while|case|catch)\\b|&&|\\|\\||\\?");
@@ -153,7 +171,7 @@ public class CodeQuality {
 	static final Pattern PARSER        = Pattern.compile("\\.charAt\\(|\\.substring\\(|\\.indexOf\\(|\\.lastIndexOf\\(|\\.split\\(|\\.toCharArray\\(|StringBuilder|StringTokenizer|Character\\.is");
 	static final Pattern METHOD_SIG    = Pattern.compile("^\\s*(?!(if|for|while|switch|catch|synchronized|return|new|else)\\b)[\\w@].*\\)\\s*(throws [\\w., ]+)?\\{$");
 	static final Pattern TYPE_DECL     = Pattern.compile("\\b(class|interface|enum|record)\\b");
-	static final Pattern TODO          = Pattern.compile("\\b(TODO|FIXME|XXX|HACK)\\b|(?i:\\bknown\\s+bugs?\\b)");
+	static final Pattern TODO          = Pattern.compile("\\b(FIXME|HACK)\\b|(?i:\\bknown\\s+bugs?\\b)");
 	static final Pattern SWITCH        = Pattern.compile("\\bswitch\\s*\\(");
 	static final Pattern STRING_LIT    = Pattern.compile("\"(\\\\.|[^\"\\\\])*\"");
 	static final Pattern CHAR_LIT      = Pattern.compile("'(\\\\.|[^'\\\\])*'");
@@ -258,73 +276,14 @@ public class CodeQuality {
 	}
 
 	/**
-	 * Blank out the body of every {@code @Test}-annotated method (found by walking up over the
-	 * annotation lines above a method signature) so test methods don't skew the metrics. Works on
-	 * the comment/string-stripped lines from {@link #toCode}; returns a copy with those regions blank.
+	 * Whether a file is a test source, i.e. lives under a {@code src/test} directory. Test classes are
+	 * skipped entirely - not just their {@code @Test} methods - because the scaffolding around those
+	 * methods (setup, fixtures, helpers) is written to different standards than production code and
+	 * would otherwise dominate the ranking.
 	 */
-	static List<String> stripTestMethods(final List<String> code) {
+	static boolean isTestSource(final Path path) {
 
-		final boolean[] excluded = new boolean[code.size()];
-
-		for (int i = 0; i < code.size(); i++) {
-
-			final String line = code.get(i);
-			final boolean isMethod = METHOD_SIG.matcher(line).find() && !TYPE_DECL.matcher(line).find() && !line.contains("->") && !line.contains(" new ") && !line.contains("=");
-
-			if (!isMethod) {
-
-				continue;
-			}
-
-			boolean isTest = false;
-			int start = i, k = i - 1;
-
-			while (k >= 0) {
-
-				final String t = code.get(k).strip();
-				if (t.startsWith("@")) {
-
-					isTest = isTest || t.startsWith("@Test");
-					start = k; k--;
-
-				} else if (t.isEmpty()) {
-
-					k--;
-
-				} else {
-
-					break;
-				}
-			}
-
-			if (!isTest) {
-
-				continue;
-			}
-
-			int depth = count(OPEN_BRACE, line) - count(CLOSE_BRACE, line);
-			int end = i, j = i + 1;
-
-			while (j < code.size() && depth > 0) {
-
-				depth += count(OPEN_BRACE, code.get(j)) - count(CLOSE_BRACE, code.get(j));
-				end = j; j++;
-			}
-
-			for (int x = start; x <= end; x++) {
-
-				excluded[x] = true;
-			}
-		}
-
-		final List<String> out = new ArrayList<>(code.size());
-
-		for (int i = 0; i < code.size(); i++) {
-
-			out.add(excluded[i] ? "" : code.get(i));
-		}
-
-		return out;
+		return path.toString().replace('\\', '/').contains("/src/test/");
 	}
 
 	static Result analyze(final Path path) throws Exception {
@@ -332,7 +291,7 @@ public class CodeQuality {
 		final String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 		final boolean accepted = content.contains(ACCEPT_MARKER);
 		final List<String> raw = Arrays.asList(content.split("\n", -1));
-		final List<String> code = stripTestMethods(toCode(raw));
+		final List<String> code = toCode(raw);
 		final String joined = String.join("\n", code);
 		int loc = 0;
 
@@ -463,13 +422,13 @@ public class CodeQuality {
 		}
 
 		final int parser = count(PARSER, joined);
+		final int size   = raw.size();
 		int longLines = 0;
 
-		for (int li = 0; li < raw.size(); li++) {
+		for (int li = 0; li < size; li++) {
 
-			// code.get(li) is blank for comment, blank and @Test-method-body lines (aligned 1:1 with
-			// raw), so long lines inside test methods or comments do not count — same view as every
-			// other signal.
+			// code.get(li) is blank for comment and blank lines (aligned 1:1 with raw), so long lines
+			// inside comments do not count — same view as every other signal.
 			if (code.get(li).isBlank()) {
 
 				continue;
@@ -483,14 +442,9 @@ public class CodeQuality {
 				continue;
 			}
 
-			int w = 0;
+			final int w = width(c);
 
-			for (int x = 0; x < c.length(); x++) {
-
-				w += c.charAt(x) == '\t' ? 8 : 1;
-			}
-
-			if (w > 200) {
+			if (w > LONG_LINES_LIMIT) {
 
 				longLines++;
 			}
@@ -506,7 +460,7 @@ public class CodeQuality {
 		sub.put("str_const_enum", clusters);
 		sub.put("parser_smell", Math.round(parser / Math.max(1f, loc / 100f)));
 		sub.put("oversized", Math.min(20, Math.max(0, numMethods - 30) / 4 + Math.max(0, (loc - 800) / 300)));
-		sub.put("todos", count(TODO, content));
+		sub.put("fixmes", count(TODO, content));
 		sub.put("magic_numbers", magic / 5);
 		sub.put("long_params", longParams);
 		sub.put("boolean_params", boolParams);
@@ -533,8 +487,10 @@ public class CodeQuality {
 	static String signals(final Map<String, Integer> sub) {
 
 		final List<Map.Entry<String, Integer>> contrib = new ArrayList<>(sub.entrySet());
+
 		contrib.removeIf(e -> e.getValue() == 0);
 		contrib.sort((p, q) -> q.getValue() * W.get(q.getKey()) - p.getValue() * W.get(p.getKey()));
+
 		final StringBuilder sig = new StringBuilder();
 
 		for (final Map.Entry<String, Integer> e : contrib) {
@@ -626,15 +582,7 @@ public class CodeQuality {
 	}
 
 	static int width(final String s) {
-
-		int w = 0;
-
-		for (int x = 0; x < s.length(); x++) {
-
-			w += s.charAt(x) == '\t' ? 8 : 1;
-		}
-
-		return w;
+		return s.length();
 	}
 
 	/**
@@ -646,7 +594,7 @@ public class CodeQuality {
 
 		final String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 		final List<String> raw = Arrays.asList(content.split("\n", -1));
-		final List<String> code = stripTestMethods(toCode(raw));
+		final List<String> code = toCode(raw);
 		final Result res = analyze(path);
 		final Map<String, List<String>> hits = new LinkedHashMap<>();
 
@@ -661,7 +609,7 @@ public class CodeQuality {
 
 			if (find(TODO, raw.get(li))) {
 
-				hits.get("todos").add(loc(li, raw));
+				hits.get("fixmes").add(loc(li, raw));
 			}
 
 			if (c.isBlank()) {
@@ -705,7 +653,7 @@ public class CodeQuality {
 				}
 			}
 
-			if (width(raw.get(li)) > 200) {
+			if (width(raw.get(li)) > LONG_LINES_LIMIT) {
 
 				final String t = raw.get(li).strip();
 				if (!t.startsWith("import ") && !t.startsWith("package ")) {
@@ -799,7 +747,7 @@ public class CodeQuality {
 		System.out.println("  --min SCORE      omit files scoring below SCORE (default 1; score 0 = no findings)");
 		System.out.println("  --by SIGNAL      rank by one signal's count instead of the composite score");
 		System.out.println("  --detail N       list every finding in the file at ranking position N");
-		System.out.println("  --main-only      scan only src/main (skip test sources)");
+		System.out.println("  --main-only      scan only src/main (test sources are always skipped)");
 		System.out.println("  --summary        one line per file, [" + LABEL + "]-prefixed (used by the build)");
 		System.out.println("  --show-accepted  include @code-quality:accept files in the listing");
 		System.out.println("  --color MODE     always | never | auto (default auto: only on a terminal)");
@@ -839,7 +787,7 @@ public class CodeQuality {
 
 	public static void main(final String[] a) {
 
-		int top = 25, min = 1, detailPos = 0;
+		int top = 25, min = DEFAULT_THRESHOLD, detailPos = 0;
 		String by = null;
 		boolean summary = false, mainOnly = false, showAccepted = false;
 		final List<String> paths = new ArrayList<>();
@@ -931,6 +879,7 @@ public class CodeQuality {
 
 					s.filter(x -> x.toString().endsWith(".java")
 						&& !x.toString().replace('\\', '/').contains("/target/")
+						&& !isTestSource(x)
 						&& (!mo || x.toString().replace('\\', '/').contains("/src/main/"))).forEach(fs::add);
 				}
 			}

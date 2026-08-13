@@ -2572,61 +2572,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 	}
 
-	/*
-	public final void normalize() throws FrameworkException {
-
-		final Page document = getOwnerDocument();
-		if (document != null) {
-
-			// merge adjacent text nodes until there is only one left
-			DOMNode child = getFirstChild();
-			while (child != null) {
-
-				if (child.is(StructrTraits.CONTENT)) {
-
-					DOMNode next = child.getNextSibling();
-					if (next != null && next.is(StructrTraits.CONTENT)) {
-
-						String text1 = child.as(Content.class).getContent();
-						String text2 = next.as(Content.class).getContent();
-
-						// create new text node
-						final Content newText = document.createTextNode(text1.concat(text2));
-
-						removeChild(child);
-						insertBefore(newText, next);
-						removeChild(next);
-
-						child = newText;
-
-					} else {
-
-						// advance to next node
-						child = next;
-					}
-
-				} else {
-
-					// advance to next node
-					child = child.getNextSibling();
-
-				}
-			}
-
-			// recursively normalize child nodes
-			if (hasChildNodes()) {
-
-				DOMNode currentChild = getFirstChild();
-				while (currentChild != null) {
-
-					currentChild.normalize();
-					currentChild = currentChild.getNextSibling();
-				}
-			}
-		}
-	}
-	*/
-
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
 
