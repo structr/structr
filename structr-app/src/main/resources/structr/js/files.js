@@ -1776,6 +1776,8 @@ let _Files = {
 
 			if (fileName.endsWith('.css')) {
 				language = 'css';
+			} else if (fileName.endsWith('.htm') || fileName.endsWith('.html')) {
+				language = 'html';
 			} else if (fileName.endsWith('.js') || fileName.endsWith('.mjs')) {
 				language = 'javascript';
 			} else if (fileName.endsWith('.svg')) {
