@@ -18,7 +18,11 @@
  */
 package org.structr.test;
 
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -415,6 +419,99 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 			assertEquals(TaskInstanceTraitDefinition.SET_BY_ADMIN, task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
 			tx.success();
 		}
+	}
+
+	@Test
+	public void testAssignTaskRevokesPreviousAssigneeGrant() throws Exception {
+
+		// Reassigning a task has to take the previous assignee's access away with it. The engine
+		// grants read+write to whoever holds a task, so without the revoke the previous assignee
+		// keeps both on a task that is now somebody else's - and nothing in the task itself shows
+		// it, because status and assignee are already correct.
+		final Ctx c                = startCandidateTask();
+		final NodeInterface first  = createUser("first-assignee");
+		final NodeInterface second = createUser("second-assignee");
+
+		try (final Tx tx = app.tx()) {
+
+			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"), app.getNodeById(first.getUuid()));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+
+			assertTrue("assignee must hold read on their task",  directGrant(task, first).contains(Permission.read.name()));
+			assertTrue("assignee must hold write on their task", directGrant(task, first).contains(Permission.write.name()));
+
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			engine().assignTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"), app.getNodeById(second.getUuid()));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+
+			assertEquals(second.getUuid(), assigneeOf(task).getUuid());
+
+			assertTrue("previous assignee must keep no direct grant on a task that is no longer theirs", directGrant(task, first).isEmpty());
+			assertFalse("previous assignee must lose write", task.as(AccessControllable.class).isGranted(Permission.write, userContext(first)));
+
+			assertTrue("new assignee must hold read",  directGrant(task, second).contains(Permission.read.name()));
+			assertTrue("new assignee must hold write", directGrant(task, second).contains(Permission.write.name()));
+
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testMakeTaskAvailableRevokesPreviousAssigneeGrant() throws Exception {
+
+		// Same rule when the task goes back into the pool: the holder is no longer the holder.
+		final Ctx c               = startCandidateTask();
+		final NodeInterface other = createUser("non-candidate");
+
+		try (final Tx tx = app.tx()) {
+
+			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"), app.getNodeById(other.getUuid()));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			engine().makeTaskAvailable(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+
+			assertTrue("released assignee must keep no direct grant", directGrant(task, other).isEmpty());
+			assertFalse("released assignee must lose write", task.as(AccessControllable.class).isGranted(Permission.write, userContext(other)));
+
+			tx.success();
+		}
+	}
+
+	/**
+	 * The permissions directly granted on a node, i.e. the Security relationship itself. Deliberately
+	 * not isGranted(): read also reaches a task indirectly, because TaskInstanceOfProcess propagates
+	 * read In with PropagationMode.Add, so a participant who keeps read on the ProcessInstance keeps
+	 * read on its tasks. That is the design - having taken part in a process lets you see it - and it
+	 * is write, plus the direct grant, that reassignment has to take away.
+	 */
+	private Set<String> directGrant(final NodeInterface node, final NodeInterface user) throws FrameworkException {
+
+		final Security security = node.as(AccessControllable.class).getSecurityRelationship(user.as(Principal.class));
+
+		return security == null ? Set.of() : security.getPermissions();
 	}
 
 	@Test

@@ -69,6 +69,23 @@ import java.util.regex.Pattern;
  */
 public class ProcessEngine {
 
+	// @code-quality:accept - last reviewed 2026-08-14, all 16 broad catches walked through.
+	// This engine executes code it did not write: script tasks, ioMapping and condition expressions
+	// authored in the BPMN model, and listener callbacks registered by other modules. A failure in
+	// any of those is a failure of one process step, not of the engine, so each is caught, logged
+	// and stepped over - 11 log, 2 return a placeholder from a helper that exists so error paths
+	// cannot themselves fail (getBpmnIdSafe, safeName), 3 are documented best-effort enrichment.
+	// The two Throwable catches are the after-commit listener dispatch, where the transaction is
+	// already committed and an escaping error would take the thread with it.
+	//
+	// One catch was removed rather than accepted: revokePreviousAssigneeGrantIfApplicable() used to
+	// swallow a failed permission revoke, which is the opposite of the rule above - it is not the
+	// engine surviving someone else's code, it is the engine hiding its own half-applied write.
+	//
+	// The remaining flags follow from the same job: the hand-rolled parsing is the script rewriter
+	// (rewriteSetVariable and friends), and the instanceof clusters are the parameter type mapping,
+	// which would read better as a pattern switch but is not a defect.
+
 	private static final Logger logger = LoggerFactory.getLogger(ProcessEngine.class);
 
 	private final Principal caller;
@@ -1973,19 +1990,19 @@ public class ProcessEngine {
 			}
 		}
 
-		try {
+		// Not caught: this is the one ACL write that takes access away, and every caller follows it
+		// with grant() calls that do propagate. Swallowing only this one produced the asymmetry that
+		// mattered - the reassignment committed, the new assignee got their grant, and the previous
+		// assignee silently kept their direct grant, write included, on a task that is no longer
+		// theirs (read also reaches them through participant access on the instance, by design). Letting it out
+		// rolls the whole reassignment back instead, which leaves the task where it was: a state
+		// somebody can see and retry, rather than one nobody can see.
+		final AccessControllable ac = taskNode.as(AccessControllable.class);
 
-			final AccessControllable ac = taskNode.as(AccessControllable.class);
+		ac.revoke(Permission.read,  previousAssignee.as(Principal.class));
+		ac.revoke(Permission.write, previousAssignee.as(Principal.class));
 
-			ac.revoke(Permission.read,  previousAssignee.as(Principal.class));
-			ac.revoke(Permission.write, previousAssignee.as(Principal.class));
-
-			logger.info("Revoked R+W on task '{}' for previous assignee '{}'", taskNode.getName(), previousAssignee.getName());
-
-		} catch (Exception ex) {
-
-			logger.warn("Could not revoke previous assignee's grant on task '{}': {}", taskNode.getName(), ex.getMessage());
-		}
+		logger.info("Revoked R+W on task '{}' for previous assignee '{}'", taskNode.getName(), previousAssignee.getName());
 	}
 
 	/**

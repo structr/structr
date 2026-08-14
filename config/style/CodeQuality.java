@@ -191,7 +191,13 @@ public class CodeQuality {
 
 	static final Pattern DECISION      = Pattern.compile("\\b(if|for|while|case|catch)\\b|&&|\\|\\||\\?");
 	static final Pattern CSTYLE_FOR    = Pattern.compile("\\bfor\\s*\\(\\s*(final\\s+)?(int|long|short|byte|Integer|Long)\\s+\\w+\\s*=");
-	static final Pattern STR_CONST     = Pattern.compile("\\b(private|public|protected)?\\s*static\\s+final\\s+String\\s+\\w+\\s*=\\s*\"");
+	/**
+	 * A cluster of sibling String constants. Names ending in _PROPERTY are excluded: declaring the
+	 * property names of a type as String constants is how a TraitDefinition is written (169 files do
+	 * it), they are passed to Traits.key() rather than switched on, and an enum could not replace
+	 * them without changing that API.
+	 */
+	static final Pattern STR_CONST     = Pattern.compile("\\b(private|public|protected)?\\s*static\\s+final\\s+String\\s+(?!\\w*_PROPERTY\\b)\\w+\\s*=\\s*\"");
 	static final Pattern PARSER        = Pattern.compile("\\.charAt\\(|\\.substring\\(|\\.indexOf\\(|\\.lastIndexOf\\(|\\.split\\(|\\.toCharArray\\(|StringBuilder|StringTokenizer|Character\\.is");
 	static final Pattern METHOD_SIG    = Pattern.compile("^\\s*(?!(if|for|while|switch|catch|synchronized|return|new|else)\\b)[\\w@].*\\)\\s*(throws [\\w., ]+)?\\{$");
 	static final Pattern TYPE_DECL     = Pattern.compile("\\b(class|interface|enum|record)\\b");
@@ -200,6 +206,9 @@ public class CodeQuality {
 	static final Pattern STRING_LIT    = Pattern.compile("\"(\\\\.|[^\"\\\\])*\"");
 	static final Pattern CHAR_LIT      = Pattern.compile("'(\\\\.|[^'\\\\])*'");
 	static final Pattern MAGIC         = Pattern.compile("(?<![\\w.])\\d+(\\.\\d+)?");
+	// "new FrameworkException(422, ..)" - the leading number is an HTTP status, which is what the
+	// constructor takes and reads as itself; 548 calls across the repo would otherwise all count
+	static final Pattern STATUS_ARG    = Pattern.compile("(new\\s+\\w*Exception\\s*\\(\\s*)\\d+");
 	static final Pattern EQ_LIT        = Pattern.compile("\\.equals(IgnoreCase)?\\(\"");
 	static final Pattern INSTANCEOF    = Pattern.compile("\\binstanceof\\b");
 	static final Pattern BROAD_CATCH   = Pattern.compile("catch\\s*\\(\\s*(final\\s+)?(Exception|Throwable|RuntimeException)\\b");
@@ -213,6 +222,7 @@ public class CodeQuality {
 	 * use a pattern that was compiled elsewhere, which is the fixed form, not the smell.
 	 */
 	static final Pattern MATCHER_DECL  = Pattern.compile("\\bMatcher\\s+(\\w+)");
+	static final Pattern ENUM_MATCHES  = Pattern.compile("([A-Z][A-Z0-9_]*)\\.matches\\(");
 	static final Pattern REGEX_HEAVY   = Pattern.compile("Pattern\\.compile|(?<![Mm]atcher)(?<!\\.matcher\\([^)]{0,60}\\))\\.(?:matches|replaceAll)\\(");
 	static final Pattern BOOLEAN_PARAM = Pattern.compile("\\bboolean\\b");
 	static final Pattern LOOP_OPEN     = Pattern.compile("\\b(?:for|while)\\s*\\(");
@@ -290,7 +300,9 @@ public class CodeQuality {
 			result = result.replace(name + ".replaceAll(", name + ".onMatcher(");
 		}
 
-		return result;
+		// CONSTANT.matches(x) is an enum or constant comparing itself to x, not a pattern match:
+		// BpmnElementType.START_EVENT.matches(type) reads a field and calls equals()
+		return ENUM_MATCHES.matcher(result).replaceAll("$1.onConstant(");
 	}
 
 	static boolean[] staticFinalLines(final List<String> code) {
@@ -1172,7 +1184,7 @@ public class CodeQuality {
 				continue;
 			}
 
-			final Matcher m = MAGIC.matcher(c);
+			final Matcher m = MAGIC.matcher(STATUS_ARG.matcher(c).replaceAll("$1"));
 
 			while (m.find()) {
 
@@ -1467,7 +1479,7 @@ public class CodeQuality {
 				hits.get("broad_catch").add(loc(li, raw));
 			}
 
-			if (!c.contains("static final") && !find(TYPE_DECL, c) && magic(c)) {
+			if (!c.contains("static final") && !find(TYPE_DECL, c) && magic(STATUS_ARG.matcher(c).replaceAll("$1"))) {
 
 				hits.get("magic_numbers").add(loc(li, raw));
 			}

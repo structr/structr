@@ -22,6 +22,7 @@ import com.google.common.base.CaseFormat;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jsoup.select.Selector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -2779,6 +2780,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public void updateReloadTargets(final DOMElement domElement) throws FrameworkException {
 
+		final Logger logger = LoggerFactory.getLogger(DOMElement.class);
+
 		try {
 
 			final List<DOMElement> actualReloadSources = new LinkedList<>();
@@ -2810,7 +2813,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										actualReloadTargets.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {}
+								} catch (Selector.SelectorParseException spex) {
+
+									// the selector is written by hand in the reload-target attribute, so a
+									// malformed one is user input, not a bug: skip that target and say so,
+									// because otherwise the element silently never reloads
+									logger.debug("Ignoring malformed reload target selector '{}': {}", targetSelector, spex.getMessage());
+								}
 							}
 						}
 
@@ -2827,7 +2836,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										actualReloadSources.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {}
+								} catch (Selector.SelectorParseException spex) {
+
+									// the selector is written by hand in the reload-target attribute, so a
+									// malformed one is user input, not a bug: skip that target and say so,
+									// because otherwise the element silently never reloads
+									logger.debug("Ignoring malformed reload target selector '{}': {}", targetSelector, spex.getMessage());
+								}
 							}
 						}
 					}
@@ -2845,7 +2860,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		} catch (Throwable t) {
 
-			final Logger logger = LoggerFactory.getLogger(DOMElement.class);
 			logger.warn("Unable to update reload targets: {}", t.getMessage());
 		}
 	}
