@@ -19,6 +19,8 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.Services;
 import org.structr.docs.ontology.*;
 import org.structr.module.StructrModule;
@@ -38,8 +40,16 @@ import java.util.regex.Pattern;
  */
 public class JavascriptFileToken extends NamedConceptToken {
 
-	private final Pattern HTMLLine      = Pattern.compile("<[a-zA-Z0-9_\\p{Punct} ]+>.*");
-	private final Pattern JSONToken     = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*:\\s*[\"']{1}([a-zA-Z0-9_ !$%&/\\(\\)\\?]+)\\s*[\\p{Punct}]*");
+	private static final Logger logger = LoggerFactory.getLogger(JavascriptFileToken.class);
+
+	private static final Pattern HTMLLine      = Pattern.compile("<[a-zA-Z0-9_\\p{Punct} ]+>.*");
+	private static final Pattern JSONToken     = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*:\\s*[\"']{1}([a-zA-Z0-9_ !$%&/\\(\\)\\?]+)\\s*[\\p{Punct}]*");
+
+	// compiled once, these run for every line of every parsed source file
+	private static final Pattern NUMERIC_UNIT        = Pattern.compile("'[0-9]+[a-z]+'");
+	private static final Pattern TEMPLATE_EXPRESSION = Pattern.compile("\\$\\{.*\\}");
+	private static final Pattern HTML_TAG            = Pattern.compile("<[^>]*>");
+	private static final Pattern WHITESPACE_RUN      = Pattern.compile("\\s+");
 	private final Set<String> stopWords = new LinkedHashSet<>();
 	private final int minLength         = 4;
 	private final int maxLength         = 40;
@@ -62,7 +72,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.warn("Unable to load stop words: {}", t.getMessage(), t);
 			}
 		}
 	}
@@ -107,7 +117,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 								text = matcher.group(2);
 
-								if (StringUtils.isNumeric(text) || text.length() < minLength || text.matches("'[0-9]+[a-z]+'")) {
+								if (StringUtils.isNumeric(text) || text.length() < minLength || NUMERIC_UNIT.matcher(text).matches()) {
 
 									continue;
 								}
@@ -117,8 +127,8 @@ public class JavascriptFileToken extends NamedConceptToken {
 						text = text.replace("\\$", "$");
 						text = parseAndRemoveStyleAttribute(text);
 						text = parseAndRemoveDataComment(text, ontology, fileName, sourceLineNumber);
-						text = text.replaceAll("\\$\\{.*\\}", "");
-						text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
+						text = TEMPLATE_EXPRESSION.matcher(text).replaceAll("");
+						text = WHITESPACE_RUN.matcher(HTML_TAG.matcher(text).replaceAll("").trim()).replaceAll(" ");
 
 						final Concept concept = handleConcept(ConceptType.Text, text, ontology);
 						if (concept != null) {
@@ -132,7 +142,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 			} catch (IOException ioex) {
 
-				ioex.printStackTrace();
+				logger.warn("Unable to read javascript source: {}", ioex.getMessage());
 			}
 		}
 

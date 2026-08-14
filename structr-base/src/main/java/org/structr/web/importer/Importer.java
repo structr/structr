@@ -83,6 +83,12 @@ public class Importer {
 
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class.getName());
 
+	// compiled once instead of on every processed stylesheet
+	private static final Pattern CSS_URL    = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
+	private static final Pattern CSS_IMPORT = Pattern.compile("(@import\\s*([\"']|url\\('|url\\(\"))([^\"']*)");
+
+	private static final Pattern TABLE_FRAGMENT = Pattern.compile("^\\\\s*<(thead|tbody|caption|colgroup|th|tr|tfoot).*", Pattern.CASE_INSENSITIVE);
+
 	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList("link"));
 	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList("#declaration", "#doctype"));
 	private static final Set<String> srcElements        = new LinkedHashSet<>(Arrays.asList("img", "script", "audio", "video", "input", "source", "track"));
@@ -226,7 +232,7 @@ public class Importer {
 
 				} else {
 
-					final Matcher matcher = Pattern.compile("^\\s*<(thead|tbody|caption|colgroup|th|tr|tfoot).*", Pattern.CASE_INSENSITIVE).matcher(code);
+					final Matcher matcher = TABLE_FRAGMENT.matcher(code);
 					if (matcher.matches()) {
 
 						// if outermost tag is a table element so use <table> as context element
@@ -1515,8 +1521,7 @@ public class Importer {
 
 	private void processCss(final String css, final URL base) throws IOException {
 
-		Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
-		Matcher matcher = pattern.matcher(css);
+		Matcher matcher = CSS_URL.matcher(css);
 
 		while (matcher.find()) {
 
@@ -1527,8 +1532,7 @@ public class Importer {
 
 		}
 
-		pattern = Pattern.compile("(@import\\s*([\"']|url\\('|url\\(\"))([^\"']*)");
-		matcher = pattern.matcher(css);
+		matcher = CSS_IMPORT.matcher(css);
 
 		while (matcher.find()) {
 

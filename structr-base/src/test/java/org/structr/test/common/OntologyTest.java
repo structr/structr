@@ -291,17 +291,15 @@ public class OntologyTest extends StructrUiTest {
 			concept.getChildLinks(Verb.Has).get(0).setFormat(ConceptType.List);
 		}
 
-		for (final Concept concept : ontology.getConceptsByName("Structr")) {
+		// The format belongs to the object of the fact, so it is written after the target concept, and
+		// the rename is written wherever the concept is named.
+		final String expected = """
+		Structr has topics "TEST", "Two", "Three"
+			Topic "TEST" has topic "One.1" as list
+			Topic "TEST" has topic "One.2" as table
+			Topic "Two" has topic "Two.2"
+		""";
 
-			final List<Link> children = concept.getChildLinks(Verb.Has);
-
-			/*
-			children.addChild("Juhu!");
-			children.removeChild(2);
-			children.moveChild(0, 2);
-			*/
-		}
-
-		System.out.println(facts.toString());
+		org.testng.AssertJUnit.assertEquals("Facts file was not updated as expected", expected, facts.toString());
 	}
 }

@@ -198,9 +198,7 @@ public class StructrHttpsLicenseVerifier {
 
 							} catch (Throwable t) {
 
-								t.printStackTrace();
-
-								logger.warn("License verification failed, can't get response body.");
+								logger.warn("License verification failed, can't get response body: {}", t.getMessage(), t);
 								exchange.sendResponseHeaders(400, 0);
 							}
 
@@ -213,7 +211,7 @@ public class StructrHttpsLicenseVerifier {
 					} catch (Throwable t) {
 
 						exchange.sendResponseHeaders(400, 0);
-						t.printStackTrace();
+						logger.warn("Unable to handle license verification request: {}", t.getMessage(), t);
 
 					} finally {
 

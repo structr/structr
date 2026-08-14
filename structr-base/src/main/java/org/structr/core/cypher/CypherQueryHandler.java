@@ -142,10 +142,13 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 				return relFactory.instantiate((Relationship)obj);
 			}
 
-		} catch(Throwable ignore) {
+		} catch (Throwable t) {
 
-			// FIXME: ignore or throw??
-			logger.warn("Unable to instantiate node {}", obj);
+			// Not thrown: this converts a single value of a query result row, and one value that cannot be
+			// instantiated (deleted meanwhile, not visible, wrong type) must not abort the whole result. The
+			// caller sees null for that column. Callers that need the failure to surface can use
+			// getAsNodeInterface()/getAsAbstractRelationship() instead, which propagate.
+			logger.warn("Unable to instantiate {} from column {}: {}", obj, columnName, t.getMessage());
 		}
 
 		return null;

@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -214,53 +215,36 @@ public class SchemaResource extends ExactMatchEndpoint {
 		map.put(relationShipSourceType,     sourceType);
 		map.put(relationShipTargetType,     targetType);
 
-		/*
+		// The set of types allowed at each end. NodeInterface means every node type, DOMNode means every
+		// HTML element type (the UI offers those separately); anything else is spelled out as the types
+		// that carry the declared type as a trait. Consumed by the CRUD and graph views (relInfo).
+		putPossibleTypes(map, sourceType, allSourceTypesPossibleProperty, htmlSourceTypesPossibleProperty, possibleSourceTypesProperty);
+		putPossibleTypes(map, targetType, allTargetTypesPossibleProperty, htmlTargetTypesPossibleProperty, possibleTargetTypesProperty);
 
-		FIXME: this needs to be changed
-
-		// select NodeInterface and SUPERCLASSES (not subclasses!)
-		if (sourceType.isAssignableFrom(NodeInterface.class)) {
-
-			map.put(allSourceTypesPossibleProperty, true);
-			map.put(htmlSourceTypesPossibleProperty, true);
-			map.put(possibleSourceTypesProperty, null);
-
-		} else if (StructrTraits.DOM_NODE.equals(sourceType)) {
-
-			map.put(allTargetTypesPossibleProperty, false);
-			map.put(htmlTargetTypesPossibleProperty, true);
-			map.put(possibleTargetTypesProperty, null);
-
-		} else {
-
-			map.put(allSourceTypesPossibleProperty, false);
-			map.put(htmlSourceTypesPossibleProperty, false);
-			map.put(possibleSourceTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(sourceType.getSimpleName()), ","));
-		}
-
-		// select NodeInterface and SUPERCLASSES (not subclasses!)
-		if (targetType.isAssignableFrom(NodeInterface.class)) {
-
-			map.put(allTargetTypesPossibleProperty, true);
-			map.put(htmlTargetTypesPossibleProperty, true);
-			map.put(possibleTargetTypesProperty, null);
-
-		} else if (StructrTraits.DOM_NODE.equals(targetType)) {
-
-			map.put(allTargetTypesPossibleProperty, false);
-			map.put(htmlTargetTypesPossibleProperty, true);
-			map.put(possibleTargetTypesProperty, null);
-
-		} else {
-
-			map.put(allTargetTypesPossibleProperty, false);
-			map.put(htmlTargetTypesPossibleProperty, false);
-			map.put(possibleTargetTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(targetType.getSimpleName()), ","));
-		}
-
-		 */
 
 		return map;
+	}
+
+	private static void putPossibleTypes(final GraphObjectMap map, final String endType, final BooleanProperty allTypesPossible, final BooleanProperty htmlTypesPossible, final GenericProperty possibleTypes) {
+
+		if (StructrTraits.NODE_INTERFACE.equals(endType)) {
+
+			map.put(allTypesPossible,  true);
+			map.put(htmlTypesPossible, true);
+			map.put(possibleTypes,     null);
+
+		} else if (StructrTraits.DOM_NODE.equals(endType)) {
+
+			map.put(allTypesPossible,  false);
+			map.put(htmlTypesPossible, true);
+			map.put(possibleTypes,     null);
+
+		} else {
+
+			map.put(allTypesPossible,  false);
+			map.put(htmlTypesPossible, false);
+			map.put(possibleTypes,     StringUtils.join(Traits.getAllTypes(traits -> traits.contains(endType)), ","));
+		}
 	}
 
 	private static String multiplictyToString(final Multiplicity multiplicity) {

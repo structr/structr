@@ -1217,7 +1217,7 @@ public class ProcessEngine {
 			// so a value containing parentheses -- e.g. now() -- survives intact)
 			// execution.getVariable("x")       -> $.process.x
 			String transpiled = rewriteSetVariable(line);
-			transpiled = transpiled.replaceAll("execution\\.getVariable\\([\"']([^\"']+)[\"']\\)", "\\$.process.$1");
+			transpiled = GET_VARIABLE.matcher(transpiled).replaceAll("\\$.process.$1");
 
 			// Bare function calls map onto Structr's function namespace by prefixing
 			// "$." -- e.g. now() -> $.now(). Member calls, already-prefixed calls and
@@ -1414,6 +1414,8 @@ public class ProcessEngine {
 	// access (preceded by '.'), NOT already prefixed ('$.'), and NOT part of a
 	// longer identifier.
 	private static final Pattern BARE_FUNCTION_CALL = Pattern.compile("(?<![\\w.$])([A-Za-z_]\\w*)\\s*\\(");
+
+	private static final Pattern GET_VARIABLE = Pattern.compile("execution\\.getVariable\\([\"']([^\"']+)[\"']\\)");
 
 	/**
 	 * Prefix bare function calls with Structr's {@code $.} namespace, e.g.

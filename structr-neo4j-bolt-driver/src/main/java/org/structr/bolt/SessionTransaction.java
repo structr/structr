@@ -307,20 +307,20 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null && !infos.isEmpty()) {
 
-				System.out.println("############################################################################### " + prefetchHint);
+				logger.info("### prefetch hint: {}", prefetchHint);
 
 				for (final PrefetchInfo info : infos) {
 
-					System.out.println("        " + info.getPattern());
+					logger.info("        {}", info.getPattern());
 
 					for (final String rel : info.getOutgoingSet()) {
 
-						System.out.println("                OUT: " + rel);
+						logger.info("                OUT: {}", rel);
 					}
 
 					for (final String rel : info.getIncomingSet()) {
 
-						System.out.println("                IN:  " + rel);
+						logger.info("                IN:  {}", rel);
 					}
 				}
 			}

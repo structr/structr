@@ -959,8 +959,7 @@ public class StructrLicenseManager implements LicenseManager {
 				// don't retry if the URL is invalid..
 				i = 3;
 
-				// log error
-				mex.printStackTrace();
+				logger.error("Invalid license server URL: {}", mex.getMessage(), mex);
 
 			} catch (ConnectException cex) {
 

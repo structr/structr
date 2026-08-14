@@ -36,7 +36,6 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_START_NODE_OF_CONTAINER_PROPERTY       = "isStartNodeOfContainer";
 	public static final String PREV_PROPERTY                             = "prev";
 	public static final String NEXT_PROPERTY                             = "next";
-	public static final String PREV_FOR_EACH_PROPERTY                    = "prevForEach";		// FIXME: is this ever used?
 
 	public FlowNodeTraitDefinition() {
 
@@ -55,9 +54,10 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> isStartNodeOfContainer = new StartNode(traitsInstance, IS_START_NODE_OF_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_FLOW_NODE);
 		final Property<Iterable<NodeInterface>> prev         = new StartNodes(traitsInstance, PREV_PROPERTY, StructrTraits.FLOW_NODES);
 		final Property<NodeInterface> next                   = new EndNode(traitsInstance, NEXT_PROPERTY, StructrTraits.FLOW_NODES);
-		final Property<NodeInterface> prevForEach            = new StartNode(traitsInstance, PREV_FOR_EACH_PROPERTY, StructrTraits.FLOW_FOR_EACH_BODY);
+		// No inverse of FlowForEach.loopBody here: nothing reads it, and the editor connects a loop body
+		// through loopBody and prev (see FlowConnectionTypes.js / FlowSockets.js).
 
-		return newSet(isStartNodeOfContainer, prev, next, prevForEach);
+		return newSet(isStartNodeOfContainer, prev, next);
 	}
 
 	@Override

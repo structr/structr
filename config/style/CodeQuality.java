@@ -161,7 +161,7 @@ public class CodeQuality {
 		DESC.put("reflection", "reflection use (getClass/forName/getDeclared*/setAccessible)");
 		DESC.put("concurrency", "concurrency primitives (synchronized/volatile/Thread/Atomic/locks)");
 		DESC.put("sysout", "System.out/err or printStackTrace — should use logging");
-		DESC.put("regex_heavy", "heavy regex use (Pattern.compile / matches / replaceAll)");
+		DESC.put("regex_heavy", "regex compiled per call (Pattern.compile / matches / replaceAll outside a static final field)");
 		DESC.put("long_lines", "physical line longer than " + LONG_LINES_LIMIT + " columns");
 	}
 
@@ -183,11 +183,19 @@ public class CodeQuality {
 	static final Pattern REFLECT       = Pattern.compile("\\.getClass\\(\\)|Class\\.forName|\\.getDeclared(Method|Field|Constructor)s?\\(|\\.getMethod\\(|\\.newInstance\\(|\\.setAccessible\\(");
 	static final Pattern CONCURRENCY   = Pattern.compile("\\bsynchronized\\b|\\bvolatile\\b|\\bThread\\b|\\.wait\\(|\\.notify(All)?\\(|Atomic(Integer|Long|Boolean|Reference)|ConcurrentHashMap|CountDownLatch|ExecutorService|ReentrantLock");
 	static final Pattern SYSOUT        = Pattern.compile("System\\.(out|err)\\.|\\.printStackTrace\\(");
-	static final Pattern REGEX_HEAVY   = Pattern.compile("Pattern\\.compile|\\.matches\\(|\\.replaceAll\\(");
+	/**
+	 * Regex work that happens per call: compiling a pattern, or the String methods that compile one
+	 * internally. Calls on an existing Matcher are excluded - "m.matches()" and "X.matcher(s).replaceAll(r)"
+	 * use a pattern that was compiled elsewhere, which is the fixed form, not the smell.
+	 */
+	static final Pattern MATCHER_DECL  = Pattern.compile("\\bMatcher\\s+(\\w+)");
+	static final Pattern REGEX_HEAVY   = Pattern.compile("Pattern\\.compile|(?<![Mm]atcher)(?<!\\.matcher\\([^)]{0,60}\\))\\.(?:matches|replaceAll)\\(");
 	static final Pattern BOOLEAN_PARAM = Pattern.compile("\\bboolean\\b");
 	static final Pattern COMMA         = Pattern.compile(",");
 	static final Pattern OPEN_BRACE    = Pattern.compile("\\{");
 	static final Pattern CLOSE_BRACE   = Pattern.compile("\\}");
+	static final Pattern OPEN_PAREN    = Pattern.compile("\\(");
+	static final Pattern CLOSE_PAREN   = Pattern.compile("\\)");
 
 	// signals locatable by a single per-line pattern (used by --detail); the rest need special logic
 	static final Map<String, Pattern> LINE_SIG = new LinkedHashMap<>();
@@ -206,6 +214,76 @@ public class CodeQuality {
 
 	record Result(int loc, int score, Map<String, Integer> sub, boolean accepted) {}
 	record Row(int score, int loc, Path path, Map<String, Integer> sub, boolean accepted) {}
+
+	/**
+	 * Marks the lines that belong to a {@code static final} field, including the continuation lines of a
+	 * multi-line initializer. A Pattern compiled there is compiled once when the class is loaded, i.e. it
+	 * is the fix for regex_heavy rather than an instance of it, so those lines must not be counted.
+	 */
+	/** The names of the Matcher variables declared in a file ("final Matcher m = ..." yields "m"). */
+	static Set<String> matcherNames(final String code) {
+
+		final Matcher declarations = MATCHER_DECL.matcher(code);
+		final Set<String> names    = new LinkedHashSet<>();
+
+		while (declarations.find()) {
+
+			names.add(declarations.group(1));
+		}
+
+		return names;
+	}
+
+	/**
+	 * Blanks out the regex calls that run on an existing Matcher, so they are not counted as per-call
+	 * regex work: the pattern behind them was compiled somewhere else. The names come from the whole
+	 * file, because the declaration is rarely on the same line as the call.
+	 */
+	static String maskMatcherCalls(final String text, final Set<String> names) {
+
+		String result = text;
+
+		for (final String name : names) {
+
+			result = result.replace(name + ".matches(",    name + ".onMatcher(");
+			result = result.replace(name + ".replaceAll(", name + ".onMatcher(");
+		}
+
+		return result;
+	}
+
+	static boolean[] staticFinalLines(final List<String> code) {
+
+		final boolean[] result = new boolean[code.size()];
+		boolean inField        = false;
+		int depth              = 0;
+
+		for (int i = 0; i < code.size(); i++) {
+
+			final String line = code.get(i);
+
+			if (!inField && line.contains("static final")) {
+
+				inField = true;
+				depth   = 0;
+			}
+
+			if (inField) {
+
+				result[i] = true;
+				depth    += count(OPEN_PAREN, line) - count(CLOSE_PAREN, line);
+
+				// the declaration ends with the semicolon of its outermost statement
+				if (depth <= 0 && line.contains(";")) {
+
+					inField = false;
+					depth   = 0;
+				}
+			}
+		}
+
+		return result;
+	}
 
 	static int count(final Pattern p, final String s) {
 
@@ -470,7 +548,19 @@ public class CodeQuality {
 		sub.put("reflection", count(REFLECT, joined) / 2);
 		sub.put("concurrency", count(CONCURRENCY, joined));
 		sub.put("sysout", count(SYSOUT, joined));
-		sub.put("regex_heavy", count(REGEX_HEAVY, joined) / 2);
+		// regex compiled in a static final field is compiled once, so only the rest counts here
+		final boolean[] staticFinal   = staticFinalLines(code);
+		final StringBuilder perCall   = new StringBuilder();
+
+		for (int li = 0; li < code.size(); li++) {
+
+			if (!staticFinal[li]) {
+
+				perCall.append(code.get(li)).append("\n");
+			}
+		}
+
+		sub.put("regex_heavy", count(REGEX_HEAVY, maskMatcherCalls(perCall.toString(), matcherNames(joined))) / 2);
 		sub.put("long_lines", longLines);
 
 		int score = 0;
@@ -598,6 +688,9 @@ public class CodeQuality {
 		final Result res = analyze(path);
 		final Map<String, List<String>> hits = new LinkedHashMap<>();
 
+		final boolean[] staticFinal = staticFinalLines(code);
+		final Set<String> matchers  = matcherNames(String.join("\n", code));
+
 		for (final String k : W.keySet()) {
 
 			hits.put(k, new ArrayList<>());
@@ -619,7 +712,15 @@ public class CodeQuality {
 
 			for (final Map.Entry<String, Pattern> e : LINE_SIG.entrySet()) {
 
-				if (find(e.getValue(), c)) {
+				// same rule as the score: a regex in a static final field is compiled once, not per call
+				if ("regex_heavy".equals(e.getKey()) && staticFinal[li]) {
+
+					continue;
+				}
+
+				final String line = "regex_heavy".equals(e.getKey()) ? maskMatcherCalls(c, matchers) : c;
+
+				if (find(e.getValue(), line)) {
 
 					hits.get(e.getKey()).add(loc(li, raw));
 				}

@@ -127,7 +127,8 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 			if (_targetJsonName != null) {
 
-				// FIXME: no automatic creation?
+				// An explicitly configured name is used as it is; deriving one is only for the ends that
+				// have none. Either way the name passes through the uniqueness handling further down.
 				propertyName = _targetJsonName;
 
 			} else {

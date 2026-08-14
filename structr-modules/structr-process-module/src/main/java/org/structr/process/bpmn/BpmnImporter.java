@@ -117,6 +117,12 @@ public class BpmnImporter {
 	 * change to the validator cannot silently turn into a 422 during BPMN import. */
 	private static final Pattern VALID_METHOD_NAME = Pattern.compile(SchemaMethod.schemaMethodNamePattern);
 
+	// compiled once, these run per imported BPMN element
+	private static final Pattern WHITESPACE_RUN     = Pattern.compile("\\s+");
+	private static final Pattern EXPRESSION_PREFIX  = Pattern.compile("^\\$\\{");
+	private static final Pattern EXPRESSION_SUFFIX  = Pattern.compile("\\}$");
+	private static final Pattern NON_IDENTIFIER     = Pattern.compile("[^A-Za-z0-9_]");
+
 	/** An {@code identifier(} token -- used to pull the invoked method name out of a JUEL/JS expression. */
 
 	private final SecurityContext securityContext;
@@ -1340,7 +1346,7 @@ public class BpmnImporter {
 			return "";
 		}
 
-		return s.replaceAll("\\s+", " ").trim();
+		return WHITESPACE_RUN.matcher(s).replaceAll(" ").trim();
 	}
 
 	private void createPerformerNode(final App app, final NodeInterface elemNode, final String kind, final String expression, final String language, final String performerName, final String bpmnId) throws FrameworkException {
@@ -2203,7 +2209,7 @@ public class BpmnImporter {
 		// Otherwise the last dotted segment of a FQCN / bean reference (minus ${ }).
 		if (candidate == null) {
 
-			String ref = s.replaceAll("^\\$\\{", "").replaceAll("\\}$", "").trim();
+			String ref = EXPRESSION_SUFFIX.matcher(EXPRESSION_PREFIX.matcher(s).replaceAll("")).replaceAll("").trim();
 			final int dot = ref.lastIndexOf('.');
 
 			if (dot >= 0 && dot < ref.length() - 1) {
@@ -2215,7 +2221,7 @@ public class BpmnImporter {
 		}
 
 		// Keep only identifier characters.
-		candidate = candidate.replaceAll("[^A-Za-z0-9_]", "");
+		candidate = NON_IDENTIFIER.matcher(candidate).replaceAll("");
 
 		if (candidate.isEmpty()) {
 

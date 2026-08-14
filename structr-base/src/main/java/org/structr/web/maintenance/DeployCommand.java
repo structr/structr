@@ -865,9 +865,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishWarningMessage("Unable to set group ownership", "An error occurred trying to look up a group named '" + groupName + "'. The deployment export files will not have that group association. See server log for more details.");
 
-			logger.warn("An error occurred trying to look up a group named '{}'. The deployment export files will not have that group association. Error detail follows:", groupName);
-
-			ex.printStackTrace();
+			logger.warn("An error occurred trying to look up a group named '{}'. The deployment export files will not have that group association.", groupName, ex);
 		}
 	}
 

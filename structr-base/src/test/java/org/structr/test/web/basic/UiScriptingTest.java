@@ -63,6 +63,7 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.*;
+import org.structr.web.traits.definitions.CssRuleTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
@@ -2977,6 +2978,58 @@ public class UiScriptingTest extends StructrUiTest {
 		public Locale getLocale() {
 
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+	}
+
+	@Test
+	public void testImportCssFunction() {
+
+		// importCss() parses a stylesheet into CssRule / CssSelector / CssDeclaration nodes and links them.
+
+		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(renderContext, null, """
+				${{
+					let file = $.create('File', { name: 'test.css' });
+					$.setContent(file, 'body { color: red; background: white; }');
+
+					$.importCss(file);
+				}}
+				""", "test");
+
+			assertEquals("importCss() must report success", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> rules = app.nodeQuery(StructrTraits.CSS_RULE).getAsList();
+
+			assertEquals("Expected exactly one CSS rule", 1, rules.size());
+
+			final NodeInterface rule    = rules.get(0);
+			final Traits traits         = rule.getTraits();
+
+			assertEquals("Rule must keep its selector", "body", rule.getName());
+			assertEquals("Expected one linked selector", 1, Iterables.count(rule.getProperty(traits.key(CssRuleTraitDefinition.SELECTORS_PROPERTY))));
+
+			// both declarations are linked to the rule
+			assertEquals("Expected two linked declarations", 2, Iterables.count(rule.getProperty(traits.key(CssRuleTraitDefinition.DECLARATIONS_PROPERTY))));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 }

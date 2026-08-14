@@ -267,4 +267,52 @@ public class RelatedNodePropertyTest extends StructrRestTestBase {
 
 	}
 
+	/**
+	 * A notion property identifies the related node by the key its notion declares, both when the input is
+	 * the bare value and when it is an object carrying that key. The uuid is NOT an accepted identifier
+	 * here - that is what a plain relationship property (ObjectNotion) is for.
+	 */
+	@Test
+	public void test10CreateWithNotionPropertyValue() {
+
+		final String testSeven = createEntity("/TestSeven", "{ name: 'seven01' }");
+
+		// testSevenName is the notion of the linked TestSeven, so a value here proves the link
+
+		// bare value
+		final String bareValue = createEntity("/TestSix", "{ name: 'six01', testSevenName: 'seven01' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result.testSevenName", equalTo("seven01"))
+			.when()
+				.get(concat("/TestSix/", bareValue));
+
+		// object carrying the notion's key
+		final String objectValue = createEntity("/TestSix", "{ name: 'six02', testSevenName: { name: 'seven01' } }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result.testSevenName", equalTo("seven01"))
+			.when()
+				.get(concat("/TestSix/", objectValue));
+
+		// an object without the notion's key identifies nothing, and says so
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ name: 'six03', testSevenName: { id: '" + testSeven + "' } }")
+			.expect()
+				.statusCode(422)
+				.body("message", equalTo("Object given for property name of type TestSeven does not contain the identifying property name."))
+			.when()
+				.post("/TestSix");
+	}
+
 }

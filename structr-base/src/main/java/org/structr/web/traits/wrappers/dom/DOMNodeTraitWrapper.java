@@ -2820,7 +2820,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
+			LoggerFactory.getLogger(DOMNodeTraitWrapper.class).warn("Unable to create component configuration for {}: {}", getUuid(), ex.getMessage());
 		}
 
 		return null;

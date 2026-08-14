@@ -32,8 +32,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.flow.impl.FlowContainerPackage;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
 import org.structr.flow.traits.definitions.FlowContainerConfigurationTraitDefinition;
 import org.structr.module.api.DeployableEntity;
@@ -66,10 +68,20 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 				for (final NodeInterface current : app.nodeQuery(c).sort(idProperty).getAsList()) {
 
-					// FIXME: NodeInterface is will not be an instance of DeployableEntity, we need a base trait that is
-					if (current instanceof DeployableEntity && current.getType().equals(c) ) {
+					// A node is never a DeployableEntity itself, its trait wrapper is, so it has to be wrapped
+					// before its data can be exported. The exported types are flow nodes, containers and
+					// container packages, each with its own wrapper.
+					if (current.getType().equals(c)) {
 
-						flowElements.add( ((DeployableEntity)current).exportData() );
+						final DeployableEntity entity = asDeployableEntity(current);
+						if (entity != null) {
+
+							flowElements.add(entity.exportData());
+
+						} else {
+
+							logger.warn("Unable to export {} of type {}: no deployable representation.", current.getUuid(), c);
+						}
 					}
 				}
 			}
@@ -215,5 +227,30 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 				logger.warn("", ioex);
 			}
 		}
+	}
+
+	// ----- private methods -----
+	/**
+	 * The deployable representation of a flow node, i.e. the trait wrapper that knows how to export it,
+	 * or null when the node is none of the flow types that can be exported.
+	 */
+	private DeployableEntity asDeployableEntity(final NodeInterface node) {
+
+		if (node.is(StructrTraits.FLOW_BASE_NODE)) {
+
+			return node.as(FlowBaseNode.class);
+		}
+
+		if (node.is(StructrTraits.FLOW_CONTAINER)) {
+
+			return node.as(FlowContainer.class);
+		}
+
+		if (node.is(StructrTraits.FLOW_CONTAINER_PACKAGE)) {
+
+			return node.as(FlowContainerPackage.class);
+		}
+
+		return null;
 	}
 }

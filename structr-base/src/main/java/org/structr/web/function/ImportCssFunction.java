@@ -179,8 +179,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 			}
 		}
 
-		// FIXME: where is "declarations" defined? (even in main)
-		cssRuleNode.setProperty(traits.key("declarations"), cssDeclarations);
+		cssRuleNode.setProperty(traits.key(CssRuleTraitDefinition.DECLARATIONS_PROPERTY), cssDeclarations);
 
 		// Import and link parent rule
 		final CSSRule parentRule = rule.getParentRule();

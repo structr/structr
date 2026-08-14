@@ -25,6 +25,8 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.flow.impl.FlowStore;
+import org.structr.flow.traits.definitions.FlowStoreTraitDefinition;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -526,5 +528,53 @@ public class FlowTest extends StructrUiTest {
 		}
 
 		return child;
+	}
+
+	@Test
+	public void testFlowStore() {
+
+		// FlowStore puts a value into the flow's store and reads it back under the same key. The operation
+		// is stored as the name of a FlowStore.Operation constant.
+
+		try (final Tx tx = app.tx()) {
+
+			final FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowStore").as(FlowContainer.class);
+
+			// store: take the value of a data source and put it into the store under "myKey"
+			final FlowStore store = app.create(StructrTraits.FLOW_STORE).as(FlowStore.class);
+			store.setFlowContainer(container);
+			store.setProperty(Traits.of(StructrTraits.FLOW_STORE).key(FlowStoreTraitDefinition.OPERATION_PROPERTY), FlowStore.Operation.store.name());
+			store.setProperty(Traits.of(StructrTraits.FLOW_STORE).key(FlowStoreTraitDefinition.KEY_PROPERTY), "myKey");
+
+			final FlowDataSource ds = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
+			ds.setQuery("'stored value'");
+			ds.setFlowContainer(container);
+			store.setDataSource(ds);
+
+			// retrieve: read it back under the same key
+			final FlowStore retrieve = app.create(StructrTraits.FLOW_STORE).as(FlowStore.class);
+			retrieve.setFlowContainer(container);
+			retrieve.setProperty(Traits.of(StructrTraits.FLOW_STORE).key(FlowStoreTraitDefinition.OPERATION_PROPERTY), FlowStore.Operation.retrieve.name());
+			retrieve.setProperty(Traits.of(StructrTraits.FLOW_STORE).key(FlowStoreTraitDefinition.KEY_PROPERTY), "myKey");
+
+			final FlowReturn flowReturn = app.create(StructrTraits.FLOW_RETURN).as(FlowReturn.class);
+			flowReturn.setFlowContainer(container);
+			flowReturn.setDataSource(retrieve);
+
+			store.setNext(retrieve);
+			retrieve.setNext(flowReturn);
+			container.setStartNode(store);
+
+			final Object result = container.evaluate(securityContext, new HashMap<>());
+
+			assertEquals("FlowStore must return the stored value", "stored value", result);
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }

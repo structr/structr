@@ -163,9 +163,10 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 				@Override
 				public int getDimension(final DataSource provider) {
 
-					// FIXME
+					// A script data source is always a collection: getValues() above rejects a values script
+					// whose result is not iterable, so this source can never stand for a single object.
 
-					return 0;
+					return 1;
 				}
 			}
 		);

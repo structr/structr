@@ -83,6 +83,10 @@ public class ImporterWithXMLParser {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImporterWithXMLParser.class.getName());
 
+	// compiled once instead of on every processed stylesheet
+	private static final Pattern CSS_URL    = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
+	private static final Pattern CSS_IMPORT = Pattern.compile("(@import\\s*([\"']|url\\('|url\\(\"))([^\"']*)");
+
 	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList("link"));
 	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList("#declaration", "#doctype"));
 	private static final Set<String> srcElements        = new LinkedHashSet<>(Arrays.asList("img", "script", "audio", "video", "input", "source", "track"));
@@ -952,9 +956,7 @@ public class ImporterWithXMLParser {
 
 										} catch (Throwable t) {
 
-											t.printStackTrace();
-											System.out.println(actualKey);
-											System.out.println(value);
+											logger.warn("Unable to convert value for property {}: {}", actualKey, value, t);
 										}
 
 									} else {
@@ -1469,8 +1471,7 @@ public class ImporterWithXMLParser {
 
 	private void processCss(final String css, final URL base) throws IOException {
 
-		Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
-		Matcher matcher = pattern.matcher(css);
+		Matcher matcher = CSS_URL.matcher(css);
 
 		while (matcher.find()) {
 
@@ -1481,8 +1482,7 @@ public class ImporterWithXMLParser {
 
 		}
 
-		pattern = Pattern.compile("(@import\\s*([\"']|url\\('|url\\(\"))([^\"']*)");
-		matcher = pattern.matcher(css);
+		matcher = CSS_IMPORT.matcher(css);
 
 		while (matcher.find()) {
 
@@ -1716,7 +1716,8 @@ public class ImporterWithXMLParser {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				// not JSON after all, the raw value is returned below
+				logger.debug("Unable to parse {} as a JSON map: {}", source, t.getMessage());
 			}
 
 		}
@@ -1737,7 +1738,8 @@ public class ImporterWithXMLParser {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				// not JSON after all, the raw value is returned below
+				logger.debug("Unable to parse {} as a JSON list: {}", source, t.getMessage());
 			}
 		}
 

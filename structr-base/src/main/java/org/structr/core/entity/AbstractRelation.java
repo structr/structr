@@ -79,52 +79,56 @@ public abstract class AbstractRelation {
 		return Traits.of(StructrTraits.RELATIONSHIP_INTERFACE).key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
 	}
 
+	/**
+	 * The direction this relation has when seen from a node of the given type: OUTGOING when such a node
+	 * sits at the source end, INCOMING when it sits at the target end, BOTH when it can be at either end.
+	 *
+	 * @param sourceType the type at the source end of this relation
+	 * @param targetType the type at the target end of this relation
+	 * @param type       a NODE type - a type that only has the relation's traits, e.g. a relationship type
+	 *                   name, sits at neither end and yields BOTH
+	 *
+	 * @return the direction, never null
+	 */
 	public final Direction getDirectionForType(final String sourceType, final String targetType, final String type) {
 
-		// FIXME: this method will most likely not do what it's supposed to do..
-		if (sourceType.equals(type) && targetType.equals(type)) {
+		final boolean atSourceEnd = isOfType(type, sourceType);
+		final boolean atTargetEnd = isOfType(type, targetType);
+
+		if (atSourceEnd && atTargetEnd) {
 
 			return Direction.BOTH;
 		}
 
-		if (sourceType.equals(type)) {
+		if (atSourceEnd) {
 
 			return Direction.OUTGOING;
 		}
 
-		if (targetType.equals(type)) {
+		if (atTargetEnd) {
 
 			return Direction.INCOMING;
 		}
 
-		/*
-		// one of these blocks is wrong..
-		if (sourceType.isAssignableFrom(type) && targetType.isAssignableFrom(type)) {
-			return Direction.BOTH;
-		}
-
-		if (sourceType.isAssignableFrom(type)) {
-			return Direction.OUTGOING;
-		}
-
-		if (targetType.isAssignableFrom(type)) {
-			return Direction.INCOMING;
-		}
-
-		// one of these blocks is wrong..
-		if (type.isAssignableFrom(sourceType) && type.isAssignableFrom(targetType)) {
-			return Direction.BOTH;
-		}
-
-		if (type.isAssignableFrom(sourceType)) {
-			return Direction.OUTGOING;
-		}
-
-		if (type.isAssignableFrom(targetType)) {
-			return Direction.INCOMING;
-		}
-		*/
-
+		// neither end, so no direction can be derived
 		return Direction.BOTH;
+	}
+
+	// ----- private methods -----
+	/**
+	 * Whether a node of the given type sits at an end declared for otherType, which is the case when it is
+	 * that type or has it as one of its traits - a relation declared for a supertype applies to the types
+	 * built on it as well.
+	 */
+	private static boolean isOfType(final String type, final String otherType) {
+
+		if (type.equals(otherType)) {
+
+			return true;
+		}
+
+		final Traits traits = Traits.of(type);
+
+		return traits != null && traits.contains(otherType);
 	}
 }

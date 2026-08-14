@@ -199,8 +199,17 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 						}
 					}
 
-					// FIXME: when can the relationProperty be null at all?
-					throw new FrameworkException(500, concat("Unable to resolve related node of type ", type, ", no relation defined."));
+					// No relation property to autocreate from: the notions of AbstractRelation (used when a
+					// relationship is created through its own REST endpoint, see CollectionResourceHandler)
+					// are not attached to one. The property set simply does not identify an existing node,
+					// which is a problem with the input rather than with the server.
+					throw new FrameworkException(422, concat(
+						"Unable to resolve related node of type ",
+						type,
+						" from the given property set ",
+						convertedProperties,
+						", no matching node found and no relationship property to create one from."
+					));
 
 				} else {
 
