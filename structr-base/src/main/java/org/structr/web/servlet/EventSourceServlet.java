@@ -56,12 +56,32 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected StatsCallback stats                                       = null;
 
-	private SecurityContext securityContext;
+	/**
+	 * Where doGet() hands the request's SecurityContext to newEventSource().
+	 *
+	 * A servlet is a singleton, so this cannot be a field: Jetty calls newEventSource() from
+	 * super.doGet(), and two connections opening at once would each overwrite the other's context
+	 * before it was read. The session id is what an event source is TARGETED by, so losing that race
+	 * does not fail - it silently delivers one user's events to another user's browser.
+	 */
+	private static final String SECURITY_CONTEXT_ATTRIBUTE = EventSourceServlet.class.getName() + ".securityContext";
 
 	@Override
-	protected EventSource newEventSource(HttpServletRequest hsr) {
+	protected EventSource newEventSource(final HttpServletRequest hsr) {
 
-		return new StructrEventSource(securityContext.getSessionId());
+		final Object attribute = hsr.getAttribute(SECURITY_CONTEXT_ATTRIBUTE);
+
+		if (attribute instanceof SecurityContext requestContext) {
+
+			return new StructrEventSource(requestContext.getSessionId());
+		}
+
+		// doGet() sets the attribute before delegating, so this means the request did not come
+		// through it; an event source with no session id is targeted by nothing and receives only
+		// the unconditional broadcasts
+		logger.warn("No SecurityContext on an EventSource request, cannot determine its session");
+
+		return new StructrEventSource(null);
 	}
 
 	@Override
@@ -70,6 +90,7 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 		try {
 
 			Authenticator authenticator = null;
+			SecurityContext securityContext = null;
 
 			assertInitialized();
 
@@ -94,7 +115,9 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 				tx.success();
 			}
 
-			newEventSource(request);
+			// the only way newEventSource() learns whose connection this is: Jetty calls it from
+			// super.doGet() below, and the request is all it is given
+			request.setAttribute(SECURITY_CONTEXT_ATTRIBUTE, securityContext);
 
 			super.doGet(request, response);
 
