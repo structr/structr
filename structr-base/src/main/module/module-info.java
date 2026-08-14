@@ -268,6 +268,10 @@ module structr.base {
     uses org.structr.agent.Agent;
 
     // ----- service providers defined by structr-base -----
+    // the JDK looks this one up itself, the first time a URL with an unknown scheme is opened
+    provides java.net.spi.URLStreamHandlerProvider with
+        org.structr.files.url.StructrURLStreamHandlerProvider;
+
     provides org.structr.module.StructrModule with
         org.structr.module.CoreModule,
         org.structr.module.AdvancedScriptingModule,
