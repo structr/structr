@@ -52,13 +52,12 @@ import java.util.Set;
  */
 public class UiModule implements StructrModule {
 
-	static {
-
-		URL.setURLStreamHandlerFactory(new StructrURLStreamHandlerFactory());
-	}
+	private static boolean urlStreamHandlerFactoryInstalled = false;
 
 	@Override
 	public void onLoad() {
+
+		installUrlStreamHandlerFactory();
 
 		DataSources.put("ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
 		DataSources.put("ui", "cypherDataSource",             new CypherGraphDataSource());
@@ -619,6 +618,33 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new SystemInfoFunction());
 
 		Functions.put(licenseManager, new IsValidEmailFunction());
+	}
+
+	/**
+	 * Installs the URL stream handler that lets libraries with no access to Structr classes read
+	 * from the virtual filesystem, by opening a "structr-&lt;uuid&gt;:&lt;path&gt;" URL whose scheme
+	 * identifies a temporarily stored SecurityContext (see {@link StructrURLStreamHandlerFactory}
+	 * and the readShapefile() function, its only caller today).
+	 *
+	 * This used to be a static initializer. Under the module system that was unsound: UiModule is
+	 * reached through the provides clause in module-info, so nothing references the class in code
+	 * and its initializer ran late or not at all - leaving the handler uninstalled, with no error
+	 * anywhere and readShapefile() failing on an unknown protocol.
+	 *
+	 * A JVM accepts exactly one stream handler factory, while onLoad() runs once per Services
+	 * lifecycle, which is several times per JVM whenever the service layer is restarted (every test
+	 * class does). The second call would fail with an Error, so the first one is remembered.
+	 */
+	public static synchronized void installUrlStreamHandlerFactory() {
+
+		if (urlStreamHandlerFactoryInstalled) {
+
+			return;
+		}
+
+		URL.setURLStreamHandlerFactory(new StructrURLStreamHandlerFactory());
+
+		urlStreamHandlerFactoryInstalled = true;
 	}
 
 	@Override

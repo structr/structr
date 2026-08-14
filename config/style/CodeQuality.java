@@ -81,6 +81,15 @@ public class CodeQuality {
 	/** auto: colour only when stderr/stdout is a terminal and the environment does not forbid it. */
 	static boolean color = detectColor();
 
+	/** The --by signal, if any. It is always reported, even when its weight is 0 - it is what the table is sorted on. */
+	static String rankedBy = null;
+
+	/** Whether a signal is reported at all: switched off (weight 0) means invisible, unless it is the one being ranked by. */
+	static boolean reported(final String signal) {
+
+		return W.get(signal) > 0 || signal.equals(rankedBy);
+	}
+
 	static boolean detectColor() {
 
 		if (System.getenv("NO_COLOR") != null) {
@@ -159,7 +168,7 @@ public class CodeQuality {
 		DESC.put("deep_nesting", "blocks nested deeper than " + DEEP + " levels");
 		DESC.put("cstyle_for", "C-style indexed for-loop nested inside another loop (a single flat one is fine)");
 		DESC.put("loop_invariant", "loop condition re-evaluates size()/length() on every iteration instead of hoisting it");
-		DESC.put("static_block", "static initializer block — avoid in new code");
+		DESC.put("static_block", "static block in a class nothing references — it may never run (module/ServiceLoader case)");
 		DESC.put("multi_statement", "more than one statement on the same line");
 		DESC.put("switch_heavy", "many switch statements (possible missing polymorphism)");
 		DESC.put("str_const_enum", "cluster of 3+ sibling String constants (probably wants to be an enum)");
@@ -213,6 +222,7 @@ public class CodeQuality {
 	// length that the body changes, so there is nothing to hoist there. Array .length is a field, not a call.
 	static final Pattern INVARIANT_CALL = Pattern.compile("\\b\\w+\\s*(?:<|<=)\\s*[^;&|]*\\.\\s*(?:size|length|getLength|getSize|count|getCount)\\s*\\(\\s*\\)");
 	static final Pattern STATIC_BLOCK  = Pattern.compile("(?<![\\w.])static\\s*\\{");
+	static final Pattern TYPE_NAME     = Pattern.compile("\\b[A-Z]\\w*\\b");
 	static final Pattern LOG_CALL      = Pattern.compile("\\b(?:logger|log|LOG|LOGGER)\\s*\\.\\s*(?:trace|debug|info|warn|error)\\s*\\(");
 	static final Pattern EXCEPTION_CTOR = Pattern.compile("\\bnew\\s+\\w*(?:Exception|Error)\\s*\\(");
 	// an unescaped {} -- SLF4J reads \{} as a literal brace pair, not as a placeholder
@@ -233,7 +243,6 @@ public class CodeQuality {
 	static final Map<String, Pattern> LINE_SIG = new LinkedHashMap<>();
 	static {
 		LINE_SIG.put("switch_heavy", SWITCH);
-		LINE_SIG.put("static_block", STATIC_BLOCK);
 		LINE_SIG.put("str_const_enum", STR_CONST);
 		LINE_SIG.put("parser_smell", PARSER);
 		LINE_SIG.put("equals_literal", EQ_LIT);
@@ -468,6 +477,114 @@ public class CodeQuality {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Static initializer blocks in a class that no other class references in its code.
+	 *
+	 * A static block runs when the class is initialised, and the class is initialised when something
+	 * first touches it. If nothing does - the class is reached only through a module-info provides
+	 * clause, a ServiceLoader, a configuration entry or a name passed to reflection - then the block
+	 * runs late, or not at all. Whatever it installs (a URL handler, a registration, a global default)
+	 * is then simply missing, with no error anywhere: the code is there, it just never executed.
+	 *
+	 * References are counted from real code only. An import does not initialise a class, a mention in
+	 * a comment is not a reference, and module-info.java is excluded on purpose - being named there
+	 * as a service provider is exactly the dynamic-loading case this looks for.
+	 *
+	 * Needs the whole tree to judge, so it stays silent when only a handful of files were scanned.
+	 *
+	 * @return the 0-based line indices of the static blocks in such a class
+	 */
+	static List<Integer> staticBlockLines(final List<String> code, final Path path) {
+
+		final List<Integer> result = new ArrayList<>();
+
+		if (referencedElsewhere(simpleName(path))) {
+
+			return result;
+		}
+
+		final String text    = String.join("\n", code);
+		final Matcher blocks = STATIC_BLOCK.matcher(text);
+
+		while (blocks.find()) {
+
+			result.add(lineOf(text, blocks.start()));
+		}
+
+		return result;
+	}
+
+	/** The type a file declares, i.e. its name without the extension. */
+	static String simpleName(final Path path) {
+
+		return path.getFileName().toString().replace(".java", "");
+	}
+
+	/** Type names referenced from the code of some other class; built once per run by indexReferences(). */
+	static final Map<String, Set<String>> references = new HashMap<>();
+	static int indexedFiles = 0;
+
+	/** Below this many files the index cannot tell "unreferenced" from "not scanned", so nothing is claimed. */
+	static final int MIN_INDEX_SIZE = 100;
+
+	static boolean referencedElsewhere(final String type) {
+
+		if (indexedFiles < MIN_INDEX_SIZE) {
+
+			return true;
+		}
+
+		final Set<String> from = references.get(type);
+
+		return from != null && from.stream().anyMatch(f -> !f.equals(type));
+	}
+
+	/**
+	 * Records, for every type name, which classes mention it in their code. Import and package lines
+	 * are skipped (an import initialises nothing) and so is module-info.java, along with comments and
+	 * string literals.
+	 */
+	static void indexReferences(final List<Path> files) {
+
+		for (final Path path : files) {
+
+			final String own = simpleName(path);
+
+			if ("module-info".equals(own)) {
+
+				continue;
+			}
+
+			try {
+
+				final List<String> raw = Arrays.asList(new String(Files.readAllBytes(path), StandardCharsets.UTF_8).split("\n", -1));
+
+				for (final String line : toCode(raw)) {
+
+					final String trimmed = line.trim();
+
+					if (trimmed.startsWith("import ") || trimmed.startsWith("package ")) {
+
+						continue;
+					}
+
+					final Matcher names = TYPE_NAME.matcher(line);
+
+					while (names.find()) {
+
+						references.computeIfAbsent(names.group(), k -> new LinkedHashSet<>()).add(own);
+					}
+				}
+
+			} catch (Exception ignore) {
+
+				/* skip unreadable file */
+			}
+		}
+
+		indexedFiles = files.size();
 	}
 
 	/**
@@ -1103,7 +1220,7 @@ public class CodeQuality {
 		sub.put("deep_nesting", deep);
 		sub.put("cstyle_for", nestedCStyleForLines(code).size());
 		sub.put("loop_invariant", loopInvariantLines(code).size());
-		sub.put("static_block", count(STATIC_BLOCK, joined));
+		sub.put("static_block", staticBlockLines(code, path).size());
 		sub.put("multi_statement", multiStatementLines(code).size());
 		sub.put("switch_heavy", count(SWITCH, joined));
 		sub.put("str_const_enum", clusters);
@@ -1146,13 +1263,32 @@ public class CodeQuality {
 		return new Result(loc, score, sub, accepted);
 	}
 
-	/** All non-zero flags, most-contributing first, as {@code name=count} (the score is their weighted sum). */
+	/**
+	 * All scoring flags, most-contributing first, as {@code name=count} (the score is their weighted
+	 * sum). A signal whose weight is 0 is switched off deliberately, so it is left out: it moves no
+	 * file in the ranking, and listing it among "most-contributing first" would only lengthen every
+	 * row with counts nobody acts on. Give it a weight again and it reappears.
+	 */
 	static String signals(final Map<String, Integer> sub) {
 
 		final List<Map.Entry<String, Integer>> contrib = new ArrayList<>(sub.entrySet());
 
-		contrib.removeIf(e -> e.getValue() == 0);
-		contrib.sort((p, q) -> q.getValue() * W.get(q.getKey()) - p.getValue() * W.get(p.getKey()));
+		contrib.removeIf(e -> e.getValue() == 0 || !reported(e.getKey()));
+		contrib.sort((p, q) -> {
+
+			// the signal the table is ranked by leads, whatever it contributes to the score
+			if (p.getKey().equals(rankedBy)) {
+
+				return -1;
+			}
+
+			if (q.getKey().equals(rankedBy)) {
+
+				return 1;
+			}
+
+			return q.getValue() * W.get(q.getKey()) - p.getValue() * W.get(p.getKey());
+		});
 
 		final StringBuilder sig = new StringBuilder();
 
@@ -1173,7 +1309,8 @@ public class CodeQuality {
 
 			for (final Map.Entry<String, Integer> e : r.sub().entrySet()) {
 
-				if (e.getValue() > 0) {
+				// only explain what the rows actually show
+				if (e.getValue() > 0 && reported(e.getKey())) {
 
 					seen.add(e.getKey());
 				}
@@ -1288,6 +1425,11 @@ public class CodeQuality {
 		for (final int li : multiStatementLines(code)) {
 
 			hits.get("multi_statement").add(loc(li, raw));
+		}
+
+		for (final int li : staticBlockLines(code, path)) {
+
+			hits.get("static_block").add(loc(li, raw));
 		}
 
 		for (int li = 0; li < code.size(); li++) {
@@ -1439,7 +1581,7 @@ public class CodeQuality {
 
 		System.out.println("usage: java config/style/CodeQuality.java [options] [paths...]");
 		System.out.println("  --top N          keep the top N rows in the CLI table (default 25)");
-		System.out.println("  --min SCORE      omit files scoring below SCORE (default 1; score 0 = no findings)");
+		System.out.println("  --min SCORE      omit files scoring below SCORE (default " + DEFAULT_THRESHOLD + "; a file with only switched-off signals scores 0)");
 		System.out.println("  --by SIGNAL      rank by one signal's count instead of the composite score");
 		System.out.println("  --detail N       list every finding in the file at ranking position N");
 		System.out.println("  --main-only      scan only src/main (test sources are always skipped)");
@@ -1494,7 +1636,7 @@ public class CodeQuality {
 			switch (arg) {
 				case "--top"           -> { top = argInt(a, i, arg); i++; }
 				case "--min"           -> { min = argInt(a, i, arg); i++; }
-				case "--by"            -> { by = argValue(a, i, arg); i++; }
+				case "--by"            -> { by = argValue(a, i, arg); rankedBy = by; i++; }
 				case "--summary"       -> summary = true;
 				case "--main-only"     -> mainOnly = true;
 				case "--show-accepted" -> showAccepted = true;
@@ -1579,6 +1721,9 @@ public class CodeQuality {
 				}
 			}
 
+			// static_block needs to know which classes nothing references, which only the whole tree shows
+			indexReferences(fs);
+
 			final List<Row> all = new ArrayList<>();
 
 			for (Path f : fs) {
@@ -1603,9 +1748,23 @@ public class CodeQuality {
 			for (Row r : all) {
 
 				final int metric = by != null ? r.sub().get(by) : r.score();
-				if (metric <= 0) {
+
+				// "no findings" means nothing was found, not "nothing that scores": with a signal
+				// switched off (weight 0), a file can be full of findings and still score 0, and
+				// counting those as clean would overstate how much of the codebase has been cleared
+				final boolean nothingFound = by != null
+					? metric <= 0
+					: r.sub().values().stream().noneMatch(v -> v > 0);
+
+				if (nothingFound) {
 
 					noFindings++;
+					continue;
+				}
+
+				if (metric <= 0) {
+
+					belowThreshold++;
 					continue;
 				}
 
