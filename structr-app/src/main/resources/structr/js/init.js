@@ -2013,7 +2013,7 @@ let Structr = {
 		},
 		goTo: (result, key, searchData) => {
 
-			if (result.isDOMElement || result.isSiteElement) {
+			if (result.isDOMElement || result.isSiteElement || result.isActionMapping || result.isParameterMapping) {
 
 				_Pages.search.goTo(result, key, searchData);
 
@@ -2142,7 +2142,7 @@ let Structr = {
 			`,
 			result: (result, key) => `
 				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" data-type="${result.type}" title="${key}">
-					<td title="${result.id}" class="show-ellipsis-r">${result.id.substring(1, 5)}</td>
+					<td title="${result.id}"><div class="max-w-12 truncate">${result.id}</div></td>
 					<td class="name">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
 					<td class="key">${Structr.globalSearch.htmlCodeForKey(key)}</td>
 					<td class="value"><span data-before-match></span><mark data-is-match></mark><span data-after-match></span></td>
