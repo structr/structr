@@ -40,6 +40,11 @@ import java.util.regex.Pattern;
  */
 public class JavascriptFileToken extends NamedConceptToken {
 
+	// @code-quality:accept - last reviewed 2026-08-14. Reads the doc comments out of a JavaScript
+	// source file, which means finding comment and string boundaries by hand: charAt, indexOf and
+	// StringBuilder are 56 of its 63 points and are what the class does. Same reasoning as
+	// FulltextTokenizer and TextSearchModule.
+
 	private static final Logger logger = LoggerFactory.getLogger(JavascriptFileToken.class);
 
 	private static final Pattern HTMLLine      = Pattern.compile("<[a-zA-Z0-9_\\p{Punct} ]+>.*");

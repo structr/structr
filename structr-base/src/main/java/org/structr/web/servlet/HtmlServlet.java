@@ -783,6 +783,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							UiAuthenticator.writeUnauthorized(response);
 
 						} catch (IllegalStateException ise) {
+
+							logger.debug("Unable to send 401, response was already committed: {}", ise.getMessage());
 						}
 
 					} else {
@@ -1623,7 +1625,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final String contentType = file.isTemplate() ? Optional.of(securityContext)
 						.map(SecurityContext::getResponse)
 						.map(ServletResponse::getContentType)
-						.orElse(file.getContentType()) : file.getContentType();;
+						.orElse(file.getContentType()) : file.getContentType();
 
 				if (contentType != null) {
 
@@ -1693,6 +1695,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (Throwable t) {
 
+					logger.warn("Unable to complete request: {}", t.getMessage());
+
 				} finally {
 
 					if (out != null) {
@@ -1704,6 +1708,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							out.close();
 
 						} catch (Throwable t) {
+
+							// the client may have closed the connection, nothing left to write
 						}
 					}
 
@@ -1825,7 +1831,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								orGroup.key(key, name);
 							}
 
-						} catch (FrameworkException ignore) { }
+						} catch (FrameworkException ignore) {
+
+							// the unconverted value was not usable either, this key stays out of the query
+						}
 
 					} else {
 
@@ -1947,7 +1956,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					} catch (Throwable t) {
 
-						// ignore
+						// no principal for these credentials; the message must not contain them
+						logger.debug("Unable to authenticate user {}: {}", username, t.getMessage());
 					}
 				}
 			}

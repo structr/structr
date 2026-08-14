@@ -1248,6 +1248,7 @@ public class ProcessEngine {
 
 		final String marker = "execution.setVariable";
 		final StringBuilder out = new StringBuilder();
+		final int lineLength    = line.length();
 		int i = 0;
 
 		while (true) {
@@ -1255,19 +1256,19 @@ public class ProcessEngine {
 			final int hit = line.indexOf(marker, i);
 			if (hit < 0) {
 
-				out.append(line, i, line.length());
+				out.append(line, i, lineLength);
 				break;
 			}
 
 			// Must be a call: "execution.setVariable" then (optional ws) '('.
 			int p = hit + marker.length();
 
-			while (p < line.length() && Character.isWhitespace(line.charAt(p))) {
+			while (p < lineLength && Character.isWhitespace(line.charAt(p))) {
 
 				p++;
 			}
 
-			if (p >= line.length() || line.charAt(p) != '(') {
+			if (p >= lineLength || line.charAt(p) != '(') {
 
 				out.append(line, i, hit + marker.length());
 				i = hit + marker.length();
@@ -1296,7 +1297,7 @@ public class ProcessEngine {
 				out.append("$.process.").append(nv[0]).append(" = ").append(nv[1].trim()).append(";");
 				i = close + 1;
 				// Absorb an existing trailing ';' so we don't emit ';;'.
-				if (i < line.length() && line.charAt(i) == ';') {
+				if (i < lineLength && line.charAt(i) == ';') {
 
 					i++;
 				}
@@ -1312,7 +1313,7 @@ public class ProcessEngine {
 		int depth = 0;
 		char quote = 0;
 
-		for (int i = openIdx; i < s.length(); i++) {
+		for (int i = openIdx, len = s.length(); i < len; i++) {
 
 			final char c = s.charAt(i);
 
@@ -1368,6 +1369,7 @@ public class ProcessEngine {
 			return null;
 		}
 
+		final int aLength  = a.length();
 		final int endQuote = a.indexOf(q, 1);
 		if (endQuote < 0) {
 
@@ -1377,12 +1379,12 @@ public class ProcessEngine {
 		final String name = a.substring(1, endQuote);
 		int c = endQuote + 1;
 
-		while (c < a.length() && Character.isWhitespace(a.charAt(c))) {
+		while (c < aLength && Character.isWhitespace(a.charAt(c))) {
 
 			c++;
 		}
 
-		if (c >= a.length() || a.charAt(c) != ',') {
+		if (c >= aLength || a.charAt(c) != ',') {
 
 			return null;
 		}
@@ -1573,7 +1575,7 @@ public class ProcessEngine {
 		int count = 1;
 		char quote = 0;
 
-		for (int i = 0; i < a.length(); i++) {
+		for (int i = 0, len = a.length(); i < len; i++) {
 
 			final char c = a.charAt(i);
 

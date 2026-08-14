@@ -392,7 +392,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 		try {
 
-			for (int i = 0; i < p.getCount(); i++) {
+			for (int i = 0, len = p.getCount(); i < len; i++) {
 
 				final String htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) : "";
 				final String content     = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) : "";
@@ -455,7 +455,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				return (String)p.getContent();
 
-			} else if(p.getContentType().equals("base64")) {
+			} else if("base64".equals(p.getContentType())) {
 
 				BASE64DecoderStream contentStream = (BASE64DecoderStream)content;
 
@@ -661,10 +661,10 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 						final Message message = messages[i];
 						final PropertyMap pm  = new PropertyMap();
-						final String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-						final String to   = message.getRecipients(Message.RecipientType.TO) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.TO)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-						final String cc   = message.getRecipients(Message.RecipientType.CC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.CC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
-						final String bcc  = message.getRecipients(Message.RecipientType.BCC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.BCC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
+						final String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.isEmpty() ? b : a + "," + b) : "";
+						final String to   = message.getRecipients(Message.RecipientType.TO) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.TO)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.isEmpty() ? b : a + "," + b) : "";
+						final String cc   = message.getRecipients(Message.RecipientType.CC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.CC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.isEmpty() ? b : a + "," + b) : "";
+						final String bcc  = message.getRecipients(Message.RecipientType.BCC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.BCC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.isEmpty() ? b : a + "," + b) : "";
 
 						// Allow mail instance class to be overriden by custom types to enable special mail handling
 						String entityType   = StructrTraits.EMAIL_MESSAGE;
@@ -690,11 +690,11 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 						while (en.hasMoreElements()) {
 
 							Header header = (Header) en.nextElement();
-							if (header.getName().equals("Message-ID") || header.getName().equals("Message-Id")) {
+							if ("Message-ID".equals(header.getName()) || "Message-Id".equals(header.getName())) {
 
 								messageId = header.getValue();
 
-							} else if (header.getName().equals("In-Reply-To") || header.getName().equals("References")) {
+							} else if ("In-Reply-To".equals(header.getName()) || "References".equals(header.getName())) {
 
 								inReplyTo = header.getValue();
 							}

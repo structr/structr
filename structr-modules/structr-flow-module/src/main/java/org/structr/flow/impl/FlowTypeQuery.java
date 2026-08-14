@@ -113,7 +113,7 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 		}
 
 		// Resolve nested elements
-		for (int i = 0; i < operations.length(); i++) {
+		for (int i = 0, len = operations.length(); i < len; i++) {
 
 			resolveQueryObject(context, operations.getJSONObject(i), query);
 		}

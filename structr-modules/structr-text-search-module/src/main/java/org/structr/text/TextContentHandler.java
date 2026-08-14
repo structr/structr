@@ -84,7 +84,7 @@ public class TextContentHandler implements ContentHandler {
 				String name  = null;
 				String value = null;
 
-				for (int i=0; i<atts.getLength(); i++) {
+				for (int i = 0, len = atts.getLength(); i < len; i++) {
 
 					final String metaKey = atts.getLocalName(i);
 

@@ -118,7 +118,16 @@ public class CodeQuality {
 	static final Map<String, Integer> W = new LinkedHashMap<>();
 	static {
 
+		// FORBIDDEN: make sure fixmes and bugs are always at the top of the list
 		W.put("fixmes",           200);
+
+		// UNWANTED: make sure each of these flags raises the score over the threshold
+		W.put("static_block",     50);
+		W.put("loop_invariant",   50);
+		W.put("multi_statement",  50);
+
+		// NICE TO HAVE: only multiple of these will cause the score to reach the threshold
+		W.put("log_args",         10);
 		W.put("sysout",           10);
 		W.put("cstyle_for",       5);
 		W.put("str_const_enum",   4);
@@ -126,18 +135,20 @@ public class CodeQuality {
 		W.put("regex_heavy",      4);
 		W.put("equals_literal",   3);
 		W.put("switch_heavy",     2);
-		W.put("oversized",        1);
 		W.put("long_params",      1);
 		W.put("long_methods",     1);
-		W.put("concurrency",      1);
 		W.put("boolean_params",   1);
 		W.put("instanceof_heavy", 1);
-		W.put("broad_catch",      1);
-		W.put("reflection",       1);
-		W.put("long_lines",       1);
 		W.put("magic_numbers",    1);
-		W.put("deep_nesting",     1);
-		W.put("complexity",       1);
+		W.put("broad_catch",      1);
+
+		// IGNORED: disabled because Structr is inherently complex and needs complex logic
+		W.put("oversized",        0);
+		W.put("concurrency",      0);
+		W.put("reflection",       0);
+		W.put("long_lines",       0);
+		W.put("deep_nesting",     0);
+		W.put("complexity",       0);
 	}
 
 	// short human-readable descriptions, printed as a legend under the ranked list
@@ -146,7 +157,10 @@ public class CodeQuality {
 		DESC.put("long_methods", "method body longer than " + LONG_METHOD + " lines");
 		DESC.put("complexity", "high cyclomatic complexity — many branches, loops and conditions");
 		DESC.put("deep_nesting", "blocks nested deeper than " + DEEP + " levels");
-		DESC.put("cstyle_for", "C-style indexed for-loop (often replaceable by for-each or a stream)");
+		DESC.put("cstyle_for", "C-style indexed for-loop nested inside another loop (a single flat one is fine)");
+		DESC.put("loop_invariant", "loop condition re-evaluates size()/length() on every iteration instead of hoisting it");
+		DESC.put("static_block", "static initializer block — avoid in new code");
+		DESC.put("multi_statement", "more than one statement on the same line");
 		DESC.put("switch_heavy", "many switch statements (possible missing polymorphism)");
 		DESC.put("str_const_enum", "cluster of 3+ sibling String constants (probably wants to be an enum)");
 		DESC.put("parser_smell", "hand-rolled string parsing (charAt/substring/indexOf/StringBuilder)");
@@ -161,6 +175,7 @@ public class CodeQuality {
 		DESC.put("reflection", "reflection use (getClass/forName/getDeclared*/setAccessible)");
 		DESC.put("concurrency", "concurrency primitives (synchronized/volatile/Thread/Atomic/locks)");
 		DESC.put("sysout", "System.out/err or printStackTrace — should use logging");
+		DESC.put("log_args", "log/exception message whose {} placeholders don't match its arguments — the detail is dropped");
 		DESC.put("regex_heavy", "regex compiled per call (Pattern.compile / matches / replaceAll outside a static final field)");
 		DESC.put("long_lines", "physical line longer than " + LONG_LINES_LIMIT + " columns");
 	}
@@ -191,6 +206,23 @@ public class CodeQuality {
 	static final Pattern MATCHER_DECL  = Pattern.compile("\\bMatcher\\s+(\\w+)");
 	static final Pattern REGEX_HEAVY   = Pattern.compile("Pattern\\.compile|(?<![Mm]atcher)(?<!\\.matcher\\([^)]{0,60}\\))\\.(?:matches|replaceAll)\\(");
 	static final Pattern BOOLEAN_PARAM = Pattern.compile("\\bboolean\\b");
+	static final Pattern LOOP_OPEN     = Pattern.compile("\\b(?:for|while)\\s*\\(");
+	static final Pattern FOR_OPEN      = Pattern.compile("\\bfor\\s*\\(");
+	// a counter compared against a size that is recomputed on every iteration ("i < list.size()").
+	// The call has to be the bound, on the right of the comparison: "while (buffer.length() > 0)" reads a
+	// length that the body changes, so there is nothing to hoist there. Array .length is a field, not a call.
+	static final Pattern INVARIANT_CALL = Pattern.compile("\\b\\w+\\s*(?:<|<=)\\s*[^;&|]*\\.\\s*(?:size|length|getLength|getSize|count|getCount)\\s*\\(\\s*\\)");
+	static final Pattern STATIC_BLOCK  = Pattern.compile("(?<![\\w.])static\\s*\\{");
+	static final Pattern LOG_CALL      = Pattern.compile("\\b(?:logger|log|LOG|LOGGER)\\s*\\.\\s*(?:trace|debug|info|warn|error)\\s*\\(");
+	static final Pattern EXCEPTION_CTOR = Pattern.compile("\\bnew\\s+\\w*(?:Exception|Error)\\s*\\(");
+	// an unescaped {} -- SLF4J reads \{} as a literal brace pair, not as a placeholder
+	static final Pattern PLACEHOLDER   = Pattern.compile("(?<!\\\\)\\{\\}");
+	// a freshly constructed throwable passed as the last argument; named throwables are recognised by
+	// their declaration instead (see throwableNames), because variable names like "uoe" or "nfe" are
+	// not guessable and excusing a missing placeholder wrongly is exactly what would hide the defect
+	static final Pattern THROWABLE_ARG  = Pattern.compile("^new\\s+\\w*(?:Exception|Error)\\b");
+	static final Pattern CATCH_PARAM    = Pattern.compile("catch\\s*\\(\\s*(?:final\\s+)?[\\w.]+(?:\\s*\\|\\s*[\\w.]+)*\\s+(\\w+)\\s*\\)");
+	static final Pattern THROWABLE_DECL = Pattern.compile("\\b\\w*(?:Exception|Error|Throwable)\\s+(\\w+)\\s*[=;,)]");
 	static final Pattern COMMA         = Pattern.compile(",");
 	static final Pattern OPEN_BRACE    = Pattern.compile("\\{");
 	static final Pattern CLOSE_BRACE   = Pattern.compile("\\}");
@@ -200,8 +232,8 @@ public class CodeQuality {
 	// signals locatable by a single per-line pattern (used by --detail); the rest need special logic
 	static final Map<String, Pattern> LINE_SIG = new LinkedHashMap<>();
 	static {
-		LINE_SIG.put("cstyle_for", CSTYLE_FOR);
 		LINE_SIG.put("switch_heavy", SWITCH);
+		LINE_SIG.put("static_block", STATIC_BLOCK);
 		LINE_SIG.put("str_const_enum", STR_CONST);
 		LINE_SIG.put("parser_smell", PARSER);
 		LINE_SIG.put("equals_literal", EQ_LIT);
@@ -285,6 +317,427 @@ public class CodeQuality {
 		return result;
 	}
 
+	/**
+	 * The content between the parenthesis at the given index and its match, or null if unbalanced.
+	 * String and char literals are skipped, so a parenthesis inside one does not end the header.
+	 */
+	static String parenContent(final String text, final int open) {
+
+		final StringBuilder cur = new StringBuilder();
+		boolean inString = false, inChar = false, escaped = false;
+		int depth = 0;
+
+		for (int i = open; i < text.length(); i++) {
+
+			final char c = text.charAt(i);
+
+			if (inString || inChar) {
+
+				cur.append(c);
+
+				if (escaped) {
+
+					escaped = false;
+
+				} else if (c == '\\') {
+
+					escaped = true;
+
+				} else if (inString && c == '"') {
+
+					inString = false;
+
+				} else if (inChar && c == '\'') {
+
+					inChar = false;
+				}
+
+				continue;
+			}
+
+			if (c == '"') {
+
+				inString = true;
+
+			} else if (c == '\'') {
+
+				inChar = true;
+
+			} else if (c == '(') {
+
+				depth++;
+
+				if (depth == 1) {
+
+					continue;
+				}
+
+			} else if (c == ')') {
+
+				depth--;
+
+				if (depth == 0) {
+
+					return cur.toString();
+				}
+			}
+
+			cur.append(c);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Loop headers that recompute their bound on every iteration, i.e. "i < list.size()" rather than
+	 * a size read once before the loop. Only the condition is examined - the same call in the body or
+	 * in the initialiser is not the pattern being described.
+	 *
+	 * Iterator loops ("it.hasNext()") are not this smell, and array ".length" is a field read, so only
+	 * the calls that return a count are counted: size, length, getLength, getSize, count, getCount.
+	 *
+	 * @return the 0-based line indices of the offending loop headers
+	 */
+	static List<Integer> loopInvariantLines(final List<String> code) {
+
+		final List<Integer> result = new ArrayList<>();
+
+		for (int li = 0; li < code.size(); li++) {
+
+			final String line = code.get(li);
+			final Matcher m   = LOOP_OPEN.matcher(line);
+
+			while (m.find()) {
+
+				final String header = parenContent(line, m.end() - 1);
+				if (header == null) {
+
+					continue;
+				}
+
+				// a for header is "init; condition; update"; a while header is all condition
+				final boolean isFor      = line.charAt(m.start()) == 'f';
+				final String[] sections  = header.split(";", -1);
+				final String condition   = isFor ? (sections.length > 1 ? sections[1] : "") : header;
+
+				if (find(INVARIANT_CALL, condition)) {
+
+					result.add(li);
+					break;
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * C-style indexed for-loops that sit inside another loop. A single flat one is a perfectly good
+	 * way to walk an index; it is the nested ones that multiply work and are worth a second look, so
+	 * only a loop with an enclosing for or while is counted.
+	 *
+	 * @return the 0-based line indices of the nested loops
+	 */
+	static List<Integer> nestedCStyleForLines(final List<String> code) {
+
+		final List<Integer> result   = new ArrayList<>();
+		final Deque<Integer> enclosing = new ArrayDeque<>();
+		int depth = 0;
+
+		for (int li = 0; li < code.size(); li++) {
+
+			final String line = code.get(li);
+
+			// a loop whose body has closed is no longer enclosing anything
+			while (!enclosing.isEmpty() && depth <= enclosing.peek()) {
+
+				enclosing.pop();
+			}
+
+			if (find(CSTYLE_FOR, line) && !enclosing.isEmpty()) {
+
+				result.add(li);
+			}
+
+			if (find(LOOP_OPEN, line)) {
+
+				enclosing.push(depth);
+			}
+
+			depth += count(OPEN_BRACE, line) - count(CLOSE_BRACE, line);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Lines carrying more than one statement. A semicolon at paren depth 0 followed by more code on
+	 * the same line is a second statement; a trailing comment, and the closing braces of a block that
+	 * ends on the same line, are not.
+	 *
+	 * @return the 0-based line indices of the offending lines
+	 */
+	static List<Integer> multiStatementLines(final List<String> code) {
+
+		final List<Integer> result = new ArrayList<>();
+
+		for (int li = 0; li < code.size(); li++) {
+
+			final String line = code.get(li);
+			int depth = 0;
+
+			for (int i = 0; i < line.length(); i++) {
+
+				final char c = line.charAt(i);
+
+				if (c == '(') {
+
+					depth++;
+
+				} else if (c == ')') {
+
+					depth--;
+
+				} else if (c == ';' && depth == 0) {
+
+					final String rest = line.substring(i + 1).trim();
+
+					// only closing braces (and the ; of a do-while or a lambda assignment) may follow
+					if (!rest.isEmpty() && !rest.startsWith("}") && !rest.startsWith("//")) {
+
+						result.add(li);
+						break;
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Splits the argument list that starts at the given '(' into its top-level arguments, ignoring
+	 * commas inside nested calls, arrays, lambdas and string literals. Returns null if the list is
+	 * not closed (a truncated file, or a construct this scanner does not understand), in which case
+	 * the caller must not draw a conclusion.
+	 */
+	static List<String> topLevelArgs(final String text, final int open) {
+
+		final List<String> args = new ArrayList<>();
+		final StringBuilder cur = new StringBuilder();
+		boolean inString = false, inChar = false, escaped = false;
+		int depth = 0;
+
+		for (int i = open; i < text.length(); i++) {
+
+			final char c = text.charAt(i);
+
+			if (inString || inChar) {
+
+				cur.append(c);
+
+				if (escaped) {
+
+					escaped = false;
+
+				} else if (c == '\\') {
+
+					escaped = true;
+
+				} else if (inString && c == '"') {
+
+					inString = false;
+
+				} else if (inChar && c == '\'') {
+
+					inChar = false;
+				}
+
+				continue;
+			}
+
+			switch (c) {
+
+				case '"'            -> { inString = true; cur.append(c); }
+				case '\''           -> { inChar   = true; cur.append(c); }
+				case '(', '[', '{'  -> { depth++; if (depth > 1) { cur.append(c); } }
+				case ')', ']', '}'  -> {
+
+					depth--;
+
+					if (depth == 0) {
+
+						if (!cur.toString().isBlank() || !args.isEmpty()) {
+
+							args.add(cur.toString().trim());
+						}
+
+						return args;
+					}
+
+					cur.append(c);
+				}
+				case ','            -> {
+
+					if (depth == 1) {
+
+						args.add(cur.toString().trim());
+						cur.setLength(0);
+
+					} else {
+
+						cur.append(c);
+					}
+				}
+				default             -> { if (depth >= 1) { cur.append(c); } }
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * The names of the throwables in a file, from their declarations: the parameter of every catch
+	 * clause plus every variable whose type ends in Exception, Error or Throwable. A throwable passed
+	 * as the last argument of a log call needs no placeholder - SLF4J prints its stack trace - so
+	 * telling those apart from an ordinary value is what keeps this signal free of false alarms.
+	 */
+	static Set<String> throwableNames(final String code) {
+
+		final Set<String> names = new LinkedHashSet<>();
+
+		for (final Pattern p : List.of(CATCH_PARAM, THROWABLE_DECL)) {
+
+			final Matcher m = p.matcher(code);
+
+			while (m.find()) {
+
+				names.add(m.group(1));
+			}
+		}
+
+		return names;
+	}
+
+	/** Whether an argument expression is nothing but string literals (possibly concatenated). */
+	static boolean isLiteralOnly(final String expr) {
+
+		if (!expr.contains("\"")) {
+
+			return false;
+		}
+
+		return STRING_LIT.matcher(expr).replaceAll("").replace("+", "").isBlank();
+	}
+
+	/** The number of unescaped {} placeholders in the string literals of an expression. */
+	static int placeholders(final String expr) {
+
+		final Matcher literals = STRING_LIT.matcher(expr);
+		int found = 0;
+
+		while (literals.find()) {
+
+			found += count(PLACEHOLDER, literals.group());
+		}
+
+		return found;
+	}
+
+	/**
+	 * The line index (0-based) an offset in the joined text falls on.
+	 */
+	static int lineOf(final String text, final int offset) {
+
+		int line = 0;
+
+		for (int i = 0; i < offset && i < text.length(); i++) {
+
+			if (text.charAt(i) == '\n') {
+
+				line++;
+			}
+		}
+
+		return line;
+	}
+
+	/**
+	 * Log calls and exception messages whose {@code {}} placeholders do not line up with the values
+	 * meant to fill them - the message then silently drops the one detail it was written to carry
+	 * ({@code logger.warn("node {} not found")} prints a literal "{}", {@code logger.warn("node not
+	 * found", uuid)} prints no uuid at all). Both forms compile, and neither can fail a test, which
+	 * is why they survive: the message is only ever read after something has already gone wrong.
+	 *
+	 * Counted:
+	 *   - an SLF4J call whose placeholder count differs from its argument count. A trailing throwable
+	 *     is allowed to have no placeholder, since SLF4J prints its stack trace instead.
+	 *   - a {} inside an exception message, where nothing ever substitutes it: exception constructors
+	 *     take a plain String, not a format.
+	 *
+	 * Only calls whose message is a literal (or a concatenation of literals) are judged; when the
+	 * message comes from a variable or a method call, the placeholders cannot be counted and the
+	 * call is skipped rather than guessed at.
+	 *
+	 * @return the 0-based line indices of the offending calls
+	 */
+	static List<Integer> logArgLines(final List<String> stripped) {
+
+		final String text            = String.join("\n", stripped);
+		final List<Integer> result   = new ArrayList<>();
+		final Set<String> throwables = throwableNames(text);
+		final Matcher calls          = LOG_CALL.matcher(text);
+
+		while (calls.find()) {
+
+			final List<String> args = topLevelArgs(text, calls.end() - 1);
+
+			if (args == null || args.isEmpty() || !isLiteralOnly(args.get(0))) {
+
+				continue;
+			}
+
+			final int expected = placeholders(args.get(0));
+			final int supplied = args.size() - 1;
+			final String last               = supplied > 0 ? args.get(supplied).replaceAll("\\s+", " ") : "";
+			final boolean trailingThrowable = supplied > 0 && (throwables.contains(last) || find(THROWABLE_ARG, last));
+
+			// a trailing throwable may, but need not, have a placeholder of its own
+			if (expected == supplied || (trailingThrowable && expected == supplied - 1)) {
+
+				continue;
+			}
+
+			result.add(lineOf(text, calls.start()));
+		}
+
+		final Matcher constructors = EXCEPTION_CTOR.matcher(text);
+
+		while (constructors.find()) {
+
+			final List<String> args = topLevelArgs(text, constructors.end() - 1);
+
+			if (args == null) {
+
+				continue;
+			}
+
+			for (final String arg : args) {
+
+				// "{}" on its own is an empty JSON object, not a placeholder that lost its argument
+				if (isLiteralOnly(arg) && !arg.trim().equals("\"{}\"") && placeholders(arg) > 0) {
+
+					result.add(lineOf(text, constructors.start()));
+					break;
+				}
+			}
+		}
+
+		Collections.sort(result);
+
+		return result;
+	}
+
 	static int count(final Pattern p, final String s) {
 
 		final Matcher m = p.matcher(s);
@@ -303,49 +756,164 @@ public class CodeQuality {
 		return p.matcher(s).find();
 	}
 
-	/** Strip // and block comments and blank string/char literals so tokens aren't miscounted. */
-	static List<String> toCode(final List<String> raw) {
+	/**
+	 * Strips comments but keeps the string literals, unlike {@link #toCode}, which blanks them: the
+	 * placeholder detector has to read the message text. Walks the source character by character
+	 * (tracking literal, char-literal and comment state) instead of using line patterns, so a "/*"
+	 * or a "//" inside a string literal does not start a comment. Comments become spaces, so line
+	 * numbering and column offsets stay aligned with the raw source.
+	 */
+	static List<String> stripComments(final List<String> raw) {
+
+		final String text     = String.join("\n", raw);
+		final StringBuilder b = new StringBuilder(text.length());
+		boolean inString = false, inChar = false, inLine = false, inBlock = false, escaped = false;
+
+		for (int i = 0; i < text.length(); i++) {
+
+			final char c    = text.charAt(i);
+			final char next = i + 1 < text.length() ? text.charAt(i + 1) : '\0';
+
+			if (c == '\n') {
+
+				// a line comment ends here; a block comment and a string do not
+				inLine  = false;
+				escaped = false;
+
+				b.append(c);
+				continue;
+			}
+
+			if (inLine || inBlock) {
+
+				if (inBlock && c == '*' && next == '/') {
+
+					inBlock = false;
+					b.append("  ");
+					i++;
+
+				} else {
+
+					b.append(' ');
+				}
+
+				continue;
+			}
+
+			if (inString || inChar) {
+
+				b.append(c);
+
+				if (escaped) {
+
+					escaped = false;
+
+				} else if (c == '\\') {
+
+					escaped = true;
+
+				} else if (inString && c == '"') {
+
+					inString = false;
+
+				} else if (inChar && c == '\'') {
+
+					inChar = false;
+				}
+
+				continue;
+			}
+
+			if (c == '/' && next == '/') {
+
+				inLine = true;
+				b.append("  ");
+				i++;
+
+			} else if (c == '/' && next == '*') {
+
+				inBlock = true;
+				b.append("  ");
+				i++;
+
+			} else {
+
+				if (c == '"') {
+
+					inString = true;
+
+				} else if (c == '\'') {
+
+					inChar = true;
+				}
+
+				b.append(c);
+			}
+		}
+
+		return Arrays.asList(b.toString().split("\n", -1));
+	}
+
+	/**
+	 * Blanks the content of text blocks, which the per-line literal patterns cannot see: a table or a
+	 * snippet inside a """ ... """ is prose, and counting its semicolons, numbers or braces as code
+	 * produces findings that point at documentation. Java requires a line terminator right after the
+	 * opening delimiter, so a line either opens a block or closes one, never both.
+	 */
+	static List<String> blankTextBlocks(final List<String> lines) {
 
 		final List<String> out = new ArrayList<>();
-		boolean inBlock = false;
+		boolean inBlock        = false;
 
-		for (String line : raw) {
+		for (String line : lines) {
+
+			final int marker = line.indexOf("\"\"\"");
 
 			if (inBlock) {
 
-				final int end = line.indexOf("*/");
-				if (end < 0) {
+				if (marker < 0) {
 
-					out.add(""); continue;
+					// a content line of the block
+					out.add("");
+					continue;
 				}
 
-				line = line.substring(end + 2); inBlock = false;
+				// the closing delimiter may be followed by code, e.g. """.formatted(x)
+				out.add("\"\"" + line.substring(marker + 3));
+				inBlock = false;
+				continue;
 			}
 
-			while (true) {
+			if (marker >= 0) {
 
-				final int start = line.indexOf("/*");
-				if (start < 0) {
-
-					break;
-				}
-
-				final int end = line.indexOf("*/", start + 2);
-				if (end < 0) {
-
-					line = line.substring(0, start); inBlock = true; break;
-				}
-
-				line = line.substring(0, start) + " " + line.substring(end + 2);
+				out.add(line.substring(0, marker) + "\"\"");
+				inBlock = true;
+				continue;
 			}
+
+			out.add(line);
+		}
+
+		return out;
+	}
+
+	/**
+	 * Strip // and block comments and blank string/char literals so tokens aren't miscounted.
+	 *
+	 * Comment removal is delegated to {@link #stripComments}, which knows what is inside a string
+	 * literal. Doing it with line patterns instead used to lose whole files: one "/*" inside a
+	 * literal with no "*&#47;" after it - a description of a URL pattern, say - put the scanner in
+	 * block-comment mode for the rest of the file, and everything below that line became invisible
+	 * to every signal.
+	 */
+	static List<String> toCode(final List<String> raw) {
+
+		final List<String> out = new ArrayList<>();
+
+		for (String line : blankTextBlocks(stripComments(raw))) {
 
 			line = STRING_LIT.matcher(line).replaceAll("\"\"");
 			line = CHAR_LIT.matcher(line).replaceAll("''");
-			final int c = line.indexOf("//");
-			if (c >= 0) {
-
-				line = line.substring(0, c);
-			}
 
 			out.add(line);
 		}
@@ -533,7 +1101,10 @@ public class CodeQuality {
 		sub.put("long_methods", longM);
 		sub.put("complexity", cx);
 		sub.put("deep_nesting", deep);
-		sub.put("cstyle_for", count(CSTYLE_FOR, joined));
+		sub.put("cstyle_for", nestedCStyleForLines(code).size());
+		sub.put("loop_invariant", loopInvariantLines(code).size());
+		sub.put("static_block", count(STATIC_BLOCK, joined));
+		sub.put("multi_statement", multiStatementLines(code).size());
 		sub.put("switch_heavy", count(SWITCH, joined));
 		sub.put("str_const_enum", clusters);
 		sub.put("parser_smell", Math.round(parser / Math.max(1f, loc / 100f)));
@@ -548,6 +1119,8 @@ public class CodeQuality {
 		sub.put("reflection", count(REFLECT, joined) / 2);
 		sub.put("concurrency", count(CONCURRENCY, joined));
 		sub.put("sysout", count(SYSOUT, joined));
+		// needs the message text, so it runs on the source with its string literals still in place
+		sub.put("log_args", logArgLines(stripComments(raw)).size());
 		// regex compiled in a static final field is compiled once, so only the rest counts here
 		final boolean[] staticFinal   = staticFinalLines(code);
 		final StringBuilder perCall   = new StringBuilder();
@@ -694,6 +1267,27 @@ public class CodeQuality {
 		for (final String k : W.keySet()) {
 
 			hits.put(k, new ArrayList<>());
+		}
+
+		for (final int li : logArgLines(stripComments(raw))) {
+
+			hits.get("log_args").add(loc(li, raw));
+		}
+
+		// the signals that need the surrounding code, not just the line
+		for (final int li : nestedCStyleForLines(code)) {
+
+			hits.get("cstyle_for").add(loc(li, raw));
+		}
+
+		for (final int li : loopInvariantLines(code)) {
+
+			hits.get("loop_invariant").add(loc(li, raw));
+		}
+
+		for (final int li : multiStatementLines(code)) {
+
+			hits.get("multi_statement").add(loc(li, raw));
 		}
 
 		for (int li = 0; li < code.size(); li++) {

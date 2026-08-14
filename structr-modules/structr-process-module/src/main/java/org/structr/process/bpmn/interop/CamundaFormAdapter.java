@@ -69,7 +69,7 @@ public class CamundaFormAdapter implements BpmnVendorAdapter {
 		// are covered too -- desirable, since their steps also get a div + form.
 		final NodeList userTasks = processEl.getElementsByTagNameNS(BPMN_NS, "userTask");
 
-		for (int i = 0; i < userTasks.getLength(); i++) {
+		for (int i = 0, len = userTasks.getLength(); i < len; i++) {
 
 			final Element userTask = (Element) userTasks.item(i);
 			final String  taskId   = StringUtils.trimToNull(userTask.getAttribute("id"));

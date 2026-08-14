@@ -45,7 +45,7 @@ final class Xml {
 
 		final NodeList children = parent.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName())) {
@@ -67,7 +67,7 @@ final class Xml {
 
 		final NodeList children = parent.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (isElement(child, ns, localName)) {
@@ -97,7 +97,7 @@ final class Xml {
 
 		final NodeList children = parent.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName()) && namespaces.contains(child.getNamespaceURI())) {

@@ -328,7 +328,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					.useKeyPair(getOrCreateUserKey())
 					.create(session);
 
-			logger.info("Created new ACME session, account URL: {}", account.getStatus(), account.getLocation());
+			logger.info("Created new ACME session, account status: {}, account URL: {}", account.getStatus(), account.getLocation());
 
 		} catch (final Throwable t) {
 

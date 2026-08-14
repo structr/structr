@@ -73,7 +73,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 		final Map<String, JsonObject> formsById = new HashMap<>();
 		final NodeList formEls                  = processEl.getElementsByTagNameNS(ZEEBE_NS, "userTaskForm");
 
-		for (int i = 0; i < formEls.getLength(); i++) {
+		for (int i = 0, len = formEls.getLength(); i < len; i++) {
 
 			final Element formEl = (Element) formEls.item(i);
 			final String  id     = StringUtils.trimToNull(formEl.getAttribute("id"));
@@ -107,7 +107,7 @@ public class ZeebeFormAdapter implements BpmnVendorAdapter {
 		final List<VendorTaskForm> forms = new ArrayList<>();
 		final NodeList userTasks         = processEl.getElementsByTagNameNS(BPMN_NS, "userTask");
 
-		for (int i = 0; i < userTasks.getLength(); i++) {
+		for (int i = 0, len = userTasks.getLength(); i < len; i++) {
 
 			final Element userTask = (Element) userTasks.item(i);
 			final String  taskId   = StringUtils.trimToNull(userTask.getAttribute("id"));

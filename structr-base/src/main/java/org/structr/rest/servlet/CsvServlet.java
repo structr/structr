@@ -457,13 +457,13 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("POST: Invalid JSON syntax: {}", jsex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in POST: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
-			logger.warn("Unable to parse JSON string", jpex.getMessage());
+			logger.warn("Unable to parse JSON string: {}", jpex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in POST: " + jpex.getMessage());
 

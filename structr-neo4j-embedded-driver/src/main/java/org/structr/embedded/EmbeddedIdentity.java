@@ -68,7 +68,7 @@ public class EmbeddedIdentity implements Identity<String> {
 		// FNV-1a, 64 bit
 		long hash = 0xcbf29ce484222325L;
 
-		for (int i = 0; i < id.length(); i++) {
+		for (int i = 0, len = id.length(); i < len; i++) {
 
 			hash ^= id.charAt(i);
 			hash *= 0x100000001b3L;

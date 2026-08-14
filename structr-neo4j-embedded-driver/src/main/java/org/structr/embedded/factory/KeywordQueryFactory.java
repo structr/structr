@@ -119,7 +119,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 		final StringBuilder output = new StringBuilder();
 		final String input         = src.toString();
 
-		for (int i = 0; i < input.length(); i++) {
+		for (int i = 0, len = input.length(); i < len; i++) {
 
 			final char c        = input.charAt(i);
 			final String prefix = SPECIAL_CHARS.get(c);

@@ -254,43 +254,57 @@ public class StructrSSHFile implements Path {
 	@Override
 	public int getNameCount() {
 
-		logger.info("Method not implemented yet"); return 0;
+		logger.info("Method not implemented yet");
+
+		return 0;
 	}
 
 	@Override
 	public Path getName(int i) {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public Path subpath(int i, int i1) {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public boolean startsWith(Path path) {
 
-		logger.info("Method not implemented yet"); return false;
+		logger.info("Method not implemented yet");
+
+		return false;
 	}
 
 	@Override
 	public boolean startsWith(String string) {
 
-		logger.info("Method not implemented yet"); return false;
+		logger.info("Method not implemented yet");
+
+		return false;
 	}
 
 	@Override
 	public boolean endsWith(Path path) {
 
-		logger.info("Method not implemented yet"); return false;
+		logger.info("Method not implemented yet");
+
+		return false;
 	}
 
 	@Override
 	public boolean endsWith(String string) {
 
-		logger.info("Method not implemented yet"); return false;
+		logger.info("Method not implemented yet");
+
+		return false;
 	}
 
 	@Override
@@ -316,25 +330,33 @@ public class StructrSSHFile implements Path {
 	@Override
 	public Path resolveSibling(Path path) {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public Path resolveSibling(String string) {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public Path relativize(Path path) {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public URI toUri() {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
@@ -348,25 +370,33 @@ public class StructrSSHFile implements Path {
 	@Override
 	public Path toRealPath(LinkOption... los) throws IOException {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public java.io.File toFile() {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public WatchKey register(WatchService ws, WatchEvent.Kind<?>[] kinds, WatchEvent.Modifier... mdfrs) throws IOException {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
 	public WatchKey register(WatchService ws, WatchEvent.Kind<?>... kinds) throws IOException {
 
-		logger.info("Method not implemented yet"); return null;
+		logger.info("Method not implemented yet");
+
+		return null;
 	}
 
 	@Override
@@ -391,6 +421,8 @@ public class StructrSSHFile implements Path {
 	@Override
 	public int compareTo(Path path) {
 
-		logger.info("Method not implemented yet"); return 0;
+		logger.info("Method not implemented yet");
+
+		return 0;
 	}
 }

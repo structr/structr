@@ -62,6 +62,13 @@ import java.util.concurrent.TimeUnit;
 @StopServiceForMaintenanceMode
 public class StorageSyncService extends Thread implements RunnableService {
 
+	// @code-quality:accept - last reviewed 2026-08-14. The concurrency flags ARE this class: it is a
+	// service thread debouncing events that arrive from provider threads, so the synchronized
+	// blocks, the concurrent collections and the thread-locals are the design described above, not
+	// incidental complexity. The broad catches are equally deliberate -- a sync service must survive
+	// one bad file or one unreachable backend without taking the thread (and with it every other
+	// sync target) down; all three log before they continue.
+
 	public static final String DELETE_STALE_KEY = "sync.deleteStale";
 	public static final String DIRECTION_KEY    = SyncDirection.DIRECTION_KEY;
 
@@ -731,7 +738,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 				} catch (Throwable t) {
 
-					logger.warn("Unable to process storage sync event queue, waiting for 1 minute before trying again.");
+					logger.warn("Unable to process storage sync event queue, waiting for 1 minute before trying again: {}", t.getMessage());
 
 					try { Thread.sleep(TimeUnit.MINUTES.toMillis(1)); } catch (InterruptedException i) {}
 				}
@@ -1261,7 +1268,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			final ExternalEntry entry = event.entry();
 
-			return syncRootUuid + " " + (entry.hasUuid() ? "#" + entry.nodeUuid() : entry.relativePath());
+			return syncRootUuid + "\0" + (entry.hasUuid() ? "#" + entry.nodeUuid() : entry.relativePath());
 		}
 
 		public boolean olderThan(final long milliseconds) {

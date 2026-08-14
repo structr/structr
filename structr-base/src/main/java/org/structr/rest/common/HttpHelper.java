@@ -64,6 +64,12 @@ import java.util.stream.Collectors;
  */
 public class HttpHelper {
 
+	// @code-quality:accept - last reviewed 2026-08-14. long_params counts 34 of the 50 public static
+	// methods, but they are overload ladders (six each of get/post/put, four of delete, ...), where
+	// the short forms delegate to one full-length method per verb. Replacing the parameters with a
+	// request object would be a better API and a breaking change to a helper the modules call
+	// directly, so it is a deliberate decision to keep, not an oversight to fix.
+
 	public static final String FIELD_STATUS  = "status";
 	public static final String FIELD_BODY    = "body";
 	public static final String FIELD_HEADERS = "headers";

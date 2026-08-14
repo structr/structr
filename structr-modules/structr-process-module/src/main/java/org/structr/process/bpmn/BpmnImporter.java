@@ -268,7 +268,7 @@ public class BpmnImporter {
 		// live on BpmnDefinitions, not on any individual process.
 		final NodeList rootChildren = root.getChildNodes();
 
-		for (int i = 0; i < rootChildren.getLength(); i++) {
+		for (int i = 0, len = rootChildren.getLength(); i < len; i++) {
 
 			final Node child = rootChildren.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
@@ -301,7 +301,7 @@ public class BpmnImporter {
 		// elements and sequence flows, lane sets, listeners and method refs. On
 		// re-import (previous version present, found via findPreviousProcess) the
 		// previous version's methods are cloned onto the new process first.
-		for (int i = 0; i < processNodes.getLength(); i++) {
+		for (int i = 0, len = processNodes.getLength(); i < len; i++) {
 
 			final Element processEl    = (Element) processNodes.item(i);
 			final String processIdAttr = processEl.getAttribute("id");
@@ -409,7 +409,7 @@ public class BpmnImporter {
 		// filter keeps shapes that visualise the collaboration / lane set.
 		final NodeList diagramNodes = root.getElementsByTagNameNS(DI_NS, "BPMNDiagram");
 
-		for (int i = 0; i < diagramNodes.getLength(); i++) {
+		for (int i = 0, len = diagramNodes.getLength(); i < len; i++) {
 
 			importDiagram(app, defNode, (Element) diagramNodes.item(i), elementMap, flowMap, participantBpmnIds, messageFlowBpmnIds, laneBpmnIds);
 		}
@@ -436,7 +436,7 @@ public class BpmnImporter {
 		final Traits partTraits = Traits.of(ProcessTraits.BPMN_PARTICIPANT);
 		final Traits mfTraits   = Traits.of(ProcessTraits.BPMN_MESSAGE_FLOW);
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node n = children.item(i);
 			if (n.getNodeType() != Node.ELEMENT_NODE) {
@@ -527,7 +527,7 @@ public class BpmnImporter {
 
 		final NodeList children = containerEl.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
@@ -989,7 +989,7 @@ public class BpmnImporter {
 			final NodeList shapes = planeEl.getElementsByTagNameNS(DI_NS, "BPMNShape");
 			int skippedShapes = 0;
 
-			for (int i = 0; i < shapes.getLength(); i++) {
+			for (int i = 0, len = shapes.getLength(); i < len; i++) {
 
 				final Element sh = (Element) shapes.item(i);
 				final String ref = sh.getAttribute("bpmnElement");
@@ -1015,7 +1015,7 @@ public class BpmnImporter {
 			final NodeList edges = planeEl.getElementsByTagNameNS(DI_NS, "BPMNEdge");
 			int skippedEdges = 0;
 
-			for (int i = 0; i < edges.getLength(); i++) {
+			for (int i = 0, len = edges.getLength(); i < len; i++) {
 
 				final Element ed = (Element) edges.item(i);
 				final String ref = ed.getAttribute("bpmnElement");
@@ -1128,7 +1128,7 @@ public class BpmnImporter {
 		final NodeList wpNodes                    = edgeEl.getElementsByTagNameNS(OMGDI_NS, "waypoint");
 		final List<Map<String, String>> waypoints = new LinkedList<>();
 
-		for (int i = 0; i < wpNodes.getLength(); i++) {
+		for (int i = 0, len = wpNodes.getLength(); i < len; i++) {
 
 			final Element wp = (Element) wpNodes.item(i);
 			final Map<String, String> m = new LinkedHashMap<>();
@@ -1291,7 +1291,7 @@ public class BpmnImporter {
 
 		final NodeList children = parent.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() != Node.ELEMENT_NODE || !localName.equals(child.getLocalName())) {
@@ -1382,7 +1382,7 @@ public class BpmnImporter {
 		int depth                = 0;
 		int start                = 0;
 
-		for (int i = 0; i < s.length(); i++) {
+		for (int i = 0, len = s.length(); i < len; i++) {
 
 			final char c = s.charAt(i);
 			if (c == '(' || c == '{') {
@@ -1600,7 +1600,7 @@ public class BpmnImporter {
 
 		final NodeList children = extEl.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
@@ -1957,7 +1957,7 @@ public class BpmnImporter {
 		// Per user-task contract.
 		final NodeList userTasks = processEl.getElementsByTagNameNS(BPMN_NS, "userTask");
 
-		for (int i = 0; i < userTasks.getLength(); i++) {
+		for (int i = 0, len = userTasks.getLength(); i < len; i++) {
 
 			final Element userTaskEl = (Element) userTasks.item(i);
 			final String  taskId     = nullIfEmpty(userTaskEl.getAttribute("id"));
@@ -2012,7 +2012,7 @@ public class BpmnImporter {
 
 		final NodeList children = parent.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && STRUCTR_NS.equals(child.getNamespaceURI()) && localName.equals(child.getLocalName())) {
@@ -2064,7 +2064,7 @@ public class BpmnImporter {
 
 		final NodeList children = extEl.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
@@ -2255,7 +2255,7 @@ public class BpmnImporter {
 		int depth     = 0;
 		char quote    = 0;
 
-		for (int i = 0; i < s.length(); i++) {
+		for (int i = 0, len = s.length(); i < len; i++) {
 
 			final char c = s.charAt(i);
 
@@ -2456,7 +2456,7 @@ public class BpmnImporter {
 		// Iterate all descendant Elements (including nested subProcesses).
 		final NodeList all = processEl.getElementsByTagNameNS("*", "*");
 
-		for (int i = 0; i < all.getLength(); i++) {
+		for (int i = 0, len = all.getLength(); i < len; i++) {
 
 			final Node n = all.item(i);
 			if (n.getNodeType() != Node.ELEMENT_NODE) {
@@ -2504,7 +2504,7 @@ public class BpmnImporter {
 		final List<NodeInterface> resolved = new LinkedList<>();
 		final NodeList children = extEl.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
@@ -2683,7 +2683,7 @@ public class BpmnImporter {
 		final List<Element> result = new LinkedList<>();
 		final NodeList children    = parent.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName())) {
@@ -2699,7 +2699,7 @@ public class BpmnImporter {
 
 		final NodeList children = parent.getChildNodes();
 
-		for (int i = 0; i < children.getLength(); i++) {
+		for (int i = 0, len = children.getLength(); i < len; i++) {
 
 			final Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName())) {
@@ -2730,7 +2730,7 @@ public class BpmnImporter {
 		final Map<String, String> ns = new LinkedHashMap<>();
 		final NamedNodeMap attrs = root.getAttributes();
 
-		for (int i = 0; i < attrs.getLength(); i++) {
+		for (int i = 0, len = attrs.getLength(); i < len; i++) {
 
 			final Attr attr = (Attr) attrs.item(i);
 			if ("xmlns".equals(attr.getPrefix()) || "xmlns".equals(attr.getName())) {
@@ -2747,7 +2747,7 @@ public class BpmnImporter {
 		final Map<String, String> attrs = new LinkedHashMap<>();
 		final NamedNodeMap nodeAttrs = el.getAttributes();
 
-		for (int i = 0; i < nodeAttrs.getLength(); i++) {
+		for (int i = 0, len = nodeAttrs.getLength(); i < len; i++) {
 
 			final Attr attr = (Attr) nodeAttrs.item(i);
 			if (!"xmlns".equals(attr.getPrefix()) && !"xmlns".equals(attr.getName()) && !CAMUNDA_NS.equals(attr.getNamespaceURI())) {

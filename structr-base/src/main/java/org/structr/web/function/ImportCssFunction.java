@@ -82,7 +82,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 				logger.info("{} rules", styleSheet.getCssRules().getLength());
 
-				for (int i=0; i<rules.getLength(); i++) {
+				for (int i = 0, len = rules.getLength(); i < len; i++) {
 
 					final CSSRule rule = rules.item(i);
 

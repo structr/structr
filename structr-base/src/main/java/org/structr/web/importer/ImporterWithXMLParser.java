@@ -411,7 +411,7 @@ public class ImporterWithXMLParser {
 				continue;
 			}
 
-			if (!type.equals("#comment")) {
+			if (!"#comment".equals(type)) {
 
 				return createChildNodes(node.childNodes(), parent, page, false, 1, parent);
 			}
@@ -535,7 +535,7 @@ public class ImporterWithXMLParser {
 			}
 
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
-			if (type.equals("#comment")) {
+			if ("#comment".equals(type)) {
 
 				comment = ((Comment) node).getData();
 				tag     = "";
@@ -562,7 +562,7 @@ public class ImporterWithXMLParser {
 				// remove attribute so we don't write it in the database
 				node.removeAttr("#comment");
 
-			} else if (type.equals("#data")) {
+			} else if ("#data".equals(type)) {
 
 				tag = "";
 				content = ((DataNode) node).getWholeData();
@@ -575,7 +575,7 @@ public class ImporterWithXMLParser {
 
 			} else // Text-only nodes: Trim the text and put it into the "content" field
 			{
-				if (type.equals("#text")) {
+				if ("#text".equals(type)) {
 
 					tag = "";
 
@@ -666,7 +666,7 @@ public class ImporterWithXMLParser {
 
 							if (template == null) {
 
-								logger.warn("##################################### template with UUID not found, this is a known bug", uuidAtEnd);
+								logger.warn("##################################### template with UUID {} not found, this is a known bug", uuidAtEnd);
 							}
 
 						} else {
@@ -902,7 +902,7 @@ public class ImporterWithXMLParser {
 
 					final String key = nodeAttr.getKey();
 
-					if (!key.equals("text")) { // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
+					if (!"text".equals(key)) { // Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 
 						final String value = nodeAttr.getValue();
 
@@ -1038,7 +1038,7 @@ public class ImporterWithXMLParser {
 						// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
 						newNode.setProperty(typeKey, "text/javascript");
 
-					} else if (contentType.equals("application/schema+json")) {
+					} else if ("application/schema+json".equals(contentType)) {
 
 						for (final Node scriptContentNode : node.childNodes()) {
 
@@ -1048,7 +1048,7 @@ public class ImporterWithXMLParser {
 							SchemaJsonImporter.importSchemaJson(source);
 						}
 
-					} else if (contentType.equals("application/x-structr-script")) {
+					} else if ("application/x-structr-script".equals(contentType)) {
 
 						for (final Node scriptContentNode : node.childNodes()) {
 
@@ -1066,7 +1066,7 @@ public class ImporterWithXMLParser {
 
 						continue;
 
-					} else if (contentType.equals("application/x-structr-javascript")) {
+					} else if ("application/x-structr-javascript".equals(contentType)) {
 
 						for (final Node scriptContentNode : node.childNodes()) {
 
@@ -1361,7 +1361,7 @@ public class ImporterWithXMLParser {
 
 		logger.info("Relative path: {}, final path: {}", relativePath, path);
 
-		if (contentType.equals("text/plain")) {
+		if ("text/plain".equals(contentType)) {
 
 			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(fileName, ".")), "text/plain");
 		}
@@ -1387,7 +1387,7 @@ public class ImporterWithXMLParser {
 					// Copy contents of tmpFile to file in structr fs
 					IOUtils.copy(is, os);
 
-					if (contentType.equals("text/css")) {
+					if ("text/css".equals(contentType)) {
 
 						processCssFileNode(fileNode, downloadUrl);
 					}

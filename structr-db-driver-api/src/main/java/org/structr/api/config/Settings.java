@@ -43,6 +43,11 @@ import java.util.regex.Pattern;
  */
 public class Settings {
 
+	// @code-quality:accept - last reviewed 2026-08-14. Almost the whole score is long_lines: every
+	// setting is one declaration line, with the group, the key, the default and the help text lined
+	// up in columns. Wrapping them would trade the alignment that makes 300+ settings scannable for
+	// a number in a report. The remaining flags are the config file I/O at the bottom of the class.
+
 	private static String uuidOnlyRegex;
 	private static String uuidPartRegex;
 	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);

@@ -859,7 +859,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishWarningMessage("Unable to set group ownership", "A group named '" + groupName + "' was not found. The deployment export files will not have that group association.");
 
-			logger.warn("Unable to set group ownership", "A group named '{}' was not found. The deployment export files will not have that group association.", groupName);
+			logger.warn("Unable to set group ownership: a group named '{}' was not found. The deployment export files will not have that group association.", groupName);
 
 		} catch (Exception ex) {
 
@@ -3596,7 +3596,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				return Integer.valueOf(digits.substring(0, 2));
 
-			} catch (Throwable t) {}
+			} catch (Throwable t) {
+
+				// not a version number, handled by the default below
+			}
 		}
 
 		// no version info present => return 0
