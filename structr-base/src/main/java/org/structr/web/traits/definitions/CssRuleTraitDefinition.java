@@ -39,6 +39,7 @@ public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CHILD_RULES_PROPERTY = "childRules";
 	public static final String PARENT_RULE_PROPERTY = "parentRule";
 	public static final String SELECTORS_PROPERTY   = "selectors";
+	public static final String DECLARATIONS_PROPERTY = "declarations";
 	public static final String CSS_TEXT_PROPERTY    = "cssText";
 	public static final String RULE_TYPE_PROPERTY   = "ruleType";
 
@@ -77,10 +78,13 @@ public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes(traitsInstance, CHILD_RULES_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
 		final Property<NodeInterface> parentRuleProperty           = new StartNode(traitsInstance, PARENT_RULE_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
 		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes(traitsInstance, SELECTORS_PROPERTY, StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR);
+
+		// the other end of CssDeclaration.rule, i.e. the declarations of this rule
+		final Property<Iterable<NodeInterface>> declarationsProperty = new EndNodes(traitsInstance, DECLARATIONS_PROPERTY, StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
 		final Property<String> cssTextProperty                     = new StringProperty(CSS_TEXT_PROPERTY).indexed();
 		final Property<Integer>  ruleTypeProperty                  = new IntProperty(RULE_TYPE_PROPERTY).indexed();
 
-		return Set.of(childRulesProperty, parentRuleProperty, selectorsProperty, cssTextProperty, ruleTypeProperty);
+		return Set.of(childRulesProperty, parentRuleProperty, selectorsProperty, declarationsProperty, cssTextProperty, ruleTypeProperty);
 	}
 
 	@Override

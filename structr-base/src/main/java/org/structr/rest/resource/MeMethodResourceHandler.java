@@ -99,9 +99,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 			final Principal entity = securityContext.getUser(false);
 
-			// FIXME, only the first property set is used, we need to test this
-
-			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet.get(0)));
+			return executeMethod(securityContext, entity, NamedArguments.fromMap(getSinglePropertySet(propertySet)));
 
 		} else {
 

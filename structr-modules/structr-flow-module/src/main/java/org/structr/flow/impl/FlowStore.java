@@ -53,15 +53,27 @@ public class FlowStore extends FlowDataSource implements DeployableEntity {
 
 	public final void handleStorage(final Context context) throws FlowException {
 
-		// FIXME: Operation is EnumProperty - update code accordingly
+		// The operation is stored as the name of an Operation constant (the property is an EnumProperty),
+		// so it is resolved back into the enum here: that way a renamed constant is a compile error rather
+		// than a switch that quietly stops matching.
 		final String op         = getOperation();
 		final String _key       = getKey();
 		final FlowDataSource ds = getDataSource();
 
-		if(op != null && _key != null ) {
+		if (op != null && _key != null) {
 
-			switch (op) {
-				case "store":
+			final Operation operation = parseOperation(op);
+
+			if (operation == null) {
+
+				logger.warn("Unable to handle FlowStore {}, unknown operation {}.", getUuid(), op);
+
+				return;
+			}
+
+			switch (operation) {
+
+				case store:
 
 					if (ds != null) {
 
@@ -69,14 +81,30 @@ public class FlowStore extends FlowDataSource implements DeployableEntity {
 					}
 
 					break;
-				case "retrieve":
+
+				case retrieve:
+
 					context.setData(getUuid(), context.retrieveFromStore(_key));
 					break;
 			}
 
 		} else {
 
-			logger.warn("Unable to handle FlowStore{}, missing operation or key.", getUuid());
+			logger.warn("Unable to handle FlowStore {}, missing operation or key.", getUuid());
 		}
+	}
+
+	// ----- private methods -----
+	private Operation parseOperation(final String value) {
+
+		for (final Operation operation : Operation.values()) {
+
+			if (operation.name().equals(value)) {
+
+				return operation;
+			}
+		}
+
+		return null;
 	}
 }

@@ -21,6 +21,8 @@ package org.structr.feed.traits.wrappers;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.feed.entity.FeedItemContent;
 import org.structr.feed.traits.definitions.FeedItemContentTraitDefinition;
@@ -58,7 +60,10 @@ public class FeedItemContentTraitWrapper extends AbstractFeedItemTraitWrapper im
 	@Override
 	public String getExtractedContent() {
 
-		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
+		// The fulltext indexer stores the extracted text under the File key for every node it indexes
+		// (see FulltextIndexingAgent), so it has to be read with that same key: this type does not
+		// declare the property itself since it no longer has the removed "Indexable" trait.
+		return wrappedObject.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override

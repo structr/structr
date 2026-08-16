@@ -5375,7 +5375,17 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("StructrScript array indexing returns wrong result", "group4", Scripting.evaluate(ctx, null, "${find('Group', sort('name'))[index1].name}", "test1"));
 			assertEquals("StructrScript array indexing returns wrong result", "group4", Scripting.evaluate(ctx, null, "${find('Group', sort('name'))[index2].name}", "test1"));
 
-			// FIXME: this test fails because [] binds to the wrong expression
+			// Known defect, kept disabled on purpose: an index inside a function call is parsed as another
+			// ARGUMENT of that call instead of indexing the expression before it, so the line below yields
+			// merge(find(...), 3) - the eight groups plus the index itself - instead of the single group.
+			//
+			// Functions.java attaches the ArrayExpression to the enclosing expression ("current.add(next)"
+			// under case "["), which is right at the top level, where RootExpression chains its children
+			// through transform(), and wrong inside a function call, where FunctionExpression evaluates
+			// each child as a separate argument. Fixing it means wrapping the preceding expression instead
+			// (Expression.getPrevious()/replacePrevious() exist for that) and giving ArrayExpression a
+            // second child, which changes how every "[...]" in every script is evaluated.
+			//
 			//final List<Group> check1 = groups.subList(3, 4);
 			//assertEquals("StructrScript array indexing returns wrong result",   check1, Scripting.evaluate(ctx, null, "${merge(find('Group', sort('name'))[index2])}", "test1"));
 

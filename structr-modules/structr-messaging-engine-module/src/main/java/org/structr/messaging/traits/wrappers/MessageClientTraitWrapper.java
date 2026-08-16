@@ -22,6 +22,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.messaging.engine.entities.MessageClient;
@@ -33,15 +34,42 @@ import org.structr.schema.action.ActionContext;
 
 public class MessageClientTraitWrapper extends AbstractNodeTraitWrapper implements MessageClient {
 
+	// the two spellings of the enabled flag used by the concrete client types
+	private static final String IS_ENABLED_PROPERTY = "isEnabled";
+	private static final String ENABLED_PROPERTY    = "enabled";
+
 	public MessageClientTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 
 		super(traits, wrappedObject);
 	}
 
-	// FIXME: isEnabled only exists on the types inheriting from MessageClient (XMPPClient:isEnabled, KafkaClient.enabled, PulsarClient.enabled)
+	/**
+	 * Whether this client is enabled. The concrete client types spell the flag differently - MQTTClient
+	 * and XMPPClient declare "isEnabled", KafkaClient and PulsarClient declare "enabled" - so whichever
+	 * one the type actually declares is read here. A type declaring neither, or a value that was never
+	 * set, counts as not enabled rather than failing: this is called from the message engine and from
+	 * the Kafka consumer loop, where reading the flag must not throw.
+	 */
 	public boolean getIsEnabled() {
 
-		return wrappedObject.getProperty(traits.key("isEnabled"));
+		final PropertyKey<Boolean> key = getEnabledKey();
+
+		return key != null && Boolean.TRUE.equals(wrappedObject.getProperty(key));
+	}
+
+	private PropertyKey<Boolean> getEnabledKey() {
+
+		if (traits.hasKey(IS_ENABLED_PROPERTY)) {
+
+			return traits.key(IS_ENABLED_PROPERTY);
+		}
+
+		if (traits.hasKey(ENABLED_PROPERTY)) {
+
+			return traits.key(ENABLED_PROPERTY);
+		}
+
+		return null;
 	}
 
 	public Iterable<MessageSubscriber> getSubscribers() {

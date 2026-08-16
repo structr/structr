@@ -82,9 +82,27 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 			propertyKeyName = "id";
 		}
 
+		// The input is either the identifying value itself or an object that carries it under the notion's
+		// key, e.g. "someName" or { "name": "someName" } for a notion on name. An object must be unwrapped
+		// here, before the value is converted: converting the object into the type of the key (a String, as
+		// a rule) stringifies the whole object and turns the lookup into a search for something that cannot
+		// exist. The uuid is deliberately not accepted as an alternative identifier - identifying objects by
+		// uuid is what IdDeserializationStrategy (ObjectNotion) is for.
+		Object identifyingValue = source;
+
+		if (identifyingValue instanceof Map map) {
+
+			identifyingValue = map.get(propertyKeyName);
+
+			if (identifyingValue == null) {
+
+				throw new FrameworkException(422, "Object given for property " + propertyKeyName + " of type " + type + " does not contain the identifying property " + propertyKeyName + ".");
+			}
+		}
+
 		// create and fill input map with source object
 		Map<String, Object> sourceMap = new LinkedHashMap<>();
-		sourceMap.put(propertyKeyName, source);
+		sourceMap.put(propertyKeyName, identifyingValue);
 
 		// try to convert input type to java type in order to create object correctly
 		final PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
@@ -93,16 +111,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 		if (convertedSource != null) {
 
-			// FIXME: use uuid only here?
-			if (convertedSource instanceof Map) {
-
-				Object value = ((Map<String, Object>)convertedSource).get(propertyKeyName);
-				if (value != null) {
-
-					result.addAll(app.nodeQuery(type).key(propertyKey, value.toString()).getAsList());
-				}
-
-			} else if (convertedSource instanceof GraphObject) {
+			if (convertedSource instanceof GraphObject) {
 
 				final GraphObject obj = (GraphObject)convertedSource;
 

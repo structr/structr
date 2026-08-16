@@ -302,7 +302,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public void checkAccess(Path path, AccessMode... modes) throws IOException {
 
-				logger.info("Checking access", path, modes);
+				logger.info("Checking access to {} with modes {}", path, modes);
 			}
 
 			@Override
@@ -388,7 +388,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public void setAttribute(Path path, String attribute, Object value, LinkOption... options) throws IOException {
 
-				logger.info("Method not implemented yet");;
+				logger.info("Method not implemented yet");
 			}
 
 			private NodeInterface create(final Path path) throws IOException {

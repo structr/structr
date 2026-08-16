@@ -25,6 +25,7 @@ import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 public class DoublePropertyRestTest extends StructrRestTestBase {
 
@@ -47,11 +48,14 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 		.when()
 			.get("/TestThree");
 
-		// FIXME: due to a bug in RestAssured/Groovy, the double value is truncated to a float.
-		//        The JSON result contains the correct (full) value, so we just ignore the wrong
-		//        result from RestAssured here..
-		// assertEquals("3.141592653589793238", response.getBody().jsonPath().getDouble("result[0].doubleProperty"));
+		// The full double precision is asserted on the response body itself: RestAssured parses JSON
+		// numbers through Groovy, which narrows them to float, so the value read via jsonPath() is not
+		// the value the server sent.
 
+		assertTrue("Response must contain the full double precision, was: " + response.getBody().asString(),
+			response.getBody().asString().contains("3.141592653589793"));
+
+		// the same value as seen through RestAssured, i.e. narrowed to float
 		assertEquals(3.1415927, response.getBody().jsonPath().getDouble("result[0].doubleProperty"), 0.0);
 
 	}

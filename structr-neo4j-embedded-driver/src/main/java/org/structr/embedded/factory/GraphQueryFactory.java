@@ -97,9 +97,6 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 		final GraphQuery graphQuery = (GraphQuery)predicate;
 		final GraphQueryPart part   = new GraphQueryPart(graphQuery);
 		final Set<Object> values    = graphQuery.getValues();
-
-		// TODO: for the ANY query on a collection property, getvalues() is wrong because it flattens the list. we need to keep the lists intact and OR all lists
-
 		final boolean isString      = predicate.getType().equals(String.class);
 
 		query.addGraphQueryPart(part);
@@ -112,7 +109,6 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 			for (final Object value : values) {
 
-				// TODO: do we actually ever get bolt ids?
 				final EmbeddedIdentity boltIdentity = (EmbeddedIdentity)graphQuery.getIdentity();
 				if (boltIdentity != null) {
 
@@ -131,13 +127,11 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 		} else {
 
 			// CONTAINS
-			// TODO: identical... filtering is handled in includeInResult... this should probably be unified
 			final ArrayList<String> boltIds = new ArrayList<>();
 			final ArrayList<String> nodeIds = new ArrayList<>();
 
 			for (final Object value : values) {
 
-				// TODO: do we actually ever get bolt ids?
 				final EmbeddedIdentity boltIdentity = (EmbeddedIdentity)graphQuery.getIdentity();
 				if (boltIdentity != null) {
 

@@ -1242,4 +1242,27 @@ public class SchemaResourceTest extends StructrRestTestBase {
 		// set back to initial
 		Settings.ResultCountSoftLimit.setValue(originalResultCountSoftLimit);
 	}
+
+	@Test
+	public void testRelationshipInfoPossibleTypes() {
+
+		// The schema overview reports which types are allowed at each end of a relationship type; the CRUD
+		// and graph views use it to offer source and target types (relInfo.possibleSourceTypes).
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result.find { it.relInfo?.sourceType == 'TestFour' && it.relInfo?.targetType == 'TestOne' }.relInfo.allSourceTypesPossible",  equalTo(false))
+				.body("result.find { it.relInfo?.sourceType == 'TestFour' && it.relInfo?.targetType == 'TestOne' }.relInfo.htmlSourceTypesPossible", equalTo(false))
+				.body("result.find { it.relInfo?.sourceType == 'TestFour' && it.relInfo?.targetType == 'TestOne' }.relInfo.possibleSourceTypes",     equalTo("TestFour"))
+				.body("result.find { it.relInfo?.sourceType == 'TestFour' && it.relInfo?.targetType == 'TestOne' }.relInfo.possibleTargetTypes",     equalTo("TestOne"))
+
+				// a relationship declared for DOMNode offers the HTML element types instead of a list
+				.body("result.find { it.relInfo?.relationshipType == 'CONTAINS' && it.relInfo?.sourceType == 'DOMNode' }.relInfo.htmlSourceTypesPossible", equalTo(true))
+				.body("result.find { it.relInfo?.relationshipType == 'CONTAINS' && it.relInfo?.sourceType == 'DOMNode' }.relInfo.allSourceTypesPossible",  equalTo(false))
+			.when()
+				.get("/_schema");
+	}
 }

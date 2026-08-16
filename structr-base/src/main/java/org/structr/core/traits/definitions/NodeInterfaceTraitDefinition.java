@@ -39,6 +39,8 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -136,101 +138,73 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 				public Iterable<RelationshipInterface> getRelationships(final NodeInterface node, final String type) {
 
 					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
-					final Relation template = getRelationForType(type);
-					final Direction direction = template.getDirectionForType(type);
-					final RelationshipType relType = template;
+					final RelationshipType relType    = getRelationForType(type);
 
-					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(direction, relType), factory);
+					// every relationship of that type, no matter which end this node is at
+					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(Direction.BOTH, relType), factory);
 				}
 
 				@Override
 				public RelationshipInterface getIncomingRelationship(final NodeInterface node, final String type) {
 
-					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
-					final Relation<OneStartpoint, ?> template = getRelationForType(type);
-					final Relationship relationship = template.getSource().getRawSource(node.getSecurityContext(), node.getNode(), null);
+					final SecurityContext securityContext = node.getSecurityContext();
+					final Relation<?, ?> template         = getRelationForType(type);
 
-					if (relationship != null) {
-
-						return factory.adapt(relationship);
-					}
-
-					return null;
+					return adaptRawRelationship(securityContext, template.getSource().getRawSource(securityContext, node.getNode(), null));
 				}
 
 				@Override
 				public RelationshipInterface getIncomingRelationshipAsSuperUser(final NodeInterface node, final String type) {
 
 					final SecurityContext suContext = SecurityContext.getSuperUserInstance();
-					final RelationshipFactory factory = new RelationshipFactory(suContext);
-					final Relation<OneStartpoint, ?> template = getRelationForType(type);
-					final Relationship relationship = template.getSource().getRawSource(suContext, node.getNode(), null);
+					final Relation<?, ?> template   = getRelationForType(type);
 
-					if (relationship != null) {
-
-						return factory.adapt(relationship);
-					}
-
-					return null;
+					return adaptRawRelationship(suContext, template.getSource().getRawSource(suContext, node.getNode(), null));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node, final String type) {
 
-					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
-					final Relation<ManyStartpoint, ?> template = getRelationForType(type);
+					final SecurityContext securityContext = node.getSecurityContext();
+					final Relation<?, ?> template         = getRelationForType(type);
 
-					return new IterableAdapter<>(template.getSource().getRawSource(node.getSecurityContext(), node.getNode(), null), factory);
+					return adaptRawRelationships(securityContext, template.getSource().getRawSource(securityContext, node.getNode(), null));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final NodeInterface node, final String type, final Predicate<GraphObject> predicate) {
 
 					final SecurityContext suContext = SecurityContext.getSuperUserInstance();
-					final RelationshipFactory factory = new RelationshipFactory(suContext);
-					final Relation<ManyStartpoint, ?> template = getRelationForType(type);
+					final Relation<?, ?> template   = getRelationForType(type);
 
-					return new IterableAdapter<>(template.getSource().getRawSource(suContext, node.getNode(), predicate), factory);
+					return adaptRawRelationships(suContext, template.getSource().getRawSource(suContext, node.getNode(), predicate));
 				}
 
 				@Override
 				public RelationshipInterface getOutgoingRelationship(final NodeInterface node, final String type) {
 
-					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
-					final Relation<?, OneEndpoint> template = getRelationForType(type);
-					final Relationship relationship = template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null);
+					final SecurityContext securityContext = node.getSecurityContext();
+					final Relation<?, ?> template         = getRelationForType(type);
 
-					if (relationship != null) {
-
-						return factory.adapt(relationship);
-					}
-
-					return null;
+					return adaptRawRelationship(securityContext, template.getTarget().getRawSource(securityContext, node.getNode(), null));
 				}
 
 				@Override
 				public RelationshipInterface getOutgoingRelationshipAsSuperUser(final NodeInterface node, final String type) {
 
 					final SecurityContext suContext = SecurityContext.getSuperUserInstance();
-					final RelationshipFactory factory = new RelationshipFactory(suContext);
-					final Relation<?, OneEndpoint> template = getRelationForType(type);
-					final Relationship relationship = template.getTarget().getRawSource(suContext, node.getNode(), null);
+					final Relation<?, ?> template   = getRelationForType(type);
 
-					if (relationship != null) {
-
-						return factory.adapt(relationship);
-					}
-
-					return null;
+					return adaptRawRelationship(suContext, template.getTarget().getRawSource(suContext, node.getNode(), null));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getOutgoingRelationships(final NodeInterface node, final String type) {
 
-					final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
-					final Relation<?, ManyEndpoint> template = getRelationForType(type);
+					final SecurityContext securityContext = node.getSecurityContext();
+					final Relation<?, ?> template         = getRelationForType(type);
 
-					return new IterableAdapter<>(template.getTarget().getRawSource(node.getSecurityContext(), node.getNode(), null), factory);
+					return adaptRawRelationships(securityContext, template.getTarget().getRawSource(securityContext, node.getNode(), null));
 				}
 			},
 
@@ -280,5 +254,54 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 	public Relation getRelation() {
 
 		return null;
+	}
+
+	// ----- private methods -----
+	/**
+	 * Adapts what an endpoint returns as its raw relationships into a single relationship object: the
+	 * only one for a single-valued end, the first one for a many-valued end, null when there is none.
+	 */
+	private static RelationshipInterface adaptRawRelationship(final SecurityContext securityContext, final Object rawRelationships) {
+
+		final RelationshipFactory factory = new RelationshipFactory(securityContext);
+
+		if (rawRelationships instanceof Relationship relationship) {
+
+			return factory.adapt(relationship);
+		}
+
+		if (rawRelationships instanceof Iterable iterable) {
+
+			final Iterator iterator = iterable.iterator();
+			if (iterator.hasNext()) {
+
+				return factory.adapt((Relationship)iterator.next());
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Adapts what an endpoint returns as its raw relationships into an iterable of relationship objects.
+	 * The shape depends on the cardinality of that end: a ManyEndpoint/ManyStartpoint yields an iterable,
+	 * a OneEndpoint/OneStartpoint a single relationship or null. Assuming the "many" shape here used to
+	 * fail with a ClassCastException for every relationship type with a single-valued end.
+	 */
+	private static Iterable<RelationshipInterface> adaptRawRelationships(final SecurityContext securityContext, final Object rawRelationships) {
+
+		final RelationshipFactory factory = new RelationshipFactory(securityContext);
+
+		if (rawRelationships instanceof Iterable iterable) {
+
+			return new IterableAdapter<>(iterable, factory);
+		}
+
+		if (rawRelationships instanceof Relationship relationship) {
+
+			return List.of(factory.adapt(relationship));
+		}
+
+		return List.of();
 	}
 }

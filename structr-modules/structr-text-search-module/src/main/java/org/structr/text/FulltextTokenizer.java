@@ -33,6 +33,12 @@ import java.util.Set;
  */
 public class FulltextTokenizer extends Writer {
 
+	// @code-quality:accept - last reviewed 2026-08-14. A tokenizer is hand-rolled string parsing by
+	// definition: it is a Writer that splits an incoming character stream into words, so charAt,
+	// StringBuilder and index arithmetic are what it does. It also cannot be expressed as a regex
+	// split -- write() is fed in arbitrary chunks, so word boundaries have to be tracked across
+	// calls, which is exactly what the character-at-a-time state machine below does.
+
 	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
 	private final StringBuilder rawText    = new StringBuilder();

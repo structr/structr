@@ -24,6 +24,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.RelationshipType;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
@@ -41,6 +47,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
+import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
@@ -2179,6 +2186,185 @@ public class BasicTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void testSingleRelationshipWithInconsistentCardinality() {
+
+		// Cardinality is enforced when writing through Structr, so a one-to-one property can only ever
+		// end up with several relationships when the graph is modified elsewhere. Reading such a node
+		// must still work (and report the anomaly), not fail.
+
+		final String relationshipType = "SixOneOneToOne";
+		String sixUuid                = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testSix = createTestNode("TestSix");
+			final NodeInterface first   = createTestNode("TestOne");
+			final NodeInterface second  = createTestNode("TestOne");
+
+			sixUuid = testSix.getUuid();
+
+			// one relationship through Structr
+			app.create(testSix, first, relationshipType);
+
+			// a second one behind Structr's back, i.e. what an external write would leave behind
+			final Node sixNode    = testSix.getNode();
+			final Node secondNode = second.getNode();
+
+			sixNode.createRelationshipTo(secondNode, RelationshipType.forName("ONE_TO_ONE"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testSix          = app.getNodeById("TestSix", sixUuid);
+			final PropertyKey<NodeInterface> key = Traits.of("TestSix").key("oneToOneTestSix");
+
+			assertEquals("Both relationships must be present in the graph", 2, Iterables.count(testSix.getNode().getRelationships(Direction.OUTGOING, RelationshipType.forName("ONE_TO_ONE"))));
+
+			// reading the single-valued property returns one of them instead of failing
+			assertNotNull("Reading a one-to-one property must work despite the extra relationship", testSix.getProperty(key));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testRelationshipAccessorsForBothCardinalities() {
+
+		// The relationship accessors resolve the relationship type at runtime, so they must work for
+		// every cardinality: a many-valued end returns an iterable, a single-valued one a relationship.
+		// Assuming either shape used to throw a ClassCastException for half of the relationship types.
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface six = createTestNode("TestSix");
+			final NodeInterface one = createTestNode("TestOne");
+
+			// many-to-many: both ends are many-valued
+			app.create(six, one, "SixOneManyToMany");
+
+			assertNotNull("Singular accessor must work for a many-valued end", one.getIncomingRelationship("SixOneManyToMany"));
+			assertNotNull("Singular accessor must work for a many-valued end", six.getOutgoingRelationship("SixOneManyToMany"));
+			assertNotNull("Singular accessor must work for a many-valued end", one.getIncomingRelationshipAsSuperUser("SixOneManyToMany"));
+			assertNotNull("Singular accessor must work for a many-valued end", six.getOutgoingRelationshipAsSuperUser("SixOneManyToMany"));
+
+			assertEquals("Plural accessor must work for a many-valued end", 1, Iterables.count(six.getOutgoingRelationships("SixOneManyToMany")));
+			assertEquals("Plural accessor must work for a many-valued end", 1, Iterables.count(one.getIncomingRelationships("SixOneManyToMany")));
+
+			// one-to-one: both ends are single-valued
+			app.create(six, one, "SixOneOneToOne");
+
+			assertNotNull("Singular accessor must work for a single-valued end", one.getIncomingRelationship("SixOneOneToOne"));
+			assertNotNull("Singular accessor must work for a single-valued end", six.getOutgoingRelationship("SixOneOneToOne"));
+
+			assertEquals("Plural accessor must work for a single-valued end", 1, Iterables.count(six.getOutgoingRelationships("SixOneOneToOne")));
+			assertEquals("Plural accessor must work for a single-valued end", 1, Iterables.count(one.getIncomingRelationships("SixOneOneToOne")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testRelationDirectionForType() {
+
+		// The direction of a relation depends on which end a node type sits at. A type that only has the
+		// declared type as a trait sits at that end as well, and a type at neither end yields BOTH - which
+		// is also what a relationship type name (rather than a node type) resolves to.
+
+		try (final Tx tx = app.tx()) {
+
+			final Relation relation = Traits.of("SixOneOneToOne").getRelation();
+
+			assertNotNull("Expected to find the SixOneOneToOne relation", relation);
+			assertEquals("Source type must be TestSix", "TestSix", relation.getSourceType());
+			assertEquals("Target type must be TestOne", "TestOne", relation.getTargetType());
+
+			assertEquals("A node at the source end is OUTGOING", Direction.OUTGOING, relation.getDirectionForType("TestSix"));
+			assertEquals("A node at the target end is INCOMING", Direction.INCOMING, relation.getDirectionForType("TestOne"));
+			assertEquals("A type at neither end yields BOTH",    Direction.BOTH,     relation.getDirectionForType("TestThree"));
+
+			// the relationship type name is not a node type, so it sits at neither end
+			assertEquals("A relationship type yields BOTH", Direction.BOTH, relation.getDirectionForType("SixOneOneToOne"));
+
+			// getOtherType() follows the direction
+			assertEquals("The other type seen from the source end is the target type", "TestOne", relation.getOtherType("TestSix"));
+			assertEquals("The other type seen from the target end is the source type", "TestSix", relation.getOtherType("TestOne"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testRelationDirectionForInheritedType() {
+
+		// A relation declared for a type applies to the types built on it: a node whose type merely has
+		// the declared type as a trait still sits at that end, so the direction must be the same.
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base    = schema.addType("DirBase");
+			final JsonObjectType related = schema.addType("DirRelated");
+			final JsonObjectType derived = schema.addType("DirDerived");
+
+			derived.addTrait("DirBase");
+
+			base.relate(related, "DIR_TEST", Cardinality.OneToMany, "dirBase", "dirRelateds");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Relation relation = Traits.of("DirBaseDIR_TESTDirRelated").getRelation();
+
+			assertNotNull("Expected to find the DIR_TEST relation", relation);
+
+			assertEquals("The declared source type is OUTGOING", Direction.OUTGOING, relation.getDirectionForType("DirBase"));
+			assertEquals("The declared target type is INCOMING", Direction.INCOMING, relation.getDirectionForType("DirRelated"));
+
+			// a type that has DirBase as a trait sits at the source end as well
+			assertEquals("A type with the source type as a trait is OUTGOING", Direction.OUTGOING, relation.getDirectionForType("DirDerived"));
+			assertEquals("The other type is resolved for the inherited type too", "DirRelated", relation.getOtherType("DirDerived"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----

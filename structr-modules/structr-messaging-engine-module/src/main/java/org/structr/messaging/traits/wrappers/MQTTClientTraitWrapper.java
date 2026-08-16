@@ -126,7 +126,7 @@ public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements
 			List<MessageSubscriber> subs = Iterables.toList(this.getSubscribers());
 			String[] topics = new String[subs.size()];
 
-			for (int i = 0; i < subs.size(); i++) {
+			for (int i = 0, len = subs.size(); i < len; i++) {
 
 				topics[i] = subs.get(i).getTopic();
 			}

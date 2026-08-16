@@ -49,6 +49,9 @@ import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
 
+// @code-quality:accept -- build-time tool, run by the JDK source launcher from the Maven build
+// (see structr-app/pom.xml). It has no logging framework on its class path and its diagnostics are
+// meant for the build console, so System.out/err is its output channel, not a logging mistake.
 public class ModulePathPartitioner {
 
     public static void main(String[] args) throws Exception {

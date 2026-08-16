@@ -26,7 +26,6 @@ import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.console.shell.*;
-import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.*;
@@ -44,18 +43,12 @@ import org.structr.web.maintenance.deploy.StorageConfigurationDeploymentHandler;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.schema.parser.ThumbnailPropertySourceGenerator;
 
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Set;
 
 /**
  */
 public class UiModule implements StructrModule {
-
-	static {
-
-		URL.setURLStreamHandlerFactory(new StructrURLStreamHandlerFactory());
-	}
 
 	@Override
 	public void onLoad() {

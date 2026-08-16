@@ -48,6 +48,8 @@ import java.util.*;
 
 /**
  * Base class for built-in functions.
+ *
+ * @code-quality:accept - last reviewed 2026-08-11
  */
 public abstract class Function<S, T> extends BuiltinFunctionHint {
 

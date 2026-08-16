@@ -114,8 +114,10 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 			ac.setConstant("topic", topic);
 			ac.setConstant("message", message);
 
-			// FIXME: the code source in this call should be the schema method that this subscriber was compiled from.
-			Scripting.evaluate(ac, this, script, "onMessage", null);
+			// The code source identifies the node the script came from, so that a scripting error names it
+			// (see Scripting.reportError). The callback is a property of this subscriber, not a separate
+			// schema method, so the subscriber itself is the source.
+			Scripting.evaluate(ac, this, script, "onMessage", getUuid());
 		}
 
 		return new RestMethodResult(200);

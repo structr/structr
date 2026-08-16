@@ -260,9 +260,23 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 				// apply notion if the property set contains the ID property as the only element
 				if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
-					logger.error("No implementation found");
-					// FIXME: what happens here?
-					Thread.dumpStack();
+					// The property set identifies an existing object rather than describing a new one (with the
+					// default ObjectNotion that is { "id": "..." }), so let the notion resolve it and link the
+					// two nodes. The notion reports an unresolvable or mistyped identifier as a 422 itself.
+					final Object identifier = propertySet.get(primaryPropertyKey.jsonName());
+					final Object resolved   = notion.getAdapterForSetter(securityContext).adapt(identifier);
+
+					if (resolved instanceof NodeInterface relatedNode) {
+
+						// Repeating this request adds no second relationship: ManyEndpoint.set() subtracts the
+						// already linked nodes from the ones to create, and a single-valued property replaces.
+						relationProperty.addSingleElement(securityContext, (NodeInterface) sourceEntity, relatedNode);
+
+						// no node was created, only the relationship, so this is not a 201 with a Location header
+						return new RestMethodResult(HttpServletResponse.SC_OK);
+					}
+
+					throw new FrameworkException(422, "Unable to resolve " + relatedType + " from " + primaryPropertyKey.jsonName() + " " + identifier);
 
 				} else {
 
@@ -321,6 +335,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 			return Set.of("DELETE", "GET", "OPTIONS", "PUT", "POST");
 		}
+
 	}
 
 }

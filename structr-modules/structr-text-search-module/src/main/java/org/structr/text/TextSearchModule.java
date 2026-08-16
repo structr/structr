@@ -37,6 +37,12 @@ import java.util.Set;
  */
 public class TextSearchModule implements FulltextIndexer, StructrModule {
 
+	// @code-quality:accept - last reviewed 2026-08-14. The findings all sit in getContextObject(),
+	// which builds the keyword-in-context snippet around a search hit: from the match position it
+	// walks backwards and forwards character by character to word and line boundaries. That is
+	// inherently indexed character scanning, and the nesting is one loop per direction inside the
+	// loop over matches. See FulltextTokenizer for the same reasoning on the tokenizer itself.
+
 	private static final GenericProperty contextKey = new GenericProperty("context");
 
 	@Override
@@ -232,7 +238,7 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 			} else {
 
-				throw new FrameworkException(422, "Module-specific feature {} needs argument \"language\".");
+				throw new FrameworkException(422, "Module-specific feature " + name + " needs argument \"language\".");
 			}
 		}
 

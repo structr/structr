@@ -25,7 +25,7 @@ public enum FunctionCategory implements Category {
 	AccessControl("Access Control", "Functions for controlling security and access control features of nodes."),
 	Collection("Collection", null),
 	Conversion("Conversion", null),
-	Database("Database", "Database functions for database use.. FIXME"),
+	Database("Database", "Functions that operate on the graph directly: queries, Cypher, transactions, labels and relationships."),
 	Predicate("Predicate", ""),
 	EMail("EMail", ""),
 	Geocoding("Geocoding", ""),

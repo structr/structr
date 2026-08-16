@@ -117,7 +117,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			OdfDocument text = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 			NodeList nodes = text.getContentRoot().getElementsByTagName(ODT_FIELD_TAG_NAME);
 
-			for (int i = 0; i < nodes.getLength(); i++) {
+			for (int i = 0, len = nodes.getLength(); i < len; i++) {
 
 				Node currentNode = nodes.item(i);
 				NamedNodeMap attrs = currentNode.getAttributes();

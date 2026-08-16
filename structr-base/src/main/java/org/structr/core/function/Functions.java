@@ -42,6 +42,7 @@ import org.structr.schema.action.Function;
 
 import java.text.Normalizer;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -315,6 +316,53 @@ public class Functions {
 		return root.evaluate(actionContext, entity);
 	}
 
+	/**
+	 * The replacements cleanString() applies, in order. Compiled once: the method runs for every name that
+	 * is cleaned (data sources, the clean() function), and String.replaceAll() would compile each of these
+	 * patterns again on every call.
+	 */
+	private static final List<Map.Entry<Pattern, String>> CLEAN_REPLACEMENTS = List.of(
+		Map.entry(Pattern.compile("ü"), "ue"),
+		Map.entry(Pattern.compile("ö"), "oe"),
+		Map.entry(Pattern.compile("ä"), "ae"),
+		Map.entry(Pattern.compile("ß"), "ss"),
+		Map.entry(Pattern.compile("Ü(?=[a-zäöüß ])"), "Ue"),
+		Map.entry(Pattern.compile("Ö(?=[a-zäöüß ])"), "Oe"),
+		Map.entry(Pattern.compile("Ä(?=[a-zäöüß ])"), "Ae"),
+		Map.entry(Pattern.compile("Ü"), "UE"),
+		Map.entry(Pattern.compile("Ö"), "OE"),
+		Map.entry(Pattern.compile("Ä"), "AE"),
+		Map.entry(Pattern.compile("\\<"), ""),
+		Map.entry(Pattern.compile("\\>"), ""),
+		Map.entry(Pattern.compile("\\."), ""),
+		Map.entry(Pattern.compile("\\'"), "-"),
+		Map.entry(Pattern.compile("\\?"), ""),
+		Map.entry(Pattern.compile("\\("), ""),
+		Map.entry(Pattern.compile("\\)"), ""),
+		Map.entry(Pattern.compile("\\{"), ""),
+		Map.entry(Pattern.compile("\\}"), ""),
+		Map.entry(Pattern.compile("\\["), ""),
+		Map.entry(Pattern.compile("\\]"), ""),
+		Map.entry(Pattern.compile("\\+"), "-"),
+		Map.entry(Pattern.compile("/"), "-"),
+		Map.entry(Pattern.compile("–"), "-"),
+		Map.entry(Pattern.compile("\\\\"), "-"),
+		Map.entry(Pattern.compile("\\|"), "-"),
+		Map.entry(Pattern.compile("'"), "-"),
+		Map.entry(Pattern.compile("!"), ""),
+		Map.entry(Pattern.compile(","), ""),
+		Map.entry(Pattern.compile("-"), " "),
+		Map.entry(Pattern.compile("_"), " "),
+		Map.entry(Pattern.compile("_"), " "),
+		Map.entry(Pattern.compile("`"), "-")
+	);
+
+	private static final Pattern CLEAN_DASH        = Pattern.compile("-");
+	private static final Pattern CLEAN_NON_ASCII   = Pattern.compile("[^\\p{ASCII}]");
+	private static final Pattern CLEAN_PUNCTUATION = Pattern.compile("\\p{P}");
+	private static final Pattern CLEAN_DASH_RUN    = Pattern.compile("\\-(\\s+\\-)+");
+	private static final Pattern CLEAN_SPACE       = Pattern.compile(" ");
+
 	public static String cleanString(final Object input) {
 
 		if (input == null) {
@@ -322,46 +370,22 @@ public class Functions {
 			return "";
 		}
 
-		String normalized = input.toString()
-			.replaceAll("ü", "ue")
-			.replaceAll("ö", "oe")
-			.replaceAll("ä", "ae")
-			.replaceAll("ß", "ss")
-			.replaceAll("Ü(?=[a-zäöüß ])", "Ue")
-			.replaceAll("Ö(?=[a-zäöüß ])", "Oe")
-			.replaceAll("Ä(?=[a-zäöüß ])", "Ae")
-			.replaceAll("Ü", "UE")
-			.replaceAll("Ö", "OE")
-			.replaceAll("Ä", "AE")
-			.replaceAll("\\<", "")
-			.replaceAll("\\>", "")
-			.replaceAll("\\.", "")
-			.replaceAll("\\'", "-")
-			.replaceAll("\\?", "")
-			.replaceAll("\\(", "")
-			.replaceAll("\\)", "")
-			.replaceAll("\\{", "")
-			.replaceAll("\\}", "")
-			.replaceAll("\\[", "")
-			.replaceAll("\\]", "")
-			.replaceAll("\\+", "-")
-			.replaceAll("/", "-")
-			.replaceAll("–", "-")
-			.replaceAll("\\\\", "-")
-			.replaceAll("\\|", "-")
-			.replaceAll("'", "-")
-			.replaceAll("!", "")
-			.replaceAll(",", "")
-			.replaceAll("-", " ")
-			.replaceAll("_", " ").replaceAll("_", " ")
-			.replaceAll("`", "-");
+		String normalized = input.toString();
+
+		for (final Map.Entry<Pattern, String> replacement : CLEAN_REPLACEMENTS) {
+
+			normalized = replacement.getKey().matcher(normalized).replaceAll(replacement.getValue());
+		}
 
 		normalized = Normalizer.normalize(normalized, Normalizer.Form.NFD);
 
-		String result = normalized.replaceAll("-", " ");
+		String result = CLEAN_DASH.matcher(normalized).replaceAll(" ");
+
 		result = StringUtils.normalizeSpace(result.toLowerCase());
-		result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
-		result = result.replaceAll(" ", "-");
+		result = CLEAN_NON_ASCII.matcher(result).replaceAll("");
+		result = CLEAN_PUNCTUATION.matcher(result).replaceAll("-");
+		result = CLEAN_DASH_RUN.matcher(result).replaceAll("-");
+		result = CLEAN_SPACE.matcher(result).replaceAll("-");
 
 		return result;
 	}

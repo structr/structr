@@ -415,7 +415,7 @@ public abstract class PolyglotWrapper {
 
 		final List<Object> unwrappedList = new ArrayList<>();
 
-		for (int i = 0; i < proxyArray.getSize(); i++) {
+		for (long i = 0, len = proxyArray.getSize(); i < len; i++) {
 
 			unwrappedList.add(PolyglotWrapper.unwrap(actionContext, proxyArray.get(i)));
 		}

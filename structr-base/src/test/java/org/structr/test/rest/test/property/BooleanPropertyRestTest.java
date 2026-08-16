@@ -64,4 +64,55 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 			.put("/TestThree/" + uuid);
 
 	}
+
+	@Test
+	public void testInputTypes() {
+
+		// Every spelling of a boolean is accepted, in JSON and in its textual form. An input that is not a
+		// boolean at all is rejected: it says nothing about which value was meant, so silently storing
+		// false would be a guess.
+
+		for (final String accepted : new String[] { "true", "'true'", "'True'", "'on'", "'1'", "1" }) {
+
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(" { 'booleanProperty' : " + accepted + " } ")
+			.expect()
+				.statusCode(201)
+			.when()
+				.post("/TestThree");
+		}
+
+		for (final String accepted : new String[] { "false", "'false'", "'off'", "'0'", "0", "''" }) {
+
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(" { 'booleanProperty' : " + accepted + " } ")
+			.expect()
+				.statusCode(201)
+			.when()
+				.post("/TestThree");
+		}
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result.findAll { it.booleanProperty == true }.size()",  equalTo(6))
+			.body("result.findAll { it.booleanProperty == false }.size()", equalTo(6))
+		.when()
+			.get("/TestThree");
+
+		// a blank value is treated as "not given", anything else is an error instead of a silent false
+		for (final String rejected : new String[] { "'banana'", "2", "'yes'", "[]", "{}" }) {
+
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(" { 'booleanProperty' : " + rejected + " } ")
+			.expect()
+				.statusCode(422)
+			.when()
+				.post("/TestThree");
+		}
+	}
 }

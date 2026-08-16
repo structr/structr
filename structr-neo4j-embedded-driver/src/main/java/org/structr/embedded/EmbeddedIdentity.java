@@ -55,12 +55,26 @@ public class EmbeddedIdentity implements Identity<String> {
 		return id.hashCode();
 	}
 
+	/**
+	 * A 64-bit hash of the element id. The other drivers can return their numeric id here (see
+	 * BoltIdentity and MemoryIdentity), this one identifies elements by string, so the value has to be
+	 * derived. String.hashCode() would only fill 32 of the 64 bits and collide accordingly - the value
+	 * keys the modification state of a transaction (ModificationQueue), where a collision would merge
+	 * two different elements. It is never persisted, so the algorithm can change at any time.
+	 */
 	@Override
 	public long hash() {
 
-		// FIXME: this is the only place where we need the actual long value
+		// FNV-1a, 64 bit
+		long hash = 0xcbf29ce484222325L;
 
-		return id.hashCode();
+		for (int i = 0, len = id.length(); i < len; i++) {
+
+			hash ^= id.charAt(i);
+			hash *= 0x100000001b3L;
+		}
+
+		return hash;
 	}
 
 	// ----- interface Identity -----

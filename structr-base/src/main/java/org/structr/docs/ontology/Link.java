@@ -126,7 +126,9 @@ public class Link {
 
 		} else {
 
-			// FIXME: which concept does the format live on?
+			// The target: a fact reads "<source> <verb> <target> as <format>", so the format belongs to the
+			// object of the fact. The parser reads it from that side as well (see FactToken/FactsToken,
+			// which take the format specification from the annotated object).
 			final Concept concept = target;
 
 			// we need to create a new token in the source file

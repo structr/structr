@@ -46,6 +46,9 @@ import java.util.ServiceLoader;
  * providers). We deliberately do NOT instantiate arbitrary providers (Kafka/Pulsar/etc. have heavy or
  * blocking constructors).
  */
+// @code-quality:accept -- build-time tool, run by the JDK source launcher from the Maven build
+// (see structr-app/pom.xml). It has no logging framework on its class path and its diagnostics are
+// meant for the build console, so System.out/err is its output channel, not a logging mistake.
 public class SpiPreflight {
 
 	// Eagerly-scanned SPI categories: one failing provider breaks the entire scan for all consumers.

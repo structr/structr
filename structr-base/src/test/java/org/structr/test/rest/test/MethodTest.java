@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -281,7 +282,7 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("test", "methodParameters")
+			base.addMethod("test", "'called'")
 				.addParameter("name", "String")
 				.addParameter("key", "int")
 				.addParameter("map", "Map")
@@ -301,15 +302,42 @@ public class MethodTest extends StructrRestTestBase {
 
 		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
 
-		// FIXME: this test doesn't test anything yet..
+		// A declared parameter is converted to its declared type before the method runs, so a value that
+		// cannot be converted is rejected. StructrScript method bodies cannot read the parameters by name
+		// (methodParameters and $.args are JavaScript bindings), which is why the conversion is observed
+		// through its errors rather than through the returned values.
 
-		// test inherited methods
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.body("{ data: '2023-01-05T22:00:00+0000', name: 'Test', key: 3, map: { m: 'test' }, set: [1, 2, 3], list: [{ id: 25, name: 'aaa' }] }")
+				.body("{ date: '2023-01-05T22:00:00+0000', name: 'Test', key: 3, map: { m: 'test' }, set: [1, 2, 3], list: [{ id: 25, name: 'aaa' }] }")
 			.expect()
 				.statusCode(200)
+			.when()
+				.post("/BaseType/" + base + "/test");
+
+		// an int parameter that is not a number
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ key: 'not-an-int' }")
+			.expect()
+				.statusCode(422)
+				.body("code",    equalTo(422))
+				.body("message", containsString("Cannot parse input for"))
+				.body("message", containsString("key"))
+				.body("message", containsString("BaseType.test"))
+			.when()
+				.post("/BaseType/" + base + "/test");
+
+		// a Date parameter that is not a date
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ date: 'not-a-date' }")
+			.expect()
+				.statusCode(422)
+				.body("code", equalTo(422))
 			.when()
 				.post("/BaseType/" + base + "/test");
 	}
@@ -586,6 +614,86 @@ public class MethodTest extends StructrRestTestBase {
 				.get("/BaseType/" + base + "/test1//two");
 				// RestAssured translates this to /test1%2f/two - this will fail as soon as these escape characters are not interpreted as actual slashes anymore (for a solution, see DynamicPathsTest)
 				// In DynamicPathsTest we use raw HttpRequest to allow us to request such seemingly "broken" resources
+	}
+
+	@Test
+	public void testPatchMethodWithMultiplePropertySets() {
+
+		// A PATCH body may be a JSON array, so the handler receives a list of property sets. A method
+		// call is a single operation, so exactly one set is required: neither an empty body nor several
+		// sets may be reduced to "the first one" silently.
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("BaseType");
+
+			base.addMethod("patchTest", "{ return $.methodParameters.name; }").setHttpVerb("PATCH");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		// a single property set is passed to the method as its arguments
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ name: 'first' }")
+			.expect()
+				.statusCode(200)
+				.body("result", equalTo("first"))
+			.when()
+				.patch("/BaseType/" + base + "/patchTest");
+
+		// an array with one property set behaves the same
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("[ { name: 'first' } ]")
+			.expect()
+				.statusCode(200)
+				.body("result", equalTo("first"))
+			.when()
+				.patch("/BaseType/" + base + "/patchTest");
+
+		// a body without a property set is rejected, not answered with a 500 from a failed get(0)
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("[ ]")
+			.expect()
+				.statusCode(422)
+				.body("message", equalTo("PATCH on /BaseType/" + base + "/patchTest requires a property set, found none"))
+			.when()
+				.patch("/BaseType/" + base + "/patchTest");
+
+		// several property sets are rejected as well, rather than dropping all but the first
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("[ { name: 'first' }, { name: 'second' } ]")
+			.expect()
+				.statusCode(422)
+				.body("message", equalTo("PATCH on /BaseType/" + base + "/patchTest takes a single property set, found 2"))
+			.when()
+				.patch("/BaseType/" + base + "/patchTest");
+
+		// an empty body still means "no arguments", as before
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+			.when()
+				.patch("/BaseType/" + base + "/patchTest");
 	}
 
 }

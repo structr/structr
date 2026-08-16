@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
@@ -45,6 +47,8 @@ import java.util.Set;
  */
 public abstract class AbstractEndpoint {
 
+	private static final Logger logger = LoggerFactory.getLogger(AbstractEndpoint.class);
+
 	private final String propertyName;
 
 	public AbstractEndpoint(final String propertyName) {
@@ -62,10 +66,20 @@ public abstract class AbstractEndpoint {
 		final Iterable<Relationship> relationships = getMultiple(securityContext, dbNode, relationshipType, direction, otherNodeType, null);
 		final Iterator<Relationship> iterator      = relationships.iterator();
 
-		// FIXME: this returns only the first relationship that matches, i.e. there is NO check for multiple relationships
 		if (iterator.hasNext()) {
 
-			return iterator.next();
+			final Relationship relationship = iterator.next();
+
+			// Cardinality is enforced when writing: Relation.ensureCardinality() removes an existing
+			// relationship before the new one is created, so more than one here means the graph was
+			// modified outside of Structr. Reading must not fail on that, but it must not hide it either.
+			if (iterator.hasNext()) {
+
+				logger.warn("Found more than one {} relationship for node {} where the schema allows a single one, returning the first. Property: {}",
+					relationshipType.name(), dbNode.getId(), getPropertyName());
+			}
+
+			return relationship;
 		}
 
 		return null;

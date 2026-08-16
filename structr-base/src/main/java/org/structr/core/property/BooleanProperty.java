@@ -18,11 +18,14 @@
  */
 package org.structr.core.property;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PropertyInputParsingException;
+import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.docs.DocumentableType;
@@ -38,7 +41,9 @@ import java.util.Set;
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 	private static final Logger logger = LoggerFactory.getLogger(BooleanProperty.class.getName());
-	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
+	private static final Set<String> TRUE_VALUES     = new LinkedHashSet<>(Arrays.asList("true", "1", "on"));
+	private static final Set<String> FALSE_VALUES    = new LinkedHashSet<>(Arrays.asList("false", "0", "off"));
+	private static final Set<String> ACCEPTED_VALUES = new LinkedHashSet<>(Arrays.asList("true", "false", "1", "0", "on", "off"));
 
 	public BooleanProperty(final String name) {
 
@@ -228,29 +233,44 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		}
 
 		@Override
-		public Boolean convert(final Object source) {
+		public Boolean convert(final Object source) throws FrameworkException {
 
-			boolean returnValue = false;
+			// no value means false, as everywhere else for a boolean
+			if (source == null) {
 
-			// FIXME: be more strict when dealing with "wrong" input types
-			if (source != null) {
-
-				if (source instanceof Boolean) {
-
-					return (Boolean)source;
-				}
-
-				if (source instanceof String) {
-
-					// don't log this
-					// logger.warn("Wrong input type for {}. Expected: {}, found: {}", jsonName, Boolean.class.getName(), source.getClass().getName());
-
-					returnValue = TRUE_VALUES.contains(source.toString().toLowerCase());
-
-				}
+				return false;
 			}
 
-			return returnValue;
+			if (source instanceof Boolean booleanValue) {
+
+				return booleanValue;
+			}
+
+			// Accept the textual and numerical spellings of both values, i.e. "true"/"on"/"1"/1 and their
+			// counterparts. Anything else is rejected instead of silently becoming false: an input that is
+			// not a boolean at all says nothing about which value was meant (see PropertyInputParsingException
+			// for the same treatment of unparsable numbers in IntProperty).
+			final String stringValue = source.toString().toLowerCase();
+
+			// A blank string means "no value given", the same way IntProperty ignores blank input. This is
+			// deliberately limited to strings: an object or array whose textual form happens to be empty is
+			// still the wrong type, not an omitted value.
+			if (source instanceof String && StringUtils.isBlank(stringValue)) {
+
+				return false;
+			}
+
+			if (TRUE_VALUES.contains(stringValue)) {
+
+				return true;
+			}
+
+			if (FALSE_VALUES.contains(stringValue)) {
+
+				return false;
+			}
+
+			throw new PropertyInputParsingException(BooleanProperty.this.jsonName(), new ValueToken(declaringTrait.getLabel(), BooleanProperty.this.jsonName(), ACCEPTED_VALUES));
 		}
 	}
 }

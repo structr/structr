@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -264,6 +265,13 @@ public class EAMParameterMappingTest extends StructrUiTest {
 
 		// Without a CSS id, fall back to the id(uuid) form.
 		assertEquals("UserInput without CSS id: data-my-param must use id(uuid) selector", "id(" + inputUuid[0] + ")", attrs.get("data-my-param"));
+
+		// The id(uuid) form is only resolvable by the frontend if the input element itself renders
+		// data-structr-id, which it does because it is the input source of a parameter mapping.
+		final Element input = doc.selectFirst("input");
+
+		assertNotNull("UserInput without CSS id: input element must be rendered", input);
+		assertEquals("UserInput without CSS id: input element must render data-structr-id so that id(uuid) can be resolved", inputUuid[0], getAttributes(input).get("data-structr-id"));
 	}
 
 	// -----------------------------------------------------------------------

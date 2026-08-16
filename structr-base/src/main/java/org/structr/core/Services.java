@@ -69,6 +69,8 @@ import java.util.stream.Collectors;
 
 public class Services implements StructrServices, BroadcastReceiver {
 
+	// @code-quality:accept - last reviewed 2026-08-11
+
 	private static final Logger logger                 = LoggerFactory.getLogger(Services.class.getName());
 
 	// singleton instance
@@ -1506,7 +1508,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				} catch (Exception ex) {
 
-					ex.printStackTrace();
+					logger.error("Error while broadcasting to cluster", ex);
 				}
 
 			} else {
@@ -1530,7 +1532,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.error("Error while broadcasting login to cluster", t);
 		}
 	}
 
@@ -1542,19 +1544,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-		}
-	}
-
-	public void broadcastSchemaChange() {
-
-		try {
-
-			Services.getInstance().broadcastMessageToCluster("schema-changed", null);
-
-		} catch (Throwable t) {
-
-			t.printStackTrace();
+			logger.error("Error while broadcasting logout to cluster", t);
 		}
 	}
 
@@ -1566,7 +1556,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.error("Error while broadcasting startup complete to cluster", t);
 		}
 	}
 

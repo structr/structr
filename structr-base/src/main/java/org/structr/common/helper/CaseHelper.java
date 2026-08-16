@@ -32,6 +32,11 @@ import java.util.stream.Collectors;
  */
 public class CaseHelper {
 
+	// @code-quality:accept - last reviewed 2026-08-14. Case conversion IS character-level string
+	// handling: charAt/substring/StringBuilder in a loop is the implementation, not a smell, and
+	// there is nothing to extract or delegate to. The equals("y")/equals("s") receivers are
+	// substring() results, so they are never null.
+
 	public static String toUpperCamelCase(final String input) {
 
 		return WordUtils.capitalize(input, new char[] { '_' }).replaceAll("_", "");
@@ -87,7 +92,7 @@ public class CaseHelper {
 
 		StringBuilder out = new StringBuilder();
 
-		for (int i = 0; i < input.length(); i++) {
+		for (int i = 0, len = input.length(); i < len; i++) {
 
 			char c = input.charAt(i);
 			if (Character.isUpperCase(c)) {
@@ -99,6 +104,9 @@ public class CaseHelper {
 					nextCharacter = input.charAt(i + 1);
 
 				} catch (IndexOutOfBoundsException ex) {
+
+					// end of input: nextCharacter stays 0, which is not uppercase, so the last
+					// character takes the "not followed by an uppercase letter" branch below.
 				}
 
 				Boolean nextCharacterIsUpperCase = Character.isUpperCase(nextCharacter);

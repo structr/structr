@@ -111,52 +111,6 @@ public final class Concept implements Comparable<Concept> {
 		return ontology;
 	}
 
-	/*
-	public void createSymmetricLink(final Verb verb, final Concept annotatedConcept) {
-
-		final Concept concept = annotatedConcept.getConcept();
-		final String ltr      = verb.getLeftToRight();
-		final String rtl      = verb.getRightToLeft();
-
-		if (!this.equals(concept)) {
-
-			if (!hasChild(ltr, concept)) {
-
-				children.computeIfAbsent(ltr, key -> new AnnotatedConceptList(null)).add(annotatedConcept);
-			}
-
-			if (!concept.hasParent(rtl, this)) {
-
-				//concept.parents.computeIfAbsent(rtl, key -> new LinkedList<>()).add(new Concept(this, annotatedConcept.getAnnotations()));
-				// FIXME
-				concept.parents.computeIfAbsent(rtl, key -> new AnnotatedConceptList(null)).add(new Concept(this));
-			}
-		}
-	}
-
-	public void createSymmetricLink(final Verb verb, final AnnotatedConceptList annotatedConcepts) {
-
-		final String ltr = verb.getLeftToRight();
-		final String rtl = verb.getRightToLeft();
-
-		if (children.containsKey(ltr)) {
-			children.get(ltr).addAll(annotatedConcepts);
-		} else {
-			children.put(ltr, annotatedConcepts);
-		}
-
-		for (final Concept annotatedConcept : annotatedConcepts) {
-
-			final Concept concept = annotatedConcept.getConcept();
-
-			if (!concept.hasParent(rtl, this)) {
-
-				concept.parents.computeIfAbsent(rtl, key -> new AnnotatedConceptList(null)).addAll(new Concept(annotatedConcepts));
-			}
-		}
-	}
-	*/
-
 	public List<Concept> getChildren(final Verb verb) {
 
 		final List<Concept> result = new LinkedList<>();

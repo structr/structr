@@ -43,6 +43,11 @@ import java.util.regex.Pattern;
  */
 public class Settings {
 
+	// @code-quality:accept - last reviewed 2026-08-14. Almost the whole score is long_lines: every
+	// setting is one declaration line, with the group, the key, the default and the help text lined
+	// up in columns. Wrapping them would trade the alignment that makes 300+ settings scannable for
+	// a number in a report. The remaining flags are the config file I/O at the bottom of the class.
+
 	private static String uuidOnlyRegex;
 	private static String uuidPartRegex;
 	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);
@@ -657,6 +662,17 @@ public class Settings {
 	public static final Setting<Integer> PasswordForceChangeReminder         = new IntegerSetting(securityGroup, "Password Policy", "security.passwordpolicy.remindtime",                          14,    "The number of days (before the user must change the password) where a warning should be issued. (Has to be handled in application code)");
 	public static final Setting<Integer> PasswordAttempts                    = new IntegerSetting(securityGroup, "Password Policy", "security.passwordpolicy.maxfailedattempts",                   4,     "The maximum number of failed login attempts before a user is blocked. (Can be disabled by setting to zero or a negative number)");
 	public static final Setting<Boolean> PasswordResetFailedCounterOnPWReset = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.resetFailedAttemptsOnPasswordReset",  true,  "Configures if resetting the users password also resets the failed login attempts counter");
+
+	public static final Setting<Integer> PasswordHashArgon2idMemory       = new IntegerSetting(securityGroup, "Password Hash", "security.passwordhash.memory", 65536,    "This setting controls the memory size for Argon2id. The unit is KB. Each verification of a password uses this amount of RAM.")
+																					   .setLongDescription("The default value is 65536 KB (64 MB). The OWASP minimum recommendation is 19 MB.<br><br>A change to this setting only affects new password hashes. It does not affect the verification of existing password hashes.");
+	public static final Setting<Integer> PasswordHashArgon2idIterations   = new IntegerSetting(securityGroup, "Password Hash", "security.passwordhash.iterations", 3,    "This setting controls the number of passes of Argon2id.")
+																					   .setLongDescription("The default value is 3. The OWASP minimum recommendation is 2.<br><br>A change to this setting only affects new password hashes. It does not affect the verification of existing password hashes.");
+	public static final Setting<Integer> PasswordHashArgon2idParallelism  = new IntegerSetting(securityGroup, "Password Hash", "security.passwordhash.parallelism", 1,   "This setting controls the number of parallel threads for Argon2id. Higher values can decrease the time for one verification. Higher values increase the CPU load during many parallel authentication requests.")
+																					   .setLongDescription("The default value is 1. This is also the OWASP minimum recommendation.<br><br>A change to this setting only affects new password hashes. It does not affect the verification of existing password hashes.");
+	public static final Setting<Integer> PasswordHashArgon2idHashLength   = new IntegerSetting(securityGroup, "Password Hash", "security.passwordhash.hashlength", 32,   "This setting controls the length of the Argon2id output. The unit is bytes. To get the value in bits, multiply by 8. The default value is 32 bytes (256 bits). This follows the Argon2 specification.")
+																					   .setLongDescription("A change to this setting only affects new password hashes. It does not affect the verification of existing password hashes.");
+	public static final Setting<Integer> PasswordHashArgon2idSaltLength   = new IntegerSetting(securityGroup, "Password Hash", "security.passwordhash.saltlength", 16,   "This setting controls the length of the salt value for Argon2id. The unit is bytes. To get the value in bits, multiply by 8. The default value is 16 bytes (128 bits). This follows the Argon2 specification.")
+																					   .setLongDescription("A change to this setting only affects new password hashes. It does not affect the verification of existing password hashes.");
 
 	public static final Setting<Boolean> PasswordComplexityEnforce                = new BooleanSetting(securityGroup, "Password Policy - Complexity", "security.passwordpolicy.complexity.enforce",                false, "Configures if password complexity is enforced for user passwords. If active, changes which violate the complexity rules, will result in an error and must be accounted for.");
 	public static final Setting<Integer> PasswordComplexityMinLength              = new IntegerSetting(securityGroup, "Password Policy - Complexity", "security.passwordpolicy.complexity.minlength",              8,     "The minimum length for user passwords (only active if the enforce setting is active)");

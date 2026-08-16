@@ -100,7 +100,13 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 						switch (key) {
 
 							case "values":
-								// FIXME: we need to get the channel input object in here somehow..
+								// Unfiltered, unsorted and unpaged: filter, sort order and page are not properties of
+								// the data source, they are assembled by ComponentConfiguration.getChannelInput() from
+								// the request parameters plus the page size and the data adapter of the component being
+								// rendered (see its callers). Only the node and the render context are available here,
+								// and the component the render context points at need not be the one this data source
+								// belongs to - applying that component's filter and paging to an unrelated channel would
+								// be worse than applying none.
 
 								return dataSource.getResult(renderContext);
 

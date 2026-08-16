@@ -26,6 +26,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.feed.traits.definitions.DataFeedTraitDefinition;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.feed.entity.FeedItem;
+import org.structr.feed.traits.definitions.FeedItemTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.testng.annotations.Test;
@@ -34,6 +39,7 @@ import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
@@ -148,5 +154,48 @@ public class FeedsTest extends StructrUiTest {
 			.when()
 				.get("/RemoteDocument");
 
+	}
+
+	@Test
+	public void testExtractedContentOfFeedItems() {
+
+		// The fulltext indexer stores the extracted text under the File key (FulltextIndexingAgent), for
+		// any node it is given - including feed items. getExtractedContent() has to read the same property.
+
+		final String[] uuid = new String[1];
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface item = app.create(StructrTraits.FEED_ITEM,
+				new NodeAttribute<>(Traits.of(StructrTraits.FEED_ITEM).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FEED_ITEM).key(FeedItemTraitDefinition.URL_PROPERTY), "http://localhost/item1")
+			);
+
+			uuid[0] = item.getUuid();
+
+			// this is what the indexing agent does
+			item.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), "the extracted text");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final FeedItem item = app.getNodeById(StructrTraits.FEED_ITEM, uuid[0]).as(FeedItem.class);
+
+			assertEquals("Extracted content must be readable through the accessor", "the extracted text", item.getExtractedContent());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }

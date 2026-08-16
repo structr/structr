@@ -41,7 +41,6 @@ import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
@@ -54,8 +53,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
@@ -67,7 +66,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.List;
 
 public abstract class ImageHelper extends FileHelper {
 
@@ -151,14 +150,12 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectThumbnails(final Image originalImage) {
 
-		final String thumbnailRel           = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
-		final Traits traits                 = Traits.of(StructrTraits.IMAGE);
-		final Property<Image> tnSmallKey    = (Property)traits.key(ImageTraitDefinition.TN_SMALL_PROPERTY);
-		final Property<Image> tnMidKey      = (Property)traits.key(ImageTraitDefinition.TN_MID_PROPERTY);
-		final PropertyKey<String> pathKey   = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
-		final App app                       = StructrApp.getInstance();
-		final Integer origWidth  = originalImage.getWidth();
-		final Integer origHeight = originalImage.getHeight();
+		final String thumbnailRel         = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
+		final Traits traits               = Traits.of(StructrTraits.IMAGE);
+		final PropertyKey<String> pathKey = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
+		final App app                     = StructrApp.getInstance();
+		final Integer origWidth           = originalImage.getWidth();
+		final Integer origHeight          = originalImage.getHeight();
 
 		if (origWidth == null || origHeight == null) {
 
@@ -170,21 +167,33 @@ public abstract class ImageHelper extends FileHelper {
 			return;
 		}
 
-		for (final Property tnProp : Set.of(tnSmallKey, tnMidKey)) {
+		final String originalFolderPath = PathHelper.getFolderPath(originalImage.getPath());
 
-			final ThumbnailProperty p = (ThumbnailProperty) tnProp;
-			int maxWidth  = p.getWidth();
-			int maxHeight = p.getHeight();
-			boolean crop  = p.getCrop();
-			final float scale = getScaleRatio(origWidth, origHeight, maxWidth, maxHeight, crop);
-			final String tnName = ImageHelper.getThumbnailName(originalImage.getName(), getThumbnailWidth(origWidth, scale), getThumbnailHeight(origHeight, scale));
+		for (final ThumbnailProperty spec : getThumbnailSpecs()) {
+
+			final String tnName = getExpectedThumbnailName(originalImage, spec);
+			if (tnName == null) {
+
+				continue;
+			}
 
 			try {
 
-				final Image thumbnail = (Image) app.nodeQuery(StructrTraits.IMAGE).key(pathKey, PathHelper.getFolderPath(originalImage.getPath()) + PathHelper.PATH_SEP + tnName).getFirst();
-				if (thumbnail != null) {
+				// Thumbnails live in the thumbnail folder mirroring the original's folder structure. Older
+				// data has them next to the original image, so that location is tried as a fallback.
+				NodeInterface thumbnail = app.nodeQuery(StructrTraits.IMAGE).key(pathKey, joinPath(Image.STRUCTR_THUMBNAIL_FOLDER, originalFolderPath, tnName)).getFirst();
+				if (thumbnail == null) {
 
-					app.create(originalImage, thumbnail, thumbnailRel);
+					thumbnail = app.nodeQuery(StructrTraits.IMAGE).key(pathKey, joinPath(originalFolderPath, tnName)).getFirst();
+				}
+
+				// A thumbnail can have only one incoming THUMBNAIL relationship (the source multiplicity is
+				// One), so connecting it a second time would silently replace the first connection. That
+				// happens when one thumbnail serves several specs, i.e. for images too small to be scaled
+				// down: the smallest spec wins, any other one recreates the thumbnail when it is requested.
+				if (thumbnail != null && thumbnail.getIncomingRelationship(thumbnailRel) == null) {
+
+					app.create(originalImage, thumbnail.as(Image.class), thumbnailRel, getThumbnailRelationshipProperties(originalImage, spec));
 				}
 
 			} catch (FrameworkException ex) {
@@ -205,17 +214,35 @@ public abstract class ImageHelper extends FileHelper {
 		try {
 
 			final App app = StructrApp.getInstance();
-			final Image originalImage = (Image) app.nodeQuery(StructrTraits.IMAGE).key(pathKey, PathHelper.getFolderPath(thumbnail.getPath()) + PathHelper.PATH_SEP + originalImageName).getFirst();
 
-			if (originalImage != null) {
+			// The original image sits in the folder the thumbnail's folder mirrors; for older data, where
+			// thumbnails are stored next to the original, that is the thumbnail's own folder.
+			final String thumbnailFolderPath = PathHelper.getFolderPath(thumbnail.getPath());
+			final String originalFolderPath  = stripThumbnailFolder(thumbnailFolderPath);
 
-				final PropertyMap relProperties = new PropertyMap();
+			NodeInterface originalNode = app.nodeQuery(StructrTraits.IMAGE).key(pathKey, joinPath(originalFolderPath, originalImageName)).getFirst();
+			if (originalNode == null && !originalFolderPath.equals(thumbnailFolderPath)) {
 
-				relProperties.put(traits.key(ImageTraitDefinition.WIDTH_PROPERTY),                  thumbnail.getWidth());
-				relProperties.put(traits.key(ImageTraitDefinition.HEIGHT_PROPERTY),                 thumbnail.getHeight());
-				relProperties.put(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY),               originalImage.getChecksum());
+				originalNode = app.nodeQuery(StructrTraits.IMAGE).key(pathKey, joinPath(thumbnailFolderPath, originalImageName)).getFirst();
+			}
 
-				app.create(originalImage, thumbnail, thumbnailRel, relProperties);
+			if (originalNode != null) {
+
+				final Image originalImage    = originalNode.as(Image.class);
+				final ThumbnailProperty spec = findMatchingThumbnailSpec(originalImage, thumbnail.getName());
+				if (spec != null) {
+
+					app.create(originalImage, thumbnail, thumbnailRel, getThumbnailRelationshipProperties(originalImage, spec));
+
+				} else {
+
+					// Not one of the built-in thumbnail sizes (or the original's dimensions are unknown), so
+					// the specs cannot be reconstructed. Link the two nodes anyway - the graph is restored,
+					// but this thumbnail will not be found by getExistingThumbnail() and gets recreated once.
+					logger.debug("Unable to determine thumbnail specs for {}, reconnecting without specs", thumbnail.getName());
+
+					app.create(originalImage, thumbnail, thumbnailRel);
+				}
 			}
 
 		} catch (FrameworkException ex) {
@@ -223,6 +250,123 @@ public abstract class ImageHelper extends FileHelper {
 			logger.debug("Error reconnecting thumbnail " + thumbnail.getName() + " to original image " + originalImageName, ex);
 		}
 
+	}
+
+	/**
+	 * The built-in thumbnail specs, i.e. the sizes Image.tnSmall and Image.tnMid are created for, smallest
+	 * first. The order matters and must stay deterministic: an image smaller than both sizes is not scaled
+	 * up, so one thumbnail serves both specs and only the first one gets connected (see below).
+	 */
+	private static List<ThumbnailProperty> getThumbnailSpecs() {
+
+		final Traits traits = Traits.of(StructrTraits.IMAGE);
+
+		return List.of(
+			(ThumbnailProperty) (PropertyKey) traits.key(ImageTraitDefinition.TN_SMALL_PROPERTY),
+			(ThumbnailProperty) (PropertyKey) traits.key(ImageTraitDefinition.TN_MID_PROPERTY)
+		);
+	}
+
+	/**
+	 * The name a thumbnail of the given original image has when created for the given spec, or null if it
+	 * cannot be derived. Mirrors how createThumbnail() determines the thumbnail's dimensions, because the
+	 * name is built from them - a name derived any other way would either not match anything, or match the
+	 * thumbnail of a different spec and connect the wrong image.
+	 */
+	private static String getExpectedThumbnailName(final Image originalImage, final ThumbnailProperty spec) {
+
+		final Integer origWidth  = originalImage.getWidth();
+		final Integer origHeight = originalImage.getHeight();
+
+		if (origWidth == null || origHeight == null) {
+
+			return null;
+		}
+
+		if (spec.getCrop()) {
+
+			// With cropToFit the dimensions come from finalImageDimensions() rather than from the scale
+			// ratio, and the ratio-based name is the name of the NON-cropped thumbnail of the same size.
+			// Deriving it here would connect that thumbnail and label it as cropped, so don't guess.
+			return null;
+		}
+
+		final float scale = getScaleRatio(origWidth, origHeight, spec.getWidth(), spec.getHeight(), spec.getCrop());
+
+		// createThumbnail() does not scale up: an image smaller than the requested size keeps its dimensions
+		final int tnWidth  = scale > 1.0 ? getThumbnailWidth(origWidth, scale)   : origWidth;
+		final int tnHeight = scale > 1.0 ? getThumbnailHeight(origHeight, scale) : origHeight;
+
+		return getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
+	}
+
+	/** The spec a thumbnail of the given name was created for, or null if it matches none of them. */
+	private static ThumbnailProperty findMatchingThumbnailSpec(final Image originalImage, final String thumbnailName) {
+
+		for (final ThumbnailProperty spec : getThumbnailSpecs()) {
+
+			if (thumbnailName.equals(getExpectedThumbnailName(originalImage, spec))) {
+
+				return spec;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * The properties a THUMBNAIL relationship needs to carry so that getExistingThumbnail() can match it:
+	 * the specs the thumbnail was created for, plus the original's checksum to detect a changed original.
+	 * The thumbnail's actual dimensions are deliberately not stored here - they live on the thumbnail node,
+	 * and the relationship type declares no keys that could read them back.
+	 */
+	private static PropertyMap getThumbnailRelationshipProperties(final Image originalImage, final ThumbnailProperty spec) {
+
+		final Traits relTraits          = Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+		final PropertyMap relProperties = new PropertyMap();
+
+		relProperties.put(relTraits.key(ImageTHUMBNAILImage.MAX_WIDTH_PROPERTY),   spec.getWidth());
+		relProperties.put(relTraits.key(ImageTHUMBNAILImage.MAX_HEIGHT_PROPERTY),  spec.getHeight());
+		relProperties.put(relTraits.key(ImageTHUMBNAILImage.CROP_TO_FIT_PROPERTY), spec.getCrop());
+		relProperties.put(relTraits.key(ImageTHUMBNAILImage.CHECKSUM_PROPERTY),    originalImage.getChecksum());
+
+		return relProperties;
+	}
+
+	/** The given path with the thumbnail folder prefix removed, or the path itself if it has none. */
+	private static String stripThumbnailFolder(final String path) {
+
+		final String thumbnailFolder = PathHelper.PATH_SEP + PathHelper.clean(Image.STRUCTR_THUMBNAIL_FOLDER);
+
+		if (path.equals(thumbnailFolder)) {
+
+			return PathHelper.PATH_SEP;
+		}
+
+		if (path.startsWith(thumbnailFolder + PathHelper.PATH_SEP)) {
+
+			return path.substring(thumbnailFolder.length());
+		}
+
+		return path;
+	}
+
+	/** Joins path segments into an absolute path, tolerating missing and duplicated separators. */
+	private static String joinPath(final String... parts) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (final String part : parts) {
+
+			final String cleaned = part == null ? null : PathHelper.clean(part);
+
+			if (StringUtils.isNotBlank(cleaned)) {
+
+				buf.append(PathHelper.PATH_SEP).append(cleaned);
+			}
+		}
+
+		return buf.isEmpty() ? PathHelper.PATH_SEP : buf.toString();
 	}
 
 	public static float getScaleRatio(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {

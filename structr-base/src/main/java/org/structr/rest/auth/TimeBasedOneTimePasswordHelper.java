@@ -185,7 +185,7 @@ public class TimeBasedOneTimePasswordHelper {
 		int which = 0;
 		int working = 0;
 
-		for (int i = 0; i < str.length(); i++) {
+		for (int i = 0, len = str.length(); i < len; i++) {
 
 			char ch = str.charAt(i);
 			int val;

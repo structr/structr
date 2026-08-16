@@ -19,6 +19,8 @@
 package org.structr.bolt;
 
 import org.neo4j.driver.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.exceptions.*;
 import org.neo4j.driver.reactive.RxResult;
@@ -40,6 +42,8 @@ import java.util.Map;
  *
  */
 class ReactiveSessionTransaction extends SessionTransaction {
+
+	private static final Logger logger = LoggerFactory.getLogger(ReactiveSessionTransaction.class);
 
 	private BoltDatabaseService db = null;
 	private RxSession session      = null;
@@ -344,35 +348,31 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		} catch (TransientException tex) {
 
-			tex.printStackTrace();
 			closed = true;
 			throw new RetryException(tex);
 
 		} catch (NoSuchRecordException nex) {
 
-			nex.printStackTrace();
 			throw new NotFoundException(nex);
 
 		} catch (ServiceUnavailableException ex) {
 
-			ex.printStackTrace();
 			throw new NetworkException(ex.getMessage(), ex);
 
 		} catch (DatabaseException dex) {
 
-			dex.printStackTrace();
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 
 		} catch (ClientException cex) {
 
-			cex.printStackTrace();
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			// the only branch here that does not rethrow, so the cause would be lost otherwise
+			logger.warn("Unable to fetch relationship: {}", t.getMessage(), t);
 		}
 
 		return null;

@@ -82,7 +82,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 				logger.info("{} rules", styleSheet.getCssRules().getLength());
 
-				for (int i=0; i<rules.getLength(); i++) {
+				for (int i = 0, len = rules.getLength(); i < len; i++) {
 
 					final CSSRule rule = rules.item(i);
 
@@ -179,8 +179,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 			}
 		}
 
-		// FIXME: where is "declarations" defined? (even in main)
-		cssRuleNode.setProperty(traits.key("declarations"), cssDeclarations);
+		cssRuleNode.setProperty(traits.key(CssRuleTraitDefinition.DECLARATIONS_PROPERTY), cssDeclarations);
 
 		// Import and link parent rule
 		final CSSRule parentRule = rule.getParentRule();

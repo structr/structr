@@ -24,6 +24,7 @@ import org.structr.api.DatabaseService;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
+import org.structr.core.traits.StructrTraits;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -85,7 +86,7 @@ public class SearchNodesCommand extends AbstractCommand {
 		final DatabaseService db = Services.getInstance().getDatabaseService();
 		final Set<String> types  = new LinkedHashSet<>();
 
-		if (searchContexts.contains(SEARCH_CONTEXT_DOM))            { types.add("((n:DOMNode or n:Site) AND NOT n:ShadowDocument)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_DOM))            { types.add("((n:DOMNode or n:Site or n:ActionMapping or n:ParameterMapping) AND NOT n:ShadowDocument)"); }
 		if (searchContexts.contains(SEARCH_CONTEXT_FLOWS))          { types.add("(n:FlowNode)"); }
 		if (searchContexts.contains(SEARCH_CONTEXT_SCHEMA))         { types.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
 		if (searchContexts.contains(SEARCH_CONTEXT_FILES))          { types.add("(n:AbstractFile)"); }
@@ -100,32 +101,42 @@ public class SearchNodesCommand extends AbstractCommand {
 			final Map<String, Object> tmp = new LinkedHashMap<>(result);
 			final List<String> labels     = (List) result.get("labels");
 
-			if (labels.contains("DOMNode")) {
+			if (labels.contains(StructrTraits.DOM_NODE)) {
 
 				tmp.put("isDOMElement", true);
 			}
 
-			if (labels.contains("Site")) {
+			if (labels.contains(StructrTraits.ACTION_MAPPING)) {
+
+				tmp.put("isActionMapping", true);
+			}
+
+			if (labels.contains(StructrTraits.PARAMETER_MAPPING)) {
+
+				tmp.put("isParameterMapping", true);
+			}
+
+			if (labels.contains(StructrTraits.SITE)) {
 
 				tmp.put("isSiteElement", true);
 			}
 
-			if (labels.contains("AbstractSchemaNode") || labels.contains("SchemaReloadingNode")) {
+			if (labels.contains(StructrTraits.ABSTRACT_SCHEMA_NODE) || labels.contains(StructrTraits.SCHEMA_RELOADING_NODE)) {
 
 				tmp.put("isSchemaElement", true);
 			}
 
-			if (labels.contains("File") || labels.contains("Folder")) {
+			if (labels.contains(StructrTraits.FILE) || labels.contains(StructrTraits.FOLDER)) {
 
 				tmp.put("isFilesystemElement", true);
 			}
 
-			if (labels.contains("Localization")) {
+			if (labels.contains(StructrTraits.LOCALIZATION)) {
 
 				tmp.put("isLocalizationElement", true);
 			}
 
-			if (labels.contains("MailTemplate")) {
+			if (labels.contains(StructrTraits.MAIL_TEMPLATE)) {
 
 				tmp.put("isMailTemplateElement", true);
 			}

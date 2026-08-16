@@ -46,64 +46,15 @@ public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 	PropertyKey createKey(final String className) throws FrameworkException;
 	List<IsValid> createValidators(final AbstractSchemaNode entity) throws FrameworkException;
 
+	/**
+	 * The name of the relationship property for one end of a relationship. An explicitly configured json
+	 * name is taken as it is - deriving a name is only for the ends that have none - but it still passes
+	 * through the uniqueness handling below, so an explicit name that collides also gets a suffix.
+	 *
+	 * Delegates to {@link SchemaRelationshipNode}, which owns this naming scheme.
+	 */
 	static String getPropertyName(final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {
 
-		String propertyName = "";
-
-		if (outgoing) {
-
-			if (_targetJsonName != null) {
-
-				// FIXME: no automatic creation?
-				propertyName = _targetJsonName;
-
-			} else {
-
-				if ("1".equals(_targetMultiplicity)) {
-
-					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
-
-				} else {
-
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
-				}
-			}
-
-		} else {
-
-			if (_sourceJsonName != null) {
-
-				propertyName = _sourceJsonName;
-
-			} else {
-
-				if ("1".equals(_sourceMultiplicity)) {
-
-					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
-
-				} else {
-
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName));
-				}
-			}
-		}
-
-		if (existingPropertyNames.contains(propertyName)) {
-
-			// First level: Add direction suffix
-			propertyName += outgoing ? "Out" : "In";
-			int i = 0;
-
-			// New name still exists: Add number
-			while (existingPropertyNames.contains(propertyName)) {
-
-				propertyName += ++i;
-			}
-
-		}
-
-		existingPropertyNames.add(propertyName);
-
-		return propertyName;
+		return SchemaRelationshipNode.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 	}
 }

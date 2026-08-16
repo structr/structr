@@ -25,6 +25,7 @@ import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
 
@@ -432,4 +433,26 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 			.when()
 				.get("/BaseType?_sort=name");
 	}
+	@Test
+	public void testUnresolvableEndNodePropertySet() {
+
+		// The notions of AbstractRelation are not attached to a relationship property, so nothing can be
+		// autocreated from them: an object-valued sourceId/targetId that identifies no existing node must
+		// be reported as invalid input, not as a server error.
+
+		final String testOne = createEntity("/TestOne", "{ name: 'one' }");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ \"sourceId\": { \"name\": \"nonexisting-two\" }, \"targetId\": \"" + testOne + "\" }")
+			.expect()
+				.statusCode(422)
+				.body("code",    equalTo(422))
+				.body("message", containsString("Unable to resolve related node of type TestTwo"))
+				.body("message", containsString("no matching node found and no relationship property to create one from."))
+			.when()
+				.post("/TwoOneOneToMany");
+	}
+
 }

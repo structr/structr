@@ -104,6 +104,8 @@ import java.util.regex.*;
  *
  * <p>Single file, JDK source launcher, no dependencies -- same as {@code config/style/StyleLint.java}
  * and {@code config/style/CodeQuality.java}.</p>
+ *
+ * @code-quality:accept
  */
 public class TestLogReview {
 

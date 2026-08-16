@@ -69,6 +69,23 @@ import java.util.regex.Pattern;
  */
 public class ProcessEngine {
 
+	// @code-quality:accept - last reviewed 2026-08-14, all 16 broad catches walked through.
+	// This engine executes code it did not write: script tasks, ioMapping and condition expressions
+	// authored in the BPMN model, and listener callbacks registered by other modules. A failure in
+	// any of those is a failure of one process step, not of the engine, so each is caught, logged
+	// and stepped over - 11 log, 2 return a placeholder from a helper that exists so error paths
+	// cannot themselves fail (getBpmnIdSafe, safeName), 3 are documented best-effort enrichment.
+	// The two Throwable catches are the after-commit listener dispatch, where the transaction is
+	// already committed and an escaping error would take the thread with it.
+	//
+	// One catch was removed rather than accepted: revokePreviousAssigneeGrantIfApplicable() used to
+	// swallow a failed permission revoke, which is the opposite of the rule above - it is not the
+	// engine surviving someone else's code, it is the engine hiding its own half-applied write.
+	//
+	// The remaining flags follow from the same job: the hand-rolled parsing is the script rewriter
+	// (rewriteSetVariable and friends), and the instanceof clusters are the parameter type mapping,
+	// which would read better as a pattern switch but is not a defect.
+
 	private static final Logger logger = LoggerFactory.getLogger(ProcessEngine.class);
 
 	private final Principal caller;
@@ -1217,7 +1234,7 @@ public class ProcessEngine {
 			// so a value containing parentheses -- e.g. now() -- survives intact)
 			// execution.getVariable("x")       -> $.process.x
 			String transpiled = rewriteSetVariable(line);
-			transpiled = transpiled.replaceAll("execution\\.getVariable\\([\"']([^\"']+)[\"']\\)", "\\$.process.$1");
+			transpiled = GET_VARIABLE.matcher(transpiled).replaceAll("\\$.process.$1");
 
 			// Bare function calls map onto Structr's function namespace by prefixing
 			// "$." -- e.g. now() -> $.now(). Member calls, already-prefixed calls and
@@ -1248,6 +1265,7 @@ public class ProcessEngine {
 
 		final String marker = "execution.setVariable";
 		final StringBuilder out = new StringBuilder();
+		final int lineLength    = line.length();
 		int i = 0;
 
 		while (true) {
@@ -1255,19 +1273,19 @@ public class ProcessEngine {
 			final int hit = line.indexOf(marker, i);
 			if (hit < 0) {
 
-				out.append(line, i, line.length());
+				out.append(line, i, lineLength);
 				break;
 			}
 
 			// Must be a call: "execution.setVariable" then (optional ws) '('.
 			int p = hit + marker.length();
 
-			while (p < line.length() && Character.isWhitespace(line.charAt(p))) {
+			while (p < lineLength && Character.isWhitespace(line.charAt(p))) {
 
 				p++;
 			}
 
-			if (p >= line.length() || line.charAt(p) != '(') {
+			if (p >= lineLength || line.charAt(p) != '(') {
 
 				out.append(line, i, hit + marker.length());
 				i = hit + marker.length();
@@ -1296,7 +1314,7 @@ public class ProcessEngine {
 				out.append("$.process.").append(nv[0]).append(" = ").append(nv[1].trim()).append(";");
 				i = close + 1;
 				// Absorb an existing trailing ';' so we don't emit ';;'.
-				if (i < line.length() && line.charAt(i) == ';') {
+				if (i < lineLength && line.charAt(i) == ';') {
 
 					i++;
 				}
@@ -1312,7 +1330,7 @@ public class ProcessEngine {
 		int depth = 0;
 		char quote = 0;
 
-		for (int i = openIdx; i < s.length(); i++) {
+		for (int i = openIdx, len = s.length(); i < len; i++) {
 
 			final char c = s.charAt(i);
 
@@ -1368,6 +1386,7 @@ public class ProcessEngine {
 			return null;
 		}
 
+		final int aLength  = a.length();
 		final int endQuote = a.indexOf(q, 1);
 		if (endQuote < 0) {
 
@@ -1377,12 +1396,12 @@ public class ProcessEngine {
 		final String name = a.substring(1, endQuote);
 		int c = endQuote + 1;
 
-		while (c < a.length() && Character.isWhitespace(a.charAt(c))) {
+		while (c < aLength && Character.isWhitespace(a.charAt(c))) {
 
 			c++;
 		}
 
-		if (c >= a.length() || a.charAt(c) != ',') {
+		if (c >= aLength || a.charAt(c) != ',') {
 
 			return null;
 		}
@@ -1414,6 +1433,8 @@ public class ProcessEngine {
 	// access (preceded by '.'), NOT already prefixed ('$.'), and NOT part of a
 	// longer identifier.
 	private static final Pattern BARE_FUNCTION_CALL = Pattern.compile("(?<![\\w.$])([A-Za-z_]\\w*)\\s*\\(");
+
+	private static final Pattern GET_VARIABLE = Pattern.compile("execution\\.getVariable\\([\"']([^\"']+)[\"']\\)");
 
 	/**
 	 * Prefix bare function calls with Structr's {@code $.} namespace, e.g.
@@ -1571,7 +1592,7 @@ public class ProcessEngine {
 		int count = 1;
 		char quote = 0;
 
-		for (int i = 0; i < a.length(); i++) {
+		for (int i = 0, len = a.length(); i < len; i++) {
 
 			final char c = a.charAt(i);
 
@@ -1969,19 +1990,19 @@ public class ProcessEngine {
 			}
 		}
 
-		try {
+		// Not caught: this is the one ACL write that takes access away, and every caller follows it
+		// with grant() calls that do propagate. Swallowing only this one produced the asymmetry that
+		// mattered - the reassignment committed, the new assignee got their grant, and the previous
+		// assignee silently kept their direct grant, write included, on a task that is no longer
+		// theirs (read also reaches them through participant access on the instance, by design). Letting it out
+		// rolls the whole reassignment back instead, which leaves the task where it was: a state
+		// somebody can see and retry, rather than one nobody can see.
+		final AccessControllable ac = taskNode.as(AccessControllable.class);
 
-			final AccessControllable ac = taskNode.as(AccessControllable.class);
+		ac.revoke(Permission.read,  previousAssignee.as(Principal.class));
+		ac.revoke(Permission.write, previousAssignee.as(Principal.class));
 
-			ac.revoke(Permission.read,  previousAssignee.as(Principal.class));
-			ac.revoke(Permission.write, previousAssignee.as(Principal.class));
-
-			logger.info("Revoked R+W on task '{}' for previous assignee '{}'", taskNode.getName(), previousAssignee.getName());
-
-		} catch (Exception ex) {
-
-			logger.warn("Could not revoke previous assignee's grant on task '{}': {}", taskNode.getName(), ex.getMessage());
-		}
+		logger.info("Revoked R+W on task '{}' for previous assignee '{}'", taskNode.getName(), previousAssignee.getName());
 	}
 
 	/**

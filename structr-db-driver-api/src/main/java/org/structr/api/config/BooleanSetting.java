@@ -126,7 +126,7 @@ public class BooleanSetting extends Setting<Boolean> {
 
 			} catch (NumberFormatException nex) {
 
-				logger.warn("Invalid value for setting {0}: {1}, ignoring.", getKey(), source );
+				logger.warn("Invalid value for setting {}: {}, ignoring.", getKey(), source);
 			}
 
 		} else {

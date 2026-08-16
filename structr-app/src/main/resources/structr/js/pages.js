@@ -4969,40 +4969,96 @@ let _Pages = {
 	},
 
 	search: {
-		goTo: (result, key, searchData) => {
+		goTo: async (result, key, searchData) => {
 
-			let { id }  = result;
-			let tabName = _Pages.search.getTabForKey(key, result);
+			let { id, error } = await _Pages.search.getDOMNodeIdForResult(result);
 
-			if (tabName === 'editor' || tabName === 'repeater') {
-				_Editors.highlightTextInNextEditor(searchData.queryString);
+			if (error) {
+
+				new WarningMessage().title("Unable to navigate").text(error).requiresConfirmation().show();
+
+			} else {
+
+				let tabName = _Pages.search.getTabForKey(key, result);
+
+				if (tabName === 'editor' || tabName === 'repeater') {
+					_Editors.highlightTextInNextEditor(searchData.queryString);
+				}
+
+				let matchingTabUrlHash = '#pages:' + tabName;
+				let link = document.querySelector(`[href="${matchingTabUrlHash}"]`);
+
+				let elementAlreadyBeingEdited = (link && id === _Pages.centerPane.dataset['elementId']);
+				if (elementAlreadyBeingEdited) {
+
+					_Pages.activateCenterPane(link);
+
+					let container = _Editors.getContainerForIdAndProperty(id, key);
+					if (container && container.instance) {
+						_Editors.autoHighlightText(container.instance);
+					}
+
+				} else {
+
+					// preselect tab for that element
+					_Pages.saveActiveCenterTab(id, matchingTabUrlHash);
+
+					_Pages.selectAndShowArbitraryDOMElement(id);
+				}
 			}
+		},
+		getDOMNodeIdForResult: async (result) => {
 
-			let matchingTabUrlHash = '#pages:' + tabName;
-			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`);
+			if (result.isActionMapping) {
 
-			let elementAlreadyBeingEdited = (link && id === _Pages.centerPane.dataset['elementId']);
-			if (elementAlreadyBeingEdited) {
+				let actionMapping = await Command.getPromise(result.id, 'triggerElements');
 
-				_Pages.activateCenterPane(link);
+				let triggerElementId = actionMapping.triggerElements[0]?.id;
+				if (triggerElementId) {
 
-				let container = _Editors.getContainerForIdAndProperty(id, key);
-				if (container && container.instance) {
-					_Editors.autoHighlightText(container.instance);
+					return { id: triggerElementId };
+
+				} else {
+
+					return { error: `ActionMapping(${result.id}) is not connected to a DOMNode. Unable to select node in tree because it is unreachable.` };
+				}
+
+			} else if (result.isParameterMapping) {
+
+				let parameterMapping = await Command.getPromise(result.id, 'actionMapping');
+
+				let actionMappingId = parameterMapping.actionMapping?.id;
+				if (actionMappingId) {
+
+					let data = await _Pages.search.getDOMNodeIdForResult({ id: actionMappingId, isActionMapping: true });
+
+					if (data.error) {
+
+						return { error: `ParameterMapping(${result.id}) is connected to ActionMapping(${actionMappingId}) which is not connected to a DOMNode. Unable to select node in tree because it is unreachable.` };
+
+					} else {
+
+						return data;
+					}
+
+				} else {
+
+					return { error: `ParameterMapping(${result.id}) is not connected to an ActionMapping. Unable to select node in tree because it is unreachable.` };
 				}
 
 			} else {
 
-				// preselect tab for that element
-				_Pages.saveActiveCenterTab(id, matchingTabUrlHash);
-
-				_Pages.selectAndShowArbitraryDOMElement(id);
+				return result.id;
 			}
 		},
 		getTabForKey: (key, result) => {
 
 			if (result.type === 'Site') {
 				return 'general';
+			}
+
+			if (result.isActionMapping || result.isParameterMapping) {
+				return 'events';
 			}
 
 			if (key.startsWith('_html_') || key.startsWith('_custom_html_')) {

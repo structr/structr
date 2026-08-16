@@ -288,13 +288,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.warn("OPTIONS: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("OPTIONS: Invalid JSON syntax: {}", jsex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in OPTIONS: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
-			logger.warn("OPTIONS: Unable to parse JSON string", jpex.getMessage());
+			logger.warn("OPTIONS: Unable to parse JSON string: {}", jpex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in OPTIONS: " + jpex.getMessage());
 
@@ -478,19 +478,19 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("POST: Invalid JSON syntax: {}", jsex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in POST: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
-			logger.warn("Unable to parse JSON string", jpex.getMessage());
+			logger.warn("Unable to parse JSON string: {}", jpex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in POST: " + jpex.getMessage());
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.warn("Unsupported operation in POST", uoe.getMessage());
+			logger.warn("Unsupported operation in POST: {}", uoe.getMessage());
 			logger.warn(" => Error thrown: ", uoe);
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Unsupported operation in POST: " + uoe.getMessage());
@@ -614,13 +614,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.warn("PUT: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("PUT: Invalid JSON syntax: {}", jsex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in PUT: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
-			logger.warn("PUT: Unable to parse JSON string", jpex.getMessage());
+			logger.warn("PUT: Unable to parse JSON string: {}", jpex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in PUT: " + jpex.getMessage());
 
@@ -757,19 +757,19 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (JsonSyntaxException jsex) {
 
-			logger.warn("PATCH: Invalid JSON syntax", jsex.getMessage());
+			logger.warn("PATCH: Invalid JSON syntax: {}", jsex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in PATCH: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
-			logger.warn("Unable to parse JSON string", jpex.getMessage());
+			logger.warn("Unable to parse JSON string: {}", jpex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in PATCH: " + jpex.getMessage());
 
 		} catch (UnsupportedOperationException uoe) {
 
-			logger.warn("Unsupported operation in PATCH", uoe.getMessage());
+			logger.warn("Unsupported operation in PATCH: {}", uoe.getMessage());
 			logger.warn(" => Error thrown: ", uoe);
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Unsupported operation in PATCH: " + uoe.getMessage());

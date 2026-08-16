@@ -148,6 +148,31 @@ public abstract class RESTCallHandler {
 	}
 
 	/**
+	 * The single property set of a PATCH request, for resources that describe one operation rather than a
+	 * batch of them (a method call, for example). A PATCH body may be a JSON array, so the list can hold
+	 * any number of sets: none of them is a request without input, more than one has no meaning here and
+	 * must not be silently reduced to the first one.
+	 *
+	 * @param propertySet the property sets parsed from the request body
+	 * @return the one and only property set
+	 * @throws org.structr.common.error.FrameworkException if there is not exactly one
+	 */
+	protected Map<String, Object> getSinglePropertySet(final List<Map<String, Object>> propertySet) throws FrameworkException {
+
+		if (propertySet == null || propertySet.isEmpty()) {
+
+			throw new FrameworkException(422, "PATCH on " + getURL() + " requires a property set, found none");
+		}
+
+		if (propertySet.size() > 1) {
+
+			throw new FrameworkException(422, "PATCH on " + getURL() + " takes a single property set, found " + propertySet.size());
+		}
+
+		return propertySet.get(0);
+	}
+
+	/**
 	 * Default implementation of the HTTP DELETE method that returns 405 Method Not Allowed. Override this method
 	 * to provide an actual implementation.
 	 *

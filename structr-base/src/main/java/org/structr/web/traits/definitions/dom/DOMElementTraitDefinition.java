@@ -22,6 +22,7 @@ import com.google.common.base.CaseFormat;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jsoup.select.Selector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -1048,7 +1049,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes(traitsInstance, RELOAD_TARGETS_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
 		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes(traitsInstance, TRIGGERED_ACTIONS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 
-		// FIXME ? why does DOMElement have parameter mappings? they are/should be attached to ActionMapping nodes (it is also not defined on ParameterMapping...)
+		// Inverse end of ParameterMapping.inputElement, i.e. the parameter mappings that read their value
+		// FROM this element - not the parameters of an action (those hang off ActionMapping via a different
+		// relationship that happens to use the same property name). Read-only from this side: the UI only
+		// ever sets ParameterMapping.inputElement (drag & drop onto the parameter's user-input dropzone).
+		//
+		// Do not remove: it is what makes an input element emit data-structr-id when rendering the opening
+		// tag. The triggering element references its input by uuid as data-<param>="id(<uuid>)" whenever the
+		// input has no html id, and the frontend resolves that via [data-structr-id="<uuid>"]. Without it,
+		// such parameters silently arrive empty - see EAMParameterMappingTest.testUserInputParameterWithoutCssId.
 		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes(traitsInstance, PARAMETER_MAPPINGS_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 		final Property<String> tagProperty                  = new StringProperty(TAG_PROPERTY).indexed().category(PAGE_CATEGORY);
 		final Property<String> pathProperty                 = new StringProperty(PATH_PROPERTY).indexed();
@@ -2771,6 +2780,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public void updateReloadTargets(final DOMElement domElement) throws FrameworkException {
 
+		final Logger logger = LoggerFactory.getLogger(DOMElement.class);
+
 		try {
 
 			final List<DOMElement> actualReloadSources = new LinkedList<>();
@@ -2802,7 +2813,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										actualReloadTargets.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {}
+								} catch (Selector.SelectorParseException spex) {
+
+									// the selector is written by hand in the reload-target attribute, so a
+									// malformed one is user input, not a bug: skip that target and say so,
+									// because otherwise the element silently never reloads
+									logger.debug("Ignoring malformed reload target selector '{}': {}", targetSelector, spex.getMessage());
+								}
 							}
 						}
 
@@ -2819,7 +2836,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										actualReloadSources.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {}
+								} catch (Selector.SelectorParseException spex) {
+
+									// the selector is written by hand in the reload-target attribute, so a
+									// malformed one is user input, not a bug: skip that target and say so,
+									// because otherwise the element silently never reloads
+									logger.debug("Ignoring malformed reload target selector '{}': {}", targetSelector, spex.getMessage());
+								}
 							}
 						}
 					}
@@ -2837,7 +2860,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.warn("Unable to update reload targets: {}", t.getMessage());
 		}
 	}
 

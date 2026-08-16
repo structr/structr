@@ -145,11 +145,10 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 					// Create a thumbnail relationship
 					final PropertyMap relProperties = new PropertyMap();
-					// FIXME ? why are the image attributes being stored on the relationship? (at least width and height do not exist on rel-level)
-					relProperties.put(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.WIDTH_PROPERTY),                      tnWidth);
-					relProperties.put(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.HEIGHT_PROPERTY),                     tnHeight);
 
 					// We have to store the specs here in order to find existing thumbnails based on the specs they've been created for, not actual dimensions.
+					// The actual dimensions belong on the thumbnail node (see below), not on the relationship: its type declares no width/height keys, so anything
+					// stored here could never be read back through the relationship again.
 					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.CHECKSUM_PROPERTY),    originalImage.getChecksum());
 					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.MAX_WIDTH_PROPERTY),   maxWidth);
 					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.MAX_HEIGHT_PROPERTY),  maxHeight);

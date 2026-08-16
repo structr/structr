@@ -126,9 +126,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 
 			if ("PATCH".equals(method.getHttpVerb())) {
 
-				// FIXME, only the first property set is used, we need to test this
-
-				return executeMethod(securityContext, null, NamedArguments.fromMap(propertySet.get(0)));
+				return executeMethod(securityContext, null, NamedArguments.fromMap(getSinglePropertySet(propertySet)));
 
 			} else {
 

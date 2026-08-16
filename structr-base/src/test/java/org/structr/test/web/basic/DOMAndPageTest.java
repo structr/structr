@@ -45,8 +45,12 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.SiteTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+import org.structr.web.traits.definitions.html.Form;
+import org.structr.web.traits.definitions.html.Input;
+import org.structr.web.traits.definitions.html.Select;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -127,13 +131,15 @@ public class DOMAndPageTest extends StructrUiTest {
 			// add TITLE element to HEAD
 			head.appendChild(title);
 
+			final PropertyKey<String> classKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_CLASS_PROPERTY);
+
 			// add H1 element to BODY
 			body.appendChild(h1);
-			h1.setAttribute("class", h1ClassAttr);
+			h1.setProperty(classKey, h1ClassAttr);
 
 			// add DIV element
 			body.appendChild(div);
-			div.setAttribute("class", divClassAttr);
+			div.setProperty(classKey, divClassAttr);
 
 			// add text nodes
 			title.appendChild(titleText);
@@ -590,13 +596,15 @@ public class DOMAndPageTest extends StructrUiTest {
 			// add TITLE element to HEAD
 			head.appendChild(title);
 
+			final PropertyKey<String> classKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_CLASS_PROPERTY);
+
 			// add H1 element to BODY
 			body.appendChild(h1);
-			h1.setAttribute("class", h1ClassAttr);
+			h1.setProperty(classKey, h1ClassAttr);
 
 			// add DIV element
 			body.appendChild(div);
-			div.setAttribute("class", divClassAttr);
+			div.setProperty(classKey, divClassAttr);
 
 			// add text nodes
 			title.appendChild(titleText);
@@ -1194,6 +1202,70 @@ public class DOMAndPageTest extends StructrUiTest {
 			.body("html.body.div.center",   Matchers.equalTo("This text is centered"))
 			.when()
 			.get("/testUnregisteredHtmlElements");
+	}
+
+	@Test
+	public void testHtmlNameAttribute() {
+
+		// The _html_name attribute is only defined on some element types (input, select, form, ...),
+		// but DOMElement.getHtmlName() is called on arbitrary elements (see MigrationService), so it
+		// must return null for elements that do not define the attribute instead of failing.
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page         = Page.createNewPage(securityContext, "testHtmlNameAttribute");
+			final DOMElement html   = createElement(page, page, "html");
+			final DOMElement body   = createElement(page, html, "body");
+			final DOMElement form   = createElement(page, body, "form");
+			final DOMElement input  = createElement(page, form, "input");
+			final DOMElement select = createElement(page, form, "select");
+			final DOMElement div    = createElement(page, body, "div");
+			final DOMElement span   = createElement(page, div, "span");
+			final DOMElement nobr   = createElement(page, div, "nobr");
+
+			form.setProperty(Traits.of(StructrTraits.FORM).key(Form.NAME_PROPERTY), "formName");
+			input.setProperty(Traits.of(StructrTraits.INPUT).key(Input.NAME_PROPERTY), "inputName");
+			select.setProperty(Traits.of(StructrTraits.SELECT).key(Select.NAME_PROPERTY), "selectName");
+
+			// element types that define the name attribute
+			assertTrue("Form must define the _html_name attribute",   Traits.of(StructrTraits.FORM).hasKey(Form.NAME_PROPERTY));
+			assertTrue("Input must define the _html_name attribute",  Traits.of(StructrTraits.INPUT).hasKey(Input.NAME_PROPERTY));
+			assertTrue("Select must define the _html_name attribute", Traits.of(StructrTraits.SELECT).hasKey(Select.NAME_PROPERTY));
+
+			assertEquals("formName",   form.getHtmlName());
+			assertEquals("inputName",  input.getHtmlName());
+			assertEquals("selectName", select.getHtmlName());
+
+			// element types that do not define the name attribute
+			assertFalse("Html must not define the _html_name attribute", Traits.of(StructrTraits.HTML).hasKey(Input.NAME_PROPERTY));
+			assertFalse("Body must not define the _html_name attribute", Traits.of(StructrTraits.BODY).hasKey(Input.NAME_PROPERTY));
+			assertFalse("Div must not define the _html_name attribute",  Traits.of(StructrTraits.DIV).hasKey(Input.NAME_PROPERTY));
+			assertFalse("Span must not define the _html_name attribute", Traits.of(StructrTraits.SPAN).hasKey(Input.NAME_PROPERTY));
+
+			assertNull("getHtmlName() must return null for html elements", html.getHtmlName());
+			assertNull("getHtmlName() must return null for body elements", body.getHtmlName());
+			assertNull("getHtmlName() must return null for div elements",  div.getHtmlName());
+			assertNull("getHtmlName() must return null for span elements", span.getHtmlName());
+
+			// the same must be true for unregistered (generic) elements
+			assertNull("getHtmlName() must return null for unregistered elements", nobr.getHtmlName());
+
+			// a scan over all elements of a page (as done by MigrationService.findElementWithName) must not fail
+			for (final DOMNode node : page.getElements()) {
+
+				if (node.is(StructrTraits.DOM_ELEMENT)) {
+
+					node.as(DOMElement.class).getHtmlName();
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----

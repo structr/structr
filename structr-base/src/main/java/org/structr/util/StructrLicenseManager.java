@@ -580,7 +580,10 @@ public class StructrLicenseManager implements LicenseManager {
 						digest.update(hardwareAddress);
 					}
 
-				} catch (SocketException ex) {}
+				} catch (SocketException ex) {
+
+					// an interface without a readable hardware address does not contribute to the fingerprint
+				}
 			}
 
 			return Hex.encodeHexString(digest.digest());
@@ -604,7 +607,10 @@ public class StructrLicenseManager implements LicenseManager {
 				interfaces.add(enumeration.nextElement());
 			}
 
-		} catch (SocketException ex) {}
+		} catch (SocketException ex) {
+
+			// no interfaces could be enumerated, the empty list is the answer
+		}
 
 		return interfaces;
 	}
@@ -619,7 +625,10 @@ public class StructrLicenseManager implements LicenseManager {
 
 				return alignToDay(format.parse(dateOrNull));
 
-			} catch (Throwable ignore) {}
+			} catch (Throwable ignore) {
+
+				// an unparsable date is treated as "no date", see the fallback below
+			}
 		}
 
 		return new Date(0L);
@@ -633,7 +642,10 @@ public class StructrLicenseManager implements LicenseManager {
 
 			return format.parse(format.format(date));
 
-		} catch (Throwable ignore) {}
+		} catch (Throwable ignore) {
+
+			// null means "could not be aligned", the callers check for it
+		}
 
 		return null;
 	}
@@ -876,7 +888,7 @@ public class StructrLicenseManager implements LicenseManager {
 				logger.warn("Unable to verify volume license: {}, attempt {} of {}", cex.getMessage(), (i+1), retries);
 
 				// wait some time..
-				try { Thread.sleep(1234 * i); } catch (Throwable t) {}
+				try { Thread.sleep(1234 * i); } catch (InterruptedException iex) { Thread.currentThread().interrupt(); } catch (Throwable t) {}
 
 				if ((i+1) == retries) {
 
@@ -959,15 +971,14 @@ public class StructrLicenseManager implements LicenseManager {
 				// don't retry if the URL is invalid..
 				i = 3;
 
-				// log error
-				mex.printStackTrace();
+				logger.error("Invalid license server URL: {}", mex.getMessage(), mex);
 
 			} catch (ConnectException cex) {
 
 				logger.warn("Unable to verify volume license: {}, attempt {} of {}", cex.getMessage(), (i+1), retries);
 
 				// wait some time..
-				try { Thread.sleep(1234 * (i+1)); } catch (Throwable t) {}
+				try { Thread.sleep(1234 * (i+1)); } catch (InterruptedException iex) { Thread.currentThread().interrupt(); } catch (Throwable t) {}
 
 				if ((i+1) == retries) {
 
@@ -1002,7 +1013,10 @@ public class StructrLicenseManager implements LicenseManager {
 				endDate = parseDate(endDateString);
 			}
 
-		} catch (Throwable ignore) {}
+		} catch (Throwable t) {
+
+			logger.warn("Unable to read license server response: {}", t.getMessage());
+		}
 
 		return response;
 	}
@@ -1073,6 +1087,8 @@ public class StructrLicenseManager implements LicenseManager {
 					licenseContent = Files.readString(Paths.get(outFile));
 
 				} catch (IOException ioex) {
+
+					logger.warn("Unable to read license file {}: {}", outFile, ioex.getMessage());
 
 					success = false;
 				}

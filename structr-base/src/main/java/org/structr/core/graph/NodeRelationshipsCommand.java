@@ -81,23 +81,9 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 
 		} catch (RuntimeException e) {
 
-			logger.warn("Exception occured: ", e.getMessage());
-
-			/**
-				* ********* FIXME
-				*
-				* Here an exception occurs:
-				*
-				* org.neo4j.kernel.impl.nioneo.store.InvalidRecordException: Node[5] is neither firstNode[37781] nor secondNode[37782] for Relationship[188125]
-				* at org.neo4j.kernel.impl.nioneo.xa.ReadTransaction.getMoreRelationships(ReadTransaction.java:131)
-				* at org.neo4j.kernel.impl.nioneo.xa.NioNeoDbPersistenceSource$ReadOnlyResourceConnection.getMoreRelationships(NioNeoDbPersistenceSource.java:280)
-				* at org.neo4j.kernel.impl.persistence.PersistenceManager.getMoreRelationships(PersistenceManager.java:100)
-				* at org.neo4j.kernel.impl.core.NodeManager.getMoreRelationships(NodeManager.java:585)
-				* at org.neo4j.kernel.impl.core.NodeImpl.getMoreRelationships(NodeImpl.java:358)
-				* at org.neo4j.kernel.impl.core.IntArrayIterator.hasNext(IntArrayIterator.java:115)
-				*
-				*
-				*/
+			// The relationships already collected are returned; iterating them is a database read that can
+			// fail halfway through, and a partial answer is more useful here than none.
+			logger.warn("Unable to read relationships of node {}: {}", sourceNode.getUuid(), e.getMessage());
 		}
 
 		return result;

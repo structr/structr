@@ -61,8 +61,8 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 
 		newNode.setRawPathSegmentId(pathSegmentId);
 
-		// FIXME: do we need this still?
-		//newNode.onNodeInstantiation(isCreation);
+		// No onNodeInstantiation() call here: it only pre-populates the uuid cache, which getUuid()
+		// fills lazily anyway, and notifies OnNodeInstantiation callbacks, of which none are registered.
 
 		// check access
 		if (isCreation || securityContext.isSuperUser() || securityContext.isReadable(newNode, includeHidden, publicOnly)) {

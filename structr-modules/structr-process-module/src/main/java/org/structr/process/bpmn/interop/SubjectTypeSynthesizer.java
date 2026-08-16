@@ -327,7 +327,7 @@ public final class SubjectTypeSynthesizer {
 
 		final StringBuilder sb = new StringBuilder();
 
-		for (int i = 0; i < base.length(); i++) {
+		for (int i = 0, len = base.length(); i < len; i++) {
 
 			final char c = base.charAt(i);
 			if (Character.isLetterOrDigit(c)) {
@@ -356,7 +356,7 @@ public final class SubjectTypeSynthesizer {
 
 		final StringBuilder sb = new StringBuilder(prefix);
 
-		for (int i = 0; i < taskBpmnId.length(); i++) {
+		for (int i = 0, len = taskBpmnId.length(); i < len; i++) {
 
 			final char c = taskBpmnId.charAt(i);
 			sb.append(Character.isLetterOrDigit(c) ? c : '_');
