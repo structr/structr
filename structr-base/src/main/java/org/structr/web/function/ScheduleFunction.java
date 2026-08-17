@@ -105,7 +105,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 		The `title` parameter is optional and is displayed in the Structr admin UI in the Job Queue section and in the 
 		notification messages when a script is started or finished.
 		The `onFinish` parameter is a script snippet which will be called when the process finishes (successfully or with an exception).
-		A parameter `jobInfo` is injected in the context of the `onFinish` function (see `job_info()` for more information on this object).
+		A parameter `jobInfo` is injected in the context of the `onFinish` function (see `jobInfo()` for more information on this object).
 		The schedule function returns the job id under which it is registered.
 		""";
 	}

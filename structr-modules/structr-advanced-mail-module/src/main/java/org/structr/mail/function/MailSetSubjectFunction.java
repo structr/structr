@@ -59,9 +59,7 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			throw new FrameworkException(422, getName() + "(): " + e.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
 	}
 
