@@ -28,6 +28,7 @@ import org.structr.core.entity.*;
 import org.structr.core.function.*;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.definitions.*;
+import org.structr.docs.Documentable;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
@@ -57,4 +58,45 @@ public class ScriptingTest extends StructrTest {
 			Assert.fail("Unexpected exception");
 		}
 	}
+
+	@Test
+	public void testAllFunctionsHaveCategory() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Set<String> functionNamesWithoutCategory = Functions.getFunctions().stream().filter(func -> func.getCategory() == null).map(Documentable::getName).collect(Collectors.toSet());
+
+			if (!functionNamesWithoutCategory.isEmpty()) {
+				Assert.fail("Functions must have usage string: " + functionNamesWithoutCategory);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException e) {
+
+			e.printStackTrace();
+			Assert.fail("Unexpected exception");
+		}
+	}
+
+//	@Test
+//	public void testAllFunctionsHaveUsageString() {
+//
+//		try (final Tx tx = app.tx()) {
+//
+//
+//			final Set<String> functionNamesWithoutUsage = Functions.getFunctions().stream().filter(func -> func.getUsages().isEmpty()).map(Documentable::getName).collect(Collectors.toSet());
+//
+//			if (!functionNamesWithoutUsage.isEmpty()) {
+//				Assert.fail("Functions must have usage string: " + functionNamesWithoutUsage);
+//			}
+//
+//			tx.success();
+//
+//		} catch (FrameworkException e) {
+//
+//			e.printStackTrace();
+//			Assert.fail("Unexpected exception");
+//		}
+//	}
 }
