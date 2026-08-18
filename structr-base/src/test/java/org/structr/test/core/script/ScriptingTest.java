@@ -1440,6 +1440,9 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid not() result with null value", "true", Scripting.replaceVariables(ctx, testOne, "${not(this.alwaysNull)}"));
 
 			// and
+			assertEquals("Invalid and() result", "true",  Scripting.replaceVariables(ctx, testOne, "${and()}"));
+			assertEquals("Invalid and() result", "true",  Scripting.replaceVariables(ctx, testOne, "${and(true)}"));
+			assertEquals("Invalid and() result", "false",  Scripting.replaceVariables(ctx, testOne, "${and(false)}"));
 			assertEquals("Invalid and() result", "true",  Scripting.replaceVariables(ctx, testOne, "${and(true, true)}"));
 			assertEquals("Invalid and() result", "false", Scripting.replaceVariables(ctx, testOne, "${and(true, false)}"));
 			assertEquals("Invalid and() result", "false", Scripting.replaceVariables(ctx, testOne, "${and(false, true)}"));
@@ -1449,7 +1452,9 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid and() result with null value", "false", Scripting.replaceVariables(ctx, testOne, "${and(this.alwaysNull, this.alwaysNull)}"));
 
 			// or
-			assertEquals("Invalid or() result", "true",  Scripting.replaceVariables(ctx, testOne, "${or(true, true)}"));
+			assertEquals("Invalid or() result", "false",  Scripting.replaceVariables(ctx, testOne, "${or()}"));
+			assertEquals("Invalid or() result", "true",  Scripting.replaceVariables(ctx, testOne, "${or(true)}"));
+			assertEquals("Invalid or() result", "false",  Scripting.replaceVariables(ctx, testOne, "${or(false)}"));
 			assertEquals("Invalid or() result", "true", Scripting.replaceVariables(ctx, testOne, "${or(true, false)}"));
 			assertEquals("Invalid or() result", "true", Scripting.replaceVariables(ctx, testOne, "${or(false, true)}"));
 			assertEquals("Invalid or() result", "false", Scripting.replaceVariables(ctx, testOne, "${and(false, false)}"));
