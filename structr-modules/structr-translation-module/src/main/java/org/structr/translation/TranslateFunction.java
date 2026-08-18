@@ -164,7 +164,7 @@ public class TranslateFunction extends UiFunction {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

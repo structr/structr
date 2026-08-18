@@ -55,7 +55,7 @@ public class WeekDaysFunction extends CoreFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		try {
@@ -91,7 +91,7 @@ public class WeekDaysFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

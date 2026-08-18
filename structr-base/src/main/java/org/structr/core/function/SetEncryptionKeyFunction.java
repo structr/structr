@@ -62,9 +62,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			// only show the error message for wrong parameter count
-
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

@@ -70,7 +70,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 				logger.warn("Error: entities are not nodes. Parameters: {}", getParametersAsString(sources));
 
-				return "Error: entities are not nodes.";
+				return null;
 			}
 
 			if (sources.length == 2) {
@@ -113,7 +113,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return list;

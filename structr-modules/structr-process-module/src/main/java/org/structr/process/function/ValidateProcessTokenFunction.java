@@ -41,7 +41,7 @@ import java.util.Map;
  * Validates a process access JWT and returns its claims as a map.
  *
  * Usage:
- *   validate_process_token(token)
+ *   validateProcessToken(token)
  *
  * Returns a map with keys: processInstanceId, taskId, action, scope
  * or null if the token is invalid, expired, or tampered with.
@@ -53,7 +53,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 
-		return "validate_process_token";
+		return "validateProcessToken";
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
@@ -105,7 +105,7 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${validate_process_token(token)}"), Usage.javaScript("Usage: ${{$.validate_process_token(token)}}"));
+		return List.of(Usage.structrScript("Usage: ${validateProcessToken(token)}"), Usage.javaScript("Usage: ${{$.validateProcessToken(token)}}"));
 	}
 
 	@Override
@@ -146,11 +146,11 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 
 		return List.of(
 			Example.javaScript(
-				"${{let claims = $.doPrivileged(() => $.validate_process_token($.request.token)); if (claims && claims.processInstanceId === $.current.id) { /* valid */ }}}",
+				"${{let claims = $.doPrivileged(() => $.validateProcessToken($.request.token)); if (claims && claims.processInstanceId === $.current.id) { /* valid */ }}}",
 				"Validate token and check it matches the current process instance"
 			),
 			Example.structrScript(
-				"${validate_process_token(request.token)}",
+				"${validateProcessToken(request.token)}",
 				"Validate a process access token (call inside doPrivileged)"
 			)
 		);

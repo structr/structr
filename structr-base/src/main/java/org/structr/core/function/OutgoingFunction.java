@@ -80,7 +80,7 @@ public class OutgoingFunction extends CoreFunction {
 
 				logger.warn("Error: entity is not a node. Parameters: {}", getParametersAsString(sources));
 
-				return "Error: entity is not a node.";
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -91,7 +91,7 @@ public class OutgoingFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

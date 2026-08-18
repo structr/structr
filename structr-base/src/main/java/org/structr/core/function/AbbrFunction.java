@@ -46,7 +46,7 @@ public class AbbrFunction extends CoreFunction {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 
 			if (sources[0] == null) {
@@ -76,7 +76,7 @@ public class AbbrFunction extends CoreFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

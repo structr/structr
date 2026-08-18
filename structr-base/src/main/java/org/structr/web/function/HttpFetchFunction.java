@@ -96,7 +96,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

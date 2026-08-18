@@ -90,18 +90,14 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-				// only show the error message for wrong parameter count
-
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			// only show the error message for wrong parameter count
-
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

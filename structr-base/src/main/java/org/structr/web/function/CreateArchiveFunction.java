@@ -63,7 +63,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		try {
@@ -108,7 +108,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-						return usage(ctx.isJavaScriptContext());
+						return null;
 					}
 				}
 
@@ -116,7 +116,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 
 			zaps.close();

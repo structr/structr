@@ -69,14 +69,14 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 					logParameterError(caller, sources, "First parameter is not a file object.", ctx.isJavaScriptContext());
 
-					return usage(ctx.isJavaScriptContext());
+					return null;
 				}
 
 				if (!(sources[1] instanceof String)) {
 
 					logParameterError(caller, sources, "Second parameter is not a string.", ctx.isJavaScriptContext());
 
-					return usage(ctx.isJavaScriptContext());
+					return null;
 				}
 
 				final File pdfFileObject  = ((NodeInterface) sources[0]).as(File.class);
@@ -112,7 +112,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

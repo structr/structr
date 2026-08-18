@@ -74,7 +74,7 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, iae.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

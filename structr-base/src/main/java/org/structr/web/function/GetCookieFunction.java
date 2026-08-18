@@ -73,11 +73,6 @@ public class GetCookieFunction extends UiAdvancedFunction {
 				}
 			}
 
-			if (ctx.isJavaScriptContext()) {
-
-				return null;
-			}
-
 			return null;
 
 		} catch (ArgumentNullException pe) {
@@ -90,7 +85,7 @@ public class GetCookieFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

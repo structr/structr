@@ -133,7 +133,7 @@ public class RenderFunction extends UiCommunityFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

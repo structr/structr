@@ -68,7 +68,7 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

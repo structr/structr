@@ -62,12 +62,12 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 
 		} else if (sources.length > 1) {
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return systemInfo;

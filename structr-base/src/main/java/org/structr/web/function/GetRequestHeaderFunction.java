@@ -76,7 +76,7 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

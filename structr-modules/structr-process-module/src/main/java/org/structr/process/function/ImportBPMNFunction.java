@@ -65,7 +65,7 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

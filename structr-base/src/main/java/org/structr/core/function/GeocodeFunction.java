@@ -131,7 +131,7 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

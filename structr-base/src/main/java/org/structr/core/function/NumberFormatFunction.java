@@ -34,8 +34,6 @@ import java.util.Locale;
 
 public class NumberFormatFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${numberFormat(value, locale, pattern)}";
-
 	@Override
 	public String getName() {
 
@@ -55,7 +53,7 @@ public class NumberFormatFunction extends CoreFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		try {
@@ -78,7 +76,7 @@ public class NumberFormatFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (Throwable t) {
 
@@ -92,7 +90,7 @@ public class NumberFormatFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript(ERROR_MESSAGE_NUMBER_FORMAT), Usage.javaScript("Usage: ${{ $.numberFormat(value, locale, pattern) }}"));
+		return List.of(Usage.structrScript("Usage: ${numberFormat(value, locale, pattern)}"), Usage.javaScript("Usage: ${{ $.numberFormat(value, locale, pattern) }}"));
 	}
 
 	@Override

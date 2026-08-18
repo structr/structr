@@ -58,7 +58,7 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

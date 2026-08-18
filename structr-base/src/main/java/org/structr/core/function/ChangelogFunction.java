@@ -120,7 +120,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 			logger.error("Unable to create changelog file: {}", ioex.getMessage());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
@@ -132,13 +132,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (IllegalArgumentException iae) {
 
 			logger.warn(iae.getMessage());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

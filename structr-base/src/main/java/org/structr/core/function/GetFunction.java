@@ -42,8 +42,6 @@ import java.util.Map;
 
 public class GetFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET_ENTITY = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
-
 	@Override
 	public String getName() {
 
@@ -91,12 +89,14 @@ public class GetFunction extends CoreFunction {
 
 						} else {
 
-							return "get(): first element of collection is of type " + value.getClass() + " which is not supported.";
+							logger.warn("get(): first element of collection is of type {} which is not supported.", value.getClass());
+							return null;
 						}
 
 					} else {
 
-						return "get(): first element of collection is null.";
+						logger.warn("get(): first element of collection is null.");
+						return null;
 					}
 				}
 			}
@@ -144,7 +144,8 @@ public class GetFunction extends CoreFunction {
 
 			} else {
 
-				return ERROR_MESSAGE_GET_ENTITY;
+				logger.warn("get(): Cannot evaluate first argument to entity, must be entity or single element list of entities.");
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -157,7 +158,7 @@ public class GetFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

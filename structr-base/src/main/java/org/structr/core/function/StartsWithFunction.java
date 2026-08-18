@@ -79,15 +79,14 @@ public class StartsWithFunction extends CoreFunction {
 
 			} else {
 
-				return usage(ctx.isJavaScriptContext());
-
+				return null;
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

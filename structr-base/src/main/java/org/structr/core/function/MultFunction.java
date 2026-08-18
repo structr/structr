@@ -70,7 +70,7 @@ public class MultFunction extends CoreFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return result;

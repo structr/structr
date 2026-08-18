@@ -81,7 +81,7 @@ public class TimerFunction extends CoreFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

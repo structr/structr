@@ -142,7 +142,7 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

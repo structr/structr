@@ -144,13 +144,10 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 			if (obj != null) {
 
-				// update existing object
 				obj.setProperties(securityContext, properties);
 
 				return obj;
 			}
-
-			// create new object
 
 			return app.create(type.getName(), properties);
 
@@ -158,8 +155,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
-
+			return null;
 		}
 	}
 
