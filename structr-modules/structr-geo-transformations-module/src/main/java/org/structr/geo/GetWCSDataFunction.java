@@ -35,8 +35,7 @@ import java.util.Map;
 
 public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(GetWCSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: getWcsData(baseUrl, coverageId, boundingBox, min, max)";
+	private static final Logger logger = LoggerFactory.getLogger(GetWCSDataFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -76,26 +75,28 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (ArgumentTypeException te) {
 
 			logParameterError(caller, sources, te.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of();
+		return List.of(
+				Usage.structrScript("Usage: getWcsData(baseUrl, coverageId, boundingBox, min, max)")
+		);
 	}
 
 	@Override

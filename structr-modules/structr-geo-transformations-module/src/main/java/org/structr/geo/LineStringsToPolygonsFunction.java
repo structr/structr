@@ -35,8 +35,7 @@ import java.util.List;
 
 public class LineStringsToPolygonsFunction extends GeoFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(LineStringsToPolygonsFunction.class.getName());
-	public static final String ERROR_MESSAGE = "";
+	private static final Logger logger = LoggerFactory.getLogger(LineStringsToPolygonsFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -71,9 +70,9 @@ public class LineStringsToPolygonsFunction extends GeoFunction {
 
 			} else {
 
-				logger.warn("Invalid parameter, expected geometry or list of geometries, got {}", sources[0].getClass().getSimpleName() );
+				logger.warn("{}(): Invalid parameter, expected geometry or list of geometries, got {}", getName(), sources[0].getClass().getSimpleName() );
 
-				return "Invalid parameters";
+				return null;
 			}
 
 			// merge line strings and return closed polygons wherever possible
@@ -93,13 +92,13 @@ public class LineStringsToPolygonsFunction extends GeoFunction {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

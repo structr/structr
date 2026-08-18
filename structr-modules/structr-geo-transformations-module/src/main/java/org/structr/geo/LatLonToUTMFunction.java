@@ -30,14 +30,12 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class LatLonToUTMFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE = "Usage: ${latLonToUtm(latitude, longitude)}. Example: ${latLonToUtm(41.3445, 7.35)}";
 	private static final Logger logger        = LoggerFactory.getLogger(LatLonToUTMFunction.class.getName());
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
 
@@ -125,16 +123,18 @@ public class LatLonToUTMFunction extends GeoFunction {
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, e.getMessage(), isJs);
 
-			return usage(isJs);
+			return null;
 		}
 
-		return usage(ctx != null ? ctx.isJavaScriptContext() : false);
+		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of();
+		return List.of(
+				Usage.structrScript("Usage: ${latLonToUtm(latitude, longitude)}. Example: ${latLonToUtm(41.3445, 7.35)}")
+		);
 	}
 
 	@Override
@@ -169,12 +169,6 @@ public class LatLonToUTMFunction extends GeoFunction {
 			}}
 			""", "Convert a lat/lon pair to UTM")
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Conversion;
 	}
 
 	// ----- private methods -----

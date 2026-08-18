@@ -36,8 +36,7 @@ import java.util.List;
 
 public class CoordsToLineStringFunction extends GeoFunction {
 
-	private static final Logger logger                                   = LoggerFactory.getLogger(CoordsToLineStringFunction.class.getName());
-	public static final String ERROR_MESSAGE                             = "";
+	private static final Logger logger = LoggerFactory.getLogger(CoordsToLineStringFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -85,19 +84,21 @@ public class CoordsToLineStringFunction extends GeoFunction {
 				}
 			}
 
-			return "Invalid parameters";
+			logger.warn("{}(): Invalid parameters", getName());
+
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

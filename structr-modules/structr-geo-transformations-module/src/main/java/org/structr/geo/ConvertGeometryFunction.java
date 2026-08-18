@@ -35,7 +35,6 @@ import java.util.List;
 
 public class ConvertGeometryFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE = "Usage: convertGeometry(sourceCRS, destCRS, geometry)";
 	private static final Logger logger        = LoggerFactory.getLogger(ConvertGeometryFunction.class.getName());
 
 	@Override
@@ -79,16 +78,18 @@ public class ConvertGeometryFunction extends GeoFunction {
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, e.getMessage(), isJs);
 
-			return usage(isJs);
+			return null;
 		}
 
-		return usage(ctx != null ? ctx.isJavaScriptContext() : false);
+		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of();
+		return List.of(
+				Usage.structrScript("Usage: convertGeometry(sourceCRS, destCRS, geometry)")
+		);
 	}
 
 	@Override

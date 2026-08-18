@@ -33,8 +33,7 @@ import java.util.List;
 
 public class WKTToGeometryFunction extends GeoFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(WKTToGeometryFunction.class.getName());
-	public static final String ERROR_MESSAGE = "";
+	private static final Logger logger = LoggerFactory.getLogger(WKTToGeometryFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -55,41 +54,37 @@ public class WKTToGeometryFunction extends GeoFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof String) {
+			if (sources[0] instanceof String wkt) {
 
-				final String wkt = (String)sources[0];
-				if (wkt != null) {
+				try {
 
-					try {
+					final WKTReader reader = new WKTReader();
 
-						final WKTReader reader = new WKTReader();
+					return reader.read(wkt);
 
-						return reader.read(wkt);
+				} catch (Throwable t) {
 
-					} catch (Throwable t) {
-
-						logger.error(ExceptionUtils.getStackTrace(t));
-					}
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 
 			} else {
 
-				logger.warn("Invalid parameter, expected string, got {}", sources[0].getClass().getSimpleName() );
+				logger.warn("{}(): Invalid parameter, expected string, got {}", getName(), sources[0].getClass().getSimpleName());
 			}
 
-			return "Invalid parameters";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

@@ -34,14 +34,12 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class UTMToLatLonFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE            = "Usage: ${utmToLatLon(utmString)}.";
 	private static final Logger logger                   = LoggerFactory.getLogger(UTMToLatLonFunction.class.getName());
 	private static final String UTMHemisphere            = "SSSSSSSSSSNNNNNNNNNNN";
 	private static final String UTMzdlChars              = "CDEFGHJKLMNPQRSTUVWXX";
@@ -95,7 +93,6 @@ public class UTMToLatLonFunction extends GeoFunction {
 					final String north      = parts[3];
 
 					return utmToLatLon(zone, hemisphere, east, north);
-
 				}
 
 			} else {
@@ -108,17 +105,17 @@ public class UTMToLatLonFunction extends GeoFunction {
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, ae.getMessage(), isJs);
 
-			return "Unsupported UTM string";
+			return null;
 
 		} catch (ArgumentCountException ae) {
 
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, ae.getMessage(), isJs);
 
-			return usage(isJs);
+			return null;
 		}
 
-		return "Unsupported UTM string";
+		return null;
 	}
 
 	@Override
@@ -160,11 +157,6 @@ public class UTMToLatLonFunction extends GeoFunction {
 		return List.of(Parameter.mandatory("utmString", "UTM location string"));
 	}
 
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Conversion;
-	}
 	// ----- private methods -----
 
 	private String getHemisphereFromZone(final String zone) {

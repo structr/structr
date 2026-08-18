@@ -34,8 +34,7 @@ import java.util.Map;
 
 public class GetWFSDataFunction extends AbstractGeoserverFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(GetWFSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: getWfsData(baseUrl, version, typeName [, parameterString ])";
+	private static final Logger logger = LoggerFactory.getLogger(GetWFSDataFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -74,26 +73,28 @@ public class GetWFSDataFunction extends AbstractGeoserverFunction {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (ArgumentTypeException te) {
 
 			logParameterError(caller, sources, te.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of();
+		return List.of(
+				Usage.structrScript("Usage: getWfsData(baseUrl, version, typeName [, parameterString ])")
+		);
 	}
 
 	@Override

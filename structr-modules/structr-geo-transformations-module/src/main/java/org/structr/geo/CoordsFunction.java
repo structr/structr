@@ -108,19 +108,21 @@ public class CoordsFunction extends GeoFunction {
 				return result;
 			}
 
-			return "Invalid parameters";
+			logger.warn("{}(): Invalid parameters", getName());
+
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

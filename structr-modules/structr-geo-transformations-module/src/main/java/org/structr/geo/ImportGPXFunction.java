@@ -28,7 +28,6 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -52,7 +51,6 @@ public class ImportGPXFunction extends GeoFunction {
 	public static final Property<GraphObjectMap> authorProperty          = new GenericProperty<>("author");
 	public static final Property<Double> latitudeProperty                = new DoubleProperty("latitude");
 	public static final Property<Double> longitudeProperty               = new DoubleProperty("longitude");
-	public static final String ERROR_MESSAGE                             = "";
 
 	private static final Map<String, Property> fieldMapping = new LinkedHashMap<>();
 
@@ -98,83 +96,76 @@ public class ImportGPXFunction extends GeoFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof String) {
+			if (sources[0] instanceof String source) {
 
-				final String source = (String)sources[0];
-				if (source != null) {
+				// parse source, create a list of points
+				final GraphObjectMap result          = new GraphObjectMap();
+				final XmlFunction xmlParser          = new XmlFunction();
+				final Document doc                   = (Document)xmlParser.apply(ctx, caller, sources);
+				final List<GraphObjectMap> waypoints = new LinkedList<>();
+				final List<GraphObjectMap> routes    = new LinkedList<>();
+				final List<GraphObjectMap> tracks    = new LinkedList<>();
 
-					// parse source, create a list of points
-					final GraphObjectMap result          = new GraphObjectMap();
-					final XmlFunction xmlParser          = new XmlFunction();
-					final Document doc                   = (Document)xmlParser.apply(ctx, caller, sources);
-					final List<GraphObjectMap> waypoints = new LinkedList<>();
-					final List<GraphObjectMap> routes    = new LinkedList<>();
-					final List<GraphObjectMap> tracks    = new LinkedList<>();
+				if (doc != null) {
 
-					if (doc != null) {
+					final Element root           = doc.getDocumentElement();
+					final List<Element> children = getChildren(root);
 
-						final Element root           = doc.getDocumentElement();
-						final List<Element> children = getChildren(root);
+					for (final Element child : children) {
 
-						for (final Element child : children) {
+						switch (child.getTagName()) {
 
-							switch (child.getTagName()) {
+							case "metadata":
+								final GraphObjectMap metadata = readPoint(child);
+								result.put(metadataProperty, metadata);
 
-								case "metadata":
-									final GraphObjectMap metadata = readPoint(child);
-									if (metadata != null) {
+								break;
 
-										result.put(metadataProperty, metadata);
-									}
+							case "rte":
+								readRoute(child, routes);
+								break;
 
-									break;
+							case "wpt":
+								readWaypoint(child, waypoints);
+								break;
 
-								case "rte":
-									readRoute(child, routes);
-									break;
-
-								case "wpt":
-									readWaypoint(child, waypoints);
-									break;
-
-								case "trk":
-									readTrack(child, tracks);
-									break;
-							}
-						}
-
-						if (!waypoints.isEmpty()) {
-
-							result.put(waypointsProperty, waypoints);
-						}
-
-						if (!routes.isEmpty()) {
-
-							result.put(routesProperty, routes);
-						}
-
-						if (!tracks.isEmpty()) {
-
-							result.put(tracksProperty, tracks);
+							case "trk":
+								readTrack(child, tracks);
+								break;
 						}
 					}
 
-					return result;
+					if (!waypoints.isEmpty()) {
+
+						result.put(waypointsProperty, waypoints);
+					}
+
+					if (!routes.isEmpty()) {
+
+						result.put(routesProperty, routes);
+					}
+
+					if (!tracks.isEmpty()) {
+
+						result.put(tracksProperty, tracks);
+					}
 				}
+
+				return result;
 
 			} else {
 
 				logger.warn("Invalid parameter for GPX import, expected string, got {}", sources[0].getClass().getSimpleName() );
 			}
 
-			return "Invalid parameters";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 
 			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
 			logParameterError(caller, sources, e.getMessage(), isJs);
 
-			return usage(isJs);
+			return null;
 		}
 	}
 
@@ -256,12 +247,6 @@ public class ImportGPXFunction extends GeoFunction {
 			}}
 			""", "Parse a GPX track from a file in the Structr filesystem")
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.InputOutput;
 	}
 
 	// ----- private methods -----
