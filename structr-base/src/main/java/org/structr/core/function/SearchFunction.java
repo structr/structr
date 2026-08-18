@@ -20,10 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.QueryGroup;
-import org.structr.core.app.StructrApp;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
@@ -57,54 +53,7 @@ public class SearchFunction extends AbstractQueryFunction {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 
-		try {
-
-			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
-
-			applyQueryParameters(securityContext, query);
-
-			Traits type = null;
-
-			if (sources.length >= 1 && sources[0] != null) {
-
-				final String typeString = sources[0].toString();
-				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
-
-					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted(getName(), getName()));
-				}
-
-				if (Traits.exists(typeString)) {
-
-					type = Traits.of(typeString);
-
-					query.types(type);
-
-				} else {
-
-					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_NOT_FOUND.formatted(getName(), typeString));
-				}
-			}
-
-			if (type == null) {
-
-				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted(getName(), getParametersAsString(sources)));
-			}
-
-			// apply sorting and pagination by surrounding sort() and slice() expressions
-			applyQueryParameters(securityContext, query);
-
-			return handleQuerySources(securityContext, type, query, sources, false, usage(ctx.isJavaScriptContext()));
-
-		} catch (final IllegalArgumentException e) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
-
-		} finally {
-
-			resetQueryParameters(securityContext);
-		}
+		return applyInternal(ctx, securityContext, caller, sources, false);
 	}
 
 	@Override

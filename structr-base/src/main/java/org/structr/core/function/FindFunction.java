@@ -45,45 +45,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 
-		try {
-
-			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
-			Traits type = null;
-
-			if (sources.length >= 1 && sources[0] != null) {
-
-				final String typeString = sources[0].toString();
-				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
-
-					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted(getName(), getName()));
-				}
-
-				if (Traits.exists(typeString)) {
-
-					type = Traits.of(typeString);
-
-					query.types(type);
-
-				} else {
-
-					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_NOT_FOUND.formatted(getName(), typeString));
-				}
-			}
-
-			if (type == null) {
-
-				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted(getName(), getParametersAsString(sources)));
-			}
-
-			// apply sorting and pagination by surrounding sort() and slice() expressions
-			applyQueryParameters(securityContext, query);
-
-			return handleQuerySources(securityContext, type, query, sources, true, usage(ctx.isJavaScriptContext()));
-
-		} finally {
-
-			resetQueryParameters(securityContext);
-		}
+		return applyInternal(ctx, securityContext, caller, sources, true);
 	}
 
 	@Override

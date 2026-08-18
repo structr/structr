@@ -20,11 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.QueryGroup;
-import org.structr.core.app.StructrApp;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -35,8 +30,6 @@ import java.util.List;
 
 public class PrivilegedFindFunction extends AbstractQueryFunction {
 
-	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED = "Error in findPrivileged(): no type specified.";
-	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND = "Error in findPrivileged(): type not found: ";
 	@Override
 	public String getName() {
 
@@ -60,60 +53,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-		try {
-
-			final App app          = StructrApp.getInstance(securityContext);
-			final QueryGroup query = app.nodeQuery().and();
-
-			// the type to query for
-			Traits type = null;
-
-			if (sources.length >= 1 && sources[0] != null) {
-
-				final String typeString = sources[0].toString();
-				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
-
-					throw new FrameworkException(422, "Type GraphObject not supported in findPrivileged(), please use type NodeInterface to search for nodes of all types.");
-				}
-
-				type = Traits.of(typeString);
-
-				if (type != null) {
-
-					query.types(type);
-
-				} else {
-
-					logger.warn("Error in findPrivileged(): type '{}' not found.", typeString);
-
-					return ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND + typeString;
-
-				}
-			}
-
-			// exit gracefully instead of crashing..
-			if (type == null) {
-
-				logger.warn("Error in findPrivileged(): no type specified. Parameters: {}", getParametersAsString(sources));
-
-				return ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED;
-			}
-
-			// apply sorting and pagination by surrounding sort() and slice() expressions
-			applyQueryParameters(securityContext, query);
-
-			return handleQuerySources(securityContext, type, query, sources, true, usage(ctx.isJavaScriptContext()));
-
-		} catch (final IllegalArgumentException e) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
-
-		} finally {
-
-			resetQueryParameters(securityContext);
-		}
+		return applyInternal(ctx, securityContext, caller, sources, true);
 	}
 
 	@Override
