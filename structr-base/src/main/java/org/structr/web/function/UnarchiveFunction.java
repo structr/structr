@@ -56,7 +56,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		try {

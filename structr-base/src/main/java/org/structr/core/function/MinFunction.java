@@ -54,7 +54,7 @@ public class MinFunction extends CoreFunction {
 
 			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
@@ -66,7 +66,7 @@ public class MinFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

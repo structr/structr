@@ -43,8 +43,7 @@ import java.util.Map;
 
 public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(GetWCSHistogramFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: getWcsHistogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])";
+	private static final Logger logger = LoggerFactory.getLogger(GetWCSHistogramFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -142,26 +141,28 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (ArgumentTypeException te) {
 
 			logParameterError(caller, sources, te.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of();
+		return List.of(
+				Usage.structrScript("Usage: getWcsHistogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])")
+		);
 	}
 
 	@Override

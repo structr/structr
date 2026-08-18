@@ -108,13 +108,13 @@ public class FromCsvFunction extends CsvFunction {
 				logException(t, "{}(): Encountered exception '{}' for input: {}", getName(), t.getMessage(), getParametersAsString(sources));
 			}
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

@@ -63,7 +63,7 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 			}
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

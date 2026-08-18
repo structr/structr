@@ -128,7 +128,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 				logger.warn("Error: Unknown relationship type. Parameters: {}", getParametersAsString(sources));
 
-				return "Error: Unknown relationship type";
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -141,7 +141,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

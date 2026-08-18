@@ -167,16 +167,15 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 			
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

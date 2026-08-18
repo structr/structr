@@ -56,7 +56,7 @@ public class QuotFunction extends CoreFunction {
 
 				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 
-				return nfe.getMessage();
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -71,7 +71,7 @@ public class QuotFunction extends CoreFunction {
 
 					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", getDisplayName(), caller, getParametersAsString(sources));
 
-					return nfe.getMessage();
+					return null;
 				}
 			}
 
@@ -79,7 +79,7 @@ public class QuotFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

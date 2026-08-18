@@ -21,11 +21,13 @@ package org.structr.web.function;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
+import org.structr.api.util.Category;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.script.Scripting;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -94,6 +96,11 @@ public class ThemeFunction extends UiCommunityFunction {
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("name");
+	}
+
+	@Override
+	public Category getCategory() {
+		return FunctionCategory.Rendering;
 	}
 
 	// ----- private methods -----

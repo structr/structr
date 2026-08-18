@@ -37,8 +37,7 @@ import java.util.List;
 
 public class WKTToPolygonsFunction extends GeoFunction {
 
-	private static final Logger logger                                   = LoggerFactory.getLogger(WKTToPolygonsFunction.class.getName());
-	public static final String ERROR_MESSAGE                             = "";
+	private static final Logger logger = LoggerFactory.getLogger(WKTToPolygonsFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -59,45 +58,41 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof String) {
+			if (sources[0] instanceof String wkt) {
 
-				final String wkt = (String)sources[0];
-				if (wkt != null) {
+				try {
 
-					try {
+					final List result      = new LinkedList<>();
+					final WKTReader reader = new WKTReader();
+					final Geometry source  = reader.read(wkt);
 
-						final List result      = new LinkedList<>();
-						final WKTReader reader = new WKTReader();
-						final Geometry source  = reader.read(wkt);
+					handleGeometry(source, result);
 
-						handleGeometry(source, result);
+					return result;
 
-						return result;
+				} catch (Throwable t) {
 
-					} catch (Throwable t) {
-
-						logger.error(ExceptionUtils.getStackTrace(t));
-					}
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 
 			} else {
 
-				logger.warn("Invalid parameter for wktToCoordinates, expected string, got {}", sources[0].getClass().getSimpleName() );
+				logger.warn("{}(): Invalid parameter for wktToCoordinates, expected string, got {}", getName(), sources[0].getClass().getSimpleName());
 			}
 
-			return "Invalid parameters";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

@@ -81,7 +81,7 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

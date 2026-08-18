@@ -84,7 +84,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

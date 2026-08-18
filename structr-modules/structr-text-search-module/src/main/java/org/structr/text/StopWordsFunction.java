@@ -64,7 +64,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 
 		} catch (ArgumentCountException pe) {
 

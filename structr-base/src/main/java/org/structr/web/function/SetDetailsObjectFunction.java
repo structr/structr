@@ -70,7 +70,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

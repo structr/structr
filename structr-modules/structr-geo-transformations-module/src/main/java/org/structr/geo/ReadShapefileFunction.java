@@ -51,8 +51,7 @@ import java.util.*;
 
 public class ReadShapefileFunction extends GeoFunction {
 
-	private static final Logger logger                                   = LoggerFactory.getLogger(ReadShapefileFunction.class.getName());
-	public static final String ERROR_MESSAGE                             = "";
+	private static final Logger logger = LoggerFactory.getLogger(ReadShapefileFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -73,113 +72,109 @@ public class ReadShapefileFunction extends GeoFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof String) {
+			if (sources[0] instanceof String filename) {
 
-				final String filename = (String)sources[0];
-				if (filename != null) {
+				final SecurityContext securityContext = ctx.getSecurityContext();
+				final String tempUuid                 = "structr-" + NodeServiceCommand.getNextUuid();
 
-					final SecurityContext securityContext = ctx.getSecurityContext();
-					final String tempUuid                 = "structr-" + NodeServiceCommand.getNextUuid();
+				// make security context available to the code inside the following block
+				securityContext.storeTemporary(tempUuid);
 
-					// make security context available to the code inside the following block
-					securityContext.storeTemporary(tempUuid);
+				try {
 
-					try {
+					// we create a custom URL that references the SecurityContext stored above
+					final URL contentUrl                  = new URL(tempUuid + ":" + filename);
+					final GeometryFactory gf              = new GeometryFactory();
+					final ShpFiles shpFiles               = new ShpFiles(contentUrl);
+					final ShapefileReader reader          = new ShapefileReader(shpFiles, true, true, gf);
+					final CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");
+					final CoordinateReferenceSystem crs   = readCRS(shpFiles, reader);
+					final List<Map<String, Object>> data  = new LinkedList<>();
+					final Map<String, Object> result      = new LinkedHashMap<>();
+					MathTransform transform               = null;
 
-						// we create a custom URL that references the SecurityContext stored above
-						final URL contentUrl                  = new URL(tempUuid + ":" + filename);
-						final GeometryFactory gf              = new GeometryFactory();
-						final ShpFiles shpFiles               = new ShpFiles(contentUrl);
-						final ShapefileReader reader          = new ShapefileReader(shpFiles, true, true, gf);
-						final CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");
-						final CoordinateReferenceSystem crs   = readCRS(shpFiles, reader);
-						final List<Map<String, Object>> data  = new LinkedList<>();
-						final Map<String, Object> result      = new LinkedHashMap<>();
-						MathTransform transform               = null;
+					if (crs != null) {
 
-						if (crs != null) {
-
-							transform = CRS.findMathTransform(crs, wgs84, true);
-						}
-
-						final List<String> metadataFields        = new LinkedList<>();
-						final List<Map<String, Object>> metadata = readDBF(shpFiles, metadataFields);
-						Iterator<Map<String, Object>> iterator   = null;
-						int count                                = 0;
-
-						if (metadata != null) {
-
-							iterator = metadata.iterator();
-						}
-
-						while (reader.hasNext() && (iterator == null || iterator.hasNext())) {
-
-							final Map<String, Object> item = new LinkedHashMap<>();
-							final Record record            = reader.nextRecord();
-							final Object shape             = record.shape();
-
-							if (shape instanceof Geometry) {
-
-								Geometry geometry = (Geometry)shape;
-
-								// transform to WGS-84
-								if (transform != null) {
-
-									geometry = JTS.transform(geometry, transform);
-								}
-
-								item.put("wkt", geometry.toString());
-
-								// store data as well
-								if (iterator != null) {
-
-									item.put("metadata", iterator.next());
-								}
-
-								data.add(item);
-							}
-
-							if (++count % 1000 == 0) {
-
-								logger.info("Number of geometries: {}", count);
-							}
-						}
-
-						reader.close();
-
-						result.put("geometries", data);
-						result.put("fields",     metadataFields);
-
-						return result;
-
-					} catch (Throwable t) {
-
-						logger.error(ExceptionUtils.getStackTrace(t));
-
-					} finally {
-
-						securityContext.clearTemporary(tempUuid);
+						transform = CRS.findMathTransform(crs, wgs84, true);
 					}
+
+					final List<String> metadataFields        = new LinkedList<>();
+					final List<Map<String, Object>> metadata = readDBF(shpFiles, metadataFields);
+					Iterator<Map<String, Object>> iterator   = null;
+					int count                                = 0;
+
+					if (metadata != null) {
+
+						iterator = metadata.iterator();
+					}
+
+					while (reader.hasNext() && (iterator == null || iterator.hasNext())) {
+
+						final Map<String, Object> item = new LinkedHashMap<>();
+						final Record record            = reader.nextRecord();
+						final Object shape             = record.shape();
+
+						if (shape instanceof Geometry) {
+
+							Geometry geometry = (Geometry)shape;
+
+							// transform to WGS-84
+							if (transform != null) {
+
+								geometry = JTS.transform(geometry, transform);
+							}
+
+							item.put("wkt", geometry.toString());
+
+							// store data as well
+							if (iterator != null) {
+
+								item.put("metadata", iterator.next());
+							}
+
+							data.add(item);
+						}
+
+						if (++count % 1000 == 0) {
+
+							logger.info("Number of geometries: {}", count);
+						}
+					}
+
+					reader.close();
+
+					result.put("geometries", data);
+					result.put("fields",     metadataFields);
+
+					return result;
+
+				} catch (Throwable t) {
+
+					logger.error(ExceptionUtils.getStackTrace(t));
+
+				} finally {
+
+					securityContext.clearTemporary(tempUuid);
 				}
 
 			} else {
 
-				logger.warn("Invalid parameter for shapefile import, expected string, got {}", sources[0].getClass().getSimpleName() );
+				logger.warn("{}(): Invalid parameter for shapefile import, expected string, got {}", getName(), sources[0].getClass().getSimpleName());
 			}
 
-			return "Invalid parameters";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

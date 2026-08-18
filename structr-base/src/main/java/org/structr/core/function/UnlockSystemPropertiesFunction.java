@@ -52,9 +52,9 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				logger.warn("Parameter 1 is not a node. Parameters: {}", getParametersAsString(sources));
+				logger.warn("{}(): Parameter 1 is not a node. Parameters: {}", getName(), getParametersAsString(sources));
 
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -67,7 +67,7 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

@@ -112,7 +112,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

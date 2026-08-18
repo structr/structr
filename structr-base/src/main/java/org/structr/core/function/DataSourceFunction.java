@@ -18,11 +18,13 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.util.Category;
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.Channel;
 import org.structr.core.datasources.ChannelResult;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 
@@ -104,5 +106,10 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(Usage.javaScript("Usage: ${{$.dataSource('node:Page', 10, 1)}}"), Usage.structrScript("Usage: ${dataSource('node:Page', 10, 1)}"));
+	}
+
+	@Override
+	public Category getCategory() {
+		return FunctionCategory.Rendering;
 	}
 }

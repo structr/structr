@@ -81,7 +81,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	public static Object parseJson(final String source) throws JsonSyntaxException {

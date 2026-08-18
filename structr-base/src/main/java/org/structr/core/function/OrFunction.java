@@ -44,31 +44,25 @@ public class OrFunction extends CoreFunction {
 
 		boolean result = false;
 
-		if (sources != null) {
+		for (Object i : sources) {
 
-			if (sources.length < 2) {
+			if (i != null) {
 
-				return usage(ctx.isJavaScriptContext());
-			}
+				try {
 
-			for (Object i : sources) {
+					result |= "true".equals(i.toString()) || Boolean.TRUE.equals(i);
 
-				if (i != null) {
+				} catch (Throwable t) {
 
-					try {
+					logException(caller, t, sources);
 
-						result |= "true".equals(i.toString()) || Boolean.TRUE.equals(i);
-
-					} catch (Throwable t) {
-
-						return t.getMessage();
-					}
-
-				} else {
-
-					// null is false
-					result |= false;
+					return false;
 				}
+
+			} else {
+
+				// null is false
+				result |= false;
 			}
 		}
 
@@ -102,7 +96,7 @@ public class OrFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(Example.structrScript("${or(true, false)}", "true && false = true"));
+		return List.of(Example.structrScript("${or(true, false)}", "true || false = true"));
 	}
 
 	@Override

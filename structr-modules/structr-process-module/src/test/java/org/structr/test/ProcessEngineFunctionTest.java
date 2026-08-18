@@ -145,7 +145,7 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 	}
 
 	// ==================================================================
-	// process_token / validate_process_token functions
+	// processToken / validateProcessToken functions
 	// ==================================================================
 
 	@Test
@@ -158,9 +158,9 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 		final Object token2 = new ProcessTokenFunction().apply(ctx(), null, new Object[] { "pid-1", "tid-1", "review", "notanumber" });
 		assertNotNull(ProcessJWTHelper.validateProcessToken(token2.toString()));
 
-		// too few args -> usage string (not a valid token).
-		final Object usage = new ProcessTokenFunction().apply(ctx(), null, new Object[] { "pid-1", "tid-1" });
-		assertNull("a usage string must not validate as a token", ProcessJWTHelper.validateProcessToken(usage.toString()));
+		// too few args -> returns null (not a valid token).
+		final Object resultForInvalidCall = new ProcessTokenFunction().apply(ctx(), null, new Object[] { "pid-1", "tid-1" });
+		assertNull("calling processToken with incorrect number of arguments must yield null", resultForInvalidCall);
 	}
 
 	@Test
@@ -180,9 +180,8 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 		// invalid token -> null
 		assertNull(new ValidateProcessTokenFunction().apply(ctx(), null, new Object[] { "bad.token" }));
 
-		// exact-length contract: 2 args -> usage string, NOT a validation Map.
-		final Object twoArgs = new ValidateProcessTokenFunction().apply(ctx(), null, new Object[] { token, "extra" });
-		assertFalse("validate takes exactly one arg; extra args must yield usage, not a Map", twoArgs instanceof Map);
+		final Object resultForInvalidCall = new ValidateProcessTokenFunction().apply(ctx(), null, new Object[] { token, "extra" });
+		assertNull("validate takes exactly one arg; calling it extra args must yield null, not a Map", resultForInvalidCall);
 	}
 
 	// ==================================================================
@@ -223,9 +222,9 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 				assertEquals(422, expected.getStatus());
 			}
 
-			// too few args -> usage string (not TRUE).
-			final Object usage = new NotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject" });
-			assertFalse(Boolean.TRUE.equals(usage));
+			// too few args -> returns null (not TRUE).
+			final Object resultForInvalidCall = new NotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject" });
+			assertNull(resultForInvalidCall);
 			tx.success();
 		}
 	}
@@ -244,9 +243,9 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 
 			assertTrue("import should return the created BpmnDefinitions node", def instanceof NodeInterface);
 
-			// non-String arg -> falls through to usage (not a node).
-			final Object usage = new ImportBPMNFunction().apply(ctx(), null, new Object[] { 42 });
-			assertFalse(usage instanceof NodeInterface);
+			// non-String arg -> returns null (not a node).
+			final Object resultForInvalidCall = new ImportBPMNFunction().apply(ctx(), null, new Object[] { 42 });
+			assertNull(resultForInvalidCall);
 			tx.success();
 		}
 	}
@@ -263,9 +262,9 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 			assertNotNull(out);
 			assertTrue("export should produce BPMN XML", out.toString().contains("definitions"));
 
-			// non-Node arg -> usage string (not BPMN XML).
-			final Object usage = new ExportBPMNFunction().apply(ctx(), null, new Object[] { "not-a-node" });
-			assertFalse(usage.toString().contains("<?xml"));
+			// non-Node arg -> returns null (not BPMN XML).
+			final Object resultForInvalidCall = new ExportBPMNFunction().apply(ctx(), null, new Object[] { "not-a-node" });
+			assertNull(resultForInvalidCall);
 			tx.success();
 		}
 	}

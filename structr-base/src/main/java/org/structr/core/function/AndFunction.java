@@ -44,36 +44,26 @@ public class AndFunction extends CoreFunction {
 
 		boolean result = true;
 
-		if (sources != null) {
+		for (Object i : sources) {
 
-			for (Object i : sources) {
+			if (i != null) {
 
-				if (i != null) {
+				try {
 
-					try {
+					result &= "true".equals(i.toString()) || Boolean.TRUE.equals(i);
 
-						result &= "true".equals(i.toString()) || Boolean.TRUE.equals(i);
+				} catch (Throwable t) {
 
-					} catch (Throwable t) {
-
-						logException(caller, t, sources);
-
-						return t.getMessage();
-					}
-
-				} else {
-
-					// null is false
+					logException(caller, t, sources);
 
 					return false;
 				}
+
+			} else {
+
+				// null is false
+				return false;
 			}
-
-		} else {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			result = false;
 		}
 
 		return result;

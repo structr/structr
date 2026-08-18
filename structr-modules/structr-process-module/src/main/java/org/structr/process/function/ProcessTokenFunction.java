@@ -53,7 +53,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 	@Override
 	public String getName() {
 
-		return "process_token";
+		return "processToken";
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
@@ -108,8 +108,8 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${process_token(processInstanceId, taskId, action [, expiryMinutes])}"),
-			Usage.javaScript("Usage: ${{$.process_token(processInstanceId, taskId, action [, expiryMinutes])}}")
+			Usage.structrScript("Usage: ${processToken(processInstanceId, taskId, action [, expiryMinutes])}"),
+			Usage.javaScript("Usage: ${{$.processToken(processInstanceId, taskId, action [, expiryMinutes])}}")
 		);
 	}
 
@@ -157,15 +157,15 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 		return List.of(
 			Example.structrScript(
-				"${process_token(inst.id, task.id, 'review')}",
+				"${processToken(inst.id, task.id, 'review')}",
 				"Create a process access token for a review action (48h expiry)"
 			),
 			Example.structrScript(
-				"${process_token(inst.id, task.id, 'review', 1440)}",
+				"${processToken(inst.id, task.id, 'review', 1440)}",
 				"Create a process access token with 24-hour expiry"
 			),
 			Example.javaScript(
-				"${{let jwt = $.process_token(inst.id, task.id, 'review'); let url = pageUrl + '?token=' + jwt;}}",
+				"${{let jwt = $.processToken(inst.id, task.id, 'review'); let url = pageUrl + '?token=' + jwt;}}",
 				"Create token and build notification URL in JavaScript"
 			)
 		);

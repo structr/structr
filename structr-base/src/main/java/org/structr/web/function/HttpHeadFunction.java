@@ -60,7 +60,6 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
-
 			}
 
 			return null;
@@ -68,10 +67,9 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

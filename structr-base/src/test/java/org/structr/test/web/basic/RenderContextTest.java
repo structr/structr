@@ -501,8 +501,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid replacement result", page.getUuid(), Scripting.replaceVariables(ctx, a, "${get(find('Page', 'name', 'testpage'), 'id')}"));
 			assertEquals("Invalid replacement result", a.getUuid(), Scripting.replaceVariables(ctx, a, "${get(find('A'), 'id')}"));
 
-			// this test finds multiple <p> elements => error
-			assertEquals("Invalid replacement result", GetFunction.ERROR_MESSAGE_GET_ENTITY, Scripting.replaceVariables(ctx, a, "${get(find('P'), 'id')}"));
+			// this test finds multiple <p> elements => error case that gets logged and returns null (which is converted to "")
+			assertEquals("Invalid replacement result", "", Scripting.replaceVariables(ctx, a, "${get(find('P'), 'id')}"));
 
 			// more complex replacement
 			//assertEquals("Invalid replacement result", "", a.replaceVariables(ctx, securityContext, "${get(find('P'), 'id')}"));

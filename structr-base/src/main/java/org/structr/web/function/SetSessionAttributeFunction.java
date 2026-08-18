@@ -66,7 +66,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 			} else {
 
-				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
+				logger.warn("{}(): No session available to set session attribute! (this can happen in the console and onStructrLogin/onStructrLogout)", getName());
 			}
 
 			return null;
@@ -93,7 +93,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

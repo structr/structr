@@ -87,8 +87,6 @@ public class ContainsFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
 		}
 
 		return false;

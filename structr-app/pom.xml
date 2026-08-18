@@ -137,6 +137,12 @@
 			<artifactId>structr-xmpp-module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<!--
@@ -771,6 +777,115 @@
 								</goals>
 							</execution>
 						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>test-neo4j</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>database</name>
+					<value>neo4j</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.5.4</version>
+						<configuration>
+							<argLine>-Duser.language=en -Duser.region=GB -Duser.timezone=UTC</argLine>
+							<!-- The forked JVM's locale, not just its language: sun.jnu.encoding is taken from the
+							     environment and cannot be set with -D (tried, the JVM ignores it), so on an image
+							     without a UTF-8 locale it becomes ASCII and any file name with an umlaut fails to
+							     encode at all, with InvalidPathException from Path.resolve. -->
+							<environmentVariables>
+								<LC_ALL>C.UTF-8</LC_ALL>
+							</environmentVariables>
+							<excludes>
+								<exclude>**/*.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<version>3.5.4</version>
+						<configuration>
+							<!-- run tests on the class path, not the module path: Maven's uncurated test
+							     module-path differs from the shipped lib/lib-classpath partition. See DEPENDENCY_MANAGEMENT.md. -->
+							<useModulePath>false</useModulePath>
+							<includes>
+								<include>**/*Test.java</include>
+							</includes>
+							<argLine>-Xms1g -Xmx6g -Duser.timezone=UTC -Duser.language=en -Duser.region=GB</argLine>
+							<!-- The forked JVM's locale, not just its language: sun.jnu.encoding is taken from the
+							     environment and cannot be set with -D (tried, the JVM ignores it), so on an image
+							     without a UTF-8 locale it becomes ASCII and any file name with an umlaut fails to
+							     encode at all, with InvalidPathException from Path.resolve. -->
+							<environmentVariables>
+								<LC_ALL>C.UTF-8</LC_ALL>
+							</environmentVariables>
+							<reuseForks>false</reuseForks>
+							<forkCount>${test.forkCount}</forkCount>
+							<skipTests>${skipTests}</skipTests>
+							<systemPropertyVariables>
+								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+								<testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
+							</systemPropertyVariables>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>test-in-memory-database</id>
+			<activation>
+				<property>
+					<name>database</name>
+					<value>in-memory</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.5.4</version>
+						<configuration>
+							<!-- run tests on the class path, not the module path (see DEPENDENCY_MANAGEMENT.md / the
+							     failsafe note in the test-neo4j profile) -->
+							<useModulePath>false</useModulePath>
+							<includes>
+								<include>**/*Test.java</include>
+							</includes>
+							<argLine>-Xms8g -Xmx8g -Duser.timezone=UTC -Duser.language=en -Duser.region=GB</argLine>
+							<!-- The forked JVM's locale, not just its language: sun.jnu.encoding is taken from the
+							     environment and cannot be set with -D (tried, the JVM ignores it), so on an image
+							     without a UTF-8 locale it becomes ASCII and any file name with an umlaut fails to
+							     encode at all, with InvalidPathException from Path.resolve. -->
+							<environmentVariables>
+								<LC_ALL>C.UTF-8</LC_ALL>
+							</environmentVariables>
+							<reuseForks>false</reuseForks>
+							<forkCount>${test.forkCount}</forkCount>
+							<skipTests>${skipTests}</skipTests>
+							<systemPropertyVariables>
+								<testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>
+							</systemPropertyVariables>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

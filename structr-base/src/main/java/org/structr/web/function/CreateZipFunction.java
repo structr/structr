@@ -137,7 +137,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 					logParameterError(caller, sources, "Collection in parameter 1 is empty - unable to create empty zip file.", ctx.isJavaScriptContext());
 
-					return usage(ctx.isJavaScriptContext());
+					return null;
 
 				} else {
 
@@ -160,7 +160,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 							logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-							return usage(ctx.isJavaScriptContext());
+							return null;
 						}
 					}
 				}
@@ -169,7 +169,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 
 			final File structrZipFile = FileHelper.createFile(ctx.getSecurityContext(), zipFile.getFile(), "application/zip", name);

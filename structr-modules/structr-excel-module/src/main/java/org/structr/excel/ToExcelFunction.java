@@ -142,14 +142,14 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 				logger.warn("toExcel(): Exception occurred", t);
 
-				return "";
+				return null;
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

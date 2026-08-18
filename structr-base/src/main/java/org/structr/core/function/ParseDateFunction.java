@@ -54,7 +54,7 @@ public class ParseDateFunction extends CoreFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		try {
@@ -78,7 +78,6 @@ public class ParseDateFunction extends CoreFunction {
 			} catch (ParseException ex) {
 
 				logger.debug("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", getDisplayName(), dateString, pattern, caller, getParametersAsString(sources));
-
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -91,7 +90,7 @@ public class ParseDateFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		return null;

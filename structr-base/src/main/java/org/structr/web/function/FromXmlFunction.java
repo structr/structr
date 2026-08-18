@@ -78,7 +78,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 		}
 
-		return usage(ctx.isJavaScriptContext());
+		return null;
 	}
 
 	@Override

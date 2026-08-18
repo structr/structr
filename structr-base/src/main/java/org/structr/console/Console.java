@@ -329,7 +329,7 @@ public class Console {
 			Snippet script = new Snippet("console, interactive script", line, false);
 			script.setCodeSource(line);
 			Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script, scriptConfig);
-			if (!extractedValue.toString().isEmpty()) {
+			if (extractedValue != null && !extractedValue.toString().isEmpty()) {
 
 				writable.println(extractedValue.toString());
 			}

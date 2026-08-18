@@ -33,8 +33,7 @@ import java.util.List;
 
 public class MakePolygonValidFunction extends GeoFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(MakePolygonValidFunction.class.getName());
-	public static final String ERROR_MESSAGE = "";
+	private static final Logger logger = LoggerFactory.getLogger(MakePolygonValidFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -55,32 +54,28 @@ public class MakePolygonValidFunction extends GeoFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof Polygon) {
+			if (sources[0] instanceof Polygon polygon) {
 
-				final Polygon polygon = (Polygon)sources[0];
-				if (polygon != null) {
-
-					return JTS.makeValid(polygon, false);
-				}
+				return JTS.makeValid(polygon, false);
 
 			} else {
 
-				logger.warn("Invalid parameter, expected polygon, got {}", sources[0].getClass().getSimpleName() );
+				logger.warn("{}(): Invalid parameter, expected polygon, got {}", getName(), sources[0].getClass().getSimpleName());
 			}
 
-			return "Invalid parameters";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
 
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

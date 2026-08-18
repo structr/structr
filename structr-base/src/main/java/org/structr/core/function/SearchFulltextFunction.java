@@ -89,7 +89,7 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
