@@ -522,27 +522,7 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String userProvidedValueForAuthenticationKey, final String password) throws FrameworkException {
 
-		// Default is eMail
-		final PropertyKey<String> defaultAuthenticationPropertyKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
-		final Set<PropertyKey<String>> authenticationPropertyKeySet = new HashSet<>();
-
-		authenticationPropertyKeySet.add(defaultAuthenticationPropertyKey);
-
-		final String authenticationPropertyKeysSetting = Settings.AuthenticationPropertyKeys.getValue();
-		if (StringUtils.isNotBlank(authenticationPropertyKeysSetting)) {
-
-			final List<String> authenticationPropertyKeys = Arrays.asList(StringUtils.split(authenticationPropertyKeysSetting, " "));
-
-			for (final String key : authenticationPropertyKeys) {
-
-				final String[] typeAndKey = StringUtils.split(key, ".");
-				if (typeAndKey.length == 2 && Traits.exists(typeAndKey[0])) {
-
-					final PropertyKey<String> authenticationPropertyKey = Traits.of(typeAndKey[0]).key(typeAndKey[1]);
-					authenticationPropertyKeySet.add(authenticationPropertyKey);
-				}
-			}
-		}
+		final Set<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
 
 		final Principal user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userProvidedValueForAuthenticationKey, password);
 		if  (user != null) {
@@ -910,8 +890,8 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
-		Traits userTraits = Traits.of(StructrTraits.USER);
-		Principal user    = null;
+		Principal user            = null;
+		final Traits userTraits   = Traits.of(StructrTraits.USER);
 		String authorizationToken = getAuthorizationToken(request);
 
 		if ((authorizationToken == null || StringUtils.equals(authorizationToken, "")) && request.getAttribute(SessionHelper.SESSION_IS_NEW) == null) {
@@ -924,16 +904,16 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if (authorizationToken != null) {
 
-			final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
+			final PropertyKey<String> eMailKey = userTraits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
 		if (user == null) {
 
 			// Second, check X-Headers
-			String userName = request.getHeader(RequestHeaders.XUser.getName());
-			String password = request.getHeader(RequestHeaders.XPassword.getName());
-			String token    = request.getHeader(RequestHeaders.XStructrSessionToken.getName());
+			final String userName = request.getHeader(RequestHeaders.XUser.getName());
+			final String password = request.getHeader(RequestHeaders.XPassword.getName());
+			final String token    = request.getHeader(RequestHeaders.XStructrSessionToken.getName());
 
 			// Try to authorize with a session token first
 			if (token != null) {
@@ -944,15 +924,14 @@ public class UiAuthenticator implements Authenticator {
 
 				if (tryLogin) {
 
-					try {
+					final Set<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
 
-						user = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), userName, password);
+					user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password);
 
-					} catch (AuthenticationException ex) {
+					// we can not catch the AuthenticationException because we need an escape hatch from all the places where authenticator.initializeAndExamineRequest(request, response);
+					// is called. but that rolls the tx back and thus the login attempt is not recorded by incrementing passwordAttempts on the user
 
-						final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
-						user = AuthHelper.getPrincipalForPassword(eMailKey, userName, password);
-					}
+					logger.info("Header authentication unsuccessful for {} = {}", RequestHeaders.XUser.getName(), userName);
 				}
 			}
 		}
@@ -970,5 +949,32 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		return configuredCustomClassName;
+	}
+
+	private Set<PropertyKey<String>> getAuthenticationPropertyKeySet() {
+
+		// Default is eMail
+		final PropertyKey<String> defaultAuthenticationPropertyKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
+		final Set<PropertyKey<String>> authenticationPropertyKeySet = new HashSet<>();
+
+		authenticationPropertyKeySet.add(defaultAuthenticationPropertyKey);
+
+		final String authenticationPropertyKeysSetting = Settings.AuthenticationPropertyKeys.getValue();
+		if (StringUtils.isNotBlank(authenticationPropertyKeysSetting)) {
+
+			final List<String> authenticationPropertyKeys = Arrays.asList(StringUtils.split(authenticationPropertyKeysSetting, " "));
+
+			for (final String key : authenticationPropertyKeys) {
+
+				final String[] typeAndKey = StringUtils.split(key, ".");
+				if (typeAndKey.length == 2 && Traits.exists(typeAndKey[0])) {
+
+					final PropertyKey<String> authenticationPropertyKey = Traits.of(typeAndKey[0]).key(typeAndKey[1]);
+					authenticationPropertyKeySet.add(authenticationPropertyKey);
+				}
+			}
+		}
+
+		return authenticationPropertyKeySet;
 	}
 }
