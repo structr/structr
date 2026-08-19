@@ -928,9 +928,6 @@ public class UiAuthenticator implements Authenticator {
 
 					user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password);
 
-					// we can not catch the AuthenticationException because we need an escape hatch from all the places where authenticator.initializeAndExamineRequest(request, response);
-					// is called. but that rolls the tx back and thus the login attempt is not recorded by incrementing passwordAttempts on the user
-
 					logger.info("Header authentication unsuccessful for {} = {}", RequestHeaders.XUser.getName(), userName);
 				}
 			}

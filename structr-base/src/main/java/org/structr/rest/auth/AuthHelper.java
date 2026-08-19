@@ -487,25 +487,57 @@ public class AuthHelper {
 
 	public static void incrementFailedLoginAttemptsCounter (final Principal principal) {
 
-		final Object lock = userLocks.computeIfAbsent(principal.getUuid(), k -> new Object());
+		final String uuid = principal.getUuid();
+		final Object lock = userLocks.computeIfAbsent(uuid, k -> new Object());
 
 		synchronized (lock) {
 
+			/* Callers of getPrincipalForPassword() throw an AuthenticationException right after this
+			   method returns, e.g. header authentication (X-User/X-Password), whose transaction is
+			   opened and committed by servlet code far away from here and simply rolls back when that
+			   exception propagates. Structr transactions are thread-local and reentrant (only the
+			   outermost Tx actually commits/rolls back), so a nested Tx on this thread would roll back
+			   with it. Committing on a separate thread - like the DeleteInvalidUserException handling -
+			   gives the increment its own physical transaction, independent of whatever the
+			   calling thread's transaction ends up doing. We join the thread so the counter is durably
+			   persisted before returning, since the next login attempt's lockout check depends on it. */
+			final Thread t = new Thread(() -> {
+
+				final App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					final NodeInterface node = app.getNodeById(uuid);
+					if (node != null) {
+
+						final Principal freshPrincipal = node.as(Principal.class);
+
+						Integer failedAttempts = freshPrincipal.getPasswordAttempts();
+						if (failedAttempts == null) {
+
+							failedAttempts = 0;
+						}
+
+						freshPrincipal.setPasswordAttempts(failedAttempts + 1);
+					}
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Exception while incrementing failed login attempts counter", fex);
+				}
+			});
+
+			t.start();
+
 			try {
 
-				Integer failedAttempts = principal.getPasswordAttempts();
-				if (failedAttempts == null) {
+				t.join();
 
-					failedAttempts = 0;
-				}
+			} catch (InterruptedException iex) {
 
-				failedAttempts++;
-
-				principal.setPasswordAttempts(failedAttempts);
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Exception while incrementing failed login attempts counter", fex);
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
