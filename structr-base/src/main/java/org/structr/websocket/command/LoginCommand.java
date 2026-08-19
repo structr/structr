@@ -154,7 +154,7 @@ public class LoginCommand extends AbstractCommand {
 					throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 				}
 
-			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
+			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException | LoginAttemptBeforeConfirmationException ex) {
 
 				logger.info("Unable to login {}: {}", username, ex.getMessage());
 				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", ex.getReason()).build(), true);
@@ -196,7 +196,6 @@ public class LoginCommand extends AbstractCommand {
 
 				logger.warn("Unable to execute command", fex);
 				getWebSocket().send(MessageBuilder.status().code(401).build(), true);
-
 			}
 
 			tx.success();

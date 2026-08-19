@@ -138,9 +138,7 @@ public class AuthHelper {
 
 					logger.info("No principal found for {} '{}'", keyMessage, value);
 				}
-
 			}
-
 		}
 
 		if (principal == null) {
@@ -149,7 +147,6 @@ public class AuthHelper {
 		}
 
 		return principal;
-
 	}
 
 	/**

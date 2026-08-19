@@ -39,6 +39,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.ServicePrincipal;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.auth.exception.LoginAttemptBeforeConfirmationException;
 import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.Principal;
@@ -519,7 +520,7 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest reqt, final String userProvidedValueForAuthenticationKey, final String password) throws FrameworkException {
+	public Principal doLogin(final HttpServletRequest request, final String userProvidedValueForAuthenticationKey, final String password) throws FrameworkException {
 
 		// Default is eMail
 		final PropertyKey<String> defaultAuthenticationPropertyKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
@@ -551,7 +552,8 @@ public class UiAuthenticator implements Authenticator {
 
 				logger.warn("Login as '{}' not allowed before confirmation.", user.getName());
 				RuntimeEventLog.failedLogin("Login attempt before confirmation", Map.of("id", user.getUuid(), "name", user.getName()));
-				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
+
+				throw new LoginAttemptBeforeConfirmationException();
 			}
 		}
 
