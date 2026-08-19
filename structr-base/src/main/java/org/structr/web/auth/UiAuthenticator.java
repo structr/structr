@@ -550,8 +550,12 @@ public class UiAuthenticator implements Authenticator {
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
 			if (user.is(StructrTraits.USER) && user.as(User.class).getConfirmationKey() != null && !allowLoginBeforeConfirmation) {
 
-				logger.warn("Login as '{}' not allowed before confirmation.", user.getName());
-				RuntimeEventLog.failedLogin("Login attempt before confirmation", Map.of("id", user.getUuid(), "name", user.getName()));
+				logger.warn("Login as '{}' ({}) not allowed before confirmation.", userProvidedValueForAuthenticationKey, user.getUuid());
+
+				final Map<String, Object> eventLogMap = new HashMap<>(Map.of("id", user.getUuid(), "name", user.getName()));
+				authenticationPropertyKeySet.forEach(propertyKey -> eventLogMap.put(propertyKey.jsonName(), user.getProperty(propertyKey)));
+
+				RuntimeEventLog.failedLogin("Login attempt before confirmation", eventLogMap);
 
 				throw new LoginAttemptBeforeConfirmationException();
 			}
