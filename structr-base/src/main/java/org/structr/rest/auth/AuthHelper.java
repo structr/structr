@@ -120,7 +120,7 @@ public class AuthHelper {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	public static Principal getPrincipalForKeysAndPassword(final Set<PropertyKey<String>> keys, final String value, final String password) throws FrameworkException {
+	public static Principal getPrincipalForKeysAndPassword(final LinkedHashSet<PropertyKey<String>> keys, final String value, final String password) throws FrameworkException {
 
 		Principal principal  = null;
 

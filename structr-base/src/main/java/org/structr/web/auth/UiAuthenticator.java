@@ -522,7 +522,7 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String userProvidedValueForAuthenticationKey, final String password) throws FrameworkException {
 
-		final Set<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
+		final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
 
 		final Principal user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userProvidedValueForAuthenticationKey, password);
 		if  (user != null) {
@@ -924,7 +924,7 @@ public class UiAuthenticator implements Authenticator {
 
 				if (tryLogin) {
 
-					final Set<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
+					final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
 
 					user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password);
 
@@ -948,11 +948,11 @@ public class UiAuthenticator implements Authenticator {
 		return configuredCustomClassName;
 	}
 
-	private Set<PropertyKey<String>> getAuthenticationPropertyKeySet() {
+	private LinkedHashSet<PropertyKey<String>> getAuthenticationPropertyKeySet() {
 
 		// Default is eMail
 		final PropertyKey<String> defaultAuthenticationPropertyKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
-		final Set<PropertyKey<String>> authenticationPropertyKeySet = new HashSet<>();
+		final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = new LinkedHashSet<>();
 
 		authenticationPropertyKeySet.add(defaultAuthenticationPropertyKey);
 
