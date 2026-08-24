@@ -169,7 +169,10 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 						T oldValue = isCreation ? null : (T)graphObject.getProperty(key);
 
 						// no old value exists  OR  old value exists and is NOT equal => set property
-						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || key instanceof FunctionProperty)) {
+						// deepEquals, not equals: equals on an array is identity, so two arrays of equal
+						// content would never compare equal and a no-op write would be treated as a change.
+						// SetProperties below compares the same way.
+						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!Objects.deepEquals(oldValue, value)) || key instanceof FunctionProperty)) {
 
 							return setPropertyInternal(graphObject, key, value);
 						}
