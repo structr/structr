@@ -5048,7 +5048,7 @@ let _Pages = {
 
 			} else {
 
-				return result.id;
+				return { id: result.id };
 			}
 		},
 		getTabForKey: (key, result) => {
