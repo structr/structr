@@ -87,6 +87,9 @@ public class FunctionExpression extends Expression {
 			return function.usage(ctx.isJavaScriptContext());
 		}
 
+		// tell the function where it was written, so it can name its own origin in a log line
+		ctx.setScriptLocation(row, column);
+
 		if (function instanceof BatchableFunction) {
 
 			// enable batching if batchable function is found

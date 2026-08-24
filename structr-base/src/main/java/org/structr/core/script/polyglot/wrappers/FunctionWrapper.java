@@ -20,15 +20,27 @@ package org.structr.core.script.polyglot.wrappers;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
+import org.structr.core.function.Functions;
 import org.structr.schema.action.Function;
 
 import java.util.Arrays;
 
-public class FunctionWrapper<T,R> implements ProxyExecutable {
+/**
+ * A built-in function as seen from JavaScript.
+ *
+ * It is executable AND an object, because some functions have a dotted namespace below them:
+ * {@code log.warn}, {@code find.equals} and so on are registered under those names. Being both lets
+ * {@code $.log('x')} and {@code $.log.warn('x')} work at the same time - the first executes this
+ * wrapper, the second asks it for the member "warn" and gets a wrapper for {@code log.warn}.
+ *
+ * StructrScript needs none of this: its parser resolves a dotted name directly.
+ */
+public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 
 	private final ActionContext actionContext;
 	private final GraphObject entity;
@@ -55,5 +67,37 @@ public class FunctionWrapper<T,R> implements ProxyExecutable {
 
 			throw new RuntimeException(ex);
 		}
+	}
+
+	@Override
+	public Object getMember(final String key) {
+
+		final Function<Object, Object> namespaced = Functions.get(func.getName() + "." + key);
+		if (namespaced != null) {
+
+			return new FunctionWrapper(actionContext, entity, namespaced);
+		}
+
+		return null;
+	}
+
+	@Override
+	public boolean hasMember(final String key) {
+
+		return Functions.get(func.getName() + "." + key) != null;
+	}
+
+	@Override
+	public Object getMemberKeys() {
+
+		final String prefix = func.getName() + ".";
+
+		return Functions.getNames().stream().filter(name -> name.startsWith(prefix)).map(name -> name.substring(prefix.length())).toList();
+	}
+
+	@Override
+	public void putMember(final String key, final Value value) {
+
+		throw new UnsupportedOperationException("Cannot add members to the built-in function " + func.getName() + ".");
 	}
 }

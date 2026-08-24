@@ -609,6 +609,37 @@ public class ActionContext {
 		return scriptingEngine.equals(ScriptingEngine.JS);
 	}
 
+	/**
+	 * Where in the script the function call being evaluated right now was written.
+	 *
+	 * Only StructrScript sets this: its parser records a row and column per expression, and
+	 * FunctionExpression hands them over just before it invokes the function, so a function that wants
+	 * to name its own origin - log.warn() and friends - can. JavaScript leaves it unset, because
+	 * GraalJS would have to be asked for a stack trace to answer the same question.
+	 *
+	 * It is deliberately not restored after the call: every FunctionExpression sets it immediately
+	 * before invoking, so whatever a function reads is its own location, never an enclosing one.
+	 */
+	public void setScriptLocation(final int row, final int column) {
+
+		this.scriptRow    = row;
+		this.scriptColumn = column;
+	}
+
+	/** The current location as "row:column", or null in a JavaScript context where none was recorded. */
+	public String getScriptLocation() {
+
+		if (scriptRow < 1) {
+
+			return null;
+		}
+
+		return scriptRow + ":" + scriptColumn;
+	}
+
+	private int scriptRow    = 0;
+	private int scriptColumn = 0;
+
 	public void setScriptingEngine(final ScriptingEngine engine) {
 
 		this.scriptingEngine = engine;
