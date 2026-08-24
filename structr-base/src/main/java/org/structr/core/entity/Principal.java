@@ -73,6 +73,8 @@ public interface Principal extends NodeInterface {
 	String getProxyUsername();
 	String getProxyPassword();
 	void onAuthenticate();
+	String getDeviceTrustSecret() throws FrameworkException;
+	void rotateDeviceTrustSecret() throws FrameworkException;
 
 	default Set<String> getOwnAndRecursiveParentsUuids() {
 

@@ -83,6 +83,7 @@ module structr.base {
 	requires textile.j;
 	requires zero.allocation.hashing;
 	requires zip4j;
+	requires nl.basjes.parse.useragent;
 
 	requires transitive ch.qos.logback.classic;
 	requires transitive com.auth0.jwt;

@@ -24,6 +24,10 @@ Configure two-factor authentication in `structr.conf` or through the Configurati
 | `security.twofactorauthentication.logintimeout` | 30 | Time window in seconds to enter the code after password authentication |
 | `security.twofactorauthentication.loginpage` | /twofactor | Application page for entering the two-factor code |
 | `security.twofactorauthentication.whitelistedIPs` | | Comma-separated list of IP addresses that bypass two-factor authentication |
+| `security.twofactorauthentication.devicetrust.enabled` | false | Enables or disables users to trust the browser they are logging in with |
+| `security.twofactorauthentication.devicetrust.signingsecret` | | Secret key that signs device trust tokens (auto-generated if not set manually) |
+| `security.twofactorauthentication.devicetrust.duration` | 30 | Trust period in days for trusted browsers |
+| `security.twofactorauthentication.devicetrust.cookiename` | dt_token | Name of the cookie that stores the device trust token |
 
 > **Note:** Changing `algorithm`, `digits`, or `period` after users have already enrolled invalidates their existing authenticator setup. Set `twoFactorConfirmed = false` on affected users so they receive a new QR code on their next login.
 
@@ -46,10 +50,11 @@ Three properties on the User type control two-factor authentication:
 | `isTwoFactorUser` | Boolean | Enables two-factor authentication for this user. Only effective when level is set to 1 (optional). |
 | `twoFactorConfirmed` | Boolean | Indicates whether the user has completed two-factor setup. Automatically set to true after first successful 2FA login. Set to false to force re-enrollment. |
 | `twoFactorSecret` | String | The secret key used to generate TOTP codes. Automatically generated when the user first enrolls. |
+| `deviceTrustSecret` | String | The secret that is used to identify the user for a stored trust token. Can be used to revoke existing trust tokens for a user by calling `user.rotateDeviceTrustSecret()` |
 
 ## Authentication Flow
 
-The two-factor login process works as follows:
+The basic two-factor login process works as follows:
 
 1. User submits username and password to `/structr/rest/login`
 2. If credentials are valid and 2FA is enabled, Structr returns HTTP status 202 (Accepted)
@@ -65,38 +70,39 @@ To implement two-factor authentication in your application, you need two pages: 
 
 ### Login Page
 
-Create a login form that detects the two-factor response. When the server returns status 202, redirect to the two-factor page with the token and optional QR data.
+Create a login form that detects the two-factor response. When the server returns status 202, redirect to the two-factor page with the token, deviceTrustPossible and optional QR data as URL parameters.
 
 **JavaScript:**
 
 ```javascript
 async function login(username, password) {
-    const response = await fetch('/structr/rest/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            name: username,
-            password: password
-        })
-    });
+	const response = await fetch('/structr/rest/login', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			name: username,
+			password: password
+		})
+	});
 
-    if (response.status === 202) {
-        // Two-factor authentication required
-        const token = response.headers.get('token');
-        const qrdata = response.headers.get('qrdata') || '';
-        const twoFactorPage = response.headers.get('twoFactorLoginPage');
-        
-        window.location.href = `${twoFactorPage}?token=${token}&qrdata=${qrdata}`;
-    } else if (response.ok) {
-        // Login successful, no 2FA required
-        window.location.href = '/';
-    } else {
-        // Login failed
-        const error = await response.json();
-        console.error('Login failed:', error);
-    }
+	if (response.status === 202) {
+		// Two-factor authentication required
+		const token = response.headers.get('token');
+		const qrdata = response.headers.get('qrdata') || '';
+		const twoFactorPage = response.headers.get('twoFactorLoginPage');
+		const deviceTrustPossible = response.headers.get('deviceTrustPossible');
+		
+		window.location.href = `${twoFactorPage}?token=${token}&qrdata=${qrdata}&deviceTrustPossible=${deviceTrustPossible}`;
+	} else if (response.ok) {
+		// Login successful, no 2FA required
+		window.location.href = '/';
+	} else {
+		// Login failed
+		const error = await response.json();
+		console.error('Login failed:', error);
+	}
 }
 ```
 
@@ -115,6 +121,7 @@ When two-factor authentication is required, the response looks like:
 HTTP/1.1 202 Accepted
 token: eyJhbGciOiJIUzI1NiJ9...
 twoFactorLoginPage: /twofactor
+deviceTrustPossible: true
 qrdata: iVBORw0KGgoAAAANSUhEUgAA...
 ```
 
@@ -124,55 +131,98 @@ The response headers contain:
 |--------|-------------|
 | `token` | Temporary token for the two-factor login (valid for the configured timeout period) |
 | `twoFactorLoginPage` | The configured page for entering the two-factor code |
-| `qrdata` | Base64-encoded PNG image of the QR code (only present if `twoFactorConfirmed` is false) |
+| `deviceTrustPossible` | If device trust is possible according to the configuration |
+| `qrdata` | Base64-encoded PNG image of the QR code (only present if `twoFactorConfirmed` is false for the user) |
 
 ### Two-Factor Page
 
 Create a page that displays the QR code for first-time setup and accepts the TOTP code.
 
-**JavaScript:**
+### Example HTML Structure
 
-```javascript
-document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-    const qrdata = params.get('qrdata');
-    
-    // Display QR code for first-time setup
-    if (qrdata) {
-        const qrImage = document.getElementById('qrcode');
-        // Convert URL-safe base64 back to standard base64
-        const standardBase64 = qrdata.replaceAll('_', '/').replaceAll('-', '+');
-        qrImage.src = 'data:image/png;base64,' + standardBase64;
-        qrImage.style.display = 'block';
-        
-        document.getElementById('setup-instructions').style.display = 'block';
-    }
-    
-    // Handle form submission
-    document.getElementById('twoFactorForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        
-        const code = document.getElementById('code').value;
-        
-        const response = await fetch('/structr/rest/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                twoFactorToken: token,
-                twoFactorCode: code
-            })
-        });
-        
-        if (response.ok) {
-            window.location.href = '/';
-        } else {
-            document.getElementById('error').textContent = 'Invalid code. Please try again.';
-        }
-    });
-});
+```html
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Two-Factor Authentication</title>
+</head>
+<body>
+	<h1>Two-Factor Authentication</h1>
+
+	<div id="setup-instructions" style="display: none;">
+		<p>Scan this QR code with your authenticator app:</p>
+		<img id="qrcode" alt="QR Code" />
+		<p>Then enter the 6-digit code shown in your app.</p>
+	</div>
+
+	<form id="twoFactorForm">
+		<label for="code">Authentication Code:</label>
+
+		<input type="text" id="code" name="code"
+			pattern="[0-9]{6,8}" maxlength="8"
+			autocomplete="one-time-code" required />
+
+		<label id="trust-device-wrapper" class="flex items-center" style="display: none;">
+			<input type="checkbox" id="trust-device" name="trustDevice" />
+			Trust device
+		</label>
+
+		<button type="submit">Verify</button>
+	</form>
+
+	<p id="error" style="color: red;"></p>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			const params = new URLSearchParams(location.search);
+			const token = params.get('token');
+			const qrdata = params.get('qrdata');
+			const deviceTrustPossible = params.get('deviceTrustPossible') === 'true';
+
+			// Display QR code for first-time setup
+			if (qrdata) {
+				const qrImage = document.getElementById('qrcode');
+				// Convert URL-safe base64 back to standard base64
+				const standardBase64 = qrdata.replaceAll('_', '/').replaceAll('-', '+');
+				qrImage.src = 'data:image/png;base64,' + standardBase64;
+				qrImage.style.display = 'block';
+
+				document.getElementById('setup-instructions').style.display = 'block';
+			}
+
+			if (deviceTrustPossible) {
+				document.querySelector('#trust-device-wrapper').style.display = null;
+			}
+
+			// Handle form submission
+			document.getElementById('twoFactorForm').addEventListener('submit', async (event) => {
+				event.preventDefault();
+
+				const code = document.getElementById('code').value;
+				const trustChecked = document.getElementById('trust-device').checked;
+
+				const response = await fetch('/structr/rest/login', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						twoFactorToken: token,
+						twoFactorCode: code,
+						trustDevice: trustChecked
+					})
+				});
+
+				if (response.ok) {
+					window.location.href = '/';
+				} else {
+					document.getElementById('error').textContent = 'Invalid code. Please try again.';
+				}
+			});
+		});
+	</script>
+</body>
+</html>
 ```
 
 **curl:**
@@ -181,39 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
 curl -si http://localhost:8082/structr/rest/login \
   -X POST \
   -H "Content-Type: application/json" \
-  -d '{"twoFactorToken": "eyJhbGciOiJIUzI1NiJ9...", "twoFactorCode": "123456"}'
-```
-
-### Example HTML Structure
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Two-Factor Authentication</title>
-</head>
-<body>
-    <h1>Two-Factor Authentication</h1>
-    
-    <div id="setup-instructions" style="display: none;">
-        <p>Scan this QR code with your authenticator app:</p>
-        <img id="qrcode" alt="QR Code" />
-        <p>Then enter the 6-digit code shown in your app.</p>
-    </div>
-    
-    <form id="twoFactorForm">
-        <label for="code">Authentication Code:</label>
-        <input type="text" id="code" name="code" 
-               pattern="[0-9]{6,8}" maxlength="8" 
-               autocomplete="one-time-code" required />
-        <button type="submit">Verify</button>
-    </form>
-    
-    <p id="error" style="color: red;"></p>
-    
-    <script src="twofactor.js"></script>
-</body>
-</html>
+  -d '{"twoFactorToken": "eyJhbGciOiJIUzI1NiJ9...", "twoFactorCode": "123456", "trustDevice", true}'
 ```
 
 ## Managing User Enrollment
@@ -287,6 +305,21 @@ security.twofactorauthentication.whitelistedIPs = 192.168.1.100, 10.0.0.0/24
 ```
 
 Requests from whitelisted IPs proceed with password authentication only, even if the user has two-factor authentication enabled.
+
+
+## Trusted Devices
+
+Device trust functionality can be enabled via the configuration setting `security.twofactorauthentication.devicetrust.enabled`. The login forms above auto-adapt and show a "Trust Device" checkbox.
+
+If the user logs in via 2FA successfully and requests device trust, a trust cookie (`security.twofactorauthentication.devicetrust.cookiename`) is set for the user's browser. This browser is then fingerprinted and trusted for the configured number of days (`security.twofactorauthentication.devicetrust.duration`) and the login requests for that user from that browser proceed with password-authentication only.
+
+The browser fingerprint includes browser name, browser major version, operating system name, operating system major version, and device class. If any of these fields change, the trust cookie becomes invalid.
+
+Disabling device trust (via `security.twofactorauthentication.devicetrust.enabled`) does not invalidate already-issued device trust cookies. It suspends the device trust feature and requires 2FA login even if the user has a valid device trust cookie. If device trust is enabled again, previously issued trust cookies are used again.
+
+Device trust tokens are signed with a global signing secret (`security.twofactorauthentication.devicetrust.signingsecret`) which is automatically created if none is set. Changing this secret revokes and invalidates all trust cookies for all users.
+
+A user's trust cookies can be revoked by calling `user.rotateDeviceTrustSecret()`, which generates a new secret and invalidates all previously issued cookies for that user only.
 
 ## Troubleshooting
 

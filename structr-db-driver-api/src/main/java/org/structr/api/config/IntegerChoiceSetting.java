@@ -31,14 +31,14 @@ public class IntegerChoiceSetting extends IntegerSetting {
 
 	private final Map<Integer, String> choices = new LinkedHashMap<>();
 
-	public IntegerChoiceSetting(final SettingsGroup group, final String groupName, final String key, final Integer value, final Map<Integer, String> choices) {
+	public IntegerChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final Integer value, final Map<Integer, String> choices) {
 
-		this(group, groupName, key, value, choices, null);
+		this(group, categoryName, key, value, choices, null);
 	}
 
-	public IntegerChoiceSetting(final SettingsGroup group, final String groupName, final String key, final Integer value, final Map<Integer, String> choices, final String comment) {
+	public IntegerChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final Integer value, final Map<Integer, String> choices, final String comment) {
 
-		super(group, groupName, key, value, comment);
+		super(group, categoryName, key, value, comment);
 
 		this.choices.putAll(choices);
 	}

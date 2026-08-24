@@ -616,14 +616,14 @@ public class Settings {
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List of cron task configurations or method names separated by space. This only configures the list of tasks. For each task, there needs to be another configuration entry named '<taskname>.cronExpression' with the appropriate cron schedule configuration. Restart of CronService required.");
-	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.");
+	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup, "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.");
 
 	//security settings
 	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin", "Name of the superuser. If set to empty string, superuser access is prevented completely.");
 	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    null, "Password of the superuser").setIsProtected();
 	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security", "application.security.resolution.depth", 5);
 	public static final Setting<Boolean> XMLParserSecurity             = new BooleanSetting(applicationGroup, "Application Security", "application.xml.parser.security", true, "Enables various security measures for XML parsing to prevent exploits.");
-	public static final Setting<Boolean> SsrfProtection               = new BooleanSetting(applicationGroup, "Application Security", "application.security.ssrf.protection", true, "Enables SSRF protection for outbound HTTP requests. When enabled, requests to private/internal IP ranges (loopback, link-local, site-local) are blocked. Disable only for testing or when internal network access is explicitly required.");
+	public static final Setting<Boolean> SsrfProtection               = new BooleanSetting(applicationGroup,  "Application Security", "application.security.ssrf.protection", true, "Enables SSRF protection for outbound HTTP requests. When enabled, requests to private/internal IP ranges (loopback, link-local, site-local) are blocked. Disable only for testing or when internal network access is explicitly required.");
 
 	public static final Setting<String> AuthenticationPropertyKeys      = new StringSetting(securityGroup,     "Authentication", "security.authentication.propertykeys", null, "List of property keys separated by space in the form of <Type>.<key> (example: 'Member.memberId') to be used in addition to the default 'Principal.name Principal.eMail'");
 
@@ -631,14 +631,48 @@ public class Settings {
 	public static final Setting<String> InitialAdminUserName           = new StringSetting(securityGroup,     "Initial Admin User",   "initialuser.name",      "admin", "Name of the initial admin user. This will only be set if the user is created.");
 	public static final Setting<String> InitialAdminUserPassword       = new PasswordSetting(securityGroup,   "Initial Admin User",   "initialuser.password",  "admin", "Password of the initial admin user. This will only be set if the user is created.");
 
-	public static final Setting<Integer> TwoFactorLevel                = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "security.twofactorauthentication.level",                1,             Settings.getTwoFactorSettingOptions());
-	public static final Setting<String> TwoFactorIssuer                = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.issuer",               "Structr",     "Must be URL-compliant in order to scan the created QR code");
-	public static final Setting<String> TwoFactorAlgorithm             = new ChoiceSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.algorithm",            "SHA1",        Settings.getStringsAsSet("SHA1", "SHA256", "SHA512"), "Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
-	public static final Setting<Integer> TwoFactorDigits               = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "security.twofactorauthentication.digits",               6,             Settings.getTwoFactorDigitsOptions(), "Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed may lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
-	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br>Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
-	public static final Setting<Integer> TwoFactorLoginTimeout         = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.logintimeout",         30,            "Defines how long the two-factor login time window in seconds is. After entering the username and password the user has this amount of time to enter a two factor token before he has to re-authenticate via password");
-	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
-	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedips",       "",            "Comma-separated list of IPs for which two factor authentication is disabled. Both IPv4 and IPv6 are supported. CIDR notation is also supported. (e.g. 192.168.0.1/24 or 2A01:598:FF30:C500::/64)");
+	private static final String CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION = "Two Factor Authentication";
+	public static final Setting<Integer> TwoFactorLevel                 = new IntegerChoiceSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.level",                1,             Settings.getTwoFactorSettingOptions());
+	public static final Setting<String> TwoFactorIssuer                 = new StringSetting(securityGroup,        CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.issuer",               "Structr",     "Must be URL-compliant in order to scan the created QR code");
+	public static final Setting<String> TwoFactorAlgorithm              = new ChoiceSetting(securityGroup,        CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.algorithm",            "SHA1",        Settings.getStringsAsSet("SHA1", "SHA256", "SHA512"), "Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
+	public static final Setting<Integer> TwoFactorDigits                = new IntegerChoiceSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.digits",               6,             Settings.getTwoFactorDigitsOptions(), "Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed may lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
+	public static final Setting<Integer> TwoFactorPeriod                = new IntegerSetting(securityGroup,       CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br>Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
+	public static final Setting<Integer> TwoFactorLoginTimeout          = new IntegerSetting(securityGroup,       CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.logintimeout",         30,            "Defines how long the two-factor login time window in seconds is. After entering the username and password the user has this amount of time to enter a two factor token before he has to re-authenticate via password");
+	public static final Setting<String> TwoFactorLoginPage              = new StringSetting(securityGroup,        CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
+	public static final Setting<String> TwoFactorWhitelistedIPs         = new StringSetting(securityGroup,        CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.whitelistedips",       "",            "Comma-separated list of IPs for which two factor authentication is disabled. Both IPv4 and IPv6 are supported. CIDR notation is also supported. (e.g. 192.168.0.1/24 or 2A01:598:FF30:C500::/64)");
+
+	public static final Setting<Boolean> TwoFactorDeviceTrustEnabled    = new BooleanSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.devicetrust.enabled", false, "Enables or disables users to trust the browser they are logging in with.")
+																				  .setLongDescription("""
+																						If this parameter has the value true, the system remembers a browser if the login request contains the "trust device" flag..
+																						
+																						If a browser is trusted, the system does not ask for a two-factor authentication code on the next login from that browser for the same user. The trust period ends after the configured duration.
+																						
+																						If you set this parameter to false, the system suspends all trust for all browsers. The system does not delete the stored trust data.
+																						
+																						If you set this parameter to true again, the system restores the trust for all browsers with valid trust data.""");
+
+	public static final Setting<String> TwoFactorDeviceTrustSigningSecret = new StringSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.devicetrust.signingsecret", "", "Secret key that signs device trust tokens.")
+																					.setLongDescription("""
+																							If you change this parameter, all previously issued device trust tokens become invalid. Users must trust their browser again.
+																							
+																							If this parameter is not set, the system generates a random secret automatically and stores it.
+																							
+																							The minimum length of this parameter is 32 bytes.""").setIsProtected();
+
+	public static final Setting<Integer> TwoFactorDeviceTrustDuration   = new IntegerSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.devicetrust.duration", 30, "Trust period in days for trusted browsers.")
+																				   .setLongDescription("""
+																							The trust period starts when the user trusts the browser. The trust period does not change during this period, even if the user logs in again.
+
+																							When the trust period ends, the system asks for a two-factor authentication code again on the next login from that browser.""");
+
+	public static final Setting<String> TwoFactorDeviceTrustCookieName  = new StringSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.devicetrust.cookiename", "dt_token", "Name of the cookie that stores the device trust token.")
+																				 .setLongDescription("""
+																						If you change this parameter, existing trust cookies will not work anymore. Users must trust their browser again.
+																						
+																						The new value will be checked to be a valid cookie name. If the check fails, the previous value will be restored.
+																						""");
+
+
 
 	public static final Setting<String> JWTSecretType                     = new ChoiceSetting(securityGroup, "JWT Auth",  "security.jwt.secrettype", "secret", Settings.getStringsAsSet("secret", "keypair", "jwks"), "Selects the secret type that will be used to sign or verify a given access or refresh token");
 	public static final Setting<String> JWTSecret                         = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.secret", "", "Used if 'security.jwt.secrettype'=secret. The secret that will be used to sign and verify all tokens issued and sent to Structr. Must have a min. length of 32 characters.").setIsProtected();
@@ -978,6 +1012,27 @@ public class Settings {
 		}
 
 		return JWTSecret.getValue();
+	}
+
+	/**
+	 * Returns the JWT signing secret ({@link #TwoFactorDeviceTrustSigningSecret}), generating and persisting a strong random one
+	 * on first use if none is configured. An already-configured value is returned unchanged (a present-but-weak secret is
+	 * left as-is so the caller's strength check still rejects it).
+	 */
+	public static synchronized String getOrGenerateDeviceTrustSecret() {
+
+		if (StringUtils.isBlank(TwoFactorDeviceTrustSigningSecret.getValue())) {
+
+			TwoFactorDeviceTrustSigningSecret.setValue(generateSecret());
+
+			TwoFactorDeviceTrustSigningSecret.setIsModified(true);
+
+			logger.info("Generated a new device trust signing secret ({}) because none was configured.", TwoFactorDeviceTrustSigningSecret.getKey());
+
+			persistGeneratedSecrets();
+		}
+
+		return TwoFactorDeviceTrustSigningSecret.getValue();
 	}
 
 	/**

@@ -18,7 +18,10 @@
  */
 package org.structr.web.resource;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -38,13 +41,9 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.DeviceTrustHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.function.BarcodeFunction;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -111,33 +110,20 @@ public class LoginResourceHandler extends RESTCallHandler {
 				} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
 					logger.info("Unable to login {}: {}", emailOrUsername, ex.getMessage());
-					returnedMethodResult = new RestMethodResult(401, ex.getMessage());
+					returnedMethodResult = new RestMethodResult(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
 					returnedMethodResult.addHeader("reason", ex.getReason());
 
-				} catch (TwoFactorAuthenticationRequiredException ex) {
+				} catch (final TwoFactorAuthenticationRequiredException ex) {
 
-					returnedMethodResult = new RestMethodResult(202);
-					returnedMethodResult.addHeader("token", ex.getNextStepToken());
-					returnedMethodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
-
-					if (ex.showQrCode()) {
-
-						user = ex.getUser();
-						final Map<String, Object> hints = new HashMap();
-
-						hints.put("MARGIN", 0);
-						hints.put("ERROR_CORRECTION", "M");
-
-						returnedMethodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(user.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes(StandardCharsets.ISO_8859_1)));
-
-					}
+					returnedMethodResult = new RestMethodResult(HttpServletResponse.SC_ACCEPTED);
+					returnedMethodResult.addHeaders(ex.getData());
 
 					securityContext.getAuthenticator().doLogout(securityContext.getRequest());
 
 				} catch (AuthenticationException ae) {
 
 					logger.info("Invalid credentials for {}", emailOrUsername);
-					returnedMethodResult = new RestMethodResult(401, ae.getMessage());
+					returnedMethodResult = new RestMethodResult(HttpServletResponse.SC_UNAUTHORIZED, ae.getMessage());
 				}
 
 				tx.success();
@@ -146,7 +132,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		} catch (ClassCastException cce) {
 
 			logger.info("Unable to process login data. All attributes must be or type String.");
-			returnedMethodResult = new RestMethodResult(401, "Unable to process login data. All attributes must be of type String.");
+			returnedMethodResult = new RestMethodResult(HttpServletResponse.SC_UNAUTHORIZED, "Unable to process login data. All attributes must be of type String.");
 		}
 
 		if (returnedMethodResult == null) {
@@ -191,14 +177,32 @@ public class LoginResourceHandler extends RESTCallHandler {
 			throw new AuthenticationException("login with superuser not supported.");
 		}
 
-		Principal user = null;
-
-		user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
+		final Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
 		if (user != null) {
 
-			final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
-			if (twoFactorAuthenticationSuccessOrNotNecessary) {
+			final HttpServletRequest request = securityContext.getRequest();
+			final boolean userRequestedTrust = propertySet.containsKey(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING) && (boolean) propertySet.get(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING);
+			final String userAgentString     = request.getHeader(HttpHeader.USER_AGENT.asString());
+
+			final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(request), userAgentString, AuthHelper.getDeviceTrustCookie(request));
+
+			if (result != AuthHelper.TwoFactorAuthenticationResult.FAILURE) {
+
+				// only set trust cookie if actual two-factor authentication was used
+				if (result == AuthHelper.TwoFactorAuthenticationResult.SUCCESS && userRequestedTrust) {
+
+					if (Settings.TwoFactorDeviceTrustEnabled.getValue()) {
+
+						logger.info("Two factor authentication: User '{}' requested trust, setting trust cookie", user.getName());
+
+						AuthHelper.addDeviceTrustCookie(securityContext, userAgentString, user.getDeviceTrustSecret());
+
+					} else {
+
+						logger.info("Two factor authentication: User '{}' requested trust, but feature is disabled ({})", user.getName(), Settings.TwoFactorDeviceTrustEnabled.getKey());
+					}
+				}
 
 				return user;
 			}

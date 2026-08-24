@@ -18,7 +18,14 @@
  */
 package org.structr.core.auth.exception;
 
+import org.structr.api.config.Settings;
 import org.structr.core.entity.Principal;
+import org.structr.web.function.BarcodeFunction;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TwoFactorAuthenticationRequiredException extends UnauthorizedException {
 
@@ -35,19 +42,25 @@ public class TwoFactorAuthenticationRequiredException extends UnauthorizedExcept
 		this.user          = user;
 	}
 
-	public String getNextStepToken() {
+	public Map<String, String> getData() {
 
-		return nextStepToken;
-	}
+		final Map<String, String> data = new HashMap<>(Map.of(
+				"token", nextStepToken,
+				"twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue(),
+				"deviceTrustPossible", Settings.TwoFactorDeviceTrustEnabled.getValue().toString()
+		));
 
-	public boolean showQrCode() {
+		if (showQrCode) {
 
-		return showQrCode;
-	}
+			final Map<String, Object> hints = Map.of(
+					"MARGIN", 0,
+					"ERROR_CORRECTION", "M"
+			);
 
-	public Principal getUser() {
+			data.put("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(user.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes(StandardCharsets.ISO_8859_1)));
+		}
 
-		return user;
+		return data;
 	}
 
 }

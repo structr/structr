@@ -28,14 +28,14 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.*;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -43,6 +43,7 @@ import org.structr.core.traits.operations.principal.IsValidPassword;
 import org.structr.core.traits.operations.propertycontainer.GetProperty;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -73,6 +74,8 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PROXY_URL_PROPERTY            = "proxyUrl";
 	public static final String PROXY_USERNAME_PROPERTY       = "proxyUsername";
 	public static final String PROXY_PASSWORD_PROPERTY       = "proxyPassword";
+	public static final String DEVICE_TRUST_SECRET_PROPERTY  = "deviceTrustSecret";
+
 
 	public PrincipalTraitDefinition() {
 
@@ -108,7 +111,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 			GetProperty.class, new GetProperty() {
 
-				final Set<String> hiddenProperties = newSet(PASSWORD_PROPERTY, SALT_PROPERTY, TWO_FACTOR_SECRET_PROPERTY);
+				final Set<String> hiddenProperties = newSet(PASSWORD_PROPERTY, SALT_PROPERTY, TWO_FACTOR_SECRET_PROPERTY, DEVICE_TRUST_SECRET_PROPERTY);
 
 				@Override
 				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> key, final Predicate<GraphObject> predicate) {
@@ -185,6 +188,30 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return Set.of(
+
+				new JavaMethod("rotateDeviceTrustSecret", false, false) {
+
+					@Override
+					public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+						entity.as(Principal.class).rotateDeviceTrustSecret();
+
+						return null;
+					}
+
+					@Override
+					public String getDescription() {
+
+						return "Generates a new device trust secret for the principal and stores it. This invalidates all previously issued device trust cookies.";
+					}
+				}
+		);
+	}
+
+	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
 
 		return Map.of();
@@ -223,7 +250,8 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new ArrayProperty(PUBLIC_KEYS_PROPERTY, String.class),
 			new StringProperty(PROXY_URL_PROPERTY),
 			new StringProperty(PROXY_USERNAME_PROPERTY),
-			new StringProperty(PROXY_PASSWORD_PROPERTY)
+			new StringProperty(PROXY_PASSWORD_PROPERTY),
+			new StringProperty(DEVICE_TRUST_SECRET_PROPERTY)
 		);
 	}
 

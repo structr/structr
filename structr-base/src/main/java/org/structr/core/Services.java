@@ -20,6 +20,7 @@ package org.structr.core;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.servlet.http.Cookie;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.home.Version;
@@ -466,6 +467,20 @@ public class Services implements StructrServices, BroadcastReceiver {
 			} catch (FrameworkException fex) {
 
 				logger.info("{}: {}", setting.getKey(), fex.getMessage());
+
+				setting.setValue(oldValue);
+			}
+		});
+
+		Settings.TwoFactorDeviceTrustCookieName.setChangeHandler((setting, oldValue, newValue) -> {
+
+			try {
+
+				new Cookie(newValue.toString(), "");
+
+			} catch (IllegalArgumentException e) {
+
+				logger.info("{}: Unable to save value '{}'. Not a valid cookie name.", setting.getKey(), newValue);
 
 				setting.setValue(oldValue);
 			}

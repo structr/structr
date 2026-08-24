@@ -159,7 +159,8 @@ let _Dialogs = {
 
 					Structr.doLogin({
 						twoFactorCode: document.querySelector('#twoFactorCodeField').value,
-						twoFactorToken: document.querySelector('#twoFactorTokenField').value
+						twoFactorToken: document.querySelector('#twoFactorTokenField').value,
+						trustDevice: document.querySelector('#twoFactorTrustCheckbox').checked
 					});
 					return false;
 				});
@@ -232,6 +233,10 @@ let _Dialogs = {
 			}
 
 			$('#twoFactorTokenField').val(data.token);
+
+			if (data.deviceTrustPossible === true) {
+				$('#twoFactorTrustCheckboxWrapper').show();
+			}
 		},
 		hideTwoFactor: () => {
 			document.querySelector('#login-username-password').style.display = 'block';

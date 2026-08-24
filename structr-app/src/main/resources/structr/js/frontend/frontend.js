@@ -334,7 +334,8 @@ export class Frontend {
 
 				let params = new URLSearchParams({
 					token: headers.token,
-					qrdata: headers.qrdata ?? ''
+					qrdata: headers.qrdata ?? '',
+					deviceTrustPossible: headers.devicetrustpossible ?? 'false',
 				});
 
 				window.location.href = headers.twofactorloginpage + '?' + params.toString();

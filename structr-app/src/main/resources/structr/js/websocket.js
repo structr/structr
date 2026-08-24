@@ -190,6 +190,10 @@ let StructrWS = {
                 let response = await fetch(`${Structr.rootUrl}me`);
                 let result   = await response.json();
 				StructrWS.userId = result.result.id;
+
+				if (data.data.trustTokenCookieName && data.data.trustTokenCookieValue) {
+					Cookies.set(data.data.trustTokenCookieName, data.data.trustTokenCookieValue);
+				}
 			}
 
 			StructrWS.me      = data.data;

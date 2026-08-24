@@ -32,6 +32,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
@@ -501,5 +502,25 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 			return "URISyntaxException for " + path + "?" + query;
 		}
+	}
+
+	@Override
+	public String getDeviceTrustSecret() throws FrameworkException {
+
+		final Node dbNode = wrappedObject.getNode();
+
+		if (!dbNode.hasProperty(PrincipalTraitDefinition.DEVICE_TRUST_SECRET_PROPERTY)) {
+
+			wrappedObject.as(Principal.class).rotateDeviceTrustSecret();
+		}
+
+		return (String) dbNode.getProperty(PrincipalTraitDefinition.DEVICE_TRUST_SECRET_PROPERTY);
+	}
+
+	@Override
+	public void rotateDeviceTrustSecret() throws FrameworkException {
+
+		// for simplicity, we use a UUID as the trust secret. it is encoded in the trust cookie and just exists to allow us to revoke/invalidate previously issued trust cookies
+		wrappedObject.setProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.DEVICE_TRUST_SECRET_PROPERTY), NodeServiceCommand.getNextUuid());
 	}
 }

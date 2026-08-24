@@ -214,7 +214,7 @@ public abstract class Setting<T> {
 		return isDynamic;
 	}
 
-	public Setting setIsProtected() {
+	public Setting<T> setIsProtected() {
 
 		this.isProtected = true;
 

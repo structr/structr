@@ -576,7 +576,7 @@ public class UiAuthenticator implements Authenticator {
 		// first check for token in cookie
 		if (cookies != null) {
 
-			for (Cookie cookie : request.getCookies()) {
+			for (Cookie cookie : cookies) {
 
 				if (StringUtils.equals(cookie.getName(), "access_token")) {
 

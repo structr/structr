@@ -788,4 +788,16 @@ public class SuperUser implements Principal {
 
 		return 0;
 	}
+
+	@Override
+	public String getDeviceTrustSecret() {
+
+		return null;
+	}
+
+	@Override
+	public void rotateDeviceTrustSecret() {
+
+		// nothing to do
+	}
 }

@@ -18,7 +18,10 @@
  */
 package org.structr.websocket.command;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -36,17 +39,13 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.DeviceTrustHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.function.BarcodeFunction;
-import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
 import java.util.HashMap;
-import java.util.Map;
 
 public class LoginCommand extends AbstractCommand {
 
@@ -98,104 +97,100 @@ public class LoginCommand extends AbstractCommand {
 
 				} else {
 
-					getWebSocket().send(MessageBuilder.status().code(403).build(), false);
+					getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), false);
 				}
 
 				if (user != null && !(user instanceof SuperUser)) {
 
-					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
-					if (twoFactorAuthenticationSuccessOrNotNecessary) {
+					final HttpServletRequest request = getWebSocket().getRequest();
+					final boolean userRequestedTrust = webSocketData.getNodeDataBooleanValue(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING);
+					final String userAgentString     = request.getHeader(HttpHeader.USER_AGENT.asString());
 
-						SessionHelper.clearInvalidSessions(user);
+					final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(request), userAgentString, AuthHelper.getDeviceTrustCookie(request));
 
-						String sessionId = webSocketData.getSessionId();
-						if (sessionId == null) {
+					if (result == AuthHelper.TwoFactorAuthenticationResult.FAILURE) {
+						throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
+					}
 
-							logger.debug("Unable to login {}: No sessionId found", username);
-							getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+					SessionHelper.clearInvalidSessions(user);
+
+					String sessionId = webSocketData.getSessionId();
+					if (sessionId == null) {
+
+						logger.debug("Unable to login {}: No sessionId found", username);
+						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), true);
+
+					} else {
+
+						sessionId = SessionHelper.getShortSessionId(sessionId);
+
+						// Clear possible existing sessions
+						SessionHelper.clearSession(sessionId);
+
+						if (!user.addSessionId(sessionId)) {
+
+							logger.debug("Unable to login {}: Unable to add new sessionId", username);
+							getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).data("reason", "sessionLimitExceeded").build(), true);
 
 						} else {
 
-							sessionId = SessionHelper.getShortSessionId(sessionId);
+							AuthHelper.updateLastLoginDate(user);
+							AuthHelper.sendLoginNotification(user, getWebSocket().getRequest());
 
-							// Clear possible existing sessions
-							SessionHelper.clearSession(sessionId);
+							// store token in response data
+							webSocketData.getNodeData().clear();
+							webSocketData.setSessionId(sessionId);
+							webSocketData.getNodeData().put("username", user.getName());
 
-							if (!user.addSessionId(sessionId)) {
+							if (result == AuthHelper.TwoFactorAuthenticationResult.SUCCESS && userRequestedTrust) {
 
-								logger.debug("Unable to login {}: Unable to add new sessionId", username);
-								getWebSocket().send(MessageBuilder.status().code(403).data("reason", "sessionLimitExceeded").build(), true);
+								if (Settings.TwoFactorDeviceTrustEnabled.getValue()) {
 
-							} else {
+									// in WS we can not set cookies. We let the frontend know which cookie to set
+									logger.info("Two factor authentication: User '{}' requested trust in admin UI login, sending trust cookie data for the client to set", user.getName());
 
-								AuthHelper.updateLastLoginDate(user);
-								AuthHelper.sendLoginNotification(user, getWebSocket().getRequest());
+									webSocketData.getNodeData().put("trustTokenCookieName", Settings.TwoFactorDeviceTrustCookieName.getValue());
+									webSocketData.getNodeData().put("trustTokenCookieValue", DeviceTrustHelper.generateDeviceTrustToken(userAgentString, user.getDeviceTrustSecret()));
 
-								// store token in response data
-								webSocketData.getNodeData().clear();
-								webSocketData.setSessionId(sessionId);
-								webSocketData.getNodeData().put("username", user.getName());
+								} else {
 
-								// authenticate socket
-								getWebSocket().setAuthenticated(sessionId, user);
-
-								tx.setSecurityContext(getWebSocket().getSecurityContext());
-
-								// send success message later (to first commit transaction)
-								sendSuccess = true;
+									logger.info("Two factor authentication: User '{}' requested trust, but feature is disabled ({})", user.getName(), Settings.TwoFactorDeviceTrustEnabled.getKey());
+								}
 							}
+
+							// authenticate socket
+							getWebSocket().setAuthenticated(sessionId, user);
+
+							tx.setSecurityContext(getWebSocket().getSecurityContext());
+
+							// send success message later (to first commit transaction)
+							sendSuccess = true;
 						}
 					}
 
 					userId = user.getNode().getId();
-
-				} else {
-
-					throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 				}
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException | LoginAttemptBeforeConfirmationException ex) {
 
 				logger.info("Unable to login {}: {}", username, ex.getMessage());
-				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", ex.getReason()).build(), true);
+				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(HttpServletResponse.SC_UNAUTHORIZED).data("reason", ex.getReason()).build(), true);
 
-			} catch (TwoFactorAuthenticationRequiredException ex) {
+			} catch (final TwoFactorAuthenticationRequiredException ex) {
 
 				logger.debug(ex.getMessage());
 
-				final MessageBuilder msg = MessageBuilder.status().message(ex.getMessage()).data("token", ex.getNextStepToken());
-
-				if (ex.showQrCode()) {
-
-					try {
-
-						final Principal principal       = ex.getUser();
-						final Map<String, Object> hints = new HashMap();
-
-						hints.put("MARGIN", 0);
-						hints.put("ERROR_CORRECTION", "M");
-
-						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(principal.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
-
-						msg.data("qrdata", qrdata);
-
-					} catch (UnsupportedEncodingException uee) {
-
-						logger.warn("Charset ISO-8859-1 not supported!?", uee);
-					}
-				}
-
-				getWebSocket().send(msg.code(202).build(), true);
+				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).data(new HashMap<>(ex.getData())).code(HttpServletResponse.SC_ACCEPTED).build(), true);
 
 			} catch (AuthenticationException e) {
 
 				logger.info("Unable to login {}, probably wrong password", username);
-				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+				getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), true);
 
 			} catch (FrameworkException fex) {
 
 				logger.warn("Unable to execute command", fex);
-				getWebSocket().send(MessageBuilder.status().code(401).build(), true);
+				getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_UNAUTHORIZED).build(), true);
 			}
 
 			tx.success();

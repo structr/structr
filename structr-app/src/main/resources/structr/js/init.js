@@ -2329,6 +2329,14 @@ let Structr = {
 							<input id="twoFactorCodeField" type="text" name="twoFactorCode" required class="w-full box-border">
 						</div>
 
+						<div class="self-center"></div>
+						<div class="self-center">
+							<label id="twoFactorTrustCheckboxWrapper" class="flex items-center" style="display: none;">
+								<input type="checkbox" id="twoFactorTrustCheckbox" name="trustDevice">
+								Trust device
+							</label>
+						</div>
+
 						<div id="self-center" class="col-span-2 mt-2 text-right">
 							<button id="loginButtonTFA" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login 2FA

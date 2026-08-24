@@ -22,6 +22,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.HttpHeader;
 import org.structr.api.config.Settings;
 import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
@@ -36,6 +37,7 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.DeviceTrustHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -87,8 +89,28 @@ public class TokenResource extends ExactMatchEndpoint {
 
 			if (user != null) {
 
-				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
-				if (twoFactorAuthenticationSuccessOrNotNecessary) {
+				final HttpServletRequest request = securityContext.getRequest();
+				final boolean userRequestedTrust = propertySet.containsKey(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING) && (boolean) propertySet.get(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING);
+				final String userAgentString     = request.getHeader(HttpHeader.USER_AGENT.asString());
+
+				final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(request), userAgentString, AuthHelper.getDeviceTrustCookie(request));
+
+				if (result != AuthHelper.TwoFactorAuthenticationResult.FAILURE) {
+
+					// only set trust cookie if actual two-factor authentication was used
+					if (result == AuthHelper.TwoFactorAuthenticationResult.SUCCESS && userRequestedTrust) {
+
+						if (Settings.TwoFactorDeviceTrustEnabled.getValue()) {
+
+							logger.info("Two factor authentication: User '{}' requested trust, setting trust cookie", user.getName());
+
+							AuthHelper.addDeviceTrustCookie(securityContext, userAgentString, user.getDeviceTrustSecret());
+
+						} else {
+
+							logger.info("Two factor authentication: User '{}' requested trust, but feature is disabled ({})", user.getName(), Settings.TwoFactorDeviceTrustEnabled.getKey());
+						}
+					}
 
 					if (!isFromRefreshToken) {
 
@@ -138,7 +160,7 @@ public class TokenResource extends ExactMatchEndpoint {
 			final Cookie[] cookies = request.getCookies();
 			if (cookies != null) {
 
-				for (Cookie cookie : request.getCookies()) {
+				for (Cookie cookie : cookies) {
 
 					if (StringUtils.equals(cookie.getName(), RequestHeaders.RefreshToken.getName())) {
 

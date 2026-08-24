@@ -18,12 +18,14 @@
  */
 package org.structr.rest.auth;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
@@ -52,6 +54,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -762,71 +765,125 @@ public class AuthHelper {
 		return false;
 	}
 
-	public static boolean handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
+	public enum TwoFactorAuthenticationResult {
+		DISABLED,
+		NOT_REQUIRED_FOR_USER,
+		SUCCESS,
+		IP_WHITELISTED,
+		TRUSTED,
+		FAILURE
+	}
 
-		if (!AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP, Settings.TwoFactorWhitelistedIPs.getValue())) {
+	public static TwoFactorAuthenticationResult handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP, final String userAgentString, final String trustToken) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
 
-			final int twoFactorLevel   = Settings.TwoFactorLevel.getValue();
-			boolean isTwoFactorUser    = principal.isTwoFactorUser();
-			boolean twoFactorConfirmed = principal.isTwoFactorConfirmed();
-			boolean userNeedsTwoFactor = twoFactorLevel == 2 || (twoFactorLevel == 1 && isTwoFactorUser == true);
+		final int twoFactorLevel   = Settings.TwoFactorLevel.getValue();
+		boolean isTwoFactorUser    = principal.isTwoFactorUser();
+		boolean twoFactorConfirmed = principal.isTwoFactorConfirmed();
+		boolean userNeedsTwoFactor = twoFactorLevel == 2 || (twoFactorLevel == 1 && isTwoFactorUser);
 
-			if (userNeedsTwoFactor) {
+		if (twoFactorLevel == 0) {
+			return TwoFactorAuthenticationResult.DISABLED;
+		}
 
-				if (twoFactorToken == null) {
+		if (!userNeedsTwoFactor) {
+			return TwoFactorAuthenticationResult.NOT_REQUIRED_FOR_USER;
+		}
 
-					// user just logged in via username/password - no two factor identification token
+		final boolean ipWhitelistedForTwoFactorAuthentication = AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP, Settings.TwoFactorWhitelistedIPs.getValue());
 
-					final String newTwoFactorToken = AuthHelper.getIdentificationTokenForPrincipal();
-					principal.setTwoFactorToken(newTwoFactorToken);
+		if (ipWhitelistedForTwoFactorAuthentication) {
+			return TwoFactorAuthenticationResult.IP_WHITELISTED;
+		}
 
-					throw new TwoFactorAuthenticationRequiredException(principal, newTwoFactorToken, !twoFactorConfirmed);
+		if (trustToken != null) {
 
-				} else {
+			if (DeviceTrustHelper.isValidDeviceTrustToken(trustToken, userAgentString, principal.getDeviceTrustSecret())) {
 
-					try {
-
-						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(principal.getTwoFactorSecret(), AuthHelper.getCryptoAlgorithm(), Settings.TwoFactorPeriod.getValue(), Settings.TwoFactorDigits.getValue());
-
-						// check two factor authentication
-						if (currentKey.equals(twoFactorCode)) {
-
-							principal.setTwoFactorToken(null);   // reset token
-							principal.setTwoFactorConfirmed(true);   // user has verified two factor use
-							principal.setIsTwoFactorUser(true);
-
-							logger.info("Successful two factor authentication ({})", principal.getName());
-
-							RuntimeEventLog.login("Two factor authentication successful", Map.of("id", principal.getUuid(), "name", principal.getName()));
-
-							return true;
-
-						} else {
-
-							// two factor authentication not successful
-						   logger.info("Two factor authentication failed ({})", principal.getName());
-
-						   RuntimeEventLog.failedLogin("Two factor authentication failed", Map.of("id", principal.getUuid(), "name", principal.getName()));
-
-						   throw new TwoFactorAuthenticationFailedException();
-						}
-
-					} catch (GeneralSecurityException ex) {
-
-						logger.warn("Two factor authentication key could not be generated - login not possible");
-
-						return false;
-					}
-				}
+				return TwoFactorAuthenticationResult.TRUSTED;
 			}
 		}
 
-		return true;
+		if (twoFactorToken == null) {
+
+			// user just logged in via username/password - no two factor identification token
+
+			final String newTwoFactorToken = AuthHelper.getIdentificationTokenForPrincipal();
+			principal.setTwoFactorToken(newTwoFactorToken);
+
+			throw new TwoFactorAuthenticationRequiredException(principal, newTwoFactorToken, !twoFactorConfirmed);
+
+		} else {
+
+			try {
+
+				final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(principal.getTwoFactorSecret(), AuthHelper.getCryptoAlgorithm(), Settings.TwoFactorPeriod.getValue(), Settings.TwoFactorDigits.getValue());
+
+				// check two-factor authentication
+				if (currentKey.equals(twoFactorCode)) {
+
+					principal.setTwoFactorToken(null);   // reset token
+					principal.setTwoFactorConfirmed(true);   // user has verified two factor use
+					principal.setIsTwoFactorUser(true);
+
+					logger.info("Successful two factor authentication ({})", principal.getName());
+
+					RuntimeEventLog.login("Two factor authentication successful", Map.of("id", principal.getUuid(), "name", principal.getName()));
+
+					return TwoFactorAuthenticationResult.SUCCESS;
+
+				} else {
+
+					// two-factor authentication not successful
+				   logger.info("Two factor authentication failed ({})", principal.getName());
+
+				   RuntimeEventLog.failedLogin("Two factor authentication failed", Map.of("id", principal.getUuid(), "name", principal.getName()));
+
+				   throw new TwoFactorAuthenticationFailedException();
+				}
+
+			} catch (GeneralSecurityException ex) {
+
+				logger.warn("Two factor authentication key could not be generated - login not possible");
+
+				return TwoFactorAuthenticationResult.FAILURE;
+			}
+		}
 	}
 
 	public static String getIdentificationTokenForPrincipal () {
 
 		return generateOpaqueToken();
+	}
+
+	public static String getDeviceTrustCookie (final HttpServletRequest request) {
+
+		final String trustCookieName = Settings.TwoFactorDeviceTrustCookieName.getValue();
+
+		final Cookie[] cookies = request.getCookies();
+
+		if (cookies != null) {
+
+			for (Cookie cookie : cookies) {
+
+				if (cookie.getName().equals(trustCookieName)) {
+
+					return cookie.getValue();
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public static void addDeviceTrustCookie (final SecurityContext securityContext, final String userAgentString, final String deviceTrustSecret) {
+
+		final Cookie cookie = new Cookie(Settings.TwoFactorDeviceTrustCookieName.getValue(), DeviceTrustHelper.generateDeviceTrustToken(userAgentString, deviceTrustSecret));
+		cookie.setHttpOnly(true);
+		cookie.setSecure(securityContext.getRequest().isSecure());
+		cookie.setPath("/");
+		cookie.setMaxAge((int) Duration.ofDays(Settings.TwoFactorDeviceTrustDuration.getValue()).toSeconds());
+
+		securityContext.getResponse().addCookie(cookie);
 	}
 
 	// --- HMAC-signed opaque token infrastructure ---

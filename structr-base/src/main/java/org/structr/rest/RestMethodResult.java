@@ -62,6 +62,13 @@ public class RestMethodResult {
 		headers.put(key, value);
 	}
 
+	public void addHeaders(final Map<String, String> data) {
+
+		for (Map.Entry<String, String> entry : data.entrySet()) {
+			addHeader(entry.getKey(), entry.getValue());
+		}
+	}
+
 	public void addContent(final Object graphObject) {
 
 		if (this.content == null) {
