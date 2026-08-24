@@ -44,7 +44,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.embedded.EmbeddedDatabaseService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.core.traits.definitions.*;
