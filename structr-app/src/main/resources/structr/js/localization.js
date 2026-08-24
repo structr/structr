@@ -320,6 +320,8 @@ let _Localization = {
 
 		LSWrapper.setItem(_Localization.localizationSelectedElementKey, keyAndDomainObject);
 
+		_Localization.uiElements.getLocalizationDetailContainer().style.display = 'none';
+
 		let { responseOk, result } = await _Localization.getLocalizationsForNameAndDomain(key, domain);
 
 		if (responseOk && result.length > 0) {
