@@ -44,6 +44,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
@@ -134,7 +136,8 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 					final RestMethodResult result = loginResource.doPost(securityContext, properties);
 
 					// send HTTP headers and redirect
-					for (final Entry<String, String> entry : result.getHeaders().entrySet()) {
+					final Map<String, String> headers = result.getHeaders();
+					for (final Entry<String, String> entry : headers.entrySet()) {
 
 						response.addHeader(entry.getKey(), entry.getValue());
 					}
@@ -156,6 +159,16 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 									sendRedirectHeader(response, redirectLocation, false);	// user-provided, should be already prefixed
 								}
 
+								break;
+
+							case HttpServletResponse.SC_ACCEPTED:
+
+								// we send this status code when user supplied valid credentials but needs to authenticate further (2FA) with a one-time-token
+								final String redirectUrl = headers.remove("twoFactorLoginPage") + "?" + headers.entrySet().stream()
+																													.map(e -> e.getKey() + "=" + e.getValue())
+																													.collect(Collectors.joining("&"));
+
+								sendRedirectHeader(response, redirectUrl);
 								break;
 
 							default:
