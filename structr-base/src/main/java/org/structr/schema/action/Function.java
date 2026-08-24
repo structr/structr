@@ -183,7 +183,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
 
-		logger.warn("{}: {} '{}'. Parameters: {}. {}", getDisplayName(false), message, caller, parametersForLog(parameters), usage(inJavaScriptContext));
+		logger.error("{}: {} '{}'. Parameters: {}. {}", getDisplayName(false), message, caller, parametersForLog(parameters), usage(inJavaScriptContext));
 	}
 
 	/**
