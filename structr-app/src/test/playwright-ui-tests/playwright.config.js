@@ -24,6 +24,11 @@ export default defineConfig({
     use: {
         viewport: { width: 1920, height: 1080 },
         deviceScaleFactor: 2,
+
+        // Turn off font hinting to fix font kerning and spacing
+        launchOptions: {
+            args: ['--font-render-hinting=none'],
+        },
         trace: 'on',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
