@@ -29,7 +29,7 @@ import org.structr.core.function.*;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.definitions.*;
 import org.structr.docs.Documentable;
-import org.structr.test.common.StructrTest;
+import org.structr.test.app.common.StructrTest;
 import org.testng.annotations.Test;
 
 import java.util.*;

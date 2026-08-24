@@ -16,9 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.servlet;
+package org.structr.test.rest.servlet;
 
 import org.structr.api.util.Iterables;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -31,6 +32,12 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * Mapping from a {@code RestMethodResult}'s non-graph-object result to the iterable that gets
  * serialized. Pure logic, no servlet container or database needed.
+ *
+ * This lives under org.structr.test rather than in the package it exercises: the structr jars are
+ * signed (maven-jarsigner-plugin), so an unsigned test class sharing a package with signed
+ * production classes is rejected by the JVM once both reach the same classloader. That happens in a
+ * full-suite run but not when the class is run on its own, which is why it can look green in
+ * isolation.
  */
 public class AbstractDataServletResultTest {
 

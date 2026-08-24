@@ -16,7 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.process.websocket;
+package org.structr.test.process.websocket;
+
+import org.structr.process.websocket.*;
 
 import org.structr.process.ProcessTraits;
 import org.testng.annotations.Test;

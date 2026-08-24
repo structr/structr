@@ -16,7 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.web.advanced;
+package org.structr.test.process.deployment;
+
+import org.structr.test.web.advanced.DeploymentTestBase;
 
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;

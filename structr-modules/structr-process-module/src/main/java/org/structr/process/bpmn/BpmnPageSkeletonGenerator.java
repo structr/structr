@@ -401,7 +401,7 @@ public class BpmnPageSkeletonGenerator {
 	}
 
 	/** The states a scaffolded div for this type renders in; empty if the type gets no div. */
-	static Set<String> visibleWhenFor(final BpmnElementType type) {
+	public static Set<String> visibleWhenFor(final BpmnElementType type) {
 
 		final StepKind kind = HUMAN_STEPS.get(type);
 
@@ -409,7 +409,7 @@ public class BpmnPageSkeletonGenerator {
 	}
 
 	/** The id prefix for this type's div, so generated ids read as what they are. */
-	static String idPrefixFor(final BpmnElementType type) {
+	public static String idPrefixFor(final BpmnElementType type) {
 
 		final StepKind kind = HUMAN_STEPS.get(type);
 
@@ -1132,7 +1132,7 @@ public class BpmnPageSkeletonGenerator {
 	 * or a script the fold strips) falls back to the step's bpmnId, then to a constant, so
 	 * every div still gets an id.</p>
 	 */
-	static String slug(final String raw, final String fallback) {
+	public static String slug(final String raw, final String fallback) {
 
 		final String slug = trimDashes(Functions.cleanString(raw));
 		if (!slug.isEmpty()) {
@@ -1155,7 +1155,7 @@ public class BpmnPageSkeletonGenerator {
 	 * {@code taken} rejects. Used for both html ids (unique within the page) and page names
 	 * (unique in the database, because page names route requests).
 	 */
-	static String firstFree(final String candidate, final Predicate<String> taken) {
+	public static String firstFree(final String candidate, final Predicate<String> taken) {
 
 		String result = candidate;
 		int suffix    = 2;

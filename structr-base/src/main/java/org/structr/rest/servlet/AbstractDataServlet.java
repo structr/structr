@@ -150,9 +150,10 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	 * {@code DELETE /<Type>} (RESTCallHandler#genericDelete) and any method with no return
 	 * value.</p>
 	 *
-	 * <p>Package-private so the mapping is unit-testable without a servlet container.</p>
+	 * <p>Public so the mapping is unit-testable without a servlet container. Not package-private:
+	 * the jars are signed, so a test class in this package fails to load in a full-suite run.</p>
 	 */
-	static Iterable<Object> resultIterable(final Object nonGraphObjectResult) {
+	public static Iterable<Object> resultIterable(final Object nonGraphObjectResult) {
 
 		if (nonGraphObjectResult == null) {
 

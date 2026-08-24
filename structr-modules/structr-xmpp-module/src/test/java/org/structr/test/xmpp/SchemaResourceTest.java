@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.rest.resource;
+package org.structr.test.xmpp;
 
 import io.restassured.RestAssured;
 import org.structr.test.rest.common.StructrRestTestBase;

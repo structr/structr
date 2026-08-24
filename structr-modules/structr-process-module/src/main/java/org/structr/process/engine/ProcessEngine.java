@@ -1172,13 +1172,13 @@ public class ProcessEngine {
 	 *       StructrScript.</li>
 	 * </ul>
 	 */
-	enum ScriptLanguage { FOREIGN_JAVASCRIPT, STRUCTR_JAVASCRIPT, STRUCTR_SCRIPT }
+	public enum ScriptLanguage { FOREIGN_JAVASCRIPT, STRUCTR_JAVASCRIPT, STRUCTR_SCRIPT }
 
 	/**
 	 * Classify a {@code scriptFormat} attribute value. Package-private and static
 	 * so the (deliberately narrow) matching rules can be unit-tested directly.
 	 */
-	static ScriptLanguage detectScriptLanguage(final String scriptFormat) {
+	public static ScriptLanguage detectScriptLanguage(final String scriptFormat) {
 
 		if ("javascript".equalsIgnoreCase(scriptFormat) || "js".equalsIgnoreCase(scriptFormat)) {
 
@@ -1325,7 +1325,7 @@ public class ProcessEngine {
 	}
 
 	/** Index of the ')' closing the '(' at {@code openIdx}, honoring quoted strings; -1 if unbalanced. */
-	static int matchingParenIndex(final String s, final int openIdx) {
+	public static int matchingParenIndex(final String s, final int openIdx) {
 
 		int depth = 0;
 		char quote = 0;
@@ -1444,7 +1444,7 @@ public class ProcessEngine {
 	 * isn't a real Structr function becomes {@code $.<name>()} and fails at run time,
 	 * but the original source is retained in the block comment above the transpiled body.
 	 */
-	static String prefixStructrFunctions(final String line) {
+	public static String prefixStructrFunctions(final String line) {
 
 		final Matcher m = BARE_FUNCTION_CALL.matcher(line);
 		final StringBuffer sb = new StringBuffer();
@@ -1521,7 +1521,7 @@ public class ProcessEngine {
 	 * already-rewritten call ({@code $.Type.method(}) has '.' before the type name, so
 	 * the negative lookbehind skips it on a second pass.
 	 */
-	static String rewriteServiceCalls(final String line) {
+	public static String rewriteServiceCalls(final String line) {
 
 		final Matcher m = SERVICE_CALL.matcher(line);
 		final StringBuffer sb = new StringBuffer();
@@ -2759,7 +2759,7 @@ public class ProcessEngine {
 	 * @param expression the BPMN timer expression body
 	 * @return the absolute fire time, or null if unparseable / unsupported
 	 */
-	static Date computeFireAt(final String timerType, final String expression) {
+	public static Date computeFireAt(final String timerType, final String expression) {
 
 		if (StringUtils.isBlank(expression)) {
 
@@ -2824,7 +2824,7 @@ public class ProcessEngine {
 	 * Supports P[nY][nM][nW][nD][T[nH][nM][nS]] with year/month treated as approximations
 	 * (year=365d, month=30d). Returns total milliseconds, or -1 if unparseable.
 	 */
-	static long parseIso8601DurationMillis(final String s) {
+	public static long parseIso8601DurationMillis(final String s) {
 
 		if (s == null || !s.startsWith("P")) {
 
@@ -3735,7 +3735,7 @@ public class ProcessEngine {
 	 * unaffected: the value is parsed by parameterType, and "25000" parses as a Double just as
 	 * well.
 	 */
-	static String stringValueOf(final Object paramValue) {
+	public static String stringValueOf(final Object paramValue) {
 
 		if (paramValue == null) {
 
@@ -3754,7 +3754,7 @@ public class ProcessEngine {
 		return paramValue.toString();
 	}
 
-	static String inferParameterType(final Object paramValue) {
+	public static String inferParameterType(final Object paramValue) {
 
 		if (paramValue instanceof Boolean) {
 
@@ -3817,7 +3817,7 @@ public class ProcessEngine {
 	 * the raw String when no type was declared (the common case for form-driven
 	 * processes) or when parsing fails.
 	 */
-	static Object convertParameterValue(final String stringValue, final String paramType) {
+	public static Object convertParameterValue(final String stringValue, final String paramType) {
 
 		if (stringValue == null) {
 
@@ -4049,7 +4049,7 @@ public class ProcessEngine {
 	 * Package-private and static so the JUEL-to-JavaScript rewriting can be
 	 * unit-tested without a process instance.
 	 */
-	static String rewriteConditionExpression(final String expression, final Set<String> variableNames) {
+	public static String rewriteConditionExpression(final String expression, final Set<String> variableNames) {
 
 		if (expression == null || variableNames == null || variableNames.isEmpty()) {
 
@@ -4231,7 +4231,7 @@ public class ProcessEngine {
 	 *
 	 * <p>Package-private and static so it can be unit-tested in isolation.</p>
 	 */
-	static String getJsonAttributeValue(final String json, final String attrName) {
+	public static String getJsonAttributeValue(final String json, final String attrName) {
 
 		if (json == null || attrName == null) {
 

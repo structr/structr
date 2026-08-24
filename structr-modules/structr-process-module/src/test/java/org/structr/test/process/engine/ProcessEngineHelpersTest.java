@@ -16,7 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.process.engine;
+package org.structr.test.process.engine;
+
+import org.structr.process.engine.*;
 
 import com.google.gson.Gson;
 import org.structr.process.bpmn.BpmnElementType;

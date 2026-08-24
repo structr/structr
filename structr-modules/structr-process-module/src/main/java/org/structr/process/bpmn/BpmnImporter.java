@@ -75,7 +75,7 @@ public class BpmnImporter {
 	private static final String DC_NS      = "http://www.omg.org/spec/DD/20100524/DC";
 	private static final String OMGDI_NS   = "http://www.omg.org/spec/DD/20100524/DI";
 	private static final String XSI_NS     = "http://www.w3.org/2001/XMLSchema-instance";
-	static final String CAMUNDA_NS         = "http://camunda.org/schema/1.0/bpmn";
+	public static final String CAMUNDA_NS         = "http://camunda.org/schema/1.0/bpmn";
 	private static final String STRUCTR_NS = "http://structr.org/schema/process/1.0";
 
 	private static final Set<String> KNOWN_ELEMENT_TYPES = BpmnElementType.knownTypeNames();
@@ -1413,7 +1413,7 @@ public class BpmnImporter {
 	 * using the given function name, e.g. "user(alice), user(bob)". Entries that
 	 * are already expressions ({@code ${...}}) are preserved verbatim.
 	 */
-	static String csvToFunctionExpression(final String csv, final String fnName) {
+	public static String csvToFunctionExpression(final String csv, final String fnName) {
 
 		final StringBuilder out = new StringBuilder();
 		boolean first           = true;
@@ -1648,7 +1648,7 @@ public class BpmnImporter {
 		}
 	}
 
-	static String translateListenerEvent(final String rawEvent, final String ns) {
+	public static String translateListenerEvent(final String rawEvent, final String ns) {
 
 		if (CAMUNDA_NS.equals(ns)) {
 
@@ -2117,7 +2117,7 @@ public class BpmnImporter {
 		}
 	}
 
-	static String translateProcessListenerEvent(final String rawEvent, final String ns) {
+	public static String translateProcessListenerEvent(final String rawEvent, final String ns) {
 
 		if (CAMUNDA_NS.equals(ns)) {
 
@@ -2181,7 +2181,7 @@ public class BpmnImporter {
 	 * stay at the outer level, so {@code ${svc.get().doThing()}} still yields
 	 * {@code doThing}.</p>
 	 */
-	static String sanitizeMethodName(final String raw) {
+	public static String sanitizeMethodName(final String raw) {
 
 		if (raw == null) {
 
@@ -2356,7 +2356,7 @@ public class BpmnImporter {
 	 * for manual porting. (Camunda built-ins like {@code now()} and beans still need
 	 * porting -- this only fixes the syntax/engine and the execution.* mapping.)</p>
 	 */
-	static String camundaListenerBody(final String payload) {
+	public static String camundaListenerBody(final String payload) {
 
 		String inner = payload.trim();
 		if (inner.startsWith("${") && inner.endsWith("}")) {

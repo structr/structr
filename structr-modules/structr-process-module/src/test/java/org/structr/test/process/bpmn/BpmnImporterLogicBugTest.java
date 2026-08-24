@@ -16,7 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.process.bpmn;
+package org.structr.test.process.bpmn;
+
+import org.structr.process.bpmn.*;
 
 import org.testng.annotations.Test;
 
