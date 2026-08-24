@@ -969,6 +969,9 @@ let _Files = {
 
 		StructrModel.createOrUpdateFromData(d, null, false);
 
+		// Skip rendering if there's nothing to append to
+		if (!container) return;
+
 		let size                  = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
 		let createdDate           = _Files.getFormattedDate(d.createdDate);
 		let modifiedDate          = _Files.getFormattedDate(d.lastModifiedDate);
@@ -2187,30 +2190,43 @@ let _Files = {
 		},
 
 		// search from global search widget
-		goToResult: (result, key, searchData) => {
+		goToResult: async (result, key, searchData) => {
 
-			_Helpers.ensureDesiredModuleIsActive(_Files).then(() => Command.getPromise(result.id)).then(node => {
+			await _Helpers.ensureDesiredModuleIsActive(_Files);
 
-				let folderId = null;
-				if (node.isFolder) {
-					folderId = node.id;
-				} else {
-					folderId = node.parentId;
-				}
+			let node = await Command.getPromise(result.id);
 
-				if (folderId) {
-					_Files.currentWorkingDir = { id: folderId };
-					_Files.deepOpen(_Files.currentWorkingDir);
-				} else {
-					_Files.currentWorkingDir = null;
-					$('#root_anchor').click();
-				}
+			let folderId = null;
+			if (node.isFolder) {
+				folderId = node.id;
+			} else {
+				folderId = node.parentId;
+			}
 
-				if (node.isFile) {
-					_Files.editFile(node);
-				}
-			});
-		}
+			if (folderId) {
+				_Files.currentWorkingDir = { id: folderId };
+				_Files.deepOpen(_Files.currentWorkingDir);
+			} else {
+				_Files.currentWorkingDir = null;
+				$('#root_anchor').click();
+			}
+
+			if (node.isFile) {
+
+				// editFile works from the file's row in the list (Structr.node) and from the current
+				// selection, and the list is rendered asynchronously by deepOpen, so opening the editor
+				// right away can run before the row exists. Wait for the row - but not indefinitely:
+				// waitForNode never times out, and a file that is filtered out of the current view
+				// would leave the editor unopened forever, so fall through after a moment instead.
+				await Promise.race([
+					_Helpers.waitForNode(node.id),
+					new Promise(resolve => window.setTimeout(resolve, _Files.search.nodeRenderTimeout))
+				]);
+
+				_Files.editFile(node);
+			}
+		},
+		nodeRenderTimeout: 3000
 	},
 	helpers: {
 		isDisplayingFavorites: () => {
