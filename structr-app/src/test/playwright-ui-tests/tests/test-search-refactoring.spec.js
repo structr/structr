@@ -207,7 +207,23 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 	let localizationResultRow = await page.locator('#global-search-results tbody tr[data-type="Localization"][data-key="name"]').first();
 	await localizationResultRow.click();
 
-	await page.locator('#localization-key').fill('goals');
+	// Let the navigation finish before typing. Clicking the search result only STARTS it: the module
+	// restores its last selection first, and the row click that actually selects the searched
+	// localization happens afterwards, filling the key field again from a REST response. Typing in
+	// between is lost - the later fill overwrites the field, and saveButtonAction then compares the key
+	// against itself, finds no change and sends no request, so the rename quietly does nothing.
+	//
+	// This has to be a plain wait. Asserting on the field cannot help: the restored selection is the
+	// same localization the test navigated to, so the form looks exactly right in both states and any
+	// assertion on its contents passes immediately, before the second load has even started.
+	await page.waitForTimeout(1000);
+
+	await expect(page.locator('#localization-key')).toHaveValue(oldName);
+
+	// and the translations below belong to that same localization, not to a previous selection
+	await expect(page.locator('#localization-detail-table tr.localization')).toHaveCount(2);
+
+	await page.locator('#localization-key').fill(newName);
 	await page.locator('#localization-fields-save').click();
 
 	await page.locator('#localization-detail-table tr.localization').first().locator('.___localizedName').fill('Ziele');
@@ -281,6 +297,34 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 
 	await focusCenterPaneMonacoEditor(page);
 	await updateFirstOccurrenceOfTextInActiveMonacoEditor(oldName, newName);
+
+	/**
+	 * Nothing may be left referring to the old name
+	 *
+	 * This is the property the whole test is about, and without it every step above can report success
+	 * while changing nothing: a rename that silently no-ops leaves the node untouched and no assertion
+	 * notices.
+	 */
+	await globalSearchActivator.click();
+
+	await searchInput.fill('');
+	await expect(page.locator('#global-search-results tbody tr')).toHaveCount(0);
+
+	// the new name first. Playwright waits for these rows to appear, which proves the search actually
+	// runs here - a count of zero on its own does not, because Structr.globalSearch.doSearch clears the
+	// table BEFORE it sends the request, so an empty table is also what a search in flight looks like
+	await searchInput.fill(newName);
+	await expect(page.locator('#global-search-results tbody tr')).not.toHaveCount(0);
+
+	// and now the old name, which must find nothing at all. The wait is what separates "found nothing"
+	// from "has not answered yet"; global search goes over the websocket, so there is no response to
+	// await instead
+	await searchInput.fill(oldName);
+	await page.waitForTimeout(1000);
+	await expect(page.locator('#global-search-results tbody tr')).toHaveCount(0);
+
+	// close the global search popover again
+	await globalSearchActivator.click();
 
 	// show preview again
 	await page.locator('#tabs-menu-preview').click();
