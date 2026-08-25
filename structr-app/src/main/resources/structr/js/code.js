@@ -2757,7 +2757,11 @@ let _Code = {
 						.then(response => response.json())
 						.then(data => {
 
-							currentPad.result = (data.code === 422) ? data.message : JSON.stringify(data.result, null, '\t');
+							// a string result is shown as it is: JSON.stringify would wrap it in quotes and
+							// turn its newlines into a literal backslash-n. print() and println() write
+							// strings, and Scripting.evaluate returns the output buffer in preference to the
+							// actual result, so this is the common case rather than an edge case.
+							currentPad.result = (data.code === 422) ? data.message : (typeof data.result === 'string' ? data.result : JSON.stringify(data.result, null, '\t'));
 							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
 
 						}).catch(e => {
