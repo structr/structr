@@ -40,22 +40,15 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-		if (sources != null && sources.length >= 1 && sources.length <= 3) {
+		if (sources != null && sources.length >= 1 && sources[0] != null) {
 
 			try {
 
-				String address = sources[0].toString();
-				String username = null;
-				String password = null;
+				final String address      = sources[0].toString();
+				final HttpOptions options = HttpOptions.from("HEAD", sources, 1);
 
-				switch (sources.length) {
-
-					case 3: password = sources[2].toString();
-					case 2: username = sources[1].toString();
-						break;
-				}
-
-				return headFromUrl(ctx, address, username, password);
+				return headFromUrl(ctx, address, options.getString("username"), options.getString("password"),
+					options.mergeHeaders(ctx.getHeaders()), options.getBoolean("validateCertificates", ctx.isValidateCertificates()));
 
 			} catch (Throwable t) {
 
@@ -75,7 +68,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url [, username, password]]");
+		return Signature.forAllScriptingLanguages("url [, options ]");
 	}
 
 	@Override
@@ -83,8 +76,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("username", "username for the connection"),
-			Parameter.optional("password", "password for the connection")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `headers` merged over add_header(), `validateCertificates`")
 		);
 	}
 
@@ -92,8 +84,8 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${HEAD(url[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}"),
-			Usage.javaScript("Usage: ${{ $.HEAD(url[, username, password]])}}. Example: ${{ $.HEAD('http://structr.org', 'foo', 'bar')}}")
+			Usage.structrScript("Usage: ${HEAD(url [, options])}. Example: ${HEAD('http://structr.org', { username: 'foo', password: 'bar' })}"),
+			Usage.javaScript("Usage: ${{ $.HEAD(url [, options]) }}. Example: ${{ $.HEAD('http://structr.org', { username: 'foo', password: 'bar' }) }}")
 		);
 	}
 

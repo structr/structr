@@ -49,30 +49,28 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			final String uri = sources[0].toString();
-			String contentType = "application/json";
+			final String uri          = sources[0].toString();
+			final HttpOptions options = HttpOptions.from("DELETE", sources, 1);
 
-			// override default content type
-			if (sources.length >= 2 && sources[1] != null) {
+			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+			final boolean validateCertificates = options.getBoolean("validateCertificates", ctx.isValidateCertificates());
 
-				contentType = sources[1].toString();
-			}
+			final Map<String, Object> responseData = HttpHelper.delete(uri, options.getString("username"), options.getString("password"), headers, validateCertificates);
 
-			final Map<String, Object> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders(), ctx.isValidateCertificates());
-			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? responseData.get(HttpHelper.FIELD_BODY).toString() : null;
+			final String responseBody     = responseData.get(HttpHelper.FIELD_BODY) != null ? responseData.get(HttpHelper.FIELD_BODY).toString() : null;
 			final GraphObjectMap response = new GraphObjectMap();
 
-			if ("application/json".equals(contentType)) {
+			if (options.getBoolean("parseResponse", false)) {
 
-				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+				// explicit opt-in only: DELETE used to parse whenever the caller named application/json,
+				// which described the request that has no body rather than the response
+				response.setProperty(new GenericProperty(HttpHelper.FIELD_BODY), new FromJsonFunction().apply(ctx, caller, new Object[] { responseBody }));
 
 			} else {
 
 				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
 			}
 
-			// Set status and headers
 			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
 			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
 
@@ -94,21 +92,24 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url [, contentType]");
+		return Signature.forAllScriptingLanguages("url [, options ]");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(Parameter.mandatory("url", "URL to connect to"), Parameter.optional("contentType", "content type"));
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON")
+		);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}"),
-			Usage.javaScript("Usage: ${{ $.DELETE(URL[, contentType])}}. Example: ${{ $.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}")
+			Usage.structrScript("Usage: ${DELETE(url [, options])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', { parseResponse: true })}"),
+			Usage.javaScript("Usage: ${{ $.DELETE(url [, options]) }}. Example: ${{ $.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', { parseResponse: true }) }}")
 		);
 	}
 

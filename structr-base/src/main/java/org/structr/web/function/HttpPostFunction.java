@@ -57,59 +57,31 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final String address  = sources[0].toString();
-			final String body     = sources[1].toString();
-			String contentType    = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			String charset        = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : DEFAULT_CHARSET;
-			final String username = (sources.length >= 5 && sources[4] != null) ? sources[4].toString() : null;
-			final String password = (sources.length >= 6 && sources[5] != null) ? sources[5].toString() : null;
-			Map<String, Object> config = null;
+			final String address      = sources[0].toString();
+			final String body         = sources[1].toString();
+			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
+			final HttpOptions options = HttpOptions.from("POST", sources, 3);
 
-			if (sources.length >= 7 && sources[6] != null && sources[6] instanceof Map) {
+			final String charset               = HttpOptions.charsetOf(contentType, DEFAULT_CHARSET);
+			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+			final String username              = options.getString("username");
+			final String password              = options.getString("password");
+			final boolean validateCertificates = options.getBoolean("validateCertificates", ctx.isValidateCertificates());
 
-				config = (Map) sources[6];
+			if (options.getBoolean("binary", false)) {
+
+				final Map<String, Object> binaryData = HttpHelper.postBinary(address, body, charset, username, password, headers, validateCertificates);
+				final GraphObjectMap binaryResponse  = new GraphObjectMap();
+
+				binaryResponse.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), binaryData.get(HttpHelper.FIELD_BODY));
+
+				return binaryResponse;
 			}
 
-			// Extract character set from contentType if given
-			if (StringUtils.isNotBlank(contentType)) {
+			final Map<String, Object> responseData = HttpHelper.post(address, body, username, password, null, null, null, null,
+				headers, charset, validateCertificates, options.asRequestConfig(), contentType);
 
-				try {
-
-					final ContentType ct = ContentType.parse(contentType);
-
-					contentType = ct.getMimeType();
-
-					final Charset cs = ct.getCharset();
-					if (cs != null) {
-
-						charset = cs.toString();
-					}
-
-				} catch(ParseException pe) {
-
-					logger.warn("Unable to parse contentType parameter '{}' - using as is.", contentType);
-
-				} catch (UnsupportedCharsetException uce) {
-
-					logger.warn("Unsupported charset in contentType parameter '{}'", contentType);
-				}
-			}
-
-			Map<String, Object> responseData = null;
-			GraphObjectMap      response     = new GraphObjectMap();
-
-			if ("application/octet-stream".equals(contentType)) {
-
-				responseData = HttpHelper.postBinary(address, body, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
-				response.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
-
-			} else {
-
-				responseData = HttpHelper.post(address, body, username, password, ctx.getHeaders(),charset, ctx.isValidateCertificates(), config);
-				response     = processResponseData(ctx, caller, responseData, contentType);
-			}
-
-			return response;
+			return processResponseData(ctx, caller, responseData, options.getBoolean("parseResponse", false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -119,12 +91,21 @@ public class HttpPostFunction extends UiAdvancedFunction {
 		}
 	}
 
-	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final String contentType) throws FrameworkException {
+	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final boolean parseResponse) throws FrameworkException {
 
 		final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
 		final GraphObjectMap response = new GraphObjectMap();
 
-		response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
+		if (parseResponse) {
+
+			// explicit opt-in only: inferring this from either content type would make the return type
+			// depend on the server rather than on the call
+			response.setProperty(new GenericProperty(HttpHelper.FIELD_BODY), new FromJsonFunction().apply(ctx, caller, new Object[] { responseBody }));
+
+		} else {
+
+			response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
+		}
 
 		// Set status and headers
 		final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
@@ -141,7 +122,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url, body [, contentType, charset, username, password, configMap ]");
+		return Signature.forAllScriptingLanguages("url, body [, contentType, options ]");
 	}
 
 	@Override
@@ -149,12 +130,9 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("body", "request body (JSON data)"),
-			Parameter.optional("contentType", "content type of the request body"),
-			Parameter.optional("charset", "charset of the request body"),
-			Parameter.optional("username", "username for the connection"),
-			Parameter.optional("password", "password for the connection"),
-			Parameter.optional("configMap", "JSON object for request configuration, supports `timeout` in seconds, `redirects` with true or false to follow redirects")
+			Parameter.mandatory("body", "request body"),
+			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binary` to send the body as a binary stream")
 		);
 	}
 
@@ -162,8 +140,8 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
-			Usage.javaScript("Usage: ${{ $.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
+			Usage.structrScript("Usage: ${POST(url, body [, contentType, options])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8')}"),
+			Usage.javaScript("Usage: ${{ $.POST(url, body [, contentType, options]) }}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8') }}")
 		);
 	}
 
@@ -187,7 +165,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			headers | Response headers | Map |
 			body | Response body | Map or String |
 
-			The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.
+			The options object configures everything else, for example `{ timeout: 60, redirects: true }`. The timeout is given in seconds; by default there is no timeout and redirects are not followed.
 			""";
 	}
 

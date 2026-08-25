@@ -333,15 +333,25 @@ public class HttpHelper {
 
 	public static Map<String, Object> patch(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
+		return patch(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, null);
+	}
+
+	public static Map<String, Object> patch(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType) throws FrameworkException {
+
+		return patch(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, contentType, null);
+	}
+
+	public static Map<String, Object> patch(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType, final Map<String, Object> config) throws FrameworkException {
+
 		final Map<String, Object> responseData = new HashMap<>();
 
 		try {
 
 			final URI url       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPut req   = new HttpPatch(url);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
-			req.setEntity(new StringEntity(requestBody, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity entity = response.getEntity();
@@ -369,6 +379,36 @@ public class HttpHelper {
 		}
 
 		return responseData;
+	}
+
+	/**
+	 * The request entity, carrying the Content-Type the caller asked for.
+	 *
+	 * StringEntity(body, charset) alone sends text/plain, which is why a contentType passed to
+	 * $.POST() and friends never reached the wire before. The header is derived from the entity by
+	 * HttpClient, so it has to be set here and not added to the header map, or the request would carry
+	 * the type twice.
+	 */
+	/** timeout (milliseconds) and redirects, as the outbound HTTP functions pass them. */
+	private static Integer timeoutFrom(final Map<String, Object> config) {
+
+		// Number, not Integer: StructrScript hands over its numeric literals as Double
+		return (config != null && config.get("timeout") instanceof Number number) ? number.intValue() : null;
+	}
+
+	private static boolean redirectsFrom(final Map<String, Object> config, final boolean defaultValue) {
+
+		return (config != null && config.get("redirects") instanceof Boolean redirects) ? redirects : defaultValue;
+	}
+
+	private static StringEntity entityFor(final String requestBody, final String contentType, final String charset) {
+
+		if (StringUtils.isBlank(contentType)) {
+
+			return new StringEntity(requestBody, charset);
+		}
+
+		return new StringEntity(requestBody, ContentType.create(ContentType.parse(contentType).getMimeType(), charset));
 	}
 
 	public static Map<String, Object> post(final String address, final String requestBody) throws FrameworkException {
@@ -403,6 +443,11 @@ public class HttpHelper {
 
 	public static Map<String, Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
 
+		return post(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, config, null);
+	}
+
+	public static Map<String, Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final Map<String, Object> config, final String contentType) throws FrameworkException {
+
 		final Map<String, Object> responseData = new HashMap<>();
 
 		try {
@@ -414,20 +459,21 @@ public class HttpHelper {
 
 			if (config != null) {
 
-				if (config.containsKey("timeout")) {
+				// Number, not Integer: StructrScript hands over its numeric literals as Double
+				if (config.get("timeout") instanceof Number number) {
 
-					timeout = (Integer) config.get("timeout");
+					timeout = number.intValue();
 				}
 
-				if (config.containsKey("redirects")) {
+				if (config.get("redirects") instanceof Boolean redirects) {
 
-					followRedirects = (Boolean) config.get("redirects");
+					followRedirects = redirects;
 				}
 			}
 
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, followRedirects, validateCertificates, timeout);
 
-			req.setEntity(new StringEntity(requestBody, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
@@ -480,15 +526,25 @@ public class HttpHelper {
 
 	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
+		return put(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, null);
+	}
+
+	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType) throws FrameworkException {
+
+		return put(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, contentType, null);
+	}
+
+	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType, final Map<String, Object> config) throws FrameworkException {
+
 		final Map<String, Object> responseData = new HashMap<>();
 
 		try {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPut req   = new HttpPut(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
-			req.setEntity(new StringEntity(requestBody, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
@@ -830,7 +886,15 @@ public class HttpHelper {
 
 	public static Map<String, Object> fetch(final String address, final String method, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates, final boolean followRedirects, final Integer timeout) throws FrameworkException {
 
-		HttpHelper.validateUrl(address);
+		return fetch(address, method, requestBody, username, password, headers, charset, validateCertificates, followRedirects, timeout, null);
+	}
+
+	public static Map<String, Object> fetch(final String address, final String method, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates, final boolean followRedirects, final Integer timeout, final String contentType) throws FrameworkException {
+
+		// No validateUrl() here. It guards the paths where the address comes from outside - ProxyServlet,
+		// DeploymentServlet, DataFeed - and this one is called from a script, where the address is code.
+		// Blocking internal addresses here protected nothing, since POST, GET, PUT, PATCH and DELETE
+		// reach the same host, and it made an instance unable to call itself or a sidecar.
 
 		final Map<String, Object> responseData = new HashMap<>();
 
@@ -842,7 +906,7 @@ public class HttpHelper {
 
 			if (StringUtils.isNotBlank(requestBody)) {
 
-				req.setEntity(new StringEntity(requestBody, hc.charset()));
+				req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 			}
 
 			final CloseableHttpResponse response = hc.client().execute(req);
