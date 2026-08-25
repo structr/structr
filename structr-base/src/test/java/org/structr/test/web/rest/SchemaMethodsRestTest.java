@@ -36,6 +36,7 @@ import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -810,5 +811,95 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		testWithArraySizeThree.apply("test1", null, null);
 		testWithArraySizeThree.apply(null, "test2", null);
 		testWithArraySizeThree.apply(null, null, null);
+	}
+
+	/**
+	 * A method that returns NOTHING must answer {@code "result": null} -- not {@code [ null ]}, and
+	 * not {@code []}. A method resource declares isCollection() == false, so nothing it returns is
+	 * wrapped in an array; there is exactly one thing to write, and that thing is null.
+	 *
+	 * <p>This is the counterpart to test009: a method that returns a LIST containing null still
+	 * answers {@code [ null ]}, because the array there is the method's own return value rather than
+	 * a wrapper the serializer added. The two cases produced the same JSON before, which is what made
+	 * the bug hard to name -- {@code [ null ]} was both a correct and an incorrect answer depending on
+	 * which method produced it.</p>
+	 */
+	@Test
+	public void test011AMethodThatReturnsNothingAnswersNull() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> name   = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<String> source = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY);
+
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestEmptyBody"),   new NodeAttribute<>(source, "{}"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestReturnNull"),  new NodeAttribute<>(source, "{ return null; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestNoReturn"),    new NodeAttribute<>(source, "{ let unused = 1; }"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		for (final String methodName : List.of("nullTestEmptyBody", "nullTestReturnNull", "nullTestNoReturn")) {
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result",       equalTo(null))
+					.body("result_count", equalTo(0))
+					.when().post("/" + methodName);
+		}
+	}
+
+	/**
+	 * The regression guard for the fix above: an array the method actually RETURNED keeps its
+	 * brackets, whatever is in it. Only the wrapper the serializer would have added is dropped, so
+	 * shortening the "no result" case to null must not shorten these too.
+	 */
+	@Test
+	public void test012AReturnedArrayKeepsItsBrackets() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> name   = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<String> source = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY);
+
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "keepsBracketsEmpty"),      new NodeAttribute<>(source, "{ return []; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "keepsBracketsOneNull"),    new NodeAttribute<>(source, "{ return [ null ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "keepsBracketsEmptyObject"),new NodeAttribute<>(source, "{ return {}; }"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// an empty returned array is an array, not "nothing"
+		RestAssured
+				.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect().statusCode(200)
+				.body("result", hasSize(0))
+				.when().post("/keepsBracketsEmpty");
+
+		// a returned array holding one null is NOT the same as returning nothing
+		RestAssured
+				.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect().statusCode(200)
+				.body("result",    hasSize(1))
+				.body("result[0]", equalTo(null))
+				.when().post("/keepsBracketsOneNull");
+
+		// and an object stays an object
+		RestAssured
+				.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect().statusCode(200)
+				.body("result", equalTo(Map.of()))
+				.when().post("/keepsBracketsEmptyObject");
 	}
 }

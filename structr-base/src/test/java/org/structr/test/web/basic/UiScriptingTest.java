@@ -2054,10 +2054,11 @@ public class UiScriptingTest extends StructrUiTest {
 			.header("x-user", "A")
 			.header("x-password", "test")
 			.expect()
-			.body("result", Matchers.hasSize(1))
-			.body("result[0]", equalTo(null))
-			.body("result_count", equalTo(1))
-			.body("page_count", equalTo(1))
+			// doTest schedules and returns nothing, so the result is a bare null: a method resource
+			// is not a collection, so there is no array to put the absent result into.
+			.body("result", equalTo(null))
+			.body("result_count", equalTo(0))
+			.body("page_count", equalTo(0))
 			.statusCode(200)
 			.when()
 			.post("/RequestTest/doTest");
@@ -2138,9 +2139,9 @@ public class UiScriptingTest extends StructrUiTest {
 			.header("x-user", "A")
 			.header("x-password", "test")
 			.expect()
-			.body("result", Matchers.hasSize(1))
-			.body("result[0]", equalTo(null))
-			.body("page_count", equalTo(1))
+			// doTest returns nothing, so the result is a bare null rather than a one-element array
+			.body("result", equalTo(null))
+			.body("page_count", equalTo(0))
 			.statusCode(200)
 			.when()
 			.post("/RequestTest/doTest");
