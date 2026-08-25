@@ -29,14 +29,14 @@ import org.structr.schema.action.ActionContext;
 import java.util.List;
 
 /**
- *
+ * print() with a trailing newline.
  */
-public class PrintFunction extends CoreFunction {
+public class PrintlnFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
 
-		return "print";
+		return "println";
 	}
 
 	@Override
@@ -51,6 +51,7 @@ public class PrintFunction extends CoreFunction {
 		if (sources != null) {
 
 			ctx.print(sources, caller);
+			ctx.print(new Object[] { "\n" }, caller);
 
 		} else {
 
@@ -63,29 +64,28 @@ public class PrintFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${print(objects...)}."), Usage.javaScript("Usage: ${{ $.print(objects...)}}."));
+		return List.of(Usage.structrScript("Usage: ${println(objects...)}."), Usage.javaScript("Usage: ${{ $.println(objects...)}}."));
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Prints the given strings or objects to the output buffer.";
+		return "Prints the given strings or objects to the output buffer, followed by a newline.";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "Prints the string representation of all of the given objects into the page rendering buffer. This method is often used in conjunction with `each()` to create rendering output for a collection of entities etc. in scripting context.\n\nIn a `Content` element whose content type is `text/plain` (or not set at all), Structr replaces newlines with `<br>` when the page is rendered, so a newline written here appears as a line break. In `text/html` content it stays a plain newline, which is only whitespace in HTML. Inside a `textarea` no replacement happens, so the newline is preserved as typed.";
+		return "Behaves exactly like `print()`, but appends a newline character after the given objects. Called without arguments it writes just the newline." + "\n\nIn a `Content` element whose content type is `text/plain` (or not set at all), Structr replaces newlines with `<br>` when the page is rendered, so a newline written here appears as a line break. In `text/html` content it stays a plain newline, which is only whitespace in HTML. Inside a `textarea` no replacement happens, so the newline is preserved as typed.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
 		return List.of(
-				Example.structrScript("${print('Hello, world!')}"),
-				Example.structrScript("${print(this.name, 'test')}"),
-				Example.javaScript("${{ $.print('Hello, world!') }}"),
-				Example.javaScript("${{ $.print($.get('this').name, 'test') }}")
+				Example.structrScript("${println('Hello, world!')}"),
+				Example.structrScript("${each(find('Project'), println(data.name))}", "Writes one project name per line"),
+				Example.javaScript("${{ $.println('Hello, world!') }}")
 				);
 	}
 

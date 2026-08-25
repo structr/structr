@@ -76,6 +76,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.testng.AssertJUnit.*;
@@ -522,6 +523,46 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.body.div", Matchers.equalTo("test0test1test2test3test4test5test6test7test8test9"))
 				.when()
 				.get("/html/test");
+	}
+
+	@Test
+	public void testPrintlnNewlineBecomesLineBreakInPlainTextContent() {
+
+		// A Content node of type text/plain has its newlines replaced with <br> when the page is
+		// rendered, and that applies to what println() writes as well, not only to literal newlines in
+		// the content. This is the difference that makes println() useful in a page: on its own a
+		// newline is only whitespace in HTML.
+		final PropertyKey<Boolean> visibleToPublic = Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createSimplePage(securityContext, "printlnTest");
+			final DOMNode div     = page.getElementsByTagName("div").get(0);
+			final DOMNode content = div.getFirstChild();
+
+			page.setProperty(visibleToPublic, true);
+
+			for (final NodeInterface node : page.getAllChildNodes()) {
+				node.setProperty(visibleToPublic, true);
+			}
+
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "${println('one')}${println('two')}${print('three')}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// each println() ends a line, print() does not, so the last fragment has no <br> after it
+		RestAssured
+			.expect().statusCode(200).body(containsString("one<br>two<br>three"))
+			.when().get("/printlnTest");
 	}
 
 	@Test
