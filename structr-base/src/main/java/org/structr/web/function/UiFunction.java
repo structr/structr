@@ -47,6 +47,13 @@ public abstract class UiFunction extends Function<Object, Object> {
 
 	protected Map<String, Object> headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws FrameworkException {
 
-		return HttpHelper.head(requestUrl, password, username, ctx.getHeaders(), ctx.isValidateCertificates());
+		return headFromUrl(ctx, requestUrl, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
+	}
+
+	protected Map<String, Object> headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+
+		// username before password: they used to be passed the other way round, so HEAD authenticated
+		// with the password as the user name
+		return HttpHelper.head(requestUrl, username, password, headers, validateCertificates);
 	}
 }
