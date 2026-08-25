@@ -45,12 +45,24 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 	public LifecycleMethodAdapter(final SchemaMethod schemaMethod) {
 
-		this.methods.add(new ScriptMethod(schemaMethod));
+		addMethod(schemaMethod);
 	}
 
+	/**
+	 * Adds one implementation of this lifecycle method, ignoring a method whose source was never set.
+	 *
+	 * <p>A method with no source has nothing to run. SchemaMethodTraitWrapper#asLifecycleMethod()
+	 * already refuses that shape before constructing an adapter, but addMethod() -- the path for the
+	 * SECOND and later implementations of the same lifecycle method on one type -- did not, and every
+	 * execute below does {@code getRawSource().trim()}. A source-less second onCreate therefore failed
+	 * with a NullPointerException that aborted the transaction rather than doing nothing.</p>
+	 */
 	public void addMethod(final SchemaMethod schemaMethod) {
 
-		this.methods.add(new ScriptMethod(schemaMethod));
+		if (schemaMethod.getSource() != null) {
+
+			this.methods.add(new ScriptMethod(schemaMethod));
+		}
 	}
 
 	@Override

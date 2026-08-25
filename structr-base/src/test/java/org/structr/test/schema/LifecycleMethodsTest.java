@@ -29,11 +29,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -535,4 +537,105 @@ public class LifecycleMethodsTest extends StructrUiTest {
 			.when()
 			.get("/LogEntry");
 	}
+
+	/**
+	 * A type may carry more than one implementation of the same lifecycle method. Lifecycle types are
+	 * matched by name PREFIX -- getMethodType() does {@code methodName.startsWith("onCreate")} -- so
+	 * onCreate and onCreateSecond are two implementations of OnCreation on one type, and the
+	 * name-uniqueness validator does not stop them because the names differ.
+	 *
+	 * <p>The second and later ones arrive through LifecycleMethodAdapter#addMethod rather than through
+	 * SchemaMethodTraitWrapper#asLifecycleMethod. Only the latter refused a method whose source was
+	 * never set, so a source-less onCreateSecond reached {@code getRawSource().trim()} and failed with
+	 * a NullPointerException -- which, in a lifecycle method, takes the whole transaction with it
+	 * rather than merely doing nothing.</p>
+	 *
+	 * <p>Which of the two failures you get depends on the order getSchemaMethods() returns them in,
+	 * and that order is not creation order and is not guaranteed. With the source-less one first,
+	 * asLifecycleMethod() answers null, that null used to be stored, and the one WITH a source then
+	 * found null where an adapter should be and threw "Unexpected lifecycle method" at schema load.
+	 * With the sourced one first, the source-less one reaches addMethod() and the NPE. The fix closes
+	 * both doors.</p>
+	 *
+	 * <p><b>What this test does and does not prove.</b> It pins the behaviour: the type still works and
+	 * the method that has a source still runs. It is not a tight regression guard, because in the
+	 * order this scenario actually produces, the pre-fix failure was a RuntimeException that
+	 * SchemaService catches and logs -- so the test passed before the fix too, with
+	 * "Unexpected lifecycle method onCreate, expected LifecycleMethodAdapter!" in the log. The log line
+	 * is the real evidence, and the test-log reviewer counts exceptions logged by passing tests.</p>
+	 *
+	 * The method with no source must be ignored, and the one that does have a source must still run.
+	 */
+	@Test
+	public void testSecondLifecycleMethodWithoutSourceIsIgnored() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.addType("LogEntry");
+
+			final JsonType customer = schema.addType("Customer");
+			customer.addMethod("onCreate", "create('LogEntry', 'name', concat('onCreate: ', this.name))");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// add a SECOND implementation of OnCreation on the same type, with no source at all
+		try (final Tx tx = app.tx()) {
+
+			final Traits methodTraits        = Traits.of(StructrTraits.SCHEMA_METHOD);
+			final NodeInterface customerType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Customer").getFirst();
+
+			// the name differs, so the uniqueness validator allows it; the PREFIX still makes it an
+			// OnCreation, which is what routes it through LifecycleMethodAdapter#addMethod
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), customerType),
+				new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       "onCreateSecond")
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// creating an instance must not blow up, and the method that HAS a source must still run
+		try (final Tx tx = app.tx()) {
+
+			app.create("Customer", "Customer");
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Creating the node failed, a lifecycle method with no source must be ignored.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> logEntries = app.nodeQuery("LogEntry").getAsList();
+
+			assertEquals(logEntries.size(), 1, "The onCreate that has a source must still have run exactly once");
+			assertEquals(logEntries.get(0).getName(), "onCreate: Customer");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 }

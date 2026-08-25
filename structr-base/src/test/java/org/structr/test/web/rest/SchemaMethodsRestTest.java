@@ -902,4 +902,47 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 				.body("result", equalTo(Map.of()))
 				.when().post("/keepsBracketsEmptyObject");
 	}
+
+	/**
+	 * A method whose source was never set at all -- not an empty string, no property -- must behave
+	 * like a method that returns nothing, not fail. ScriptMethod.execute() built its snippet as
+	 * {@code "${" + source.trim() + "}"} without the null check that getSnippet() already had, so the
+	 * call died with a NullPointerException and answered 500.
+	 *
+	 * <p>The UI writes an empty string rather than leaving the property unset, which is why this went
+	 * unnoticed: the shape is reachable through the REST API and through a deployment import, not
+	 * through the schema editor.</p>
+	 */
+	@Test
+	public void test013AMethodWithNoSourceAtAllDoesNotFail() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> name   = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<String> source = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY);
+
+			// no SOURCE_PROPERTY at all -- the property is absent, not empty
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "methodWithoutSource"));
+
+			// and the shape the schema editor actually writes, which must keep behaving the same
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "methodWithEmptySource"), new NodeAttribute<>(source, ""));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		for (final String methodName : List.of("methodWithoutSource", "methodWithEmptySource")) {
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result",       equalTo(null))
+					.body("result_count", equalTo(0))
+					.when().post("/" + methodName);
+		}
+	}
 }
