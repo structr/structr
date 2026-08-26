@@ -93,19 +93,30 @@ public class OutboundHttpCallMigrationHandler {
 
 	public static void execute() throws FrameworkException {
 
+		execute(false);
+	}
+
+	/**
+	 * Reports the pre-7.0 calls, and in apply mode rewrites the ones it reported as AUTOMATIC.
+	 *
+	 * The two modes have to agree about a finding: AUTOMATIC is a promise that apply keeps. A finding it
+	 * cannot rewrite exactly is reported as MANUAL and left alone in both modes.
+	 */
+	public static void execute(final boolean apply) throws FrameworkException {
+
 		final List<Finding> findings = new LinkedList<>();
 
-		scan(findings, StructrTraits.SCHEMA_METHOD,   SchemaMethodTraitDefinition.SOURCE_PROPERTY);
-		scan(findings, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY);
-		scan(findings, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY);
-		scan(findings, StructrTraits.MAIL_TEMPLATE,   MailTemplateTraitDefinition.TEXT_PROPERTY);
-		scan(findings, StructrTraits.CONTENT,         "content");
+		scan(findings, apply, StructrTraits.SCHEMA_METHOD,   SchemaMethodTraitDefinition.SOURCE_PROPERTY);
+		scan(findings, apply, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY);
+		scan(findings, apply, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY);
+		scan(findings, apply, StructrTraits.MAIL_TEMPLATE,   MailTemplateTraitDefinition.TEXT_PROPERTY);
+		scan(findings, apply, StructrTraits.CONTENT,         "content");
 
-		report(findings);
+		report(findings, apply);
 	}
 
 	// ----- private methods -----
-	private static void scan(final List<Finding> findings, final String type, final String propertyName) throws FrameworkException {
+	private static void scan(final List<Finding> findings, final boolean apply, final String type, final String propertyName) throws FrameworkException {
 
 		final Traits traits = Traits.of(type);
 
@@ -125,14 +136,39 @@ public class OutboundHttpCallMigrationHandler {
 
 				if (source != null && !source.isEmpty()) {
 
+					String migrated = source;
+
 					for (final String call : findCalls(source)) {
 
 						final Finding finding = assess(type, node.getUuid(), node.getProperty(nameKey), propertyName, call);
 
-						if (finding.verdict() != Verdict.UP_TO_DATE) {
+						if (finding.verdict() == Verdict.UP_TO_DATE) {
 
-							findings.add(finding);
+							continue;
 						}
+
+						findings.add(finding);
+
+						if (apply && finding.verdict() == Verdict.AUTOMATIC) {
+
+							final String replacement = rewrite(call);
+
+							if (replacement != null) {
+
+								migrated = migrated.replace(call, replacement);
+
+							} else {
+
+								// assess said AUTOMATIC and rewrite cannot produce it: the two disagree, which
+								// is a bug in this class rather than something the instance did wrong
+								logger.warn("MigrationService: {} was reported as {} but could not be rewritten, leaving it alone.", call, Verdict.AUTOMATIC);
+							}
+						}
+					}
+
+					if (apply && !migrated.equals(source)) {
+
+						node.setProperty(key, migrated);
 					}
 				}
 			}
@@ -192,14 +228,19 @@ public class OutboundHttpCallMigrationHandler {
 		// so such a call keeps working but silently returns a string instead of a stream.
 		if ("GET".equals(verb) || "POST".equals(verb)) {
 
+			final String binaryKey = "GET".equals(verb) ? "binaryResponse" : "binaryBody";
+
+			if ("application/octet-stream".equals(contentType) && hasOptionKey(args, optionsAt, binaryKey)) {
+
+				return new Finding(type, id, name, property, call, Verdict.UP_TO_DATE, "already carries " + binaryKey);
+			}
+
 			if ("application/octet-stream".equals(contentType)) {
 
 				// the key differs by verb: GET streams the RESPONSE, POST sends the BODY as a stream, and
 				// an unknown option is refused, so naming the wrong one produces a call that fails
-				final String key = "GET".equals(verb) ? "binaryResponse" : "binaryBody";
-
 				return new Finding(type, id, name, property, call, Verdict.AUTOMATIC,
-					"application/octet-stream no longer switches to binary transport: add { " + key + ": true }");
+					"application/octet-stream no longer switches to binary transport: add { " + binaryKey + ": true }");
 			}
 
 			final Integer contentTypeAt = CONTENT_TYPE_INDEX.get(verb);
@@ -265,6 +306,223 @@ public class OutboundHttpCallMigrationHandler {
 		return "all arguments are literals: " + String.join(", ", moved);
 	}
 
+
+	/**
+	 * The migrated form of a call, or null when it cannot be produced exactly.
+	 *
+	 * Returning null is the important half: a call this cannot rebuild with certainty is left alone and
+	 * reported, because a wrong rewrite is worse than no rewrite - it corrupts a method silently, where
+	 * wrong advice at least leaves the code as it was.
+	 */
+	public static String rewrite(final String call) {
+
+		final String verb       = call.substring(0, call.indexOf('(')).trim();
+		final Integer optionsAt = OPTIONS_INDEX.get(verb);
+		final List<String> args = splitArguments(call.substring(call.indexOf('(') + 1, call.length() - 1));
+
+		if (optionsAt == null) {
+
+			return null;
+		}
+
+		final String contentType = literalContentType(verb, args);
+		final Map<String, String> options = new LinkedHashMap<>();
+		final List<String> head           = new ArrayList<>();
+
+		// application/octet-stream used to pick the transport. The key differs by verb.
+		if ("GET".equals(verb) && "application/octet-stream".equals(contentType)) {
+
+			options.put("binaryResponse", "true");
+
+		} else if ("POST".equals(verb) && "application/octet-stream".equals(contentType)) {
+
+			options.put("binaryBody", "true");
+		}
+
+		// DELETE's options used to sit at index 1, where the body is now, so they are the tail here even
+		// though the new options index is further right
+		final boolean deleteWithOldOptions = "DELETE".equals(verb) && args.size() == 2 && isObjectLiteral(args.get(1));
+
+		if (deleteWithOldOptions) {
+
+			final String inner = args.get(1).trim().substring(1, args.get(1).trim().length() - 1).trim();
+
+			if (!inner.isEmpty()) {
+
+				options.put("__raw__", inner);
+			}
+		}
+
+		final List<String> tail = (!deleteWithOldOptions && args.size() > optionsAt) ? args.subList(optionsAt, args.size()) : List.of();
+
+		for (final String argument : tail) {
+
+			if (!isLiteral(argument)) {
+
+				return null;
+			}
+		}
+
+		// an options object already present is merged, not read as a positional argument
+		if (tail.size() == 1 && isObjectLiteral(tail.get(0))) {
+
+			final String inner = tail.get(0).trim().substring(1, tail.get(0).trim().length() - 1).trim();
+
+			if (!inner.isEmpty()) {
+
+				options.put("__raw__", inner);
+			}
+
+		} else if ("GET".equals(verb) && "text/html".equals(contentType)) {
+
+			if (tail.size() == 1) {
+
+				options.put("selector", tail.get(0).trim());
+
+			} else if (!tail.isEmpty()) {
+
+				return null;
+			}
+
+		} else if ("POST".equals(verb) || "PUT".equals(verb) || "PATCH".equals(verb) || "FETCH".equals(verb)) {
+
+			// charset, username, password, configMap
+			if (tail.size() > 4) {
+
+				return null;
+			}
+
+			for (int i = 0; i < tail.size(); i++) {
+
+				final String value = tail.get(i).trim();
+
+				switch (i) {
+
+					case 0 -> { /* the charset is folded into the content type below */ }
+					case 1 -> options.put("username", value);
+					case 2 -> options.put("password", value);
+					case 3 -> {
+
+						if (!isObjectLiteral(value)) {
+
+							return null;
+						}
+
+						// the old configMap held timeout and redirects, which are options keys now
+						final String inner = value.substring(1, value.length() - 1).trim();
+
+						if (!inner.isEmpty()) {
+
+							options.put("__raw__", inner);
+						}
+					}
+				}
+			}
+
+		} else if (!tail.isEmpty()) {
+
+			// GET without text/html, HEAD, DELETE: username and password
+			if (tail.size() > 2) {
+
+				return null;
+			}
+
+			options.put("username", tail.get(0).trim());
+
+			if (tail.size() == 2) {
+
+				options.put("password", tail.get(1).trim());
+			}
+		}
+
+		// the leading arguments, with the charset folded into the content type where there was one
+		final Integer contentTypeAt = CONTENT_TYPE_INDEX.get(verb);
+
+		final int headCount = deleteWithOldOptions ? 1 : Math.min(args.size(), optionsAt);
+
+		for (int i = 0; i < headCount; i++) {
+
+			String argument = args.get(i).trim();
+
+			if (contentTypeAt != null && i == contentTypeAt && !tail.isEmpty() && contentType != null) {
+
+				final String charset = charsetLiteral(verb, tail);
+
+				if (charset != null) {
+
+					if (contentType.contains("charset=")) {
+
+						return null;
+					}
+
+					argument = "'" + contentType + "; charset=" + charset + "'";
+				}
+			}
+
+			head.add(argument);
+		}
+
+		// DELETE's options moved behind a body and a content type that did not exist before
+		while (head.size() < optionsAt) {
+
+			head.add("null");
+		}
+
+		if (options.isEmpty()) {
+
+			return verb + "(" + String.join(", ", head) + ")";
+		}
+
+		final List<String> entries = new ArrayList<>();
+
+		for (final Map.Entry<String, String> entry : options.entrySet()) {
+
+			if ("__raw__".equals(entry.getKey())) {
+
+				entries.add(entry.getValue());
+
+			} else {
+
+				entries.add(entry.getKey() + ": " + entry.getValue());
+			}
+		}
+
+		head.add("{ " + String.join(", ", entries) + " }");
+
+		return verb + "(" + String.join(", ", head) + ")";
+	}
+
+	/** The charset the old call passed separately, if the verb had one and it is written out. */
+	private static String charsetLiteral(final String verb, final List<String> tail) {
+
+		if (!("POST".equals(verb) || "PUT".equals(verb) || "PATCH".equals(verb) || "FETCH".equals(verb)) || tail.isEmpty()) {
+
+			return null;
+		}
+
+		final String first = tail.get(0).trim();
+
+		if (!isLiteral(first) || isObjectLiteral(first)) {
+
+			return null;
+		}
+
+		return first.substring(1, first.length() - 1).trim();
+	}
+
+	/** Whether the call already passes an options object containing the given key. */
+	private static boolean hasOptionKey(final List<String> args, final int optionsAt, final String key) {
+
+		if (args.size() <= optionsAt) {
+
+			return false;
+		}
+
+		final String candidate = args.get(optionsAt).trim();
+
+		return isObjectLiteral(candidate) && candidate.contains(key);
+	}
+
 	/** The content type of the call if it is written out in the source, otherwise null. */
 	private static String literalContentType(final String verb, final List<String> args) {
 
@@ -280,7 +538,7 @@ public class OutboundHttpCallMigrationHandler {
 		return literal.substring(1, literal.length() - 1).trim();
 	}
 
-	private static void report(final List<Finding> findings) {
+	private static void report(final List<Finding> findings, final boolean apply) {
 
 		if (findings.isEmpty()) {
 
@@ -296,9 +554,17 @@ public class OutboundHttpCallMigrationHandler {
 			counts.merge(finding.verdict(), 1, Integer::sum);
 		}
 
-		logger.warn("MigrationService: {} call(s) to the HTTP functions still use the pre-7.0 signature ({} could be rewritten mechanically, {} need review). "
-			+ "They are NOT changed automatically. Since 7.0 the arguments after the content type are one options object, so these calls fail at runtime.",
-			findings.size(), counts.getOrDefault(Verdict.AUTOMATIC, 0), counts.getOrDefault(Verdict.MANUAL, 0));
+		if (apply) {
+
+			logger.warn("MigrationService: {} call(s) to the HTTP functions used the pre-7.0 signature. {} were rewritten, {} need review and were left alone.",
+				findings.size(), counts.getOrDefault(Verdict.AUTOMATIC, 0), counts.getOrDefault(Verdict.MANUAL, 0));
+
+		} else {
+
+			logger.warn("MigrationService: {} call(s) to the HTTP functions still use the pre-7.0 signature ({} would be rewritten, {} need review). "
+				+ "Nothing was changed: this is a dry run. Since 7.0 the arguments after the content type are one options object, so these calls fail at runtime.",
+				findings.size(), counts.getOrDefault(Verdict.AUTOMATIC, 0), counts.getOrDefault(Verdict.MANUAL, 0));
+		}
 
 		for (final Finding finding : findings) {
 

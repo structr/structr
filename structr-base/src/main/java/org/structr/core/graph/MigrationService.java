@@ -193,27 +193,27 @@ public class MigrationService {
 	@FunctionalInterface
 	private interface Step {
 
-		void run() throws FrameworkException;
+		void run(final boolean apply) throws FrameworkException;
 	}
 
 	private record MigrationStep(String name, Kind kind, boolean requiresCypher, Step action) {}
 
 	/** The migration steps in the order they have to run. */
 	private static final List<MigrationStep> STEPS = List.of(
-		new MigrationStep("migrateStaticSchema",                        Kind.WRITING, false, MigrationService::migrateStaticSchema),
-		new MigrationStep("migratePrincipalToPrincipalInterface",       Kind.WRITING, false, MigrationService::migratePrincipalToPrincipalInterface),
-		new MigrationStep("migrateFolderMountTarget",                   Kind.WRITING, false, MigrationService::migrateFolderMountTarget),
-		new MigrationStep("migrateEventActionMapping",                  Kind.WRITING, false, MigrationService::migrateEventActionMapping),
-		new MigrationStep("migrateActionMappingTargetsToRelationships", Kind.WRITING, false, MigrationService::migrateActionMappingTargetsToRelationships),
-		new MigrationStep("cleanStaleActionMappingTargets",             Kind.WRITING, false, MigrationService::cleanStaleActionMappingTargets),
-		new MigrationStep("migrateMailTemplates",                       Kind.WRITING, false, MigrationService::migrateMailTemplates),
-		new MigrationStep("updateSharedComponentFlag",                  Kind.WRITING, false, MigrationService::updateSharedComponentFlag),
-		new MigrationStep("repairDetachedDOMNodes",                     Kind.WRITING, false, MigrationService::repairDetachedDOMNodes),
+		new MigrationStep("migrateStaticSchema",                        Kind.WRITING, false, apply -> migrateStaticSchema()),
+		new MigrationStep("migratePrincipalToPrincipalInterface",       Kind.WRITING, false, apply -> migratePrincipalToPrincipalInterface()),
+		new MigrationStep("migrateFolderMountTarget",                   Kind.WRITING, false, apply -> migrateFolderMountTarget()),
+		new MigrationStep("migrateEventActionMapping",                  Kind.WRITING, false, apply -> migrateEventActionMapping()),
+		new MigrationStep("migrateActionMappingTargetsToRelationships", Kind.WRITING, false, apply -> migrateActionMappingTargetsToRelationships()),
+		new MigrationStep("cleanStaleActionMappingTargets",             Kind.WRITING, false, apply -> cleanStaleActionMappingTargets()),
+		new MigrationStep("migrateMailTemplates",                       Kind.WRITING, false, apply -> migrateMailTemplates()),
+		new MigrationStep("updateSharedComponentFlag",                  Kind.WRITING, false, apply -> updateSharedComponentFlag()),
+		new MigrationStep("repairDetachedDOMNodes",                     Kind.WRITING, false, apply -> repairDetachedDOMNodes()),
 		new MigrationStep("reportOutboundHttpCalls",                    Kind.REPORTING, false, OutboundHttpCallMigrationHandler::execute),
-		new MigrationStep("migrateRestQueryRepeaters",                  Kind.WRITING, true, MigrationService::migrateRestQueryRepeaters),
-		new MigrationStep("migrateActionMappingControlsToProcess",      Kind.WRITING, true, MigrationService::migrateActionMappingControlsToProcess),
-		new MigrationStep("migrateVisibilityMappingForToProcess",       Kind.WRITING, true, MigrationService::migrateVisibilityMappingForToProcess),
-		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, MigrationService::warnAboutWrongNotionProperties)
+		new MigrationStep("migrateRestQueryRepeaters",                  Kind.WRITING, true, apply -> migrateRestQueryRepeaters()),
+		new MigrationStep("migrateActionMappingControlsToProcess",      Kind.WRITING, true, apply -> migrateActionMappingControlsToProcess()),
+		new MigrationStep("migrateVisibilityMappingForToProcess",       Kind.WRITING, true, apply -> migrateVisibilityMappingForToProcess()),
+		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, apply -> warnAboutWrongNotionProperties())
 	);
 
 	/** Whether the migrations only report what they would do, instead of changing anything. */
@@ -273,7 +273,7 @@ public class MigrationService {
 						// still churning) used to be enough to do exactly that
 						try {
 
-							step.action().run();
+							step.action().run(!reportOnly);
 
 						} catch (Throwable t) {
 
@@ -291,14 +291,18 @@ public class MigrationService {
 
 						try (final Tx dryRun = StructrApp.getInstance().tx()) {
 
-							step.action().run();
+							step.action().run(!reportOnly);
 
 							// deliberately no dryRun.success(): everything above is rolled back
 						}
 
 					} else {
 
-						step.action().run();
+						// mirrors the dry run's line. A step that finds nothing returns early and silently,
+						// so without this "no output" cannot be told apart from "the step never ran".
+						logger.info("MigrationService: {}", step.name());
+
+						step.action().run(!reportOnly);
 					}
 				}
 

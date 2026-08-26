@@ -26,6 +26,8 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -167,6 +169,72 @@ public class OutboundHttpCallMigrationHandlerTest {
 
 		assertEquals(Verdict.MANUAL, contentType.verdict());
 		assertTrue("parseResponse must be named, was: " + contentType.reason(), contentType.reason().contains("parseResponse"));
+	}
+
+	@Test
+	public void testTheRewritesForTheShapesFoundOnALiveInstance() {
+
+		// the ten call sites a 6.x instance actually contained, as reported by the dry run there
+		assertEquals("GET(url, 'application/octet-stream', { binaryResponse: true })",
+			OutboundHttpCallMigrationHandler.rewrite("GET(url, 'application/octet-stream')"));
+
+		assertEquals("POST(url, JSON.stringify(body), 'application/octet-stream', { binaryBody: true })",
+			OutboundHttpCallMigrationHandler.rewrite("POST(url, JSON.stringify(body), 'application/octet-stream')"));
+
+		assertEquals("GET(downloadUrl, 'text/html', { selector: 'title' })",
+			OutboundHttpCallMigrationHandler.rewrite("GET(downloadUrl, 'text/html', 'title')"));
+	}
+
+	@Test
+	public void testTheRewritesForTheRemainingShapes() {
+
+		// charset folds into the content type
+		assertEquals("POST('http://x/', 'b', 'application/json; charset=UTF-8')",
+			OutboundHttpCallMigrationHandler.rewrite("POST('http://x/', 'b', 'application/json', 'UTF-8')"));
+
+		// credentials move into the options object, charset included
+		assertEquals("POST('http://x/', 'b', 'application/json; charset=UTF-8', { username: 'u', password: 'p' })",
+			OutboundHttpCallMigrationHandler.rewrite("POST('http://x/', 'b', 'application/json', 'UTF-8', 'u', 'p')"));
+
+		// GET's credentials, without a charset to fold
+		assertEquals("GET('http://x/', 'application/json', { username: 'u', password: 'p' })",
+			OutboundHttpCallMigrationHandler.rewrite("GET('http://x/', 'application/json', 'u', 'p')"));
+
+		// DELETE's options move behind the body and content type that did not exist before
+		assertEquals("DELETE('http://x/', null, null, { parseResponse: true })",
+			OutboundHttpCallMigrationHandler.rewrite("DELETE('http://x/', { parseResponse: true })"));
+	}
+
+	@Test
+	public void testWhatCannotBeRewrittenExactlyIsRefused() {
+
+		// an expression: what it evaluates to is unknown, so where it belongs is unknown
+		assertNull(OutboundHttpCallMigrationHandler.rewrite("POST('http://x/', 'b', 'application/json', charset)"));
+
+		// a content type that already carries a charset plus a separate one: which wins is a judgement
+		assertNull(OutboundHttpCallMigrationHandler.rewrite("POST('http://x/', 'b', 'application/json; charset=UTF-8', 'ISO-8859-1')"));
+	}
+
+	@Test
+	public void testEveryAutomaticFindingCanActuallyBeRewritten() {
+
+		// the promise the two modes make to each other: what the dry run calls AUTOMATIC, apply performs
+		for (final String call : new String[] {
+			"GET(url, 'application/octet-stream')",
+			"POST(url, body, 'application/octet-stream')",
+			"GET(downloadUrl, 'text/html', 'title')",
+			"POST('http://x/', 'b', 'application/json', 'UTF-8')",
+			"POST('http://x/', 'b', 'application/json', 'UTF-8', 'u', 'p')",
+			"GET('http://x/', 'application/json', 'u', 'p')",
+			"DELETE('http://x/', { parseResponse: true })"
+		}) {
+
+			if (OutboundHttpCallMigrationHandler.assess("SchemaMethod", "i", "n", "source", call).verdict() == Verdict.AUTOMATIC) {
+
+				assertNotNull("assess() promised AUTOMATIC but rewrite() cannot produce it: " + call,
+					OutboundHttpCallMigrationHandler.rewrite(call));
+			}
+		}
 	}
 
 	// ----- private methods -----
