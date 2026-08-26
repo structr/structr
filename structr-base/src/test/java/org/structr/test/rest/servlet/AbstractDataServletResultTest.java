@@ -42,17 +42,21 @@ import static org.testng.AssertJUnit.assertTrue;
 public class AbstractDataServletResultTest {
 
 	/**
-	 * A handler that returns a bare RestMethodResult -- {@code DELETE /<Type>} being the
-	 * common case -- has no content, no message and no non-graph-object result. That has to
-	 * serialize as {@code "result": []}; wrapping the null produced {@code [ null ]}, a single
-	 * null element that clients then have to filter out.
+	 * A handler that returns a bare RestMethodResult -- {@code DELETE} being the common case --
+	 * has no content, no message and no non-graph-object result. That has to become an iterable
+	 * with NO elements; wrapping the null produced a one-element iterable holding null, which
+	 * clients then had to filter out.
+	 *
+	 * <p>What the empty iterable then serializes as is the serializer's decision, not this
+	 * mapping's: a collection resource writes {@code "result": []}, a non-collection one writes
+	 * {@code "result": null}. Either way it must not be {@code [ null ]}.</p>
 	 */
 	@Test
 	public void testNullResultBecomesAnEmptyIterable() {
 
 		final Iterable<Object> result = AbstractDataServlet.resultIterable(null);
 
-		assertTrue("a null result must serialize as an empty array, not [null]", Iterables.toList(result).isEmpty());
+		assertTrue("a null result must become an empty iterable, not [null]", Iterables.toList(result).isEmpty());
 	}
 
 	/** A single object is still a single-element result. */

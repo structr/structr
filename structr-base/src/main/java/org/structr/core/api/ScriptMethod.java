@@ -85,7 +85,11 @@ public class ScriptMethod extends AbstractMethod {
 	@Override
 	public String toString() {
 
-		return name + "(" + parameters.toString() + "): " + getSnippet().getSource();
+		final Snippet snippet = getSnippet();
+
+		// getSnippet() answers null for a method whose source was never set, and toString() is called
+		// from logging and debugging -- the last place that should be the one to throw.
+		return name + "(" + parameters.toString() + "): " + (snippet != null ? snippet.getSource() : "");
 	}
 
 	@Override
@@ -159,6 +163,16 @@ public class ScriptMethod extends AbstractMethod {
 	public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 		final Arguments converted = checkAndConvertArguments(actionContext, arguments, false);
+
+		// A method whose source was never set has nothing to run, so it returns nothing -- the same
+		// answer as a method with an empty body. getSnippet() has always treated this shape as "no
+		// snippet"; execute() did not, and died on source.trim() with a NullPointerException and a 500.
+		// The argument check above still runs, so a call with bad arguments is refused rather than
+		// quietly succeeding.
+		if (source == null) {
+
+			return null;
+		}
 
 		try {
 

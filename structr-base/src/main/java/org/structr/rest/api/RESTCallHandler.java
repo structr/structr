@@ -474,6 +474,14 @@ public abstract class RESTCallHandler {
 			if (obj instanceof Collection c) {
 
 				result.setOverriddenResultCount(c.size());
+
+			} else if (obj == null) {
+
+				// A method that returns nothing has no results, so result_count must be 0. The null is
+				// still added as content above, because getContent() is dereferenced without a null check
+				// by the doGet() of every method handler and by the multi-object POST path in
+				// JsonRestServlet and CsvServlet -- leaving the content out turns a wrong count into an NPE.
+				result.setOverriddenResultCount(0);
 			}
 
 		}

@@ -205,7 +205,19 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 					} else {
 
-						lifecycleMethods.put(type, method.asLifecycleMethod());
+						final LifecycleMethod lifecycleMethod = method.asLifecycleMethod();
+
+						// asLifecycleMethod() answers null for a method whose source was never set.
+						// Storing that null makes containsKey() true for a type that has no
+						// implementation, so the NEXT method of the same lifecycle type takes the
+						// "more than one implementation" branch above and finds null where an adapter
+						// should be -- which threw "Unexpected lifecycle method" at schema load.
+						// Lifecycle types are matched by name PREFIX, so onCreate and onCreateSecond
+						// are two implementations of the same type and this is reachable.
+						if (lifecycleMethod != null) {
+
+							lifecycleMethods.put(type, lifecycleMethod);
+						}
 					}
 				}
 			}

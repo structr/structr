@@ -551,11 +551,18 @@ public abstract class StreamingWriter {
 			final Object secondValue              = hasSecondValue ? iterator.next() : null;
 			long actualResultCount                = 0;
 
-			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !(value instanceof Collection)) {
+			// A resource that is not a collection writes its root result unwrapped: at most one value, so
+			// no enclosing array. The test is on the NUMBER of values, not on the first one being non-null
+			// -- a single null is still a single value, and asking "firstValue != null" here wrote it as
+			// [ null ], while a result with no values at all wrote []. Both have to be a bare null.
+			// The Collection check keeps a value that is itself a collection an array: a method returning
+			// a list arrives here as one element holding that list, and only the outer wrapper is dropped.
+			if (!wrapSingleResultInArray && depth == 0 && !hasSecondValue && !(value instanceof Collection)) {
 
 				// prevent endless recursion by pruning at depth n
 				if (depth <= outputNestingDepth) {
 
+					// firstValue is null when there was no value at all, which serializes as a JSON null
 					serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 				}
 

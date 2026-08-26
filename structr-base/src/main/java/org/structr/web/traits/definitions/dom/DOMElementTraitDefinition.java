@@ -1593,17 +1593,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Principal currentUser              = renderContext.getSecurityContext().getUser(false);
 		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-		final Map<String, Object> properties     = new LinkedHashMap<>();
 
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			properties.put(key, value);
-		}
-
-		return loginResource.doPost(renderContext.getSecurityContext(), properties);
+		return loginResource.doPost(renderContext.getSecurityContext(), parameters);
 	}
 
 	private Object handleSignOutAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {

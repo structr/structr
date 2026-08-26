@@ -200,6 +200,10 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 	 * {@code "result": [ null ]} -- a single null element -- because the servlet wrapped the
 	 * (absent) non-graph-object result of the bare RestMethodResult that genericDelete returns.
 	 * Clients then had to filter nulls out of a result they never asked for.
+	 *
+	 * <p>The array itself stays, because this is a COLLECTION resource: isCollection() is true, so
+	 * the result is wrapped whether or not it has elements. The entity counterpart answers a bare
+	 * null instead -- see EntityResourceBasicTest#testDeleteOnEntityResourceReturnsNullResult.</p>
 	 */
 	@Test
 	public void testDeleteOnCollectionResourceReturnsEmptyResult() {

@@ -42,6 +42,52 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityResourceBasicTest.class.getName());
 
+	/**
+	 * DELETE on an entity resource must answer {@code "result": null}, not an array. An entity
+	 * resource declares isCollection() == false, so nothing it returns gets wrapped -- and a
+	 * delete returns nothing at all. It answered {@code []} because the serializer's "single
+	 * result, do not wrap" shortcut required a non-null first element, which a result with no
+	 * elements does not have, so it fell through to the array branch.
+	 *
+	 * The collection counterpart keeps its array -- see
+	 * CollectionResourceBasicTest#testDeleteOnCollectionResourceReturnsEmptyResult.
+	 */
+	@Test
+	public void testDeleteOnEntityResourceReturnsNullResult() {
+
+		String uuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			uuid = app.create("TestObject").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Unexpected exception: ", fex);
+			fail("Unexpected exception");
+		}
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result", equalTo(null))
+			.when()
+				.delete("/TestObject/" + uuid);
+
+		// and it really is gone
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(404)
+			.when()
+				.get("/TestObject/" + uuid);
+	}
+
 	@Test
 	public void testInvokeMethodResult() {
 

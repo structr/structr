@@ -23,6 +23,7 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertNotNull;
 
 public class LoginLogoutTest extends StructrUiTest {
@@ -55,11 +56,14 @@ public class LoginLogoutTest extends StructrUiTest {
 		.when()
 			.get("/me");
 
+		// /logout is a non-collection resource with nothing to return, so its result is a bare null
+		// rather than an empty array -- the same rule that makes a method returning nothing answer null.
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.sessionId(sessionId)
 		.expect()
 			.statusCode(200)
+			.body("result", equalTo(null))
 		.when()
 			.post("/logout");
 

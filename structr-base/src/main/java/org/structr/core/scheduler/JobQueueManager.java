@@ -36,6 +36,7 @@ public class JobQueueManager {
 	private final Map<Long, ScheduledJob> activeJobs  = new ConcurrentHashMap<>();
 	private final Queue<Long> jobIdQueue              = new ConcurrentLinkedDeque<>();
 	private final AtomicLong importJobIdCount         = new AtomicLong(0);
+	private final Object dispatchLock                 = new Object();
 
 	private JobQueueManager() { }
 
@@ -59,16 +60,19 @@ public class JobQueueManager {
 			final Long jobId = importJobIdCount.incrementAndGet();
 			job.setJobId(jobId);
 
-			appendToQueueInternal(job);
+			synchronized (dispatchLock) {
 
-			if (canRunMoreJobs()) {
+				appendToQueueInternal(job);
 
-				startNextJobInQueue();
+				if (canRunMoreJobs()) {
 
-			} else {
+					startNextJobInQueue();
 
-				job.reportQueued();
+				} else {
 
+					job.reportQueued();
+
+				}
 			}
 		}
 	}
@@ -161,22 +165,27 @@ public class JobQueueManager {
 
 	protected void jobFinished (final ScheduledJob job) {
 
-		activeJobs.remove(job.jobId());
+		synchronized (dispatchLock) {
 
-		if (canRunMoreJobs()) {
+			activeJobs.remove(job.jobId());
 
-			startNextJobInQueue();
+			if (canRunMoreJobs()) {
+
+				startNextJobInQueue();
+			}
 		}
-
 	}
 
 	protected void jobAborted (final ScheduledJob job) {
 
-		activeJobs.remove(job.jobId());
+		synchronized (dispatchLock) {
 
-		if (canRunMoreJobs()) {
+			activeJobs.remove(job.jobId());
 
-			startNextJobInQueue();
+			if (canRunMoreJobs()) {
+
+				startNextJobInQueue();
+			}
 		}
 	}
 
