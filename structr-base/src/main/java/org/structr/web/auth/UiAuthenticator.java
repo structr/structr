@@ -924,11 +924,18 @@ public class UiAuthenticator implements Authenticator {
 
 				if (tryLogin) {
 
-					final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
+					try {
 
-					user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password);
+						final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
+						user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userName, password);
 
-					logger.info("Header authentication unsuccessful for {} = {}", RequestHeaders.XUser.getName(), userName);
+					} catch (final AuthenticationException e) {
+
+						// we only catch the authentication exception to log this line specially for header authentication and then rethrow it
+						logger.info("Header authentication unsuccessful for {}=\"{}\" (and given password)", RequestHeaders.XUser.getName(), userName);
+
+						throw e;
+					}
 				}
 			}
 		}

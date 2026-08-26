@@ -208,6 +208,11 @@
 		<path d="M21.75,15.75a1.5,1.5,0,0,1-1.5,1.5H9.75a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,9.75.75h7.629a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06Z"/>
 	</symbol>
 
+	<symbol id="file-upload" xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M18.751 8.5 12 1.75 5.251 8.5H9v6.75a0.75 0.75 0 0 0 0.75 0.75h4.5a0.75 0.75 0 0 0 0.75 -0.75V8.5Z"/>
+		<path d="M23.251 17.5v3a1.5 1.5 0 0 1 -1.5 1.5h-19.5a1.5 1.5 0 0 1 -1.5 -1.5v-3"/>
+	</symbol>
+
 	<symbol id="visibility-lock-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M.75,9.75V6a5.25,5.25,0,0,1,10.5,0V9.75"/><rect x="6.75" y="9.75" width="16.5" height="13.5" rx="1.5" ry="1.5"/><line x1="15" y1="15" x2="15" y2="18"/>
 	</symbol>

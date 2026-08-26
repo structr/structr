@@ -203,7 +203,14 @@ public class Trait implements TypeInfo {
 			final Class<LifecycleMethod> type = method.getMethodType();
 			if (type != null) {
 
-				lifecycleMethods.put(type, method.asLifecycleMethod());
+				final LifecycleMethod lifecycleMethod = method.asLifecycleMethod();
+
+				// null for a method whose source was never set: register nothing rather than a null
+				// entry, so getLifecycleMethod() and containsKey() agree on "there is none".
+				if (lifecycleMethod != null) {
+
+					lifecycleMethods.put(type, lifecycleMethod);
+				}
 
 			} else {
 
