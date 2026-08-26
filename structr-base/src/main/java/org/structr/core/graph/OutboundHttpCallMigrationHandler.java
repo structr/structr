@@ -194,8 +194,12 @@ public class OutboundHttpCallMigrationHandler {
 
 			if ("application/octet-stream".equals(contentType)) {
 
+				// the key differs by verb: GET streams the RESPONSE, POST sends the BODY as a stream, and
+				// an unknown option is refused, so naming the wrong one produces a call that fails
+				final String key = "GET".equals(verb) ? "binaryResponse" : "binaryBody";
+
 				return new Finding(type, id, name, property, call, Verdict.AUTOMATIC,
-					"application/octet-stream no longer switches to binary transport: add { binary: true }");
+					"application/octet-stream no longer switches to binary transport: add { " + key + ": true }");
 			}
 
 			final Integer contentTypeAt = CONTENT_TYPE_INDEX.get(verb);
@@ -204,8 +208,8 @@ public class OutboundHttpCallMigrationHandler {
 
 				return new Finding(type, id, name, property, call, Verdict.MANUAL,
 					"the content type is an expression (" + args.get(contentTypeAt).trim() + "); if it can be "
-					+ "application/octet-stream the call needs { binary: true }, and for GET whether the next argument "
-					+ "is a selector or a user name depends on it");
+					+ "application/octet-stream the call needs { " + ("GET".equals(verb) ? "binaryResponse" : "binaryBody")
+					+ ": true }, and for GET whether the next argument is a selector or a user name depends on it");
 			}
 		}
 

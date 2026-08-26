@@ -126,14 +126,17 @@ public class OutboundHttpCallMigrationHandlerTest {
 		final var get = OutboundHttpCallMigrationHandler.assess("SchemaMethod", "id", "n", "source",
 			"GET(downloadUrl, 'application/octet-stream')");
 
+		// the exact key, not just the word: an unknown option is refused, so advice naming the wrong one
+		// produces a call that fails at the very check the split was built for
 		assertEquals(Verdict.AUTOMATIC, get.verdict());
-		assertTrue("binary must be mentioned, was: " + get.reason(), get.reason().contains("binary"));
+		assertTrue("GET must be told binaryResponse, was: " + get.reason(), get.reason().contains("binaryResponse"));
 
 		final var post = OutboundHttpCallMigrationHandler.assess("SchemaMethod", "id", "n", "source",
 			"POST(url, body, 'application/octet-stream')");
 
 		assertEquals(Verdict.AUTOMATIC, post.verdict());
-		assertTrue("binary must be mentioned, was: " + post.reason(), post.reason().contains("binary"));
+		assertTrue("POST must be told binaryBody, was: " + post.reason(), post.reason().contains("binaryBody"));
+		assertFalse("POST must not be told the GET key, was: " + post.reason(), post.reason().contains("binaryResponse"));
 	}
 
 	@Test
@@ -142,6 +145,10 @@ public class OutboundHttpCallMigrationHandlerTest {
 		// the value decides both binary transport and, for GET, what the next argument means
 		assertEquals(Verdict.MANUAL, verdict("GET(url, contentType)"));
 		assertEquals(Verdict.MANUAL, verdict("POST(url, body, contentType)"));
+
+		// and the key it names there is the verb's own one too
+		assertTrue(OutboundHttpCallMigrationHandler.assess("SchemaMethod", "i", "n", "source", "GET(url, contentType)").reason().contains("binaryResponse"));
+		assertTrue(OutboundHttpCallMigrationHandler.assess("SchemaMethod", "i", "n", "source", "POST(url, body, contentType)").reason().contains("binaryBody"));
 	}
 
 	@Test
