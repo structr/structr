@@ -141,13 +141,17 @@ public class HttpHelper {
 		}
 
 		final CloseableHttpClient client = clientBuilder.build();
-		final int connectTimeout = (timeout != null)? timeout : (Settings.HttpConnectTimeout.getValue() * 1000);
+		// A caller asking for a timeout means the call, not just the handshake. Bounding the connection
+		// alone leaves a server that accepts and then answers slowly able to hold the request open for
+		// as long as it likes, which is the hang the option exists to prevent.
+		final int connectTimeout = (timeout != null) ? timeout : (Settings.HttpConnectTimeout.getValue() * 1000);
+		final int socketTimeout  = (timeout != null) ? timeout : (Settings.HttpSocketTimeout.getValue() * 1000);
 		final RequestConfig reqConfig = RequestConfig.custom()
 			.setProxy(proxy)
 			.setRedirectsEnabled(followRedirects)
 			.setCookieSpec(CookieSpecs.STANDARD)
 			.setConnectTimeout(connectTimeout)
-			.setSocketTimeout(Settings.HttpSocketTimeout.getValue() * 1000)
+			.setSocketTimeout(socketTimeout)
 			.setConnectionRequestTimeout(Settings.HttpConnectionRequestTimeout.getValue() * 1000)
 			.build();
 
@@ -213,13 +217,18 @@ public class HttpHelper {
 
 	public static Map<String, Object> get(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
+		return get(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, null);
+	}
+
+	public static Map<String, Object> get(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
 		final Map<String, Object> responseData = new HashMap<>();
 
 		try {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req   = new HttpGet(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
 			final CloseableHttpResponse resp = hc.client().execute(req);
 			final String content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset())));
 
@@ -305,13 +314,18 @@ public class HttpHelper {
 
 	public static Map<String, Object> head(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
+		return head(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, null);
+	}
+
+	public static Map<String, Object> head(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
 		final Map<String, Object> responseHeaders = new HashMap<>();
 
 		try {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpHead req  = new HttpHead(uri);
-			final HttpConfig hc = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates, null);
+			final HttpConfig hc = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
 			final CloseableHttpResponse response = hc.client().execute(req);
 
 			responseHeaders.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
@@ -399,6 +413,26 @@ public class HttpHelper {
 	private static boolean redirectsFrom(final Map<String, Object> config, final boolean defaultValue) {
 
 		return (config != null && config.get("redirects") instanceof Boolean redirects) ? redirects : defaultValue;
+	}
+
+	/**
+	 * DELETE with a request body.
+	 *
+	 * HttpDelete cannot carry an entity, although HTTP permits a body on DELETE and some APIs require
+	 * one, so the method is spelled out on an entity-enclosing request instead.
+	 */
+	private static class HttpDeleteWithBody extends org.apache.http.client.methods.HttpEntityEnclosingRequestBase {
+
+		HttpDeleteWithBody(final URI uri) {
+
+			setURI(uri);
+		}
+
+		@Override
+		public String getMethod() {
+
+			return "DELETE";
+		}
 	}
 
 	private static StringEntity entityFor(final String requestBody, final String contentType, final String charset) {
@@ -587,13 +621,29 @@ public class HttpHelper {
 
 	public static Map<String, Object> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
+		return delete(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, null);
+	}
+
+	public static Map<String, Object> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
+		return delete(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, config, null, null, null);
+	}
+
+	public static Map<String, Object> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config, final String requestBody, final String contentType, final String charset) throws FrameworkException {
+
 		final Map<String, Object> responseData = new HashMap<>();
 
 		try {
 
-			final URI uri        = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpDelete req = new HttpDelete(uri);
-			final HttpConfig hc  = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
+
+			final HttpRequestBase req = StringUtils.isBlank(requestBody) ? new HttpDelete(uri) : new HttpDeleteWithBody(uri);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
+
+			if (req instanceof HttpDeleteWithBody withBody) {
+
+				withBody.setEntity(entityFor(requestBody, contentType, hc.charset()));
+			}
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
 			String content = null;

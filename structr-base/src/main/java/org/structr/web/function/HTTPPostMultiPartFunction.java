@@ -66,14 +66,14 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 			final String uri                = sources[0].toString();
 			final Map<String, Object> parts = (HashMap) sources[1];
-			final HttpOptions options       = HttpOptions.from("POSTMultiPart", sources, 2);
+			final HttpOptions options       = HttpOptions.from("POSTMultiPart", sources, 2).accepting("POSTMultiPart", HttpOptions.PARSE_RESPONSE);
 
 			// no contentType parameter: a multipart request builds its own Content-Type, including the
 			// boundary, so naming one here could only conflict with it
 			final Map<String, Object> responseData = this.postMultiPart(uri, parts, options.mergeHeaders(ctx.getHeaders()),
-				options.getBoolean("validateCertificates", ctx.isValidateCertificates()));
+				options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()));
 
-			return processResponseData(ctx, caller, responseData, options.getBoolean("parseResponse", false));
+			return processResponseData(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -187,8 +187,8 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${POSTMultiPart(url, partsMap [, options])}. Example: ${POSTMultiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
-			Usage.javaScript("Usage: ${{ $.POSTMultiPart(url, partsMap [, options]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
+			Usage.structrScript("Usage: ${POSTMultiPart(url, partsMap [, options ])}. Example: ${POSTMultiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
+			Usage.javaScript("Usage: ${{ $.POSTMultiPart(url, partsMap [, options ]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
 		);
 	}
 

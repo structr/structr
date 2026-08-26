@@ -133,6 +133,40 @@ public class OutboundHttpApiTest extends StructrTest {
 	}
 
 	@Test
+	public void testPreemptiveBasicAuthIsSentWithoutAChallenge() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// the server never answers 401 here, which is the whole point: without preemptive the
+			// credentials are never sent, because HttpClient waits for a challenge
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'text/plain', { username: 'user', password: 'secret' })}");
+			assertNull("credentials must not be sent unasked by default", lastHeaders.get("authorization"));
+
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'text/plain', { username: 'user', password: 'secret', preemptive: true })}");
+
+			final String authorization = lastHeaders.get("authorization");
+
+			assertNotNull("preemptive must send the credentials on the first request", authorization);
+			assertEquals("user:secret", new String(java.util.Base64.getDecoder().decode(authorization.substring("Basic ".length())), StandardCharsets.UTF_8));
+		});
+	}
+
+	@Test
+	public void testAnExplicitAuthorizationHeaderWinsOverPreemptive() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'text/plain', { username: 'user', password: 'secret', preemptive: true, headers: { 'Authorization': 'Bearer token' } })}");
+
+			assertEquals("an Authorization header given explicitly must not be replaced", "Bearer token", lastHeaders.get("authorization"));
+		});
+	}
+
+	@Test
 	public void testAStringInTheOptionsPositionIsRejected() {
 
 		withServer(port -> {
@@ -163,6 +197,146 @@ public class OutboundHttpApiTest extends StructrTest {
 		});
 	}
 
+	@Test
+	public void testTimeoutIsHonouredByEveryVerb() {
+
+		// a silently ignored timeout cannot be observed from a script: no error, no log, nothing in the
+		// response, and the symptom is a hung call much later. One assertion per verb, so none of them
+		// can quietly lose the option again.
+		withSlowServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			for (final String script : new String[] {
+				"${GET('http://localhost:" + port + "/', 'text/plain', { timeout: 1 })}",
+				"${HEAD('http://localhost:" + port + "/', { timeout: 1 })}",
+				"${DELETE('http://localhost:" + port + "/', { timeout: 1 })}",
+				"${POST('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
+				"${PUT('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
+				"${PATCH('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
+				"${FETCH('http://localhost:" + port + "/', 'POST', 'b', 'text/plain', { timeout: 1 })}"
+			}) {
+
+				final long start = System.currentTimeMillis();
+
+				try {
+					Scripting.evaluate(ctx, null, script, "test");
+
+				} catch (FrameworkException expected) {
+					// a timeout may surface as an exception, which is fine
+				}
+
+				final long elapsed = System.currentTimeMillis() - start;
+
+				assertTrue("timeout was ignored by " + script + ", the call took " + elapsed + "ms", elapsed < 4000);
+			}
+		});
+	}
+
+	@Test
+	public void testUnsupportedOptionsAreRefused() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// selector is a GET concept, so DELETE must say so rather than ignore it
+			assertNull(evaluate(ctx, "${DELETE('http://localhost:" + port + "/', null, null, { selector: 'div' })}"));
+			assertNull("a refused option must not perform a request", lastMethod);
+
+			// and a plain typo
+			assertNull(evaluate(ctx, "${POST('http://localhost:" + port + "/', 'b', 'text/plain', { timeOut: 5 })}"));
+			assertNull("a refused option must not perform a request", lastMethod);
+
+			// while a transport option is accepted everywhere
+			evaluate(ctx, "${DELETE('http://localhost:" + port + "/', null, null, { timeout: 30 })}");
+			assertEquals("DELETE", lastMethod);
+		});
+	}
+
+	@Test
+	public void testTheTwoBinaryDirectionsHaveTheirOwnNames() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// request side: POST sends the body as a binary stream
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/octet-stream', { binaryBody: true })}");
+			assertEquals("POST", lastMethod);
+
+			// response side belongs to GET, and the request-side name must not be accepted there
+			lastMethod = null;
+
+			assertNull(evaluate(ctx, "${GET('http://localhost:" + port + "/', 'text/plain', { binaryBody: true })}"));
+			assertNull("binaryBody is not a GET option", lastMethod);
+		});
+	}
+
+	@Test
+	public void testEveryVerbReturnsTheSameShape() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// HEAD used to hand back HttpHelper's raw map, where the status is a String, so a script
+			// comparing r.status to a number was right after POST and wrong after HEAD
+			for (final String script : new String[] {
+				"${GET('http://localhost:" + port + "/', 'text/plain')}",
+				"${HEAD('http://localhost:" + port + "/')}",
+				"${DELETE('http://localhost:" + port + "/')}",
+				"${POST('http://localhost:" + port + "/', 'b', 'text/plain')}",
+				"${PUT('http://localhost:" + port + "/', 'b', 'text/plain')}",
+				"${PATCH('http://localhost:" + port + "/', 'b', 'text/plain')}",
+				"${FETCH('http://localhost:" + port + "/', 'POST', 'b', 'text/plain')}"
+			}) {
+
+				final Object result = evaluate(ctx, script);
+
+				assertTrue(script + " must return a response object", result instanceof GraphObjectMap);
+
+				final Object status = ((GraphObjectMap) result).toMap().get("status");
+
+				assertTrue(script + " must return an int status, got " + (status == null ? "null" : status.getClass().getSimpleName()),
+					status instanceof Integer);
+				assertEquals(script + " wrong status", 200, status);
+			}
+		});
+	}
+
+	@Test
+	public void testDeleteCanSendABody() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			evaluate(ctx, "${DELETE('http://localhost:" + port + "/', '{ \"id\": 1 }', 'application/json')}");
+
+			assertEquals("DELETE", lastMethod);
+			assertEquals("the body must reach the server", "{ \"id\": 1 }", lastBody);
+			assertEquals("application/json", mimeOf(lastHeaders.get("content-type")));
+		});
+	}
+
+	@Test
+	public void testDeleteRefusesAnOptionsObjectInTheOldPosition() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// that position is the body now, so sending the object as one would be silent nonsense
+			assertNull(evaluate(ctx, "${DELETE('http://localhost:" + port + "/', { parseResponse: true })}"));
+			assertNull("no request may be made when the arguments are refused", lastMethod);
+
+			// spelled the new way it works
+			evaluate(ctx, "${DELETE('http://localhost:" + port + "/', null, null, { parseResponse: true })}");
+			assertEquals("DELETE", lastMethod);
+		});
+	}
+
 	// ----- private methods -----
 	private Object evaluate(final ActionContext ctx, final String script) {
 
@@ -181,6 +355,40 @@ public class OutboundHttpApiTest extends StructrTest {
 	private String mimeOf(final String contentType) {
 
 		return contentType != null ? contentType.split(";")[0].trim() : null;
+	}
+
+	/** A server that answers slowly, so a timeout has something to cut short. */
+	private void withSlowServer(final PortConsumer body) {
+
+		HttpServer server = null;
+
+		try {
+
+			server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+
+			server.createContext("/", exchange -> {
+
+				try { Thread.sleep(6000); } catch (InterruptedException iex) { Thread.currentThread().interrupt(); }
+
+				exchange.sendResponseHeaders(200, -1);
+				exchange.close();
+			});
+
+			server.start();
+
+			body.accept(server.getAddress().getPort());
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			fail("Unexpected exception: " + e.getMessage());
+
+		} finally {
+
+			if (server != null) {
+				server.stop(0);
+			}
+		}
 	}
 
 	private void withServer(final PortConsumer body) {

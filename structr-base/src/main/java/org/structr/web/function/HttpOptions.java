@@ -25,7 +25,13 @@ import org.structr.common.error.ArgumentTypeException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 
+import java.nio.charset.StandardCharsets;
+
+import java.util.Base64;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -40,11 +46,55 @@ import java.util.Map;
  */
 public class HttpOptions {
 
+	public static final String USERNAME              = "username";
+	public static final String PASSWORD              = "password";
+	public static final String HEADERS               = "headers";
+	public static final String TIMEOUT               = "timeout";
+	public static final String REDIRECTS             = "redirects";
+	public static final String VALIDATE_CERTIFICATES = "validateCertificates";
+	/**
+	 * Two directions, two names. "binary" meant sending the body as a binary stream on POST and
+	 * streaming the response on GET, so one key stood for opposite things depending on the verb.
+	 */
+	public static final String BINARY_BODY          = "binaryBody";
+	public static final String BINARY_RESPONSE      = "binaryResponse";
+	public static final String PARSE_RESPONSE        = "parseResponse";
+	public static final String SELECTOR              = "selector";
+	public static final String PREEMPTIVE            = "preemptive";
+
 	private final Map<String, Object> options;
+
+	/** Meaningful for every verb: they say how the request is made, not what it means. */
+	private static final Set<String> TRANSPORT = Set.of(USERNAME, PASSWORD, PREEMPTIVE, HEADERS, TIMEOUT, REDIRECTS, VALIDATE_CERTIFICATES);
 
 	private HttpOptions(final Map<String, Object> options) {
 
 		this.options = options != null ? options : Collections.emptyMap();
+	}
+
+	/**
+	 * Rejects keys the function does not act on.
+	 *
+	 * An option that is accepted and then ignored cannot be observed from a script: no error, no log,
+	 * nothing in the response. A timeout that does nothing surfaces much later as a hung call. Naming
+	 * the key and the function turns that into something the caller can fix.
+	 */
+	public HttpOptions accepting(final String functionName, final String... semanticKeys) {
+
+		final Set<String> allowed = new LinkedHashSet<>(TRANSPORT);
+
+		Collections.addAll(allowed, semanticKeys);
+
+		for (final String key : options.keySet()) {
+
+			if (!allowed.contains(key)) {
+
+				throw new ArgumentTypeException(functionName + "(): unknown option '" + key + "'. " + functionName
+					+ " accepts " + String.join(", ", new TreeSet<>(allowed)) + ".");
+			}
+		}
+
+		return this;
 	}
 
 	/**
@@ -105,12 +155,12 @@ public class HttpOptions {
 
 		if (timeout != null) {
 
-			config.put("timeout", timeout);
+			config.put(TIMEOUT, timeout);
 		}
 
-		if (options.get("redirects") instanceof Boolean redirects) {
+		if (options.get(REDIRECTS) instanceof Boolean redirects) {
 
-			config.put("redirects", redirects);
+			config.put(REDIRECTS, redirects);
 		}
 
 		return config;
@@ -133,7 +183,7 @@ public class HttpOptions {
 	/** Seconds in the options object, milliseconds on the wire. */
 	public Integer getTimeoutMillis() {
 
-		final Object value = options.get("timeout");
+		final Object value = options.get(TIMEOUT);
 
 		return value instanceof Number n ? (int) (n.doubleValue() * 1000) : null;
 	}
@@ -143,12 +193,26 @@ public class HttpOptions {
 
 		final Map<String, String> merged = new LinkedHashMap<>();
 
+		// Preemptive basic auth: HttpClient otherwise sends the credentials only after the server has
+		// answered 401 with a challenge, and a server that just expects them gets an anonymous request.
+		// Set as a header rather than through the client, so it is on the very first request.
+		if (getBoolean(PREEMPTIVE, false)) {
+
+			final String username = getString(USERNAME);
+			final String password = getString(PASSWORD);
+
+			if (username != null && password != null) {
+
+				merged.put("Authorization", "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8)));
+			}
+		}
+
 		if (contextHeaders != null) {
 
 			merged.putAll(contextHeaders);
 		}
 
-		if (options.get("headers") instanceof Map headers) {
+		if (options.get(HEADERS) instanceof Map headers) {
 
 			for (final Object key : headers.keySet()) {
 

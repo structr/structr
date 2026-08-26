@@ -60,15 +60,15 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			final String address      = sources[0].toString();
 			final String body         = sources[1].toString();
 			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final HttpOptions options = HttpOptions.from("POST", sources, 3);
+			final HttpOptions options = HttpOptions.from("POST", sources, 3).accepting("POST", HttpOptions.BINARY_BODY, HttpOptions.PARSE_RESPONSE);
 
 			final String charset               = HttpOptions.charsetOf(contentType, DEFAULT_CHARSET);
 			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
-			final String username              = options.getString("username");
-			final String password              = options.getString("password");
-			final boolean validateCertificates = options.getBoolean("validateCertificates", ctx.isValidateCertificates());
+			final String username              = options.getString(HttpOptions.USERNAME);
+			final String password              = options.getString(HttpOptions.PASSWORD);
+			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
-			if (options.getBoolean("binary", false)) {
+			if (options.getBoolean(HttpOptions.BINARY_BODY, false)) {
 
 				final Map<String, Object> binaryData = HttpHelper.postBinary(address, body, charset, username, password, headers, validateCertificates);
 				final GraphObjectMap binaryResponse  = new GraphObjectMap();
@@ -81,7 +81,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			final Map<String, Object> responseData = HttpHelper.post(address, body, username, password, null, null, null, null,
 				headers, charset, validateCertificates, options.asRequestConfig(), contentType);
 
-			return processResponseData(ctx, caller, responseData, options.getBoolean("parseResponse", false));
+			return processResponseData(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -122,7 +122,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url, body [, contentType, options ]");
+		return Signature.forAllScriptingLanguages("url, body [, contentType [, options ]]");
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binary` to send the body as a binary stream")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binary` to send the body as a binary stream")
 		);
 	}
 
@@ -140,8 +140,8 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${POST(url, body [, contentType, options])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8')}"),
-			Usage.javaScript("Usage: ${{ $.POST(url, body [, contentType, options]) }}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8') }}")
+			Usage.structrScript("Usage: ${POST(url, body [, contentType [, options ]])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8')}"),
+			Usage.javaScript("Usage: ${{ $.POST(url, body [, contentType [, options ]]) }}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8') }}")
 		);
 	}
 
@@ -175,7 +175,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 		return List.of(
 			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"`contentType` is the expected response content type. If you need to define the request content type, use `addHeader('Content-Type', 'your-content-type-here')`",
+			"7.0+: `contentType` is the content type of the REQUEST and is sent as the `Content-Type` header. Before 7.0 it never reached the request and `addHeader('Content-Type', ...)` was needed instead.",
 			"If the `contentType` is `application/json`, the response body is automatically parsed and the `body` key of the returned object is a map"
 		);
 	}

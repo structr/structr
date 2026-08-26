@@ -22,9 +22,12 @@ import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
+import org.structr.common.error.FrameworkException;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -38,21 +41,27 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources != null && sources.length >= 1 && sources[0] != null) {
 
 			try {
 
 				final String address      = sources[0].toString();
-				final HttpOptions options = HttpOptions.from("HEAD", sources, 1);
+				final HttpOptions options = HttpOptions.from("HEAD", sources, 1).accepting("HEAD");
 
-				return headFromUrl(ctx, address, options.getString("username"), options.getString("password"),
-					options.mergeHeaders(ctx.getHeaders()), options.getBoolean("validateCertificates", ctx.isValidateCertificates()));
+				final Map<String, Object> responseData = HttpHelper.head(address, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
+					null, null, null, null, options.mergeHeaders(ctx.getHeaders()),
+					options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()), options.asRequestConfig());
 
-			} catch (Throwable t) {
+				// the same shape as every other verb: a HEAD has no body, but status is an int here too
+				return buildResponse(ctx, caller, responseData, false);
 
-				logException(caller, t, sources);
+			} catch (IllegalArgumentException e) {
+
+				// only argument errors are swallowed, as in every other verb. A failed request throws a
+				// FrameworkException from HttpHelper and must reach the script rather than becoming null.
+				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			}
 
 			return null;
@@ -76,7 +85,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `headers` merged over add_header(), `validateCertificates`")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `validateCertificates`")
 		);
 	}
 
@@ -84,8 +93,8 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${HEAD(url [, options])}. Example: ${HEAD('http://structr.org', { username: 'foo', password: 'bar' })}"),
-			Usage.javaScript("Usage: ${{ $.HEAD(url [, options]) }}. Example: ${{ $.HEAD('http://structr.org', { username: 'foo', password: 'bar' }) }}")
+			Usage.structrScript("Usage: ${HEAD(url [, options ])}. Example: ${HEAD('http://structr.org', { username: 'foo', password: 'bar' })}"),
+			Usage.javaScript("Usage: ${{ $.HEAD(url [, options ]) }}. Example: ${{ $.HEAD('http://structr.org', { username: 'foo', password: 'bar' }) }}")
 		);
 	}
 
