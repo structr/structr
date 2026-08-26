@@ -139,7 +139,7 @@ public class AuthHelper {
 
 				if (failedLoginLog.allow("no principal")) {
 
-					logger.info("No principal found for {} '{}'", keyMessage, value);
+					logger.info("No principal found for {} '{}' (with the given password)", keyMessage, value);
 				}
 			}
 		}
@@ -577,13 +577,35 @@ public class AuthHelper {
 
 		synchronized (lock) {
 
+			final Thread t = new Thread(() -> {
+
+				final App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					final NodeInterface node = app.getNodeById(uuid);
+					if (node != null) {
+
+						node.as(Principal.class).setPasswordAttempts(0);
+					}
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Exception while resetting failed login attempts counter", fex);
+				}
+			});
+
+			t.start();
+
 			try {
 
-				principal.setPasswordAttempts(0);
+				t.join();
 
-			} catch (FrameworkException fex) {
+			} catch (InterruptedException iex) {
 
-				logger.warn("Exception while resetting failed login attempts counter", fex);
+				Thread.currentThread().interrupt();
 			}
 		}
 
