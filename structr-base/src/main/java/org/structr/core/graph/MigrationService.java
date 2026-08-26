@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
@@ -177,9 +178,79 @@ public class MigrationService {
 		"LDAPUser", "PaymentItemNode", "PaymentNode", "Person"
 	);
 
+	/**
+	 * What a migration step does to the database.
+	 *
+	 * REPORTING steps only read and log, so they can run when an operator wants to see what a migration
+	 * would say without letting anything change. Every step that opens a transaction and commits counts
+	 * as WRITING, even when it usually finds nothing to do.
+	 */
+	private enum Kind { REPORTING, WRITING }
+
+	public static final String DRY_RUN = "dry-run";
+	public static final String OFF     = "off";
+
+	@FunctionalInterface
+	private interface Step {
+
+		void run() throws FrameworkException;
+	}
+
+	private record MigrationStep(String name, Kind kind, boolean requiresCypher, Step action) {}
+
+	/** The migration steps in the order they have to run. */
+	private static final List<MigrationStep> STEPS = List.of(
+		new MigrationStep("migrateStaticSchema",                        Kind.WRITING, false, MigrationService::migrateStaticSchema),
+		new MigrationStep("migratePrincipalToPrincipalInterface",       Kind.WRITING, false, MigrationService::migratePrincipalToPrincipalInterface),
+		new MigrationStep("migrateFolderMountTarget",                   Kind.WRITING, false, MigrationService::migrateFolderMountTarget),
+		new MigrationStep("migrateEventActionMapping",                  Kind.WRITING, false, MigrationService::migrateEventActionMapping),
+		new MigrationStep("migrateActionMappingTargetsToRelationships", Kind.WRITING, false, MigrationService::migrateActionMappingTargetsToRelationships),
+		new MigrationStep("cleanStaleActionMappingTargets",             Kind.WRITING, false, MigrationService::cleanStaleActionMappingTargets),
+		new MigrationStep("migrateMailTemplates",                       Kind.WRITING, false, MigrationService::migrateMailTemplates),
+		new MigrationStep("updateSharedComponentFlag",                  Kind.WRITING, false, MigrationService::updateSharedComponentFlag),
+		new MigrationStep("repairDetachedDOMNodes",                     Kind.WRITING, false, MigrationService::repairDetachedDOMNodes),
+		new MigrationStep("reportOutboundHttpCalls",                    Kind.REPORTING, false, OutboundHttpCallMigrationHandler::execute),
+		new MigrationStep("migrateRestQueryRepeaters",                  Kind.WRITING, true, MigrationService::migrateRestQueryRepeaters),
+		new MigrationStep("migrateActionMappingControlsToProcess",      Kind.WRITING, true, MigrationService::migrateActionMappingControlsToProcess),
+		new MigrationStep("migrateVisibilityMappingForToProcess",       Kind.WRITING, true, MigrationService::migrateVisibilityMappingForToProcess),
+		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, MigrationService::warnAboutWrongNotionProperties)
+	);
+
+	/** Whether the migrations only report what they would do, instead of changing anything. */
+	public static boolean isDryRun() {
+
+		return DRY_RUN.equals(Settings.MigrationMode.getValue());
+	}
+
+	/** Whether the migrations are switched off altogether. */
+	public static boolean isDisabled() {
+
+		return OFF.equals(Settings.MigrationMode.getValue());
+	}
+
 	public static void execute() throws FrameworkException {
 
+		execute(isDryRun());
+	}
+
+	/**
+	 * Runs the migration steps, either reporting or changing.
+	 *
+	 * The mode is a parameter rather than read from the configuration, so the maintenance command can
+	 * ask for a dry run on an instance configured to apply, and the other way round.
+	 */
+	public static void execute(final boolean reportOnly) throws FrameworkException {
+
 		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
+
+			final boolean cypher     = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query");
+
+			if (reportOnly) {
+
+				logger.info("MigrationService: {} is '{}'. Every step runs and reports what it would change, and the change is rolled back. "
+					+ "Startup stops afterwards: a rolled back schema migration leaves the compiled schema in memory out of step with the "
+					+ "database, so this instance must not go on to serve anything.", Settings.MigrationMode.getKey(), DRY_RUN);
+			}
 
 			// A migration is a hard, all-or-nothing operation: if any step fails, the
 			// step's transaction rolls back and the failure must propagate loudly rather
@@ -188,21 +259,47 @@ public class MigrationService {
 			// so the failure travels through Structr's error framework and aborts startup.
 			try {
 
-				migrateStaticSchema();
-				migratePrincipalToPrincipalInterface();
-				migrateFolderMountTarget();
-				migrateEventActionMapping();
-				migrateActionMappingTargetsToRelationships();
-				cleanStaleActionMappingTargets();
-				migrateMailTemplates();
-				updateSharedComponentFlag();
-				repairDetachedDOMNodes();
+				for (final MigrationStep step : STEPS) {
 
-				if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+					if (step.requiresCypher() && !cypher) {
 
-					migrateRestQueryRepeaters();
-					migrateActionMappingControlsToProcess();
-					migrateVisibilityMappingForToProcess();
+						continue;
+					}
+
+					if (step.kind() == Kind.REPORTING) {
+
+						// a step that only reads and logs must never be able to kill the instance: a
+						// transient read error (Neo4j giving up on compiling a query while the schema is
+						// still churning) used to be enough to do exactly that
+						try {
+
+							step.action().run();
+
+						} catch (Throwable t) {
+
+							logger.warn("MigrationService: reporting step {} failed: {}", step.name(), t.getMessage());
+						}
+
+					} else if (reportOnly) {
+
+						// The step runs and logs what it would change, then the change is thrown away.
+						// A step opens its own transaction with app.tx(), and TransactionCommand commits
+						// only the TOPLEVEL one, so this wrapper - never marked successful - rolls the
+						// step back. One wrapper PER STEP, so a dry run never holds more in a transaction
+						// than that step would have committed by itself.
+						logger.info("MigrationService: [dry run] {}", step.name());
+
+						try (final Tx dryRun = StructrApp.getInstance().tx()) {
+
+							step.action().run();
+
+							// deliberately no dryRun.success(): everything above is rolled back
+						}
+
+					} else {
+
+						step.action().run();
+					}
 				}
 
 			} catch (FrameworkException fex) {
@@ -214,18 +311,6 @@ public class MigrationService {
 				throw new FrameworkException(500, "Schema/data migration failed and was rolled back: " + t.getMessage(), t);
 			}
 
-			// This one only logs hints about notion properties that a human has to look at, it
-			// migrates nothing, so it must not be able to abort startup: it used to sit inside
-			// the block above, where a single transient read error (Neo4j gives up compiling a
-			// query while the schema is still churning) was enough to kill the whole instance.
-			try {
-
-				warnAboutWrongNotionProperties();
-
-			} catch (Throwable t) {
-
-				logger.warn("Unable to check for notion properties in need of migration: {}", t.getMessage());
-			}
 		}
 	}
 

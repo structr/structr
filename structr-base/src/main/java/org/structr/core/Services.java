@@ -372,7 +372,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// ~150 times per build on a schema nothing had migrated, and the concurrent schema
 		// churn made Neo4j abandon query compilation now and then. Migration is still
 		// exercised under test where it matters, on deployment import via DeployCommand.
-		if (!isTesting()) {
+		if (!isTesting() && !MigrationService.isDisabled()) {
 
 			try {
 
@@ -382,6 +382,17 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				logger.error("Database migration failed, aborting startup.", fex);
 				System.exit(3);
+			}
+
+			// A dry run rolls its changes back, which leaves the compiled schema in memory out of step
+			// with the database, so the instance must not go on to serve anything. This is a completed
+			// diagnostic run, not a failure, hence the ordinary exit code.
+			if (MigrationService.isDryRun()) {
+
+				logger.info("Migration dry run finished, nothing was changed. Set {} to 'apply' to migrate for real.",
+					Settings.MigrationMode.getKey());
+
+				System.exit(0);
 			}
 		}
 
