@@ -49,6 +49,10 @@ import java.util.regex.Pattern;
  * The judgement is deliberately conservative: only literal arguments can be judged. As soon as an
  * argument is an expression, what it evaluates to is unknown, and rewriting it would risk moving a
  * value into the wrong option.
+ *
+ * A call inside commented out code is migrated too. That is deliberate: the rewrite works on the text,
+ * and a commented call is usually one that gets uncommented later, at which point it should be correct
+ * rather than a call that fails against the 7.0 signature.
  */
 public class OutboundHttpCallMigrationHandler {
 
