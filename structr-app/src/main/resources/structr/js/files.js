@@ -25,7 +25,6 @@ let _Files = {
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate,includeInFrontendExport',
 	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers,parentId,includeInFrontendExport',
 	currentWorkingDir: undefined,
-	fileUploadList: undefined,
 	chunkSize: 1024 * 64,
 	fileSizeLimit: 1024 * 1024 * 1024,
 	activeFileId: undefined,
@@ -78,6 +77,7 @@ let _Files = {
 	getFilesTree: () => $('#file-tree'),
 	getFilesMainElement: () => $('#files-main'),
 	getFolderContentsElement: () => document.querySelector('#folder-contents'),
+	getFolderContentsHeaderElement: () => document.querySelector('#folder-contents-header'),
 	onload: () => {
 
 		Structr.setMainContainerHTML(_Files.templates.main());
@@ -103,6 +103,8 @@ let _Files = {
 			let addFileButton    = Structr.functionBar.querySelector('#add-file-button');
 			let folderTypeSelect = Structr.functionBar.querySelector('select#folder-type');
 			let addFolderButton  = Structr.functionBar.querySelector('#add-folder-button');
+			let fileUploadButton = Structr.functionBar.querySelector('#file-upload-button');
+			let fileUploadInput  = Structr.functionBar.querySelector('#file-upload-input');
 
 			addFileButton.addEventListener('click', () => {
 				Command.create({
@@ -118,6 +120,11 @@ let _Files = {
 					parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
 				});
 			});
+
+			fileUploadButton.onclick = () => fileUploadInput.click();
+			fileUploadInput.onchange = () => {
+				_Files.uploadFiles(fileUploadInput.files);
+			};
 
 			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.mountDialog.show);
 
@@ -559,69 +566,62 @@ let _Files = {
 					return;
 				}
 
-				_Files.fileUploadList = event.dataTransfer.files;
-				let filesToUpload = [];
-				let tooLargeFiles = [];
-
-				for (let file of _Files.fileUploadList) {
-
-					if (file.size <= _Files.fileSizeLimit) {
-						filesToUpload.push(file);
-					} else {
-						tooLargeFiles.push(file);
-					}
-				}
-
-				if (filesToUpload.length < _Files.fileUploadList.length) {
-
-					let errorText = `
-						The following files are too large (limit ${_Files.fileSizeLimit / (1024 * 1024)} Mbytes):<br>
-						${tooLargeFiles.map(tooLargeFile => `<b>${tooLargeFile.name}</b>: ${Math.round(tooLargeFile.size / (1024 * 1024))} Mbytes<br>`).join('')}
-					`;
-
-					new ErrorMessage().text(errorText).title('File(s) too large for upload').requiresConfirmation().show();
-				}
-
-				for (let fileToUpload of filesToUpload) {
-
-					fileToUpload.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
-					fileToUpload.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
-
-					Command.createFile(fileToUpload, (createdFileNode) => {
-						fileToUpload.id = createdFileNode.id;
-						_Files.uploadFile(createdFileNode);
-					});
-				}
+				_Files.uploadFiles(event.dataTransfer.files);
 
 				return false;
 			});
 		}
 	},
-	uploadFile: (file) => {
+	uploadFiles: (fileList) => {
 
-		let worker = new Worker('js/upload-worker.js');
-		worker.onmessage = function(e) {
+		let filesToUpload = [];
+		let tooLargeFiles = [];
+		let parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 
-			let binaryContent = e.data;
-			let fileSize      = e.data.byteLength;
-			let node          = Structr.node(file.id);
-			node.find('.size').text(fileSize);
+		for (let file of fileList) {
 
-			// keep this code identical to "updateTextFile" code to ensure functionality
-			let chunks = Math.ceil(fileSize / _Files.chunkSize);
-
-			for (let c = 0; c < chunks; c++) {
-				let start = c * _Files.chunkSize;
-				let end   = (c + 1) * _Files.chunkSize;
-				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
-				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks);
+			if (file.size <= _Files.fileSizeLimit) {
+				filesToUpload.push(file);
+			} else {
+				tooLargeFiles.push(file);
 			}
-		};
+		}
 
-		for (let fileObj of _Files.fileUploadList) {
-			if (file.id === fileObj.id) {
-				worker.postMessage(fileObj);
-			}
+		if (filesToUpload.length < fileList.length) {
+
+			let errorText = `
+				The following files are too large (limit ${_Files.fileSizeLimit / (1024 * 1024)} Mbytes):<br>
+				${tooLargeFiles.map(tooLargeFile => `<b>${tooLargeFile.name}</b>: ${Math.round(tooLargeFile.size / (1024 * 1024))} Mbytes<br>`).join('')}
+			`;
+
+			new ErrorMessage().text(errorText).title('File(s) too large for upload').requiresConfirmation().show();
+		}
+
+		for (let fileToUpload of filesToUpload) {
+
+			fileToUpload.parentId = parentId;
+			fileToUpload.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
+
+			Command.createFile(fileToUpload, (createdFileNode) => {
+				fileToUpload.id = createdFileNode.id;
+
+				let worker = new Worker('js/upload-worker.js');
+				worker.onmessage = function(e) {
+
+					let binaryContent = e.data;
+					let fileSize      = e.data.byteLength;
+					let node          = Structr.node(createdFileNode.id);
+					node.find('.size').text(fileSize);
+
+					_Files.handleChunkedUpload(createdFileNode, binaryContent, fileSize, null);
+				};
+
+				for (let fileObj of filesToUpload) {
+					if (createdFileNode.id === fileObj.id) {
+						worker.postMessage(fileObj);
+					}
+				}
+			});
 		}
 	},
 	updateTextFile: (file, text, finishCallback) => {
@@ -633,17 +633,19 @@ let _Files = {
 		} else {
 
 			let binaryContent = new TextEncoder().encode(text);
-			let byteLength    = binaryContent.length;
 
-			// keep this code identical to "uploadFile" code to ensure functionality
-			let chunks = Math.ceil(byteLength / _Files.chunkSize);
+			_Files.handleChunkedUpload(file, binaryContent, binaryContent.length, finishCallback);
+		}
+	},
+	handleChunkedUpload: (targetFile, binaryContent, byteLength, finishCallback) => {
 
-			for (let c = 0; c < chunks; c++) {
-				let start = c * _Files.chunkSize;
-				let end   = (c + 1) * _Files.chunkSize;
-				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
-				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback : undefined));
-			}
+		let chunks = Math.ceil(byteLength / _Files.chunkSize);
+
+		for (let c = 0; c < chunks; c++) {
+			let start = c * _Files.chunkSize;
+			let end   = (c + 1) * _Files.chunkSize;
+			let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
+			Command.chunk(targetFile.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback?.() : undefined));
 		}
 	},
 	loadAndSetWorkingDir: async () => {
@@ -729,23 +731,25 @@ let _Files = {
 	},
 	updateFunctionBarStatus: () => {
 
-		let addFolderButton   = document.getElementById('add-folder-button');
-		let addFileButton     = document.getElementById('add-file-button');
-		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
+		let addFolderButton   = Structr.functionBar.querySelector('#add-folder-button');
+		let addFileButton     = Structr.functionBar.querySelector('#add-file-button');
+		let mountDialogButton = Structr.functionBar.querySelector('#mount-folder-dialog-button');
+		let fileUploadButton  = Structr.functionBar.querySelector('#file-upload-button');
 
-		_Helpers.disableElements((_Files.helpers.isDisplayingFavorites() === true), addFolderButton, addFileButton, mountDialogButton);
+		_Helpers.disableElements((_Files.helpers.isDisplayingFavorites() === true), addFolderButton, addFileButton, mountDialogButton, fileUploadButton);
 	},
 	displayFolderContents: (id, parentId, nodePath, parents) => {
 
 		_Helpers.fastRemoveAllChildren(_Files.getFolderContentsElement());
+		_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
+			<div class="flex items-center justify-between" id="folder-contents-header"></div>
+		`);
 
 		LSWrapper.setItem(_Files.filesLastOpenFolderKey, id);
 
 		let isRootFolder           = (id === _Files.rootFolderName);
 		let parentIsRoot           = (parentId === '#');
 		let listModeActive         = _Files.isViewModeActive('list');
-
-		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		// store current folder id so we can filter slow requests
 		_Files.getFolderContentsElement().dataset['currentFolder'] = id;
@@ -800,7 +804,7 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleFileChildren, null, _Files.defaultFileAttributes, true, true);
+			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsHeaderElement(), false, 'File', 'public', handleFileChildren, null, _Files.defaultFileAttributes, true, true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = filesPager.el.querySelectorAll('.node.file');
@@ -859,6 +863,8 @@ let _Files = {
 				});
 			}
 		}
+
+		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 	},
 	insertBreadCrumbNavigation: (parents, nodePath, id) => {
 
@@ -899,8 +905,8 @@ let _Files = {
 
 		let checkmark = _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2');
 
-		_Files.getFolderContentsElement().insertAdjacentHTML('afterbegin',`
-			<div id="switches" class="absolute flex top-6 right-2">
+		_Files.getFolderContentsHeaderElement().insertAdjacentHTML('beforeend',`
+			<div id="switches" class="flex">
 				<button class="switch ${(_Files.isViewModeActive('list') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-list" data-view-mode="list">${(_Files.isViewModeActive('list') ? checkmark : '')} List</button>
 				<button class="switch ${(_Files.isViewModeActive('tiles') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-tiles" data-view-mode="tiles">${(_Files.isViewModeActive('tiles') ? checkmark : '')} Tiles</button>
 				<button class="switch ${(_Files.isViewModeActive('img') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-img" data-view-mode="img">${(_Files.isViewModeActive('img') ? checkmark : '')} Images</button>
@@ -2286,6 +2292,12 @@ let _Files = {
 					<button class="mount_folder button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="mount-folder-dialog-button">
 						${_Icons.getSvgIcon(_Icons.iconMountedFolderOpen, 16, 16, ['mr-2'])}
 						Mount Folder
+					</button>
+
+					<input id="file-upload-input" type="file" hidden multiple>
+					<button id="file-upload-button" class="upload-files button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconFileUpload, 16, 16, ['mr-2'])}
+						Upload File(s)
 					</button>
 				</div>
 			</div>
