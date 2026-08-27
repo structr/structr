@@ -998,21 +998,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 					// initialization callback
 					service.initialized();
 
-					// A NodeService starting after the initialization callbacks have already run means they ran
-					// against whichever database was active then, not this one. On a first boot that was the
-					// in-memory graph the instance comes up on when there is no configuration file yet, so
-					// anything a callback seeded went away with it, silently: the symptom surfaces much later
-					// as a missing resource access grant, which reads as a security misconfiguration rather
-					// than a startup ordering problem. Callbacks that seed data ask to run again here.
-					if (NodeService.class.equals(serviceClass) && initializationDone) {
-
-						logger.info("{} was (re)started after initialization. Running the initialization callbacks "
-							+ "that asked to run again, so data seeded into the previous database is seeded into this "
-							+ "one as well.", serviceClass.getSimpleName());
-
-						runInitializationCallbacks(true);
-					}
-
 					// abort wait and retry loop
 					waitAndRetry = false;
 
@@ -1395,6 +1380,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	public ServiceResult activateService(final Class type, final String name) throws FrameworkException {
 
+		boolean seedIntoNewDatabase = false;
+
 		try {
 
 			reloading.writeLock().lock();
@@ -1410,11 +1397,34 @@ public class Services implements StructrServices, BroadcastReceiver {
 				SchemaService.reloadSchema(new ErrorBuffer(), null, true, false);
 			}
 
+			// A NodeService activated after the initialization callbacks have already run means they ran
+			// against whichever database was active then, not this one. On a first boot that was the
+			// in-memory graph the instance comes up on when there is no configuration file yet, so anything
+			// a callback seeded went away with it, silently: the symptom surfaces much later as a missing
+			// resource access grant, which reads as a security misconfiguration rather than a startup
+			// ordering problem. Callbacks that seed data ask to run again, below.
+			seedIntoNewDatabase = NodeService.class.equals(type) && initializationDone && result.isSuccess();
+
 			return result;
 
 		} finally {
 
 			reloading.writeLock().unlock();
+
+			// AFTER the unlock, and deliberately so. A re-run callback exists to seed data, so it opens a
+			// transaction, and getDatabaseService() takes the read lock of the very lock held above. Running
+			// the callbacks any earlier - inside startService, where this used to live - parks the callback
+			// thread on a read lock that cannot be granted while this thread holds the write lock, and this
+			// thread then waits forever for the callbacks it just submitted. Still synchronous, so the
+			// caller that activated the database cannot observe it half seeded.
+			if (seedIntoNewDatabase) {
+
+				logger.info("{} was activated after initialization. Running the initialization callbacks that "
+					+ "asked to run again, so data seeded into the previous database is seeded into this one "
+					+ "as well.", type.getSimpleName());
+
+				runInitializationCallbacks(true);
+			}
 		}
 	}
 
