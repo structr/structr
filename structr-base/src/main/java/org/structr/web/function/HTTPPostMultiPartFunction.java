@@ -66,11 +66,14 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 			final String uri                = sources[0].toString();
 			final Map<String, Object> parts = (HashMap) sources[1];
-			final String contentType        = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final Map<String, Object> responseData = this.postMultiPart(uri, parts, ctx.getHeaders(), ctx.isValidateCertificates());
-			final GraphObjectMap response = processResponseData(ctx, caller, responseData, contentType);
+			final HttpOptions options       = HttpOptions.from("POSTMultiPart", sources, 2).accepting("POSTMultiPart", HttpOptions.PARSE_RESPONSE);
 
-			return response;
+			// no contentType parameter: a multipart request builds its own Content-Type, including the
+			// boundary, so naming one here could only conflict with it
+			final Map<String, Object> responseData = this.postMultiPart(uri, parts, options.mergeHeaders(ctx.getHeaders()),
+				options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()));
+
+			return processResponseData(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -167,7 +170,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url, partsMap [, responseContentType]");
+		return Signature.forAllScriptingLanguages("url, partsMap [, options ]");
 	}
 
 	@Override
@@ -176,7 +179,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("partsMap", "map with multipart parts (type, content)"),
-			Parameter.optional("responseContentType", "expected content type of the response body")
+			Parameter.optional("options", "object with optional settings: `headers` merged over add_header(), `validateCertificates`, `parseResponse` to parse the response body as JSON")
 		);
 	}
 
@@ -184,8 +187,8 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${POSTMultiPart(URL, partsMap [, responseContentType])}. Example: ${POSTMultiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
-			Usage.javaScript("Usage: ${{ $.POSTMultiPart(URL, partsMap[, responseContentType]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
+			Usage.structrScript("Usage: ${POSTMultiPart(url, partsMap [, options ])}. Example: ${POSTMultiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
+			Usage.javaScript("Usage: ${{ $.POSTMultiPart(url, partsMap [, options ]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
 		);
 	}
 
@@ -209,7 +212,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			headers | Response headers | Map |
 			body | Response body | Map or String |
 
-			The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.
+			The options object accepts `headers`, `validateCertificates` and `parseResponse`. A multipart request builds its own Content-Type, including the boundary, so there is no contentType parameter.
 			""";
 	}
 

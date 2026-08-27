@@ -55,42 +55,21 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final String url     = sources[0].toString();
-			final String method  = sources[1].toString();
-			final String body    = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
-			final String charset = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : "UTF-8";
-			boolean followRedirects = false;
-			Integer timeout         = null;
+			final String url          = sources[0].toString();
+			final String method       = sources[1].toString();
+			final String body         = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
+			final String contentType  = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : null;
+			final HttpOptions options = HttpOptions.from("FETCH", sources, 4).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
 
-			if (sources.length >= 5 && sources[4] != null && sources[4] instanceof Map) {
+			final String charset               = HttpOptions.charsetOf(contentType, "UTF-8");
+			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
+			final Integer timeout              = options.getTimeoutMillis();
 
-				final Map<String, Object> config = (Map<String, Object>) sources[4];
-				if (Boolean.TRUE.equals(config.get("redirects"))) {
+			final Map<String, Object> responseData = HttpHelper.fetch(url, method, body, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
+				headers, charset, validateCertificates, options.getBoolean(HttpOptions.REDIRECTS, false), timeout, contentType);
 
-					followRedirects = true;
-				}
-
-				if (config.containsKey("timeout") && config.get("timeout") instanceof Number) {
-
-					timeout = ((Number) config.get("timeout")).intValue() * 1000;
-				}
-			}
-
-			final Map<String, Object> responseData = HttpHelper.fetch(url, method, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates(), followRedirects, timeout);
-			final GraphObjectMap response = new GraphObjectMap();
-
-			response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
-
-			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null
-					? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
-			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
-
-			if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
-
-				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
-			}
-
-			return response;
+			return buildResponse(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -103,7 +82,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url, method [, body, charset, configMap ]");
+		return Signature.forAllScriptingLanguages("url, method [, body [, contentType [, options ]]]");
 	}
 
 	@Override
@@ -113,15 +92,15 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("method", "HTTP method (GET, POST, PUT, DELETE, PATCH, PROPFIND, MKCOL, MOVE, COPY, etc.)"),
 			Parameter.optional("body", "request body"),
-			Parameter.optional("charset", "charset of the request body (default: UTF-8)"),
-			Parameter.optional("configMap", "JSON object for request configuration, supports `timeout` in seconds, `redirects` with true or false")
+			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON")
 		);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${FETCH(url, method [, body, charset, configMap])}"), Usage.javaScript("Usage: $.FETCH(url, method [, body, charset, configMap])"));
+		return List.of(Usage.structrScript("Usage: ${FETCH(url, method [, body [, contentType [, options ]]])}"), Usage.javaScript("Usage: $.FETCH(url, method [, body [, contentType [, options ]]])"));
 	}
 
 	@Override
@@ -182,7 +161,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 			Authentication is handled via `addHeader()`, just like the other HTTP functions.
 
-			The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. `{ timeout: 60, redirects: true }`). By default there is no timeout and redirects are not followed.
+			The options object configures everything else, for example `{ timeout: 60, redirects: true }`. The timeout is given in seconds; by default there is no timeout and redirects are not followed.
 			""";
 	}
 
