@@ -701,6 +701,11 @@
                                 </goals>
                                 <configuration>
                                     <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
+                                    <!-- Remove the container's anonymous volumes along with it. The test database
+                                         writes ~400MB per run into one, and without this every run leaves it
+                                         behind: 98 of them had accumulated over three weeks. Only affects volumes
+                                         of the container this plugin started, and never named ones. -->
+                                    <removeVolumes>true</removeVolumes>
                                 </configuration>
                             </execution>
                         </executions>
