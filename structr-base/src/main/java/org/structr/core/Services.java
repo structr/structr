@@ -627,8 +627,20 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private void runInitializationCallbacks() {
 
-		// only run initialization callbacks if Structr was started with
-		// a configuration file, i.e. when this is NOT this first start.
+		runInitializationCallbacks(false);
+	}
+
+	/**
+	 * @param rerunOnly run only the callbacks that asked to run again after the database changed
+	 */
+	private void runInitializationCallbacks(final boolean rerunOnly) {
+
+		// Runs once per JVM, from initialize(), whether or not a configuration file existed at startup.
+		// The guard this comment used to describe (if (hasConfigFile)) was removed in 2017 together with
+		// the field, when Structr gained the ability to start from defaults without a structr.conf, and
+		// there is deliberately no replacement: skipping the callbacks on a first start would mean they
+		// never run at all. Note that a callback which writes to the graph on a first boot writes to the
+		// in-memory database, and loses it when NodeService restarts onto the configured one.
 		try {
 
 			final ExecutorService service = Executors.newSingleThreadExecutor();
@@ -641,6 +653,11 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 					// call initialization callbacks from a different thread
 					for (final InitializationCallback callback : singletonInstance.callbacks) {
+
+						if (rerunOnly && !callback.rerunAfterDatabaseChange()) {
+
+							continue;
+						}
 
 						callback.initializationDone();
 					}
@@ -980,6 +997,21 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 					// initialization callback
 					service.initialized();
+
+					// A NodeService starting after the initialization callbacks have already run means they ran
+					// against whichever database was active then, not this one. On a first boot that was the
+					// in-memory graph the instance comes up on when there is no configuration file yet, so
+					// anything a callback seeded went away with it, silently: the symptom surfaces much later
+					// as a missing resource access grant, which reads as a security misconfiguration rather
+					// than a startup ordering problem. Callbacks that seed data ask to run again here.
+					if (NodeService.class.equals(serviceClass) && initializationDone) {
+
+						logger.info("{} was (re)started after initialization. Running the initialization callbacks "
+							+ "that asked to run again, so data seeded into the previous database is seeded into this "
+							+ "one as well.", serviceClass.getSimpleName());
+
+						runInitializationCallbacks(true);
+					}
 
 					// abort wait and retry loop
 					waitAndRetry = false;
