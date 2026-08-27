@@ -39,6 +39,7 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.PathHelper;
 import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.DefaultCredentialsCheck;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
@@ -406,6 +407,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 		setOverridingSchemaTypesAllowed(false);
 
 		initializationDone = true;
+
+		// Reports admin accounts left on the default password. Registered here rather than at the point the
+		// initial user is created, because the exposure outlives the creation by the life of the instance.
+		registerInitializationCallback(new DefaultCredentialsCheck());
 
 		// run initialization callbacks
 		runInitializationCallbacks();

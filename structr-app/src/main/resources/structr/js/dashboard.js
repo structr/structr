@@ -95,15 +95,24 @@ let _Dashboard = {
 				});
 			}
 
-			// Display security warnings if there are any
+			// Display security warnings if there are any. Accumulated rather than exclusive: there can be
+			// more than one, and an if/else would hide every warning after the first.
 			let securityWarningsCell = document.querySelector('#security-warnings');
+			let securityWarningShown = false;
+
 			if (dashboardUiConfig.envInfo.dashboardInfo?.configFileInfo?.permissionsOk === false) {
 
-				let warningEl = _Helpers.createSingleDOMElementFromHTML(_Dashboard.templates.tabContentAboutStructrSecurity( dashboardUiConfig.envInfo.dashboardInfo.configFileInfo ));
+				securityWarningsCell.appendChild(_Helpers.createSingleDOMElementFromHTML(_Dashboard.templates.tabContentAboutStructrSecurity( dashboardUiConfig.envInfo.dashboardInfo.configFileInfo )));
+				securityWarningShown = true;
+			}
 
-				securityWarningsCell.appendChild(warningEl);
+			if (dashboardUiConfig.envInfo.defaultCredentialsInUse === true) {
 
-			} else {
+				securityWarningsCell.appendChild(_Helpers.createSingleDOMElementFromHTML(_Dashboard.templates.tabContentAboutStructrSecurityDefaultCredentials()));
+				securityWarningShown = true;
+			}
+
+			if (!securityWarningShown) {
 
 				securityWarningsCell.textContent = 'No warnings';
 			}
@@ -2175,6 +2184,12 @@ let _Dashboard = {
 					${config?.actualPermissions}
 				</div>
 				<p>It is strongly recommended to change these permissions to the expected permissions.</p>
+			</div>
+		`,
+		tabContentAboutStructrSecurityDefaultCredentials: () => `
+			<div>
+				<div class="flex items-center mb-4 font-bold">${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')} Warning: An administrator account still uses the default password.</div>
+				<p>Anyone who can reach this instance can log in as an administrator. Change the password now, and set <code>initialuser.password</code> in structr.conf before provisioning further instances.</p>
 			</div>
 		`
 	}
