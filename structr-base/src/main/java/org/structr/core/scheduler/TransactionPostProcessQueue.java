@@ -24,10 +24,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class TransactionPostProcessQueue {
 
 	private final Queue<Runnable> processQueue;
+	private final Queue<Runnable> commitQueue;
 
 	public TransactionPostProcessQueue() {
 
 		this.processQueue = new ConcurrentLinkedQueue<>();
+		this.commitQueue  = new ConcurrentLinkedQueue<>();
 	}
 
 	public void queueProcess(final Runnable runnable) {
@@ -40,7 +42,18 @@ public class TransactionPostProcessQueue {
 		return this.processQueue;
 	}
 
-	public void applyProcessQueue() {
+	/**
+	 * Work that only makes sense once the transaction actually committed.
+	 *
+	 * A procedure in the other queue runs either way, which is right for cleanup but wrong for anything
+	 * that records a fact about the transaction: on a rollback there is no fact to record.
+	 */
+	public void queueCommitProcess(final Runnable runnable) {
+
+		this.commitQueue.add(runnable);
+	}
+
+	public void applyProcessQueue(final boolean committed) {
 
 		for (final Runnable func : processQueue) {
 
@@ -48,6 +61,18 @@ public class TransactionPostProcessQueue {
 		}
 
 		processQueue.clear();
+
+		if (committed) {
+
+			for (final Runnable func : commitQueue) {
+
+				func.run();
+			}
+		}
+
+		// cleared in both cases: a procedure that was not run because the transaction rolled back is
+		// not pending, it is cancelled
+		commitQueue.clear();
 	}
 
 }
