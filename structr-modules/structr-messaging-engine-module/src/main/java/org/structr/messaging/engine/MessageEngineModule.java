@@ -50,6 +50,7 @@ import org.structr.module.StructrModule;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -240,7 +241,7 @@ public class MessageEngineModule implements StructrModule {
 			tx.success();
 		}
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(messagingEngineFile.toFile()))) {
+		try (final Writer fos = Files.newBufferedWriter(messagingEngineFile, StandardCharsets.UTF_8)) {
 
 			gson.toJson(entities, fos);
 
