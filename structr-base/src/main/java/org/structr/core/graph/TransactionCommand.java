@@ -682,6 +682,24 @@ public class TransactionCommand {
 	}
 
 	// ----- private methods -----
+	/**
+	 * Whether the transaction on this thread has recorded any change yet.
+	 *
+	 * Used by a dry run to tell "this step would have changed something" from "this step found nothing
+	 * to do", without every step having to report it for itself.
+	 */
+	public static boolean currentTransactionHasChanges() {
+
+		final TransactionCommand command = commands.get();
+
+		if (command == null || command.queue == null) {
+
+			return false;
+		}
+
+		return command.queue.hasChanges();
+	}
+
 	private ModificationQueue getModificationQueue() {
 
 		return queue;
