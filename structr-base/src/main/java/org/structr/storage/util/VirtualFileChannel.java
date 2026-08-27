@@ -18,6 +18,14 @@
  */
 package org.structr.storage.util;
 
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 
@@ -171,7 +179,48 @@ public class VirtualFileChannel extends FileChannel {
 
 		if (actualFile != null) {
 
-			actualFile.as(File.class).notifyUploadCompletion();
+			if (TransactionCommand.inTransaction()) {
+
+				// The bytes have already reached the storage provider, which no rollback can reach. The
+				// metadata update must not join the caller's transaction: if that one rolls back, it takes
+				// size, version and checksum with it and leaves the node describing a file that is not
+				// there, without an error anywhere. Deferring past the commit makes the record conditional
+				// on the caller's own work having stuck.
+				final String id = actualFile.getUuid();
+
+				TransactionCommand.queuePostCommitProcedure(() -> notifyUploadCompletion(id));
+
+			} else {
+
+				actualFile.as(File.class).notifyUploadCompletion();
+			}
+		}
+	}
+
+	/**
+	 * Resolves the file again and records what the storage provider now holds.
+	 *
+	 * By uuid rather than by holding on to the node: this runs in a transaction of its own, after the one
+	 * the node was read in has been closed.
+	 */
+	private static void notifyUploadCompletion(final String id) {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.getNodeById(StructrTraits.FILE, id);
+
+			if (node != null) {
+
+				node.as(File.class).notifyUploadCompletion();
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			LoggerFactory.getLogger(VirtualFileChannel.class).warn("Unable to update metadata of file {} after closing its channel: {}", id, fex.getMessage());
 		}
 	}
 }
