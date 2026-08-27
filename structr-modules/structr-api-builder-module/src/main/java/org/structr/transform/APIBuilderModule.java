@@ -43,6 +43,7 @@ import org.structr.transform.traits.relationship.VirtualTypevirtualPropertyVirtu
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -142,7 +143,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 			tx.success();
 		}
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(virtualTypesFile.toFile()))) {
+		try (final Writer fos = Files.newBufferedWriter(virtualTypesFile, StandardCharsets.UTF_8)) {
 
 			gson.toJson(virtualTypes, fos);
 
