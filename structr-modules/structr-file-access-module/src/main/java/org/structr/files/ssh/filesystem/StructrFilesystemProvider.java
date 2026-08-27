@@ -33,6 +33,15 @@ import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 
 /**
  *
@@ -41,32 +50,93 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrFilesystemProvider.class.getName());
 
-	@Override
-	public synchronized String getScheme() {
+	/**
+	 * The URI scheme this provider answers to, as in structr:///path/to/file.
+	 *
+	 * The authority names the user the filesystem acts as: structr://alice/ is Alice's view of the
+	 * virtual filesystem, structr:/// is the superuser's. Two filesystems for different users are
+	 * separate instances, because the SecurityContext is what decides which files are visible at all.
+	 */
+	public static final String SCHEME = "structr";
 
-		logger.warn("NOT SUPPORTED: getScheme");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	/** The env key for handing in a SecurityContext directly, instead of naming a user in the URI. */
+	public static final String SECURITY_CONTEXT_KEY = "securityContext";
+
+	/**
+	 * The filesystems created through newFileSystem, by user name.
+	 *
+	 * The JDK creates exactly one provider instance per installed provider and keeps it for the life of
+	 * the VM, so this map is the registry the FileSystems facade looks into. It is not a cache that may
+	 * be dropped: getFileSystem must return the same instance newFileSystem returned, or a Path created
+	 * from one would not be equal to a Path created from the other.
+	 */
+	private final Map<String, StructrFilesystem> filesystems = new ConcurrentHashMap<>();
+
+	@Override
+	public String getScheme() {
+
+		return SCHEME;
 	}
 
 	@Override
-	public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
+	public FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
 
-		logger.warn("NOT SUPPORTED: newFileSystem {}, {}", uri, env );
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final String user = userOf(uri);
+
+		// computeIfAbsent would hide an existing filesystem, and the contract is to reject one
+		synchronized (filesystems) {
+
+			if (filesystems.containsKey(user)) {
+
+				throw new FileSystemAlreadyExistsException(uri.toString());
+			}
+
+			final StructrFilesystem fs = new StructrFilesystem(securityContextFor(user, env), this, user);
+
+			filesystems.put(user, fs);
+
+			return fs;
+		}
 	}
 
 	@Override
-	public synchronized FileSystem getFileSystem(final URI uri) {
+	public FileSystem getFileSystem(final URI uri) {
 
-		logger.warn("NOT SUPPORTED: getFileSystem {}", uri );
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final FileSystem fs = filesystems.get(userOf(uri));
+
+		if (fs == null) {
+
+			throw new FileSystemNotFoundException(uri.toString());
+		}
+
+		return fs;
 	}
 
 	@Override
-	public synchronized Path getPath(URI uri) {
+	public Path getPath(final URI uri) {
 
-		logger.warn("NOT SUPPORTED: getPath {}", uri );
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final String path = uri.getPath();
+
+		if (path == null || !path.startsWith(StructrPath.ROOT_DIRECTORY)) {
+
+			throw new IllegalArgumentException("Expected an absolute path in " + uri + ", for example " + SCHEME + ":///dir/file.txt");
+		}
+
+		// unlike getFileSystem, this creates the filesystem on demand: Paths.get(URI) is the entry point
+		// for code that only has a URI, and requiring a newFileSystem call first would make every caller
+		// carry the same two lines
+		return fileSystemFor(userOf(uri), null).getPath(path);
+	}
+
+	/**
+	 * The filesystem for the given user, created if it does not exist yet.
+	 *
+	 * This is the entry point for code inside Structr, which has a SecurityContext in hand and no reason
+	 * to build a URI for it.
+	 */
+	public StructrFilesystem fileSystemFor(final String user, final Map<String, ?> env) {
+
+		return filesystems.computeIfAbsent(user, key -> new StructrFilesystem(securityContextFor(key, env), this, key));
 	}
 
 	@Override
@@ -118,17 +188,18 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 	}
 
 	@Override
-	public synchronized boolean isHidden(Path path) throws IOException {
+	public boolean isHidden(final Path path) throws IOException {
 
-		logger.warn("NOT SUPPORTED: isHidden {}", path );
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final Path name = path.getFileName();
+
+		// the Unix rule, which is the one this filesystem's paths follow
+		return name != null && name.toString().startsWith(".");
 	}
 
 	@Override
-	public synchronized FileStore getFileStore(Path path) throws IOException {
+	public FileStore getFileStore(final Path path) throws IOException {
 
-		logger.warn("NOT SUPPORTED: getFileStore {}", path );
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return ((StructrFilesystem)checkPath(path).getFileSystem()).getFileStore();
 	}
 
 	@Override
@@ -168,7 +239,66 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 		checkPath(path).setAttribute(attribute, value, options);
 	}
 
-	// ----- protected methods -----
+	// ----- private methods -----
+	/**
+	 * The user name in the authority of the URI, or the empty string for the superuser.
+	 *
+	 * The empty string is a real key rather than a null: it keeps the superuser filesystem in the same
+	 * map as the others, so there is one lookup path instead of two.
+	 */
+	private String userOf(final URI uri) {
+
+		if (uri == null || !SCHEME.equalsIgnoreCase(uri.getScheme())) {
+
+			throw new IllegalArgumentException("Expected a URI with scheme '" + SCHEME + "', got " + uri);
+		}
+
+		final String authority = uri.getAuthority();
+
+		return authority != null ? authority : "";
+	}
+
+	/**
+	 * The SecurityContext a filesystem acts under.
+	 *
+	 * A context handed in through the env map wins: the caller already knows who it is acting as, and
+	 * resolving a name to a user again could only get it wrong. Otherwise the name is looked up, and an
+	 * empty name is the superuser.
+	 */
+	private SecurityContext securityContextFor(final String user, final Map<String, ?> env) {
+
+		if (env != null && env.get(SECURITY_CONTEXT_KEY) instanceof SecurityContext ctx) {
+
+			return ctx;
+		}
+
+		if (StringUtils.isBlank(user)) {
+
+			return SecurityContext.getSuperUserInstance();
+		}
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(user).getFirst();
+
+			if (node == null) {
+
+				throw new IllegalArgumentException("No such user: " + user);
+			}
+
+			final Principal principal      = node.as(Principal.class);
+			final SecurityContext instance = SecurityContext.getInstance(principal, principal.isAdmin() ? org.structr.common.AccessMode.Backend : org.structr.common.AccessMode.Frontend);
+
+			tx.success();
+
+			return instance;
+
+		} catch (FrameworkException fex) {
+
+			throw new IllegalArgumentException("Unable to resolve user " + user + ": " + fex.getMessage(), fex);
+		}
+	}
+
 	private StructrPath checkPath(final Path obj) {
 
 		if (obj == null) {

@@ -42,6 +42,8 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.InputStream;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -285,7 +287,27 @@ public class StructrFilePath extends StructrPath {
 	@Override
 	public void copy(final Path target, final CopyOption... options) throws IOException {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final NodeInterface thisFile = getActualFile();
+
+		if (thisFile == null) {
+
+			throw new NoSuchFileException(toString());
+		}
+
+		final Set<CopyOption> optionSet = Set.of(options);
+
+		if (!optionSet.contains(StandardCopyOption.REPLACE_EXISTING) && Files.exists(target)) {
+
+			throw new FileAlreadyExistsException(target.toString());
+		}
+
+		// through the channels rather than by duplicating the node: the bytes may live in any storage
+		// provider, and the target may not even be on this filesystem
+		try (final InputStream in = Files.newInputStream(this);
+		     final OutputStream out = Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+
+			in.transferTo(out);
+		}
 	}
 
 	@Override
@@ -336,7 +358,38 @@ public class StructrFilePath extends StructrPath {
 	@Override
 	public boolean isSameFile(final Path path2) throws IOException {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (!(path2 instanceof StructrFilePath) || !path2.getFileSystem().equals(fs)) {
+
+			return false;
+		}
+
+		// the node behind the path, not the path itself: two different paths can name one file, and
+		// answering from the strings alone would miss that
+		final NodeInterface thisFile  = getActualFile();
+		final NodeInterface otherFile = ((StructrFilePath)path2).getActualFile();
+
+		if (thisFile != null && otherFile != null) {
+
+			return thisFile.getUuid().equals(otherFile.getUuid());
+		}
+
+		// neither exists yet: fall back to the paths, which is all there is to compare
+		return thisFile == null && otherFile == null && equals(path2);
+	}
+
+	/**
+	 * Existence, which is what Files.exists() actually asks.
+	 *
+	 * Without this the inherited no-op answers "yes" for every path, and a caller writing a file only
+	 * when it is missing never writes it at all.
+	 */
+	@Override
+	public void checkAccess(final AccessMode... modes) throws IOException {
+
+		if (getActualFile() == null) {
+
+			throw new NoSuchFileException(toString());
+		}
 	}
 
 	public NodeInterface getActualFile() {
