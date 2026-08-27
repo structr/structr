@@ -817,6 +817,12 @@ let Structr = {
 				}
 			}
 
+			// Shown at login rather than kept in the chrome: the warning has to reach a person, and the
+			// person arrives at login. Mirrors the in-memory database warning above.
+			if (envInfo.defaultCredentialsInUse === true && isLogin) {
+				new WarningMessage().text(Structr.defaultCredentialsWarningText).requiresConfirmation().show();
+			}
+
 			let deploymentActive = (envInfo.isDeploymentActive ?? false);
 			if (deploymentActive === true) {
 				Structr.handleGenericMessage({
@@ -986,6 +992,7 @@ let Structr = {
 		}
 	},
 	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
+	defaultCredentialsWarningText: "An administrator account on this instance still uses the default password. Anyone who can reach this instance can log in as an administrator. Please change the password now, and set 'initialuser.password' before provisioning further instances.",
 	appendInMemoryInfoToElement: (el) => {
 
 		let config = {
