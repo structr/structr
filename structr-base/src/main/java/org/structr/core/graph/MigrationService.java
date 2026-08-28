@@ -228,9 +228,9 @@ public class MigrationService {
 		return OFF.equals(Settings.MigrationMode.getValue());
 	}
 
-	public static void execute() throws FrameworkException {
+	public static boolean execute() throws FrameworkException {
 
-		execute(isDryRun());
+		return execute(isDryRun());
 	}
 
 	/**
@@ -239,7 +239,9 @@ public class MigrationService {
 	 * The mode is a parameter rather than read from the configuration, so the maintenance command can
 	 * ask for a dry run on an instance configured to apply, and the other way round.
 	 */
-	public static void execute(final boolean reportOnly) throws FrameworkException {
+	public static boolean execute(final boolean reportOnly) throws FrameworkException {
+
+		boolean changesPending = false;
 
 		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
@@ -248,8 +250,9 @@ public class MigrationService {
 			if (reportOnly) {
 
 				logger.info("MigrationService: {} is '{}'. Every step runs and reports what it would change, and the change is rolled back. "
-					+ "Startup stops afterwards: a rolled back schema migration leaves the compiled schema in memory out of step with the "
-					+ "database, so this instance must not go on to serve anything.", Settings.MigrationMode.getKey(), DRY_RUN);
+					+ "If anything would change, startup stops afterwards: a rolled back schema migration leaves the compiled schema in "
+					+ "memory out of step with the database, so this instance must not go on to serve anything.",
+					Settings.MigrationMode.getKey(), DRY_RUN);
 			}
 
 			// A migration is a hard, all-or-nothing operation: if any step fails, the
@@ -293,6 +296,16 @@ public class MigrationService {
 
 							step.action().run(!reportOnly);
 
+							// asked before the rollback, while the queue still holds what the step did. A step
+							// that found nothing to migrate records nothing, and that is what lets an instance
+							// with nothing pending start normally instead of stopping to report no news.
+							if (TransactionCommand.currentTransactionHasChanges()) {
+
+								changesPending = true;
+
+								logger.info("MigrationService: [dry run] {} WOULD CHANGE the database.", step.name());
+							}
+
 							// deliberately no dryRun.success(): everything above is rolled back
 						}
 
@@ -316,6 +329,8 @@ public class MigrationService {
 			}
 
 		}
+
+		return changesPending;
 	}
 
 	public static boolean typeShouldBeRemoved(final String name) {

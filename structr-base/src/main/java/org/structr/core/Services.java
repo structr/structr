@@ -374,9 +374,11 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// exercised under test where it matters, on deployment import via DeployCommand.
 		if (!isTesting() && !MigrationService.isDisabled()) {
 
+			boolean migrationPending = false;
+
 			try {
 
-				MigrationService.execute();
+				migrationPending = MigrationService.execute();
 
 			} catch (FrameworkException fex) {
 
@@ -384,10 +386,12 @@ public class Services implements StructrServices, BroadcastReceiver {
 				System.exit(3);
 			}
 
-			// A dry run rolls its changes back, which leaves the compiled schema in memory out of step
-			// with the database, so the instance must not go on to serve anything. This is a completed
-			// diagnostic run, not a failure, hence the ordinary exit code.
-			if (MigrationService.isDryRun()) {
+			// Only when the dry run actually rolled something back: that is what leaves the compiled schema
+			// in memory out of step with the database, and only then must the instance not go on to serve
+			// anything. A fresh or already migrated instance has nothing pending and starts normally, which
+			// it could not do while this exit was unconditional. A completed diagnostic run is not a
+			// failure, hence the ordinary exit code.
+			if (MigrationService.isDryRun() && migrationPending) {
 
 				logger.info("Migration dry run finished, nothing was changed. Set {} to 'apply' to migrate for real.",
 					Settings.MigrationMode.getKey());
