@@ -280,6 +280,16 @@ public abstract class PolyglotWrapper {
 						return ((PolyglotProxyMap) proxy).getOriginalObject();
 					}
 
+					// A host-side thenable, which today means the pending result of an async function call
+					// that was returned without being awaited. It has to be settled here: handing it back raw
+					// gives the caller an opaque object, and nothing would ever resolve it afterwards. The
+					// check is on then() being *invokable*, so a response that merely has a "then" key is
+					// unaffected -- a value in a map is never executable.
+					if (value.canInvokeMember("then")) {
+
+						return unwrapThenable(actionContext, value);
+					}
+
 					return proxy;
 				}
 
@@ -649,7 +659,17 @@ public abstract class PolyglotWrapper {
 
 		if (settled[1]) {
 
-			final Object reason = outcome[1];
+			Object reason = outcome[1];
+
+			// A rejection that carries a FrameworkException inside a RuntimeException is the shape the
+			// synchronous call path throws, so it is the shape an asynchronous one has to throw for the two
+			// to be indistinguishable. Unwrap one level, or the FrameworkException below is missed and the
+			// script is told its promise "rejected with java.lang.RuntimeException: ...".
+			if (reason instanceof Throwable t && !(t instanceof FrameworkException) && t.getCause() instanceof FrameworkException) {
+
+				reason = t.getCause();
+			}
+
 			if (reason instanceof FrameworkException fex) {
 
 				throw new ThenableFailure(fex);
