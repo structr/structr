@@ -19,8 +19,14 @@
 
 // @ts-check
 import {expect, Locator, Page} from "@playwright/test";
+import {ADMIN_PASSWORD} from "./auth";
 
-export async function initialize(playwright, createData) {
+/**
+ * @param adminPassword the password the admin user is created with. Defaults to a non-default one so the
+ *        instance does not raise a security warning that would cover every screenshot in the suite;
+ *        001-default-credentials passes the built-in default deliberately, to test that warning.
+ */
+export async function initialize(playwright, createData?, adminPassword: string = ADMIN_PASSWORD) {
 
 	const context = await playwright.request.newContext({
 		extraHTTPHeaders: {
@@ -42,7 +48,7 @@ export async function initialize(playwright, createData) {
 	await context.post(process.env.BASE_URL + '/structr/rest/User', {
 		data: JSON.stringify({
 			name: 'admin',
-			password: 'admin',
+			password: adminPassword,
 			isAdmin: true
 		})
 	});
