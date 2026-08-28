@@ -307,6 +307,16 @@ public class Scripting {
 
 				// unwrap() has no throws clause, so a promise it could not resolve -- rejected, or still
 				// pending with nothing left that could settle it -- arrives wrapped in this marker.
+				//
+				// Each of the two failures it may carry has to leave the way the synchronous path lets it
+				// leave, or the status would depend on whether the snippet was wrapped. An AssertException
+				// is not a FrameworkException, so it leaves unchecked, for Actions.execute to convert with
+				// the status $.assert was given -- which is what happens to one thrown outside a promise.
+				if (tfx.getReportedFailure() instanceof AssertException aex) {
+
+					throw aex;
+				}
+
 				throw tfx.getFrameworkException();
 
 			} finally {

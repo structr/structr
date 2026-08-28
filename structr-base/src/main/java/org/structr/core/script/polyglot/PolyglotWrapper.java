@@ -23,7 +23,9 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.JsonException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -677,18 +679,35 @@ public abstract class PolyglotWrapper {
 
 			Object reason = outcome[1];
 
-			// A rejection that carries a FrameworkException inside a RuntimeException is the shape the
-			// synchronous call path throws, so it is the shape an asynchronous one has to throw for the two
-			// to be indistinguishable. Unwrap one level, or the FrameworkException below is missed and the
+			// A rejection that carries the failure inside a RuntimeException is the shape the synchronous
+			// call path throws, so it is the shape an asynchronous one has to throw for the two to be
+			// indistinguishable. Unwrap one level, or the status-carrying branches below are missed and the
 			// script is told its promise "rejected with java.lang.RuntimeException: ...".
-			if (reason instanceof Throwable t && !(t instanceof FrameworkException) && t.getCause() instanceof FrameworkException) {
+			//
+			// The test is JsonException rather than FrameworkException so that a wrapper is never mistaken
+			// for the thing it wraps: anything already carrying a status is left alone, anything merely
+			// holding one is opened.
+			if (reason instanceof Throwable t && !(t instanceof JsonException) && t.getCause() instanceof JsonException) {
 
 				reason = t.getCause();
 			}
 
+			// The two exceptions that carry a status the script author chose are exactly the two
+			// implementors of JsonException, which exists for this and says so: "Common base class for
+			// FrameworkException and AssertException to be able to handle them with the same code."
+			//
+			// Matching only FrameworkException sent every failing $.assert in an unwrapped snippet's promise
+			// to the generic 422 below, stringifying the exception into the message and discarding the code.
+			// Whether Structr wraps a snippet in the async arrow is a choice it makes for the author, so a
+			// status must not depend on it.
 			if (reason instanceof FrameworkException fex) {
 
 				throw new ThenableFailure(fex);
+			}
+
+			if (reason instanceof AssertException aex) {
+
+				throw new ThenableFailure(aex);
 			}
 
 			throw new ThenableFailure(new FrameworkException(422, "Server-side scripting error: promise rejected with "
@@ -720,6 +739,29 @@ public abstract class PolyglotWrapper {
 			super(cause.getMessage(), cause);
 		}
 
+		/**
+		 * An {@link AssertException} carries its own status without being a {@link FrameworkException} --
+		 * the two share {@link JsonException} and nothing else -- so it is carried as itself rather than
+		 * repackaged, which would replace the author's status code with a generic one.
+		 */
+		public ThenableFailure(final AssertException cause) {
+
+			super(cause.getMessage(), cause);
+		}
+
+		/**
+		 * The failure to report, always one of the two {@link JsonException} implementors. Test it before
+		 * calling {@link #getFrameworkException()}, which only covers one of them.
+		 */
+		public Throwable getReportedFailure() {
+
+			return getCause();
+		}
+
+		/**
+		 * @return the carried failure as a {@link FrameworkException}; only valid once
+		 *         {@link #getReportedFailure()} has been shown not to be an {@link AssertException}.
+		 */
 		public FrameworkException getFrameworkException() {
 
 			return (FrameworkException) getCause();

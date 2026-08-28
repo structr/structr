@@ -66,6 +66,28 @@ public class AsyncScriptingTest extends StructrTest {
 		return evaluate(source, false);
 	}
 
+	/**
+	 * Runs a snippet that must fail in the given shape, and asserts the status and message it reports.
+	 * The shape label is in every message, because the point of these assertions is which shape differs.
+	 */
+	private void assertReportsStatus(final String shape, final boolean wrapJsInMain, final int expectedStatus,
+		final String expectedInMessage, final String source) {
+
+		try {
+
+			final Object result = evaluate(source, wrapJsInMain);
+			fail(shape + ": the snippet must raise an exception, but answered " + result);
+
+		} catch (final FrameworkException expected) {
+
+			assertEquals(shape + ": the status code must not depend on the snippet shape",
+				expectedStatus, expected.getStatus());
+
+			assertTrue(shape + ": the message must survive; got: " + expected.getMessage(),
+				expected.getMessage() != null && expected.getMessage().contains(expectedInMessage));
+		}
+	}
+
 	// ----- the wrapper still behaves like the synchronous one it replaced -----
 
 	@Test
@@ -215,6 +237,61 @@ public class AsyncScriptingTest extends StructrTest {
 
 			// and the passing case still passes
 			assertEquals("passed", wrapped("$.assert(true, 418, 'not thrown'); return 'passed';"));
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testAnAssertKeepsItsStatusCodeInEitherSnippetShape() {
+
+		try (final Tx tx = app.tx()) {
+
+			// Whether a snippet is wrapped in the async arrow is a choice Structr makes for the author, so
+			// the status code $.assert was given must not depend on it. Three of these four shapes always
+			// reported 418. The fourth -- unwrapped, with the assert inside an async function -- reported a
+			// generic 422 with the exception stringified into the message, because there the reason reaching
+			// unwrapThenable is an AssertException, which carries a status but is not a FrameworkException.
+			assertReportsStatus("wrapped, plain assert", true, 418, "assert msg",
+				"$.assert(false, 418, 'assert msg'); return 'not reached';");
+
+			assertReportsStatus("unwrapped, plain assert", false, 418, "assert msg",
+				"$.assert(false, 418, 'assert msg');");
+
+			assertReportsStatus("wrapped, assert inside an async function", true, 418, "assert msg",
+				"await (async () => { $.assert(false, 418, 'assert msg'); })(); return 'not reached';");
+
+			assertReportsStatus("unwrapped, assert inside an async function", false, 418, "assert msg",
+				"(async () => { $.assert(false, 418, 'assert msg'); })();");
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testABuiltInsFrameworkExceptionKeepsItsOwnStatusInEitherSnippetShape() {
+
+		try (final Tx tx = app.tx()) {
+
+			// The control for the test above: reading a rejection reason's status through JsonException
+			// rather than FrameworkException must leave a FrameworkException doing exactly what it did.
+			// $.create() with an even parameter count raises a 400 from the built-in itself, so its own
+			// status is distinguishable from the generic 422 the fall-through would report.
+			assertReportsStatus("wrapped", true, 400, "Invalid number of parameters",
+				"await (async () => { $.create('User', 'name'); })(); return 'not reached';");
+
+			assertReportsStatus("unwrapped", false, 400, "Invalid number of parameters",
+				"(async () => { $.create('User', 'name'); })();");
 
 			tx.success();
 
