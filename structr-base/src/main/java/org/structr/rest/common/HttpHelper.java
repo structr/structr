@@ -44,7 +44,10 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 
 import javax.net.ssl.SSLContext;
+import java.io.Closeable;
 import java.io.FileOutputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -253,18 +256,30 @@ public class HttpHelper {
 
 		try {
 
-			Map<String, Object> result = getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
-			if (result != null && result.get(HttpHelper.FIELD_BODY) != null) {
+			final Map<String, Object> result = getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
 
-				InputStream body = (InputStream) result.get(HttpHelper.FIELD_BODY);
-				result.put(HttpHelper.FIELD_BODY, IOUtils.toByteArray(body));
+			if (result.get(HttpHelper.FIELD_BODY) instanceof InputStream body) {
 
-			} else if (result != null) {
+				// closing the stream is what closes the response and the client behind it, so it has to happen
+				// even when the read fails part way through -- this method read the body and then dropped the
+				// stream, which is how every binary GET left its client to be collected rather than closed.
+				try (body) {
+
+					result.put(HttpHelper.FIELD_BODY, IOUtils.toByteArray(body));
+				}
+
+			} else {
 
 				result.put(HttpHelper.FIELD_BODY, null);
 			}
 
 			return result;
+
+		} catch (final FrameworkException fex) {
+
+			// already carries a status and a message naming the address, so re-wrapping it would only bury
+			// the specific reason -- a rejected whitelist entry, say -- under a generic one.
+			throw fex;
 
 		} catch (final Throwable t) {
 
@@ -668,77 +683,198 @@ public class HttpHelper {
 		return responseData;
 	}
 
-	public static Map<String, Object> getAsStream(final String address) {
+	public static Map<String, Object> getAsStream(final String address) throws FrameworkException {
 
 		return getAsStream(address, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> getAsStream(final String address, final String charset) {
+	public static Map<String, Object> getAsStream(final String address, final String charset) throws FrameworkException {
 
 		return getAsStream(address, charset, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	/**
+	 * Issues a GET and hands the response body back as a live {@link InputStream}, so a large download is
+	 * never buffered whole -- 86e0ef7f8a removed the 2 GB limit with it, and that is deliberate.
+	 *
+	 * <p><b>The returned stream owns the response and the client.</b> Closing it closes both, and nothing
+	 * else can: {@code configure} builds a fresh {@link CloseableHttpClient} per call and the caller never
+	 * sees it. Close the stream -- try-with-resources is enough.</p>
+	 *
+	 * <p>Be precise about what that is worth, because it is easy to overstate. {@code configure} adds
+	 * {@code Connection: close} to every request, so Apache closes the socket itself once the entity
+	 * reaches EOF or the entity stream is closed; the socket is not what was being leaked. What was leaked
+	 * is the client and its connection manager as <i>objects</i>, released at GC rather than
+	 * deterministically -- plus, for a stream that is neither read to the end nor closed, the connection
+	 * it is still holding.</p>
+	 *
+	 * <p>A response carrying no entity at all -- a 204, say -- answers a {@code null} body with the
+	 * status and headers still present, and closes its own connection before returning, since there is
+	 * nothing for a caller to close.</p>
+	 *
+	 * @throws FrameworkException if the request could not be issued or the whitelist refused the address.
+	 *         Reported rather than answered with {@code null}: a null surfaced as an NPE at the call site
+	 *         with the cause only in the log, and it swallowed the whitelist refusal along with it.
+	 */
+	public static Map<String, Object> getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
+
+		CloseableHttpClient client   = null;
+		CloseableHttpResponse resp   = null;
 
 		try {
 
-			final Map<String, Object> responseData = new HashMap<>();
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req   = new HttpGet(uri);
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
-			final CloseableHttpResponse resp = hc.client().execute(req);
-			InputStream stream = resp.getEntity().getContent();
 
-			responseData.put(HttpHelper.FIELD_BODY, stream);
-			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
+			client = hc.client();
+			resp   = client.execute(req);
 
-			return responseData;
+			return streamResponse(address, resp, client);
+
+		} catch (final FrameworkException fex) {
+
+			// the whitelist refusal, which names the setting to change: reported as itself rather than
+			// re-wrapped, so the actionable message is what the caller sees
+			closeQuietly(address, resp, client);
+
+			throw fex;
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get content stream from address {}, {}", address, t.getMessage());
+			// the stream was never handed out, so nothing else is in a position to close these
+			closeQuietly(address, resp, client);
+
+			throw new FrameworkException(422, "Unable to get content stream from address " + address + ": " + t.getMessage(), t);
 		}
-
-		return null;
 	}
 
-	public static Map<String, Object> postAsStream(final String address, final String requestBody) {
+	public static Map<String, Object> postAsStream(final String address, final String requestBody) throws FrameworkException {
 
 		return postAsStream(address, requestBody, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset) {
+	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset) throws FrameworkException {
 
-		return postAsStream(address, requestBody, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
+		return postAsStream(address, requestBody, charset, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	/**
+	 * The POST counterpart of {@link #getAsStream}, with the same ownership rule: closing the returned
+	 * stream closes the response and the client.
+	 *
+	 * <p><b>Nothing calls this today.</b> It is kept in step with {@code getAsStream} rather than left as
+	 * a leaking copy beside a fixed one, so that a future caller does not reintroduce the leak; whether it
+	 * should exist at all is a separate question.</p>
+	 */
+	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
+
+		CloseableHttpClient client   = null;
+		CloseableHttpResponse resp   = null;
 
 		try {
 
-			final Map<String, Object> responseData = new HashMap<>();
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPost req  = new HttpPost(uri);
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
 
 			req.setEntity(new StringEntity(requestBody, hc.charset()));
 
-			final CloseableHttpResponse resp = hc.client().execute(req);
-			InputStream stream = resp.getEntity().getContent();
+			client = hc.client();
+			resp   = client.execute(req);
 
-			responseData.put(HttpHelper.FIELD_BODY, stream);
-			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
+			return streamResponse(address, resp, client);
 
-			return responseData;
+		} catch (final FrameworkException fex) {
+
+			closeQuietly(address, resp, client);
+
+			throw fex;
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get content stream from address {}, {}", address, t.getMessage());
+			closeQuietly(address, resp, client);
+
+			throw new FrameworkException(422, "Unable to post and get content stream from address " + address + ": " + t.getMessage(), t);
+		}
+	}
+
+	/**
+	 * Builds the response map for a streaming call. Shared by {@link #getAsStream} and
+	 * {@link #postAsStream}, which differ only in the request they issue and so must not differ in how
+	 * they hand back the connection.
+	 */
+	private static Map<String, Object> streamResponse(final String address, final CloseableHttpResponse resp, final CloseableHttpClient client) throws IOException {
+
+		final Map<String, Object> responseData = new HashMap<>();
+
+		responseData.put(HttpHelper.FIELD_STATUS,  Integer.toString(resp.getStatusLine().getStatusCode()));
+		responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
+
+		final HttpEntity entity = resp.getEntity();
+		if (entity == null) {
+
+			// no body means no stream, so a caller has nothing to close and the response and client would be
+			// left to GC. Closing here also keeps the old NPE from coming back: resp.getEntity() is null for
+			// a 204, and dereferencing it was what made a body-less response indistinguishable from a failure.
+			closeQuietly(address, resp, client);
+			responseData.put(HttpHelper.FIELD_BODY, null);
+
+			return responseData;
 		}
 
-		return null;
+		responseData.put(HttpHelper.FIELD_BODY, closingStream(address, entity.getContent(), resp, client));
+
+		return responseData;
+	}
+
+	/**
+	 * The response body, wrapped so that closing it also closes the response and then the client.
+	 *
+	 * <p>A failure to close is logged rather than thrown: the caller is closing a stream it has already
+	 * finished with and has nothing useful to do about it, and throwing would hide whatever it was
+	 * actually doing.</p>
+	 */
+	private static InputStream closingStream(final String address, final InputStream content, final CloseableHttpResponse resp, final CloseableHttpClient client) {
+
+		return new FilterInputStream(content) {
+
+			@Override
+			public void close() throws IOException {
+
+				try {
+
+					super.close();
+
+				} finally {
+
+					closeQuietly(address, resp, client);
+				}
+			}
+		};
+	}
+
+	/**
+	 * Closes each resource in turn, logging rather than throwing, and never letting one failure skip the
+	 * rest. Null entries are skipped, so this can be called from a catch block that does not know how far
+	 * the request got.
+	 */
+	private static void closeQuietly(final String address, final Closeable... closeables) {
+
+		for (final Closeable closeable : closeables) {
+
+			if (closeable != null) {
+
+				try {
+
+					closeable.close();
+
+				} catch (final Throwable t) {
+
+					logger.warn("Unable to close HTTP resource for address {}: {}", address, t.getMessage());
+				}
+			}
+		}
 	}
 
 	/**
