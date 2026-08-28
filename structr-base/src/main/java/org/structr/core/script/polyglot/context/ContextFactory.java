@@ -55,7 +55,12 @@ public abstract class ContextFactory {
 				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
 				.option("js.ecmascript-version", "latest")
-				.option("js.temporal", "true"));
+				.option("js.temporal", "true")
+				// Makes an async function crossing to the host resolve before it is returned: GraalJS wraps
+				// it in an InteropAsyncFunction, drains the promise job queue when the call returns, and
+				// hands back the fulfilment value -- or throws the rejection. This is what lets a script
+				// use async/await at all; see JSFunctionTranspiler for the wrapper that relies on it.
+				.option("js.interop-complete-promises", "true"));
 
 	// Python context builder
 	private static final Context.Builder pythonBuilder = applyResourceLimits(Context.newBuilder("python")
