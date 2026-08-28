@@ -377,6 +377,11 @@
 								<configuration>
 									<skip>${skipUITests}</skip>
 									<executeStopOnVMShutdown>true</executeStopOnVMShutdown>
+									<!-- Remove the containers' anonymous volumes along with them. The test database
+										 writes a couple of GB per run into one, and without this every run leaves it
+										 behind: two runs in one evening left roughly 13GB. Only affects volumes of the
+										 containers this plugin started, and never named ones. -->
+									<removeVolumes>true</removeVolumes>
 								</configuration>
 							</execution>
 
