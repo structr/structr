@@ -321,6 +321,22 @@ public abstract class PolyglotWrapper {
 					return unwrapThenable(actionContext, value);
 				}
 
+				// A guest error -- new Error(...), a TypeError, or anything extending Error. It has members but
+				// no meta name that matches the object conversion above, so without this it reaches the
+				// fall-through below and becomes null: a promise rejected with one was reported as "rejected
+				// with no reason given", discarding the only thing the author could act on.
+				//
+				// Answered as its own string ("Error: nope", "TypeError: bad type", "MyErr: custom"), which is
+				// what a script author writes and reads. isException() is false for a plain object, so
+				// Promise.reject({ code: 5 }) still converts to a map as before.
+				//
+				// Deliberately placed last, after every conversion that already works: the only values whose
+				// treatment changes are the ones that were being silently dropped.
+				if (value.isException()) {
+
+					return value.toString();
+				}
+
 				if (value.isNull()) {
 
 					return null;

@@ -207,4 +207,49 @@ public class AsyncFunctionTest extends StructrTest {
 		// shared on purpose; the contract is that a worker reads nothing from it
 		assertSame("the detached context must share the security context", ctx.getSecurityContext(), detached.getSecurityContext());
 	}
+
+	// ----- what a rejection tells the author -----
+
+	private String rejectionMessageOf(final String source) {
+
+		try {
+
+			Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "rejectionTest", null,
+				ScriptConfig.builder().wrapJsInMain(false).build());
+
+			return "DID NOT THROW";
+
+		} catch (final FrameworkException fex) {
+
+			return fex.getMessage();
+		}
+	}
+
+	@Test
+	public void testARejectionSaysWhatItWasRejectedWith() {
+
+		// A guest Error has members but no meta name the object conversion recognises, so it used to reach
+		// PolyglotWrapper.unwrap's fall-through and become null -- and the author was told the promise was
+		// "rejected with no reason given", when the reason was the only actionable thing there was.
+		assertTrue("a rejection with an Error must name it, was: " + rejectionMessageOf("Promise.reject(new Error('nope'))"),
+			rejectionMessageOf("Promise.reject(new Error('nope'))").contains("Error: nope"));
+
+		// the realistic shape: any async function that throws
+		assertTrue("an async function throwing an Error must name it, was: " + rejectionMessageOf("(async () => { throw new Error('boom'); })()"),
+			rejectionMessageOf("(async () => { throw new Error('boom'); })()").contains("Error: boom"));
+
+		// subclasses and built-in error types carry their own name
+		assertTrue("a TypeError must name itself", rejectionMessageOf("Promise.reject(new TypeError('bad type'))").contains("TypeError: bad type"));
+		assertTrue("a custom Error subclass must name itself",
+			rejectionMessageOf("class MyErr extends Error { constructor(m) { super(m); this.name = 'MyErr'; } }; Promise.reject(new MyErr('custom'))").contains("MyErr: custom"));
+
+		// the shapes that already worked must keep working -- isException() is false for a plain object, so
+		// the map conversion is untouched
+		assertTrue("a string rejection is unchanged", rejectionMessageOf("Promise.reject('plainstring')").contains("plainstring"));
+		assertTrue("a number rejection is unchanged", rejectionMessageOf("Promise.reject(42)").contains("42"));
+		assertTrue("an object rejection is still converted to a map", rejectionMessageOf("Promise.reject({ code: 5 })").contains("code=5"));
+
+		// and a rejection with genuinely nothing still says so
+		assertTrue("an empty rejection still reports no reason", rejectionMessageOf("Promise.reject()").contains("no reason given"));
+	}
 }
