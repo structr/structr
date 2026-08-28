@@ -19,9 +19,10 @@
 package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
@@ -38,11 +39,12 @@ import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public abstract class PolyglotWrapper {
+
+	private static final Logger logger = LoggerFactory.getLogger(PolyglotWrapper.class);
 
 	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
 	public static Object wrap(final ActionContext actionContext, final Object obj) {
@@ -301,12 +303,12 @@ public abstract class PolyglotWrapper {
 					return convertValueToSet(actionContext, value);
 				}
 
-				if (value.hasMembers() && value.getMetaObject() != null && "promise".equals(value.getMetaObject().getMetaSimpleName().toLowerCase())) {
+				// A thenable -- a promise, or anything shaped like one. An embedded script never gets here,
+				// because its wrapper is resolved at the call boundary in Scripting; this is the path for a
+				// non-embedded script whose completion value happens to be a promise.
+				if (value.hasMembers() && value.canInvokeMember("then")) {
 
-					PromiseConsumer consumer = new PromiseConsumer();
-					value.invokeMember("then", consumer);
-
-					return consumer.getResult();
+					return unwrapThenable(actionContext, value);
 				}
 
 				if (value.isNull()) {
@@ -345,14 +347,18 @@ public abstract class PolyglotWrapper {
 				return pm.getOriginalObject();
 			}
 
-			if (obj != null) {
-			}
-
 			return obj;
+
+		} catch (final ThenableFailure tfx) {
+
+			// deliberately not swallowed like everything else below: it is the script's own failure,
+			// not a failure to unwrap. The finally still runs and restores the level.
+			throw tfx;
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.error("Unable to unwrap value of type {} coming out of the scripting engine.",
+				obj != null ? obj.getClass().getName() : "null", t);
 
 		} finally {
 
@@ -609,20 +615,78 @@ public abstract class PolyglotWrapper {
 		}
 	}
 
-	public static class PromiseConsumer implements Consumer<Object> {
+	/**
+	 * Resolves a thenable that has reached the host and answers its value.
+	 *
+	 * <p>Registering the reactions is itself an interop call, so GraalJS drains the promise job queue
+	 * when it returns and both callbacks have already run by then -- for a promise that is settled,
+	 * which is the case for anything a finished script hands back. A promise still pending at that
+	 * point cannot be settled by anyone, because Structr scripting has no event loop, and is reported
+	 * rather than answered with null.</p>
+	 *
+	 * <p>The value is unwrapped inside the callback, while the context is still open. The previous
+	 * implementation kept the raw guest value and unwrapped it after the caller had already closed the
+	 * context, so the unwrap threw and every async script quietly answered null.</p>
+	 */
+	private static Object unwrapThenable(final ActionContext actionContext, final Value thenable) {
 
-		private Object result;
+		final Object[] outcome  = new Object[] { null, null };
+		final boolean[] settled = new boolean[] { false, false };
 
-		@HostAccess.Export
-		@Override
-		public void accept(Object o) {
+		final ProxyExecutable onFulfilled = args -> {
+			settled[0] = true;
+			outcome[0] = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+			return null;
+		};
 
-			result = o;
+		final ProxyExecutable onRejected = args -> {
+			settled[1] = true;
+			outcome[1] = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+			return null;
+		};
+
+		thenable.invokeMember("then", onFulfilled, onRejected);
+
+		if (settled[1]) {
+
+			final Object reason = outcome[1];
+			if (reason instanceof FrameworkException fex) {
+
+				throw new ThenableFailure(fex);
+			}
+
+			throw new ThenableFailure(new FrameworkException(422, "Server-side scripting error: promise rejected with "
+				+ (reason != null ? reason.toString() : "no reason given")));
 		}
 
-		public Object getResult() {
+		if (!settled[0]) {
 
-			return result;
+			throw new ThenableFailure(new FrameworkException(422, "Server-side scripting error: script returned a"
+				+ " promise that never resolved. Structr scripting has no event loop, so nothing can settle it after"
+				+ " the script ends."));
+		}
+
+		return outcome[0];
+	}
+
+	/**
+	 * Carries a script-level failure out of {@link #unwrap}, which has no {@code throws} clause and
+	 * around a hundred call sites. Its cause is always the {@link FrameworkException} to report;
+	 * {@code Scripting.evaluateScript} unwraps it again.
+	 *
+	 * <p>A distinct type rather than a plain {@code RuntimeException}, so that unwrap keeps swallowing
+	 * everything else exactly as it did -- this is the one thing it must not swallow.</p>
+	 */
+	public static class ThenableFailure extends RuntimeException {
+
+		public ThenableFailure(final FrameworkException cause) {
+
+			super(cause.getMessage(), cause);
+		}
+
+		public FrameworkException getFrameworkException() {
+
+			return (FrameworkException) getCause();
 		}
 	}
 }
