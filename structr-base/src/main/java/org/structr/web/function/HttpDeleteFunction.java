@@ -67,9 +67,11 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 					+ "so pass null as the body when there is none: DELETE(url, null, null, { ... }).");
 			}
 
-			final String body         = (sources.length >= 2 && sources[1] != null) ? sources[1].toString() : null;
+			final Object body         = (sources.length >= 2 && sources[1] != null) ? HttpBody.of(sources[1]) : null;
 			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
 			final HttpOptions options = HttpOptions.from("DELETE", sources, 3).accepting("DELETE", HttpOptions.PARSE_RESPONSE);
+
+			HttpBody.checkRepeatable("DELETE", body, options);
 
 			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
 			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());

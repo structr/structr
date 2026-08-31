@@ -182,7 +182,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("contentType", "content type of the request; `text/html` parses the response with jsoup, see the `selector` option"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `validateCertificates`, `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binary` to stream the response")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `validateCertificates`, `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
 		);
 	}
 
@@ -207,7 +207,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return """
 			This function can be used in a script to make an HTTP GET request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
-			When the `binary` option is set, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit for binary downloads. The stream can be passed directly to `setContent()` which will stream the data to the file storage without buffering the entire content in memory. This stream is consumed by `setContent()` and can not be read again.
+			When the `binaryResponse` option is set, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit for binary downloads. The stream can be passed directly to `setContent()` which will stream the data to the file storage without buffering the entire content in memory. This stream is consumed by `setContent()` and can not be read again.
 
 			The `GET()` function will return a response object with the following structure:
 

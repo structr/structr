@@ -49,9 +49,11 @@ public class HttpPutFunction extends UiAdvancedFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final String uri          = sources[0].toString();
-			final String body         = sources[1].toString();
+			final Object body         = HttpBody.of(sources[1]);
 			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : "application/json";
 			final HttpOptions options = HttpOptions.from("PUT", sources, 3).accepting("PUT", HttpOptions.PARSE_RESPONSE);
+
+			HttpBody.checkRepeatable("PUT", body, options);
 
 			final String charset               = HttpOptions.charsetOf(contentType, "utf-8");
 			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());

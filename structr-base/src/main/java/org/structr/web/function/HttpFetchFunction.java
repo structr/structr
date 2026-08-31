@@ -57,9 +57,11 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 			final String url          = sources[0].toString();
 			final String method       = sources[1].toString();
-			final String body         = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
+			final Object body         = (sources.length >= 3 && sources[2] != null) ? HttpBody.of(sources[2]) : null;
 			final String contentType  = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : null;
 			final HttpOptions options = HttpOptions.from("FETCH", sources, 4).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
+
+			HttpBody.checkRepeatable("FETCH", body, options);
 
 			final String charset               = HttpOptions.charsetOf(contentType, "UTF-8");
 			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
