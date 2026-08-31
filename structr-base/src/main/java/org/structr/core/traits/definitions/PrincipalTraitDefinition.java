@@ -50,31 +50,32 @@ import java.util.Set;
 
 public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String GROUPS_PROPERTY               = "groups";
-	public static final String OWNED_NODES_PROPERTY          = "ownedNodes";
-	public static final String GRANTED_NODES_PROPERTY        = "grantedNodes";
-	public static final String IS_ADMIN_PROPERTY             = "isAdmin";
-	public static final String BLOCKED_PROPERTY              = "blocked";
-	public static final String SESSION_IDS_PROPERTY          = "sessionIds";
-	public static final String REFRESH_TOKENS_PROPERTY       = "refreshTokens";
-	public static final String SESSION_DATA_PROPERTY         = "sessionData";
-	public static final String EMAIL_PROPERTY                = "eMail";
-	public static final String PASSWORD_PROPERTY             = "password";
-	public static final String PASSWORD_CHANGE_DATE_PROPERTY = "passwordChangeDate";
-	public static final String PASSWORD_ATTEMPTS_PROPERTY    = "passwordAttempts";
-	public static final String LAST_LOGIN_DATE_PROPERTY      = "lastLoginDate";
-	public static final String TWO_FACTOR_SECRET_PROPERTY    = "twoFactorSecret";
-	public static final String TWO_FACTOR_TOKEN_PROPERTY     = "twoFactorToken";
-	public static final String IS_TWO_FACTOR_USER_PROPERTY   = "isTwoFactorUser";
-	public static final String TWO_FACTOR_CONFIRMED_PROPERTY = "twoFactorConfirmed";
-	public static final String SALT_PROPERTY                 = "salt";
-	public static final String LOCALE_PROPERTY               = "locale";
-	public static final String PUBLIC_KEY_PROPERTY           = "publicKey";
-	public static final String PUBLIC_KEYS_PROPERTY          = "publicKeys";
-	public static final String PROXY_URL_PROPERTY            = "proxyUrl";
-	public static final String PROXY_USERNAME_PROPERTY       = "proxyUsername";
-	public static final String PROXY_PASSWORD_PROPERTY       = "proxyPassword";
-	public static final String DEVICE_TRUST_SECRET_PROPERTY  = "deviceTrustSecret";
+	public static final String GROUPS_PROPERTY                = "groups";
+	public static final String OWNED_NODES_PROPERTY           = "ownedNodes";
+	public static final String GRANTED_NODES_PROPERTY         = "grantedNodes";
+	public static final String IS_ADMIN_PROPERTY              = "isAdmin";
+	public static final String BLOCKED_PROPERTY               = "blocked";
+	public static final String SESSION_IDS_PROPERTY           = "sessionIds";
+	public static final String REFRESH_TOKENS_PROPERTY        = "refreshTokens";
+	public static final String SESSION_DATA_PROPERTY          = "sessionData";
+	public static final String EMAIL_PROPERTY                 = "eMail";
+	public static final String PASSWORD_PROPERTY              = "password";
+	public static final String PASSWORD_CHANGE_DATE_PROPERTY  = "passwordChangeDate";
+	public static final String PASSWORD_ATTEMPTS_PROPERTY     = "passwordAttempts";
+	public static final String LAST_LOGIN_DATE_PROPERTY       = "lastLoginDate";
+	public static final String TWO_FACTOR_SECRET_PROPERTY     = "twoFactorSecret";
+	public static final String TWO_FACTOR_TOKEN_PROPERTY      = "twoFactorToken";
+	public static final String IS_TWO_FACTOR_USER_PROPERTY    = "isTwoFactorUser";
+	public static final String TWO_FACTOR_CONFIRMED_PROPERTY  = "twoFactorConfirmed";
+	public static final String SALT_PROPERTY                  = "salt";
+	public static final String LOCALE_PROPERTY                = "locale";
+	public static final String PUBLIC_KEY_PROPERTY            = "publicKey";
+	public static final String PUBLIC_KEYS_PROPERTY           = "publicKeys";
+	public static final String PROXY_URL_PROPERTY             = "proxyUrl";
+	public static final String PROXY_USERNAME_PROPERTY        = "proxyUsername";
+	public static final String PROXY_PASSWORD_PROPERTY        = "proxyPassword";
+	public static final String DEVICE_TRUST_SECRET_PROPERTY   = "deviceTrustSecret";
+	public static final String DEVICE_TRUST_POSSIBLE_PROPERTY = "deviceTrustPossible";
 
 
 	public PrincipalTraitDefinition() {
@@ -251,7 +252,8 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new StringProperty(PROXY_URL_PROPERTY),
 			new StringProperty(PROXY_USERNAME_PROPERTY),
 			new StringProperty(PROXY_PASSWORD_PROPERTY),
-			new StringProperty(DEVICE_TRUST_SECRET_PROPERTY)
+			new StringProperty(DEVICE_TRUST_SECRET_PROPERTY),
+			new BooleanProperty(DEVICE_TRUST_POSSIBLE_PROPERTY).defaultValue(true).description("When true and the system configuration allows it, gives user the option trust the browser they are logging in from to skip authentication with a second factor for a certain duration or until the browser fingerprint changes.")
 		);
 	}
 

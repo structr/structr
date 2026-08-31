@@ -144,9 +144,9 @@ public class LoginCommand extends AbstractCommand {
 
 							if (result == AuthHelper.TwoFactorAuthenticationResult.SUCCESS && userRequestedTrust) {
 
-								if (Settings.TwoFactorDeviceTrustEnabled.getValue()) {
+								if (user.isDeviceTrustPossible()) {
 
-									// in WS we can not set cookies. We let the frontend know which cookie to set
+									// we can not set cookies via WebSocket. We let the frontend know which cookie to set
 									logger.info("Two factor authentication: User '{}' requested trust in admin UI login, sending trust cookie data for the client to set", user.getName());
 
 									webSocketData.getNodeData().put("trustTokenCookieName", Settings.TwoFactorDeviceTrustCookieName.getValue());
@@ -154,7 +154,7 @@ public class LoginCommand extends AbstractCommand {
 
 								} else {
 
-									logger.info("Two factor authentication: User '{}' requested trust, but feature is disabled ({})", user.getName(), Settings.TwoFactorDeviceTrustEnabled.getKey());
+									logger.info("Two factor authentication: User '{}' requested trust, but feature is disabled or not allowed for the user ({})", user.getName(), Settings.TwoFactorDeviceTrustEnabled.getKey());
 								}
 							}
 

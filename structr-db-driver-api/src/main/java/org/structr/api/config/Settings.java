@@ -643,7 +643,7 @@ public class Settings {
 
 	public static final Setting<Boolean> TwoFactorDeviceTrustEnabled    = new BooleanSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.devicetrust.enabled", false, "Enables or disables users to trust the browser they are logging in with.")
 																				  .setLongDescription("""
-																						If this parameter has the value true, the system remembers a browser if the login request contains the "trust device" flag..
+																						If this parameter has the value true, the system remembers a browser if the login request contains the "trust device" flag. This is done by setting a trust cookie which is used to store the browser fingerprint.
 																						
 																						If a browser is trusted, the system does not ask for a two-factor authentication code on the next login from that browser for the same user. The trust period ends after the configured duration.
 																						

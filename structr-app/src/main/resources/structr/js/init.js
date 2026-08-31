@@ -2333,7 +2333,7 @@ let Structr = {
 						<div class="self-center">
 							<label id="twoFactorTrustCheckboxWrapper" class="flex items-center" style="display: none;">
 								<input type="checkbox" id="twoFactorTrustCheckbox" name="trustDevice">
-								Trust device
+								<span class="text-sm">Trust device</span>
 							</label>
 						</div>
 
