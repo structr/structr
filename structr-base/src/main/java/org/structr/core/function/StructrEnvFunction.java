@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
+import org.structr.core.auth.DefaultCredentialsCheck;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.docs.Signature;
@@ -115,6 +116,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		info.setProperty(new StringProperty("validUUIDv4Regex"),        Settings.getValidUUIDRegexString());
 		info.setProperty(new StringProperty("legacyRequestParameters"), Settings.RequestParameterLegacyMode.getValue());
 		info.setProperty(new StringProperty("isDeploymentActive"),      DeployCommand.isDeploymentActive());
+		info.setProperty(new GenericProperty("defaultCredentialsInUse"), DefaultCredentialsCheck.isDefaultCredentialsInUse());
 
 		info.setProperty(new StringProperty("debuggerEnabled"),          Settings.ScriptingDebugger.getValue());
 

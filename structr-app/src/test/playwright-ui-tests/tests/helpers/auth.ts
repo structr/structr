@@ -20,10 +20,21 @@
 // @ts-check
 import { expect, Page } from '@playwright/test';
 
-export async function login(page: Page, screenshot: boolean = false) {
+/**
+ * The password every spec after 001-default-credentials logs in with.
+ *
+ * Not 'admin': an instance still on the built-in default raises a security warning at login and on the
+ * dashboard, which would sit on top of every screenshot in the suite and block the clicks underneath it.
+ * 001-default-credentials is the one spec that deliberately runs on the default, and it changes the
+ * password to this one before any other spec runs.
+ */
+export const ADMIN_PASSWORD         = 'structr-ui-tests';
+export const DEFAULT_ADMIN_PASSWORD = 'admin';
+
+export async function login(page: Page, screenshot: boolean = false, passwordOverride: string | null = null) {
 
 	let username = 'admin';
-	let password = 'admin';
+	let password = passwordOverride ?? ADMIN_PASSWORD;
 
 	await page.goto(process.env.BASE_URL + '/structr/');
 

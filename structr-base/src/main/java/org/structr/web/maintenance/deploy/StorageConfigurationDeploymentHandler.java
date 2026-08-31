@@ -134,7 +134,7 @@ public abstract class StorageConfigurationDeploymentHandler {
 			tx.success();
 		}
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(confFile.toFile()), StandardCharsets.UTF_8)) {
+		try (final Writer fos = Files.newBufferedWriter(confFile, StandardCharsets.UTF_8)) {
 
 			gson.toJson(configurations, fos);
 
