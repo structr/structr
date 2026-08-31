@@ -192,7 +192,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 				// only set trust cookie if actual two-factor authentication was used
 				if (result == AuthHelper.TwoFactorAuthenticationResult.SUCCESS && userRequestedTrust) {
 
-					if (Settings.TwoFactorDeviceTrustEnabled.getValue()) {
+					if (user.isDeviceTrustPossible()) {
 
 						logger.info("Two factor authentication: User '{}' requested trust, setting trust cookie", user.getName());
 
@@ -200,7 +200,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 					} else {
 
-						logger.info("Two factor authentication: User '{}' requested trust, but feature is disabled ({})", user.getName(), Settings.TwoFactorDeviceTrustEnabled.getKey());
+						logger.info("Two factor authentication: User '{}' requested trust, but feature is disabled or not allowed for the user ({})", user.getName(), Settings.TwoFactorDeviceTrustEnabled.getKey());
 					}
 				}
 

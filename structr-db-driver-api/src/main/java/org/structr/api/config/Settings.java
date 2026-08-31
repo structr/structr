@@ -644,7 +644,7 @@ public class Settings {
 
 	public static final Setting<Boolean> TwoFactorDeviceTrustEnabled    = new BooleanSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.devicetrust.enabled", false, "Enables or disables users to trust the browser they are logging in with.")
 																				  .setLongDescription("""
-																						If this parameter has the value true, the system remembers a browser if the login request contains the "trust device" flag..
+																						If this parameter has the value true, the system remembers a browser if the login request contains the "trust device" flag. This is done by setting a trust cookie which is used to store the browser fingerprint.
 																						
 																						If a browser is trusted, the system does not ask for a two-factor authentication code on the next login from that browser for the same user. The trust period ends after the configured duration.
 																						
@@ -727,7 +727,7 @@ public class Settings {
 	public static final Setting<Integer> ConfirmationKeyRegistrationValidityPeriod  = new IntegerSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.registration.validityperiod",  2880,  "Validity period (in minutes) of the confirmation key generated during self registration. Default is 2 days (2880 minutes)");
 	public static final Setting<Boolean> ConfirmationKeyValidWithoutTimestamp       = new BooleanSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.validwithouttimestamp",        false, "How to interpret confirmation keys without a timestamp");
 
-	public static final Setting<Integer> LetsEncryptWaitBeforeAuthorization         = new IntegerSetting(securityGroup,  "Letsencrypt", "letsencrypt.wait", 300, "Wait for this amount of seconds before trying to authorize challenge. Default is 300 seconds (5 minutes).");
+	public static final Setting<Integer> LetsEncryptWaitBeforeAuthorization         = new IntegerSetting(securityGroup,  "Letsencrypt", "letsencrypt.wait", 300, "Waiting time in seconds before trying to authorize challenge. Default is 300 seconds (5 minutes).");
 	public static final Setting<String> LetsEncryptChallengeType                    = new ChoiceSetting(securityGroup,   "Letsencrypt", "letsencrypt.challenge.type", "http", Settings.getStringsAsSet("http", "dns"), "Challenge type for Let's Encrypt authorization. Possible values are 'http' and 'dns'.");
 	public static final Setting<String> LetsEncryptDomains                          = new StringSetting(securityGroup,   "Letsencrypt", "letsencrypt.domains", "", "List of domains separated by space to fetch and update Let's Encrypt certificates for");
 	public static final Setting<String> LetsEncryptProductionServerURL              = new StringSetting(securityGroup,   "Letsencrypt", "letsencrypt.production.server.url", "acme://letsencrypt.org", "URL of Let's Encrypt server. Default is 'acme://letsencrypt.org'");

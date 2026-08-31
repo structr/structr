@@ -336,6 +336,7 @@ export class Frontend {
 					token: headers.token,
 					qrdata: headers.qrdata ?? '',
 					deviceTrustPossible: headers.devicetrustpossible ?? 'false',
+					deviceTrustDuration: headers.devicetrustduration ?? ''
 				});
 
 				window.location.href = headers.twofactorloginpage + '?' + params.toString();
