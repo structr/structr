@@ -24,6 +24,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.core.graph.Tx;
+import org.structr.web.common.FileHelper;
+import org.structr.core.traits.StructrTraits;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
@@ -72,6 +75,102 @@ public class OutboundHttpApiTest extends StructrTest {
 			evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'POST', 'body', 'text/csv')}");
 			assertEquals("FETCH must send the content type it was given", "text/csv", mimeOf(lastHeaders.get("content-type")));
 			assertEquals("FETCH must use the method it was given", "POST", lastMethod);
+		});
+	}
+
+	// ----- private methods -----
+	private void createFileWithContent(final String name, final String content) {
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, content.getBytes(StandardCharsets.UTF_8), "application/octet-stream", StructrTraits.FILE, name, false);
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unable to create " + name + ": " + ex.getMessage());
+		}
+	}
+
+	@Test
+	public void testAFileIsSentAsItsContentRatherThanItsStringForm() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			createFileWithContent("upload.bin", "the actual bytes");
+
+			// a transaction, because the script reads a node: the other tests here never touch the graph
+			try (final Tx tx = app.tx()) {
+
+				// Without this the File would arrive as its toString(), which is a node description, and
+				// the upload would silently send something that is not the file at all.
+				evaluate(ctx, "${POST('http://localhost:" + port + "/', first(find('File', 'name', 'upload.bin')), 'application/octet-stream')}");
+
+				assertEquals("POST must send the file's content as the request body", "the actual bytes", lastBody);
+				assertEquals("POST must send the content type it was given", "application/octet-stream", mimeOf(lastHeaders.get("content-type")));
+
+				evaluate(ctx, "${PUT('http://localhost:" + port + "/', first(find('File', 'name', 'upload.bin')), 'application/octet-stream')}");
+
+				assertEquals("PUT must send the file's content as the request body", "the actual bytes", lastBody);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fail("Unexpected exception: " + fex.getMessage());
+			}
+		});
+	}
+
+	@Test
+	public void testAStreamedBodyWithCredentialsMustBePreemptive() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			createFileWithContent("guarded.bin", "content");
+
+			try (final Tx tx = app.tx()) {
+
+				// A stream cannot answer a 401 challenge, because answering means sending the body again.
+				// The call is refused up front rather than failing later as an apparently empty upload.
+				final Object refused = evaluate(ctx, "${POST('http://localhost:" + port + "/', first(find('File', 'name', 'guarded.bin')), "
+					+ "'application/octet-stream', { username: 'u', password: 'p' })}");
+
+				assertNull("a streamed body with non-preemptive credentials must be refused", refused);
+
+				// with preemptive it goes through, and the credentials are on the first request
+				evaluate(ctx, "${POST('http://localhost:" + port + "/', first(find('File', 'name', 'guarded.bin')), "
+					+ "'application/octet-stream', { username: 'u', password: 'p', preemptive: true })}");
+
+				assertEquals("the body must still be the file's content", "content", lastBody);
+				assertNotNull("preemptive credentials must be sent on the first request", lastHeaders.get("authorization"));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fail("Unexpected exception: " + fex.getMessage());
+			}
+		});
+	}
+
+	@Test
+	public void testATextBodyIsUnchanged() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// the widening must not alter what a string body does
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'plain text', 'text/plain')}");
+
+			assertEquals("a string body must still be sent as text", "plain text", lastBody);
 		});
 	}
 

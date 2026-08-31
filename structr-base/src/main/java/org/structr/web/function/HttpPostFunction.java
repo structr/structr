@@ -58,9 +58,11 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final String address      = sources[0].toString();
-			final String body         = sources[1].toString();
+			final Object body         = HttpBody.of(sources[1]);
 			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
 			final HttpOptions options = HttpOptions.from("POST", sources, 3).accepting("POST", HttpOptions.BINARY_BODY, HttpOptions.PARSE_RESPONSE);
+
+			HttpBody.checkRepeatable("POST", body, options);
 
 			final String charset               = HttpOptions.charsetOf(contentType, DEFAULT_CHARSET);
 			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
@@ -132,7 +134,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binary` to send the body as a binary stream")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryBody` to return the RESPONSE body as a byte array (despite its name, it does not change how the request body is sent)")
 		);
 	}
 
