@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.wrappers;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
@@ -25,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -43,6 +45,8 @@ import java.util.Base64;
 import java.util.Date;
 
 public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper implements PagePathParameter {
+
+	private static final Logger logger = LoggerFactory.getLogger(PagePathParameter.class.getName());
 
 	public PagePathParameterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 
@@ -115,7 +119,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 				if (type == null) {
 
-					LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to use PagePathParameter '{}' with unknown type '{}'", getName(), valueType);
+					logger.warn("Unable to use PagePathParameter '{}' with unknown type '{}'", getName(), valueType);
 
 					return src;
 				}
@@ -139,12 +143,12 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 						} catch (final UnsupportedCharsetException uce) {
 
-							LoggerFactory.getLogger(PagePathParameter.class).warn("Unsupported charset '{}' for PagePathParameter '{}'", configuredCharset, getName());
+							logger.warn("Unsupported charset '{}' for PagePathParameter '{}'", configuredCharset, getName());
 							throw new ParseFailureException();
 
 						} catch (final IllegalArgumentException iae) {
 
-							LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to decode base64_url encoded string '{}' with charset '{}' for PagePathParameter '{}'", src, configuredCharset, getName());
+							logger.warn("Unable to decode base64_url encoded string '{}' with charset '{}' for PagePathParameter '{}'", src, configuredCharset, getName());
 							throw new ParseFailureException();
 						}
 					}
@@ -157,7 +161,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 						} catch (final NumberFormatException nfe) {
 
-							LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to parse Double from '{}' for PagePathParameter '{}'", src, getName());
+							logger.warn("Unable to parse Double from '{}' for PagePathParameter '{}'", src, getName());
 							throw new ParseFailureException();
 
 						}
@@ -171,7 +175,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 						} catch (final NumberFormatException nfe) {
 
-							LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to parse Float from '{}' for PagePathParameter '{}'", src, getName());
+							logger.warn("Unable to parse Float from '{}' for PagePathParameter '{}'", src, getName());
 							throw new ParseFailureException();
 
 						}
@@ -185,7 +189,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 						} catch (final NumberFormatException nfe) {
 
-							LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to parse Integer from '{}' for PagePathParameter '{}'", src, getName());
+							logger.warn("Unable to parse Integer from '{}' for PagePathParameter '{}'", src, getName());
 							throw new ParseFailureException();
 
 						}
@@ -199,7 +203,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 						} catch (final NumberFormatException nfe) {
 
-							LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to parse Long from '{}' for PagePathParameter '{}'", src, getName());
+							logger.warn("Unable to parse Long from '{}' for PagePathParameter '{}'", src, getName());
 							throw new ParseFailureException();
 
 						}
@@ -216,7 +220,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 							return false;
 						}
 
-						LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to parse boolean from string '{}' for PagePathParameter '{}'", src, getName());
+						logger.warn("Unable to parse boolean from string '{}' for PagePathParameter '{}'", src, getName());
 						throw new ParseFailureException();
 					}
 
@@ -231,7 +235,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 							} catch (ParseException ex) {
 
-								LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to parse date from string '{}' using pattern '{}' for PagePathParameter '{}'", src, dateFormat, getName());
+								logger.warn("Unable to parse date from string '{}' using pattern '{}' for PagePathParameter '{}'", src, dateFormat, getName());
 								throw new ParseFailureException();
 
 							}
@@ -241,7 +245,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 							final Date parsedDate = DatePropertyGenerator.parseISO8601DateString(src);
 							if (parsedDate == null) {
 
-								LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to parse date from string '{}' for PagePathParameter '{}'", src, getName());
+								logger.warn("Unable to parse date from string '{}' for PagePathParameter '{}'", src, getName());
 								throw new ParseFailureException();
 							}
 
@@ -262,7 +266,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 							} else {
 
-								LoggerFactory.getLogger(PagePathParameter.class).warn("Unknown node type '{}', NOT applying hierarchy check for PagePathParameter '{}'", typeString, getName());
+								logger.warn("Unknown node type '{}', NOT applying hierarchy check for PagePathParameter '{}'", typeString, getName());
 							}
 						}
 
@@ -295,7 +299,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 					default:
 
-						LoggerFactory.getLogger(PagePathParameter.class).warn("Unable to use PagePathParameter '{}'. Conversion for type '{}' is not implemented yet.", getName(), valueType);
+						logger.warn("Unable to use PagePathParameter '{}'. Conversion for type '{}' is not implemented yet.", getName(), valueType);
 
 						return src;
 				}
@@ -309,11 +313,15 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 		} catch (Throwable t) {
 
 			// log error (or report it to somewhere), but don't fail here because we are resolving a URL in the frontend, and we don't want to send a 422 to the client...
-			LoggerFactory.getLogger(PagePathParameter.class).warn("Exception while converting input '{}' for PagePathParameter '{}': {}", src, getName(), t.toString());
+			logger.warn("Exception while converting input '{}' for PagePathParameter '{}': {}", src, getName(), t.toString());
 
-			if (Boolean.TRUE.equals(Settings.LogFunctionsStackTrace.getValue())) {
+			if (Settings.LogFunctionsShortenStacktrace.getValue()) {
 
-				LoggerFactory.getLogger(PagePathParameter.class).warn("", t);
+				logger.warn("Shortened stack trace (see {}):\n{}", Settings.LogFunctionsShortenStacktrace.getKey(), Scripting.formatForLogging(t));
+
+			} else {
+
+				logger.warn("", t);
 			}
 		}
 
