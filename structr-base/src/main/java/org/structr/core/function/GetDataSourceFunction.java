@@ -26,11 +26,10 @@ import org.structr.core.datasources.ChannelResult;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.common.RenderContext;
 
 import java.util.List;
 
-public class DataSourceFunction extends AdvancedScriptingFunction {
+public class GetDataSourceFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -68,7 +67,7 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 
-		return "dataSource";
+		return "getDataSource";
 	}
 
 	@Override
@@ -80,14 +79,14 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(Signature.javaScript("dataSource(dataSourceName, pageSize, page)"), Signature.structrScript("dataSource(dataSourceName, pageSize, page)"));
+		return Signature.forAllScriptingLanguages("name, pageSize, page");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("dataSourceName", "Name of the data source to query"),
+			Parameter.mandatory("name", "Name of the data source to query"),
 			Parameter.optional("pageSize", "Number of results per page"),
 			Parameter.optional("page", "Page number")
 		);
@@ -97,15 +96,15 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("dataSource('node:Page', 10, 1)", "Fetch the first ten visible pages from the system data source for pages."),
-			Example.javaScript("$.dataSource('node:Page', 10, 1)", "Fetch the first ten visible pages from the system data source for pages.")
+			Example.structrScript("getDataSource('node:Page', 10, 1)", "Fetch the first ten visible pages from the system data source for pages."),
+			Example.javaScript("$.getDataSource('node:Page', 10, 1)", "Fetch the first ten visible pages from the system data source for pages.")
 		);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.javaScript("Usage: ${{$.dataSource('node:Page', 10, 1)}}"), Usage.structrScript("Usage: ${dataSource('node:Page', 10, 1)}"));
+		return List.of(Usage.javaScript("Usage: ${{$.getDataSource('node:Page', 10, 1)}}"), Usage.structrScript("Usage: ${getDataSource('node:Page', 10, 1)}"));
 	}
 
 	@Override
