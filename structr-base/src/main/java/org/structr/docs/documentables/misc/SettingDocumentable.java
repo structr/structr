@@ -18,7 +18,6 @@
  */
 package org.structr.docs.documentables.misc;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
@@ -26,7 +25,6 @@ import org.structr.api.util.Category;
 import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class SettingDocumentable implements Documentable {
@@ -164,6 +162,12 @@ public class SettingDocumentable implements Documentable {
 				}
 			}
 		}
+	}
+
+	@Override
+	public boolean canShowDetails() {
+
+		return getLongDescription() != null;
 	}
 }
 
