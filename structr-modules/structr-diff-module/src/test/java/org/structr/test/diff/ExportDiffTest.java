@@ -33,7 +33,9 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -81,6 +83,8 @@ public class ExportDiffTest {
 
 		// Non-vacuity first: an expectation of nothing is also what two unread exports produce.
 		assertTrue("The left export parsed to nothing", a.size() > 1000);
+
+		dump(a, System.getProperty("structr.export.dump"));
 
 		final List<Delta> deltas = new Matcher(a, b).getDeltas();
 
@@ -149,6 +153,19 @@ public class ExportDiffTest {
 
 		buf.append("\n  ").append(pair);
 		buf.append("\n  entities: ").append(left.size()).append(" -> ").append(right.size());
+
+		final Map<String, Integer> leftKinds  = byKind(left);
+		final Map<String, Integer> rightKinds = byKind(right);
+		final Set<String> kinds               = new TreeSet<>(leftKinds.keySet());
+
+		kinds.addAll(rightKinds.keySet());
+
+		for (final String kind : kinds) {
+
+			buf.append(String.format("%n    %6d %6d  %s", leftKinds.getOrDefault(kind, 0),
+				rightKinds.getOrDefault(kind, 0), kind));
+		}
+
 		int low = 0;
 
 		for (final Delta delta : deltas) {
@@ -168,6 +185,43 @@ public class ExportDiffTest {
 		}
 
 		logger.info("{}", buf);
+	}
+
+	/** Diagnostic: per-origin, per-kind counts, for cross-checking against another parser. */
+	private static void dump(final List<Entity> entities, final String path) throws Exception {
+
+		if (path == null) {
+
+			return;
+		}
+
+		final Map<String, Integer> counts = new TreeMap<>();
+
+		for (final Entity entity : entities) {
+
+			counts.merge(entity.getOrigin() + "\t" + entity.getKind(), 1, Integer::sum);
+		}
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (final Map.Entry<String, Integer> e : counts.entrySet()) {
+
+			buf.append(e.getKey()).append('\t').append(e.getValue()).append('\n');
+		}
+
+		java.nio.file.Files.writeString(java.nio.file.Path.of(path), buf.toString());
+	}
+
+	private static Map<String, Integer> byKind(final List<Entity> entities) {
+
+		final Map<String, Integer> counts = new TreeMap<>();
+
+		for (final Entity entity : entities) {
+
+			counts.merge(entity.getKind(), 1, Integer::sum);
+		}
+
+		return counts;
 	}
 
 	/** Deltas counted by operation and kind, which is what a failure needs to be readable. */
