@@ -73,7 +73,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			final String address      = sources[0].toString();
 			final Object body         = HttpBody.of(sources[1]);
 			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final HttpOptions options = HttpOptions.fromAnyOf("POST", sources, 3, 2).accepting("POST", HttpOptions.BINARY_BODY, HttpOptions.PARSE_RESPONSE);
+			final HttpOptions options = HttpOptions.fromAnyOf("POST", sources, 3, 2).accepting("POST", HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("POST", body, options);
 
@@ -83,7 +83,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			final String password              = options.getString(HttpOptions.PASSWORD);
 			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
-			if (options.getBoolean(HttpOptions.BINARY_BODY, false)) {
+			if (options.getBoolean(HttpOptions.BINARY_RESPONSE, false)) {
 
 				// A stream, like GET's binaryResponse, rather than a byte[]: the two options describe the
 				// same thing and used to hand back different shapes, so a script dealing with both had to
@@ -160,7 +160,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryBody` to return the RESPONSE body as a stream (despite its name it does not change how the request body is sent; pass a File as the body for that)")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryResponse` to return the response body as a stream. To SEND binary data, pass a File as the body instead")
 		);
 	}
 

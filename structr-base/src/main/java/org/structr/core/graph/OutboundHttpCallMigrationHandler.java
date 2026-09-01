@@ -232,7 +232,8 @@ public class OutboundHttpCallMigrationHandler {
 		// so such a call keeps working but silently returns a string instead of a stream.
 		if ("GET".equals(verb) || "POST".equals(verb)) {
 
-			final String binaryKey = "GET".equals(verb) ? "binaryResponse" : "binaryBody";
+			// one key for both verbs now: it always describes the RESPONSE
+			final String binaryKey = "binaryResponse";
 
 			if ("application/octet-stream".equals(contentType) && hasOptionKey(args, optionsAt, binaryKey)) {
 
@@ -253,7 +254,7 @@ public class OutboundHttpCallMigrationHandler {
 
 				return new Finding(type, id, name, property, call, Verdict.MANUAL,
 					"the content type is an expression (" + args.get(contentTypeAt).trim() + "); if it can be "
-					+ "application/octet-stream the call needs { " + ("GET".equals(verb) ? "binaryResponse" : "binaryBody")
+					+ "application/octet-stream the call needs { " + "binaryResponse"
 					+ ": true }, and for GET whether the next argument is a selector or a user name depends on it");
 			}
 		}
@@ -340,7 +341,7 @@ public class OutboundHttpCallMigrationHandler {
 
 		} else if ("POST".equals(verb) && "application/octet-stream".equals(contentType)) {
 
-			options.put("binaryBody", "true");
+			options.put("binaryResponse", "true");
 		}
 
 		// DELETE's options used to sit at index 1, where the body is now, so they are the tail here even

@@ -32,7 +32,7 @@ $.POST(url, body, 'application/json; charset=UTF-8', { username: 'user', passwor
 ```
 
 `username`, `password`, `preemptive`, `headers`, `timeout`, `redirects` and `validateCertificates` are
-accepted by every function. `selector`, `binaryResponse`, `binaryBody` and `parseResponse` are accepted
+accepted by every function. `selector`, `binaryResponse` and `parseResponse` are accepted
 only where they mean something; passing one elsewhere is an error naming the function and the key.
 
 Most calls can be rewritten automatically. See `application.migration.mode` and the `migrate` maintenance
@@ -40,17 +40,17 @@ command, which report every call that still uses the old form and can rewrite th
 
 ### Binary Responses Are Streams
 
-`$.POST` with `binaryBody` previously returned the response body as a byte array. It now returns an
-`InputStream`, which is what `$.GET` with `binaryResponse` already returned. Both options describe the
-same thing and no longer hand back different shapes, and the stream removes the 2 GB limit that the array
-imposed.
+`$.POST` previously returned the response body as a byte array when the content type was
+`application/octet-stream`. Streaming the response is now requested by the `binaryResponse` option, the
+same key `$.GET` uses, and the result is an `InputStream` for both. The stream removes the 2 GB limit
+that the array imposed.
 
 ```javascript
 // Old (6.x): a byte array
 const bytes = $.POST(url, body, 'application/octet-stream').body;
 
 // New (7.x): a stream, which can be passed straight to setContent()
-const stream = $.POST(url, body, 'application/octet-stream', { binaryBody: true }).body;
+const stream = $.POST(url, body, 'application/octet-stream', { binaryResponse: true }).body;
 $.get_or_create('File', { name: 'result.bin' }).setContent(stream);
 ```
 

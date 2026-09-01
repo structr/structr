@@ -53,10 +53,12 @@ public class HttpOptions {
 	public static final String REDIRECTS             = "redirects";
 	public static final String VALIDATE_CERTIFICATES = "validateCertificates";
 	/**
-	 * Two directions, two names. "binary" meant sending the body as a binary stream on POST and
-	 * streaming the response on GET, so one key stood for opposite things depending on the verb.
+	 * One key for one thing: return the response body as a stream.
+	 *
+	 * It was briefly split into binaryBody for POST and binaryResponse for GET, on the belief that the
+	 * two meant opposite things. They did not: both stream the RESPONSE, and binaryBody named a request
+	 * that it never affected. A binary request body is expressed by passing a File as the body instead.
 	 */
-	public static final String BINARY_BODY          = "binaryBody";
 	public static final String BINARY_RESPONSE      = "binaryResponse";
 	public static final String PARSE_RESPONSE        = "parseResponse";
 	public static final String SELECTOR              = "selector";

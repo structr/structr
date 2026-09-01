@@ -47,8 +47,7 @@ These are accepted only where they mean something, and are an error elsewhere:
 |--------|-------|---------|
 | `parseResponse` | all but `$.HEAD` | Parse the response body as JSON |
 | `selector` | `$.GET` | A CSS selector applied to a `text/html` response |
-| `binaryResponse` | `$.GET` | Return the response body as a stream |
-| `binaryBody` | `$.POST` | Return the response body as a stream |
+| `binaryResponse` | `$.GET`, `$.POST` | Return the response body as a stream |
 
 An unsupported option is rejected with a message naming the function and the key. This is deliberate: an
 option that was accepted and ignored, such as a `timeout` that never applied, would only show up much
@@ -128,7 +127,7 @@ network (`403`), or a URL outside `application.httphelper.urlwhitelist` (`422`).
 ## Caveats
 
 - **A response body is text unless you ask otherwise.** For binary data use `binaryResponse` on `$.GET` or
-  `binaryBody` on `$.POST`, both of which return a stream. A stream can be read once.
+  `binaryResponse` on `$.POST`, which return a stream. A stream can be read once.
 - **`$.DELETE` may carry a body**, which is permitted by HTTP but rejected by some servers.
 - **`headers` are merged over `$.add_header()`**, so an option with the same name wins.
 - **These functions are not proxied** through the settings used by the crawler; they connect directly.

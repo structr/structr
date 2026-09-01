@@ -137,8 +137,8 @@ public class OutboundHttpCallMigrationHandlerTest {
 			"POST(url, body, 'application/octet-stream')");
 
 		assertEquals(Verdict.AUTOMATIC, post.verdict());
-		assertTrue("POST must be told binaryBody, was: " + post.reason(), post.reason().contains("binaryBody"));
-		assertFalse("POST must not be told the GET key, was: " + post.reason(), post.reason().contains("binaryResponse"));
+		// one key for both verbs: it describes the response, which is the same thing either way
+		assertTrue("POST must be told binaryResponse, was: " + post.reason(), post.reason().contains("binaryResponse"));
 	}
 
 	@Test
@@ -150,7 +150,7 @@ public class OutboundHttpCallMigrationHandlerTest {
 
 		// and the key it names there is the verb's own one too
 		assertTrue(OutboundHttpCallMigrationHandler.assess("SchemaMethod", "i", "n", "source", "GET(url, contentType)").reason().contains("binaryResponse"));
-		assertTrue(OutboundHttpCallMigrationHandler.assess("SchemaMethod", "i", "n", "source", "POST(url, body, contentType)").reason().contains("binaryBody"));
+		assertTrue(OutboundHttpCallMigrationHandler.assess("SchemaMethod", "i", "n", "source", "POST(url, body, contentType)").reason().contains("binaryResponse"));
 	}
 
 	@Test
@@ -178,7 +178,7 @@ public class OutboundHttpCallMigrationHandlerTest {
 		assertEquals("GET(url, 'application/octet-stream', { binaryResponse: true })",
 			OutboundHttpCallMigrationHandler.rewrite("GET(url, 'application/octet-stream')"));
 
-		assertEquals("POST(url, JSON.stringify(body), 'application/octet-stream', { binaryBody: true })",
+		assertEquals("POST(url, JSON.stringify(body), 'application/octet-stream', { binaryResponse: true })",
 			OutboundHttpCallMigrationHandler.rewrite("POST(url, JSON.stringify(body), 'application/octet-stream')"));
 
 		assertEquals("GET(downloadUrl, 'text/html', { selector: 'title' })",
