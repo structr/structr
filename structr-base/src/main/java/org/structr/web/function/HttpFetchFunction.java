@@ -29,6 +29,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -53,13 +54,24 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 5);
+
+			for (int i = 0; i < 2; i++) {
+
+				if (sources[i] == null) {
+
+					throw new ArgumentTypeException("FETCH(): the url and the method must not be null.");
+				}
+			}
 
 			final String url          = sources[0].toString();
 			final String method       = sources[1].toString();
-			final Object body         = (sources.length >= 3 && sources[2] != null) ? HttpBody.of(sources[2]) : null;
-			final String contentType  = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : null;
-			final HttpOptions options = HttpOptions.from("FETCH", sources, 4).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
+			final Object body         = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? HttpBody.of(sources[2]) : null;
+			final String contentType  = (sources.length >= 4 && sources[3] != null) && !HttpOptions.isOptionsAt(sources, 3) ? sources[3].toString() : null;
+			final HttpOptions options = HttpOptions.fromAnyOf("FETCH", sources, 4, 2, 3).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("FETCH", body, options);
 

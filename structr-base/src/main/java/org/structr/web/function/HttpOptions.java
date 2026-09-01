@@ -98,6 +98,35 @@ public class HttpOptions {
 	}
 
 	/**
+	 * The options object, wherever the caller actually put it.
+	 *
+	 * The options follow an OPTIONAL argument, so the natural call that omits it - POST(url, body, { ... })
+	 * - leaves the object one position early. Read positionally that map becomes the content type via
+	 * toString(), the request goes out with a Content-Type of "{timeout=5}" and the options are silently
+	 * dropped: no error, and nothing in the response says why the timeout had no effect.
+	 *
+	 * A Map is never a valid content type, so finding one in an earlier slot is unambiguous.
+	 */
+	public static HttpOptions fromAnyOf(final String functionName, final Object[] sources, final int index, final int... earlierSlots) {
+
+		for (final int slot : earlierSlots) {
+
+			if (sources != null && sources.length > slot && sources[slot] instanceof Map) {
+
+				return new HttpOptions((Map)sources[slot]);
+			}
+		}
+
+		return from(functionName, sources, index);
+	}
+
+	/** Whether the argument at the given position is an options object rather than a value. */
+	public static boolean isOptionsAt(final Object[] sources, final int index) {
+
+		return sources != null && sources.length > index && sources[index] instanceof Map;
+	}
+
+	/**
 	 * Reads the options argument at the given position.
 	 *
 	 * Anything other than an object is rejected rather than ignored: until 7.0 this position held the

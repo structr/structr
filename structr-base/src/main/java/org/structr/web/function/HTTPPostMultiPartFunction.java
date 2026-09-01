@@ -36,6 +36,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
@@ -71,7 +72,18 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 3);
+
+			for (int i = 0; i < 2; i++) {
+
+				if (sources[i] == null) {
+
+					throw new ArgumentTypeException("POST_multi_part(): the url and the parts must not be null.");
+				}
+			}
 
 			final String uri                = sources[0].toString();
 			final Map<String, Object> parts = (HashMap) sources[1];
@@ -188,7 +200,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("partsMap", "map with multipart parts (type, content)"),
-			Parameter.optional("options", "object with optional settings: `headers` merged over add_header(), `validateCertificates`, `parseResponse` to parse the response body as JSON")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, and `parseResponse` to parse the response body as JSON")
 		);
 	}
 

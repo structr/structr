@@ -85,20 +85,17 @@ public abstract class UiFunction extends Function<Object, Object> {
 		return HttpHelper.getBinary(requestUrl, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 
-	protected Map<String, Object> getStreamFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) throws FrameworkException {
+	protected Map<String, Object> getStreamFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
 
-		return HttpHelper.getAsStream(requestUrl, charset, username, password, null, null, null, null, ctx.getHeaders());
+		// the caller's merged headers rather than the ActionContext's alone: preemptive basic auth is added
+		// by HttpOptions.mergeHeaders, so passing ctx.getHeaders() here silently disabled it
+		return HttpHelper.getAsStream(requestUrl, charset, username, password, null, null, null, null, headers, validateCertificates, config);
 	}
 
 	protected Map<String, Object> headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws FrameworkException {
 
-		return headFromUrl(ctx, requestUrl, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
-	}
-
-	protected Map<String, Object> headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
-
-		// username before password: they used to be passed the other way round, so HEAD authenticated
-		// with the password as the user name
-		return HttpHelper.head(requestUrl, username, password, headers, validateCertificates);
+		// username then password: the two were the other way round against a (address, username, password)
+		// signature, so this helper sent the password as the user name
+		return HttpHelper.head(requestUrl, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 }

@@ -28,6 +28,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -46,12 +47,23 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
+
+			for (int i = 0; i < 2; i++) {
+
+				if (sources[i] == null) {
+
+					throw new ArgumentTypeException("PATCH(): the url and the body must not be null.");
+				}
+			}
 
 			final String uri          = sources[0].toString();
 			final Object body         = HttpBody.of(sources[1]);
-			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : "application/json";
-			final HttpOptions options = HttpOptions.from("PATCH", sources, 3).accepting("PATCH", HttpOptions.PARSE_RESPONSE);
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : "application/json";
+			final HttpOptions options = HttpOptions.fromAnyOf("PATCH", sources, 3, 2).accepting("PATCH", HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("PATCH", body, options);
 

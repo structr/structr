@@ -32,6 +32,8 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
+import java.io.InputStream;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
@@ -55,12 +57,23 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
+
+			for (int i = 0; i < 2; i++) {
+
+				if (sources[i] == null) {
+
+					throw new ArgumentTypeException("POST(): the url and the body must not be null.");
+				}
+			}
 
 			final String address      = sources[0].toString();
 			final Object body         = HttpBody.of(sources[1]);
-			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final HttpOptions options = HttpOptions.from("POST", sources, 3).accepting("POST", HttpOptions.BINARY_BODY, HttpOptions.PARSE_RESPONSE);
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
+			final HttpOptions options = HttpOptions.fromAnyOf("POST", sources, 3, 2).accepting("POST", HttpOptions.BINARY_BODY, HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("POST", body, options);
 
@@ -72,10 +85,15 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 			if (options.getBoolean(HttpOptions.BINARY_BODY, false)) {
 
-				final Map<String, Object> binaryData = HttpHelper.postBinary(address, body, charset, username, password, headers, validateCertificates);
-				final GraphObjectMap binaryResponse  = new GraphObjectMap();
+				// A stream, like GET's binaryResponse, rather than a byte[]: the two options describe the
+				// same thing and used to hand back different shapes, so a script dealing with both had to
+				// branch on which verb it had called. Streaming also removes the 2 GB array limit.
+				final Map<String, Object> binaryData = HttpHelper.postAsStream(address, body, charset, username, password,
+					null, null, null, null, headers, contentType, validateCertificates, options.asRequestConfig());
 
-				binaryResponse.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), binaryData.get(HttpHelper.FIELD_BODY));
+				final GraphObjectMap binaryResponse = new GraphObjectMap();
+
+				binaryResponse.setProperty(new GenericProperty<InputStream>(HttpHelper.FIELD_BODY), (InputStream) binaryData.get(HttpHelper.FIELD_BODY));
 
 				return binaryResponse;
 			}
@@ -142,7 +160,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryBody` to return the RESPONSE body as a byte array (despite its name, it does not change how the request body is sent)")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryBody` to return the RESPONSE body as a stream (despite its name it does not change how the request body is sent; pass a File as the body for that)")
 		);
 	}
 

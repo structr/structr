@@ -93,7 +93,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `validateCertificates`")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`")
 		);
 	}
 

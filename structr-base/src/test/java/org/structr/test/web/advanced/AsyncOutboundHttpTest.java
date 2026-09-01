@@ -41,6 +41,7 @@ import java.util.concurrent.TimeoutException;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -312,13 +313,40 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// The same path, failing. unwrapThenable's caller re-raises only ThenableFailure and swallows
 			// anything else into null, so a rejection that does not arrive through the reject callback would
 			// silently answer null instead of reporting anything at all.
-			unwrapped("$.GET.async('http://localhost:1/')");
+			//
+			// The trigger is a bad URL, not an unreachable host: since the 7.0 outbound HTTP revision a call
+			// that never reached the server resolves with status 0 rather than rejecting, so an unreachable
+			// host no longer exercises this path at all. A wrong scheme is refused by
+			// checkAddressAgainstWhitelist inside the call, on the async thread, which is the rejection this
+			// test is about.
+			unwrapped("$.GET.async('ftp://example.com/')");
 
 			fail("a failing pending call returned without await must report the failure, not answer null");
 
 		} catch (final FrameworkException expected) {
 
-			assertEquals("the failure must be reported as a scripting error", 422, expected.getStatus());
+			assertEquals("the failure must keep the status of the refusal", 400, expected.getStatus());
+		}
+	}
+
+	@Test
+	public void testPendingCallToAnUnreachableHostResolvesWithStatusZero() {
+
+		try {
+
+			// The counterpart of the test above, pinning the other half of the 7.0 contract: a transport
+			// failure is data, not an error. The async path must agree with the synchronous one, which
+			// OutboundHttpApiTest asserts returns status 0 rather than throwing.
+			final Object result = unwrapped("$.GET.async('http://localhost:1/')");
+
+			assertNotNull("an unreachable host must resolve, not answer null", result);
+			assertEquals("no response means status 0", "0",
+				((org.structr.core.GraphObjectMap) result).toMap().get("status").toString());
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("an unreachable host must resolve rather than throw: " + fex.getMessage());
 		}
 	}
 

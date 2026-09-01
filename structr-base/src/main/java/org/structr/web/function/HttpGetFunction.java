@@ -64,13 +64,16 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			try {
 
 				final String address      = sources[0].toString();
-				final String contentType  = (sources.length >= 2 && sources[1] != null) ? sources[1].toString() : null;
-				final HttpOptions options = HttpOptions.from("GET", sources, 2).accepting("GET", HttpOptions.SELECTOR, HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
+				final String contentType  = (sources.length >= 2 && sources[1] != null) && !HttpOptions.isOptionsAt(sources, 1) ? sources[1].toString() : null;
+				final HttpOptions options = HttpOptions.fromAnyOf("GET", sources, 2, 1).accepting("GET", HttpOptions.SELECTOR, HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
 
 				final String charset  = HttpOptions.charsetOf(contentType, null);
 				final String username = options.getString(HttpOptions.USERNAME);
 				final String password = options.getString(HttpOptions.PASSWORD);
 				final String selector = options.getString(HttpOptions.SELECTOR);
+
+				final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+				final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
 				final GraphObjectMap response = new GraphObjectMap();
 				final Map<String, Object> responseData;
@@ -78,7 +81,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				if ("text/html".equals(contentType)) {
 
 					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null,
-						options.mergeHeaders(ctx.getHeaders()), options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()), options.asRequestConfig());
+						headers, validateCertificates, options.asRequestConfig());
 
 					final String body  = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
 					final Document doc = Jsoup.parse(body);
@@ -112,7 +115,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				} else if (options.getBoolean(HttpOptions.BINARY_RESPONSE, false)) {
 
 					// Stream binary data instead of buffering into byte[] to avoid the 2 GB limit
-					responseData = getStreamFromUrl(ctx, address, charset, username, password);
+					responseData = getStreamFromUrl(ctx, address, charset, username, password, headers, validateCertificates, options.asRequestConfig());
 
 					response.setProperty(new GenericProperty<InputStream>(HttpHelper.FIELD_BODY), (InputStream) responseData.get(HttpHelper.FIELD_BODY));
 
@@ -121,7 +124,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					// HttpHelper.get directly, not getFromUrl: that helper passes no request config, so a
 					// timeout given in the options would be accepted here and quietly do nothing
 					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null,
-						options.mergeHeaders(ctx.getHeaders()), options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()), options.asRequestConfig());
+						headers, validateCertificates, options.asRequestConfig());
 
 					if (options.getBoolean(HttpOptions.PARSE_RESPONSE, false)) {
 
@@ -182,7 +185,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("contentType", "content type of the request; `text/html` parses the response with jsoup, see the `selector` option"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `validateCertificates`, `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
 		);
 	}
 

@@ -27,6 +27,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.property.IntProperty;
+import org.structr.rest.common.HttpHelper;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
 
@@ -37,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -54,6 +57,7 @@ public class OutboundHttpApiTest extends StructrTest {
 	private final Map<String, String> lastHeaders = new LinkedHashMap<>();
 	private String lastBody       = null;
 	private String lastMethod     = null;
+	private int nextStatus        = 200;
 	private boolean challengeOnce = false;
 
 	@Test
@@ -172,6 +176,122 @@ public class OutboundHttpApiTest extends StructrTest {
 
 			assertEquals("a string body must still be sent as text", "plain text", lastBody);
 		});
+	}
+
+	@Test
+	public void testOptionsAreFoundWhenAnOptionalArgumentIsOmitted() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// The natural call. Read strictly by position the map lands in the content type slot, and the
+			// request used to go out with a Content-Type of "{...}" and no options applied at all.
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', { headers: { 'X-Marker': 'post' } })}");
+			assertEquals("POST must find options that sit in the content type slot", "post", lastHeaders.get("x-marker"));
+
+			evaluate(ctx, "${GET('http://localhost:" + port + "/', { headers: { 'X-Marker': 'get' } })}");
+			assertEquals("GET must find options that sit in the content type slot", "get", lastHeaders.get("x-marker"));
+
+			evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'POST', 'body', { headers: { 'X-Marker': 'fetch' } })}");
+			assertEquals("FETCH must find options that sit in the content type slot", "fetch", lastHeaders.get("x-marker"));
+
+			// and the misplaced map must not also be sent as the content type
+			assertFalse("the options object must not become the content type",
+				String.valueOf(lastHeaders.get("content-type")).contains("X-Marker"));
+		});
+	}
+
+	@Test
+	public void testExplicitNullsForOptionalArgumentsAreAccepted() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// Passing null to reach a later argument is what the code below the assertion has always
+			// handled; the assertion rejected it anyway, so there was no way to combine them.
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', null, { headers: { 'X-Marker': 'post' } })}");
+			assertEquals("POST must accept a null content type", "post", lastHeaders.get("x-marker"));
+
+			evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'POST', null, null, { headers: { 'X-Marker': 'fetch' } })}");
+			assertEquals("FETCH must accept null body and content type", "fetch", lastHeaders.get("x-marker"));
+		});
+	}
+
+	@Test
+	public void testBothBinaryOptionsStreamAndCarryTheirOptions() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// One shape for both: binaryResponse on GET and binaryBody on POST describe the same thing and
+			// used to hand back a stream and a byte[] respectively.
+			final Object fromGet = evaluate(ctx, "${GET('http://localhost:" + port + "/', 'application/octet-stream', "
+				+ "{ binaryResponse: true, headers: { 'X-Marker': 'get' } })}");
+
+			assertEquals("GET's binary path must pass the options headers, not only the context ones", "get", lastHeaders.get("x-marker"));
+			assertNotNull("GET with binaryResponse must return something", fromGet);
+
+			final Object fromPost = evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/octet-stream', "
+				+ "{ binaryBody: true, headers: { 'X-Marker': 'post' } })}");
+
+			assertEquals("POST's binary path must pass the options headers", "post", lastHeaders.get("x-marker"));
+			assertEquals("POST's binary path must send the content type it was given", "application/octet-stream", mimeOf(lastHeaders.get("content-type")));
+			assertNotNull("POST with binaryBody must return something", fromPost);
+		});
+	}
+
+	@Test
+	public void testTheServerStatusIsReturnedRatherThanThrown() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// A 404 with no body used to read getEntity() unchecked, throw a NullPointerException, and be
+			// reported as a 422 "unable to fetch": the status the server actually sent was lost.
+			nextStatus = 404;
+
+			final GraphObjectMap response = (GraphObjectMap) evaluate(ctx, "${GET('http://localhost:" + port + "/missing')}");
+
+			assertNotNull("an error status must come back as a response, not as an exception", response);
+			assertEquals("the server's status must be preserved", Integer.valueOf(404),
+				response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
+		});
+	}
+
+	@Test
+	public void testAnUnreachableHostReportsNoResponseInsteadOfThrowing() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// Nothing is listening on this port. There is no status to report, so the call comes back with 0
+		// and an error rather than throwing: StructrScript has no try/catch, so a throw is unrecoverable.
+		final GraphObjectMap response = (GraphObjectMap) evaluate(ctx, "${GET('http://localhost:1/')}");
+
+		assertNotNull("an unreachable host must return a response, not throw", response);
+		assertEquals("no response means status 0", Integer.valueOf(0),
+			response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
+	}
+
+	@Test
+	public void testAnInvalidUrlStillThrows() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// the CALL is wrong here, not the network: this must not be silently turned into a status of 0
+		try {
+
+			HttpHelper.get("ftp://example.com/", "UTF-8", null, null, java.util.Collections.emptyMap(), true);
+
+			fail("a non-http URL must be refused");
+
+		} catch (FrameworkException expected) {
+
+			assertEquals("an unusable URL is a bad request, not a failed one", 400, expected.getStatus());
+		}
 	}
 
 	@Test
@@ -520,6 +640,16 @@ public class OutboundHttpApiTest extends StructrTest {
 					return;
 				}
 
+				if (nextStatus != 200) {
+
+					// an error status with no body at all, which is what a real service sends for many of
+					// them and what used to be misreported as a failed request
+					exchange.sendResponseHeaders(nextStatus, -1);
+					exchange.close();
+
+					return;
+				}
+
 				final byte[] response = "{ \"ok\": true }".getBytes(StandardCharsets.UTF_8);
 
 				exchange.getResponseHeaders().add("Content-Type", "application/json");
@@ -534,6 +664,7 @@ public class OutboundHttpApiTest extends StructrTest {
 
 			lastMethod    = null;
 			challengeOnce = false;
+			nextStatus    = 200;
 
 			body.accept(server.getAddress().getPort());
 

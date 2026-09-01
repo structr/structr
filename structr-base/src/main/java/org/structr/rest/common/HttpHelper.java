@@ -79,6 +79,7 @@ public class HttpHelper {
 	public static final String FIELD_STATUS  = "status";
 	public static final String FIELD_BODY    = "body";
 	public static final String FIELD_HEADERS = "headers";
+	public static final String FIELD_ERROR   = "error";
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpHelper.class.getName());
 
@@ -236,15 +237,21 @@ public class HttpHelper {
 			final HttpGet req   = new HttpGet(uri);
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
 			final CloseableHttpResponse resp = hc.client().execute(req);
-			final String content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset())));
+			final String content = bodyOf(resp, charset(resp, hc.charset()));
 
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to fetch content from address", t);
 		}
 
 		return responseData;
@@ -286,8 +293,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Error while downloading binary data from " + address, t);
-			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Error while downloading binary data from", t);
 		}
 	}
 
@@ -315,8 +321,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Error while downloading binary data from " + address, t);
-			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Error while downloading binary data from", t);
 		}
 	}
 
@@ -349,10 +354,15 @@ public class HttpHelper {
 			responseHeaders.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseHeaders.put(HttpHelper.FIELD_HEADERS, Arrays.stream(response.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get headers from address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to get headers from address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to get headers from address", t);
 		}
 
 		return responseHeaders;
@@ -404,10 +414,15 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue PATCH request to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue PATCH request to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue PATCH request to address", t);
 		}
 
 		return responseData;
@@ -422,6 +437,42 @@ public class HttpHelper {
 	 * the type twice.
 	 */
 	/** timeout (milliseconds) and redirects, as the outbound HTTP functions pass them. */
+	/**
+	 * The response body, or null when the server sent none.
+	 *
+	 * getEntity() is null for a 204, a 304 and for any error response without a body. Reading through it
+	 * unchecked turned those into a NullPointerException, which the catch below then reported as a failed
+	 * request: the status the server actually sent was lost and the caller saw 422 instead of 404.
+	 */
+	private static String bodyOf(final CloseableHttpResponse resp, final String charset) throws IOException {
+
+		final HttpEntity entity = resp.getEntity();
+
+		return entity != null ? skipBOMIfPresent(IOUtils.toString(entity.getContent(), charset)) : null;
+	}
+
+	/**
+	 * The result of a request that never reached the server: DNS, connection refused, TLS, timeout.
+	 *
+	 * Returned rather than thrown, because there is nothing wrong with the CALL. A status of 0 says "no
+	 * response", the way fetch() has no status when it rejects, and lets StructrScript branch on it: that
+	 * language has no try/catch, so a throw here would be unrecoverable rather than merely inconvenient.
+	 * Only a request that cannot be made at all - a malformed URL, a blocked address - still throws.
+	 */
+	private static Map<String, Object> noResponse(final String address, final String what, final Throwable t) {
+
+		logger.warn("{} {}: {}", what, address, t.getMessage());
+
+		final Map<String, Object> responseData = new HashMap<>();
+
+		responseData.put(HttpHelper.FIELD_BODY,    null);
+		responseData.put(HttpHelper.FIELD_STATUS,  "0");
+		responseData.put(HttpHelper.FIELD_HEADERS, Collections.emptyMap());
+		responseData.put(HttpHelper.FIELD_ERROR,   t.getMessage() != null ? t.getMessage() : t.toString());
+
+		return responseData;
+	}
+
 	private static Integer timeoutFrom(final Map<String, Object> config) {
 
 		// Number, not Integer: StructrScript hands over its numeric literals as Double
@@ -581,10 +632,15 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue POST request to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
+			return noResponse(address, "Unable to issue POST request to address", t);
 		}
 
 		return responseData;
@@ -652,10 +708,15 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue PUT request to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue PUT request to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue PUT request to address", t);
 		}
 
 		return responseData;
@@ -716,10 +777,15 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue DELETE command to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue DELETE command to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue DELETE command to address", t);
 		}
 
 		return responseData;
@@ -760,6 +826,18 @@ public class HttpHelper {
 	 */
 	public static Map<String, Object> getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
 
+		return getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, null);
+	}
+
+	/**
+	 * The streaming variant of get(), with the same transport settings as the buffered one.
+	 *
+	 * These used to be hardcoded here, so a caller asking for a streamed response silently lost its
+	 * certificate validation, its timeout and its redirect setting: the option was accepted and did
+	 * nothing, which surfaces much later as a hung or unexpectedly trusted call.
+	 */
+	public static Map<String, Object> getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
 		CloseableHttpClient client   = null;
 		CloseableHttpResponse resp   = null;
 
@@ -767,7 +845,7 @@ public class HttpHelper {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req   = new HttpGet(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
 			client = hc.client();
 			resp   = client.execute(req);
@@ -811,6 +889,12 @@ public class HttpHelper {
 	 */
 	public static Map<String, Object> postAsStream(final String address, final Object requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
 
+		return postAsStream(address, requestBody, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, null, true, null);
+	}
+
+	/** The streaming variant of post(), with the same transport settings and content type as the buffered one. */
+	public static Map<String, Object> postAsStream(final String address, final Object requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String contentType, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
 		CloseableHttpClient client   = null;
 		CloseableHttpResponse resp   = null;
 
@@ -818,9 +902,9 @@ public class HttpHelper {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPost req  = new HttpPost(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
-			req.setEntity(entityFor(requestBody, null, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
 			client = hc.client();
 			resp   = client.execute(req);
@@ -994,14 +1078,22 @@ public class HttpHelper {
 			} else {
 
 				// consume content, but discard it
-				String content = IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset()));
+				String content = bodyOf(resp, charset(resp, hc.charset()));
 
 				logger.warn("Unable to create file from URI {}: status code was {}, discarding content", address, statusCode);
 			}
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			throw new FrameworkException(422, "Unable to fetch file content from address " + address + ": " + t.getMessage());
+			// this one writes to a file rather than returning a response, so there is no status to hand
+			// back. A download that never reached the server is still a failure the caller must see.
+			throw new FrameworkException(504, "Unable to fetch file content from address " + address + ": " + t.getMessage(), t);
 		}
 	}
 
@@ -1085,7 +1177,29 @@ public class HttpHelper {
 	private static URI checkAddressAgainstWhitelist(final String address) throws FrameworkException {
 
 		final String whitelist = Settings.OutgoingURLWhitelist.getValue(null);
-		final URI uri          = URI.create(address);
+		final URI uri;
+
+		// An address that cannot be requested at all is a bad CALL, not a failed request, so it throws
+		// rather than coming back as a status of 0. Deliberately only what makes the URL unusable: the
+		// host and network checks in validateUrl() belong to the servlets, not to these functions.
+		try {
+
+			uri = URI.create(address);
+
+		} catch (final IllegalArgumentException iex) {
+
+			throw new FrameworkException(400, "Invalid URL: " + address);
+		}
+
+		if (uri.getScheme() == null || !("http".equals(uri.getScheme()) || "https".equals(uri.getScheme()))) {
+
+			throw new FrameworkException(400, "Only http and https URLs are allowed, got: " + address);
+		}
+
+		if (StringUtils.isBlank(uri.getHost())) {
+
+			throw new FrameworkException(400, "URL has no host component: " + address);
+		}
 
 		if (!"*".equals(whitelist)) {
 
@@ -1158,8 +1272,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue {} request to address {}, {}", method, address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue " + method + " request to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue " + method + " request to address", t);
 		}
 
 		return responseData;
