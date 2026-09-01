@@ -92,10 +92,4 @@ public abstract class UiFunction extends Function<Object, Object> {
 		return HttpHelper.getAsStream(requestUrl, charset, username, password, null, null, null, null, headers, validateCertificates, config);
 	}
 
-	protected Map<String, Object> headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws FrameworkException {
-
-		// username then password: the two were the other way round against a (address, username, password)
-		// signature, so this helper sent the password as the user name
-		return HttpHelper.head(requestUrl, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
-	}
 }
