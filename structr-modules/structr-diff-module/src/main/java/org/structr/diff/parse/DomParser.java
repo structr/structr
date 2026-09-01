@@ -28,7 +28,9 @@ import org.jsoup.parser.Parser;
 import org.structr.diff.model.Entity;
 import org.structr.diff.model.Kind;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -55,6 +57,30 @@ import java.util.TreeMap;
  */
 public class DomParser {
 
+	/**
+	 * Tags whose content is text, not markup.
+	 *
+	 * An XML parser has no notion of this, so a {@code <script>} holding {@code a < b} or a snippet
+	 * of HTML gets parsed into elements, and the body is split into fragments around them. One real
+	 * app had 26 such sequences in a single stored template, producing 26 phantom elements and 31
+	 * phantom text nodes from that file alone.
+	 *
+	 * <p>{@code Parser.xmlParser().tagSet(TagSet.Html())} looks like the answer and is not: the
+	 * option is ignored by the XML tree builder, and the counts do not move. Handling it in the walk
+	 * is what actually works.
+	 */
+	private static final Set<String> DATA_ELEMENTS = Set.of("script", "style");
+
+	/**
+	 * HTML elements that cannot have children, and that an export writes unclosed.
+	 *
+	 * To an XML parser an unclosed {@code <img>} is an open container that swallows its following
+	 * siblings, which corrupts the parent and ordinal of everything after it. One app had 126.
+	 */
+	private static final Set<String> VOID_ELEMENTS = Set.of(
+		"area", "base", "br", "col", "embed", "hr", "img", "input",
+		"link", "meta", "param", "source", "track", "wbr");
+
 	private static final String META_ID   = "data-structr-meta-id";
 	private static final String META_NAME = "data-structr-meta-name";
 
@@ -68,10 +94,31 @@ public class DomParser {
 
 		final Document document = Jsoup.parse(markup, "", Parser.xmlParser());
 
+		unwrapVoidElements(document);
 		walk(document, origin);
 	}
 
-	/**
+	/** Lifts the children of a void element up to its parent, keeping their order. */
+	private static void unwrapVoidElements(final Element root) {
+
+		for (final Element element : root.getAllElements()) {
+
+			if (!VOID_ELEMENTS.contains(element.tagName().toLowerCase()) || element.childNodeSize() == 0) {
+
+				continue;
+			}
+
+			Node anchor = element;
+
+			for (final Node child : new ArrayList<>(element.childNodes())) {
+
+				anchor.after(child);
+				anchor = child;
+			}
+		}
+	}
+
+	 /**
 	 * Children of one node, in order, assigning each an ordinal within that parent.
 	 *
 	 * The ordinal counts elements and text together rather than each separately, so that
@@ -119,7 +166,20 @@ public class DomParser {
 
 				pendingMetadata = null;
 
-				walk(element, key);
+				if (DATA_ELEMENTS.contains(element.tagName().toLowerCase())) {
+
+					// its content is text: take it whole rather than walking what the XML parser made of it
+					final String data = element.html();
+
+					if (!data.isBlank()) {
+
+						addContent(key, 0, data);
+					}
+
+				} else {
+
+					walk(element, key);
+				}
 			}
 		}
 	}
