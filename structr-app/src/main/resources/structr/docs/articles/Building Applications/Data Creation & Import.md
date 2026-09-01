@@ -288,8 +288,7 @@ The following example shows how to use built-in functions in a schema method to 
 ```
 {
     let url = "https://example.datasource.url/customers.json";
-    let json = $.GET(url, "application/json");
-    let data = $.fromJson(json);
+    let data = $.GET(url, "application/json", { parseResponse: true }).body;
 
     data.entries.forEach(entry => {
 

@@ -239,12 +239,12 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			Example.structrScript("${GET('https://www.example.com', 'text/html').body}", "Return the HTML source code of the front page of example.com."),
 			Example.structrScript("${GET('https://www.example.com', 'text/html; charset=UTF-8').body}", "Return the HTML source code of the front page of example.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
 			Example.structrScript("${GET('https://www.example.com', 'text/html; charset=ISO-8859-1').body}", "Return the HTML source code of the front page of example.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
-			Example.structrScript("${GET('https://www.example.com', 'text/html', '#footer').body}", "Return the HTML content of the element with the ID 'footer' from example.com."),
+			Example.structrScript("${GET('https://www.example.com', 'text/html', { selector: '#footer' }).body}", "Return the HTML content of the element with the ID 'footer' from example.com."),
 			Example.structrScript("""
 				${
 					setContent(
 						create('Image', 'name', 'exampleLogo.png'),
-						GET('https://www.example.com/logo.png', 'application/octet-stream').body
+						GET('https://www.example.com/logo.png', 'application/octet-stream', { binaryResponse: true }).body
 					)
 				}
 				""", "Create a new file with the example logo in the local Structr instance."),
@@ -254,7 +254,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					$.addHeader('Authorization', 'Bearer ...');
 					$.setContent(
 						file,
-						$.GET('https://example.com/large-file.zip', 'application/octet-stream').body
+						$.GET('https://example.com/large-file.zip', 'application/octet-stream', { binaryResponse: true }).body
 					);
 				}}
 				""", "Stream a large binary file directly into a Structr File node without size limit.")
@@ -266,12 +266,12 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 		return List.of(
 			"7.0+: In JavaScript, `$.GET.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.GET.async(url)).catch(...)` to chain, and note that `Promise.race()` does not report the fastest. Only JavaScript has it - StructrScript always calls `GET()` synchronously.",
-			"From version 3.5 onwards, GET() supports binary content by setting the `contentType` parameter to `application/octet-stream`. (This is helpful when creating files - see examples.)",
+			"GET() returns binary content when the `binaryResponse` option is set. Up to 6.x a `contentType` of `application/octet-stream` did this on its own; from 7.0 the content type only describes the data, and the option decides the shape of the response.",
 			"7.0+: `contentType` is the content type of the REQUEST, sent as the `Content-Type` header. Its charset is used to interpret the response, unless the server provides one of its own.",
 			"The `username` and `password` options are intended for HTTP Basic Auth. For header authentication use the `headers` option or `addHeader()`.",
 			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"v6.4+: When using `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit and avoids buffering the entire response in memory. The stream is consumed when passed to `setContent()` and can not be read more than once."
+			"With `binaryResponse` the body is a streaming `InputStream` rather than a `byte[]`, which removes the 2 GB limit and avoids buffering the whole response in memory. The stream is consumed when passed to `setContent()` and can not be read more than once."
 		);
 	}
 
