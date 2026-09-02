@@ -58,8 +58,11 @@ public abstract class ContextFactory {
 				.option("js.temporal", "true")
 				// Makes an async function crossing to the host resolve before it is returned: GraalJS wraps
 				// it in an InteropAsyncFunction, drains the promise job queue when the call returns, and
-				// hands back the fulfilment value -- or throws the rejection. This is what lets a script
-				// use async/await at all; see JSFunctionTranspiler for the wrapper that relies on it.
+				// hands back the fulfilment value, or throws the rejection. This is also what drains the
+				// job queue at interop boundaries at all, so it is load-bearing for every promise a script
+				// settles and not only for the async wrapper. Note that it completes async *functions*
+				// crossing the boundary, not promises in general: a promise returned by a plain function,
+				// or taken as a module's completion value, arrives on the host still pending.
 				.option("js.interop-complete-promises", "true"));
 
 	// Python context builder

@@ -64,6 +64,14 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 	private final Map<String, Map<String, String>> headersByPath = new ConcurrentHashMap<>();
 
+	/**
+	 * The ceiling for a race that must not wait for the call it beat, in milliseconds.
+	 *
+	 * Half the loser's delay, and roughly fifty times what the winning path costs once warm, so it
+	 * separates the two outcomes rather than measuring machine speed.
+	 */
+	private static final long BEAT_CALL_BUDGET_MILLIS = 1500;
+
 	// ----- helpers -----
 
 	private Object wrapped(final String source) throws FrameworkException {
@@ -97,12 +105,10 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	/**
 	 * A rendered response with its Date header value masked.
 	 *
-	 * <p>The two dialects are compared as whole rendered responses, which is what makes the comparison
-	 * worth making -- but the response carries the test server's Date header, and HTTP dates have
-	 * one-second granularity. Two calls a few milliseconds apart therefore differ whenever they happen
-	 * to straddle a second boundary, which failed roughly once per full reactor run and was retried away
-	 * by the global RetryAnalyzer rather than being seen. Masking the value keeps everything else in the
-	 * comparison, the header's presence included.</p>
+	 * <p>The two dialects are compared as whole rendered responses. The response carries the test
+	 * server's Date header, and HTTP dates have one-second granularity, so two calls a few milliseconds
+	 * apart differ whenever they straddle a second boundary. Masking the value keeps everything else in
+	 * the comparison, the header's presence included.</p>
 	 */
 	private static String withoutResponseDate(final String rendered) {
 
@@ -180,6 +186,73 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			}
 
 			// server.stop() does not touch an executor it was given
+			if (dispatcher != null) {
+				dispatcher.shutdownNow();
+			}
+		}
+	}
+
+	/**
+	 * A server that answers /slow after a delay and /fast at once, so that argument order and completion
+	 * order disagree.
+	 *
+	 * The rendezvous server cannot express this: its barrier releases every request at the same instant,
+	 * which makes the calls concurrent but leaves which of them finishes first up to the scheduler. A
+	 * race can only be tested against a server where one answer is reliably later than the other.
+	 */
+	private void withPacedServer(final long slowMillis, final PortConsumer body) {
+
+		HttpServer server          = null;
+		ExecutorService dispatcher = null;
+
+		try {
+
+			server     = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+			dispatcher = Executors.newFixedThreadPool(4);
+
+			server.setExecutor(dispatcher);
+
+			server.createContext("/", exchange -> {
+
+				final String path = exchange.getRequestURI().getPath();
+
+				if (path.startsWith("/slow")) {
+
+					try {
+
+						Thread.sleep(slowMillis);
+
+					} catch (final InterruptedException ie) {
+
+						Thread.currentThread().interrupt();
+					}
+				}
+
+				final byte[] response = path.getBytes(StandardCharsets.UTF_8);
+
+				exchange.getResponseHeaders().add("Content-Type", "text/plain");
+				exchange.sendResponseHeaders(200, response.length);
+
+				try (final OutputStream out = exchange.getResponseBody()) {
+					out.write(response);
+				}
+			});
+
+			server.start();
+
+			body.accept(server.getAddress().getPort());
+
+		} catch (final Exception e) {
+
+			e.printStackTrace();
+			fail("Unexpected exception: " + e.getMessage());
+
+		} finally {
+
+			if (server != null) {
+				server.stop(0);
+			}
+
 			if (dispatcher != null) {
 				dispatcher.shutdownNow();
 			}
@@ -372,8 +445,8 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			final String url = "'http://localhost:" + port + "/x'";
 
-			// Pinned because the seven functions' own notes say all three of these. If the pending result
-			// ever becomes a real promise, this test fails and the documentation gets corrected with it.
+			// The pending result is a thenable, not a Promise, so chaining directly off it is unavailable.
+			// If it ever becomes a real promise, these assertions are what report the change.
 			assertEquals("chaining directly off the pending result is not available", "undefined",
 				wrapped("return typeof $.GET.async(" + url + ").catch;"));
 
@@ -386,20 +459,38 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	}
 
 	@Test
-	public void testPromiseRaceSettlesInArgumentOrder() {
+	public void testPromiseRaceAnswersTheFastestAndNotTheFirstArgument() {
 
-		withRendezvousServer(2, 20, port -> {
+		// /slow is written first and /fast second, so answering "/fast" can only mean the race settled on
+		// completion order rather than argument order. A then() that joins inline answers "/slow" here,
+		// because the first element is fully settled before the second one's reaction is registered.
+		withPacedServer(600, port -> {
 
-			// then() joins, so a race settles in iteration order rather than by which call finished first.
-			// This is a limitation, not a feature -- it is pinned so that the note saying so on each of the
-			// seven functions cannot quietly stop being true.
 			final Object result = wrapped(
-				  "const a = $.GET.async('http://localhost:" + port + "/first');"
-				+ "const b = $.GET.async('http://localhost:" + port + "/second');"
-				+ "const r = await Promise.race([a, b]);"
+				  "const slow = $.GET.async('http://localhost:" + port + "/slow');"
+				+ "const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				+ "const r = await Promise.race([slow, fast]);"
 				+ "return r.body;");
 
-			assertEquals("race answers the first argument, not the first to complete", "/first", result);
+			assertEquals("race must answer the call that finished first, not the first argument", "/fast", result);
+		});
+	}
+
+	@Test
+	public void testPromiseAllStillAnswersInArgumentOrderWhenTheFirstIsSlowest() {
+
+		// all() answers in argument order by specification, whatever order its elements settle in, so the
+		// completion-ordered drain must not reorder it. Separate from the race assertion, because a drain
+		// that reordered all() would still satisfy that one.
+		withPacedServer(600, port -> {
+
+			final Object result = wrapped(
+				  "const slow = $.GET.async('http://localhost:" + port + "/slow');"
+				+ "const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				+ "const rs = await Promise.all([slow, fast]);"
+				+ "return rs.map(r => r.body).join(',');");
+
+			assertEquals("all must keep argument order regardless of completion order", "/slow,/fast", result);
 		});
 	}
 
@@ -461,18 +552,17 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				withoutResponseDate(fromUnwrapped), withoutResponseDate(wrapped("return " + pair + ";").toString()));
 		});
 
-		// NOT asserted here, deliberately: top-level `await` in an *unwrapped* snippet answers null, because
-		// a module that uses it returns the module evaluation promise instead of its completion value. That
-		// asymmetry predates this feature, applies to every await rather than to these functions, and is
-		// recorded in docs/gotchas.md. Pinning it would be pinning a defect.
+		// Deliberately not asserted: top-level `await` in an *unwrapped* snippet answers null, because a
+		// module using it answers the module evaluation promise instead of its completion value. That
+		// applies to every await rather than to these functions, and is a defect rather than a contract.
 	}
 
 	@Test
 	public void testAnUnwrappedSnippetCanAwaitInsideAnAsyncFunction() {
 
-		// Top-level await costs an unwrapped snippet its result, because a module that uses one answers the
-		// module evaluation promise instead of a completion value -- see docs/gotchas.md. Inside an async
-		// function there is no top-level await, so the module keeps its completion value, and that value is
+		// Top-level await costs an unwrapped snippet its result, because a module using one answers the
+		// module evaluation promise instead of a completion value. Inside an async function there is no
+		// top-level await, so the module keeps its completion value, and that value is
 		// a promise the host settles. This is the idiom that gives an unwrapped snippet the full feature,
 		// and it is what the wrapped form does on the caller's behalf.
 
@@ -491,6 +581,74 @@ public class AsyncOutboundHttpTest extends StructrTest {
 					+ "$.GET.async('http://localhost:" + port + "/a'), "
 					+ "$.GET.async('http://localhost:" + port + "/b')"
 					+ "]); return r.map(x => x.body).join(','); })()"));
+		});
+	}
+
+	@Test
+	public void testARaceReturnsWithoutWaitingForTheCallsItBeat() {
+
+		// "Does not wait for the loser" is a statement about elapsed time, so this is the one timing
+		// assertion in the class. The two outcomes differ by the loser's full delay: a race that joins its
+		// loser cannot finish in under three seconds, while one that does not answers in tens of
+		// milliseconds once the engine is warm. The budget sits between them with a factor of two either
+		// way.
+		//
+		// A race that answers correctly but still waits for its loser satisfies
+		// testPromiseRaceAnswersTheFastestAndNotTheFirstArgument and fails only here.
+		//
+		// Both dialects, because they settle through one path: the wrapper is called through a plain arrow
+		// so its promise reaches the host pending, as an unwrapped snippet's completion value does.
+		withPacedServer(3000, port -> {
+
+			final String body = "const slow = $.GET.async('http://localhost:" + port + "/slow');"
+				+ " const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				+ " const r = await Promise.race([slow, fast]);";
+
+			// Warm the scripting engine and the outbound HTTP stack before timing anything. The first async
+			// call in a JVM costs on the order of a second by itself -- GraalJS warmup, the HTTP client's
+			// class loading and its first connection -- which is unrelated to whether the race waits for
+			// its loser and is large enough to dominate the measurement.
+			wrapped("const r = await $.GET.async('http://localhost:" + port + "/warmup'); return r.status;");
+
+			final long startedWrapped = System.currentTimeMillis();
+			final Object fromWrapped  = wrapped(body + " return r.body;");
+			final long tookWrapped    = System.currentTimeMillis() - startedWrapped;
+
+			assertEquals("the race must still answer the call that finished first", "/fast", fromWrapped);
+			assertTrue("a wrapped race must not wait for the call it beat, but took " + tookWrapped + "ms",
+				tookWrapped < BEAT_CALL_BUDGET_MILLIS);
+
+			final long startedUnwrapped = System.currentTimeMillis();
+			final Object fromUnwrapped  = unwrapped("(async () => {" + body + " return r.body; })()");
+			final long tookUnwrapped    = System.currentTimeMillis() - startedUnwrapped;
+
+			assertEquals("an unwrapped race must answer the same", "/fast", fromUnwrapped);
+			assertTrue("an unwrapped race must not wait for the call it beat, but took " + tookUnwrapped + "ms",
+				tookUnwrapped < BEAT_CALL_BUDGET_MILLIS);
+		});
+	}
+
+	@Test
+	public void testPrintAfterAnAwaitStillReachesTheOutputBuffer() {
+
+		// print() writes to the ActionContext's output buffer, which Structr prefers over the script's
+		// return value. Whatever a script prints before its first await is already in the buffer while the
+		// script is still suspended, so the buffer must be read after the value has settled rather than at
+		// the point the body first gave up the thread; reading it early answers with the first half of the
+		// output and discards the promise carrying the rest of the script.
+		//
+		// Both halves are asserted: the "before" half is what fails if the buffer is read too late rather
+		// than too early.
+		withRendezvousServer(1, 20, port -> {
+
+			assertEquals("both prints must survive an await in a wrapped snippet", "before|after|",
+				wrapped("$.print('before|'); const r = await $.GET.async('http://localhost:" + port + "/a');"
+					+ " $.print('after|'); return r.status;"));
+
+			assertEquals("and in an unwrapped one", "before|after|",
+				unwrapped("(async () => { $.print('before|');"
+					+ " const r = await $.GET.async('http://localhost:" + port + "/a');"
+					+ " $.print('after|'); return r.status; })()"));
 		});
 	}
 }
