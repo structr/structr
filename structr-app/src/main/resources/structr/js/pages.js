@@ -161,7 +161,6 @@ let _Pages = {
 			// always init page tree - we never clear it
 			return _Pages.pageTree.init();
 		});
-
 	},
 	initSlideouts: () => {
 

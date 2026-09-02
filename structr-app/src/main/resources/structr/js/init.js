@@ -580,7 +580,7 @@ let Structr = {
 
 				Structr.clearMain();
 				Structr.mainMenu.activateEntry(name);
-				Structr.modules[name].onload();
+				Structr.performActionAfterEnvResourceLoaded(Structr.modules[name].onload);
 			}
 
 			return moduleAllowsNavigation;

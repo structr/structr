@@ -37,85 +37,82 @@ let _Localization = {
 	},
 	onload: () => {
 
-		Structr.performActionAfterEnvResourceLoaded(() => {
+		_Localization.init();
 
-			_Localization.init();
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('localization'));
 
-			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('localization'));
+		Structr.setMainContainerHTML(_Localization.templates.main());
+		Structr.setFunctionBarHTML(_Localization.templates.functions());
 
-			Structr.setMainContainerHTML(_Localization.templates.main());
-			Structr.setFunctionBarHTML(_Localization.templates.functions());
-
-			document.getElementById('add-new-translation').addEventListener('click', (event) => {
-				event.preventDefault();
-				_Localization.createNewLocalizationEntry();
-			});
-
-			// UISettings.showSettingsForCurrentModule();
-
-			let keyPreselect    = document.getElementById('localization-key-preselect');
-			let domainPreselect = document.getElementById('localization-domain-preselect');
-			let localePreselect = document.getElementById('localization-locale-preselect');
-
-			keyPreselect.addEventListener('keyup', (e) => {
-
-				if (e.code === 'Escape' || e.keyCode === 27) {
-					keyPreselect.value = '';
-					LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
-				}
-				return false;
-			});
-
-			domainPreselect.addEventListener('keyup', (e) => {
-
-				if (e.code === 'Escape' || e.keyCode === 27) {
-					domainPreselect.value = '';
-					LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
-				}
-				return false;
-			});
-
-			//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
-			domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
-			localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
-
-			document.getElementById('create-localization-form').addEventListener('submit', (e) => {
-				e.preventDefault();
-
-				_Localization.showMain();
-
-				let preselectData = {
-					name: keyPreselect.value,
-				};
-
-				if (domainPreselect.value.length > 0) {
-					preselectData.domain = domainPreselect.value;
-				}
-
-				let preselectLocalesString = localePreselect.value.trim();
-
-				LSWrapper.setItem(_Localization.localizationPreselectNameKey, preselectData.name);
-				LSWrapper.setItem(_Localization.localizationPreselectDomainKey, preselectData.domain);
-				LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, preselectLocalesString);
-
-				let preselectLocales = preselectLocalesString.split(',').map((l) => l.trim());
-
-				_Localization.createNewLocalizationKey(preselectData, preselectLocales);
-			});
-
-			_Localization.listKeysAndDomains();
-
-			document.querySelector('#localization-fields-save').addEventListener('click', _Localization.saveButtonAction);
-
-			Structr.mainMenu.unblock(100);
-
-			_Localization.moveResizer();
-			Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
-
-			Structr.resize();
-
-			_Helpers.setModuleReadyIndicator(_Localization, _Localization.getLocalizationsMain());
+		document.getElementById('add-new-translation').addEventListener('click', (event) => {
+			event.preventDefault();
+			_Localization.createNewLocalizationEntry();
 		});
+
+		// UISettings.showSettingsForCurrentModule();
+
+		let keyPreselect    = document.getElementById('localization-key-preselect');
+		let domainPreselect = document.getElementById('localization-domain-preselect');
+		let localePreselect = document.getElementById('localization-locale-preselect');
+
+		keyPreselect.addEventListener('keyup', (e) => {
+
+			if (e.code === 'Escape' || e.keyCode === 27) {
+				keyPreselect.value = '';
+				LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
+			}
+			return false;
+		});
+
+		domainPreselect.addEventListener('keyup', (e) => {
+
+			if (e.code === 'Escape' || e.keyCode === 27) {
+				domainPreselect.value = '';
+				LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
+			}
+			return false;
+		});
+
+		//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
+		domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
+		localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
+
+		document.getElementById('create-localization-form').addEventListener('submit', (e) => {
+			e.preventDefault();
+
+			_Localization.showMain();
+
+			let preselectData = {
+				name: keyPreselect.value,
+			};
+
+			if (domainPreselect.value.length > 0) {
+				preselectData.domain = domainPreselect.value;
+			}
+
+			let preselectLocalesString = localePreselect.value.trim();
+
+			LSWrapper.setItem(_Localization.localizationPreselectNameKey, preselectData.name);
+			LSWrapper.setItem(_Localization.localizationPreselectDomainKey, preselectData.domain);
+			LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, preselectLocalesString);
+
+			let preselectLocales = preselectLocalesString.split(',').map((l) => l.trim());
+
+			_Localization.createNewLocalizationKey(preselectData, preselectLocales);
+		});
+
+		_Localization.listKeysAndDomains();
+
+		document.querySelector('#localization-fields-save').addEventListener('click', _Localization.saveButtonAction);
+
+		Structr.mainMenu.unblock(100);
+
+		_Localization.moveResizer();
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
+
+		Structr.resize();
+
+		_Helpers.setModuleReadyIndicator(_Localization, _Localization.getLocalizationsMain());
 	},
 	uiElements: {
 		getLocalizationListContainer: () => {
