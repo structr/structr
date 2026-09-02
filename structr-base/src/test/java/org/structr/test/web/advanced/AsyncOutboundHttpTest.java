@@ -94,6 +94,21 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	 *
 	 * There is no third outcome and no timing assertion.
 	 */
+	/**
+	 * A rendered response with its Date header value masked.
+	 *
+	 * <p>The two dialects are compared as whole rendered responses, which is what makes the comparison
+	 * worth making -- but the response carries the test server's Date header, and HTTP dates have
+	 * one-second granularity. Two calls a few milliseconds apart therefore differ whenever they happen
+	 * to straddle a second boundary, which failed roughly once per full reactor run and was retried away
+	 * by the global RetryAnalyzer rather than being seen. Masking the value keeps everything else in the
+	 * comparison, the header's presence included.</p>
+	 */
+	private static String withoutResponseDate(final String rendered) {
+
+		return rendered.replaceAll("Date=[^,}]*", "Date=<masked>");
+	}
+
 	private void withRendezvousServer(final int expected, final int timeoutSeconds, final PortConsumer body) {
 
 		HttpServer server         = null;
@@ -422,8 +437,13 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			final String fromUnwrapped = unwrapped("$.GET.async(" + a + ")").toString();
 
 			assertTrue("the comparison is only meaningful if the call actually succeeded", fromUnwrapped.contains("status=200"));
+
+			// guards the masking below from quietly becoming a no-op: if the rendered response stops
+			// carrying a Date header, the mask is dead code and the comparison should go back to being exact
+			assertTrue("the rendered response is expected to carry a Date header", fromUnwrapped.contains("Date="));
+
 			assertEquals("a single pending call must answer the same either way",
-				fromUnwrapped, wrapped("return $.GET.async(" + a + ");").toString());
+				withoutResponseDate(fromUnwrapped), withoutResponseDate(wrapped("return $.GET.async(" + a + ");").toString()));
 		});
 
 		// and the concurrent case, which is the one that matters: Promise.all is itself a thenable, so an
@@ -438,7 +458,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				fromUnwrapped.contains("body=/a") && fromUnwrapped.contains("body=/b") && !fromUnwrapped.contains("status=500"));
 
 			assertEquals("Promise.all of several calls must answer the same either way",
-				fromUnwrapped, wrapped("return " + pair + ";").toString());
+				withoutResponseDate(fromUnwrapped), withoutResponseDate(wrapped("return " + pair + ";").toString()));
 		});
 
 		// NOT asserted here, deliberately: top-level `await` in an *unwrapped* snippet answers null, because
