@@ -18,7 +18,6 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -105,20 +104,19 @@ public class AsyncFunctionWrapper<T, R> implements ProxyExecutable {
 					// Joining here would settle this call before the script has finished registering its
 					// reactions on the others, which is what made Promise.race answer its first argument
 					// instead of the first call to finish. Deferring hands the choice of order to
-					// PendingThenables.drain(), which takes completed calls first.
+					// PendingThenables, which takes completed calls first.
 					//
-					// The drain has to run after the whole synchronous registration burst and before the
-					// interop boundary closes, so it is scheduled as a guest job rather than called here:
-					// js.interop-complete-promises makes GraalJS drain that queue at the boundary, and
-					// throws if the promise is still pending once it has, so there is no host-side moment
-					// after the boundary in which a drain could still help.
+					// Nothing is scheduled from here. The drain is driven by the host, from
+					// PolyglotWrapper.unwrapThenable, for as long as the script's own completion promise is
+					// still pending -- so a race stops paying for its losers the moment its winner has
+					// answered. Only the host can see that stop condition; a drain scheduled as a guest job
+					// runs regardless, because the interop boundary drains that queue to empty.
 					if (!PendingThenables.hasFrame()) {
 
 						return settle(arguments);
 					}
 
 					PendingThenables.defer(pending::isDone, () -> settle(arguments));
-					PendingThenables.scheduleDrainOnce(this::scheduleDrain);
 
 					return null;
 				};
@@ -176,38 +174,6 @@ public class AsyncFunctionWrapper<T, R> implements ProxyExecutable {
 			}
 
 			return null;
-		}
-
-		/**
-		 * Enqueues the drain as a guest job, by registering it on an already-resolved guest promise.
-		 *
-		 * A job runs after the current synchronous run-to-completion finishes, which is exactly the moment
-		 * wanted: every reaction a race or an await was going to register has been registered by then, and
-		 * the boundary that would reject a still-pending promise has not been reached yet.
-		 */
-		private void scheduleDrain() {
-
-			final Context context = Context.getCurrent();
-
-			context.getBindings("js")
-				.getMember("Promise")
-				.invokeMember("resolve")
-				.invokeMember("then", (ProxyExecutable) ignored -> {
-
-					// One settlement per job, and the next job is only enqueued while something is still
-					// deferred -- so the chain ends on its own rather than needing to be stopped.
-					//
-					// It does not stop early enough to save a race the cost of its losers: GraalJS drains
-					// this queue to empty at the interop boundary, so a job enqueued before the race
-					// resolved is still run and still parks. The race answers the fastest; it does not yet
-					// return as soon as the fastest arrives.
-					if (PendingThenables.drainOne()) {
-
-						scheduleDrain();
-					}
-
-					return null;
-				});
 		}
 
 		@Override

@@ -65,6 +65,20 @@ public class Scripting {
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 	private static final String PENDING_PROMISE_MESSAGE             = "Attempt to unwrap pending promise";
 
+	/**
+	 * Calls the transpiled async wrapper, which JSFunctionTranspiler deliberately leaves uncalled.
+	 *
+	 * <p>A plain arrow, and that is the whole point of it. {@code js.interop-complete-promises} completes
+	 * the promise of an <em>async function</em> that crosses to the host, throwing if it cannot -- so
+	 * calling the wrapper directly leaves the host no pending promise to hold and no moment in which to
+	 * stop settling early. Called through a function that is not itself async, the very same promise
+	 * crosses still pending, which is exactly what a non-embedded snippet's completion value already
+	 * does. Both dialects then settle through {@code PolyglotWrapper.unwrapThenable}.</p>
+	 */
+	private static final Source ASYNC_WRAPPER_TRAMPOLINE = Source.newBuilder("js", "((fn) => fn())", "structrAsyncWrapperCall")
+		.mimeType("application/javascript+module")
+		.buildLiteral();
+
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
 		return replaceVariables(actionContext, entity, rawValue, false, "script source");
@@ -309,7 +323,7 @@ public class Scripting {
 
 				try {
 
-					final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
+					final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet, AsyncCompletion.HOST_DRIVEN);
 					result = PolyglotWrapper.unwrap(actionContext, value);
 
 				} finally {
@@ -366,7 +380,40 @@ public class Scripting {
 		return result;
 	}
 
+	/**
+	 * Who settles the promise of an embedded snippet's async wrapper.
+	 *
+	 * <p>Not a preference: the two callers of {@link #evaluatePolyglot} are in genuinely different
+	 * positions.</p>
+	 *
+	 * <ul>
+	 * <li>{@link #HOST_DRIVEN} -- the evaluation is the outermost one, so the host owns the thread and
+	 * can keep settling deferred calls until the script's promise resolves. This is what lets a race
+	 * stop at its winner.</li>
+	 * <li>{@link #AT_BOUNDARY} -- the evaluation is nested inside a running one (a script calling a
+	 * schema method), and its value has to be handed straight back to the guest. The host cannot settle
+	 * anything from here: an interop call made while an outer boundary is already draining the job queue
+	 * does not get a drain of its own, so the wrapper's promise has to be completed at its own call
+	 * boundary, as it always was. A nested body that genuinely suspends therefore still fails the way it
+	 * does today -- see gotchas.md in the structr-refactor workspace.</li>
+	 * </ul>
+	 */
+	public enum AsyncCompletion {
+
+		HOST_DRIVEN,
+		AT_BOUNDARY
+	}
+
+	/**
+	 * Evaluates a snippet nested inside a running evaluation, completing any async wrapper at its own
+	 * call boundary. The outermost evaluation goes through {@link #evaluateScript} instead.
+	 */
 	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
+
+		return evaluatePolyglot(actionContext, engineName, context, entity, snippet, AsyncCompletion.AT_BOUNDARY);
+	}
+
+	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet, final AsyncCompletion asyncCompletion) throws FrameworkException {
 
 		try {
 
@@ -388,21 +435,43 @@ public class Scripting {
 					Value result = context.eval(source);
 
 					// An embedded snippet is wrapped in an async arrow that JSFunctionTranspiler deliberately
-					// leaves uncalled, so the call happens here. js.interop-complete-promises makes GraalJS
-					// drain the promise job queue at this boundary and answer with the resolved value, which
-					// is what makes await work; a rejection arrives as the PolyglotException handled below.
+					// leaves uncalled, so the call happens here. How it is called decides who settles it.
 					if (isAsyncWrapped && result != null && result.canExecute()) {
 
-						result = executeAsyncWrapper(result, snippet);
+						if (asyncCompletion == AsyncCompletion.HOST_DRIVEN) {
+
+							// through a plain arrow, so the promise crosses still pending and the caller's
+							// unwrap can settle it -- and stop as soon as the script itself has answered
+							result = context.eval(ASYNC_WRAPPER_TRAMPOLINE).execute(result);
+
+						} else {
+
+							// js.interop-complete-promises drains the promise job queue at this boundary and
+							// answers with the resolved value; a rejection arrives as the PolyglotException
+							// handled below
+							result = executeAsyncWrapper(result, snippet);
+						}
 					}
 
 					// Legacy print() support: Prefer explicitly printed output over actual result.
-					// This has to come after the call above -- until then the snippet body has not run,
-					// so nothing has been printed yet.
-					final String outputBuffer = actionContext.getOutput();
-					if (outputBuffer != null && !outputBuffer.isEmpty()) {
+					//
+					// Only correct once the body has finished, which is why it comes after the call above --
+					// and why the outermost evaluation does not do it here at all. There, the value may be a
+					// promise that has not settled yet, the body has run no further than its first
+					// suspension, and preferring the buffer would answer with whatever had been printed by
+					// then and drop the promise carrying the rest of the script -- losing every print() on
+					// the far side of an await along with it. evaluateScript applies the same preference
+					// once the value has settled, by which time the buffer is complete.
+					//
+					// A nested evaluation has no such moment: its wrapper was completed at the boundary
+					// above, so the body has finished and the buffer is final here.
+					if (asyncCompletion == AsyncCompletion.AT_BOUNDARY) {
 
-						return Value.asValue(outputBuffer);
+						final String outputBuffer = actionContext.getOutput();
+						if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+							return Value.asValue(outputBuffer);
+						}
 					}
 
 					return result;

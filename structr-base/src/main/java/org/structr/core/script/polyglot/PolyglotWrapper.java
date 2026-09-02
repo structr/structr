@@ -646,11 +646,30 @@ public abstract class PolyglotWrapper {
 	/**
 	 * Resolves a thenable that has reached the host and answers its value.
 	 *
+	 * <p>This is the single settlement point for both script dialects. An embedded snippet's async
+	 * wrapper is called through a plain guest arrow rather than directly (see
+	 * {@code Scripting.evaluatePolyglot}), so its promise crosses to the host still pending, exactly as
+	 * a non-embedded snippet's completion value does. Whether Structr wrapped the snippet is a choice it
+	 * makes for the author, so it must not decide how -- or how expensively -- the script settles.</p>
+	 *
 	 * <p>Registering the reactions is itself an interop call, so GraalJS drains the promise job queue
-	 * when it returns and both callbacks have already run by then -- for a promise that is settled,
-	 * which is the case for anything a finished script hands back. A promise still pending at that
-	 * point cannot be settled by anyone, because Structr scripting has no event loop, and is reported
-	 * rather than answered with null.</p>
+	 * when it returns; for anything already settled, both callbacks have run by the time it does.</p>
+	 *
+	 * <p><b>The loop is what makes a race cheap.</b> While the script's own promise is still pending and
+	 * something is still outstanding that could settle it, one deferred host call is joined -- the one
+	 * that finished first. Each settlement is an interop call whose return drains the job queue, so the
+	 * guest gets to act on it before the next one is considered. The moment the script's promise
+	 * settles, the loop stops and the calls it no longer needs are never joined at all;
+	 * {@code PendingThenables.closeFrame()} discards them and their workers finish unobserved.</p>
+	 *
+	 * <p>It has to be a host loop. {@code js.interop-complete-promises} drains the guest job queue to
+	 * empty at an interop boundary rather than stopping when the promise it is completing has settled,
+	 * so a drain scheduled as a guest job cannot decline to run -- it still parks on a loser nobody is
+	 * waiting for. The stop condition is only visible here, where the completion promise's own reactions
+	 * are held.</p>
+	 *
+	 * <p>A promise still pending once nothing is outstanding cannot be settled by anyone, because Structr
+	 * scripting has no event loop, and is reported rather than answered with null.</p>
 	 *
 	 * <p>The value is unwrapped inside the callback, while the context is still open. The previous
 	 * implementation kept the raw guest value and unwrapped it after the caller had already closed the
@@ -675,10 +694,12 @@ public abstract class PolyglotWrapper {
 
 		thenable.invokeMember("then", onFulfilled, onRejected);
 
-		// A host thenable defers its join now, so registering the reactions no longer settles it; the drain
-		// is what runs the settlement. Harmless for a guest promise, which was already settled by the job
-		// queue GraalJS drained when the call above returned and leaves nothing deferred behind.
-		PendingThenables.drainAll();
+		// Join the deferred calls one at a time, fastest first, for exactly as long as this script still
+		// needs one of them. A script with nothing deferred -- the ordinary case -- never enters the loop.
+		while (!settled[0] && !settled[1] && PendingThenables.hasDeferred()) {
+
+			PendingThenables.settleNextCompleted();
+		}
 
 		if (settled[1]) {
 

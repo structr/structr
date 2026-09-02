@@ -29,10 +29,12 @@ public abstract class JSFunctionTranspiler {
      * <p>Two properties of this shape are load-bearing and easy to undo by accident:</p>
      *
      * <ul>
-     * <li><b>The function is not invoked here.</b> It is the module's completion value, and the host
-     * calls it (see {@code Scripting.evaluatePolyglot}). Because the context sets
-     * {@code js.interop-complete-promises}, GraalJS then resolves the returned promise at the call
-     * boundary and hands back the value, or throws the rejection.</li>
+     * <li><b>The function is not invoked here.</b> It is the module's completion value, and
+     * {@code Scripting.evaluatePolyglot} calls it. <em>How</em> it is called decides who settles the
+     * promise: through a plain arrow for the outermost evaluation, so the promise reaches the host
+     * pending and {@code PolyglotWrapper.unwrapThenable} settles it and can stop early; directly for a
+     * nested one, where {@code js.interop-complete-promises} resolves it at the call boundary because
+     * the host cannot settle anything from inside a running evaluation.</li>
      * <li><b>There is no top-level await.</b> A module that uses one returns the module evaluation
      * promise instead of its completion value, and that promise fulfils with {@code undefined} -- so
      * the script's return value would be silently lost. That is what reverted the two earlier

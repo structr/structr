@@ -29,11 +29,12 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * The settlements of host thenables that have been registered by a script but not yet joined.
  *
- * <p>This is the whole of the "bounded drain" that lets a race answer the fastest call rather than the
- * first one written. Structr has no event loop, and this is not one: it does not schedule anything, it
- * cannot make a promise settle that nothing was going to settle, and it never outlives the evaluation
- * that filled it. All it does is choose the <em>order</em> in which already-running calls are joined --
- * by completion instead of by registration.</p>
+ * <p>This is the whole of the "bounded drain" that lets a race answer -- and cost -- the fastest call
+ * rather than the first one written. Structr has no event loop, and this is not one: it does not
+ * schedule anything, it cannot make a promise settle that nothing was going to settle, and it never
+ * outlives the evaluation that filled it. All it does is choose the <em>order</em> in which
+ * already-running calls are joined -- by completion instead of by registration -- and stop as soon as
+ * the script's own promise has settled.</p>
  *
  * <h3>Why the order was wrong without it</h3>
  *
@@ -44,6 +45,20 @@ import java.util.concurrent.locks.LockSupport;
  * first <em>argument</em>. Deferring the join and draining afterwards is what fixes that, and it is
  * also why {@code Promise.all} is unaffected: {@code all} answers in argument order by specification,
  * whatever order its elements settle in.</p>
+ *
+ * <h3>Who drains, and why it is the host</h3>
+ *
+ * <p>The drain is driven from {@link org.structr.core.script.polyglot.PolyglotWrapper}, one settlement
+ * at a time, for exactly as long as the script's completion promise is still pending. That is what
+ * makes a race cheap as well as correct: once the winner has resolved the script, the loop stops and
+ * the losers are never joined at all -- {@link #closeFrame()} discards them.</p>
+ *
+ * <p>It has to be the host, because the stop condition is only visible there. A drain scheduled as a
+ * guest job cannot stop early: {@code js.interop-complete-promises} drains the guest job queue
+ * <em>to empty</em> at an interop boundary rather than stopping once the promise being completed has
+ * settled, so a job enqueued before the race resolved still runs and still parks on its loser. The
+ * host, holding the completion promise's own reactions, knows when there is nothing left to wait for.
+ * See gotchas.md in the structr-refactor workspace.</p>
  *
  * <h3>Why a thread local, and why frames</h3>
  *
@@ -83,7 +98,6 @@ public final class PendingThenables {
 	private static final class Frame {
 
 		private final List<Deferred> deferred = new ArrayList<>();
-		private boolean drainScheduled        = false;
 	}
 
 	/**
@@ -116,12 +130,14 @@ public final class PendingThenables {
 	/**
 	 * Closes the current frame, discarding anything still registered in it.
 	 *
-	 * What is left here is a settlement that was registered and never reached: a race's losers, or the
-	 * remainder of a frame whose evaluation failed part way through. Note that a call which was started
-	 * and never awaited is not among them -- nothing ever calls then() on one, so it is never deferred.
+	 * What is left here is a settlement the script turned out not to need: a race's losers, or the
+	 * remainder of a frame whose evaluation failed part way through. Discarding them is the point of the
+	 * whole mechanism rather than an oversight -- a race that has answered must not pay for the calls it
+	 * beat. Note that a call which was started and never awaited is not among them: nothing ever calls
+	 * then() on one, so it is never deferred.
 	 *
 	 * Nothing is joined here. The evaluation is over, so blocking now would hold a request thread for a
-	 * result that no longer has anywhere to go.
+	 * result that no longer has anywhere to go. The worker finishes on its own and its answer is dropped.
 	 */
 	public static void closeFrame() {
 
@@ -133,7 +149,7 @@ public final class PendingThenables {
 
 			if (!frame.deferred.isEmpty()) {
 
-				logger.debug("{} asynchronous settlement(s) were never reached; their results are discarded.", frame.deferred.size());
+				logger.debug("{} asynchronous settlement(s) were never needed; their results are discarded.", frame.deferred.size());
 			}
 		}
 
@@ -179,14 +195,31 @@ public final class PendingThenables {
 		frames.get(frames.size() - 1).deferred.add(new Deferred(completion, settle));
 	}
 
+	// ----- the drain -----
+
 	/**
-	 * Runs {@code schedule} once per frame, for the caller that needs a drain to be arranged.
+	 * Whether the current frame still holds a settlement that could be run.
 	 *
-	 * The scheduling is language-specific -- it means enqueueing a job on the guest's own queue -- so it
-	 * is passed in rather than done here. Once per frame is enough because the scheduled job chains the
-	 * next one itself for as long as anything is still deferred; the gate reopens when the chain runs out.
+	 * The drain loop's other half of the stop condition: the script's promise being pending is only
+	 * worth waiting on while something is still outstanding that could settle it.
 	 */
-	public static void scheduleDrainOnce(final Runnable schedule) {
+	public static boolean hasDeferred() {
+
+		final List<Frame> frames = FRAMES.get();
+
+		return !frames.isEmpty() && !frames.get(frames.size() - 1).deferred.isEmpty();
+	}
+
+	/**
+	 * Settles the one deferral whose call finished first, parking until one has.
+	 *
+	 * <p>One at a time, so the decision to join anything further is taken after the guest has had a
+	 * chance to act on this settlement. Settling hands a value to a guest callback, which resolves a
+	 * guest promise and -- because that callback is an interop call whose return drains the guest job
+	 * queue -- runs whatever was waiting on it. That may be all the script needed, in which case the
+	 * caller stops and the remaining calls are never joined.</p>
+	 */
+	public static void settleNextCompleted() {
 
 		final List<Frame> frames = FRAMES.get();
 
@@ -197,49 +230,9 @@ public final class PendingThenables {
 
 		final Frame frame = frames.get(frames.size() - 1);
 
-		if (!frame.drainScheduled) {
-
-			frame.drainScheduled = true;
-
-			schedule.run();
-		}
-	}
-
-	/**
-	 * Settles the one deferral whose call finished first, and answers whether any remain.
-	 *
-	 * <p>One at a time, so that the decision to join anything further is taken after the guest has had a
-	 * chance to act on this settlement. Settling hands a value to a guest callback, which resolves a guest
-	 * promise and runs whatever was waiting on it -- and that may be all the script needed.</p>
-	 *
-	 * <p><b>It does not currently save a race the cost of its losers</b>, and the reason is worth knowing
-	 * before trying to make it. The scheduler in {@code AsyncFunctionWrapper} enqueues the next drain as a
-	 * guest job while anything is still deferred, and GraalJS drains its job queue <em>to empty</em> at the
-	 * interop boundary rather than stopping once the promise it is completing has settled. So the job
-	 * enqueued before the race resolved still runs, and it parks on the loser: the race answers the call
-	 * that finished first, but the script ends up costing the slowest one. Stopping earlier needs the guest
-	 * to say that its promise has settled, because only the guest knows -- see gotchas.md in the
-	 * structr-refactor workspace under the scripting section.</p>
-	 *
-	 * @return true if the frame still holds deferrals after this one was settled
-	 */
-	public static boolean drainOne() {
-
-		final List<Frame> frames = FRAMES.get();
-
-		if (frames.isEmpty()) {
-
-			return false;
-		}
-
-		final Frame frame = frames.get(frames.size() - 1);
-
 		if (frame.deferred.isEmpty()) {
 
-			// the chain of drain jobs has run out; a later burst of registrations starts a new one
-			frame.drainScheduled = false;
-
-			return false;
+			return;
 		}
 
 		final Deferred next = takeNextCompleted(frame);
@@ -247,29 +240,6 @@ public final class PendingThenables {
 		// run outside the list it was taken from, so that a callback which registers another deferral --
 		// or throws -- cannot corrupt the iteration that is draining it
 		next.settle().run();
-
-		if (frame.deferred.isEmpty()) {
-
-			frame.drainScheduled = false;
-
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Settles the current frame completely, completed calls first.
-	 *
-	 * For the host-driven path in {@code PolyglotWrapper.unwrapThenable}, which invokes then() itself and
-	 * has no guest job queue to lean on for the next round. It is settling a single returned thenable
-	 * there, so there is no race whose losers this could make it wait for.
-	 */
-	public static void drainAll() {
-
-		while (drainOne()) {
-			// drainOne() answers whether anything is left
-		}
 	}
 
 	/**

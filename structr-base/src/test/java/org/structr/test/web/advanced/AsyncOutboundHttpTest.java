@@ -578,4 +578,65 @@ public class AsyncOutboundHttpTest extends StructrTest {
 					+ "]); return r.map(x => x.body).join(','); })()"));
 		});
 	}
+
+	@Test
+	public void testARaceReturnsWithoutWaitingForTheCallsItBeat() {
+
+		// The observable check for B-73, and the only one there can be: "does not wait for the loser" is a
+		// statement about elapsed time, so this is the one timing assertion in the class. The margin is
+		// deliberately enormous -- a two second loser against a one second budget -- because what is being
+		// distinguished is "joins the loser" from "does not", and those differ by the whole two seconds.
+		// A race that answers correctly but still pays for its loser passes
+		// testPromiseRaceAnswersTheFastestAndNotTheFirstArgument and fails only here.
+		//
+		// Both dialects, because the point of the design is that they settle through one path: the wrapper
+		// is called through a plain arrow precisely so its promise reaches the host pending, exactly as an
+		// unwrapped snippet's completion value does.
+		withPacedServer(2000, port -> {
+
+			final String body = "const slow = $.GET.async('http://localhost:" + port + "/slow');"
+				+ " const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				+ " const r = await Promise.race([slow, fast]);";
+
+			final long startedWrapped = System.currentTimeMillis();
+			final Object fromWrapped  = wrapped(body + " return r.body;");
+			final long tookWrapped    = System.currentTimeMillis() - startedWrapped;
+
+			assertEquals("the race must still answer the call that finished first", "/fast", fromWrapped);
+			assertTrue("a wrapped race must not wait for the call it beat, but took " + tookWrapped + "ms",
+				tookWrapped < 1000);
+
+			final long startedUnwrapped = System.currentTimeMillis();
+			final Object fromUnwrapped  = unwrapped("(async () => {" + body + " return r.body; })()");
+			final long tookUnwrapped    = System.currentTimeMillis() - startedUnwrapped;
+
+			assertEquals("an unwrapped race must answer the same", "/fast", fromUnwrapped);
+			assertTrue("an unwrapped race must not wait for the call it beat, but took " + tookUnwrapped + "ms",
+				tookUnwrapped < 1000);
+		});
+	}
+
+	@Test
+	public void testPrintAfterAnAwaitStillReachesTheOutputBuffer() {
+
+		// print() writes to the ActionContext's output buffer, which Structr prefers over the script's
+		// return value. Everything a script prints before its first await is in the buffer while the script
+		// is still suspended, so a settlement driven from the host has to read the buffer *after* the value
+		// has settled rather than at the point the body first gave up the thread -- reading it early answers
+		// with the first half of the output and discards the promise carrying the rest of the script.
+		//
+		// Both halves are asserted, and the "before" half is what fails if the buffer is read too late
+		// rather than too early.
+		withRendezvousServer(1, 20, port -> {
+
+			assertEquals("both prints must survive an await in a wrapped snippet", "before|after|",
+				wrapped("$.print('before|'); const r = await $.GET.async('http://localhost:" + port + "/a');"
+					+ " $.print('after|'); return r.status;"));
+
+			assertEquals("and in an unwrapped one", "before|after|",
+				unwrapped("(async () => { $.print('before|');"
+					+ " const r = await $.GET.async('http://localhost:" + port + "/a');"
+					+ " $.print('after|'); return r.status; })()"));
+		});
+	}
 }
