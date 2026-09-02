@@ -66,13 +66,13 @@ public class Scripting {
 	private static final String PENDING_PROMISE_MESSAGE             = "Attempt to unwrap pending promise";
 
 	/**
-	 * Calls the transpiled async wrapper, which JSFunctionTranspiler deliberately leaves uncalled.
+	 * Calls the transpiled async wrapper, which {@link JSFunctionTranspiler} deliberately leaves uncalled.
 	 *
-	 * <p>A plain arrow, and that is the whole point of it. {@code js.interop-complete-promises} completes
-	 * the promise of an <em>async function</em> that crosses to the host, throwing if it cannot -- so
-	 * calling the wrapper directly leaves the host no pending promise to hold and no moment in which to
-	 * stop settling early. Called through a function that is not itself async, the very same promise
-	 * crosses still pending, which is exactly what a non-embedded snippet's completion value already
+	 * <p>Being a plain arrow rather than an async function is the point.
+	 * {@code js.interop-complete-promises} completes the promise of an <em>async function</em> crossing
+	 * to the host, throwing if it cannot, so calling the wrapper directly leaves the host no pending
+	 * promise to hold and no opportunity to stop settling early. Called through a function that is not
+	 * itself async, the same promise crosses still pending, as a non-embedded snippet's completion value
 	 * does. Both dialects then settle through {@code PolyglotWrapper.unwrapThenable}.</p>
 	 */
 	private static final Source ASYNC_WRAPPER_TRAMPOLINE = Source.newBuilder("js", "((fn) => fn())", "structrAsyncWrapperCall")
@@ -315,10 +315,10 @@ public class Scripting {
 
 			try {
 
-				// Deferred async settlements belong to this evaluation: opened inside the lock and the entered
-				// context, because a drain has to happen on this thread, in this transaction, before the
-				// context is left. unwrap() is inside the frame too -- a non-embedded script whose result is
-				// a thenable settles there rather than at the async wrapper's boundary.
+				// Deferred async settlements belong to this evaluation, so the frame is opened inside the lock
+				// and the entered context: a drain has to happen on this thread, in this transaction, before
+				// the context is left. unwrap() is inside the frame as well, because that is where a
+				// thenable completion value is settled.
 				PendingThenables.openFrame();
 
 				try {
@@ -336,10 +336,10 @@ public class Scripting {
 				// unwrap() has no throws clause, so a promise it could not resolve -- rejected, or still
 				// pending with nothing left that could settle it -- arrives wrapped in this marker.
 				//
-				// Each of the two failures it may carry has to leave the way the synchronous path lets it
-				// leave, or the status would depend on whether the snippet was wrapped. An AssertException
-				// is not a FrameworkException, so it leaves unchecked, for Actions.execute to convert with
-				// the status $.assert was given -- which is what happens to one thrown outside a promise.
+				// Each of the two failures it may carry has to leave by the same route the synchronous path
+				// uses, or the reported status would depend on whether the snippet was wrapped. An
+				// AssertException is not a FrameworkException, so it leaves unchecked for Actions.execute to
+				// convert using the status $.assert was given.
 				if (tfx.getReportedFailure() instanceof AssertException aex) {
 
 					throw aex;
@@ -383,19 +383,19 @@ public class Scripting {
 	/**
 	 * Who settles the promise of an embedded snippet's async wrapper.
 	 *
-	 * <p>Not a preference: the two callers of {@link #evaluatePolyglot} are in genuinely different
-	 * positions.</p>
+	 * <p>The two callers of {@link #evaluatePolyglot} are in different positions, and the mode follows
+	 * from that rather than being a preference.</p>
 	 *
 	 * <ul>
-	 * <li>{@link #HOST_DRIVEN} -- the evaluation is the outermost one, so the host owns the thread and
-	 * can keep settling deferred calls until the script's promise resolves. This is what lets a race
-	 * stop at its winner.</li>
-	 * <li>{@link #AT_BOUNDARY} -- the evaluation is nested inside a running one (a script calling a
-	 * schema method), and its value has to be handed straight back to the guest. The host cannot settle
-	 * anything from here: an interop call made while an outer boundary is already draining the job queue
-	 * does not get a drain of its own, so the wrapper's promise has to be completed at its own call
-	 * boundary, as it always was. A nested body that genuinely suspends therefore still fails the way it
-	 * does today -- see gotchas.md in the structr-refactor workspace.</li>
+	 * <li>{@link #HOST_DRIVEN} -- the outermost evaluation. The host owns the thread and can keep
+	 * settling deferred calls until the script's promise resolves, which is what allows a race to stop
+	 * at its winner.</li>
+	 * <li>{@link #AT_BOUNDARY} -- an evaluation nested inside a running one, such as a script calling a
+	 * schema method, whose value has to be handed straight back to the guest. The host cannot settle
+	 * anything from here, because an interop call made while an outer boundary is already draining the
+	 * job queue does not get a drain of its own; the wrapper's promise must therefore be completed at
+	 * its own call boundary. A nested body that genuinely suspends consequently fails with
+	 * <em>Attempt to unwrap pending promise</em>, so {@code await} is not usable in one.</li>
 	 * </ul>
 	 */
 	public enum AsyncCompletion {
@@ -406,7 +406,7 @@ public class Scripting {
 
 	/**
 	 * Evaluates a snippet nested inside a running evaluation, completing any async wrapper at its own
-	 * call boundary. The outermost evaluation goes through {@link #evaluateScript} instead.
+	 * call boundary. The outermost evaluation goes through {@link #evaluateScript}.
 	 */
 	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
@@ -453,18 +453,18 @@ public class Scripting {
 						}
 					}
 
-					// Legacy print() support: Prefer explicitly printed output over actual result.
+					// Legacy print() support: prefer explicitly printed output over the actual result.
 					//
-					// Only correct once the body has finished, which is why it comes after the call above --
-					// and why the outermost evaluation does not do it here at all. There, the value may be a
-					// promise that has not settled yet, the body has run no further than its first
-					// suspension, and preferring the buffer would answer with whatever had been printed by
-					// then and drop the promise carrying the rest of the script -- losing every print() on
-					// the far side of an await along with it. evaluateScript applies the same preference
-					// once the value has settled, by which time the buffer is complete.
+					// Only correct once the body has finished, which is why it comes after the call above,
+					// and why the outermost evaluation does not apply it here at all. There the value may be
+					// a promise that has not settled, with the body run no further than its first
+					// suspension, so preferring the buffer would answer with whatever had been printed by
+					// then and discard the promise carrying the rest of the script -- including every
+					// print() after an await. evaluateScript applies the same preference once the value has
+					// settled and the buffer is complete.
 					//
-					// A nested evaluation has no such moment: its wrapper was completed at the boundary
-					// above, so the body has finished and the buffer is final here.
+					// A nested evaluation has no such gap: its wrapper was completed at the boundary above,
+					// so the body has finished and the buffer is final here.
 					if (asyncCompletion == AsyncCompletion.AT_BOUNDARY) {
 
 						final String outputBuffer = actionContext.getOutput();

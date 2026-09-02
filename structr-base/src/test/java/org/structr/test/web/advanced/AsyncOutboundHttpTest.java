@@ -105,12 +105,10 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	/**
 	 * A rendered response with its Date header value masked.
 	 *
-	 * <p>The two dialects are compared as whole rendered responses, which is what makes the comparison
-	 * worth making -- but the response carries the test server's Date header, and HTTP dates have
-	 * one-second granularity. Two calls a few milliseconds apart therefore differ whenever they happen
-	 * to straddle a second boundary, which failed roughly once per full reactor run and was retried away
-	 * by the global RetryAnalyzer rather than being seen. Masking the value keeps everything else in the
-	 * comparison, the header's presence included.</p>
+	 * <p>The two dialects are compared as whole rendered responses. The response carries the test
+	 * server's Date header, and HTTP dates have one-second granularity, so two calls a few milliseconds
+	 * apart differ whenever they straddle a second boundary. Masking the value keeps everything else in
+	 * the comparison, the header's presence included.</p>
 	 */
 	private static String withoutResponseDate(final String rendered) {
 
@@ -447,8 +445,8 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			final String url = "'http://localhost:" + port + "/x'";
 
-			// Pinned because the seven functions' own notes say all three of these. If the pending result
-			// ever becomes a real promise, this test fails and the documentation gets corrected with it.
+			// The pending result is a thenable, not a Promise, so chaining directly off it is unavailable.
+			// If it ever becomes a real promise, these assertions are what report the change.
 			assertEquals("chaining directly off the pending result is not available", "undefined",
 				wrapped("return typeof $.GET.async(" + url + ").catch;"));
 
@@ -463,9 +461,9 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	@Test
 	public void testPromiseRaceAnswersTheFastestAndNotTheFirstArgument() {
 
-		// The observable check for B-71. /slow is written first and /fast second, so answering "/fast"
-		// can only mean the race settled on completion order. With then() joining inline -- one call
-		// fully finished before the next was even started -- this answered "/slow" every time.
+		// /slow is written first and /fast second, so answering "/fast" can only mean the race settled on
+		// completion order rather than argument order. A then() that joins inline answers "/slow" here,
+		// because the first element is fully settled before the second one's reaction is registered.
 		withPacedServer(600, port -> {
 
 			final Object result = wrapped(
@@ -482,8 +480,8 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	public void testPromiseAllStillAnswersInArgumentOrderWhenTheFirstIsSlowest() {
 
 		// all() answers in argument order by specification, whatever order its elements settle in, so the
-		// completion-ordered drain must not reorder it. Pinned separately from the race, because a drain
-		// that got this wrong would still make the race test pass.
+		// completion-ordered drain must not reorder it. Separate from the race assertion, because a drain
+		// that reordered all() would still satisfy that one.
 		withPacedServer(600, port -> {
 
 			final Object result = wrapped(
@@ -554,18 +552,17 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				withoutResponseDate(fromUnwrapped), withoutResponseDate(wrapped("return " + pair + ";").toString()));
 		});
 
-		// NOT asserted here, deliberately: top-level `await` in an *unwrapped* snippet answers null, because
-		// a module that uses it returns the module evaluation promise instead of its completion value. That
-		// asymmetry predates this feature, applies to every await rather than to these functions, and is
-		// recorded in docs/gotchas.md. Pinning it would be pinning a defect.
+		// Deliberately not asserted: top-level `await` in an *unwrapped* snippet answers null, because a
+		// module using it answers the module evaluation promise instead of its completion value. That
+		// applies to every await rather than to these functions, and is a defect rather than a contract.
 	}
 
 	@Test
 	public void testAnUnwrappedSnippetCanAwaitInsideAnAsyncFunction() {
 
-		// Top-level await costs an unwrapped snippet its result, because a module that uses one answers the
-		// module evaluation promise instead of a completion value -- see docs/gotchas.md. Inside an async
-		// function there is no top-level await, so the module keeps its completion value, and that value is
+		// Top-level await costs an unwrapped snippet its result, because a module using one answers the
+		// module evaluation promise instead of a completion value. Inside an async function there is no
+		// top-level await, so the module keeps its completion value, and that value is
 		// a promise the host settles. This is the idiom that gives an unwrapped snippet the full feature,
 		// and it is what the wrapped form does on the caller's behalf.
 
@@ -591,27 +588,26 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	public void testARaceReturnsWithoutWaitingForTheCallsItBeat() {
 
 		// "Does not wait for the loser" is a statement about elapsed time, so this is the one timing
-		// assertion in the class. The two outcomes it separates differ by the loser's full delay: a race
-		// that joins its loser cannot finish in under three seconds, and one that does not answers in
-		// tens of milliseconds once the engine is warm. The budget sits between them with a factor of two
-		// either way.
+		// assertion in the class. The two outcomes differ by the loser's full delay: a race that joins its
+		// loser cannot finish in under three seconds, while one that does not answers in tens of
+		// milliseconds once the engine is warm. The budget sits between them with a factor of two either
+		// way.
 		//
-		// A race that answers correctly but still pays for its loser passes
+		// A race that answers correctly but still waits for its loser satisfies
 		// testPromiseRaceAnswersTheFastestAndNotTheFirstArgument and fails only here.
 		//
 		// Both dialects, because they settle through one path: the wrapper is called through a plain arrow
-		// so its promise reaches the host pending, exactly as an unwrapped snippet's completion value does.
+		// so its promise reaches the host pending, as an unwrapped snippet's completion value does.
 		withPacedServer(3000, port -> {
 
 			final String body = "const slow = $.GET.async('http://localhost:" + port + "/slow');"
 				+ " const fast = $.GET.async('http://localhost:" + port + "/fast');"
 				+ " const r = await Promise.race([slow, fast]);";
 
-			// Warm the scripting engine and the outbound HTTP stack before timing anything. Cold, the
-			// first async call in a JVM costs on the order of a second all by itself -- GraalJS warmup,
-			// the HTTP client's class loading and its first connection -- which has nothing to do with
-			// whether the race waits for its loser. Measured against a cold engine, an earlier version of
-			// this test took 1076ms to answer in 13ms of actual work.
+			// Warm the scripting engine and the outbound HTTP stack before timing anything. The first async
+			// call in a JVM costs on the order of a second by itself -- GraalJS warmup, the HTTP client's
+			// class loading and its first connection -- which is unrelated to whether the race waits for
+			// its loser and is large enough to dominate the measurement.
 			wrapped("const r = await $.GET.async('http://localhost:" + port + "/warmup'); return r.status;");
 
 			final long startedWrapped = System.currentTimeMillis();
@@ -636,13 +632,13 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	public void testPrintAfterAnAwaitStillReachesTheOutputBuffer() {
 
 		// print() writes to the ActionContext's output buffer, which Structr prefers over the script's
-		// return value. Everything a script prints before its first await is in the buffer while the script
-		// is still suspended, so a settlement driven from the host has to read the buffer *after* the value
-		// has settled rather than at the point the body first gave up the thread -- reading it early answers
-		// with the first half of the output and discards the promise carrying the rest of the script.
+		// return value. Whatever a script prints before its first await is already in the buffer while the
+		// script is still suspended, so the buffer must be read after the value has settled rather than at
+		// the point the body first gave up the thread; reading it early answers with the first half of the
+		// output and discards the promise carrying the rest of the script.
 		//
-		// Both halves are asserted, and the "before" half is what fails if the buffer is read too late
-		// rather than too early.
+		// Both halves are asserted: the "before" half is what fails if the buffer is read too late rather
+		// than too early.
 		withRendezvousServer(1, 20, port -> {
 
 			assertEquals("both prints must survive an await in a wrapped snippet", "before|after|",

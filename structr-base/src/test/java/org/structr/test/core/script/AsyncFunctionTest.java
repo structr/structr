@@ -228,9 +228,9 @@ public class AsyncFunctionTest extends StructrTest {
 	@Test
 	public void testARejectionSaysWhatItWasRejectedWith() {
 
-		// A guest Error has members but no meta name the object conversion recognises, so it used to reach
-		// PolyglotWrapper.unwrap's fall-through and become null -- and the author was told the promise was
-		// "rejected with no reason given", when the reason was the only actionable thing there was.
+		// A guest Error has members but no meta name the object conversion in PolyglotWrapper.unwrap
+		// recognises. Without an explicit branch for it, it reaches that method's fall-through and becomes
+		// null, which reports the rejection as "rejected with no reason given".
 		assertTrue("a rejection with an Error must name it, was: " + rejectionMessageOf("Promise.reject(new Error('nope'))"),
 			rejectionMessageOf("Promise.reject(new Error('nope'))").contains("Error: nope"));
 

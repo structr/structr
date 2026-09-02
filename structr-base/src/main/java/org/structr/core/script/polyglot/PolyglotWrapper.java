@@ -282,11 +282,11 @@ public abstract class PolyglotWrapper {
 						return ((PolyglotProxyMap) proxy).getOriginalObject();
 					}
 
-					// A host-side thenable, which today means the pending result of an async function call
-					// that was returned without being awaited. It has to be settled here: handing it back raw
-					// gives the caller an opaque object, and nothing would ever resolve it afterwards. The
-					// check is on then() being *invokable*, so a response that merely has a "then" key is
-					// unaffected -- a value in a map is never executable.
+					// A host-side thenable: the pending result of an async function call returned without
+					// being awaited. It must be settled here, because handing it back raw gives the caller an
+					// opaque object that nothing would resolve afterwards. The check is on then() being
+					// *invokable*, so a response that merely carries a "then" key is unaffected -- a value in
+					// a map is never executable.
 					if (value.canInvokeMember("then")) {
 
 						return unwrapThenable(actionContext, value);
@@ -315,25 +315,24 @@ public abstract class PolyglotWrapper {
 					return convertValueToSet(actionContext, value);
 				}
 
-				// A thenable -- a promise, or anything shaped like one. An embedded script never gets here,
-				// because its wrapper is resolved at the call boundary in Scripting; this is the path for a
-				// non-embedded script whose completion value happens to be a promise.
+				// A thenable: a promise, or anything shaped like one. Reached by a script whose completion
+				// value is a promise, which is both dialects -- an embedded snippet's wrapper is called
+				// through a plain arrow so that its promise arrives here pending rather than resolved.
 				if (value.hasMembers() && value.canInvokeMember("then")) {
 
 					return unwrapThenable(actionContext, value);
 				}
 
-				// A guest error -- new Error(...), a TypeError, or anything extending Error. It has members but
-				// no meta name that matches the object conversion above, so without this it reaches the
-				// fall-through below and becomes null: a promise rejected with one was reported as "rejected
-				// with no reason given", discarding the only thing the author could act on.
+				// A guest error -- new Error(...), a TypeError, or anything extending Error. It has members
+				// but no meta name matching the object conversion above, so without this branch it reaches
+				// the fall-through and becomes null, which turns a rejection into "rejected with no reason
+				// given".
 				//
-				// Answered as its own string ("Error: nope", "TypeError: bad type", "MyErr: custom"), which is
-				// what a script author writes and reads. isException() is false for a plain object, so
-				// Promise.reject({ code: 5 }) still converts to a map as before.
+				// Answered as its own string ("Error: nope", "TypeError: bad type", "MyErr: custom").
+				// isException() is false for a plain object, so Promise.reject({ code: 5 }) still converts
+				// to a map.
 				//
-				// Deliberately placed last, after every conversion that already works: the only values whose
-				// treatment changes are the ones that were being silently dropped.
+				// Must stay last, after every conversion that matches a more specific shape.
 				if (value.isException()) {
 
 					return value.toString();
@@ -646,34 +645,31 @@ public abstract class PolyglotWrapper {
 	/**
 	 * Resolves a thenable that has reached the host and answers its value.
 	 *
-	 * <p>This is the single settlement point for both script dialects. An embedded snippet's async
-	 * wrapper is called through a plain guest arrow rather than directly (see
-	 * {@code Scripting.evaluatePolyglot}), so its promise crosses to the host still pending, exactly as
-	 * a non-embedded snippet's completion value does. Whether Structr wrapped the snippet is a choice it
-	 * makes for the author, so it must not decide how -- or how expensively -- the script settles.</p>
+	 * <p>The single settlement point for both script dialects. An embedded snippet's async wrapper is
+	 * called through a plain guest arrow rather than directly (see {@code Scripting.evaluatePolyglot}),
+	 * so its promise crosses to the host still pending, as a non-embedded snippet's completion value
+	 * does; whether a snippet is wrapped therefore does not affect how it settles.</p>
 	 *
 	 * <p>Registering the reactions is itself an interop call, so GraalJS drains the promise job queue
-	 * when it returns; for anything already settled, both callbacks have run by the time it does.</p>
+	 * when it returns; for an already-settled promise, both callbacks have run by the time it does.</p>
 	 *
-	 * <p><b>The loop is what makes a race cheap.</b> While the script's own promise is still pending and
-	 * something is still outstanding that could settle it, one deferred host call is joined -- the one
-	 * that finished first. Each settlement is an interop call whose return drains the job queue, so the
-	 * guest gets to act on it before the next one is considered. The moment the script's promise
-	 * settles, the loop stops and the calls it no longer needs are never joined at all;
+	 * <p>The loop joins deferred host calls, completed ones first, while the script's promise is still
+	 * pending and something is still outstanding that could settle it. Each settlement is an interop
+	 * call whose return drains the job queue, so the guest acts on it before the next is considered. Once
+	 * the script's promise settles the loop stops, and the calls it no longer needs are never joined:
 	 * {@code PendingThenables.closeFrame()} discards them and their workers finish unobserved.</p>
 	 *
-	 * <p>It has to be a host loop. {@code js.interop-complete-promises} drains the guest job queue to
-	 * empty at an interop boundary rather than stopping when the promise it is completing has settled,
-	 * so a drain scheduled as a guest job cannot decline to run -- it still parks on a loser nobody is
-	 * waiting for. The stop condition is only visible here, where the completion promise's own reactions
-	 * are held.</p>
+	 * <p>The loop belongs on the host because its stop condition is only visible here.
+	 * {@code js.interop-complete-promises} drains the guest job queue to empty at an interop boundary
+	 * rather than stopping when the promise it is completing has settled, so a drain scheduled as a guest
+	 * job would run regardless and block on a call nobody is waiting for.</p>
 	 *
-	 * <p>A promise still pending once nothing is outstanding cannot be settled by anyone, because Structr
-	 * scripting has no event loop, and is reported rather than answered with null.</p>
+	 * <p>A promise still pending once nothing is outstanding cannot be settled by anything, since Structr
+	 * scripting has no event loop; it is reported rather than answered with null.</p>
 	 *
-	 * <p>The value is unwrapped inside the callback, while the context is still open. The previous
-	 * implementation kept the raw guest value and unwrapped it after the caller had already closed the
-	 * context, so the unwrap threw and every async script quietly answered null.</p>
+	 * <p>The value must be unwrapped inside the callback, while the context is still open. Retaining the
+	 * raw guest value and unwrapping it after the caller has closed the context throws, and the script
+	 * answers null.</p>
 	 */
 	private static Object unwrapThenable(final ActionContext actionContext, final Value thenable) {
 
@@ -694,8 +690,8 @@ public abstract class PolyglotWrapper {
 
 		thenable.invokeMember("then", onFulfilled, onRejected);
 
-		// Join the deferred calls one at a time, fastest first, for exactly as long as this script still
-		// needs one of them. A script with nothing deferred -- the ordinary case -- never enters the loop.
+		// Join deferred calls one at a time, completed ones first, only while this script still needs one.
+		// A script with nothing deferred does not enter the loop at all.
 		while (!settled[0] && !settled[1] && PendingThenables.hasDeferred()) {
 
 			PendingThenables.settleNextCompleted();
@@ -705,27 +701,25 @@ public abstract class PolyglotWrapper {
 
 			Object reason = outcome[1];
 
-			// A rejection that carries the failure inside a RuntimeException is the shape the synchronous
-			// call path throws, so it is the shape an asynchronous one has to throw for the two to be
-			// indistinguishable. Unwrap one level, or the status-carrying branches below are missed and the
-			// script is told its promise "rejected with java.lang.RuntimeException: ...".
+			// The synchronous call path throws its failure wrapped in a RuntimeException, so an
+			// asynchronous one must present the same shape. Unwrapping one level here is what lets the
+			// status-carrying branches below match; without it the script is told its promise "rejected
+			// with java.lang.RuntimeException: ...".
 			//
-			// The test is JsonException rather than FrameworkException so that a wrapper is never mistaken
-			// for the thing it wraps: anything already carrying a status is left alone, anything merely
-			// holding one is opened.
+			// The test is JsonException rather than FrameworkException so a wrapper is never mistaken for
+			// the thing it wraps: anything already carrying a status is left alone, anything merely holding
+			// one is opened.
 			if (reason instanceof Throwable t && !(t instanceof JsonException) && t.getCause() instanceof JsonException) {
 
 				reason = t.getCause();
 			}
 
-			// The two exceptions that carry a status the script author chose are exactly the two
-			// implementors of JsonException, which exists for this and says so: "Common base class for
-			// FrameworkException and AssertException to be able to handle them with the same code."
+			// The two exceptions carrying an author-chosen status are exactly the two implementors of
+			// JsonException, which exists for that purpose: "Common base class for FrameworkException and
+			// AssertException to be able to handle them with the same code."
 			//
-			// Matching only FrameworkException sent every failing $.assert in an unwrapped snippet's promise
-			// to the generic 422 below, stringifying the exception into the message and discarding the code.
-			// Whether Structr wraps a snippet in the async arrow is a choice it makes for the author, so a
-			// status must not depend on it.
+			// Matching only FrameworkException sends a failing $.assert to the generic 422 below, which
+			// stringifies the exception into the message and discards its status code.
 			if (reason instanceof FrameworkException fex) {
 
 				throw new ThenableFailure(fex);

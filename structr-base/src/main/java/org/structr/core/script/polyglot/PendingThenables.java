@@ -27,63 +27,57 @@ import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * The settlements of host thenables that have been registered by a script but not yet joined.
+ * The settlements of host thenables that a script has registered but that have not been joined yet.
  *
- * <p>This is the whole of the "bounded drain" that lets a race answer -- and cost -- the fastest call
- * rather than the first one written. Structr has no event loop, and this is not one: it does not
- * schedule anything, it cannot make a promise settle that nothing was going to settle, and it never
- * outlives the evaluation that filled it. All it does is choose the <em>order</em> in which
- * already-running calls are joined -- by completion instead of by registration -- and stop as soon as
- * the script's own promise has settled.</p>
+ * <p>Registered by {@link org.structr.core.script.polyglot.wrappers.AsyncFunctionWrapper}'s thenable
+ * when the script calls {@code then()} on it, and joined by {@link PolyglotWrapper#unwrap} while it
+ * settles the script's completion value. This is not an event loop: it schedules nothing, it cannot
+ * settle a promise that nothing was going to settle, and it never outlives the evaluation that filled
+ * it. It chooses the <em>order</em> in which already-running calls are joined -- by completion rather
+ * than by registration -- and lets the calls nobody is waiting for any more be dropped.</p>
  *
- * <h3>Why the order was wrong without it</h3>
+ * <h3>Why the order matters</h3>
  *
  * <p>{@code Promise.race([a, b])} registers a reaction on every element synchronously, in argument
- * order, before any of them can settle. When {@code then()} joins its call inline -- which is what
- * {@link org.structr.core.script.polyglot.wrappers.AsyncFunctionWrapper}'s thenable used to do -- the
- * first registration settles the race before the second one is even made, so the race answers the
- * first <em>argument</em>. Deferring the join and draining afterwards is what fixes that, and it is
- * also why {@code Promise.all} is unaffected: {@code all} answers in argument order by specification,
- * whatever order its elements settle in.</p>
+ * order, before any of them can settle. A {@code then()} that joins its call inline therefore settles
+ * the first element before the second one's reaction has been registered, and the race answers the
+ * first <em>argument</em> rather than the first call to finish. Deferring the join and taking completed
+ * calls first is what makes the outcome depend on completion order.</p>
  *
- * <h3>Who drains, and why it is the host</h3>
+ * <p>{@code Promise.all} and {@code allSettled} are unaffected: they answer in argument order by
+ * specification, whatever order their elements settle in.</p>
  *
- * <p>The drain is driven from {@link org.structr.core.script.polyglot.PolyglotWrapper}, one settlement
- * at a time, for exactly as long as the script's completion promise is still pending. That is what
- * makes a race cheap as well as correct: once the winner has resolved the script, the loop stops and
- * the losers are never joined at all -- {@link #closeFrame()} discards them.</p>
+ * <h3>The drain runs on the host, not in a guest job</h3>
  *
- * <p>It has to be the host, because the stop condition is only visible there. A drain scheduled as a
- * guest job cannot stop early: {@code js.interop-complete-promises} drains the guest job queue
- * <em>to empty</em> at an interop boundary rather than stopping once the promise being completed has
- * settled, so a job enqueued before the race resolved still runs and still parks on its loser. The
- * host, holding the completion promise's own reactions, knows when there is nothing left to wait for.
- * See gotchas.md in the structr-refactor workspace.</p>
+ * <p>A deferral is only worth joining while the script's completion promise is still pending, and that
+ * condition is visible only to the host, which holds that promise's reactions. A drain scheduled as a
+ * guest job cannot apply it: {@code js.interop-complete-promises} drains the guest job queue <em>to
+ * empty</em> at an interop boundary rather than stopping once the promise it is completing has settled,
+ * so a job enqueued before the script resolved still runs, and still blocks on a call whose result is
+ * no longer wanted.</p>
  *
- * <h3>Why a thread local, and why frames</h3>
+ * <h3>Thread confinement</h3>
  *
- * <p>A drain must happen on the thread that registered the settlements: the callbacks are guest
- * {@code Value}s that cannot leave their context, the context lock is held by this thread, and
- * {@code TransactionCommand} is itself a thread local, so a join performed anywhere else would be
- * outside the caller's transaction. A worker thread running an async call therefore has its own, empty
- * registry and can never see -- or be seen by -- the caller's.</p>
+ * <p>A drain must run on the thread that registered the settlements. The callbacks are guest
+ * {@code Value}s, which cannot leave their context; the context lock is held by this thread; and
+ * {@code TransactionCommand} is a thread local, so a join performed on another thread would run outside
+ * the caller's transaction. A worker thread executing an async call therefore has its own empty
+ * registry, and can neither see nor be seen by the caller's.</p>
  *
- * <p>Evaluations nest: a script calls a function that evaluates another script. Each evaluation opens
- * a {@link #openFrame() frame} and drains only its own, so an inner evaluation cannot settle an outer
- * script's calls early, which would join them outside the transaction the outer script is running in.</p>
+ * <p>Evaluations nest -- a script calls a function that evaluates another script -- so registrations are
+ * held in a stack of {@link #openFrame() frames} and only the innermost is drained. Otherwise an inner
+ * evaluation could join an outer script's calls, outside the transaction the outer script is running
+ * in.</p>
  */
 public final class PendingThenables {
 
 	private static final Logger logger = LoggerFactory.getLogger(PendingThenables.class);
 
 	/**
-	 * How long the drain parks when nothing has completed yet.
+	 * How long the drain parks between checks while no deferred call has completed.
 	 *
-	 * The drain is waiting on a socket read on another thread, so the wait is milliseconds at best and
-	 * whole seconds at worst; parking briefly costs a bounded number of wake-ups over that period and
-	 * needs no coordination with the worker. Spinning instead would burn the request thread, and having
-	 * the workers signal a shared monitor would mean {@code PendingCall} handing out a completion hook
-	 * for the sole benefit of this loop.
+	 * The calls being waited on are socket reads on other threads, taking milliseconds to seconds, so a
+	 * short park costs a bounded number of wake-ups and needs no coordination with the workers.
 	 */
 	private static final long PARK_NANOS = 200_000L;
 
@@ -109,8 +103,8 @@ public final class PendingThenables {
 	/**
 	 * Whether the call behind a deferred settlement has finished.
 	 *
-	 * Narrower than a {@code Future} on purpose: the drain must not be able to join anything itself, or
-	 * the settlement's own error translation would be bypassed.
+	 * Deliberately narrower than {@code Future}: the drain must not be able to retrieve a result itself,
+	 * because joining is what applies the settlement's error translation.
 	 */
 	public interface Completion {
 
@@ -130,14 +124,12 @@ public final class PendingThenables {
 	/**
 	 * Closes the current frame, discarding anything still registered in it.
 	 *
-	 * What is left here is a settlement the script turned out not to need: a race's losers, or the
-	 * remainder of a frame whose evaluation failed part way through. Discarding them is the point of the
-	 * whole mechanism rather than an oversight -- a race that has answered must not pay for the calls it
-	 * beat. Note that a call which was started and never awaited is not among them: nothing ever calls
-	 * then() on one, so it is never deferred.
+	 * What remains is a settlement the script did not need: the calls a race beat, or the rest of a frame
+	 * whose evaluation failed part way through. A call that was started and never awaited is not among
+	 * them, since nothing ever calls {@code then()} on one.
 	 *
-	 * Nothing is joined here. The evaluation is over, so blocking now would hold a request thread for a
-	 * result that no longer has anywhere to go. The worker finishes on its own and its answer is dropped.
+	 * Nothing is joined here. The evaluation is over, so blocking would hold a request thread for a result
+	 * that has nowhere to go; the worker finishes on its own and its answer is discarded.
 	 */
 	public static void closeFrame() {
 
@@ -155,8 +147,8 @@ public final class PendingThenables {
 
 		if (frames.isEmpty()) {
 
-			// the map entry itself, not just the list -- a request thread is pooled and reused, and an
-			// empty ArrayList left behind on every one of them is a leak that never shows up as a bug
+			// the map entry itself, not just the list: request threads are pooled and reused, so an empty
+			// ArrayList left on each of them would accumulate
 			FRAMES.remove();
 		}
 	}
@@ -164,9 +156,9 @@ public final class PendingThenables {
 	/**
 	 * Whether a drain will happen, and so whether deferring a join is safe.
 	 *
-	 * A thenable whose {@code then()} is reached with no frame open has nothing that would come back for
-	 * it, so it has to settle inline the way it always did. That is not a hypothetical: {@code unwrap}
-	 * is reached from paths that never went through a polyglot evaluation at all.
+	 * A thenable whose {@code then()} is reached with no frame open has nothing that will come back to
+	 * drain it, and must settle inline instead. {@code unwrap} is reachable from paths that never went
+	 * through a polyglot evaluation, so this is a real case rather than a defensive one.
 	 */
 	public static boolean hasFrame() {
 
@@ -185,8 +177,8 @@ public final class PendingThenables {
 
 		if (frames.isEmpty()) {
 
-			// hasFrame() is the guard callers are expected to use; running it here rather than dropping it
-			// keeps a missed guard from turning into a promise that silently never settles
+			// callers are expected to check hasFrame() first; settling inline rather than dropping the
+			// deferral keeps a missed check from producing a promise that never settles
 			settle.run();
 
 			return;
@@ -200,8 +192,8 @@ public final class PendingThenables {
 	/**
 	 * Whether the current frame still holds a settlement that could be run.
 	 *
-	 * The drain loop's other half of the stop condition: the script's promise being pending is only
-	 * worth waiting on while something is still outstanding that could settle it.
+	 * Half of the drain loop's stop condition: a pending completion promise is only worth waiting on
+	 * while something is still outstanding that could settle it.
 	 */
 	public static boolean hasDeferred() {
 
@@ -211,13 +203,13 @@ public final class PendingThenables {
 	}
 
 	/**
-	 * Settles the one deferral whose call finished first, parking until one has.
+	 * Settles the deferral whose call completed first, parking until one has.
 	 *
-	 * <p>One at a time, so the decision to join anything further is taken after the guest has had a
-	 * chance to act on this settlement. Settling hands a value to a guest callback, which resolves a
-	 * guest promise and -- because that callback is an interop call whose return drains the guest job
-	 * queue -- runs whatever was waiting on it. That may be all the script needed, in which case the
-	 * caller stops and the remaining calls are never joined.</p>
+	 * <p>One per invocation, so that the guest can act on this settlement before the caller decides
+	 * whether to join anything further. Settling invokes a guest callback, which resolves a guest promise;
+	 * because that invocation is an interop call, the guest job queue is drained when it returns, running
+	 * whatever was waiting on that promise. The script may therefore be complete by the time it
+	 * returns.</p>
 	 */
 	public static void settleNextCompleted() {
 
@@ -237,16 +229,16 @@ public final class PendingThenables {
 
 		final Deferred next = takeNextCompleted(frame);
 
-		// run outside the list it was taken from, so that a callback which registers another deferral --
-		// or throws -- cannot corrupt the iteration that is draining it
+		// run after removal from the list, so that a callback which registers another deferral, or throws,
+		// cannot disturb the iteration
 		next.settle().run();
 	}
 
 	/**
 	 * Removes and answers the first deferral whose call has completed, parking until one has.
 	 *
-	 * Falls back to the earliest registration once nothing is outstanding but undecided, so that a
-	 * {@link Completion} which never answers true cannot spin here forever.
+	 * On interrupt, falls back to the earliest registration rather than parking again, so that a
+	 * {@link Completion} which never answers true cannot block teardown indefinitely.
 	 */
 	private static Deferred takeNextCompleted(final Frame frame) {
 

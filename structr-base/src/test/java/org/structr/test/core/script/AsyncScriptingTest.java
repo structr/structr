@@ -38,11 +38,10 @@ import static org.testng.AssertJUnit.fail;
  * SchemaMethod uses by default.
  *
  * <p>The wrapper is an async arrow that the host calls, rather than a script that awaits at top
- * level. That distinction is the whole feature: a module using top-level await returns the module
- * evaluation promise, which fulfils with undefined, so the script's return value disappears. Two
- * earlier attempts at async support were reverted for exactly that reason, so
- * {@link #testWrappedScriptStillReturnsItsValue()} and the tests below are as much a guard against
- * reintroducing top-level await as they are a test of await itself.</p>
+ * level. That distinction is the whole feature: a module using top-level await answers the module
+ * evaluation promise, which fulfils with undefined, so the script's return value disappears.
+ * {@link #testWrappedScriptStillReturnsItsValue()} and the tests below therefore guard against
+ * reintroducing top-level await as much as they test await itself.</p>
  */
 public class AsyncScriptingTest extends StructrTest {
 
@@ -355,8 +354,8 @@ public class AsyncScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// Not wrapped, so nothing awaits this for the script. It used to answer null, because the old
-			// PromiseConsumer read its result after the context had already been closed.
+			// Not wrapped, so nothing awaits this for the script: the completion value is itself the
+			// promise, and the host has to settle it while the context is still open.
 			assertEquals("A promise as the completion value must resolve to its value",
 				Integer.valueOf(7), unwrapped("(async () => 7)();"));
 

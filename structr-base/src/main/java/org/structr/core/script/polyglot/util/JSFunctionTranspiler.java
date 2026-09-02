@@ -35,10 +35,9 @@ public abstract class JSFunctionTranspiler {
      * pending and {@code PolyglotWrapper.unwrapThenable} settles it and can stop early; directly for a
      * nested one, where {@code js.interop-complete-promises} resolves it at the call boundary because
      * the host cannot settle anything from inside a running evaluation.</li>
-     * <li><b>There is no top-level await.</b> A module that uses one returns the module evaluation
-     * promise instead of its completion value, and that promise fulfils with {@code undefined} -- so
-     * the script's return value would be silently lost. That is what reverted the two earlier
-     * attempts at this (13c9d3c4c3 and af04612079).</li>
+     * <li><b>There is no top-level await.</b> A module using one answers the module evaluation promise
+     * instead of its completion value, and that promise fulfils with {@code undefined}, so the
+     * script's return value is silently lost.</li>
      * </ul>
      *
      * <p>The prologue stays on the first line so the user's code keeps its original line numbers, which
