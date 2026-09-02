@@ -229,13 +229,15 @@ let _Dialogs = {
 
 			if (data.qrdata) {
 				$('#login-two-factor #two-factor-qr-code').show();
-				$('#login-two-factor img').attr('src', `data:image/png;base64, ${data.qrdata}`);
+				$('#login-two-factor img').attr('src', `data:image/png;base64, ${data.qrdata.replaceAll('_', '/').replaceAll('-', '+')}`);
 			}
 
 			$('#twoFactorTokenField').val(data.token);
 
-			if (data.deviceTrustPossible === true) {
+			if (data.deviceTrustPossible === 'true') {
 				$('#twoFactorTrustCheckboxWrapper').show();
+
+				document.querySelector('#twoFactorTrustCheckboxWrapper span').textContent += ' for ' + data.deviceTrustDuration + ' days';
 			}
 		},
 		hideTwoFactor: () => {

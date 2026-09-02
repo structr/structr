@@ -22,12 +22,11 @@ Let's Encrypt provides free, automatically renewed SSL certificates. When you re
 
 ### Configuration
 
-Configure Let's Encrypt in the Configuration Interface under Security Settings:
+Configure Let's Encrypt in the Configuration Interface under Security Settings. Often, only `letsencrypt.domains` needs to be configured and the defaults for all other settings work fine.
 
 | Setting | Description |
 |---------|-------------|
-| `letsencrypt.domains` | Your domain name(s), comma-separated for multiple domains |
-| `letsencrypt.email` | Contact email for certificate notifications |
+| `letsencrypt.domains` | Your domain name(s), space-separated for multiple domains |
 | `letsencrypt.challenge` | Validation method: `http` (default) or `dns` |
 
 ### Requesting a Certificate
@@ -49,12 +48,46 @@ The parameters control the certificate request:
 | `server` | `production` for real certificates, `staging` for testing |
 | `challenge` | `http` for HTTP-01 validation, `dns` for DNS-01 |
 | `wait` | Seconds to wait for challenge completion |
+| `reload` | Reload HTTPS certificate without restart (default: false) |
 
-You can also request certificates through the Admin UI under Dashboard → Maintenance → Let's Encrypt Certificate.
+This maintenance command can also be run via scripting and thus also automated.
 
 ### Certificate Renewal
 
-Let's Encrypt certificates are valid for 90 days. Structr automatically renews certificates before they expire. To manually trigger renewal, execute the certificate request again.
+Let's Encrypt certificates duration is subject to change. Check the current lifetime at https://letsencrypt.org/. At the time of writing the certificate lifetime is 90 days.
+
+To manually trigger renewal, execute the certificate request again or automate the process.
+
+### Automating Certificate Updates
+
+By combining a scheduled job with the `letsencrypt` maintenance command, we can automate certificate renewal.
+
+First, create the following user-defined method `renewSSLCertificate` and test it with a small change: Set the config `server` to `staging`, as per Let's Encrypt's best practices. If successful, set `server` back to `production` and continue.
+
+```javascript
+{
+	let config = {
+		server: "production",
+		wait: 10,
+		reload: true
+	};
+
+	let result = $.maintenance('letsencrypt', config);
+
+	if (result?.success === true) {
+		$.log('Successfully updated certificate.');
+	} else {
+		$.log(result?.errors);
+	}
+}
+```
+
+Then configure the internal Cron scheduler to automatically call this method periodically.
+
+1. Add `renewSSLCertificate` to the configuration setting `cronservice.tasks`
+2. Create a custom Cron expression `renewSSLCertificate.cronExpression` and configure to your liking
+	- it is advisable to not set this job to run at the first of the month at midnight because of increased traffic to Let's Encrypt
+	- example configuration: `0 0 3 19 * *` = At 03:00 AM, on day 19 of the month
 
 ## Enabling HTTPS
 

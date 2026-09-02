@@ -73,15 +73,14 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 
 				if (documentable != null) {
 
-					final String longDescription = documentable.getLongDescription();
-					final String details = longDescription == null ? "" : "<a href=\"javascript:void(0)\" class=\"group show-details-link\" data-concept-id=\"" + child.getId() + "\"><span class=\"group-[.details-shown]:hidden pointer-events-none\">Show details</span><span class=\"hidden group-[.details-shown]:block pointer-events-none\">Hide details</span></a>";
+					final String detailToggleMarkup = documentable.canShowDetails() ? "<a href=\"javascript:void(0)\" class=\"group show-details-link\" data-concept-id=\"" + child.getId() + "\"><span class=\"group-[.details-shown]:hidden pointer-events-none\">Show details</span><span class=\"hidden group-[.details-shown]:block pointer-events-none\">Hide details</span></a>" : "";
 
 					documentables.add(mapOf(
 						"name", documentable.getName(),
 						"displayName", documentable.getDisplayName(false),
 						"shortDescription", MarkdownTableWithDetailsFormatter.coalesce(childLink.getShortDescription(), documentable.getShortDescription()),
-						"longDescription", longDescription,
-						"details", details
+						"longDescription", documentable.getLongDescription(),
+						"details", detailToggleMarkup
 					));
 
 				} else {

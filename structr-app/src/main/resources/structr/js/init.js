@@ -580,7 +580,7 @@ let Structr = {
 
 				Structr.clearMain();
 				Structr.mainMenu.activateEntry(name);
-				Structr.modules[name].onload();
+				Structr.performActionAfterEnvResourceLoaded(Structr.modules[name].onload);
 			}
 
 			return moduleAllowsNavigation;
@@ -2336,7 +2336,7 @@ let Structr = {
 						<div class="self-center">
 							<label id="twoFactorTrustCheckboxWrapper" class="flex items-center" style="display: none;">
 								<input type="checkbox" id="twoFactorTrustCheckbox" name="trustDevice">
-								Trust device
+								<span class="text-sm">Trust device</span>
 							</label>
 						</div>
 

@@ -73,6 +73,7 @@ public interface Principal extends NodeInterface {
 	String getProxyUsername();
 	String getProxyPassword();
 	void onAuthenticate();
+	boolean isDeviceTrustPossible();
 	String getDeviceTrustSecret() throws FrameworkException;
 	void rotateDeviceTrustSecret() throws FrameworkException;
 

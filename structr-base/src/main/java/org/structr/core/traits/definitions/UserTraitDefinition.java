@@ -133,7 +133,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 					PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
 					PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
 					PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
-					PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY
+					PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY, PrincipalTraitDefinition.DEVICE_TRUST_POSSIBLE_PROPERTY
 			)
 		);
 	}

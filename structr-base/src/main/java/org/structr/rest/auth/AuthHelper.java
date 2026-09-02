@@ -819,7 +819,7 @@ public class AuthHelper {
 
 		if (trustToken != null) {
 
-			if (DeviceTrustHelper.isValidDeviceTrustToken(trustToken, userAgentString, principal.getDeviceTrustSecret())) {
+			if (principal.isDeviceTrustPossible() && DeviceTrustHelper.isValidDeviceTrustToken(trustToken, userAgentString, principal.getDeviceTrustSecret())) {
 
 				return TwoFactorAuthenticationResult.TRUSTED;
 			}

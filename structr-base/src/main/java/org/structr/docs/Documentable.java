@@ -443,6 +443,11 @@ public interface Documentable {
 		return getExamples() != null;
 	}
 
+	default boolean canShowDetails() {
+
+		return false;
+	}
+
 	default double matches(final String searchString) {
 
 		double score = 0.0;

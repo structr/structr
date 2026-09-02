@@ -35,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -285,13 +286,13 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	public static void logException (final Logger l, final Throwable t, final String msg, final Object... messageParams) {
 
-		if (Settings.LogFunctionsStackTrace.getValue()) {
+		if (Settings.LogFunctionsShortenStacktrace.getValue()) {
 
-			l.error(msg, ArrayUtils.add(messageParams, t));
+			l.error(msg + "\nShortened stack trace (see {}):\n{}", ArrayUtils.addAll(messageParams, Settings.LogFunctionsShortenStacktrace.getKey(), Scripting.formatForLogging(t)));
 
 		} else {
 
-			l.error(msg + "\n(Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
+			l.error(msg, ArrayUtils.add(messageParams, t));
 		}
 	}
 
@@ -1354,5 +1355,11 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		final Double value2 = getDoubleForComparison(o2);
 
 		return value1.compareTo(value2);
+	}
+
+	@Override
+	public boolean canShowDetails() {
+
+		return getLongDescription() != null || (getNotes() != null && !getNotes().isEmpty()) || (getExamples() != null && !getExamples().isEmpty());
 	}
 }

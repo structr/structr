@@ -275,7 +275,7 @@ public class CoreModule implements StructrModule {
 
 		Functions.put(licenseManager, new SetLogLevelFunction());
 		Functions.put(licenseManager, new IsValidUuidFunction());
-		Functions.put(licenseManager, new DataSourceFunction());
+		Functions.put(licenseManager, new GetDataSourceFunction());
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(licenseManager, new SetFunction());

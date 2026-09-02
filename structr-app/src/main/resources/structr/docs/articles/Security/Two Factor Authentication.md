@@ -93,8 +93,9 @@ async function login(username, password) {
 		const qrdata = response.headers.get('qrdata') || '';
 		const twoFactorPage = response.headers.get('twoFactorLoginPage');
 		const deviceTrustPossible = response.headers.get('deviceTrustPossible');
+		const deviceTrustDuration = response.headers.get('deviceTrustDuration');
 		
-		window.location.href = `${twoFactorPage}?token=${token}&qrdata=${qrdata}&deviceTrustPossible=${deviceTrustPossible}`;
+		window.location.href = `${twoFactorPage}?token=${token}&qrdata=${qrdata}&deviceTrustPossible=${deviceTrustPossible}&deviceTrustDuration=${deviceTrustDuration}`;
 	} else if (response.ok) {
 		// Login successful, no 2FA required
 		window.location.href = '/';
@@ -122,6 +123,7 @@ HTTP/1.1 202 Accepted
 token: eyJhbGciOiJIUzI1NiJ9...
 twoFactorLoginPage: /twofactor
 deviceTrustPossible: true
+deviceTrustDuration: 30
 qrdata: iVBORw0KGgoAAAANSUhEUgAA...
 ```
 
@@ -132,7 +134,9 @@ The response headers contain:
 | `token` | Temporary token for the two-factor login (valid for the configured timeout period) |
 | `twoFactorLoginPage` | The configured page for entering the two-factor code |
 | `deviceTrustPossible` | If device trust is possible according to the configuration |
+| `deviceTrustDuration` | Trust duration in days |
 | `qrdata` | Base64-encoded PNG image of the QR code (only present if `twoFactorConfirmed` is false for the user) |
+
 
 ### Two-Factor Page
 
@@ -164,7 +168,7 @@ Create a page that displays the QR code for first-time setup and accepts the TOT
 
 		<label id="trust-device-wrapper" class="flex items-center" style="display: none;">
 			<input type="checkbox" id="trust-device" name="trustDevice" />
-			Trust device
+			<span>Trust device</span>
 		</label>
 
 		<button type="submit">Verify</button>
@@ -178,6 +182,7 @@ Create a page that displays the QR code for first-time setup and accepts the TOT
 			const token = params.get('token');
 			const qrdata = params.get('qrdata');
 			const deviceTrustPossible = params.get('deviceTrustPossible') === 'true';
+			const deviceTrustDuration = params.get('deviceTrustDuration');
 
 			// Display QR code for first-time setup
 			if (qrdata) {
@@ -192,6 +197,7 @@ Create a page that displays the QR code for first-time setup and accepts the TOT
 
 			if (deviceTrustPossible) {
 				document.querySelector('#trust-device-wrapper').style.display = null;
+				document.querySelector('#trust-device-wrapper span').textContent += ' for ' + deviceTrustDuration + ' days'; 
 			}
 
 			// Handle form submission
@@ -309,13 +315,13 @@ Requests from whitelisted IPs proceed with password authentication only, even if
 
 ## Trusted Devices
 
-Device trust functionality can be enabled via the configuration setting `security.twofactorauthentication.devicetrust.enabled`. The login forms above auto-adapt and show a "Trust Device" checkbox.
+Device trust functionality can be enabled via the configuration setting `security.twofactorauthentication.devicetrust.enabled` and configured per-user via the attribute `deviceTrustPossible`. The login form above auto-adapts and shows a "Trust Device" checkbox stating the configured trust duration.
 
 If the user logs in via 2FA successfully and requests device trust, a trust cookie (`security.twofactorauthentication.devicetrust.cookiename`) is set for the user's browser. This browser is then fingerprinted and trusted for the configured number of days (`security.twofactorauthentication.devicetrust.duration`) and the login requests for that user from that browser proceed with password-authentication only.
 
 The browser fingerprint includes browser name, browser major version, operating system name, operating system major version, and device class. If any of these fields change, the trust cookie becomes invalid.
 
-Disabling device trust (via `security.twofactorauthentication.devicetrust.enabled`) does not invalidate already-issued device trust cookies. It suspends the device trust feature and requires 2FA login even if the user has a valid device trust cookie. If device trust is enabled again, previously issued trust cookies are used again.
+Disabling device trust (via `security.twofactorauthentication.devicetrust.enabled` or the per-user attribute) does not invalidate already-issued device trust cookies. It suspends the device trust feature and requires 2FA login even if the user has a valid device trust cookie. If device trust is enabled again, previously issued trust cookies are used again.
 
 Device trust tokens are signed with a global signing secret (`security.twofactorauthentication.devicetrust.signingsecret`) which is automatically created if none is set. Changing this secret revokes and invalidates all trust cookies for all users.
 

@@ -37,6 +37,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.StaticValue;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
@@ -154,7 +155,12 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			if (verbose) {
 
-				logger.info("Debug mode active - logging more verbosely and not removing challenge files.");
+				logger.info("Logging more verbosely.");
+			}
+
+			if (keepChallengeFiles) {
+
+				logger.info("Not removing challenge files.");
 			}
 
 			if (attributes.containsKey(WAIT_MODE_KEY)) {
@@ -246,15 +252,25 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		} finally {
 
+			// we need to test if the method exists because the result can be null even if the method exists and for this method no exception is thrown if it does not exist
+			final boolean methodExists = Methods.resolveMethod(null, Actions.NOTIFICATION_AFTER_ACME_CHALLENGE) != null;
+
 			// Call afterAcmeChallenge lifecycle method to allow cleanup (e.g. DNS record removal) and notifications
-			try {
+			if (methodExists) {
 
-				Actions.callWithSecurityContext(Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("success", success, "errors", errorMessages));
+				try {
 
-			} catch (FrameworkException fex) {
+					Actions.callWithSecurityContext(Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("success", success, "errors", errorMessages));
+
+				} catch (FrameworkException fex) {
+
+					logger.error("Error encountered during '{}': {}", Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, fex.getMessage(), fex);
+				}
+
+			} else {
 
 				// Log at debug level because the method is optional and may not be defined
-				logger.debug("afterAcmeChallenge lifecycle method not called: {}", fex.getMessage());
+				logger.debug("Lifecycle method {} does not exist", Actions.NOTIFICATION_AFTER_ACME_CHALLENGE);
 			}
 
 			cleanUpChallengeFiles();
@@ -794,22 +810,35 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		final String domain = auth.getIdentifier().getDomain();
 		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
 		final String digest = challenge.get().getDigest();
-		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ON_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
 
-		if (result == null) {
+		// we need to test if the method exists because the result can be null even if the method exists
+		final boolean methodExists = Methods.resolveMethod(null, Actions.NOTIFICATION_ON_ACME_CHALLENGE) != null;
 
-			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");
+		if (methodExists) {
+
+			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Calling lifecycle method '" + Actions.NOTIFICATION_ON_ACME_CHALLENGE + "'");
+
+			logger.info("DNS TXT record for domain " + domain + " has to be created with the following data:");
+			logger.info("{} IN TXT {}", record, digest);
+
+			try {
+
+				Actions.callWithSecurityContext(Actions.NOTIFICATION_ON_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
+
+			} catch (FrameworkException fex) {
+
+				logger.error("Error encountered during '{}': {}", Actions.NOTIFICATION_ON_ACME_CHALLENGE, fex.getMessage(), fex);
+
+				publishWarningMessage("Error encountered during '" + Actions.NOTIFICATION_ON_ACME_CHALLENGE + "'", fex.getMessage());
+			}
+
+		} else {
+
+			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method '" + Actions.NOTIFICATION_ON_ACME_CHALLENGE + "' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");
 
 			logger.info("Within the next " + waitForSeconds + " seconds, create a DNS TXT record for " + domain + " with the following data:");
 			logger.info("{} IN TXT {}", record, digest);
 			logger.info("After " + waitForSeconds + " seconds, the certificate authority will probe the DNS record to authorize the challenge. If the record is not available, the authorization will fail.");
-
-		} else {
-
-			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Called lifecycle method onAcmeChallenge");
-
-			logger.info("DNS TXT record for domain " + domain + " has to be created with the following data:");
-			logger.info("{} IN TXT {}", record, digest);
 		}
 
 		return challenge.get();
@@ -990,9 +1019,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		return List.of(
 			Parameter.mandatory("server", "`staging` (test certificates) or `production` (valid certificates)"),
-			Parameter.optional("challenge", "Override the challenge method from structr.conf"),
-			Parameter.optional("wait", "Seconds to wait for DNS or HTTP challenge preparation"),
-			Parameter.optional("reload", "Reload HTTPS certificate without restart (default: false)")
+			Parameter.optional("challenge", "Override the configured challenge method (`http` for HTTP-01 validation, `dns` for DNS-01)"),
+			Parameter.optional("wait", "Override the configured wait time in seconds before authorizing challenge"),
+			Parameter.optional("reload", "Reload HTTPS certificate without restart (default: false)"),
+			Parameter.optional("verbose", "Enables verbose logging (default: false"),
+			Parameter.optional("keepChallengeFiles", "Enables keeping the challenge files (default: false")
 		);
 	}
 
@@ -1005,7 +1036,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	@Override
 	public List<String> getNotes() {
 
-		return List.of("The `letsencrypt.domains` setting must contain the full domain name for the certificate.");
+		return List.of(
+				"The `letsencrypt.domains` setting must contain the full domain name (or space-separated full domain names) for the certificate.",
+				"For mode=dns, a user-defined method `" + Actions.NOTIFICATION_ON_ACME_CHALLENGE + "` is called to enable automating the creation of the required TXT records. Parameters are { type: 'dns', domain: <domain>, record: <record>, digest: <digest> }.",
+				"If a user-defined method `" + Actions.NOTIFICATION_AFTER_ACME_CHALLENGE + "` exists, it will be called after a certificate retrieval. Parameters are `{ success: boolean, errors: [string...] }.`"
+		);
 	}
 
 	@Override

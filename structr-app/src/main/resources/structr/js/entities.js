@@ -2854,6 +2854,21 @@ let _Entities = {
 					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
 				});
 
+				document.querySelector('button#rotate-device-trust-secret').addEventListener('click', async (e) => {
+					let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/rotateDeviceTrustSecret`, {
+						method: 'POST'
+					});
+
+					if (response.ok) {
+
+						_Dialogs.custom.showAndHideInfoBoxMessage('Device Trust Secret rotatet - all previous trust invalidated.', 'success', 2000, 200);
+
+					} else {
+
+						new WarningMessage().title("Unable to rotate device trust secret").text("Unknown error - please check the log").show();
+					}
+				});
+
 				_Entities.generalTab.focusInput(el);
 
 				_Entities.generalTab.showCustomProperties(el, entity);
@@ -4278,12 +4293,32 @@ let _Entities = {
 
 							<div class="mb-2 flex items-center">
 								<input type="checkbox" name="skipSecurityRelationships" id="skipSecurityRelationships">
-								<label for="skipSecurityRelationships">Skip Security Relationships</label>
+								<label for="skipSecurityRelationships" data-comment="If enabled, no OWNS and SECURITY relationships are created for nodes created by this user. Admin-only feature because admin users have access to all nodes by default.">Skip Security Relationships</label>
 							</div>
+
+							<label class="block mb-2 mt-6">Two-Factor Authentication</label>
 
 							<div class="mb-2 flex items-center">
 								<input type="checkbox" name="isTwoFactorUser" id="isTwoFactorUser">
-								<label for="isTwoFactorUser">Enable Two-Factor Authentication for this User</label>
+								<label for="isTwoFactorUser" data-comment="Enables Two-Factor Authentication for user if structr is configured to optionally enable it. If 2FA is required for all users or disabled completely, this setting has no effect.">Enable Two-Factor Authentication for this User</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="twoFactorConfirmed" id="twoFactorConfirmed">
+								<label for="twoFactorConfirmed" data-comment="Automatically set to true after first successful two-factor login. The initial setup QR code is only shown if set to false.">Two-Factor Authentication confirmed for this User</label>
+							</div>
+
+							<label class="block mb-2 mt-6">Device Trust</label>
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="deviceTrustPossible" id="deviceTrustPossible">
+								<label for="deviceTrustPossible">Device Trust Possible for this User</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<div data-comment="Changes users device trust secret which invalidates all device trust cookies issued.">
+									<button class="action mr-0" type="button" id="rotate-device-trust-secret" name="rotateDeviceTrustSecret">Rotate Device Trust Secret</button>
+								</div>
 							</div>
 						</div>
 

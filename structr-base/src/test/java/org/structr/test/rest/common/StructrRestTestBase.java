@@ -40,7 +40,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsManager;
-import org.structr.embedded.EmbeddedDatabaseService;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
@@ -113,7 +112,6 @@ public abstract class StructrRestTestBase {
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.OpenAPIAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.LogFunctionsStackTrace.setValue(true);
 
 		final Services services = Services.getInstance();
 

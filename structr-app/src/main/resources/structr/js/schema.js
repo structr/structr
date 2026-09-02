@@ -689,8 +689,14 @@ let _Schema = {
 				let isOverridden   = thisSchemaType.isBuiltin;
 
 				let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>Delete ${isOverridden ? 'override for' : ''} schema type '${entity.name}'?</h3>
+					<h3>Delete ${isOverridden ? 'override for' : ''} schema type '${entity.name}'</h3>
 					<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed. ${isOverridden ? 'The builtin type will still exist afterwards.' : ''}</p>
+					<p>
+						Nodes/Relationships remaining in the database that are not part of the schema anymore<br>
+						can lead to problems when attempting to delete nodes attached to them in the future.<br>
+						Consider deleting these nodes/relationships beforehand.
+					</p>
+					<p>Proceed with deleting the schema type?</p>
 				`);
 
 				if (confirm === true) {
@@ -1678,7 +1684,17 @@ let _Schema = {
 		},
 		askDeleteRelationship: (resId, name) => {
 
-			_Dialogs.confirmation.showPromise(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`).then(async confirm => {
+			let message = `
+				<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>
+				<p>
+					Relationships remaining in the database that are not part of the schema anymore<br>
+					can lead to problems when attempting to delete nodes attached to them in the future.<br>
+					Consider deleting these relationships beforehand.
+				</p>
+				<p>Proceed with deleting the schema relationship?</p>
+			`;
+
+			_Dialogs.confirmation.showPromise(message).then(async confirm => {
 				if (confirm === true) {
 					await _Schema.relationships.removeRelationshipDefinition(resId);
 				}
