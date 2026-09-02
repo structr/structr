@@ -8948,7 +8948,6 @@ public class ScriptingTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 	}
 
 	@Test
@@ -8964,6 +8963,64 @@ public class ScriptingTest extends StructrTest {
 
 			e.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testLabelManagementFunctions() {
+
+		NodeInterface testUser = null;
+
+		// create test user
+		try (final Tx tx = app.tx()) {
+
+			testUser = app.create(StructrTraits.USER,  "test");
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext sctx = SecurityContext.getInstance(testUser.as(User.class), AccessMode.Backend);
+		final App userApp = StructrApp.getInstance(sctx);
+		final ActionContext actionContext = new ActionContext(sctx);
+
+		try (final Tx tx = userApp.tx()) {
+
+			final String getLabelsCode = "${getLabels(me)}";
+
+			List labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			final int baselineLabelCount = labels.size();
+
+			Scripting.evaluate(actionContext, null, "${addLabels(me, merge('User'))}", "addLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Adding a label that already exists on the node should keep label count at baseline", baselineLabelCount, labels.size());
+
+			Scripting.evaluate(actionContext, null, "${addLabels(me, merge('Test1', 'Test2', 'Test3'))}", "addLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Adding 3 labels should increase label count by 3", (baselineLabelCount + 3), labels.size());
+
+			Scripting.evaluate(actionContext, null, "${removeLabels(me, merge('Test1', 'Test3'))}", "removeLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Removing 2 labels should decrease label count by 2", (baselineLabelCount + 3 - 2), labels.size());
+
+			Scripting.evaluate(actionContext, null, "${removeLabels(me, merge('Test1', 'Test3'))}", "removeLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Removing 2 labels that do not exist on the node should not change label count", (baselineLabelCount + 3 - 2), labels.size());
+
+			Scripting.evaluate(actionContext, null, "${removeLabels(me, merge('Test2'))}", "removeLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Removing the last newly added label should change label count back to baseline", baselineLabelCount, labels.size());
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 
