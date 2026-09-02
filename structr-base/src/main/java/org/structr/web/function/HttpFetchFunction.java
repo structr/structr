@@ -29,6 +29,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -53,44 +54,36 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 5);
 
-			final String url     = sources[0].toString();
-			final String method  = sources[1].toString();
-			final String body    = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
-			final String charset = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : "UTF-8";
-			boolean followRedirects = false;
-			Integer timeout         = null;
+			for (int i = 0; i < 2; i++) {
 
-			if (sources.length >= 5 && sources[4] != null && sources[4] instanceof Map) {
+				if (sources[i] == null) {
 
-				final Map<String, Object> config = (Map<String, Object>) sources[4];
-				if (Boolean.TRUE.equals(config.get("redirects"))) {
-
-					followRedirects = true;
-				}
-
-				if (config.containsKey("timeout") && config.get("timeout") instanceof Number) {
-
-					timeout = ((Number) config.get("timeout")).intValue() * 1000;
+					throw new ArgumentTypeException("FETCH(): the url and the method must not be null.");
 				}
 			}
 
-			final Map<String, Object> responseData = HttpHelper.fetch(url, method, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates(), followRedirects, timeout);
-			final GraphObjectMap response = new GraphObjectMap();
+			final String url          = sources[0].toString();
+			final String method       = sources[1].toString();
+			final Object body         = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? HttpBody.of(sources[2]) : null;
+			final String contentType  = (sources.length >= 4 && sources[3] != null) && !HttpOptions.isOptionsAt(sources, 3) ? sources[3].toString() : null;
+			final HttpOptions options = HttpOptions.fromAnyOf("FETCH", sources, 4, 2, 3).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
 
-			response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
+			HttpBody.checkRepeatable("FETCH", body, options);
 
-			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null
-					? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
-			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
+			final String charset               = HttpOptions.charsetOf(contentType, "UTF-8");
+			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
+			final Integer timeout              = options.getTimeoutMillis();
 
-			if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
+			final Map<String, Object> responseData = HttpHelper.fetch(url, method, body, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
+				headers, charset, validateCertificates, options.getBoolean(HttpOptions.REDIRECTS, false), timeout, contentType);
 
-				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
-			}
-
-			return response;
+			return buildResponse(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -101,9 +94,17 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url, method [, body, charset, configMap ]");
+		return Signature.forAllScriptingLanguages("url, method [, body [, contentType [, options ]]]");
 	}
 
 	@Override
@@ -113,15 +114,15 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("method", "HTTP method (GET, POST, PUT, DELETE, PATCH, PROPFIND, MKCOL, MOVE, COPY, etc.)"),
 			Parameter.optional("body", "request body"),
-			Parameter.optional("charset", "charset of the request body (default: UTF-8)"),
-			Parameter.optional("configMap", "JSON object for request configuration, supports `timeout` in seconds, `redirects` with true or false")
+			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON")
 		);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${FETCH(url, method [, body, charset, configMap])}"), Usage.javaScript("Usage: $.FETCH(url, method [, body, charset, configMap])"));
+		return List.of(Usage.structrScript("Usage: ${FETCH(url, method [, body [, contentType [, options ]]])}"), Usage.javaScript("Usage: $.FETCH(url, method [, body [, contentType [, options ]]])"));
 	}
 
 	@Override
@@ -182,7 +183,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 			Authentication is handled via `addHeader()`, just like the other HTTP functions.
 
-			The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. `{ timeout: 60, redirects: true }`). By default there is no timeout and redirects are not followed.
+			The options object configures everything else, for example `{ timeout: 60, redirects: true }`. The timeout is given in seconds; by default there is no timeout and redirects are not followed.
 			""";
 	}
 
@@ -190,9 +191,10 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.FETCH.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.FETCH.async(url)).catch(...)` to chain, and note that `Promise.race()` does not report the fastest. Only JavaScript has it - StructrScript always calls `FETCH()` synchronously.",
 			"The `FETCH()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. Use `addHeader()` for authentication.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"The response body is always returned as a string. For binary content, consider using `GET()` with `application/octet-stream`.",
+			"The response body is always returned as a string. For binary content use `GET()` with `{ binaryResponse: true }`, or `POST()` with `{ binaryBody: true }`.",
 			"While `FETCH()` can also be used for standard methods like GET and POST, it is recommended to use the dedicated functions for those, as they offer additional features like automatic JSON parsing and binary content handling."
 		);
 	}

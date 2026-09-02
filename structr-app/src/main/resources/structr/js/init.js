@@ -1013,11 +1013,14 @@ let Structr = {
 			case 'BoltDatabaseService':
 				return 'Bolt Database Driver';
 
+			case 'EmbeddedDatabaseService':
+				return 'Embedded Database Driver';
+
 			case 'MemoryDatabaseService':
 				return 'In-Memory Database Driver';
 		}
 
-		return 'Unknown database driver!';
+		return 'Unknown database driver';
 	},
 	getId: (element) => {
 		let id = Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || $(element).data('nodeId');

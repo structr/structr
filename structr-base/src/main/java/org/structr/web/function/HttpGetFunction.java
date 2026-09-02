@@ -59,63 +59,38 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources != null && sources.length >= 1 && sources.length <= 4 && sources[0] != null) {
+		if (sources != null && sources.length >= 1 && sources[0] != null) {
 
 			try {
 
-				String address = sources[0].toString();
-				String contentType = null;
-				String charset     = null;
-				String username = null;
-				String password = null;
+				final String address      = sources[0].toString();
+				final String contentType  = (sources.length >= 2 && sources[1] != null) && !HttpOptions.isOptionsAt(sources, 1) ? sources[1].toString() : null;
+				final HttpOptions options = HttpOptions.fromAnyOf("GET", sources, 2, 1).accepting("GET", HttpOptions.SELECTOR, HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
 
-				switch (sources.length) {
+				final String charset  = HttpOptions.charsetOf(contentType, null);
+				final String username = options.getString(HttpOptions.USERNAME);
+				final String password = options.getString(HttpOptions.PASSWORD);
+				final String selector = options.getString(HttpOptions.SELECTOR);
 
-					case 4: password    = sources[3].toString();
-					case 3: username    = sources[2].toString();
-					case 2: contentType = sources[1].toString();
-						break;
-				}
+				final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+				final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
 				final GraphObjectMap response = new GraphObjectMap();
-
-				// Extract character set from contentType if given
-				if (StringUtils.isNotBlank(contentType)) {
-
-					try {
-
-						final ContentType ct = ContentType.parse(contentType);
-
-						contentType = ct.getMimeType();
-
-						final Charset cs = ct.getCharset();
-						if (cs != null) {
-
-							charset = cs.toString();
-						}
-
-					} catch(ParseException pe) {
-
-						logger.warn("Unable to parse contentType parameter '{}' - using as is.", contentType);
-
-					} catch (UnsupportedCharsetException uce) {
-
-						logger.warn("Unsupported charset in contentType parameter '{}'", contentType);
-					}
-				}
-
 				final Map<String, Object> responseData;
 
 				if ("text/html".equals(contentType)) {
 
-					responseData = HttpHelper.get(address, charset, ctx.getHeaders(), ctx.isValidateCertificates());
+					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null,
+						headers, validateCertificates, options.asRequestConfig());
 
-					String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
+					final String body  = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
 					final Document doc = Jsoup.parse(body);
 
-					if (sources.length > 2) {
+					// the selector is an option now: it used to sit in the same position as the username,
+					// so what the third argument meant depended on the content type
+					if (selector != null) {
 
-						Elements elements = doc.select(sources[2].toString());
+						final Elements elements = doc.select(selector);
 						if (elements.size() > 1) {
 
 							final List<String> parts = new ArrayList<>();
@@ -123,7 +98,6 @@ public class HttpGetFunction extends UiAdvancedFunction {
 							for (final Element el : elements) {
 
 								parts.add(el.outerHtml());
-
 							}
 
 							return parts;
@@ -138,18 +112,28 @@ public class HttpGetFunction extends UiAdvancedFunction {
 						response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), doc.html());
 					}
 
-				} else if ("application/octet-stream".equals(contentType)) {
+				} else if (options.getBoolean(HttpOptions.BINARY_RESPONSE, false)) {
 
 					// Stream binary data instead of buffering into byte[] to avoid the 2 GB limit
-					responseData = getStreamFromUrl(ctx, address, charset, username, password);
+					responseData = getStreamFromUrl(ctx, address, charset, username, password, headers, validateCertificates, options.asRequestConfig());
 
 					response.setProperty(new GenericProperty<InputStream>(HttpHelper.FIELD_BODY), (InputStream) responseData.get(HttpHelper.FIELD_BODY));
 
 				} else {
 
-					responseData = getFromUrl(ctx, address, charset, username, password);
+					// HttpHelper.get directly, not getFromUrl: that helper passes no request config, so a
+					// timeout given in the options would be accepted here and quietly do nothing
+					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null,
+						headers, validateCertificates, options.asRequestConfig());
 
-					response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
+					if (options.getBoolean(HttpOptions.PARSE_RESPONSE, false)) {
+
+						response.setProperty(new GenericProperty(HttpHelper.FIELD_BODY), new FromJsonFunction().apply(ctx, caller, new Object[] { responseData.get(HttpHelper.FIELD_BODY) }));
+
+					} else {
+
+						response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
+					}
 				}
 
 				// Set status and headers
@@ -179,13 +163,19 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 
 		return List.of(
-			Signature.javaScript("url [, contentType [, username, password]]"),
-			Signature.structrScript("url [, contentType [, username, password]]"),
-			Signature.structrScript("url, 'text/html', selector"),
-			Signature.structrScript("url, 'application/octet-stream' [, username, password]]")
+			Signature.javaScript("url [, contentType [, options ]]"),
+			Signature.structrScript("url [, contentType [, options ]]")
 		);
 	}
 
@@ -194,9 +184,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("contentType", "expected content type (see notes)"),
-			Parameter.optional("username", "username for the connection"),
-			Parameter.optional("password", "password for the connection")
+			Parameter.optional("contentType", "content type of the request; `text/html` parses the response with jsoup, see the `selector` option"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
 		);
 	}
 
@@ -204,8 +193,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${GET(URL[, contentType[, username, password]])}. Example: ${GET('http://structr.org', 'text/html')}"),
-			Usage.javaScript("Usage: ${{$.GET(URL[, contentType[, username, password]])}}. Example: ${{$.GET('http://structr.org', 'text/html')}}")
+			Usage.structrScript("Usage: ${GET(url [, contentType [, options ]])}. Example: ${GET('http://structr.org', 'text/html', { selector: 'div.content' })}"),
+			Usage.javaScript("Usage: ${{ $.GET(url [, contentType [, options ]]) }}. Example: ${{ $.GET('http://structr.org', 'text/html', { selector: 'div.content' }) }}")
 		);
 	}
 
@@ -221,7 +210,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return """
 			This function can be used in a script to make an HTTP GET request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
-			When the `contentType` parameter is set to `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit for binary downloads. The stream can be passed directly to `setContent()` which will stream the data to the file storage without buffering the entire content in memory. This stream is consumed by `setContent()` and can not be read again.
+			When the `binaryResponse` option is set, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit for binary downloads. The stream can be passed directly to `setContent()` which will stream the data to the file storage without buffering the entire content in memory. This stream is consumed by `setContent()` and can not be read again.
 
 			The `GET()` function will return a response object with the following structure:
 
@@ -250,12 +239,12 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			Example.structrScript("${GET('https://www.example.com', 'text/html').body}", "Return the HTML source code of the front page of example.com."),
 			Example.structrScript("${GET('https://www.example.com', 'text/html; charset=UTF-8').body}", "Return the HTML source code of the front page of example.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
 			Example.structrScript("${GET('https://www.example.com', 'text/html; charset=ISO-8859-1').body}", "Return the HTML source code of the front page of example.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
-			Example.structrScript("${GET('https://www.example.com', 'text/html', '#footer').body}", "Return the HTML content of the element with the ID 'footer' from example.com."),
+			Example.structrScript("${GET('https://www.example.com', 'text/html', { selector: '#footer' }).body}", "Return the HTML content of the element with the ID 'footer' from example.com."),
 			Example.structrScript("""
 				${
 					setContent(
 						create('Image', 'name', 'exampleLogo.png'),
-						GET('https://www.example.com/logo.png', 'application/octet-stream').body
+						GET('https://www.example.com/logo.png', 'application/octet-stream', { binaryResponse: true }).body
 					)
 				}
 				""", "Create a new file with the example logo in the local Structr instance."),
@@ -265,7 +254,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					$.addHeader('Authorization', 'Bearer ...');
 					$.setContent(
 						file,
-						$.GET('https://example.com/large-file.zip', 'application/octet-stream').body
+						$.GET('https://example.com/large-file.zip', 'application/octet-stream', { binaryResponse: true }).body
 					);
 				}}
 				""", "Stream a large binary file directly into a Structr File node without size limit.")
@@ -276,12 +265,13 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"From version 3.5 onwards, GET() supports binary content by setting the `contentType` parameter to `application/octet-stream`. (This is helpful when creating files - see examples.)",
-			"v4.0+: `contentType` can be used like the `Content-Type` header - to set the **expected** response mime type and to set the `charset` with which the response will be interpreted (**unless** the server sends provides a charset, then this charset will be used).",
-			"The parameters `username` and `password` are intended for HTTP Basic Auth. For header authentication use `addHeader()`.",
+			"7.0+: In JavaScript, `$.GET.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.GET.async(url)).catch(...)` to chain, and note that `Promise.race()` does not report the fastest. Only JavaScript has it - StructrScript always calls `GET()` synchronously.",
+			"GET() returns binary content when the `binaryResponse` option is set. Up to 6.x a `contentType` of `application/octet-stream` did this on its own; from 7.0 the content type only describes the data, and the option decides the shape of the response.",
+			"7.0+: `contentType` is the content type of the REQUEST, sent as the `Content-Type` header. Its charset is used to interpret the response, unless the server provides one of its own.",
+			"The `username` and `password` options are intended for HTTP Basic Auth. For header authentication use the `headers` option or `addHeader()`.",
 			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"v6.4+: When using `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit and avoids buffering the entire response in memory. The stream is consumed when passed to `setContent()` and can not be read more than once."
+			"With `binaryResponse` the body is a streaming `InputStream` rather than a `byte[]`, which removes the 2 GB limit and avoids buffering the whole response in memory. The stream is consumed when passed to `setContent()` and can not be read more than once."
 		);
 	}
 

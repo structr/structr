@@ -19,7 +19,9 @@
 package org.structr.feed.traits.wrappers;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.traits.definitions.FileTraitDefinition;
@@ -59,10 +61,21 @@ public class FeedItemTraitWrapper extends AbstractFeedItemTraitWrapper implement
 			final String remoteUrl = getUrl();
 			if (StringUtils.isNotBlank(remoteUrl)) {
 
-				final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
-				if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
+				// FeedItem.getInputStream() declares no checked exception, so the failure cannot be propagated
+				// and is logged here instead -- getAsStream used to answer null on one, which is what this
+				// fall-through to the stored description already handled.
+				try {
 
-					return (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+					final Map<String, Object> responseData = HttpHelper.getAsStream(remoteUrl);
+					if (responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream stream) {
+
+						return stream;
+					}
+
+				} catch (final FrameworkException fex) {
+
+					LoggerFactory.getLogger(FeedItemTraitWrapper.class).warn("Unable to fetch remote document for feed item {}: {}",
+						remoteUrl, fex.getMessage());
 				}
 			}
 		}

@@ -71,6 +71,35 @@ The `file` parameter contains the file data. You can include additional paramete
 
 You can also pass UUIDs of related objects to link the file directly to existing data during upload.
 
+#### Uploading to an External Service
+
+The sections above cover getting a file *into* Structr. To send one *out*, pass the `File` itself as the
+request body of an outbound HTTP call. Its content is streamed straight from the storage backend, so the
+file is never base64-encoded or wrapped in a multipart envelope, and its size is not limited by memory.
+
+```javascript
+{
+    let file = $.first($.find('File', 'name', 'report.pdf'));
+
+    $.PUT('https://api.example.com/documents/42', file, 'application/pdf');
+}
+```
+
+This works for `$.POST`, `$.PUT`, `$.PATCH`, `$.DELETE` and `$.FETCH`. Anything that is not a `File` or a
+byte array is sent as text, exactly as before.
+
+> **Credentials must be preemptive.** Basic authentication normally waits for the server to answer `401`
+> and then repeats the request, which is impossible once a stream has been read. Set `preemptive` so the
+> credentials go out with the first request:
+>
+> ```javascript
+> $.PUT(url, file, 'application/pdf', { username: 'u', password: 'p', preemptive: true });
+> ```
+>
+> Without it the call is refused with a message saying so, rather than failing later as an empty upload.
+
+Use `$.POST_multi_part` instead when the receiving endpoint expects a form upload with several parts.
+
 ### Accessing
 
 Files are accessible via:

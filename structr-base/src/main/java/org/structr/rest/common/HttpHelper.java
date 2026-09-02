@@ -34,6 +34,9 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
@@ -44,7 +47,10 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 
 import javax.net.ssl.SSLContext;
+import java.io.Closeable;
 import java.io.FileOutputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -73,6 +79,7 @@ public class HttpHelper {
 	public static final String FIELD_STATUS  = "status";
 	public static final String FIELD_BODY    = "body";
 	public static final String FIELD_HEADERS = "headers";
+	public static final String FIELD_ERROR   = "error";
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpHelper.class.getName());
 
@@ -141,13 +148,17 @@ public class HttpHelper {
 		}
 
 		final CloseableHttpClient client = clientBuilder.build();
-		final int connectTimeout = (timeout != null)? timeout : (Settings.HttpConnectTimeout.getValue() * 1000);
+		// A caller asking for a timeout means the call, not just the handshake. Bounding the connection
+		// alone leaves a server that accepts and then answers slowly able to hold the request open for
+		// as long as it likes, which is the hang the option exists to prevent.
+		final int connectTimeout = (timeout != null) ? timeout : (Settings.HttpConnectTimeout.getValue() * 1000);
+		final int socketTimeout  = (timeout != null) ? timeout : (Settings.HttpSocketTimeout.getValue() * 1000);
 		final RequestConfig reqConfig = RequestConfig.custom()
 			.setProxy(proxy)
 			.setRedirectsEnabled(followRedirects)
 			.setCookieSpec(CookieSpecs.STANDARD)
 			.setConnectTimeout(connectTimeout)
-			.setSocketTimeout(Settings.HttpSocketTimeout.getValue() * 1000)
+			.setSocketTimeout(socketTimeout)
 			.setConnectionRequestTimeout(Settings.HttpConnectionRequestTimeout.getValue() * 1000)
 			.build();
 
@@ -213,23 +224,34 @@ public class HttpHelper {
 
 	public static Map<String, Object> get(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
+		return get(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, null);
+	}
+
+	public static Map<String, Object> get(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
 		final Map<String, Object> responseData = new HashMap<>();
 
 		try {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req   = new HttpGet(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
 			final CloseableHttpResponse resp = hc.client().execute(req);
-			final String content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset())));
+			final String content = bodyOf(resp, charset(resp, hc.charset()));
 
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to fetch content from address", t);
 		}
 
 		return responseData;
@@ -244,32 +266,43 @@ public class HttpHelper {
 
 		try {
 
-			Map<String, Object> result = getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
-			if (result != null && result.get(HttpHelper.FIELD_BODY) != null) {
+			final Map<String, Object> result = getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
 
-				InputStream body = (InputStream) result.get(HttpHelper.FIELD_BODY);
-				result.put(HttpHelper.FIELD_BODY, IOUtils.toByteArray(body));
+			if (result.get(HttpHelper.FIELD_BODY) instanceof InputStream body) {
 
-			} else if (result != null) {
+				// closing the stream is what closes the response and the client behind it, so it has to happen
+				// even when the read fails part way through -- this method read the body and then dropped the
+				// stream, which is how every binary GET left its client to be collected rather than closed.
+				try (body) {
+
+					result.put(HttpHelper.FIELD_BODY, IOUtils.toByteArray(body));
+				}
+
+			} else {
 
 				result.put(HttpHelper.FIELD_BODY, null);
 			}
 
 			return result;
 
+		} catch (final FrameworkException fex) {
+
+			// already carries a status and a message naming the address, so re-wrapping it would only bury
+			// the specific reason -- a rejected whitelist entry, say -- under a generic one.
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Error while downloading binary data from " + address, t);
-			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Error while downloading binary data from", t);
 		}
 	}
 
-	public static Map<String, Object> postBinary(final String address, final String requestBody, final String charset, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> postBinary(final String address, final Object requestBody, final String charset, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return postBinary(address, requestBody, charset, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
-	public static Map<String, Object> postBinary(final String address, final String requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> postBinary(final String address, final Object requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		try {
 
@@ -288,8 +321,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Error while downloading binary data from " + address, t);
-			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Error while downloading binary data from", t);
 		}
 	}
 
@@ -305,33 +337,53 @@ public class HttpHelper {
 
 	public static Map<String, Object> head(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
+		return head(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, null);
+	}
+
+	public static Map<String, Object> head(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
 		final Map<String, Object> responseHeaders = new HashMap<>();
 
 		try {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpHead req  = new HttpHead(uri);
-			final HttpConfig hc = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates, null);
+			final HttpConfig hc = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
 			final CloseableHttpResponse response = hc.client().execute(req);
 
 			responseHeaders.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseHeaders.put(HttpHelper.FIELD_HEADERS, Arrays.stream(response.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get headers from address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to get headers from address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to get headers from address", t);
 		}
 
 		return responseHeaders;
 	}
 
-	public static Map<String, Object> patch(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> patch(final String address, final Object requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
 		return patch(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates);
 	}
 
-	public static Map<String, Object> patch(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> patch(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+
+		return patch(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, null);
+	}
+
+	public static Map<String, Object> patch(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType) throws FrameworkException {
+
+		return patch(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, contentType, null);
+	}
+
+	public static Map<String, Object> patch(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType, final Map<String, Object> config) throws FrameworkException {
 
 		final Map<String, Object> responseData = new HashMap<>();
 
@@ -339,9 +391,9 @@ public class HttpHelper {
 
 			final URI url       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPut req   = new HttpPatch(url);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
-			req.setEntity(new StringEntity(requestBody, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity entity = response.getEntity();
@@ -362,36 +414,166 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue PATCH request to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue PATCH request to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue PATCH request to address", t);
 		}
 
 		return responseData;
 	}
 
-	public static Map<String, Object> post(final String address, final String requestBody) throws FrameworkException {
+	/**
+	 * The request entity, carrying the Content-Type the caller asked for.
+	 *
+	 * StringEntity(body, charset) alone sends text/plain, which is why a contentType passed to
+	 * $.POST() and friends never reached the wire before. The header is derived from the entity by
+	 * HttpClient, so it has to be set here and not added to the header map, or the request would carry
+	 * the type twice.
+	 */
+	/** timeout (milliseconds) and redirects, as the outbound HTTP functions pass them. */
+	/**
+	 * The response body, or null when the server sent none.
+	 *
+	 * getEntity() is null for a 204, a 304 and for any error response without a body. Reading through it
+	 * unchecked turned those into a NullPointerException, which the catch below then reported as a failed
+	 * request: the status the server actually sent was lost and the caller saw 422 instead of 404.
+	 */
+	private static String bodyOf(final CloseableHttpResponse resp, final String charset) throws IOException {
+
+		final HttpEntity entity = resp.getEntity();
+
+		return entity != null ? skipBOMIfPresent(IOUtils.toString(entity.getContent(), charset)) : null;
+	}
+
+	/**
+	 * The result of a request that never reached the server: DNS, connection refused, TLS, timeout.
+	 *
+	 * Returned rather than thrown, because there is nothing wrong with the CALL. A status of 0 says "no
+	 * response", the way fetch() has no status when it rejects, and lets StructrScript branch on it: that
+	 * language has no try/catch, so a throw here would be unrecoverable rather than merely inconvenient.
+	 * Only a request that cannot be made at all - a malformed URL, a blocked address - still throws.
+	 */
+	private static Map<String, Object> noResponse(final String address, final String what, final Throwable t) {
+
+		logger.warn("{} {}: {}", what, address, t.getMessage());
+
+		final Map<String, Object> responseData = new HashMap<>();
+
+		responseData.put(HttpHelper.FIELD_BODY,    null);
+		responseData.put(HttpHelper.FIELD_STATUS,  "0");
+		responseData.put(HttpHelper.FIELD_HEADERS, Collections.emptyMap());
+		responseData.put(HttpHelper.FIELD_ERROR,   t.getMessage() != null ? t.getMessage() : t.toString());
+
+		return responseData;
+	}
+
+	private static Integer timeoutFrom(final Map<String, Object> config) {
+
+		// Number, not Integer: StructrScript hands over its numeric literals as Double
+		return (config != null && config.get("timeout") instanceof Number number) ? number.intValue() : null;
+	}
+
+	private static boolean redirectsFrom(final Map<String, Object> config, final boolean defaultValue) {
+
+		return (config != null && config.get("redirects") instanceof Boolean redirects) ? redirects : defaultValue;
+	}
+
+	/**
+	 * DELETE with a request body.
+	 *
+	 * HttpDelete cannot carry an entity, although HTTP permits a body on DELETE and some APIs require
+	 * one, so the method is spelled out on an entity-enclosing request instead.
+	 */
+	private static class HttpDeleteWithBody extends org.apache.http.client.methods.HttpEntityEnclosingRequestBase {
+
+		HttpDeleteWithBody(final URI uri) {
+
+			setURI(uri);
+		}
+
+		@Override
+		public String getMethod() {
+
+			return "DELETE";
+		}
+	}
+
+	/** Whether there is no body to send: null, or text that is blank. Binary is never "blank". */
+	private static boolean isEmptyBody(final Object requestBody) {
+
+		if (requestBody == null) {
+
+			return true;
+		}
+
+		if (requestBody instanceof byte[] bytes) {
+
+			return bytes.length == 0;
+		}
+
+		if (requestBody instanceof InputStream) {
+
+			return false;
+		}
+
+		return StringUtils.isBlank(requestBody.toString());
+	}
+
+	/**
+	 * The request entity for a body, which may be text or binary.
+	 *
+	 * A byte[] or an InputStream is sent as-is, so a caller can push a file's content without inflating it
+	 * through base64 or wrapping it in a multipart envelope. An InputStream entity is NOT repeatable: see
+	 * the note on preemptive authentication in the verb functions, because a body that cannot be sent
+	 * twice cannot survive a 401 challenge or a redirect.
+	 */
+	private static HttpEntity entityFor(final Object requestBody, final String contentType, final String charset) {
+
+		final ContentType type = StringUtils.isBlank(contentType) ? null : ContentType.create(ContentType.parse(contentType).getMimeType(), charset);
+
+		if (requestBody instanceof byte[] bytes) {
+
+			return type != null ? new ByteArrayEntity(bytes, type) : new ByteArrayEntity(bytes);
+		}
+
+		if (requestBody instanceof InputStream stream) {
+
+			// length unknown, so the request is sent chunked
+			return type != null ? new InputStreamEntity(stream, -1, type) : new InputStreamEntity(stream, -1);
+		}
+
+		final String text = requestBody != null ? requestBody.toString() : "";
+
+		return type != null ? new StringEntity(text, type) : new StringEntity(text, charset);
+	}
+
+	public static Map<String, Object> post(final String address, final Object requestBody) throws FrameworkException {
 
 		return post(address, requestBody, null, null, null, null, Collections.EMPTY_MAP, true);
 	}
 
-	public static Map<String, Object> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> post(final String address, final Object requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return post(address, requestBody, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
-	public static Map<String, Object> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> post(final String address, final Object requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
 		return post(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates, null);
 	}
 
-	public static Map<String, Object> post(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> post(final String address, final Object requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return post(address, requestBody, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates);
 	}
 
-	public static Map<String, Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> post(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return post(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, "UTF-8", validateCertificates, null);
 	}
@@ -401,7 +583,12 @@ public class HttpHelper {
 		return post(address, requestBody, null, null, proxyUrl, proxyUsername, null, null, headers, charset, validateCertificates, config);
 	}
 
-	public static Map<String, Object> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+	public static Map<String, Object> post(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
+		return post(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, config, null);
+	}
+
+	public static Map<String, Object> post(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final Map<String, Object> config, final String contentType) throws FrameworkException {
 
 		final Map<String, Object> responseData = new HashMap<>();
 
@@ -414,20 +601,21 @@ public class HttpHelper {
 
 			if (config != null) {
 
-				if (config.containsKey("timeout")) {
+				// Number, not Integer: StructrScript hands over its numeric literals as Double
+				if (config.get("timeout") instanceof Number number) {
 
-					timeout = (Integer) config.get("timeout");
+					timeout = number.intValue();
 				}
 
-				if (config.containsKey("redirects")) {
+				if (config.get("redirects") instanceof Boolean redirects) {
 
-					followRedirects = (Boolean) config.get("redirects");
+					followRedirects = redirects;
 				}
 			}
 
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, followRedirects, validateCertificates, timeout);
 
-			req.setEntity(new StringEntity(requestBody, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
@@ -444,41 +632,56 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue POST request to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
+			return noResponse(address, "Unable to issue POST request to address", t);
 		}
 
 		return responseData;
 	}
 
-	public static Map<String, Object> put(final String address, final String requestBody) throws FrameworkException {
+	public static Map<String, Object> put(final String address, final Object requestBody) throws FrameworkException {
 
 		return put(address, requestBody, null, null, null, null, Collections.EMPTY_MAP, true);
 	}
 
-	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> put(final String address, final Object requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return put(address, requestBody, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
-	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> put(final String address, final Object requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
 		return put(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates);
 	}
 
-	public static Map<String, Object> put(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> put(final String address, final Object requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return put(address, requestBody, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates);
 	}
 
-	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> put(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return put(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, "UTF-8", validateCertificates);
 	}
 
-	public static Map<String, Object> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+	public static Map<String, Object> put(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
+
+		return put(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, null);
+	}
+
+	public static Map<String, Object> put(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType) throws FrameworkException {
+
+		return put(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, charset, validateCertificates, contentType, null);
+	}
+
+	public static Map<String, Object> put(final String address, final Object requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates, final String contentType, final Map<String, Object> config) throws FrameworkException {
 
 		final Map<String, Object> responseData = new HashMap<>();
 
@@ -486,9 +689,9 @@ public class HttpHelper {
 
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPut req   = new HttpPut(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
-			req.setEntity(new StringEntity(requestBody, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
@@ -505,10 +708,15 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue PUT request to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue PUT request to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue PUT request to address", t);
 		}
 
 		return responseData;
@@ -531,13 +739,29 @@ public class HttpHelper {
 
 	public static Map<String, Object> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
+		return delete(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, null);
+	}
+
+	public static Map<String, Object> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
+		return delete(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates, config, null, null, null);
+	}
+
+	public static Map<String, Object> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config, final Object requestBody, final String contentType, final String charset) throws FrameworkException {
+
 		final Map<String, Object> responseData = new HashMap<>();
 
 		try {
 
-			final URI uri        = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpDelete req = new HttpDelete(uri);
-			final HttpConfig hc  = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
+
+			final HttpRequestBase req = isEmptyBody(requestBody) ? new HttpDelete(uri) : new HttpDeleteWithBody(uri);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
+
+			if (req instanceof HttpDeleteWithBody withBody) {
+
+				withBody.setEntity(entityFor(requestBody, contentType, hc.charset()));
+			}
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
 			String content = null;
@@ -553,86 +777,230 @@ public class HttpHelper {
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue DELETE command to address {}, {}", address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue DELETE command to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue DELETE command to address", t);
 		}
 
 		return responseData;
 	}
 
-	public static Map<String, Object> getAsStream(final String address) {
+	public static Map<String, Object> getAsStream(final String address) throws FrameworkException {
 
 		return getAsStream(address, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> getAsStream(final String address, final String charset) {
+	public static Map<String, Object> getAsStream(final String address, final String charset) throws FrameworkException {
 
 		return getAsStream(address, charset, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	/**
+	 * Issues a GET and hands the response body back as a live {@link InputStream}, so a large download is
+	 * never buffered whole -- 86e0ef7f8a removed the 2 GB limit with it, and that is deliberate.
+	 *
+	 * <p><b>The returned stream owns the response and the client.</b> Closing it closes both, and nothing
+	 * else can: {@code configure} builds a fresh {@link CloseableHttpClient} per call and the caller never
+	 * sees it. Close the stream -- try-with-resources is enough.</p>
+	 *
+	 * <p>Be precise about what that is worth, because it is easy to overstate. {@code configure} adds
+	 * {@code Connection: close} to every request, so Apache closes the socket itself once the entity
+	 * reaches EOF or the entity stream is closed; the socket is not what was being leaked. What was leaked
+	 * is the client and its connection manager as <i>objects</i>, released at GC rather than
+	 * deterministically -- plus, for a stream that is neither read to the end nor closed, the connection
+	 * it is still holding.</p>
+	 *
+	 * <p>A response carrying no entity at all -- a 204, say -- answers a {@code null} body with the
+	 * status and headers still present, and closes its own connection before returning, since there is
+	 * nothing for a caller to close.</p>
+	 *
+	 * @throws FrameworkException if the request could not be issued or the whitelist refused the address.
+	 *         Reported rather than answered with {@code null}: a null surfaced as an NPE at the call site
+	 *         with the cause only in the log, and it swallowed the whitelist refusal along with it.
+	 */
+	public static Map<String, Object> getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
+
+		return getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, null);
+	}
+
+	/**
+	 * The streaming variant of get(), with the same transport settings as the buffered one.
+	 *
+	 * These used to be hardcoded here, so a caller asking for a streamed response silently lost its
+	 * certificate validation, its timeout and its redirect setting: the option was accepted and did
+	 * nothing, which surfaces much later as a hung or unexpectedly trusted call.
+	 */
+	public static Map<String, Object> getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
+		CloseableHttpClient client   = null;
+		CloseableHttpResponse resp   = null;
 
 		try {
 
-			final Map<String, Object> responseData = new HashMap<>();
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req   = new HttpGet(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
-			final CloseableHttpResponse resp = hc.client().execute(req);
-			InputStream stream = resp.getEntity().getContent();
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
-			responseData.put(HttpHelper.FIELD_BODY, stream);
-			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
+			client = hc.client();
+			resp   = client.execute(req);
 
-			return responseData;
+			return streamResponse(address, resp, client);
+
+		} catch (final FrameworkException fex) {
+
+			// the whitelist refusal, which names the setting to change: reported as itself rather than
+			// re-wrapped, so the actionable message is what the caller sees
+			closeQuietly(address, resp, client);
+
+			throw fex;
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get content stream from address {}, {}", address, t.getMessage());
+			// the stream was never handed out, so nothing else is in a position to close these
+			closeQuietly(address, resp, client);
+
+			throw new FrameworkException(422, "Unable to get content stream from address " + address + ": " + t.getMessage(), t);
 		}
-
-		return null;
 	}
 
-	public static Map<String, Object> postAsStream(final String address, final String requestBody) {
+	public static Map<String, Object> postAsStream(final String address, final Object requestBody) throws FrameworkException {
 
 		return postAsStream(address, requestBody, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset) {
+	public static Map<String, Object> postAsStream(final String address, final Object requestBody, final String charset) throws FrameworkException {
 
-		return postAsStream(address, requestBody, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
+		return postAsStream(address, requestBody, charset, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	/**
+	 * The POST counterpart of {@link #getAsStream}, with the same ownership rule: closing the returned
+	 * stream closes the response and the client.
+	 *
+	 * <p><b>Nothing calls this today.</b> It is kept in step with {@code getAsStream} rather than left as
+	 * a leaking copy beside a fixed one, so that a future caller does not reintroduce the leak; whether it
+	 * should exist at all is a separate question.</p>
+	 */
+	public static Map<String, Object> postAsStream(final String address, final Object requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
+
+		return postAsStream(address, requestBody, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, null, true, null);
+	}
+
+	/** The streaming variant of post(), with the same transport settings and content type as the buffered one. */
+	public static Map<String, Object> postAsStream(final String address, final Object requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String contentType, final boolean validateCertificates, final Map<String, Object> config) throws FrameworkException {
+
+		CloseableHttpClient client   = null;
+		CloseableHttpResponse resp   = null;
 
 		try {
 
-			final Map<String, Object> responseData = new HashMap<>();
 			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPost req  = new HttpPost(uri);
-			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, true), validateCertificates, timeoutFrom(config));
 
-			req.setEntity(new StringEntity(requestBody, hc.charset()));
+			req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 
-			final CloseableHttpResponse resp = hc.client().execute(req);
-			InputStream stream = resp.getEntity().getContent();
+			client = hc.client();
+			resp   = client.execute(req);
 
-			responseData.put(HttpHelper.FIELD_BODY, stream);
-			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
+			return streamResponse(address, resp, client);
 
-			return responseData;
+		} catch (final FrameworkException fex) {
+
+			closeQuietly(address, resp, client);
+
+			throw fex;
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to get content stream from address {}, {}", address, t.getMessage());
+			closeQuietly(address, resp, client);
+
+			throw new FrameworkException(422, "Unable to post and get content stream from address " + address + ": " + t.getMessage(), t);
+		}
+	}
+
+	/**
+	 * Builds the response map for a streaming call. Shared by {@link #getAsStream} and
+	 * {@link #postAsStream}, which differ only in the request they issue and so must not differ in how
+	 * they hand back the connection.
+	 */
+	private static Map<String, Object> streamResponse(final String address, final CloseableHttpResponse resp, final CloseableHttpClient client) throws IOException {
+
+		final Map<String, Object> responseData = new HashMap<>();
+
+		responseData.put(HttpHelper.FIELD_STATUS,  Integer.toString(resp.getStatusLine().getStatusCode()));
+		responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
+
+		final HttpEntity entity = resp.getEntity();
+		if (entity == null) {
+
+			// no body means no stream, so a caller has nothing to close and the response and client would be
+			// left to GC. Closing here also keeps the old NPE from coming back: resp.getEntity() is null for
+			// a 204, and dereferencing it was what made a body-less response indistinguishable from a failure.
+			closeQuietly(address, resp, client);
+			responseData.put(HttpHelper.FIELD_BODY, null);
+
+			return responseData;
 		}
 
-		return null;
+		responseData.put(HttpHelper.FIELD_BODY, closingStream(address, entity.getContent(), resp, client));
+
+		return responseData;
+	}
+
+	/**
+	 * The response body, wrapped so that closing it also closes the response and then the client.
+	 *
+	 * <p>A failure to close is logged rather than thrown: the caller is closing a stream it has already
+	 * finished with and has nothing useful to do about it, and throwing would hide whatever it was
+	 * actually doing.</p>
+	 */
+	private static InputStream closingStream(final String address, final InputStream content, final CloseableHttpResponse resp, final CloseableHttpClient client) {
+
+		return new FilterInputStream(content) {
+
+			@Override
+			public void close() throws IOException {
+
+				try {
+
+					super.close();
+
+				} finally {
+
+					closeQuietly(address, resp, client);
+				}
+			}
+		};
+	}
+
+	/**
+	 * Closes each resource in turn, logging rather than throwing, and never letting one failure skip the
+	 * rest. Null entries are skipped, so this can be called from a catch block that does not know how far
+	 * the request got.
+	 */
+	private static void closeQuietly(final String address, final Closeable... closeables) {
+
+		for (final Closeable closeable : closeables) {
+
+			if (closeable != null) {
+
+				try {
+
+					closeable.close();
+
+				} catch (final Throwable t) {
+
+					logger.warn("Unable to close HTTP resource for address {}: {}", address, t.getMessage());
+				}
+			}
+		}
 	}
 
 	/**
@@ -710,14 +1078,22 @@ public class HttpHelper {
 			} else {
 
 				// consume content, but discard it
-				String content = IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset()));
+				String content = bodyOf(resp, charset(resp, hc.charset()));
 
 				logger.warn("Unable to create file from URI {}: status code was {}, discarding content", address, statusCode);
 			}
 
+		} catch (final FrameworkException fex) {
+
+			// a rejected URL, a blocked address, a whitelist miss: the CALL is wrong, and its status
+			// and message must reach the caller rather than being re-wrapped as a failed request
+			throw fex;
+
 		} catch (final Throwable t) {
 
-			throw new FrameworkException(422, "Unable to fetch file content from address " + address + ": " + t.getMessage());
+			// this one writes to a file rather than returning a response, so there is no status to hand
+			// back. A download that never reached the server is still a failure the caller must see.
+			throw new FrameworkException(504, "Unable to fetch file content from address " + address + ": " + t.getMessage(), t);
 		}
 	}
 
@@ -801,7 +1177,29 @@ public class HttpHelper {
 	private static URI checkAddressAgainstWhitelist(final String address) throws FrameworkException {
 
 		final String whitelist = Settings.OutgoingURLWhitelist.getValue(null);
-		final URI uri          = URI.create(address);
+		final URI uri;
+
+		// An address that cannot be requested at all is a bad CALL, not a failed request, so it throws
+		// rather than coming back as a status of 0. Deliberately only what makes the URL unusable: the
+		// host and network checks in validateUrl() belong to the servlets, not to these functions.
+		try {
+
+			uri = URI.create(address);
+
+		} catch (final IllegalArgumentException iex) {
+
+			throw new FrameworkException(400, "Invalid URL: " + address);
+		}
+
+		if (uri.getScheme() == null || !("http".equals(uri.getScheme()) || "https".equals(uri.getScheme()))) {
+
+			throw new FrameworkException(400, "Only http and https URLs are allowed, got: " + address);
+		}
+
+		if (StringUtils.isBlank(uri.getHost())) {
+
+			throw new FrameworkException(400, "URL has no host component: " + address);
+		}
 
 		if (!"*".equals(whitelist)) {
 
@@ -828,9 +1226,17 @@ public class HttpHelper {
 
 	// ----- generic fetch -----
 
-	public static Map<String, Object> fetch(final String address, final String method, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates, final boolean followRedirects, final Integer timeout) throws FrameworkException {
+	public static Map<String, Object> fetch(final String address, final String method, final Object requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates, final boolean followRedirects, final Integer timeout) throws FrameworkException {
 
-		HttpHelper.validateUrl(address);
+		return fetch(address, method, requestBody, username, password, headers, charset, validateCertificates, followRedirects, timeout, null);
+	}
+
+	public static Map<String, Object> fetch(final String address, final String method, final Object requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates, final boolean followRedirects, final Integer timeout, final String contentType) throws FrameworkException {
+
+		// No validateUrl() here. It guards the paths where the address comes from outside - ProxyServlet,
+		// DeploymentServlet, DataFeed - and this one is called from a script, where the address is code.
+		// Blocking internal addresses here protected nothing, since POST, GET, PUT, PATCH and DELETE
+		// reach the same host, and it made an instance unable to call itself or a sidecar.
 
 		final Map<String, Object> responseData = new HashMap<>();
 
@@ -840,9 +1246,9 @@ public class HttpHelper {
 			final HttpGenericMethod req    = new HttpGenericMethod(uri, method.toUpperCase());
 			final HttpConfig hc            = configure(req, charset, username, password, null, null, null, null, headers, followRedirects, validateCertificates, timeout);
 
-			if (StringUtils.isNotBlank(requestBody)) {
+			if (!isEmptyBody(requestBody)) {
 
-				req.setEntity(new StringEntity(requestBody, hc.charset()));
+				req.setEntity(entityFor(requestBody, contentType, hc.charset()));
 			}
 
 			final CloseableHttpResponse response = hc.client().execute(req);
@@ -866,8 +1272,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue {} request to address {}, {}", method, address, t.getMessage());
-			throw new FrameworkException(422, "Unable to issue " + method + " request to address " + address + ": " + t.getMessage(), t);
+			return noResponse(address, "Unable to issue " + method + " request to address", t);
 		}
 
 		return responseData;

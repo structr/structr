@@ -489,6 +489,92 @@ public class SchemaMethodsTest extends FrontendTest {
 	}
 
 	@Test
+	public void testAsyncSchemaMethodOverRest() {
+
+		// A SchemaMethod is wrapped by JSFunctionTranspiler in an async arrow, so await works inside it.
+		// What this checks is the REST-facing half: that the value still comes back, and that an error
+		// raised *after* an await produces exactly the payload a synchronous one does -- the async body
+		// turns that error into a promise rejection before it is an exception again, and it has to
+		// survive the round trip unchanged. testErrorMethodAndResponse above is the synchronous twin.
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addMethod("sendError", "error('test', 'test_error', 'errorrr')");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "asyncValue"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),
+					"{ const parts = await Promise.all([Promise.resolve('async'), Promise.resolve('ok')]); return parts.join(' '); }")
+			);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "asyncError"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),
+					"{ await Promise.resolve(1); Structr.find('Test')[0].sendError(); }")
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create("Test", "test");
+			createAdminUser();
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// the awaited value survives all the way out to the response
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.body("{}")
+
+			.expect()
+				.statusCode(200)
+				.body("result", equalTo("async ok"))
+
+			.when()
+				.post("/asyncValue");
+
+		// and an error raised after an await is reported exactly as a synchronous one is
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.body("{}")
+
+			.expect()
+				.statusCode(422)
+				.body("code",                equalTo(422))
+				.body("message",             equalTo("Server-side scripting error"))
+				.body("errors[0].type",      equalTo("Test"))
+				.body("errors[0].property",  equalTo("test"))
+				.body("errors[0].token",     equalTo("test_error"))
+				.body("errors[0].detail",    equalTo("errorrr"))
+
+			.when()
+				.post("/asyncError");
+	}
+
+	@Test
 	public void testDeprecatedGlobalSchemaMethodURL() {
 
 		// this method tests global schema methods as well
