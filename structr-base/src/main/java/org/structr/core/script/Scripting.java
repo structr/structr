@@ -315,6 +315,15 @@ public class Scripting {
 
 			try {
 
+				// The host can only settle a promise from outside every evaluation, so host-driven settlement
+				// is available to the outermost one alone. An open frame means an evaluation is already in
+				// progress on this thread -- a script reaching this method again through $.evaluateScript,
+				// a lifecycle method or rendering -- and this one has to complete its wrapper at its own
+				// call boundary instead. Read before openFrame(), which is what would make it true.
+				final AsyncCompletion asyncCompletion = PendingThenables.hasFrame()
+					? AsyncCompletion.AT_BOUNDARY
+					: AsyncCompletion.HOST_DRIVEN;
+
 				// Deferred async settlements belong to this evaluation, so the frame is opened inside the lock
 				// and the entered context: a drain has to happen on this thread, in this transaction, before
 				// the context is left. unwrap() is inside the frame as well, because that is where a
@@ -323,7 +332,7 @@ public class Scripting {
 
 				try {
 
-					final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet, AsyncCompletion.HOST_DRIVEN);
+					final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet, asyncCompletion);
 					result = PolyglotWrapper.unwrap(actionContext, value);
 
 				} finally {
@@ -383,19 +392,19 @@ public class Scripting {
 	/**
 	 * Who settles the promise of an embedded snippet's async wrapper.
 	 *
-	 * <p>The two callers of {@link #evaluatePolyglot} are in different positions, and the mode follows
-	 * from that rather than being a preference.</p>
+	 * <p>Determined by whether an evaluation is already in progress on this thread, not by the caller.</p>
 	 *
 	 * <ul>
-	 * <li>{@link #HOST_DRIVEN} -- the outermost evaluation. The host owns the thread and can keep
-	 * settling deferred calls until the script's promise resolves, which is what allows a race to stop
-	 * at its winner.</li>
-	 * <li>{@link #AT_BOUNDARY} -- an evaluation nested inside a running one, such as a script calling a
-	 * schema method, whose value has to be handed straight back to the guest. The host cannot settle
-	 * anything from here, because an interop call made while an outer boundary is already draining the
-	 * job queue does not get a drain of its own; the wrapper's promise must therefore be completed at
-	 * its own call boundary. A nested body that genuinely suspends consequently fails with
-	 * <em>Attempt to unwrap pending promise</em>, so {@code await} is not usable in one.</li>
+	 * <li>{@link #HOST_DRIVEN} -- the outermost evaluation, and the only one where the host can settle
+	 * anything: it owns the thread and can keep joining deferred calls until the script's promise
+	 * resolves, which is what allows a race to stop at its winner.</li>
+	 * <li>{@link #AT_BOUNDARY} -- an evaluation nested inside a running one: a script calling a schema
+	 * method, or reaching {@link #evaluateScript} again through {@code $.evaluateScript}, a lifecycle
+	 * method or rendering. An interop call made while an outer host-to-guest call is still on the stack
+	 * does not get a job-queue drain of its own, so a promise the host registers reactions on there is
+	 * never settled; the wrapper's promise must be completed at its own call boundary instead. A nested
+	 * body that genuinely suspends consequently fails with <em>Attempt to unwrap pending promise</em>,
+	 * so {@code await} is not usable in one.</li>
 	 * </ul>
 	 */
 	public enum AsyncCompletion {

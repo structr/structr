@@ -18,6 +18,7 @@
  */
 package org.structr.test.core.script;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.config.ScriptConfig;
@@ -367,6 +368,51 @@ public class AsyncScriptingTest extends StructrTest {
 			} catch (final FrameworkException expected) {
 
 				assertEquals(422, expected.getStatus());
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testANestedEvaluationStillAnswersItsValue() {
+
+		// A script can reach Scripting.evaluateScript again from inside itself -- through
+		// $.evaluateScript, a global schema method, a lifecycle method or rendering -- and the inner
+		// evaluation is then nested inside the outer one's interop call. Host-driven settlement is
+		// unavailable there: an interop call made while an outer host-to-guest call is still on the stack
+		// gets no job-queue drain, so reactions the host registers on the inner wrapper's promise never
+		// run and the inner evaluation would answer "a promise that never resolved". It has to complete
+		// its wrapper at its own call boundary instead.
+		//
+		// Both wrappings of the inner script matter, and only the wrapped one produces a promise at all,
+		// so that is the case worth having. WrapJSInMainFunction is what an inner $.evaluateScript takes
+		// its wrapping from, which makes it reachable without building a schema method.
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("a nested unwrapped evaluation must answer its completion value",
+				"seven", wrapped("return $.evaluateScript($.me, \"{ 'seven' }\");"));
+
+			assertEquals("and an unwrapped outer script must get it too",
+				"seven", unwrapped("$.evaluateScript($.me, \"{ 'seven' }\")"));
+
+			final boolean wrapWasOn = Settings.WrapJSInMainFunction.getValue(false);
+
+			Settings.WrapJSInMainFunction.setValue(true);
+
+			try {
+
+				assertEquals("a nested wrapped evaluation must answer a value and not a promise",
+					"seven", wrapped("return $.evaluateScript($.me, \"{ return 'seven'; }\");"));
+
+			} finally {
+
+				Settings.WrapJSInMainFunction.setValue(wrapWasOn);
 			}
 
 			tx.success();
