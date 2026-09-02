@@ -100,7 +100,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 								parts.add(el.outerHtml());
 							}
 
-							return parts;
+							response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), parts);
 
 						} else {
 
