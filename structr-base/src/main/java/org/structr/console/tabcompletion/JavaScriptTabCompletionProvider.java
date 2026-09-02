@@ -20,10 +20,14 @@ package org.structr.console.tabcompletion;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.function.Functions;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -35,12 +39,18 @@ public class JavaScriptTabCompletionProvider extends AbstractTabCompletionProvid
 
 		final List<TabCompletionResult> results = new LinkedList<>();
 
-		if (line.startsWith("Structr.")) {
+		final Matcher structrCallPatternMatcher = Pattern.compile(".*(Structr|\\$)\\.([A-Za-z0-9]+)$").matcher(line);
+		if (structrCallPatternMatcher.matches()) {
 
-			List<TabCompletionResult> intermediateList = getExactResultsForCollection(Functions.getNames(), line.substring(8), "(");
+			final String callStylePrefix  = structrCallPatternMatcher.group(1);
+			final String completionPrefix = structrCallPatternMatcher.group(2);
+
+			final List<TabCompletionResult> intermediateList = getExactResultsForCollection(Functions.getNames(), completionPrefix, "(");
+			intermediateList.addAll(getExactResultsForCollection(SchemaMethodTraitDefinition.getKeywordNames(), completionPrefix, " "));
+			intermediateList.addAll(getExactResultsForCollection(Traits.getAllTypes(Traits::isNodeType), completionPrefix, "."));
 
 			intermediateList.forEach((tcr) -> {
-				results.add(new TabCompletionResult("Structr." + tcr.getCommand(), tcr.getCompletion(), tcr.getSuffix()));
+				results.add(new TabCompletionResult(callStylePrefix + "." + tcr.getCommand(), tcr.getCompletion(), tcr.getSuffix()));
 			});
 		}
 

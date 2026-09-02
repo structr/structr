@@ -235,6 +235,15 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		);
 	}
 
+	public static Set<String> getKeywordNames() {
+
+		final List<Documentable> keywords = new LinkedList<>();
+		AbstractHintProvider.addBuiltInKeywordHints(keywords);
+
+		final Set<String> keywordNames = keywords.stream().map(Documentable::getName).collect(Collectors.toSet());
+		return keywordNames;
+	}
+
 	public static boolean isReservedWord(final String word) {
 
 		if (Functions.get(word) != null) {
@@ -242,10 +251,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			return true;
 		}
 
-		final List<Documentable> keywords = new LinkedList<>();
-		AbstractHintProvider.addBuiltInKeywordHints(keywords);
-		final Set<String> keywordNames = keywords.stream().map(k -> k.getName()).collect(Collectors.toSet());
-		if  (keywordNames.contains(word)) {
+		final Set<String> keywordNames = getKeywordNames();
+		if (keywordNames.contains(word)) {
 
 			return true;
 		}
