@@ -186,6 +186,73 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		}
 	}
 
+	/**
+	 * A server that answers /slow after a delay and /fast at once, so that argument order and completion
+	 * order disagree.
+	 *
+	 * The rendezvous server cannot express this: its barrier releases every request at the same instant,
+	 * which makes the calls concurrent but leaves which of them finishes first up to the scheduler. A
+	 * race can only be tested against a server where one answer is reliably later than the other.
+	 */
+	private void withPacedServer(final long slowMillis, final PortConsumer body) {
+
+		HttpServer server          = null;
+		ExecutorService dispatcher = null;
+
+		try {
+
+			server     = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+			dispatcher = Executors.newFixedThreadPool(4);
+
+			server.setExecutor(dispatcher);
+
+			server.createContext("/", exchange -> {
+
+				final String path = exchange.getRequestURI().getPath();
+
+				if (path.startsWith("/slow")) {
+
+					try {
+
+						Thread.sleep(slowMillis);
+
+					} catch (final InterruptedException ie) {
+
+						Thread.currentThread().interrupt();
+					}
+				}
+
+				final byte[] response = path.getBytes(StandardCharsets.UTF_8);
+
+				exchange.getResponseHeaders().add("Content-Type", "text/plain");
+				exchange.sendResponseHeaders(200, response.length);
+
+				try (final OutputStream out = exchange.getResponseBody()) {
+					out.write(response);
+				}
+			});
+
+			server.start();
+
+			body.accept(server.getAddress().getPort());
+
+		} catch (final Exception e) {
+
+			e.printStackTrace();
+			fail("Unexpected exception: " + e.getMessage());
+
+		} finally {
+
+			if (server != null) {
+				server.stop(0);
+			}
+
+			if (dispatcher != null) {
+				dispatcher.shutdownNow();
+			}
+		}
+	}
+
 	@FunctionalInterface
 	private interface PortConsumer {
 		void accept(final int port) throws Exception;
@@ -386,20 +453,38 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	}
 
 	@Test
-	public void testPromiseRaceSettlesInArgumentOrder() {
+	public void testPromiseRaceAnswersTheFastestAndNotTheFirstArgument() {
 
-		withRendezvousServer(2, 20, port -> {
+		// The observable check for B-71. /slow is written first and /fast second, so answering "/fast"
+		// can only mean the race settled on completion order. With then() joining inline -- one call
+		// fully finished before the next was even started -- this answered "/slow" every time.
+		withPacedServer(600, port -> {
 
-			// then() joins, so a race settles in iteration order rather than by which call finished first.
-			// This is a limitation, not a feature -- it is pinned so that the note saying so on each of the
-			// seven functions cannot quietly stop being true.
 			final Object result = wrapped(
-				  "const a = $.GET.async('http://localhost:" + port + "/first');"
-				+ "const b = $.GET.async('http://localhost:" + port + "/second');"
-				+ "const r = await Promise.race([a, b]);"
+				  "const slow = $.GET.async('http://localhost:" + port + "/slow');"
+				+ "const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				+ "const r = await Promise.race([slow, fast]);"
 				+ "return r.body;");
 
-			assertEquals("race answers the first argument, not the first to complete", "/first", result);
+			assertEquals("race must answer the call that finished first, not the first argument", "/fast", result);
+		});
+	}
+
+	@Test
+	public void testPromiseAllStillAnswersInArgumentOrderWhenTheFirstIsSlowest() {
+
+		// all() answers in argument order by specification, whatever order its elements settle in, so the
+		// completion-ordered drain must not reorder it. Pinned separately from the race, because a drain
+		// that got this wrong would still make the race test pass.
+		withPacedServer(600, port -> {
+
+			final Object result = wrapped(
+				  "const slow = $.GET.async('http://localhost:" + port + "/slow');"
+				+ "const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				+ "const rs = await Promise.all([slow, fast]);"
+				+ "return rs.map(r => r.body).join(',');");
+
+			assertEquals("all must keep argument order regardless of completion order", "/slow,/fast", result);
 		});
 	}
 

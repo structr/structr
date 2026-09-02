@@ -675,6 +675,11 @@ public abstract class PolyglotWrapper {
 
 		thenable.invokeMember("then", onFulfilled, onRejected);
 
+		// A host thenable defers its join now, so registering the reactions no longer settles it; the drain
+		// is what runs the settlement. Harmless for a guest promise, which was already settled by the job
+		// queue GraalJS drained when the call above returned and leaves nothing deferred behind.
+		PendingThenables.drainAll();
+
 		if (settled[1]) {
 
 			Object reason = outcome[1];

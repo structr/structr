@@ -18,11 +18,13 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.script.polyglot.PendingThenables;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.AsyncFunctionExecutor;
@@ -43,11 +45,12 @@ import java.util.Arrays;
  * <li><b>Arguments are converted before the work is submitted, and the result is converted after the
  * join</b>, both on the JavaScript thread. A {@link Value} cannot be separated from its context, so
  * the worker is handed plain Java values and its plain Java answer is converted back here.</li>
- * <li><b>then() settles during the call, not afterwards.</b> There is no event loop behind a Structr
- * script, so a promise that only settles later never settles at all -- see
- * {@code PolyglotWrapper.unwrapThenable}, which invokes then() synchronously and treats "did not
- * settle" as an error. Joining inside then() is what makes both {@code await} and returning the value
- * from an unwrapped snippet work.</li>
+ * <li><b>then() defers the join rather than performing it.</b> Joining inline settled each call in the
+ * order its reaction was registered, which is why {@code Promise.race} used to answer its first
+ * argument instead of the first call to finish. The settlement is handed to
+ * {@link org.structr.core.script.polyglot.PendingThenables} and run by a drain that takes completed
+ * calls first. The drain still happens within the evaluation -- there is no event loop behind a
+ * Structr script, and a promise that nothing was going to settle still never settles.</li>
  * </ul>
  *
  * The concurrency comes from the calls started before the first await, not from the join itself.
@@ -97,7 +100,28 @@ public class AsyncFunctionWrapper<T, R> implements ProxyExecutable {
 
 			if ("then".equals(key)) {
 
-				return (ProxyExecutable) arguments -> settle(arguments);
+				return (ProxyExecutable) arguments -> {
+
+					// Joining here would settle this call before the script has finished registering its
+					// reactions on the others, which is what made Promise.race answer its first argument
+					// instead of the first call to finish. Deferring hands the choice of order to
+					// PendingThenables.drain(), which takes completed calls first.
+					//
+					// The drain has to run after the whole synchronous registration burst and before the
+					// interop boundary closes, so it is scheduled as a guest job rather than called here:
+					// js.interop-complete-promises makes GraalJS drain that queue at the boundary, and
+					// throws if the promise is still pending once it has, so there is no host-side moment
+					// after the boundary in which a drain could still help.
+					if (!PendingThenables.hasFrame()) {
+
+						return settle(arguments);
+					}
+
+					PendingThenables.defer(pending::isDone, () -> settle(arguments));
+					PendingThenables.scheduleDrainOnce(this::scheduleDrain);
+
+					return null;
+				};
 			}
 
 			return null;
@@ -152,6 +176,38 @@ public class AsyncFunctionWrapper<T, R> implements ProxyExecutable {
 			}
 
 			return null;
+		}
+
+		/**
+		 * Enqueues the drain as a guest job, by registering it on an already-resolved guest promise.
+		 *
+		 * A job runs after the current synchronous run-to-completion finishes, which is exactly the moment
+		 * wanted: every reaction a race or an await was going to register has been registered by then, and
+		 * the boundary that would reject a still-pending promise has not been reached yet.
+		 */
+		private void scheduleDrain() {
+
+			final Context context = Context.getCurrent();
+
+			context.getBindings("js")
+				.getMember("Promise")
+				.invokeMember("resolve")
+				.invokeMember("then", (ProxyExecutable) ignored -> {
+
+					// One settlement per job, and the next job is only enqueued while something is still
+					// deferred -- so the chain ends on its own rather than needing to be stopped.
+					//
+					// It does not stop early enough to save a race the cost of its losers: GraalJS drains
+					// this queue to empty at the interop boundary, so a job enqueued before the race
+					// resolved is still run and still parks. The race answers the fastest; it does not yet
+					// return as soon as the fastest arrives.
+					if (PendingThenables.drainOne()) {
+
+						scheduleDrain();
+					}
+
+					return null;
+				});
 		}
 
 		@Override

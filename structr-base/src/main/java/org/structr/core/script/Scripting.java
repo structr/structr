@@ -40,6 +40,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
+import org.structr.core.script.polyglot.PendingThenables;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.script.polyglot.context.ContextFactory;
@@ -300,8 +301,21 @@ public class Scripting {
 
 			try {
 
-				final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
-				result = PolyglotWrapper.unwrap(actionContext, value);
+				// Deferred async settlements belong to this evaluation: opened inside the lock and the entered
+				// context, because a drain has to happen on this thread, in this transaction, before the
+				// context is left. unwrap() is inside the frame too -- a non-embedded script whose result is
+				// a thenable settles there rather than at the async wrapper's boundary.
+				PendingThenables.openFrame();
+
+				try {
+
+					final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
+					result = PolyglotWrapper.unwrap(actionContext, value);
+
+				} finally {
+
+					PendingThenables.closeFrame();
+				}
 
 			} catch (final PolyglotWrapper.ThenableFailure tfx) {
 
