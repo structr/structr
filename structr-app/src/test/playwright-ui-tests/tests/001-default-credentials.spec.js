@@ -69,7 +69,10 @@ test('default-credentials-warning', async ({page}, testInfo) => {
 	await page.getByText('General').first().click();
 	await page.locator('input#password-input').dblclick();
 	await page.keyboard.type(ADMIN_PASSWORD);
-	await page.getByText('Set Password').first().click();
+
+	// by id, not by text: the General tab of the user dialog gained more buttons, and a text locator on a
+	// dialog that grows is one relabelling away from clicking the wrong thing
+	await page.locator('#set-password-button').click();
 	await page.getByRole('button', {name: 'Close', exact: true}).click();
 
 	await waitForDialogBoxToClose(page);
