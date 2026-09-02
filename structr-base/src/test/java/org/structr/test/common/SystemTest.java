@@ -1494,7 +1494,7 @@ public class SystemTest extends StructrTest {
 				writer.println("database.connection.url = localhost:7687");
 				writer.println("HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet FlowServlet");
 				writer.println("security.twofactorauthentication.level = 0");
-				writer.println("application.schema.automigration = true");
+				writer.println("application.migration.mode = apply");
 				writer.println("mail.maxEmails = 50");
 				writer.println("non.Existing.KEY = 12345b");
 				writer.println("nodeextender.log = true");
@@ -1518,7 +1518,8 @@ public class SystemTest extends StructrTest {
 		assertEquals("Invalid configuration setting result", "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService", Settings.Services.getValue());
 		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet FlowServlet", Settings.Servlets.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());
-		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.SchemaAutoMigration.getValue());
+		// deliberately not the default (dry-run), so this asserts the value was actually read
+		assertEquals("Invalid configuration setting result", "apply", Settings.MigrationMode.getValue());
 
 		// config setting will not be found
 		assertNull("Invalid configuration setting result", Settings.getBooleanSetting("deployment.export.exportfileuuids"));

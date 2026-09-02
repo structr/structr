@@ -181,13 +181,13 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 			final String message = "Exception while evaluating read function in Function property '" + this.jsonName() + "' for node " + target.getUuid();
 
-			if (Settings.LogFunctionsStackTrace.getValue()) {
+			if (Settings.LogFunctionsShortenStacktrace.getValue()) {
 
-				logger.warn(message, t);
+				logger.warn(message + "\nShortened stack trace (see {}):\n{}", Settings.LogFunctionsShortenStacktrace.getKey(), Scripting.formatForLogging(t));
 
 			} else {
 
-				logger.warn(message + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")");
+				logger.warn(message, t);
 			}
 		}
 

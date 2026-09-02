@@ -35,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -66,6 +67,54 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	public String getNamespaceIdentifier() {
 
 		return null;
+	}
+
+	/**
+	 * Whether this function's {@link #apply} may run on a worker thread instead of the caller's.
+	 *
+	 * Answering true is what makes {@code name.async(...)} exist for this function in JavaScript, so that
+	 * several calls can be in flight at once and awaiting them costs the slowest rather than their sum.
+	 * The synchronous call is unaffected either way.
+	 *
+	 * <p>Opting in is a statement about what apply() touches, and a narrow one. The function must:</p>
+	 *
+	 * <ul>
+	 * <li><b>do no graph access and open no transaction.</b> Structr's transaction handle is a
+	 * ThreadLocal, so a worker has none at all and {@code TransactionCommand.getCurrentTransaction()}
+	 * throws NotInTransactionException -- somewhere unrelated to the cause;</li>
+	 * <li><b>read nothing from the SecurityContext</b>, which is shared with the calling thread and is
+	 * not thread-safe: no getUser(), getRequest(), getResponse(), or StructrApp.getInstance(sc). It
+	 * carries the servlet request, the user node and several caches, none of which a worker may touch;</li>
+	 * <li><b>hold no mutable instance state.</b> Functions.put stores one instance per name, so apply()
+	 * is already called concurrently by many request threads; async does not change that, but it does
+	 * make it load-bearing. A field added later to a function that opted in corrupts silently;</li>
+	 * <li><b>expect raiseError() and print() to go nowhere.</b> The worker's context has its own error
+	 * buffer, and the output buffer is read from the caller's, so both are discarded. That is correct
+	 * for a call that must be side-effect free, and it is invisible, which is why it is said here.</li>
+	 * </ul>
+	 *
+	 * What the worker reads from the ActionContext is a snapshot taken when the call was started, so
+	 * headers and stored values are what they were at that moment -- the same rule that governs the
+	 * call's arguments. See {@code ActionContext#detached()}.
+	 *
+	 * The outbound HTTP functions qualify because their apply() is argument parsing, one call into
+	 * HttpHelper, and building a GraphObjectMap out of the response, none of which is graph work.
+	 *
+	 * <p><b>Opt in per function, never on a shared base class.</b> The flag is inherited, and
+	 * POSTMultiPart extends the very function it must not inherit it from -- it reads File nodes and
+	 * their storage providers, so it needs the calling thread's transaction. A test pins the set of
+	 * functions that answer true, so that a new subclass cannot acquire the flag unnoticed.</p>
+	 *
+	 * <p><b>StructrScript cannot reach the async variant</b>, because it resolves a dotted name through
+	 * its own parser and never goes through FunctionWrapper. Note this is not the same as "JavaScript
+	 * only": ContextFactory installs the same binding into every polyglot language, so Python reaches it
+	 * as {@code Structr.GET.async(...)} and receives a value it has no way to await.</p>
+	 *
+	 * @return true if apply() is safe to run off the calling thread
+	 */
+	public boolean isAsyncCapable() {
+
+		return false;
 	}
 
 	@Override
@@ -237,13 +286,13 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	public static void logException (final Logger l, final Throwable t, final String msg, final Object... messageParams) {
 
-		if (Settings.LogFunctionsStackTrace.getValue()) {
+		if (Settings.LogFunctionsShortenStacktrace.getValue()) {
 
-			l.error(msg, ArrayUtils.add(messageParams, t));
+			l.error(msg + "\nShortened stack trace (see {}):\n{}", ArrayUtils.addAll(messageParams, Settings.LogFunctionsShortenStacktrace.getKey(), Scripting.formatForLogging(t)));
 
 		} else {
 
-			l.error(msg + "\n(Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
+			l.error(msg, ArrayUtils.add(messageParams, t));
 		}
 	}
 
@@ -1306,5 +1355,11 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		final Double value2 = getDoubleForComparison(o2);
 
 		return value1.compareTo(value2);
+	}
+
+	@Override
+	public boolean canShowDetails() {
+
+		return getLongDescription() != null || (getNotes() != null && !getNotes().isEmpty()) || (getExamples() != null && !getExamples().isEmpty());
 	}
 }

@@ -62,6 +62,7 @@ public class Scripting {
 
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final String PENDING_PROMISE_MESSAGE             = "Attempt to unwrap pending promise";
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
@@ -302,6 +303,22 @@ public class Scripting {
 				final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
 				result = PolyglotWrapper.unwrap(actionContext, value);
 
+			} catch (final PolyglotWrapper.ThenableFailure tfx) {
+
+				// unwrap() has no throws clause, so a promise it could not resolve -- rejected, or still
+				// pending with nothing left that could settle it -- arrives wrapped in this marker.
+				//
+				// Each of the two failures it may carry has to leave the way the synchronous path lets it
+				// leave, or the status would depend on whether the snippet was wrapped. An AssertException
+				// is not a FrameworkException, so it leaves unchecked, for Actions.execute to convert with
+				// the status $.assert was given -- which is what happens to one thrown outside a promise.
+				if (tfx.getReportedFailure() instanceof AssertException aex) {
+
+					throw aex;
+				}
+
+				throw tfx.getFrameworkException();
+
 			} finally {
 
 				context.leave();
@@ -341,8 +358,9 @@ public class Scripting {
 
 			Source source = null;
 			String code = snippet.getSource();
+			final boolean isAsyncWrapped = "js".equals(engineName) && snippet.embed();
 
-			if ("js".equals(engineName) && snippet.embed()) {
+			if (isAsyncWrapped) {
 
 				code = JSFunctionTranspiler.transpileSource(snippet);
 			}
@@ -353,9 +371,20 @@ public class Scripting {
 
 				if (source != null) {
 
-					final Value result = context.eval(source);
+					Value result = context.eval(source);
 
-					// Legacy print() support: Prefer explicitly printed output over actual result
+					// An embedded snippet is wrapped in an async arrow that JSFunctionTranspiler deliberately
+					// leaves uncalled, so the call happens here. js.interop-complete-promises makes GraalJS
+					// drain the promise job queue at this boundary and answer with the resolved value, which
+					// is what makes await work; a rejection arrives as the PolyglotException handled below.
+					if (isAsyncWrapped && result != null && result.canExecute()) {
+
+						result = executeAsyncWrapper(result, snippet);
+					}
+
+					// Legacy print() support: Prefer explicitly printed output over actual result.
+					// This has to come after the call above -- until then the snippet body has not run,
+					// so nothing has been printed yet.
 					final String outputBuffer = actionContext.getOutput();
 					if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
@@ -424,6 +453,34 @@ public class Scripting {
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
+		}
+	}
+
+	/**
+	 * Calls the async wrapper produced by {@link JSFunctionTranspiler} and answers its resolved value.
+	 *
+	 * <p>The one failure mode worth naming is a promise that never settles. GraalJS reports that as a
+	 * bare {@code TypeError: Attempt to unwrap pending promise}, which says nothing about which script
+	 * is at fault, so it is translated here. It is hard to reach on purpose -- there is no event loop
+	 * and no timers in a Structr scripting context -- but a hand-built {@code new Promise(() => {})}
+	 * gets there.</p>
+	 */
+	private static Value executeAsyncWrapper(final Value wrapper, final Snippet snippet) throws FrameworkException {
+
+		try {
+
+			return wrapper.execute();
+
+		} catch (final PolyglotException ex) {
+
+			if (!ex.isHostException() && ex.getMessage() != null && ex.getMessage().contains(PENDING_PROMISE_MESSAGE)) {
+
+				throw new FrameworkException(422, "Server-side scripting error: " + snippet.getName()
+					+ " returned a promise that never resolved. Every promise a script awaits has to be settled by the"
+					+ " time the script ends; Structr scripting has no event loop, so nothing can settle it afterwards.");
+			}
+
+			throw ex;
 		}
 	}
 

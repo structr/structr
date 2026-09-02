@@ -112,7 +112,7 @@ public abstract class Formatter {
 			// check if children want to be sorted
 			for (final Link child : links) {
 
-				sortChildren &= ConceptType.SortedChildren.equals(child.getFormat());
+				sortChildren &= ConceptType.SortedChildren.equals(child.getFormat()) || ConceptType.TableWithDetails.equals(child.getFormat()) || ConceptType.Table.equals(child.getFormat());
 			}
 
 			if (sortChildren) {

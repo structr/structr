@@ -62,6 +62,52 @@ public class ContextStore {
 		this.amc          = other.amc;
 	}
 
+	/**
+	 * A copy that a worker thread may read while the calling thread keeps mutating this one.
+	 *
+	 * Every mutable collection is copied at the moment of the call, so what the worker sees is the store
+	 * as it was when the call was made -- the same rule that already governs the call's arguments. A
+	 * write by the worker lands in the copy and is discarded, which is what "side-effect free" means for
+	 * a function allowed to run off the calling thread (see {@code Function#isAsyncCapable}).
+	 *
+	 * This exists because {@link #getHeaders()} hands out the live map, and both
+	 * {@code HttpOptions.mergeHeaders} and {@code UiFunction.getStreamFromUrl} iterate it -- a worker
+	 * doing that while a script calls {@code $.addHeader()} is a ConcurrentModificationException that
+	 * ordinary user code can reach.
+	 *
+	 * Deliberately not the copy constructor above, which shares its map instances on purpose:
+	 * {@code ScheduledJob} depends on that sharing and must not be given these semantics.
+	 *
+	 * The AdvancedMailContainer is shared rather than copied, because neither is right for it -- copying
+	 * would silently drop mail the worker added, and dropping it would silently give the worker a second
+	 * container. A function that may run on a worker must not touch it at all.
+	 *
+	 * The maps stay HashMaps rather than becoming concurrent ones: requestStore legitimately holds null
+	 * values, which ConcurrentHashMap forbids, and a concurrent map would only trade the exception for
+	 * an outbound request whose headers depend on thread timing.
+	 */
+	public ContextStore snapshot() {
+
+		final ContextStore copy = new ContextStore();
+
+		copy.headers               = new HashMap<>(this.headers);
+		copy.constants             = new HashMap<>(this.constants);
+		copy.requestStore          = new HashMap<>(this.requestStore);
+		copy.tmpParameters         = new HashMap<>(this.tmpParameters);
+		copy.timerStore            = new HashMap<>(this.timerStore);
+		copy.timerElapsedStore     = new HashMap<>(this.timerElapsedStore);
+		copy.functionPropertyCache = new HashMap<>(this.functionPropertyCache);
+		copy.localizations         = new ArrayList<>(this.localizations);
+		copy.amc                   = this.amc;
+		copy.sortDescending        = this.sortDescending;
+		copy.sortKey               = this.sortKey;
+		copy.queryRangeStart       = this.queryRangeStart;
+		copy.queryRangeEnd         = this.queryRangeEnd;
+		copy.validateCertificates  = this.validateCertificates;
+
+		return copy;
+	}
+
 	// --- Headers ---
 	public void addHeader(final String key, final String value) {
 

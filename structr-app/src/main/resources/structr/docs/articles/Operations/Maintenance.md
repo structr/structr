@@ -144,9 +144,55 @@ The update process is straightforward:
 4. Start Structr: `systemctl start structr`
 5. Disable maintenance mode
 
+## Migrations
+
+Structr migrates schema and data at startup. What it does with the database is governed by
+`application.migration.mode`:
+
+| mode | effect |
+| --- | --- |
+| `dry-run` (default) | Every step runs, logs what it would change, and the change is rolled back. Startup then stops. |
+| `apply` | The steps migrate for real. |
+| `off` | No migrations run at all. |
+
+`dry-run` stops startup on purpose. A rolled back schema migration leaves the compiled schema in memory
+out of step with the database, so the instance must not go on to serve requests. Read the report in the
+server log, then set the mode to `apply` and start again.
+
+Each step is rolled back on its own, so a dry run never holds more in one transaction than that step
+would have committed by itself.
+
+`off` starts the instance against the database as it is. That is only useful when a migration is itself
+the problem, because the application may not work correctly against unmigrated data.
+
+Two of the steps only ever read and report, so they run in every mode: the check for notion properties
+that need attention, and the report on calls to the HTTP functions that still use the pre-7.0 signature.
+
+### Running a Migration Without Restarting
+
+The `migrate` maintenance command runs the same steps on a running instance, with the mode as a
+parameter rather than from the configuration:
+
+```
+POST /structr/rest/maintenance/migrate
+{ "mode": "dry-run" }
+```
+
+```
+POST /structr/rest/maintenance/migrate
+{ "mode": "apply" }
+```
+
+`mode` defaults to `dry-run`. Unlike at startup, a dry run here does not stop anything: the instance is
+already running, and the rollback leaves the database as it was. The results go to the server log.
+
+On a cluster the migrations run on the coordinator only, so the command does nothing on other members.
+
 ### Minor Version Updates
 
-Minor versions maintain backward compatibility. Schema and data migrations happen automatically when Structr starts. Monitor the server log during startup to verify the migration completed successfully.
+Minor versions maintain backward compatibility. Schema and data migrations run when Structr starts,
+subject to `application.migration.mode` above. Monitor the server log during startup to verify the
+migration completed successfully.
 
 ### Major Version Updates
 

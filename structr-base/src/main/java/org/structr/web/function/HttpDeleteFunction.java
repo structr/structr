@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
@@ -47,41 +48,39 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+			// only the url is mandatory: the body and the content type are placeholders a caller passes
+			// as null to reach the options, so they must be allowed to be null
+			assertArrayHasMinLengthAndMaxLength(sources, 1, 4);
+
+			if (sources[0] == null) {
+
+				throw new ArgumentTypeException("DELETE(): the url must not be null.");
+			}
 
 			final String uri = sources[0].toString();
-			String contentType = "application/json";
 
-			// override default content type
-			if (sources.length >= 2 && sources[1] != null) {
+			// The signature gained a body, so an options object in the position it used to occupy would
+			// now be sent as one. Refuse it by name rather than making that request.
+			if (sources.length >= 2 && sources[1] instanceof Map) {
 
-				contentType = sources[1].toString();
+				throw new ArgumentTypeException("DELETE(): the options object moved. The signature is DELETE(url [, body [, contentType [, options ]]]) now, "
+					+ "so pass null as the body when there is none: DELETE(url, null, null, { ... }).");
 			}
 
-			final Map<String, Object> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders(), ctx.isValidateCertificates());
-			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? responseData.get(HttpHelper.FIELD_BODY).toString() : null;
-			final GraphObjectMap response = new GraphObjectMap();
+			final Object body         = (sources.length >= 2 && sources[1] != null) && !HttpOptions.isOptionsAt(sources, 1) ? HttpBody.of(sources[1]) : null;
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : null;
+			final HttpOptions options = HttpOptions.fromAnyOf("DELETE", sources, 3, 1, 2).accepting("DELETE", HttpOptions.PARSE_RESPONSE);
 
-			if ("application/json".equals(contentType)) {
+			HttpBody.checkRepeatable("DELETE", body, options);
 
-				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
-			} else {
+			final Map<String, Object> responseData = HttpHelper.delete(uri, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
+				null, null, null, null, headers, validateCertificates, options.asRequestConfig(),
+				body, contentType, HttpOptions.charsetOf(contentType, "utf-8"));
 
-				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
-			}
-
-			// Set status and headers
-			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
-			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
-
-			if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
-
-				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
-			}
-
-			return response;
+			return buildResponse(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -92,23 +91,36 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url [, contentType]");
+		return Signature.forAllScriptingLanguages("url [, body [, contentType [, options ]]]");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(Parameter.mandatory("url", "URL to connect to"), Parameter.optional("contentType", "content type"));
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("body", "request body; HTTP allows one on DELETE and some APIs require it"),
+			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON")
+		);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}"),
-			Usage.javaScript("Usage: ${{ $.DELETE(URL[, contentType])}}. Example: ${{ $.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}")
+			Usage.structrScript("Usage: ${DELETE(url [, body [, contentType [, options ]]])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', { parseResponse: true })}"),
+			Usage.javaScript("Usage: ${{ $.DELETE(url [, body [, contentType [, options ]]]) }}. Example: ${{ $.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', { parseResponse: true }) }}")
 		);
 	}
 
@@ -144,6 +156,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.DELETE.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.DELETE.async(url)).catch(...)` to chain, and note that `Promise.race()` does not report the fastest. Only JavaScript has it - StructrScript always calls `DELETE()` synchronously.",
 			"The `DELETE()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);

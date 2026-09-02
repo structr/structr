@@ -19,10 +19,13 @@
 package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.JsonException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -38,11 +41,12 @@ import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public abstract class PolyglotWrapper {
+
+	private static final Logger logger = LoggerFactory.getLogger(PolyglotWrapper.class);
 
 	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
 	public static Object wrap(final ActionContext actionContext, final Object obj) {
@@ -278,6 +282,16 @@ public abstract class PolyglotWrapper {
 						return ((PolyglotProxyMap) proxy).getOriginalObject();
 					}
 
+					// A host-side thenable, which today means the pending result of an async function call
+					// that was returned without being awaited. It has to be settled here: handing it back raw
+					// gives the caller an opaque object, and nothing would ever resolve it afterwards. The
+					// check is on then() being *invokable*, so a response that merely has a "then" key is
+					// unaffected -- a value in a map is never executable.
+					if (value.canInvokeMember("then")) {
+
+						return unwrapThenable(actionContext, value);
+					}
+
 					return proxy;
 				}
 
@@ -301,12 +315,28 @@ public abstract class PolyglotWrapper {
 					return convertValueToSet(actionContext, value);
 				}
 
-				if (value.hasMembers() && value.getMetaObject() != null && "promise".equals(value.getMetaObject().getMetaSimpleName().toLowerCase())) {
+				// A thenable -- a promise, or anything shaped like one. An embedded script never gets here,
+				// because its wrapper is resolved at the call boundary in Scripting; this is the path for a
+				// non-embedded script whose completion value happens to be a promise.
+				if (value.hasMembers() && value.canInvokeMember("then")) {
 
-					PromiseConsumer consumer = new PromiseConsumer();
-					value.invokeMember("then", consumer);
+					return unwrapThenable(actionContext, value);
+				}
 
-					return consumer.getResult();
+				// A guest error -- new Error(...), a TypeError, or anything extending Error. It has members but
+				// no meta name that matches the object conversion above, so without this it reaches the
+				// fall-through below and becomes null: a promise rejected with one was reported as "rejected
+				// with no reason given", discarding the only thing the author could act on.
+				//
+				// Answered as its own string ("Error: nope", "TypeError: bad type", "MyErr: custom"), which is
+				// what a script author writes and reads. isException() is false for a plain object, so
+				// Promise.reject({ code: 5 }) still converts to a map as before.
+				//
+				// Deliberately placed last, after every conversion that already works: the only values whose
+				// treatment changes are the ones that were being silently dropped.
+				if (value.isException()) {
+
+					return value.toString();
 				}
 
 				if (value.isNull()) {
@@ -345,14 +375,18 @@ public abstract class PolyglotWrapper {
 				return pm.getOriginalObject();
 			}
 
-			if (obj != null) {
-			}
-
 			return obj;
+
+		} catch (final ThenableFailure tfx) {
+
+			// deliberately not swallowed like everything else below: it is the script's own failure,
+			// not a failure to unwrap. The finally still runs and restores the level.
+			throw tfx;
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.error("Unable to unwrap value of type {} coming out of the scripting engine.",
+				obj != null ? obj.getClass().getName() : "null", t);
 
 		} finally {
 
@@ -609,20 +643,128 @@ public abstract class PolyglotWrapper {
 		}
 	}
 
-	public static class PromiseConsumer implements Consumer<Object> {
+	/**
+	 * Resolves a thenable that has reached the host and answers its value.
+	 *
+	 * <p>Registering the reactions is itself an interop call, so GraalJS drains the promise job queue
+	 * when it returns and both callbacks have already run by then -- for a promise that is settled,
+	 * which is the case for anything a finished script hands back. A promise still pending at that
+	 * point cannot be settled by anyone, because Structr scripting has no event loop, and is reported
+	 * rather than answered with null.</p>
+	 *
+	 * <p>The value is unwrapped inside the callback, while the context is still open. The previous
+	 * implementation kept the raw guest value and unwrapped it after the caller had already closed the
+	 * context, so the unwrap threw and every async script quietly answered null.</p>
+	 */
+	private static Object unwrapThenable(final ActionContext actionContext, final Value thenable) {
 
-		private Object result;
+		final Object[] outcome  = new Object[] { null, null };
+		final boolean[] settled = new boolean[] { false, false };
 
-		@HostAccess.Export
-		@Override
-		public void accept(Object o) {
+		final ProxyExecutable onFulfilled = args -> {
+			settled[0] = true;
+			outcome[0] = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+			return null;
+		};
 
-			result = o;
+		final ProxyExecutable onRejected = args -> {
+			settled[1] = true;
+			outcome[1] = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+			return null;
+		};
+
+		thenable.invokeMember("then", onFulfilled, onRejected);
+
+		if (settled[1]) {
+
+			Object reason = outcome[1];
+
+			// A rejection that carries the failure inside a RuntimeException is the shape the synchronous
+			// call path throws, so it is the shape an asynchronous one has to throw for the two to be
+			// indistinguishable. Unwrap one level, or the status-carrying branches below are missed and the
+			// script is told its promise "rejected with java.lang.RuntimeException: ...".
+			//
+			// The test is JsonException rather than FrameworkException so that a wrapper is never mistaken
+			// for the thing it wraps: anything already carrying a status is left alone, anything merely
+			// holding one is opened.
+			if (reason instanceof Throwable t && !(t instanceof JsonException) && t.getCause() instanceof JsonException) {
+
+				reason = t.getCause();
+			}
+
+			// The two exceptions that carry a status the script author chose are exactly the two
+			// implementors of JsonException, which exists for this and says so: "Common base class for
+			// FrameworkException and AssertException to be able to handle them with the same code."
+			//
+			// Matching only FrameworkException sent every failing $.assert in an unwrapped snippet's promise
+			// to the generic 422 below, stringifying the exception into the message and discarding the code.
+			// Whether Structr wraps a snippet in the async arrow is a choice it makes for the author, so a
+			// status must not depend on it.
+			if (reason instanceof FrameworkException fex) {
+
+				throw new ThenableFailure(fex);
+			}
+
+			if (reason instanceof AssertException aex) {
+
+				throw new ThenableFailure(aex);
+			}
+
+			throw new ThenableFailure(new FrameworkException(422, "Server-side scripting error: promise rejected with "
+				+ (reason != null ? reason.toString() : "no reason given")));
 		}
 
-		public Object getResult() {
+		if (!settled[0]) {
 
-			return result;
+			throw new ThenableFailure(new FrameworkException(422, "Server-side scripting error: script returned a"
+				+ " promise that never resolved. Structr scripting has no event loop, so nothing can settle it after"
+				+ " the script ends."));
+		}
+
+		return outcome[0];
+	}
+
+	/**
+	 * Carries a script-level failure out of {@link #unwrap}, which has no {@code throws} clause and
+	 * around a hundred call sites. Its cause is always the {@link FrameworkException} to report;
+	 * {@code Scripting.evaluateScript} unwraps it again.
+	 *
+	 * <p>A distinct type rather than a plain {@code RuntimeException}, so that unwrap keeps swallowing
+	 * everything else exactly as it did -- this is the one thing it must not swallow.</p>
+	 */
+	public static class ThenableFailure extends RuntimeException {
+
+		public ThenableFailure(final FrameworkException cause) {
+
+			super(cause.getMessage(), cause);
+		}
+
+		/**
+		 * An {@link AssertException} carries its own status without being a {@link FrameworkException} --
+		 * the two share {@link JsonException} and nothing else -- so it is carried as itself rather than
+		 * repackaged, which would replace the author's status code with a generic one.
+		 */
+		public ThenableFailure(final AssertException cause) {
+
+			super(cause.getMessage(), cause);
+		}
+
+		/**
+		 * The failure to report, always one of the two {@link JsonException} implementors. Test it before
+		 * calling {@link #getFrameworkException()}, which only covers one of them.
+		 */
+		public Throwable getReportedFailure() {
+
+			return getCause();
+		}
+
+		/**
+		 * @return the carried failure as a {@link FrameworkException}; only valid once
+		 *         {@link #getReportedFailure()} has been shown not to be an {@link AssertException}.
+		 */
+		public FrameworkException getFrameworkException() {
+
+			return (FrameworkException) getCause();
 		}
 	}
 }
