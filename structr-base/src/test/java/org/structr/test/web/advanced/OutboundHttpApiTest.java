@@ -226,7 +226,7 @@ public class OutboundHttpApiTest extends StructrTest {
 
 			final ActionContext ctx = new ActionContext(securityContext);
 
-			// One shape for both: binaryResponse on GET and binaryBody on POST describe the same thing and
+			// One shape and one name for both verbs: the option describes the response either way, and it
 			// used to hand back a stream and a byte[] respectively.
 			final Object fromGet = evaluate(ctx, "${GET('http://localhost:" + port + "/', 'application/octet-stream', "
 				+ "{ binaryResponse: true, headers: { 'X-Marker': 'get' } })}");
@@ -235,11 +235,11 @@ public class OutboundHttpApiTest extends StructrTest {
 			assertNotNull("GET with binaryResponse must return something", fromGet);
 
 			final Object fromPost = evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/octet-stream', "
-				+ "{ binaryBody: true, headers: { 'X-Marker': 'post' } })}");
+				+ "{ binaryResponse: true, headers: { 'X-Marker': 'post' } })}");
 
 			assertEquals("POST's binary path must pass the options headers", "post", lastHeaders.get("x-marker"));
 			assertEquals("POST's binary path must send the content type it was given", "application/octet-stream", mimeOf(lastHeaders.get("content-type")));
-			assertNotNull("POST with binaryBody must return something", fromPost);
+			assertNotNull("POST with binaryResponse must return something", fromPost);
 		});
 	}
 
@@ -481,14 +481,14 @@ public class OutboundHttpApiTest extends StructrTest {
 			final ActionContext ctx = new ActionContext(securityContext);
 
 			// request side: POST sends the body as a binary stream
-			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/octet-stream', { binaryBody: true })}");
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/octet-stream', { binaryResponse: true })}");
 			assertEquals("POST", lastMethod);
 
 			// response side belongs to GET, and the request-side name must not be accepted there
 			lastMethod = null;
 
 			assertNull(evaluate(ctx, "${GET('http://localhost:" + port + "/', 'text/plain', { binaryBody: true })}"));
-			assertNull("binaryBody is not a GET option", lastMethod);
+			assertNull("binaryBody no longer exists and must be rejected", lastMethod);
 		});
 	}
 
