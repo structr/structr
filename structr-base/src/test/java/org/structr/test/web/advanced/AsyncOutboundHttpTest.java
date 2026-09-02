@@ -64,6 +64,14 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 	private final Map<String, Map<String, String>> headersByPath = new ConcurrentHashMap<>();
 
+	/**
+	 * The ceiling for a race that must not wait for the call it beat, in milliseconds.
+	 *
+	 * Half the loser's delay, and roughly fifty times what the winning path costs once warm, so it
+	 * separates the two outcomes rather than measuring machine speed.
+	 */
+	private static final long BEAT_CALL_BUDGET_MILLIS = 1500;
+
 	// ----- helpers -----
 
 	private Object wrapped(final String source) throws FrameworkException {
@@ -582,21 +590,29 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	@Test
 	public void testARaceReturnsWithoutWaitingForTheCallsItBeat() {
 
-		// The observable check for B-73, and the only one there can be: "does not wait for the loser" is a
-		// statement about elapsed time, so this is the one timing assertion in the class. The margin is
-		// deliberately enormous -- a two second loser against a one second budget -- because what is being
-		// distinguished is "joins the loser" from "does not", and those differ by the whole two seconds.
+		// "Does not wait for the loser" is a statement about elapsed time, so this is the one timing
+		// assertion in the class. The two outcomes it separates differ by the loser's full delay: a race
+		// that joins its loser cannot finish in under three seconds, and one that does not answers in
+		// tens of milliseconds once the engine is warm. The budget sits between them with a factor of two
+		// either way.
+		//
 		// A race that answers correctly but still pays for its loser passes
 		// testPromiseRaceAnswersTheFastestAndNotTheFirstArgument and fails only here.
 		//
-		// Both dialects, because the point of the design is that they settle through one path: the wrapper
-		// is called through a plain arrow precisely so its promise reaches the host pending, exactly as an
-		// unwrapped snippet's completion value does.
-		withPacedServer(2000, port -> {
+		// Both dialects, because they settle through one path: the wrapper is called through a plain arrow
+		// so its promise reaches the host pending, exactly as an unwrapped snippet's completion value does.
+		withPacedServer(3000, port -> {
 
 			final String body = "const slow = $.GET.async('http://localhost:" + port + "/slow');"
 				+ " const fast = $.GET.async('http://localhost:" + port + "/fast');"
 				+ " const r = await Promise.race([slow, fast]);";
+
+			// Warm the scripting engine and the outbound HTTP stack before timing anything. Cold, the
+			// first async call in a JVM costs on the order of a second all by itself -- GraalJS warmup,
+			// the HTTP client's class loading and its first connection -- which has nothing to do with
+			// whether the race waits for its loser. Measured against a cold engine, an earlier version of
+			// this test took 1076ms to answer in 13ms of actual work.
+			wrapped("const r = await $.GET.async('http://localhost:" + port + "/warmup'); return r.status;");
 
 			final long startedWrapped = System.currentTimeMillis();
 			final Object fromWrapped  = wrapped(body + " return r.body;");
@@ -604,7 +620,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			assertEquals("the race must still answer the call that finished first", "/fast", fromWrapped);
 			assertTrue("a wrapped race must not wait for the call it beat, but took " + tookWrapped + "ms",
-				tookWrapped < 1000);
+				tookWrapped < BEAT_CALL_BUDGET_MILLIS);
 
 			final long startedUnwrapped = System.currentTimeMillis();
 			final Object fromUnwrapped  = unwrapped("(async () => {" + body + " return r.body; })()");
@@ -612,7 +628,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			assertEquals("an unwrapped race must answer the same", "/fast", fromUnwrapped);
 			assertTrue("an unwrapped race must not wait for the call it beat, but took " + tookUnwrapped + "ms",
-				tookUnwrapped < 1000);
+				tookUnwrapped < BEAT_CALL_BUDGET_MILLIS);
 		});
 	}
 
