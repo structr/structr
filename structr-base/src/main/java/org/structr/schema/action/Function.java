@@ -421,7 +421,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		if (array.length < minimum) {
 
-			throw ArgumentTypeException.wrongTypes(array, minimum, types);
+			throw ArgumentTypeException.wrongTypes(getName(), array, minimum, types);
 		}
 
 		for (int i=0; (i<array.length && i < types.length); i++) {
@@ -437,25 +437,25 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 						if (!g.is(type.getSimpleName())) {
 
-							throw ArgumentTypeException.wrongTypes(array, minimum, types);
+							throw ArgumentTypeException.wrongTypes(getName(), array, minimum, types);
 						}
 
 					} else {
 
-						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+						throw ArgumentTypeException.wrongTypes(getName(), array, minimum, types);
 					}
 
 				} else {
 
 					if (!type.isAssignableFrom(element.getClass())) {
 
-						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+						throw ArgumentTypeException.wrongTypes(getName(), array, minimum, types);
 					}
 				}
 
 			} else {
 
-				throw ArgumentTypeException.wrongTypes(array, minimum, types);
+				throw ArgumentTypeException.wrongTypes(getName(), array, minimum, types);
 			}
 		}
 	}
@@ -464,7 +464,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		if (array.length != length) {
 
-			throw ArgumentTypeException.wrongTypes(array, length, types);
+			throw ArgumentTypeException.wrongTypes(getName(), array, length, types);
 		}
 
 		for (int i=0; (i<array.length && i < types.length); i++) {
@@ -480,25 +480,25 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 						if (!g.is(type.getSimpleName())) {
 
-							throw ArgumentTypeException.wrongTypes(array, length, types);
+							throw ArgumentTypeException.wrongTypes(getName(), array, length, types);
 						}
 
 					} else {
 
-						throw ArgumentTypeException.wrongTypes(array, length, types);
+						throw ArgumentTypeException.wrongTypes(getName(), array, length, types);
 					}
 
 				} else {
 
 					if (!type.isAssignableFrom(element.getClass())) {
 
-						throw ArgumentTypeException.wrongTypes(array, length, types);
+						throw ArgumentTypeException.wrongTypes(getName(), array, length, types);
 					}
 				}
 
 			} else {
 
-				throw ArgumentTypeException.wrongTypes(array, length, types);
+				throw ArgumentTypeException.wrongTypes(getName(), array, length, types);
 			}
 		}
 	}
