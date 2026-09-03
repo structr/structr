@@ -57,12 +57,7 @@ public class GetLabelsFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		assertArrayHasLengthAndAllElementsNotNull(sources, 1);
-
-		if (!(sources[0] instanceof NodeInterface)) {
-
-			logParameterError(caller, sources, "Expected node as first argument!", ctx.isJavaScriptContext());
-		}
+		assertArrayHasLengthAndTypes(sources, 1, NodeInterface.class);
 
 		final NodeInterface node = (NodeInterface)sources[0];
 
