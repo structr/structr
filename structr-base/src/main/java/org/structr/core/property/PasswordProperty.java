@@ -22,6 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
+import org.structr.core.auth.DefaultCredentialsCheck;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
@@ -133,6 +134,11 @@ public class PasswordProperty extends StringProperty {
 
 			checkPasswordPolicy(obj, clearTextPassword);
 		}
+
+		// Here rather than in the trait's SetProperty operation: a map-based write, which is what REST and
+		// the websocket use, goes straight to the PropertyKey through setPropertiesInternal and never
+		// reaches that operation at all. This is where every path that changes a password converges.
+		DefaultCredentialsCheck.scheduleRecheck();
 
 		return returnValue;
 	}

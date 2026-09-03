@@ -24,6 +24,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.operations.FrameworkMethod;
 
+/**
+ * Overrides what happens when several properties are written at once, as REST and the websocket do.
+ *
+ * The default implementation writes each entry through PropertyKey.setProperty() directly, so it does
+ * NOT go through {@link SetProperty}. The two are separate paths to the same end, and code that must see
+ * every write of a property belongs on the PropertyKey rather than on either of them.
+ */
 public abstract class SetProperties extends FrameworkMethod<SetProperties> {
 
 	public abstract void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;

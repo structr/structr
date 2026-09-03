@@ -223,7 +223,7 @@ public class TransactionCommand {
 
 					// release semaphores as the transaction is now finished
 					semaphore.release(synchronizationKeys);	// careful: this can be null
-					cmd.postProcessQueue.applyProcessQueue();
+					cmd.postProcessQueue.applyProcessQueue(committed);
 
 					// discards captured outbound storage-sync events on rollback,
 					// enqueues them for dispatch on commit
@@ -641,6 +641,27 @@ public class TransactionCommand {
 		if (transactionCommand != null) {
 
 			transactionCommand.postProcessQueue.queueProcess(runnable);
+		}
+	}
+
+	/**
+	 * Runs the given procedure after the outermost transaction has committed, and not at all if it did
+	 * not.
+	 *
+	 * The difference to queuePostProcessProcedure matters for anything that writes down what a
+	 * transaction did: a nested tx() joins the enclosing one instead of standing alone, so work done
+	 * from inside is rolled back with it. Deferring past the commit is the only way to make a write
+	 * conditional on the caller's own work having stuck.
+	 *
+	 * The procedure runs after the transaction is closed and the thread-local is cleared, so it must
+	 * open its own transaction, and it must resolve nodes by uuid rather than capture them.
+	 */
+	public static void queuePostCommitProcedure(final Runnable runnable) {
+
+		final TransactionCommand transactionCommand = commands.get();
+		if (transactionCommand != null) {
+
+			transactionCommand.postProcessQueue.queueCommitProcess(runnable);
 		}
 	}
 
