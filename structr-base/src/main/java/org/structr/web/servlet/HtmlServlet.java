@@ -560,7 +560,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							try {
 
-								writeOutputStream(response, buffer);
+								writeOutputStream(response, buffer, renderContext);
 
 							} catch (IOException ioex) {
 
@@ -1002,6 +1002,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 			}
 		});
+	}
+
+	/**
+	 * Overload that also hands a subclass the RenderContext of the request, which the two argument form
+	 * cannot reach. A subclass that has to know who the page was rendered as, as PdfServlet does when it
+	 * resolves the document's images and fonts, overrides this one. Delegates by default, so an existing
+	 * override of the two argument form keeps being called.
+	 */
+	protected void writeOutputStream(final HttpServletResponse response, final StringRenderBuffer buffer, final RenderContext renderContext) throws IOException {
+
+		writeOutputStream(response, buffer);
 	}
 
 	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
