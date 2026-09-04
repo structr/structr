@@ -112,6 +112,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 	 * running past shutdown does not resurrect the whole service layer (and, for the embedded
 	 * database, fail fatally with "Database ... does not exist" and abort the JVM via System.exit).
 	 */
+	// startup refused after a dry run; the Debian unit's RestartPreventExitStatus matches this number
+	public static final int EXIT_MIGRATION_DRY_RUN = 4;
+
 	public static Services peekInstance() {
 
 		return singletonInstance;
@@ -387,17 +390,13 @@ public class Services implements StructrServices, BroadcastReceiver {
 				System.exit(3);
 			}
 
-			// Only when the dry run actually rolled something back: that is what leaves the compiled schema
-			// in memory out of step with the database, and only then must the instance not go on to serve
-			// anything. A fresh or already migrated instance has nothing pending and starts normally, which
-			// it could not do while this exit was unconditional. A completed diagnostic run is not a
-			// failure, hence the ordinary exit code.
+			// a rolled back schema is out of step with the database, so refuse to serve; not exit 0, which every supervisor reads as success and restarts
 			if (MigrationService.isDryRun() && migrationPending) {
 
-				logger.info("Migration dry run finished, nothing was changed. Set {} to 'apply' to migrate for real.",
+				logger.error("Migration dry run finished, nothing was changed, and the instance will not start. Set {} to 'apply' to migrate for real.",
 					Settings.MigrationMode.getKey());
 
-				System.exit(0);
+				System.exit(EXIT_MIGRATION_DRY_RUN);
 			}
 		}
 
