@@ -292,7 +292,7 @@ export class Frontend {
 				// all other node types
 				return element.value;
 
-			} else if (element.length) {
+			} else if (element.length && element.values && typeof element.values === 'function') {
 
 				// radionodelist?
 				return element.values().filter(v => v.checked).map(v => v.value).toArray();
