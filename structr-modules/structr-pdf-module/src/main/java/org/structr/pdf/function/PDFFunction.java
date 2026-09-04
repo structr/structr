@@ -18,6 +18,8 @@
  */
 package org.structr.pdf.function;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -34,9 +36,12 @@ import org.structr.schema.action.Function;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Page;
+import org.structr.websocket.DetachedHttpServletRequest;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PDFFunction extends Function<Object, Object> {
 
@@ -49,7 +54,7 @@ public class PDFFunction extends Function<Object, Object> {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("pageName [, fileName ]");
+		return Signature.forAllScriptingLanguages("pagePath [, fileName [, parameters ]]");
 	}
 
 	@Override
@@ -64,10 +69,23 @@ public class PDFFunction extends Function<Object, Object> {
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
-		final String pageName                 = sources[0].toString();
+		final String pagePath                 = sources[0].toString();
 
-		final String fileName = fileNameFrom(sources, pageName);
+		if (pagePath.contains("?")) {
 
+			throw new FrameworkException(422, "pdf(): the page path carries a query string. Request parameters are passed as the third parameter instead, for example pdf('invoice/<uuid>', 'invoice.pdf', { lang: 'de' }).");
+		}
+
+		final String[] parts = StringUtils.split(pagePath, "/");
+
+		if (parts.length == 0 || parts.length > 2) {
+
+			throw new FrameworkException(422, "pdf(): the page path is a page name, optionally followed by the id of the object the page renders, for example 'invoice/<uuid>'.");
+		}
+
+		final String pageName    = parts[0];
+		final String detailsId   = parts.length == 2 ? parts[1] : null;
+		final String fileName    = fileNameFrom(sources, pageName);
 		final NodeInterface node = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).name(pageName).getFirst();
 
 		if (node == null) {
@@ -75,22 +93,103 @@ public class PDFFunction extends Function<Object, Object> {
 			throw new FrameworkException(422, "pdf(): no page named '" + pageName + "' exists, or it is not visible to the current user.");
 		}
 
-		final Page page = node.as(Page.class);
+		final Page page                   = node.as(Page.class);
+		final NodeInterface detailsObject = detailsId != null ? resolveDetailsObject(securityContext, detailsId) : null;
 
-		// the page engine runs here, in this thread and this transaction, so no request is made back to
-		// this server and the current user's permissions apply to the page and to everything it reads
-		final RenderContext renderContext = new RenderContext(securityContext, securityContext.getRequest(), null, RenderContext.EditMode.NONE);
-		final String html                 = PdfRenderer.renderToHtml(page, renderContext);
-		final byte[] pdf                  = PdfRenderer.toPdf(html, securityContext, pageName);
+		// ${request.x} resolves through the SecurityContext, not through the RenderContext, so the page is
+		// given a request of its own carrying exactly the parameters this call passed. The caller's request
+		// is put back afterwards; without one, a page rendered from a cron job would see no parameters.
+		final HttpServletRequest callersRequest = securityContext.getRequest();
+		final HttpServletRequest pageRequest    = requestFor(callersRequest, parametersFrom(sources));
+
+		securityContext.setRequest(pageRequest);
 
 		try {
+
+			// the page engine runs here, in this thread and this transaction, so no request is made back to
+			// this server and the current user's permissions apply to the page and to everything it reads
+			final RenderContext renderContext = new RenderContext(securityContext, pageRequest, null, RenderContext.EditMode.NONE);
+
+			if (detailsObject != null) {
+
+				renderContext.setDetailsDataObject(detailsObject);
+			}
+
+			final String html = PdfRenderer.renderToHtml(page, renderContext);
+			final byte[] pdf  = PdfRenderer.toPdf(html, securityContext, pageName);
 
 			return FileHelper.createFile(securityContext, pdf, "application/pdf", StructrTraits.FILE, fileName, true);
 
 		} catch (final IOException ioex) {
 
 			throw new FrameworkException(500, "pdf(): could not store the generated document: " + ioex.getMessage());
+
+		} finally {
+
+			securityContext.setRequest(callersRequest);
 		}
+	}
+
+	/**
+	 * The object the page renders as {@code current}, by id, falling back to a name so that a readable
+	 * path keeps working. Not found is an error: a document silently missing the record it is about is
+	 * worse than one that was never produced.
+	 */
+	private NodeInterface resolveDetailsObject(final SecurityContext securityContext, final String detailsId) throws FrameworkException {
+
+		final NodeInterface byId = StructrApp.getInstance(securityContext).getNodeById(detailsId);
+
+		if (byId != null) {
+
+			return byId;
+		}
+
+		final NodeInterface byName = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.NODE_INTERFACE).name(detailsId).getFirst();
+
+		if (byName != null) {
+
+			return byName;
+		}
+
+		throw new FrameworkException(422, "pdf(): no object with id or name '" + detailsId + "' exists, or it is not visible to the current user.");
+	}
+
+	private Map<String, String[]> parametersFrom(final Object[] sources) throws FrameworkException {
+
+		final Map<String, String[]> parameters = new LinkedHashMap<>();
+
+		if (sources.length < 3 || sources[2] == null) {
+
+			return parameters;
+		}
+
+		if (!(sources[2] instanceof Map)) {
+
+			throw new FrameworkException(422, "pdf(): the third parameter is an object of request parameters, for example { lang: 'de', draft: true }.");
+		}
+
+		for (final Map.Entry<?, ?> entry : ((Map<?, ?>) sources[2]).entrySet()) {
+
+			if (entry.getKey() != null && entry.getValue() != null) {
+
+				parameters.put(entry.getKey().toString(), new String[] { entry.getValue().toString() });
+			}
+		}
+
+		return parameters;
+	}
+
+	private HttpServletRequest requestFor(final HttpServletRequest callersRequest, final Map<String, String[]> parameters) {
+
+		// keeps the caller's headers, cookies and locale, which a page may read, but never its parameters
+		final DetachedHttpServletRequest request = callersRequest != null
+			? new DetachedHttpServletRequest(callersRequest)
+			: new DetachedHttpServletRequest();
+
+		request.getParameterMap().clear();
+		request.getParameterMap().putAll(parameters);
+
+		return request;
 	}
 
 	/**
@@ -100,9 +199,9 @@ public class PDFFunction extends Function<Object, Object> {
 	 */
 	private String fileNameFrom(final Object[] sources, final String pageName) throws FrameworkException {
 
-		if (sources.length > 2) {
+		if (sources.length > 3) {
 
-			throw new FrameworkException(422, "pdf(): takes a page name and an optional file name. The wkhtmltopdf parameters of earlier versions no longer exist, see the 7.x migration notes.");
+			throw new FrameworkException(422, "pdf(): takes a page path, an optional file name and an optional object of request parameters. The wkhtmltopdf parameters of earlier versions no longer exist, see the 7.x migration notes.");
 		}
 
 		if (sources.length == 2 && sources[1] != null) {
@@ -124,8 +223,8 @@ public class PDFFunction extends Function<Object, Object> {
 	public List<Usage> getUsages() {
 
 		return List.of(
-				Usage.structrScript("Usage: ${ pdf(pageName [, fileName ]) }"),
-				Usage.javaScript("Usage: ${{ $.pdf(pageName [, fileName ]); }}")
+				Usage.structrScript("Usage: ${ pdf(pagePath [, fileName [, parameters ]]) }"),
+				Usage.javaScript("Usage: ${{ $.pdf(pagePath [, fileName [, parameters ]]); }}")
 		);
 	}
 
@@ -146,14 +245,15 @@ public class PDFFunction extends Function<Object, Object> {
 
 		return List.of(
 				Example.structrScript("${ pdf('statement') }", "Renders the page 'statement' and returns a File named statement.pdf"),
-				Example.structrScript("${ pdf('statement', concat('statement-', me.name, '.pdf')) }", "Renders the page and names the file after the current user"),
+				Example.structrScript("${ pdf(concat('invoice/', current.id)) }", "Renders the page 'invoice' for a specific object, which the page reads as `current`"),
 				Example.javaScript("""
 						${{
-						    // render a page to PDF and offer it to the user as a download
-						    let file = $.pdf('invoice', 'invoice-2026-0042.pdf');
+						    // the page renders one order, in German, and the result is stored as a File
+						    let order = $.first($.find('Order', { orderNumber: '2026-0042' }));
 
-						    $.setResponseHeader('Content-Disposition', 'attachment; filename="' + file.name + '"');
+						    let file = $.pdf('invoice/' + order.id, 'invoice-2026-0042.pdf', { lang: 'de' });
 
+						    // inside the page, current is the order and ${request.lang} is 'de'
 						    return file;
 						}}
 						"""));
@@ -179,6 +279,7 @@ public class PDFFunction extends Function<Object, Object> {
 				#docheader { position: running(docheader); }
 				```
 				""",
+				"The page is rendered with a request of its own, carrying exactly the parameters passed to the function and no others, so the same call produces the same document from a page, a cron job or `doPrivileged`. The caller's headers, cookies and locale are still visible to the page.",
 				"Images, stylesheets and fonts are read from the Structr filesystem by path, under the permissions of the user the page is rendered as. A `@font-face` rule pointing at a font file in the filesystem is embedded in the document, which is what non Latin-1 text needs. External URLs are not loaded unless `pdf.resources.external.allowed` is enabled.");
 	}
 
@@ -186,8 +287,9 @@ public class PDFFunction extends Function<Object, Object> {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("pageName", "the name of the page to render"),
-				Parameter.optional("fileName", "the name of the generated file. Defaults to the page name with a .pdf extension")
+				Parameter.mandatory("pagePath", "the name of the page to render, optionally followed by the id of the object it renders, for example `invoice/<uuid>`. That object is available in the page as `current`"),
+				Parameter.optional("fileName", "the name of the generated file. Defaults to the page name with a .pdf extension"),
+				Parameter.optional("parameters", "an object of request parameters, readable in the page as `${request.<name>}`. The page sees these and no others")
 		);
 	}
 

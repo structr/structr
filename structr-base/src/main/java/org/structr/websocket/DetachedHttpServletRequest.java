@@ -108,6 +108,16 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	private java.security.Principal userPrincipal = null;
 	private String requestedSessionId       = null;
 
+	/**
+	 * A request that stands for no request at all: empty headers, parameters and cookies, and the default
+	 * locale. For a caller that has to hand the scripting layer a request although none exists, such as
+	 * rendering a page to PDF from a cron job, where ${request.x} would otherwise resolve against null.
+	 */
+	public DetachedHttpServletRequest() {
+
+		locales.add(Locale.getDefault());
+	}
+
 	public DetachedHttpServletRequest(final HttpServletRequest source) {
 
 		// headers (preserve order and original names; lookups are case-insensitive)

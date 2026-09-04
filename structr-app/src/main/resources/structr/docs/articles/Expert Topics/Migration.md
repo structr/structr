@@ -112,6 +112,22 @@ ${ pdf('report', 'report.pdf') }
 Passing an argument string raises an error rather than being ignored, because a silently dropped
 `--header-html` produces a document that looks right and is missing its header.
 
+**A detail object still comes from the path, but parameters are now an argument.** The old function
+built a URL, so everything travelled in one string. The page path still carries the object the page
+renders, which it reads as `current`, while request parameters are passed as an object instead of a
+query string. A query string in the path is refused rather than ignored.
+
+```
+// Old (6.x)
+${ pdf(concat('invoice/', order.id, '?lang=de')) }
+
+// New (7.x)
+${ pdf(concat('invoice/', order.id), 'invoice.pdf', { lang: 'de' }) }
+```
+
+The page reads those as `${request.lang}`, and it sees exactly the parameters passed and no others, so
+the same call produces the same document from a page, a cron job or `doPrivileged`.
+
 **Headers, footers and page numbers move into the print stylesheet.** They used to be separate Structr
 pages fetched over HTTP. They are now page level CSS, and no second page is involved:
 

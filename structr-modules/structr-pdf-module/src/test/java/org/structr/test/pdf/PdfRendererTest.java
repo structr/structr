@@ -22,7 +22,15 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
+import org.structr.web.entity.File;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.pdf.PdfRenderer;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
@@ -30,6 +38,7 @@ import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -161,6 +170,96 @@ public class PdfRendererTest extends StructrUiTest {
 
 			t.printStackTrace();
 			fail("Unexpected exception: " + t.getMessage());
+		}
+	}
+
+	/**
+	 * The page path carries the object the document is about, and the third parameter carries the request
+	 * parameters. Both used to arrive over HTTP, so both had to be rebuilt when the render moved in process.
+	 */
+	@Test
+	public void testDetailsObjectAndRequestParametersReachThePage() {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface group = app.create(StructrTraits.GROUP, "Wholesale");
+
+			final Page page           = Page.createNewPage(securityContext, "detail");
+			final DOMElement html     = page.createElement("html");
+			final DOMElement body     = page.createElement("body");
+			final DOMElement div      = page.createElement("div");
+
+			page.appendChild(html);
+			html.appendChild(body);
+			body.appendChild(div);
+			div.appendChild(page.createTextNode("OBJECT ${current.name} LANG ${request.lang}"));
+
+			tx.success();
+
+			try (final Tx tx2 = app.tx()) {
+
+				Scripting.replaceVariables(new ActionContext(securityContext), null,
+					"${{ $.pdf('detail/" + group.getUuid() + "', 'detail.pdf', { lang: 'de' }); }}");
+
+				tx2.success();
+			}
+
+			try (final Tx tx3 = app.tx()) {
+
+				final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).name("detail.pdf").getFirst();
+
+				assertNotNull("pdf() did not create a File", fileNode);
+
+				final byte[] pdf = StorageProviderFactory.getStorageProvider(fileNode.as(File.class)).getInputStream().readAllBytes();
+
+				try (final PDDocument document = Loader.loadPDF(pdf)) {
+
+					final String text = new PDFTextStripper().getText(document).replaceAll("\\s+", " ");
+
+					assertTrue("The details object did not reach the page as current: " + text, text.contains("OBJECT Wholesale"));
+					assertTrue("The request parameter did not reach the page: " + text, text.contains("LANG de"));
+				}
+
+				tx3.success();
+			}
+
+		} catch (final Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception: " + t.getMessage());
+		}
+	}
+
+	/**
+	 * A query string in the path is refused rather than ignored, because a document silently missing the
+	 * parameters it was meant to render with looks plausible and is wrong.
+	 */
+	@Test
+	public void testQueryStringInThePathIsRefused() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page.createNewPage(securityContext, "querypage");
+
+			try {
+
+				Scripting.replaceVariables(new ActionContext(securityContext), null, "${ pdf('querypage?lang=de') }");
+
+				fail("A query string in the page path should have been refused");
+
+			} catch (final FrameworkException expected) {
+
+				assertEquals(422, expected.getStatus());
+				assertTrue("The error should point at the parameters argument: " + expected.getMessage(),
+					expected.getMessage().contains("third parameter"));
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
 
