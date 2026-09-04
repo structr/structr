@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PagingHelper;
 import org.structr.core.graph.NodeInterface;
@@ -96,11 +97,12 @@ public class ListComponentsCommand extends AbstractCommand {
 					} else {
 
 						return 1;
-
 					}
-
 				}
 			});
+
+			// we use all-view to reduce linked nodes (especially children) to id/type/name
+			webSocketData.setView(PropertyView.All);
 
 			// save raw result count
 			int resultCountBeforePaging = filteredResults.size();
@@ -116,16 +118,13 @@ public class ListComponentsCommand extends AbstractCommand {
 
 			logger.warn("Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
 		}
-
 	}
 
 	@Override
 	public String getCommand() {
 
 		return "LIST_COMPONENTS";
-
 	}
 
 	// ----- private methods -----
