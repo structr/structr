@@ -506,6 +506,14 @@
 						<groupId>org.apache.pdfbox</groupId>
 						<artifactId>xmpbox</artifactId>
 					</exclusion>
+					<!-- flexmark-pdf-converter, which nothing here uses, carries openhtmltopdf 1.0.10 under
+					     the old com.openhtmltopdf groupId. The current io.github.openhtmltopdf release used
+					     by structr-pdf-module has the same package names, so shipping both puts two copies
+					     of every class in lib and lets load order decide which PDFBox generation wins. -->
+					<exclusion>
+						<groupId>com.openhtmltopdf</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
 					<exclusion>
 						<groupId>org.jetbrains</groupId>
 						<artifactId>annotations</artifactId>
