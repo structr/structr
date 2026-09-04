@@ -22,9 +22,12 @@ import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
+import org.structr.common.error.FrameworkException;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -38,28 +41,27 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources != null && sources.length >= 1 && sources.length <= 3) {
+		if (sources != null && sources.length >= 1 && sources[0] != null) {
 
 			try {
 
-				String address = sources[0].toString();
-				String username = null;
-				String password = null;
+				final String address      = sources[0].toString();
+				final HttpOptions options = HttpOptions.from("HEAD", sources, 1).accepting("HEAD");
 
-				switch (sources.length) {
+				final Map<String, Object> responseData = HttpHelper.head(address, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
+					null, null, null, null, options.mergeHeaders(ctx.getHeaders()),
+					options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()), options.asRequestConfig());
 
-					case 3: password = sources[2].toString();
-					case 2: username = sources[1].toString();
-						break;
-				}
+				// the same shape as every other verb: a HEAD has no body, but status is an int here too
+				return buildResponse(ctx, caller, responseData, false);
 
-				return headFromUrl(ctx, address, username, password);
+			} catch (IllegalArgumentException e) {
 
-			} catch (Throwable t) {
-
-				logException(caller, t, sources);
+				// only argument errors are swallowed, as in every other verb. A failed request throws a
+				// FrameworkException from HttpHelper and must reach the script rather than becoming null.
+				logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			}
 
 			return null;
@@ -73,9 +75,17 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url [, username, password]]");
+		return Signature.forAllScriptingLanguages("url [, options ]");
 	}
 
 	@Override
@@ -83,8 +93,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("username", "username for the connection"),
-			Parameter.optional("password", "password for the connection")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`")
 		);
 	}
 
@@ -92,8 +101,8 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${HEAD(url[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}"),
-			Usage.javaScript("Usage: ${{ $.HEAD(url[, username, password]])}}. Example: ${{ $.HEAD('http://structr.org', 'foo', 'bar')}}")
+			Usage.structrScript("Usage: ${HEAD(url [, options ])}. Example: ${HEAD('http://structr.org', { username: 'foo', password: 'bar' })}"),
+			Usage.javaScript("Usage: ${{ $.HEAD(url [, options ]) }}. Example: ${{ $.HEAD('http://structr.org', { username: 'foo', password: 'bar' }) }}")
 		);
 	}
 
@@ -122,6 +131,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.HEAD.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.HEAD.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `HEAD()` synchronously.",
 			"The `HEAD()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);

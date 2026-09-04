@@ -85,6 +85,7 @@ Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Serv
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Host Script Execution.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/RSS Feeds.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Spatial.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Outbound HTTP.md"
 
 
 # Security

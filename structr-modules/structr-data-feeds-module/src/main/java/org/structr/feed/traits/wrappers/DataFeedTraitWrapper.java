@@ -176,11 +176,14 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 
 				final SyndFeedInput input = new SyndFeedInput();
 				InputStream inputStream = null;
-				final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
 
-				if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
+				// getAsStream reports a failed fetch rather than answering null, and the catch below already
+				// handles a FrameworkException -- so only a genuinely body-less response reaches the guard.
+				final Map<String, Object> responseData = HttpHelper.getAsStream(remoteUrl);
 
-					inputStream =  (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+				if (responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream stream) {
+
+					inputStream = stream;
 				}
 
 				if (inputStream == null) {
@@ -188,6 +191,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 					throw new FrameworkException(422, "Could not get input stream for feed " + this.getUuid());
 				}
 
+				// closing the reader closes the stream, which is what closes the response and the client
 				try (final Reader reader = new XmlReader(inputStream)) {
 
 					final SyndFeed syndFeed = input.build(reader);

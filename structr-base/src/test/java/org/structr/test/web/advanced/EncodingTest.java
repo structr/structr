@@ -48,14 +48,13 @@ public class EncodingTest extends StructrUiTest {
 	public void testEncoding() {
 
 		final String testString = "abcdefgjihklmnopqrstuvwxyzäöüßóñABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ";
-		final int port          = 54679;
 		final SocketConfig socketConfig = SocketConfig.custom()
 			.setSoTimeout(1000)
 			.setTcpNoDelay(true)
 			.build();
 
 		final HttpServer server = ServerBootstrap.bootstrap()
-	                .setListenerPort(port)
+	                .setListenerPort(0)
 	                .setSocketConfig(socketConfig)
 			.registerHandler("*", new HttpRequestHandler() {
 
@@ -68,6 +67,10 @@ public class EncodingTest extends StructrUiTest {
 
 			}).create();
 
+		// Port 0 rather than a fixed one: the port this used to hardcode sits inside the Linux ephemeral
+		// range, so any outbound connection made elsewhere in the same run could hold it first and this
+		// server would fail to bind. The failure then arrived as a connection refused inside GET(), which
+		// reads as a defect in the code under test rather than as a busy port.
 		try {
 
 		        server.start();
@@ -75,7 +78,10 @@ public class EncodingTest extends StructrUiTest {
 		} catch (IOException ioex) {
 
 			ioex.printStackTrace();
+			fail("test server could not bind: " + ioex.getMessage());
 		}
+
+		final int port = server.getLocalPort();
 
 		try {
 

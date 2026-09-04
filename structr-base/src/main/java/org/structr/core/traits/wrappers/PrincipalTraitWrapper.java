@@ -505,6 +505,15 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	}
 
 	@Override
+	public boolean isDeviceTrustPossible() {
+
+		final boolean trustPossibleForUser   = wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.DEVICE_TRUST_POSSIBLE_PROPERTY));
+		final boolean trustPossibleForSystem = Settings.TwoFactorDeviceTrustEnabled.getValue();
+
+		return trustPossibleForSystem && trustPossibleForUser;
+	}
+
+	@Override
 	public String getDeviceTrustSecret() throws FrameworkException {
 
 		final Node dbNode = wrappedObject.getNode();

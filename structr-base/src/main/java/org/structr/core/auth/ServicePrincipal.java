@@ -845,6 +845,12 @@ public class ServicePrincipal implements Principal {
 	}
 
 	@Override
+	public boolean isDeviceTrustPossible() {
+
+		return false;
+	}
+
+	@Override
 	public String getDeviceTrustSecret() {
 
 		return null;

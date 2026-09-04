@@ -28,7 +28,9 @@ import org.structr.schema.action.ActionContext;
 import org.structr.core.function.Functions;
 import org.structr.schema.action.Function;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A built-in function as seen from JavaScript.
@@ -39,8 +41,15 @@ import java.util.Arrays;
  * wrapper, the second asks it for the member "warn" and gets a wrapper for {@code log.warn}.
  *
  * StructrScript needs none of this: its parser resolves a dotted name directly.
+ *
+ * The same member lookup is what exposes {@code async} on a function that allows it -- see
+ * {@link AsyncFunctionWrapper}. That variant lives here rather than in the function registry precisely
+ * because this wrapper is only reachable from a polyglot language, so StructrScript's own resolution
+ * cannot find it.
  */
 public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
+
+	private static final String ASYNC = "async";
 
 	private final ActionContext actionContext;
 	private final GraphObject entity;
@@ -78,21 +87,50 @@ public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 			return new FunctionWrapper(actionContext, entity, namespaced);
 		}
 
+		if (isAsyncMember(key)) {
+
+			return new AsyncFunctionWrapper(actionContext, entity, func);
+		}
+
 		return null;
 	}
 
 	@Override
 	public boolean hasMember(final String key) {
 
-		return Functions.get(func.getName() + "." + key) != null;
+		// GraalJS asks this before it reads: answering false here makes $.GET.async undefined, with no
+		// error anywhere, so this has to stay in step with getMember
+		return Functions.get(func.getName() + "." + key) != null || isAsyncMember(key);
 	}
 
 	@Override
 	public Object getMemberKeys() {
 
-		final String prefix = func.getName() + ".";
+		final String prefix       = func.getName() + ".";
+		final List<String> members = new ArrayList<>(
+			Functions.getNames().stream().filter(name -> name.startsWith(prefix)).map(name -> name.substring(prefix.length())).toList());
 
-		return Functions.getNames().stream().filter(name -> name.startsWith(prefix)).map(name -> name.substring(prefix.length())).toList();
+		if (func.isAsyncCapable()) {
+
+			members.add(ASYNC);
+		}
+
+		return members;
+	}
+
+	/**
+	 * Whether "async" names this function's asynchronous variant.
+	 *
+	 * Checked after the namespaced lookup above, so a function that really is registered under
+	 * {@code <name>.async} would keep that meaning; nothing is today.
+	 *
+	 * This is why the variant is reachable from JavaScript and not from StructrScript: StructrScript
+	 * resolves a dotted name through its own parser, against the function registry, and never asks a
+	 * wrapper for a member. Nothing is added to that registry here.
+	 */
+	private boolean isAsyncMember(final String key) {
+
+		return ASYNC.equals(key) && func.isAsyncCapable();
 	}
 
 	@Override

@@ -47,7 +47,8 @@ public class TwoFactorAuthenticationRequiredException extends UnauthorizedExcept
 		final Map<String, String> data = new HashMap<>(Map.of(
 				"token", nextStepToken,
 				"twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue(),
-				"deviceTrustPossible", Settings.TwoFactorDeviceTrustEnabled.getValue().toString()
+				"deviceTrustPossible", String.valueOf(user.isDeviceTrustPossible()),
+				"deviceTrustDuration", Settings.TwoFactorDeviceTrustDuration.getValue().toString()
 		));
 
 		if (showQrCode) {
@@ -62,5 +63,4 @@ public class TwoFactorAuthenticationRequiredException extends UnauthorizedExcept
 
 		return data;
 	}
-
 }

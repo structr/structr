@@ -61,6 +61,8 @@ public class ActionContext {
 	// Regular members
 	private Map<String, ContextFactory.LockedContext> scriptingContexts       = new HashMap<>();
 	private final ContextStore temporaryContextStore                          = new ContextStore();
+	// non-null only on a context handed to a worker thread by AsyncFunctionExecutor; see detached()
+	private ContextStore detachedContextStore                                 = null;
 	private final StringBuilder outputBuffer                                  = new StringBuilder();
 	private ErrorBuffer errorBuffer                                           = new ErrorBuffer();
 	private Locale locale                                                     = Locale.getDefault();
@@ -135,6 +137,60 @@ public class ActionContext {
 		this.errorBuffer     = other.errorBuffer;
 		this.securityContext = other.securityContext;
 		this.locale          = other.locale;
+	}
+
+	private ActionContext(final ActionContext other, final ContextStore detachedContextStore) {
+
+		this.securityContext                = other.securityContext;
+		this.locale                         = other.locale;
+		this.disableVerboseExceptionLogging = other.disableVerboseExceptionLogging;
+		this.detachedContextStore           = detachedContextStore;
+
+		// carried over deliberately: every outbound HTTP function reports a bad argument through
+		// logParameterError(..., ctx.isJavaScriptContext()), and the public copy constructor above does
+		// not copy this -- a detached context built with that one would print StructrScript usage to a
+		// JavaScript caller, because ArgumentTypeException extends IllegalArgumentException and lands in
+		// exactly that catch block.
+		this.scriptingEngine = other.scriptingEngine;
+
+		// errorBuffer, outputBuffer, scriptingContexts and level are deliberately NOT shared: see detached()
+	}
+
+	/**
+	 * A copy of this context for a worker thread, detached from everything the script can still change.
+	 *
+	 * The ContextStore is a snapshot, so headers, constants and the request store are what they were when
+	 * the call was made, and a write by the worker is discarded. That is the same rule that governs the
+	 * call's arguments, and it is the reason {@code $.addHeader()} after an async call was started does
+	 * not affect it.
+	 *
+	 * Four things are fresh rather than shared, each of which would otherwise be a data race:
+	 *
+	 * <ul>
+	 * <li>the <b>error buffer</b> -- the public copy constructor shares it by reference, and two threads
+	 * appending to it is a race; a worker's {@code raiseError()} therefore goes nowhere;</li>
+	 * <li>the <b>output buffer</b> -- {@code Scripting.evaluatePolyglot} reads it from the original, so a
+	 * worker's {@code print()} would be dropped in any case;</li>
+	 * <li>the <b>scripting contexts</b> map -- a guest Context is lock-guarded and a worker must never
+	 * obtain one; an empty map means it cannot reuse the caller's;</li>
+	 * <li><b>level</b>, which is a plain public int that PolyglotWrapper increments and decrements.</li>
+	 * </ul>
+	 *
+	 * The SecurityContext is <b>shared</b>, because it cannot meaningfully be copied -- it carries the
+	 * servlet request, the user node and several caches. It is present only so the detached context is
+	 * well-formed; a function that may run on a worker must read nothing from it. Nulling it instead
+	 * would turn a wrong {@code isAsyncCapable()} into a NullPointerException on a production request,
+	 * far from the override that caused it.
+	 *
+	 * Not final: this deliberately answers a plain ActionContext even when called on a RenderContext, so
+	 * a function that needs render state must not declare itself async-capable. If that ever has to
+	 * change, RenderContext can override this.
+	 *
+	 * @return a context safe to hand to a worker thread
+	 */
+	public ActionContext detached() {
+
+		return new ActionContext(this, getContextStore().snapshot());
 	}
 
 	public SecurityContext getSecurityContext() {
@@ -671,6 +727,13 @@ public class ActionContext {
 	}
 
 	public ContextStore getContextStore() {
+
+		// a detached context owns its store instead of reaching through the SecurityContext, which shares
+		// one with the whole request -- see detached()
+		if (this.detachedContextStore != null) {
+
+			return this.detachedContextStore;
+		}
 
 		return this.securityContext.getContextStore();
 	}

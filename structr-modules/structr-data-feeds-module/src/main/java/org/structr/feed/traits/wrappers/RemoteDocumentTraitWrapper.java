@@ -19,7 +19,9 @@
 package org.structr.feed.traits.wrappers;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.traits.definitions.FileTraitDefinition;
@@ -55,10 +57,20 @@ public class RemoteDocumentTraitWrapper extends AbstractNodeTraitWrapper impleme
 		final String remoteUrl = getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
-			final Map<String, Object> responseData =  HttpHelper.getAsStream(remoteUrl);
-			if (responseData != null && responseData.containsKey(HttpHelper.FIELD_BODY) && responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream) {
+			// getInputStream() declares no checked exception, so the failure is logged rather than propagated;
+			// answering null is what the caller already expects when the document cannot be fetched.
+			try {
 
-				return (InputStream) responseData.get(HttpHelper.FIELD_BODY);
+				final Map<String, Object> responseData = HttpHelper.getAsStream(remoteUrl);
+				if (responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream stream) {
+
+					return stream;
+				}
+
+			} catch (final FrameworkException fex) {
+
+				LoggerFactory.getLogger(RemoteDocumentTraitWrapper.class).warn("Unable to fetch remote document {}: {}",
+					remoteUrl, fex.getMessage());
 			}
 		}
 

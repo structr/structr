@@ -28,6 +28,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -46,49 +47,35 @@ public class HttpPutFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
 
-			final String uri = sources[0].toString();
-			final String body = sources[1].toString();
-			String contentType = "application/json";
-			String charset = "utf-8";
+			for (int i = 0; i < 2; i++) {
 
-			// override default content type
-			if (sources.length >= 3 && sources[2] != null) {
+				if (sources[i] == null) {
 
-				contentType = sources[2].toString();
+					throw new ArgumentTypeException("PUT(): the url and the body must not be null.");
+				}
 			}
 
-			// override default content type
-			if (sources.length >= 4 && sources[3] != null) {
+			final String uri          = sources[0].toString();
+			final Object body         = HttpBody.of(sources[1]);
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : "application/json";
+			final HttpOptions options = HttpOptions.fromAnyOf("PUT", sources, 3, 2).accepting("PUT", HttpOptions.PARSE_RESPONSE);
 
-				charset = sources[3].toString();
-			}
+			HttpBody.checkRepeatable("PUT", body, options);
 
-			final Map<String, Object> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
-			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
-			final GraphObjectMap response = new GraphObjectMap();
+			final String charset               = HttpOptions.charsetOf(contentType, "utf-8");
+			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
-			if ("application/json".equals(contentType)) {
+			final Map<String, Object> responseData = HttpHelper.put(uri, body, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
+				null, null, null, null, headers, charset, validateCertificates, contentType, options.asRequestConfig());
 
-				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+			return buildResponse(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
-			} else {
-
-				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
-			}
-
-			// Set status and headers
-			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
-			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
-
-			if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
-
-				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
-			}
-
-			return response;
 
 		} catch (IllegalArgumentException e) {
 
@@ -99,9 +86,17 @@ public class HttpPutFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url, body [, contentType, charset ]");
+		return Signature.forAllScriptingLanguages("url, body [, contentType [, options ]]");
 	}
 
 	@Override
@@ -109,12 +104,9 @@ public class HttpPutFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("body", "request body (JSON data)"),
-			Parameter.optional("contentType", "content type of the request body"),
-			Parameter.optional("charset", "charset of the request body"),
-			Parameter.optional("username", "username for the connection"),
-			Parameter.optional("password", "password for the connection"),
-			Parameter.optional("configMap", "JSON object for request configuration, supports `timeout` in seconds, `redirects` with true or false to follow redirects")
+			Parameter.mandatory("body", "request body"),
+			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON")
 		);
 	}
 
@@ -122,8 +114,8 @@ public class HttpPutFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${PUT(URL, body [, contentType, charset])}. Example: ${PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}"),
-			Usage.javaScript("Usage: ${{ $.PUT(URL, body [, contentType, charset])}}. Example: ${{ $.PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}")
+			Usage.structrScript("Usage: ${PUT(url, body [, contentType [, options ]])}. Example: ${PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json')}"),
+			Usage.javaScript("Usage: ${{ $.PUT(url, body [, contentType [, options ]]) }}. Example: ${{ $.PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json') }}")
 		);
 	}
 
@@ -153,6 +145,7 @@ public class HttpPutFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.PUT.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.PUT.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `PUT()` synchronously.",
 			"The `PUT()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"`contentType` is the expected response content type. If you need to define the request content type, use `addHeader('Content-Type', 'your-content-type-here')`",

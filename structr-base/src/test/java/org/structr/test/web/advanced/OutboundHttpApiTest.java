@@ -1,0 +1,688 @@
+/*
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.test.web.advanced;
+
+import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
+import org.structr.core.graph.Tx;
+import org.structr.web.common.FileHelper;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.property.IntProperty;
+import org.structr.rest.common.HttpHelper;
+import org.structr.test.common.StructrTest;
+import org.testng.annotations.Test;
+
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
+
+/**
+ * The 7.0 signature of the outbound HTTP functions.
+ *
+ * The assertions are made against a local server that records what it received, because the point of
+ * the change is what goes over the wire: before 7.0 the contentType argument never reached the request
+ * and every entity was sent as text/plain.
+ */
+public class OutboundHttpApiTest extends StructrTest {
+
+	private final Map<String, String> lastHeaders = new LinkedHashMap<>();
+	private String lastBody       = null;
+	private String lastMethod     = null;
+	private int nextStatus        = 200;
+	private boolean challengeOnce = false;
+
+	@Test
+	public void testContentTypeReachesTheRequest() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', '{ \"a\": 1 }', 'application/json')}");
+			assertEquals("POST must send the content type it was given", "application/json", mimeOf(lastHeaders.get("content-type")));
+
+			evaluate(ctx, "${PUT('http://localhost:" + port + "/', 'x=1', 'application/x-www-form-urlencoded')}");
+			assertEquals("PUT must send the content type it was given", "application/x-www-form-urlencoded", mimeOf(lastHeaders.get("content-type")));
+
+			evaluate(ctx, "${PATCH('http://localhost:" + port + "/', '[]', 'application/json-patch+json')}");
+			assertEquals("PATCH must send the content type it was given", "application/json-patch+json", mimeOf(lastHeaders.get("content-type")));
+
+			evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'POST', 'body', 'text/csv')}");
+			assertEquals("FETCH must send the content type it was given", "text/csv", mimeOf(lastHeaders.get("content-type")));
+			assertEquals("FETCH must use the method it was given", "POST", lastMethod);
+		});
+	}
+
+	// ----- private methods -----
+	private void createFileWithContent(final String name, final String content) {
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, content.getBytes(StandardCharsets.UTF_8), "application/octet-stream", StructrTraits.FILE, name, false);
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unable to create " + name + ": " + ex.getMessage());
+		}
+	}
+
+	@Test
+	public void testAFileIsSentAsItsContentRatherThanItsStringForm() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			createFileWithContent("upload.bin", "the actual bytes");
+
+			// a transaction, because the script reads a node: the other tests here never touch the graph
+			try (final Tx tx = app.tx()) {
+
+				// Without this the File would arrive as its toString(), which is a node description, and
+				// the upload would silently send something that is not the file at all.
+				evaluate(ctx, "${POST('http://localhost:" + port + "/', first(find('File', 'name', 'upload.bin')), 'application/octet-stream')}");
+
+				assertEquals("POST must send the file's content as the request body", "the actual bytes", lastBody);
+				assertEquals("POST must send the content type it was given", "application/octet-stream", mimeOf(lastHeaders.get("content-type")));
+
+				evaluate(ctx, "${PUT('http://localhost:" + port + "/', first(find('File', 'name', 'upload.bin')), 'application/octet-stream')}");
+
+				assertEquals("PUT must send the file's content as the request body", "the actual bytes", lastBody);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fail("Unexpected exception: " + fex.getMessage());
+			}
+		});
+	}
+
+	@Test
+	public void testAStreamedBodyWithCredentialsMustBePreemptive() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			createFileWithContent("guarded.bin", "content");
+
+			try (final Tx tx = app.tx()) {
+
+				// A stream cannot answer a 401 challenge, because answering means sending the body again.
+				// The call is refused up front rather than failing later as an apparently empty upload.
+				final Object refused = evaluate(ctx, "${POST('http://localhost:" + port + "/', first(find('File', 'name', 'guarded.bin')), "
+					+ "'application/octet-stream', { username: 'u', password: 'p' })}");
+
+				assertNull("a streamed body with non-preemptive credentials must be refused", refused);
+
+				// with preemptive it goes through, and the credentials are on the first request
+				evaluate(ctx, "${POST('http://localhost:" + port + "/', first(find('File', 'name', 'guarded.bin')), "
+					+ "'application/octet-stream', { username: 'u', password: 'p', preemptive: true })}");
+
+				assertEquals("the body must still be the file's content", "content", lastBody);
+				assertNotNull("preemptive credentials must be sent on the first request", lastHeaders.get("authorization"));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fail("Unexpected exception: " + fex.getMessage());
+			}
+		});
+	}
+
+	@Test
+	public void testATextBodyIsUnchanged() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// the widening must not alter what a string body does
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'plain text', 'text/plain')}");
+
+			assertEquals("a string body must still be sent as text", "plain text", lastBody);
+		});
+	}
+
+	@Test
+	public void testOptionsAreFoundWhenAnOptionalArgumentIsOmitted() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// The natural call. Read strictly by position the map lands in the content type slot, and the
+			// request used to go out with a Content-Type of "{...}" and no options applied at all.
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', { headers: { 'X-Marker': 'post' } })}");
+			assertEquals("POST must find options that sit in the content type slot", "post", lastHeaders.get("x-marker"));
+
+			evaluate(ctx, "${GET('http://localhost:" + port + "/', { headers: { 'X-Marker': 'get' } })}");
+			assertEquals("GET must find options that sit in the content type slot", "get", lastHeaders.get("x-marker"));
+
+			evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'POST', 'body', { headers: { 'X-Marker': 'fetch' } })}");
+			assertEquals("FETCH must find options that sit in the content type slot", "fetch", lastHeaders.get("x-marker"));
+
+			// and the misplaced map must not also be sent as the content type
+			assertFalse("the options object must not become the content type",
+				String.valueOf(lastHeaders.get("content-type")).contains("X-Marker"));
+		});
+	}
+
+	@Test
+	public void testExplicitNullsForOptionalArgumentsAreAccepted() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// Passing null to reach a later argument is what the code below the assertion has always
+			// handled; the assertion rejected it anyway, so there was no way to combine them.
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', null, { headers: { 'X-Marker': 'post' } })}");
+			assertEquals("POST must accept a null content type", "post", lastHeaders.get("x-marker"));
+
+			evaluate(ctx, "${FETCH('http://localhost:" + port + "/', 'POST', null, null, { headers: { 'X-Marker': 'fetch' } })}");
+			assertEquals("FETCH must accept null body and content type", "fetch", lastHeaders.get("x-marker"));
+		});
+	}
+
+	@Test
+	public void testBothBinaryOptionsStreamAndCarryTheirOptions() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// One shape and one name for both verbs: the option describes the response either way, and it
+			// used to hand back a stream and a byte[] respectively.
+			final Object fromGet = evaluate(ctx, "${GET('http://localhost:" + port + "/', 'application/octet-stream', "
+				+ "{ binaryResponse: true, headers: { 'X-Marker': 'get' } })}");
+
+			assertEquals("GET's binary path must pass the options headers, not only the context ones", "get", lastHeaders.get("x-marker"));
+			assertNotNull("GET with binaryResponse must return something", fromGet);
+
+			final Object fromPost = evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/octet-stream', "
+				+ "{ binaryResponse: true, headers: { 'X-Marker': 'post' } })}");
+
+			assertEquals("POST's binary path must pass the options headers", "post", lastHeaders.get("x-marker"));
+			assertEquals("POST's binary path must send the content type it was given", "application/octet-stream", mimeOf(lastHeaders.get("content-type")));
+			assertNotNull("POST with binaryResponse must return something", fromPost);
+		});
+	}
+
+	@Test
+	public void testTheServerStatusIsReturnedRatherThanThrown() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// A 404 with no body used to read getEntity() unchecked, throw a NullPointerException, and be
+			// reported as a 422 "unable to fetch": the status the server actually sent was lost.
+			nextStatus = 404;
+
+			final GraphObjectMap response = (GraphObjectMap) evaluate(ctx, "${GET('http://localhost:" + port + "/missing')}");
+
+			assertNotNull("an error status must come back as a response, not as an exception", response);
+			assertEquals("the server's status must be preserved", Integer.valueOf(404),
+				response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
+		});
+	}
+
+	@Test
+	public void testAnUnreachableHostReportsNoResponseInsteadOfThrowing() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// Nothing is listening on this port. There is no status to report, so the call comes back with 0
+		// and an error rather than throwing: StructrScript has no try/catch, so a throw is unrecoverable.
+		final GraphObjectMap response = (GraphObjectMap) evaluate(ctx, "${GET('http://localhost:1/')}");
+
+		assertNotNull("an unreachable host must return a response, not throw", response);
+		assertEquals("no response means status 0", Integer.valueOf(0),
+			response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
+	}
+
+	@Test
+	public void testAnInvalidUrlStillThrows() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// the CALL is wrong here, not the network: this must not be silently turned into a status of 0
+		try {
+
+			HttpHelper.get("ftp://example.com/", "UTF-8", null, null, java.util.Collections.emptyMap(), true);
+
+			fail("a non-http URL must be refused");
+
+		} catch (FrameworkException expected) {
+
+			assertEquals("an unusable URL is a bad request, not a failed one", 400, expected.getStatus());
+		}
+	}
+
+	@Test
+	public void testHeadSendsCredentialsInTheRightOrder() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			challengeOnce = true;
+
+			evaluate(ctx, "${HEAD('http://localhost:" + port + "/', { username: 'user', password: 'secret' })}");
+
+			assertEquals("HEAD must use the method it names", "HEAD", lastMethod);
+
+			// the two used to be passed to HttpHelper the other way round, so the password was sent as
+			// the user name
+			final String authorization = lastHeaders.get("authorization");
+
+			assertNotNull("credentials in the options object must produce an Authorization header", authorization);
+			assertEquals("HEAD must send username:password, not password:username", "user:secret",
+				new String(java.util.Base64.getDecoder().decode(authorization.substring("Basic ".length())), StandardCharsets.UTF_8));
+		});
+	}
+
+	@Test
+	public void testCharsetComesFromTheContentType() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/json; charset=ISO-8859-1')}");
+
+			final String contentType = lastHeaders.get("content-type");
+
+			assertEquals("the mime type must survive the charset", "application/json", mimeOf(contentType));
+			assertTrue("the charset from the content type must be sent, got '" + contentType + "'",
+				contentType != null && contentType.toLowerCase().contains("iso-8859-1"));
+		});
+	}
+
+	@Test
+	public void testOptionsCarryCredentialsAndHeaders() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// basic auth is sent after a challenge, so the server asks for it once
+			challengeOnce = true;
+
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'text/plain', { username: 'user', password: 'secret', headers: { 'X-Custom': 'yes' } })}");
+
+			assertNotNull("credentials in the options object must produce an Authorization header", lastHeaders.get("authorization"));
+			assertEquals("headers from the options object must be sent", "yes", lastHeaders.get("x-custom"));
+		});
+	}
+
+	@Test
+	public void testPreemptiveBasicAuthIsSentWithoutAChallenge() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// the server never answers 401 here, which is the whole point: without preemptive the
+			// credentials are never sent, because HttpClient waits for a challenge
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'text/plain', { username: 'user', password: 'secret' })}");
+			assertNull("credentials must not be sent unasked by default", lastHeaders.get("authorization"));
+
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'text/plain', { username: 'user', password: 'secret', preemptive: true })}");
+
+			final String authorization = lastHeaders.get("authorization");
+
+			assertNotNull("preemptive must send the credentials on the first request", authorization);
+			assertEquals("user:secret", new String(java.util.Base64.getDecoder().decode(authorization.substring("Basic ".length())), StandardCharsets.UTF_8));
+		});
+	}
+
+	@Test
+	public void testAnExplicitAuthorizationHeaderWinsOverPreemptive() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'text/plain', { username: 'user', password: 'secret', preemptive: true, headers: { 'Authorization': 'Bearer token' } })}");
+
+			assertEquals("an Authorization header given explicitly must not be replaced", "Bearer token", lastHeaders.get("authorization"));
+		});
+	}
+
+	@Test
+	public void testAStringInTheOptionsPositionIsRejected() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// until 7.0 this position held the charset, so a string here is an unmigrated call. Failing
+			// loudly beats sending the request with the wrong settings.
+			final Object result = evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/json', 'UTF-8')}");
+
+			assertNull("a string in the options position must not perform a request", result);
+			assertNull("a string in the options position must not reach the server", lastMethod);
+		});
+	}
+
+	@Test
+	public void testResponseIsNotParsedUnlessAsked() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			final GraphObjectMap raw = (GraphObjectMap) evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/json')}");
+			assertTrue("the response body must be a string by default", raw.toMap().get("body") instanceof String);
+
+			final GraphObjectMap parsed = (GraphObjectMap) evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/json', { parseResponse: true })}");
+			assertTrue("parseResponse must parse the response body", parsed.toMap().get("body") instanceof Map);
+		});
+	}
+
+	@Test
+	public void testTimeoutIsHonouredByEveryVerb() {
+
+		// a silently ignored timeout cannot be observed from a script: no error, no log, nothing in the
+		// response, and the symptom is a hung call much later. One assertion per verb, so none of them
+		// can quietly lose the option again.
+		withSlowServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			for (final String script : new String[] {
+				"${GET('http://localhost:" + port + "/', 'text/plain', { timeout: 1 })}",
+				"${HEAD('http://localhost:" + port + "/', { timeout: 1 })}",
+				"${DELETE('http://localhost:" + port + "/', { timeout: 1 })}",
+				"${POST('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
+				"${PUT('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
+				"${PATCH('http://localhost:" + port + "/', 'b', 'text/plain', { timeout: 1 })}",
+				"${FETCH('http://localhost:" + port + "/', 'POST', 'b', 'text/plain', { timeout: 1 })}"
+			}) {
+
+				final long start = System.currentTimeMillis();
+
+				try {
+					Scripting.evaluate(ctx, null, script, "test");
+
+				} catch (FrameworkException expected) {
+					// a timeout may surface as an exception, which is fine
+				}
+
+				final long elapsed = System.currentTimeMillis() - start;
+
+				assertTrue("timeout was ignored by " + script + ", the call took " + elapsed + "ms", elapsed < 4000);
+			}
+		});
+	}
+
+	@Test
+	public void testUnsupportedOptionsAreRefused() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// selector is a GET concept, so DELETE must say so rather than ignore it
+			assertNull(evaluate(ctx, "${DELETE('http://localhost:" + port + "/', null, null, { selector: 'div' })}"));
+			assertNull("a refused option must not perform a request", lastMethod);
+
+			// and a plain typo
+			assertNull(evaluate(ctx, "${POST('http://localhost:" + port + "/', 'b', 'text/plain', { timeOut: 5 })}"));
+			assertNull("a refused option must not perform a request", lastMethod);
+
+			// while a transport option is accepted everywhere
+			evaluate(ctx, "${DELETE('http://localhost:" + port + "/', null, null, { timeout: 30 })}");
+			assertEquals("DELETE", lastMethod);
+		});
+	}
+
+	@Test
+	public void testTheTwoBinaryDirectionsHaveTheirOwnNames() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// request side: POST sends the body as a binary stream
+			evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/octet-stream', { binaryResponse: true })}");
+			assertEquals("POST", lastMethod);
+
+			// response side belongs to GET, and the request-side name must not be accepted there
+			lastMethod = null;
+
+			assertNull(evaluate(ctx, "${GET('http://localhost:" + port + "/', 'text/plain', { binaryBody: true })}"));
+			assertNull("binaryBody no longer exists and must be rejected", lastMethod);
+		});
+	}
+
+	@Test
+	public void testEveryVerbReturnsTheSameShape() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// HEAD used to hand back HttpHelper's raw map, where the status is a String, so a script
+			// comparing r.status to a number was right after POST and wrong after HEAD
+			for (final String script : new String[] {
+				"${GET('http://localhost:" + port + "/', 'text/plain')}",
+				"${HEAD('http://localhost:" + port + "/')}",
+				"${DELETE('http://localhost:" + port + "/')}",
+				"${POST('http://localhost:" + port + "/', 'b', 'text/plain')}",
+				"${PUT('http://localhost:" + port + "/', 'b', 'text/plain')}",
+				"${PATCH('http://localhost:" + port + "/', 'b', 'text/plain')}",
+				"${FETCH('http://localhost:" + port + "/', 'POST', 'b', 'text/plain')}"
+			}) {
+
+				final Object result = evaluate(ctx, script);
+
+				assertTrue(script + " must return a response object", result instanceof GraphObjectMap);
+
+				final Object status = ((GraphObjectMap) result).toMap().get("status");
+
+				assertTrue(script + " must return an int status, got " + (status == null ? "null" : status.getClass().getSimpleName()),
+					status instanceof Integer);
+				assertEquals(script + " wrong status", 200, status);
+			}
+		});
+	}
+
+	@Test
+	public void testDeleteCanSendABody() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			evaluate(ctx, "${DELETE('http://localhost:" + port + "/', '{ \"id\": 1 }', 'application/json')}");
+
+			assertEquals("DELETE", lastMethod);
+			assertEquals("the body must reach the server", "{ \"id\": 1 }", lastBody);
+			assertEquals("application/json", mimeOf(lastHeaders.get("content-type")));
+		});
+	}
+
+	@Test
+	public void testDeleteRefusesAnOptionsObjectInTheOldPosition() {
+
+		withServer(port -> {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			// that position is the body now, so sending the object as one would be silent nonsense
+			assertNull(evaluate(ctx, "${DELETE('http://localhost:" + port + "/', { parseResponse: true })}"));
+			assertNull("no request may be made when the arguments are refused", lastMethod);
+
+			// spelled the new way it works
+			evaluate(ctx, "${DELETE('http://localhost:" + port + "/', null, null, { parseResponse: true })}");
+			assertEquals("DELETE", lastMethod);
+		});
+	}
+
+	// ----- private methods -----
+	private Object evaluate(final ActionContext ctx, final String script) {
+
+		try {
+			return Scripting.evaluate(ctx, null, script, "test");
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception while evaluating " + script + ": " + fex.getMessage());
+		}
+
+		return null;
+	}
+
+	/** The mime type without the charset, which the server reports as it was sent. */
+	private String mimeOf(final String contentType) {
+
+		return contentType != null ? contentType.split(";")[0].trim() : null;
+	}
+
+	/** A server that answers slowly, so a timeout has something to cut short. */
+	private void withSlowServer(final PortConsumer body) {
+
+		HttpServer server = null;
+
+		try {
+
+			server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+
+			server.createContext("/", exchange -> {
+
+				try { Thread.sleep(6000); } catch (InterruptedException iex) { Thread.currentThread().interrupt(); }
+
+				exchange.sendResponseHeaders(200, -1);
+				exchange.close();
+			});
+
+			server.start();
+
+			body.accept(server.getAddress().getPort());
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			fail("Unexpected exception: " + e.getMessage());
+
+		} finally {
+
+			if (server != null) {
+				server.stop(0);
+			}
+		}
+	}
+
+	private void withServer(final PortConsumer body) {
+
+		HttpServer server = null;
+
+		try {
+
+			server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+
+			server.createContext("/", exchange -> {
+
+				lastHeaders.clear();
+				lastMethod = exchange.getRequestMethod();
+
+				for (final String name : exchange.getRequestHeaders().keySet()) {
+					lastHeaders.put(name.toLowerCase(), exchange.getRequestHeaders().getFirst(name));
+				}
+
+				lastBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+
+				if (challengeOnce) {
+
+					challengeOnce = false;
+
+					exchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"test\"");
+					exchange.sendResponseHeaders(401, -1);
+					exchange.close();
+
+					return;
+				}
+
+				if (nextStatus != 200) {
+
+					// an error status with no body at all, which is what a real service sends for many of
+					// them and what used to be misreported as a failed request
+					exchange.sendResponseHeaders(nextStatus, -1);
+					exchange.close();
+
+					return;
+				}
+
+				final byte[] response = "{ \"ok\": true }".getBytes(StandardCharsets.UTF_8);
+
+				exchange.getResponseHeaders().add("Content-Type", "application/json");
+				exchange.sendResponseHeaders(200, response.length);
+
+				try (final OutputStream out = exchange.getResponseBody()) {
+					out.write(response);
+				}
+			});
+
+			server.start();
+
+			lastMethod    = null;
+			challengeOnce = false;
+			nextStatus    = 200;
+
+			body.accept(server.getAddress().getPort());
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			fail("Unexpected exception: " + e.getMessage());
+
+		} finally {
+
+			if (server != null) {
+				server.stop(0);
+			}
+		}
+	}
+
+	@FunctionalInterface
+	private interface PortConsumer {
+		void accept(final int port) throws Exception;
+	}
+}

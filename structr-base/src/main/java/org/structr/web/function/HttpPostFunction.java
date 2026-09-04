@@ -32,6 +32,8 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
+import java.io.InputStream;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
@@ -55,61 +57,51 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
 
-			final String address  = sources[0].toString();
-			final String body     = sources[1].toString();
-			String contentType    = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			String charset        = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : DEFAULT_CHARSET;
-			final String username = (sources.length >= 5 && sources[4] != null) ? sources[4].toString() : null;
-			final String password = (sources.length >= 6 && sources[5] != null) ? sources[5].toString() : null;
-			Map<String, Object> config = null;
+			for (int i = 0; i < 2; i++) {
 
-			if (sources.length >= 7 && sources[6] != null && sources[6] instanceof Map) {
+				if (sources[i] == null) {
 
-				config = (Map) sources[6];
-			}
-
-			// Extract character set from contentType if given
-			if (StringUtils.isNotBlank(contentType)) {
-
-				try {
-
-					final ContentType ct = ContentType.parse(contentType);
-
-					contentType = ct.getMimeType();
-
-					final Charset cs = ct.getCharset();
-					if (cs != null) {
-
-						charset = cs.toString();
-					}
-
-				} catch(ParseException pe) {
-
-					logger.warn("Unable to parse contentType parameter '{}' - using as is.", contentType);
-
-				} catch (UnsupportedCharsetException uce) {
-
-					logger.warn("Unsupported charset in contentType parameter '{}'", contentType);
+					throw new ArgumentTypeException("POST(): the url and the body must not be null.");
 				}
 			}
 
-			Map<String, Object> responseData = null;
-			GraphObjectMap      response     = new GraphObjectMap();
+			final String address      = sources[0].toString();
+			final Object body         = HttpBody.of(sources[1]);
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
+			final HttpOptions options = HttpOptions.fromAnyOf("POST", sources, 3, 2).accepting("POST", HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
 
-			if ("application/octet-stream".equals(contentType)) {
+			HttpBody.checkRepeatable("POST", body, options);
 
-				responseData = HttpHelper.postBinary(address, body, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
-				response.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
+			final String charset               = HttpOptions.charsetOf(contentType, DEFAULT_CHARSET);
+			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
+			final String username              = options.getString(HttpOptions.USERNAME);
+			final String password              = options.getString(HttpOptions.PASSWORD);
+			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
-			} else {
+			if (options.getBoolean(HttpOptions.BINARY_RESPONSE, false)) {
 
-				responseData = HttpHelper.post(address, body, username, password, ctx.getHeaders(),charset, ctx.isValidateCertificates(), config);
-				response     = processResponseData(ctx, caller, responseData, contentType);
+				// A stream, like GET's binaryResponse, rather than a byte[]: the two options describe the
+				// same thing and used to hand back different shapes, so a script dealing with both had to
+				// branch on which verb it had called. Streaming also removes the 2 GB array limit.
+				final Map<String, Object> binaryData = HttpHelper.postAsStream(address, body, charset, username, password,
+					null, null, null, null, headers, contentType, validateCertificates, options.asRequestConfig());
+
+				final GraphObjectMap binaryResponse = new GraphObjectMap();
+
+				binaryResponse.setProperty(new GenericProperty<InputStream>(HttpHelper.FIELD_BODY), (InputStream) binaryData.get(HttpHelper.FIELD_BODY));
+
+				return binaryResponse;
 			}
 
-			return response;
+			final Map<String, Object> responseData = HttpHelper.post(address, body, username, password, null, null, null, null,
+				headers, charset, validateCertificates, options.asRequestConfig(), contentType);
+
+			return processResponseData(ctx, caller, responseData, options.getBoolean(HttpOptions.PARSE_RESPONSE, false));
 
 		} catch (IllegalArgumentException e) {
 
@@ -119,12 +111,21 @@ public class HttpPostFunction extends UiAdvancedFunction {
 		}
 	}
 
-	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final String contentType) throws FrameworkException {
+	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final boolean parseResponse) throws FrameworkException {
 
 		final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
 		final GraphObjectMap response = new GraphObjectMap();
 
-		response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
+		if (parseResponse) {
+
+			// explicit opt-in only: inferring this from either content type would make the return type
+			// depend on the server rather than on the call
+			response.setProperty(new GenericProperty(HttpHelper.FIELD_BODY), new FromJsonFunction().apply(ctx, caller, new Object[] { responseBody }));
+
+		} else {
+
+			response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
+		}
 
 		// Set status and headers
 		final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
@@ -139,9 +140,17 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("url, body [, contentType, charset, username, password, configMap ]");
+		return Signature.forAllScriptingLanguages("url, body [, contentType [, options ]]");
 	}
 
 	@Override
@@ -149,12 +158,9 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
-			Parameter.optional("body", "request body (JSON data)"),
-			Parameter.optional("contentType", "content type of the request body"),
-			Parameter.optional("charset", "charset of the request body"),
-			Parameter.optional("username", "username for the connection"),
-			Parameter.optional("password", "password for the connection"),
-			Parameter.optional("configMap", "JSON object for request configuration, supports `timeout` in seconds, `redirects` with true or false to follow redirects")
+			Parameter.mandatory("body", "request body"),
+			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryResponse` to return the response body as a stream. To SEND binary data, pass a File as the body instead")
 		);
 	}
 
@@ -162,8 +168,8 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
-			Usage.javaScript("Usage: ${{ $.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
+			Usage.structrScript("Usage: ${POST(url, body [, contentType [, options ]])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8')}"),
+			Usage.javaScript("Usage: ${{ $.POST(url, body [, contentType [, options ]]) }}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json; charset=UTF-8') }}")
 		);
 	}
 
@@ -187,7 +193,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			headers | Response headers | Map |
 			body | Response body | Map or String |
 
-			The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.
+			The options object configures everything else, for example `{ timeout: 60, redirects: true }`. The timeout is given in seconds; by default there is no timeout and redirects are not followed.
 			""";
 	}
 
@@ -195,9 +201,10 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.POST.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.POST.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `POST()` synchronously.",
 			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"`contentType` is the expected response content type. If you need to define the request content type, use `addHeader('Content-Type', 'your-content-type-here')`",
+			"7.0+: `contentType` is the content type of the REQUEST and is sent as the `Content-Type` header. Before 7.0 it never reached the request and `addHeader('Content-Type', ...)` was needed instead.",
 			"If the `contentType` is `application/json`, the response body is automatically parsed and the `body` key of the returned object is a map"
 		);
 	}

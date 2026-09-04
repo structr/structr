@@ -180,7 +180,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 					${
 						setContent(
 							create('Image', 'name', 'logo.png'),
-							GET('https://example.com/img/logo.png', 'application/octet-stream').body
+							GET('https://example.com/img/logo.png', 'application/octet-stream', { binaryResponse: true }).body
 						)
 					}
 					""", "Download binary data (an image) and store it in a local file"),
@@ -206,7 +206,8 @@ public class SetContentFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-				"If `content` is an InputStream (via $.GET), the stream is consumed and can not be used again afterwards",
+				"Binary content arrives as a stream from `$.GET` or `$.POST` with `{ binaryResponse: true }`. Before 7.0 a content type of `application/octet-stream` selected that on its own; it no longer does, and without the option the body is a **string**, which corrupts binary data when written",
+				"If `content` is an InputStream, the stream is consumed and can not be used again afterwards",
 				"The `encoding` parameter is only used when writing **string** data to the file and ignored otherwise. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
 		);
 	}

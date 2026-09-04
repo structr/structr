@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.api.util.Category;
@@ -37,12 +36,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-public class ThemeFunction extends UiCommunityFunction {
+public class GetThemeFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
 
-		return "theme";
+		return "getTheme";
 	}
 
 	@Override
@@ -89,7 +88,7 @@ public class ThemeFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${theme('dark')}"), Usage.javaScript("Usage: ${{ $.theme('dark'); }}"));
+		return List.of(Usage.structrScript("Usage: ${getTheme('dark')}"), Usage.javaScript("Usage: ${{ $.getTheme('dark'); }}"));
 	}
 
 	@Override
@@ -101,6 +100,13 @@ public class ThemeFunction extends UiCommunityFunction {
 	@Override
 	public Category getCategory() {
 		return FunctionCategory.Rendering;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Can only be used in page context"
+		);
 	}
 
 	// ----- private methods -----

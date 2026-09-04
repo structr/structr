@@ -72,7 +72,7 @@ public class SleepFunction extends CoreFunction {
 				Thread.currentThread().interrupt();
 			}
 
-			return sources[0].toString().toUpperCase();
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
