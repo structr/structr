@@ -37,27 +37,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
-/**
- * The single place where a Structr page becomes PDF bytes.
- *
- * Both entry points of this module, the {@code pdf()} scripting function and the PdfServlet, render
- * through here so that they cannot drift apart in behaviour or in error handling. Nothing leaves the
- * JVM: the page engine produces the markup, and the PDF is written by a library on the classpath.
- */
+/** The single place where a Structr page becomes PDF bytes, without leaving the JVM. */
 public class PdfRenderer {
 
 	private static final Logger logger = LoggerFactory.getLogger(PdfRenderer.class.getName());
 
-	/**
-	 * The base every relative reference in the document resolves against. It is deliberately not an
-	 * http URL: a reference is a path into the Structr filesystem, not a request to a web server.
-	 */
+	// not an http URL: a reference is a path into the Structr filesystem, not a request to a server
 	private static final String BASE_URI = "structr:///";
 
-	/**
-	 * Renders a DOMNode to HTML in the calling thread and the calling transaction, using the page
-	 * engine directly. No HTTP request is made, so the caller's SecurityContext governs visibility.
-	 */
+	/** Renders a DOMNode in the calling thread and transaction, so the caller's SecurityContext governs visibility. */
 	public static String renderToHtml(final DOMNode root, final RenderContext renderContext) throws FrameworkException {
 
 		final StringRenderBuffer buffer = new StringRenderBuffer();
@@ -68,15 +56,7 @@ public class PdfRenderer {
 		return buffer.getBuffer().toString();
 	}
 
-	/**
-	 * Converts rendered HTML into PDF bytes.
-	 *
-	 * The document is laid out for print, so an {@code @media print} block applies and CSS that the
-	 * renderer does not support is reported rather than passed over in silence.
-	 *
-	 * @param securityContext governs which files of the Structr filesystem the document may read
-	 * @param documentName    used for log output only
-	 */
+	/** Converts rendered HTML into PDF bytes, laid out for print; documentName is used for log output only. */
 	public static byte[] toPdf(final String html, final SecurityContext securityContext, final String documentName) throws FrameworkException {
 
 		final StructrResourceFactory resources = new StructrResourceFactory(securityContext);
@@ -92,8 +72,7 @@ public class PdfRenderer {
 			// every reference the document makes, whatever its scheme, is answered from the graph first
 			builder.useProtocolsStreamImplementation(resources, "structr", "http", "https", "file");
 
-			// jsoup repairs the HTML5 the page engine emits into the well formed document the renderer
-			// wants, and hands it over as a DOM rather than as text that would have to be parsed again
+			// jsoup repairs the page engine's HTML5 into a well formed DOM, so it is not parsed twice
 			builder.withW3cDocument(new W3CDom().fromJsoup(Jsoup.parse(html, BASE_URI)), BASE_URI);
 			builder.toStream(out);
 			builder.run();
@@ -115,9 +94,7 @@ public class PdfRenderer {
 		return pdf;
 	}
 
-	/**
-	 * Turns a page name into a file name that is safe to put into a response header.
-	 */
+	/** Turns a page name into a file name safe to put into a response header. */
 	public static String fileNameFor(final String pageName) {
 
 		if (StringUtils.isBlank(pageName)) {
@@ -137,10 +114,7 @@ public class PdfRenderer {
 		}
 	}
 
-	/**
-	 * A PDF that renders but silently drops half its stylesheet is worse than one that fails, so both
-	 * kinds of loss are logged with the document they came from.
-	 */
+	/** A PDF that silently drops half its stylesheet is worse than one that fails, so both losses are logged. */
 	private static void report(final String documentName, final List<String> unsupportedCss, final Set<String> unresolved) {
 
 		if (!unsupportedCss.isEmpty()) {

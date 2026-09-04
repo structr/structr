@@ -96,9 +96,7 @@ public class PDFFunction extends Function<Object, Object> {
 		final Page page                   = node.as(Page.class);
 		final NodeInterface detailsObject = detailsId != null ? resolveDetailsObject(securityContext, detailsId) : null;
 
-		// ${request.x} resolves through the SecurityContext, not through the RenderContext, so the page is
-		// given a request of its own carrying exactly the parameters this call passed. The caller's request
-		// is put back afterwards; without one, a page rendered from a cron job would see no parameters.
+		// ${request.x} resolves through the SecurityContext, so the page gets a request of its own, restored afterwards
 		final HttpServletRequest callersRequest = securityContext.getRequest();
 		final HttpServletRequest pageRequest    = requestFor(callersRequest, parametersFrom(sources));
 
@@ -106,8 +104,7 @@ public class PDFFunction extends Function<Object, Object> {
 
 		try {
 
-			// the page engine runs here, in this thread and this transaction, so no request is made back to
-			// this server and the current user's permissions apply to the page and to everything it reads
+			// the page engine runs in this thread and transaction, so no request is made back to this server
 			final RenderContext renderContext = new RenderContext(securityContext, pageRequest, null, RenderContext.EditMode.NONE);
 
 			if (detailsObject != null) {
@@ -130,11 +127,7 @@ public class PDFFunction extends Function<Object, Object> {
 		}
 	}
 
-	/**
-	 * The object the page renders as {@code current}, by id, falling back to a name so that a readable
-	 * path keeps working. Not found is an error: a document silently missing the record it is about is
-	 * worse than one that was never produced.
-	 */
+	/** The object the page renders as current, by id then by name; not found is an error, not a blank document. */
 	private NodeInterface resolveDetailsObject(final SecurityContext securityContext, final String detailsId) throws FrameworkException {
 
 		final NodeInterface byId = StructrApp.getInstance(securityContext).getNodeById(detailsId);
@@ -192,11 +185,7 @@ public class PDFFunction extends Function<Object, Object> {
 		return request;
 	}
 
-	/**
-	 * The second parameter used to carry wkhtmltopdf arguments and is now a file name. An argument
-	 * string is refused rather than quietly ignored: it would have produced a document that looks
-	 * plausible and is missing whatever those arguments were for.
-	 */
+	/** An argument string is refused, not ignored: it would yield a plausible document missing whatever it was for. */
 	private String fileNameFrom(final Object[] sources, final String pageName) throws FrameworkException {
 
 		if (sources.length > 3) {

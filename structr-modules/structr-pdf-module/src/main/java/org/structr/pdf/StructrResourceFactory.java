@@ -40,13 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Supplies the images, stylesheets and fonts a document refers to.
- *
- * A reference is resolved against the Structr filesystem first, as a graph lookup under the rendering
- * user's SecurityContext, so nothing has to travel over HTTP and nothing bypasses permissions. Only a
- * reference that no file answers can reach the network, and only when that has been enabled.
- */
+/** Supplies a document's images, stylesheets and fonts from the Structr filesystem, under the rendering user's permissions. */
 public class StructrResourceFactory implements FSStreamFactory {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrResourceFactory.class.getName());
@@ -59,10 +53,7 @@ public class StructrResourceFactory implements FSStreamFactory {
 		this.securityContext = securityContext;
 	}
 
-	/**
-	 * References the document made that nothing answered. Reported by the caller rather than thrown,
-	 * because a single missing decoration should not cost the whole document.
-	 */
+	/** References nothing answered; reported rather than thrown, since one missing decoration should not cost the document. */
 	public Set<String> getUnresolvedReferences() {
 
 		return unresolved;
@@ -133,15 +124,7 @@ public class StructrResourceFactory implements FSStreamFactory {
 		return streamOf(() -> new ByteArrayInputStream(new byte[0]));
 	}
 
-	/**
-	 * The path a reference points at, whatever scheme it carries.
-	 *
-	 * The "structr" scheme this module renders against is deliberately NOT the java.nio FileSystemProvider
-	 * of the same name in structr-file-access-module. They denote the same file, but this resolves it with
-	 * a graph lookup under an explicit SecurityContext, which is the permission boundary of the whole
-	 * document. Reaching for Files.newInputStream(Paths.get(uri)) because the scheme matches would add a
-	 * dependency on an optional feature module and move that boundary somewhere much less obvious.
-	 */
+	// deliberately NOT the java.nio "structr" provider: this resolves under an explicit SecurityContext, the document's permission boundary
 	private static String pathOf(final String url) {
 
 		try {

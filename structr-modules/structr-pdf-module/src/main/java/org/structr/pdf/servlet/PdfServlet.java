@@ -104,11 +104,7 @@ public class PdfServlet extends HtmlServlet {
 		this.stats = stats;
 	}
 
-	/**
-	 * A PDF cannot be streamed, because the engine needs the whole document before it can produce a
-	 * single byte. This servlet therefore renders synchronously on both of the paths HtmlServlet
-	 * offers, rather than only on the asynchronous one.
-	 */
+	/** A PDF cannot be streamed, so both of HtmlServlet's paths render synchronously here. */
 	@Override
 	protected void renderAsyncOutput(final HttpServletRequest request, final HttpServletResponse response, final App app, final RenderContext renderContext, final DOMNode rootElement, final long requestStartTime) throws IOException {
 
@@ -126,11 +122,7 @@ public class PdfServlet extends HtmlServlet {
 		}
 	}
 
-	/**
-	 * The synchronous path. HtmlServlet takes it when httpservice.async is disabled or the page has
-	 * the pageCreatesRawData flag, and before this it served the raw HTML under the page's own content
-	 * type instead of a PDF.
-	 */
+	/** HtmlServlet's synchronous path, taken when httpservice.async is off or the page sets pageCreatesRawData. */
 	@Override
 	protected void writeOutputStream(final HttpServletResponse response, final StringRenderBuffer buffer, final RenderContext renderContext) throws IOException {
 

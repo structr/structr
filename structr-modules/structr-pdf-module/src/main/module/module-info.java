@@ -23,9 +23,7 @@ module structr.pdf.module {
     requires openhtmltopdf.pdfbox;
     requires org.apache.pdfbox.io;
 
-    // PdfRenderer is the module's public entry point: render a page, convert HTML to PDF bytes. Callers
-    // outside this module reach it reflectively and add the read edge themselves, so that they need no
-    // requires and this module stays optional, but the export has to be here for that to resolve.
+    // PdfRenderer is the public entry point; reflective callers add their own read edge, so this module stays optional
     exports org.structr.pdf;
 
     // instantiated reflectively by HttpService in structr.base (configured by class name)

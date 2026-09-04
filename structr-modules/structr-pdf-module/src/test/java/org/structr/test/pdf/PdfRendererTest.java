@@ -68,11 +68,7 @@ public class PdfRendererTest extends StructrUiTest {
 		}
 	}
 
-	/**
-	 * The whole pipeline, asserted by reading the result back rather than by looking at it. This is only
-	 * possible because the renderer runs in the JVM: the document it produces can be inspected with the
-	 * PDFBox that produced it.
-	 */
+	/** The whole pipeline, asserted by reading the result back with the PDFBox that produced it. */
 	@Test
 	public void testPageBecomesAReadablePdf() {
 
@@ -104,10 +100,7 @@ public class PdfRendererTest extends StructrUiTest {
 		}
 	}
 
-	/**
-	 * Headers, footers and page numbers are the capability that replaced wkhtmltopdf's separate header
-	 * and footer pages, so the counters are asserted per page rather than assumed.
-	 */
+	/** Counters replaced wkhtmltopdf's separate header pages, so they are asserted per page, not assumed. */
 	@Test
 	public void testPagedMediaProducesRunningHeadersAndPageNumbers() {
 
@@ -146,9 +139,7 @@ public class PdfRendererTest extends StructrUiTest {
 		}
 	}
 
-	/**
-	 * Unsupported CSS must not abort a document. The content still has to arrive, laid out as blocks.
-	 */
+	/** Unsupported CSS must not abort a document; the content still has to arrive, laid out as blocks. */
 	@Test
 	public void testUnsupportedCssDoesNotFailTheDocument() {
 
@@ -173,10 +164,7 @@ public class PdfRendererTest extends StructrUiTest {
 		}
 	}
 
-	/**
-	 * The page path carries the object the document is about, and the third parameter carries the request
-	 * parameters. Both used to arrive over HTTP, so both had to be rebuilt when the render moved in process.
-	 */
+	/** Path carries the object, third parameter the request parameters; both used to arrive over HTTP. */
 	@Test
 	public void testDetailsObjectAndRequestParametersReachThePage() {
 
@@ -230,10 +218,7 @@ public class PdfRendererTest extends StructrUiTest {
 		}
 	}
 
-	/**
-	 * A query string in the path is refused rather than ignored, because a document silently missing the
-	 * parameters it was meant to render with looks plausible and is wrong.
-	 */
+	/** A query string in the path is refused, not ignored: a document missing its parameters looks plausible and is wrong. */
 	@Test
 	public void testQueryStringInThePathIsRefused() {
 
