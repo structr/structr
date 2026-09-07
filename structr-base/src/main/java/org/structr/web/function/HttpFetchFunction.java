@@ -191,10 +191,10 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"7.0+: In JavaScript, `$.FETCH.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.FETCH.async(url)).catch(...)` to chain, and note that `Promise.race()` does not report the fastest. Only JavaScript has it - StructrScript always calls `FETCH()` synchronously.",
+			"7.0+: In JavaScript, `$.FETCH.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.FETCH.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `FETCH()` synchronously.",
 			"The `FETCH()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. Use `addHeader()` for authentication.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"The response body is always returned as a string. For binary content use `GET()` with `{ binaryResponse: true }`, or `POST()` with `{ binaryBody: true }`.",
+			"The response body is always returned as a string. For binary content use `GET()` or `POST()` with `{ binaryResponse: true }`.",
 			"While `FETCH()` can also be used for standard methods like GET and POST, it is recommended to use the dedicated functions for those, as they offer additional features like automatic JSON parsing and binary content handling."
 		);
 	}

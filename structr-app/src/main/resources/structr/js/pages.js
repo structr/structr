@@ -1189,7 +1189,15 @@ let _Pages = {
 			});
 
 			element.on('dblclick', function(e) {
-				_Entities.expandRecursively([ entity.id ]);
+
+				if (_Entities.isExpanded(element)) {
+
+					_Entities.toggleElement(entity.id, element, true);
+
+				} else {
+
+					_Entities.expandRecursively([ entity.id ]);
+				}
 			})
 		}
 	},

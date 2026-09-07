@@ -1557,7 +1557,137 @@ public class SchemaTest extends StructrTest {
 		final PropertyKey key = Traits.of("User").key("name");
 
 		assertEquals("Unable to overwrite name attribute in existing type.", "User", key.getDeclaringTrait().getLabel());
+	}
 
+	@Test
+	public void testSchemaViewNamePattern() {
+
+		NodeInterface schemaTypeNode = null;
+
+		try (final Tx tx = app.tx()) {
+
+			schemaTypeNode = app.create(StructrTraits.SCHEMA_NODE, "SomeType");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "___test3"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception (" +  fex.getMessage() + "): Creating views with allowable names should not fail.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "0_test"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			tx.success();
+
+			fail("Creating a view with a non-allowable name (digit as first character) should fail.");
+
+		} catch (FrameworkException fex) {
+
+			assert(fex.toString().contains(SchemaViewTraitDefinition.schemaViewNamePattern));
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test test"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			tx.success();
+
+			fail("Creating a view with a non-allowable name (space character in name) should fail.");
+
+		} catch (FrameworkException fex) {
+
+			assert(fex.toString().contains(SchemaViewTraitDefinition.schemaViewNamePattern));
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test/test"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			tx.success();
+
+			fail("Creating a view with a non-allowable name (slash in name) should fail.");
+
+		} catch (FrameworkException fex) {
+
+			assert(fex.toString().contains(SchemaViewTraitDefinition.schemaViewNamePattern));
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "täst"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			tx.success();
+
+			fail("Creating a view with a non-allowable name (umlaut in name) should fail.");
+
+		} catch (FrameworkException fex) {
+
+			assert(fex.toString().contains(SchemaViewTraitDefinition.schemaViewNamePattern));
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test-test"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), schemaTypeNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id")
+			);
+
+			tx.success();
+
+			fail("Creating a view with a non-allowable name (dash in name) should fail.");
+
+		} catch (FrameworkException fex) {
+
+			assert(fex.toString().contains(SchemaViewTraitDefinition.schemaViewNamePattern));
+		}
 	}
 
 	// ----- private methods -----
