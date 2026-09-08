@@ -65,7 +65,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 				final String address      = sources[0].toString();
 				final String contentType  = (sources.length >= 2 && sources[1] != null) && !HttpOptions.isOptionsAt(sources, 1) ? sources[1].toString() : null;
-				final HttpOptions options = HttpOptions.fromAnyOf("GET", sources, 2, 1).accepting("GET", HttpOptions.SELECTOR, HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
+				final HttpOptions options = optionsOf(sources).accepting(ctx, "GET", HttpOptions.ASYNC, HttpOptions.SELECTOR, HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
 
 				final String charset  = HttpOptions.charsetOf(contentType, null);
 				final String username = options.getString(HttpOptions.USERNAME);
@@ -162,6 +162,32 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return null;
 	}
 
+	/**
+	 * The options object of this call, wherever the caller put it.
+	 *
+	 * One accessor rather than one per caller, so the positions the object may occupy are stated once:
+	 * apply() reads the settings from it, and the async opt-in below is read before the call is made.
+	 */
+	private static HttpOptions optionsOf(final Object[] sources) {
+
+		return HttpOptions.fromAnyOf("GET", sources, 2, 1);
+	}
+
+	@Override
+	public boolean isAsyncRequested(final Object[] sources) {
+
+		try {
+
+			return optionsOf(sources).getBoolean(HttpOptions.ASYNC, false);
+
+		} catch (final IllegalArgumentException e) {
+
+			// a malformed options argument is not this method's to report: apply() runs either way, and
+			// turns it into the usage error that names what is wrong with it
+			return false;
+		}
+	}
+
 	@Override
 	public boolean isAsyncCapable() {
 
@@ -185,7 +211,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return List.of(
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("contentType", "content type of the request; `text/html` parses the response with jsoup, see the `selector` option"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON, `selector` for a CSS selector applied to a `text/html` response, and `binaryResponse` to return the response body as a byte array")
 		);
 	}
 
@@ -265,7 +291,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"7.0+: In JavaScript, `$.GET.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.GET.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `GET()` synchronously.",
+			"7.0+: In JavaScript, the `async` option starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. The result is awaitable, not a full promise: use `Promise.resolve($.GET(url, { async: true })).catch(...)` to chain. `Promise.race()` answers as soon as its winner arrives, and the calls it beat are discarded. StructrScript has no way to await a result, so it rejects the option rather than calling `GET()` synchronously without saying so.",
 			"GET() returns binary content when the `binaryResponse` option is set. Up to 6.x a `contentType` of `application/octet-stream` did this on its own; from 7.0 the content type only describes the data, and the option decides the shape of the response.",
 			"7.0+: `contentType` is the content type of the REQUEST, sent as the `Content-Type` header. Its charset is used to interpret the response, unless the server provides one of its own.",
 			"The `username` and `password` options are intended for HTTP Basic Auth. For header authentication use the `headers` option or `addHeader()`.",

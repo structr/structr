@@ -69,7 +69,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 			final Object body         = (sources.length >= 2 && sources[1] != null) && !HttpOptions.isOptionsAt(sources, 1) ? HttpBody.of(sources[1]) : null;
 			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : null;
-			final HttpOptions options = HttpOptions.fromAnyOf("DELETE", sources, 3, 1, 2).accepting("DELETE", HttpOptions.PARSE_RESPONSE);
+			final HttpOptions options = optionsOf(sources).accepting(ctx, "DELETE", HttpOptions.ASYNC, HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("DELETE", body, options);
 
@@ -87,6 +87,32 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
 			return null;
+		}
+	}
+
+	/**
+	 * The options object of this call, wherever the caller put it.
+	 *
+	 * One accessor rather than one per caller, so the positions the object may occupy are stated once:
+	 * apply() reads the settings from it, and the async opt-in below is read before the call is made.
+	 */
+	private static HttpOptions optionsOf(final Object[] sources) {
+
+		return HttpOptions.fromAnyOf("DELETE", sources, 3, 1, 2);
+	}
+
+	@Override
+	public boolean isAsyncRequested(final Object[] sources) {
+
+		try {
+
+			return optionsOf(sources).getBoolean(HttpOptions.ASYNC, false);
+
+		} catch (final IllegalArgumentException e) {
+
+			// a malformed options argument is not this method's to report: apply() runs either way, and
+			// turns it into the usage error that names what is wrong with it
+			return false;
 		}
 	}
 
@@ -111,7 +137,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.optional("body", "request body; HTTP allows one on DELETE and some APIs require it"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON")
 		);
 	}
 
@@ -156,7 +182,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"7.0+: In JavaScript, `$.DELETE.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.DELETE.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `DELETE()` synchronously.",
+			"7.0+: In JavaScript, the `async` option starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. The result is awaitable, not a full promise: use `Promise.resolve($.DELETE(url, { async: true })).catch(...)` to chain. `Promise.race()` answers as soon as its winner arrives, and the calls it beat are discarded. StructrScript has no way to await a result, so it rejects the option rather than calling `DELETE()` synchronously without saying so.",
 			"The `DELETE()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);
