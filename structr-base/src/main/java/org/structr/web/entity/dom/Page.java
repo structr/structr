@@ -52,6 +52,7 @@ public interface Page extends DOMNode {
 	String getContentType();
 
 	boolean pageCreatesRawData();
+	boolean isRestrictedToUrlRoutes();
 
 	Iterable<DOMNode> getElements();
 	Iterable<PagePath> getPaths();

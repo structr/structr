@@ -27,6 +27,8 @@ Here you can edit essential user properties: name, password, and email address. 
 - Is Admin User – Grants full access, bypassing all permission checks
 - Skip Security Relationships – Optimizes performance for users who do not need fine-grained permissions
 - Enable Two-Factor Authentication – Adds an extra security layer for this user
+- Two-Factor Authentication confirmed for this User - this user has previously logged in via 2FA and will not be shown the setup QR code on next login
+- Device Trust Possible for this User - Per-user setting to allow/disallow device trust (depends on global configuration)
 
 The Failed Login Attempts counter (useful for diagnosing lockouts) and the Confirmation Key (used during self-registration) are also available here.
 

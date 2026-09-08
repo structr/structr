@@ -4157,7 +4157,7 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="position-input" data-comment="The position is important to identify the page, the client will get served for the '/' path. The page with the lowest position (which is visible for the requesting client) will be shown.">Position</label>
+							<label class="block mb-2" for="position-input" data-comment="The position is important to identify the page, the client will get served for the '/' path. The page with the lowest position (which is visible for the requesting client) will be shown. This mechanism is disabled if page is only reachable via URL Routes.">Position</label>
 							<input type="text" id="position-input" name="position">
 						</div>
 
@@ -4173,6 +4173,12 @@ let _Entities = {
 							<div class="mb-2 flex items-center">
 								<label for="page-creates-raw-data-checkbox">
 									<input type="checkbox" name="pageCreatesRawData" id="page-creates-raw-data-checkbox"> Use binary encoding for output
+								</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<label for="page-only-reachable-via-routes" data-comment="Useful to avoid duplicate content, which can hurt SEO rankings. Disables access via the page's name, UUID, and root (/) lookup via position. Still served for error codes, if set. To use root (/), define an explicit URL Route for it.">
+									<input type="checkbox" name="restrictToUrlRoutes" id="page-only-reachable-via-routes"> Only reachable via URL Routes
 								</label>
 							</div>
 

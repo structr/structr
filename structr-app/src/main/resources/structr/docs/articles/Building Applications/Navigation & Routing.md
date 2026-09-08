@@ -62,7 +62,7 @@ Note that UUID resolution only works on direct page URLs and partials, not on UR
 
 When you append a UUID to a page URL, Structr automatically recognizes it and looks up the corresponding object in the database. If the object exists and is visible to the current user, it becomes available under `current`.
 
-For example, navigating to `/products/a3f8b2c1-d4e5-f6a7-b8c9-d0e1f2a3b4c5` makes the Product object with that ID available as `current`. You can then use `${current.name}`, `${current.price}`, and other attributes in your template expressions.
+For example, navigating to `/products/a3f8b2c1d4e5f6a7b8c9d0e1f2a3b4c5` makes the Product object with that ID available as `current`. You can then use `${current.name}`, `${current.price}`, and other attributes in your template expressions.
 
 This is useful for populating forms with data. Create a form that uses `current` to fill its input fields, then call the page with the object UUID appended to load that object's data into the form.
 
@@ -84,7 +84,7 @@ By default, Structr automatically maps pages to URLs based only on their name. U
 
 A page can have multiple routes. Structr evaluates all URL routes (sorted by priority) before checking page names. The priority can be changed via drag and drop in the user interface.
 
-This means that custom routes take precedence over the default name-based resolution. If a route matches, the corresponding page is rendered and the matched parameters are made available using their placeholder names. In StructrScript, parameters are accessed with using `paramName` in a scripting context `${...}`. In JavaScript contexts `${{...}}`, the parameters care accessed using `$.paramName`.
+This means that custom routes take precedence over the default name-based resolution. If a route matches, the corresponding page is rendered and the matched parameters are made available using their placeholder names. In StructrScript, parameters are accessed with using `paramName` in a scripting context `${...}`. In JavaScript contexts `${{...}}`, the parameters can be accessed using `$.paramName`.
 
 Multiple routes can point to the same page, allowing a single page to serve different URL patterns. For example, a product page could be reachable via both `/product/{id}` and `/shop/{category}/{id}`.
 
