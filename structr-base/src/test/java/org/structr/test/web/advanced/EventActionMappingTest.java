@@ -2909,6 +2909,52 @@ public class EventActionMappingTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
+	@Test
+	public void testOptionsAttributeIsEscapedForHtml() {
+
+		// options are a JSON string, which contains double quotes; the attribute value must be HTML-escaped
+		// (&quot;) and not JSON-escaped (\"), otherwise the browser sees a broken attribute and frontend.js
+		// cannot parse the options
+		final String options = "{\"delay\": 500, \"resetWithEsc\": true, \"title\": \"it's a <test>\"}";
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+
+			div.appendChild(btn);
+
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), options);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String html               = fetchPageHtml("/html/page1");
+		final Document doc              = Jsoup.parse(html);
+		final Element button            = doc.getElementById("button");
+		final Map<String, String> attrs = getAttributes(button);
+
+		assertEquals("Options must arrive unchanged in the browser", options, attrs.get("data-structr-options"));
+	}
+
 	final Map<String, String> getAttributes(final Element element) {
 
 		final Map<String, String> map = new LinkedHashMap<>();

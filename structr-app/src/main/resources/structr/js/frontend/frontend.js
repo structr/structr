@@ -592,26 +592,15 @@ export class Frontend {
 
 			if (!id) {
 
-				let match = selector.match(/^(.*?)(?:#(.*?))?(?:\\.(.*))?$/gm);
-				let attrKey, attrVal;
-				if (match[0] && match[0].startsWith('#')) {
-					attrKey = '_html_id';
-					attrVal = match[0].substring(1);
-				} else if (match[0] && match[0].startsWith('.')) {
-					attrKey = '_html_class';
-					attrVal = match[0].substring(1).replaceAll('.', ' ');
-				}
+				this.resolveDOMElementId(selector, element).then(id => {
 
-				fetch('/structr/rest/DOMElement?' + attrKey + '=' + attrVal, {
-					method: 'GET',
-					credentials: 'same-origin'
-				}).then(response => {
-					//console.log('Found element by ' + attrKey + ' attribute', response);
-					return response.json();
-				}).then(data => {
-					if (data.result && data.result[0]) {
-						let id = data.result[0].id;
+					if (id) {
+
 						this.replacePartial(container, id, element, dataset, parameters, dontRebind, options);
+
+					} else {
+
+						console.log('No DOMElement found for reload target ' + selector);
 					}
 				});
 
@@ -641,6 +630,97 @@ export class Frontend {
 				url.searchParams.delete(channel);
 			}
 			history.pushState({}, '', url);
+		}
+	}
+
+	/**
+	 * Resolves the UUID of the DOMElement that a reload target selector (#id or .class) refers to.
+	 *
+	 * The lookup is restricted to the current page first, because elements with the same HTML id
+	 * or class can exist in other pages and in the trash. The page is taken from the trigger element
+	 * (data-structr-page, rendered on all active elements), falling back to the first active element
+	 * in the document. If nothing is found in the current page (e.g. the element is part of a shared
+	 * component), elements of other documents are accepted, but never elements without a page (trash).
+	 */
+	async resolveDOMElementId(selector, element) {
+
+		let classes = [];
+		let query;
+
+		if (selector.startsWith('#')) {
+
+			query = '_html_id=' + encodeURIComponent(selector.substring(1));
+
+		} else if (selector.startsWith('.')) {
+
+			classes = selector.substring(1).split('.').filter(c => c.length > 0);
+
+			// comma means AND, inexact search means "contains" because the element can have more classes than the selector
+			query = '_html_class=' + encodeURIComponent(classes.join(',')) + '&_inexact=1';
+
+		} else {
+
+			console.log('Cannot resolve reload target ' + selector + ', only #id and .class selectors are supported for elements without data-structr-id.');
+			return null;
+		}
+
+		// inexact search is a substring match, make sure that all requested classes are actually present
+		let matches = (result) => {
+
+			if (classes.length) {
+
+				let present = (result._html_class || '').split(/\s+/);
+
+				return classes.every(c => present.includes(c));
+			}
+
+			return true;
+		};
+
+		let pageIds    = new Set([element?.dataset?.structrPage, document.querySelector('[data-structr-page]')?.dataset.structrPage].filter(p => p));
+		let candidates = [];
+
+		for (let pageId of pageIds) {
+
+			candidates = (await this.fetchDOMElements(query + '&pageId=' + encodeURIComponent(pageId))).filter(matches);
+
+			if (candidates.length) {
+				break;
+			}
+		}
+
+		if (!candidates.length) {
+
+			candidates = (await this.fetchDOMElements(query)).filter(result => result.pageId && matches(result));
+		}
+
+		return candidates.length ? candidates[0].id : null;
+	}
+
+	async fetchDOMElements(query) {
+
+		try {
+
+			// ui view contains _html_class and pageId
+			let response = await fetch('/structr/rest/DOMElement/ui?' + query, {
+				method: 'GET',
+				credentials: 'same-origin'
+			});
+
+			if (!response.ok) {
+
+				console.log('Lookup of DOMElement failed: ' + response.status + ' ' + response.statusText);
+				return [];
+			}
+
+			let data = await response.json();
+
+			return data.result || [];
+
+		} catch (e) {
+
+			console.error(e);
+			return [];
 		}
 	}
 
@@ -1105,7 +1185,7 @@ export class Frontend {
 				return JSON.parse(data.structrOptions);
 
 			} catch (e) {
-				console.error(e);
+				console.error('Cannot parse data-structr-options, must be valid JSON (double quotes): ' + data.structrOptions, e);
 			}
 		}
 

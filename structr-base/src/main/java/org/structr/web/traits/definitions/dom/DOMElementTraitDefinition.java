@@ -585,6 +585,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									// all active elements need data-structr-id
 									outputStructrId = true;
 
+									// make the page ID available, frontend.js uses it to restrict the lookup of reload
+									// targets by HTML id or class to the current page (they can exist in other pages and in the trash)
+									final String pageId = renderContext.getPageId();
+									if (pageId != null) {
+
+										out.append(" data-structr-page=\"").append(pageId).append("\"");
+									}
+
 									// why only the first one?!
 									final ActionMapping triggeredAction = list.get(0);
 									final NodeInterface actionNode      = triggeredAction;
@@ -594,7 +602,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									// support for configuration options
 									if (StringUtils.isNotBlank(options)) {
 
-										out.append(" data-structr-options=\"").append(StringEscapeUtils.escapeJson(options)).append("\"");
+										// options is a JSON string, escape for HTML attribute (not JSON!) so that the browser sees the original string
+										out.append(" data-structr-options=\"").append(DOMNode.escapeForHtmlAttributes(options)).append("\"");
 									}
 
 									String eventsString = null;
