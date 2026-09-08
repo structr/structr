@@ -18,29 +18,30 @@
  */
 package org.structr.pdf.function;
 
-import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
-import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig;
-import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
-import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
-import jakarta.servlet.http.HttpSession;
-import org.eclipse.jetty.server.Session;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SuperUser;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
-import org.structr.rest.auth.JWTHelper;
+import org.structr.pdf.PdfRenderer;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.web.common.FileHelper;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.Page;
+import org.structr.websocket.DetachedHttpServletRequest;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PDFFunction extends Function<Object, Object> {
 
@@ -53,7 +54,7 @@ public class PDFFunction extends Function<Object, Object> {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("pageName [, wkthtmlParams, baseUrl, runWithX, xSettings ]");
+		return Signature.forAllScriptingLanguages("pagePath [, fileName [, parameters ]]");
 	}
 
 	@Override
@@ -63,239 +64,186 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-		String baseUrl         = null;
-		String userParameter   = null;
-		Boolean runWithXserver = false;
-		String xServerSettings = null;
-		final String page      = sources[0].toString();
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final String pagePath                 = sources[0].toString();
 
-		if (sources.length >= 2) {
+		if (pagePath.contains("?")) {
 
-			userParameter = sources[1].toString();
+			throw new FrameworkException(422, "pdf(): the page path carries a query string. Request parameters are passed as the third parameter instead, for example pdf('invoice/<uuid>', 'invoice.pdf', { lang: 'de' }).");
 		}
 
-		if (sources.length >= 3) {
+		final String[] parts = StringUtils.split(pagePath, "/");
 
-			 baseUrl = sources[2].toString();
+		if (parts.length == 0 || parts.length > 2) {
+
+			throw new FrameworkException(422, "pdf(): the page path is a page name, optionally followed by the id of the object the page renders, for example 'invoice/<uuid>'.");
 		}
 
-		if (sources.length >= 4) {
+		final String pageName    = parts[0];
+		final String detailsId   = parts.length == 2 ? parts[1] : null;
+		final String fileName    = fileNameFrom(sources, pageName);
+		final NodeInterface node = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).name(pageName).getFirst();
 
-			runWithXserver = (Boolean) sources[3];
+		if (node == null) {
+
+			throw new FrameworkException(422, "pdf(): no page named '" + pageName + "' exists, or it is not visible to the current user.");
 		}
 
-		if (sources.length >= 5) {
+		final Page page                   = node.as(Page.class);
+		final NodeInterface detailsObject = detailsId != null ? resolveDetailsObject(securityContext, detailsId) : null;
 
-			xServerSettings = sources[4].toString();
-		}
+		// ${request.x} resolves through the SecurityContext, so the page gets a request of its own, restored afterwards
+		final HttpServletRequest callersRequest = securityContext.getRequest();
+		final HttpServletRequest pageRequest    = requestFor(callersRequest, parametersFrom(sources));
 
-		if (baseUrl == null || baseUrl.length() == 0) {
-
-			baseUrl = ActionContext.getBaseUrl(ctx.getSecurityContext().getRequest()) + "/";
-		}
-
-		Principal currentUser = ctx.getSecurityContext().getUser(false);
-		final List<Param> parameterList = new ArrayList<>();
-
-		if (currentUser instanceof SuperUser) {
-
-			throw new FrameworkException(422, "Error: Using the pdf() function without a user context (e.g. cron job or $.doPrivileged) is deprecated. This can be easily remedied by using the $.doAs() function to create the pdf as a given user.");
-
-		} else {
-
-			final HttpSession session = ctx.getSecurityContext().getSession();
-			if (session != null) {
-
-				final String sessionId = (session instanceof Session) ? ((Session) session).getExtendedId() : session.getId();
-
-				parameterList.add(new Param("--cookie", "JSESSIONID", sessionId));
-
-			} else {
-
-				try {
-
-					// Fallback: Create token for user with minimal lifetime and no refresh token
-					final Calendar accessTokenExpirationDate = Calendar.getInstance();
-					accessTokenExpirationDate.add(Calendar.MINUTE, 1);
-
-					final Map<String, String> tokens = JWTHelper.createTokensForUser(currentUser, accessTokenExpirationDate.getTime(), null);
-
-					parameterList.add(new Param("--cookie", "access_token", tokens.get("access_token")));
-
-				} catch (Throwable t) {
-
-					// only log in error case to reduce verbosity
-					logger.info("pdf(): No session information available and fallback method of creating a JWT for user also failed. Please see log output.");
-
-					// simply re-throw
-					throw t;
-				}
-			}
-		}
-
-		if (userParameter != null) {
-
-			// use regular expression to extract quoted parts and single terms to be able to convert them to params
-			final Map<String, List<String>> map = new HashMap<>();
-			final Matcher matcher = Pattern.compile("(\"[^\"]*\")|(\\S+)").matcher(userParameter);
-			String lastParam = "";
-
-			while (matcher.find()) {
-
-				final String val = (matcher.group(1) != null) ? matcher.group(1) : matcher.group(2);
-				if (val.length() > 0) {
-
-					if (val.startsWith("-")) {
-
-						lastParam = val;
-						map.put(val, new ArrayList());
-
-					} else {
-
-						map.get(lastParam).add(val);
-					}
-				}
-			}
-
-			// now convert Map to Param objects
-			map.entrySet().stream().forEach(e -> {
-				final String paramName         = e.getKey();
-				final List<String> paramValues = e.getValue();
-
-				if (paramValues.size() == 0) {
-
-					parameterList.add(new Param(paramName));
-
-				} else {
-
-					parameterList.add(new Param(paramName, paramValues.toArray(new String[0])));
-				}
-			});
-		}
-
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		securityContext.setRequest(pageRequest);
 
 		try {
 
-			if (!runWithXserver) {
+			// the page engine runs in this thread and transaction, so no request is made back to this server
+			final RenderContext renderContext = new RenderContext(securityContext, pageRequest, null, RenderContext.EditMode.NONE);
 
-				return convertPageToPdfWithoutXServer(baseUrl, page, parameterList, baos);
+			if (detailsObject != null) {
 
-			} else {
-
-				return convertPageToPdfWithXServer(baseUrl, page, parameterList, baos, xServerSettings);
+				renderContext.setDetailsDataObject(detailsObject);
 			}
 
-		} catch (final Throwable t) {
+			final String html = PdfRenderer.renderToHtml(page, renderContext);
+			final byte[] pdf  = PdfRenderer.toPdf(html, securityContext, pageName);
 
-			logger.warn("Could not convert page {}{} to pdf... retrying with xvfb...", baseUrl, page);
+			return FileHelper.createFile(securityContext, pdf, "application/pdf", StructrTraits.FILE, fileName, true);
 
-			return convertPageToPdfWithXServer(baseUrl, page, parameterList, baos, xServerSettings);
+		} catch (final IOException ioex) {
+
+			throw new FrameworkException(500, "pdf(): could not store the generated document: " + ioex.getMessage());
+
+		} finally {
+
+			securityContext.setRequest(callersRequest);
 		}
 	}
 
-	private  String convertPageToPdfWithoutXServer (String baseUrl, String page, List<Param> parameterList, ByteArrayOutputStream baos) {
+	/** The object the page renders as current, by id then by name; not found is an error, not a blank document. */
+	private NodeInterface resolveDetailsObject(final SecurityContext securityContext, final String detailsId) throws FrameworkException {
 
-		Pdf pdf = new Pdf();
-		pdf.addPageFromUrl(baseUrl + page);
-		addParametersToPdf(pdf, parameterList);
+		final NodeInterface byId = StructrApp.getInstance(securityContext).getNodeById(detailsId);
 
-		return convertPageToPdf(pdf, baos);
-	}
+		if (byId != null) {
 
-	private String convertPageToPdfWithXServer (String baseUrl, String page, List<Param> parameterList, ByteArrayOutputStream baos, String xServerSettings) {
-
-		XvfbConfig xc = new XvfbConfig();
-
-		if (xServerSettings == null || xServerSettings.length() == 0) {
-
-			xc.addParams(new Param("--auto-servernum"), new Param("--server-num=1"));
-
-		} else {
-
-			xc.addParams(new Param(xServerSettings));
+			return byId;
 		}
 
-		WrapperConfig wc = new WrapperConfig();
-		wc.setXvfbConfig(xc);
+		final NodeInterface byName = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.NODE_INTERFACE).name(detailsId).getFirst();
 
-		Pdf pdf = new Pdf(wc);
-		pdf.addPageFromUrl(baseUrl + page);
-		addParametersToPdf(pdf, parameterList);
+		if (byName != null) {
 
-		return convertPageToPdf(pdf, baos);
-	}
-
-	private String convertPageToPdf (Pdf pdf, ByteArrayOutputStream baos) {
-
-		try {
-
-			baos.write(pdf.getPDF());
-
-			return baos.toString("ISO-8859-1");
-
-		} catch (IOException e) {
-
-			logger.warn("pdf(): IOException", e);
-
-		} catch (InterruptedException e) {
-
-			logger.warn("pdf(): InterruptedException", e);
+			return byName;
 		}
 
-		return "";
+		throw new FrameworkException(422, "pdf(): no object with id or name '" + detailsId + "' exists, or it is not visible to the current user.");
 	}
 
-	private void addParametersToPdf (Pdf pdf, List<Param> paramList) {
+	private Map<String, String[]> parametersFrom(final Object[] sources) throws FrameworkException {
 
-		for (Param param : paramList) {
+		final Map<String, String[]> parameters = new LinkedHashMap<>();
 
-			pdf.addParam(param);
+		if (sources.length < 3 || sources[2] == null) {
+
+			return parameters;
 		}
+
+		if (!(sources[2] instanceof Map)) {
+
+			throw new FrameworkException(422, "pdf(): the third parameter is an object of request parameters, for example { lang: 'de', draft: true }.");
+		}
+
+		for (final Map.Entry<?, ?> entry : ((Map<?, ?>) sources[2]).entrySet()) {
+
+			if (entry.getKey() != null && entry.getValue() != null) {
+
+				parameters.put(entry.getKey().toString(), new String[] { entry.getValue().toString() });
+			}
+		}
+
+		return parameters;
+	}
+
+	private HttpServletRequest requestFor(final HttpServletRequest callersRequest, final Map<String, String[]> parameters) {
+
+		// keeps the caller's headers, cookies and locale, which a page may read, but never its parameters
+		final DetachedHttpServletRequest request = callersRequest != null
+			? new DetachedHttpServletRequest(callersRequest)
+			: new DetachedHttpServletRequest();
+
+		request.getParameterMap().clear();
+		request.getParameterMap().putAll(parameters);
+
+		return request;
+	}
+
+	/** An argument string is refused, not ignored: it would yield a plausible document missing whatever it was for. */
+	private String fileNameFrom(final Object[] sources, final String pageName) throws FrameworkException {
+
+		if (sources.length > 3) {
+
+			throw new FrameworkException(422, "pdf(): takes a page path, an optional file name and an optional object of request parameters. The wkhtmltopdf parameters of earlier versions no longer exist, see the 7.x migration notes.");
+		}
+
+		if (sources.length == 2 && sources[1] != null) {
+
+			final String second = sources[1].toString();
+
+			if (second.trim().startsWith("-")) {
+
+				throw new FrameworkException(422, "pdf(): the second parameter is the file name of the generated document. The wkhtmltopdf parameters of earlier versions no longer exist: headers, footers and page numbers are now written in the page's print stylesheet. See the 7.x migration notes.");
+			}
+
+			return second;
+		}
+
+		return PdfRenderer.fileNameFor(pageName);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 
 		return List.of(
-				Usage.structrScript("Usage: ${ pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]) }"),
-				Usage.javaScript("Usage: ${{ $.pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]); }}")
+				Usage.structrScript("Usage: ${ pdf(pagePath [, fileName [, parameters ]]) }"),
+				Usage.javaScript("Usage: ${{ $.pdf(pagePath [, fileName [, parameters ]]); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Creates the PDF representation of a given page.";
+		return "Renders a page and stores the result as a PDF file.";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "Returns a PDF string representation of the given page.";
+		return "Renders the given page with the Structr page engine, converts the result to PDF and returns the new File object. The page is rendered in the current user's context, so it sees exactly what that user is allowed to see, and no HTTP request is made back to this server.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 
 		return List.of(
-				Example.structrScript("${set_content(create('File', 'name', 'new_document.pdf'), pdf('pdf-export-page'), 'ISO-8859-1')}", "Creates a new file for each run of the script"),
+				Example.structrScript("${ pdf('statement') }", "Renders the page 'statement' and returns a File named statement.pdf"),
+				Example.structrScript("${ pdf(concat('invoice/', current.id)) }", "Renders the page 'invoice' for a specific object, which the page reads as `current`"),
 				Example.javaScript("""
 						${{
-						    // download pdf file as "my-downloaded-file.pdf"
-						    $.setResponseHeader('Content-Disposition', 'attachment; filename="my-downloaded-file.pdf"');
-						    $.set_response_header('Cache-Control', 'no-cache');
-						    // These variables reference local pages in the structr installation
-						    let main   = 'pdf-export-main-page/';
-						    let header = '--header-html ' + $.get('base_url') + '/pdf-export-header-page/';
-						    let footer   = '--footer-html ' + $.get('base_url') + '/pdf-export-footer-page/';
-						    let wkhtmlArgs   = header + ' ' + footer + ' --disable-smart-shrinking';
-						    let pdf = $.pdf(main, wkhtmlArgs);
-						    $.print(pdf);
+						    // the page renders one order, in German, and the result is stored as a File
+						    let order = $.first($.find('Order', { orderNumber: '2026-0042' }));
+
+						    let file = $.pdf('invoice/' + order.id, 'invoice-2026-0042.pdf', { lang: 'de' });
+
+						    // inside the page, current is the order and ${request.lang} is 'de'
+						    return file;
 						}}
 						"""));
 	}
@@ -304,35 +252,33 @@ public class PDFFunction extends Function<Object, Object> {
 	public List<String> getNotes() {
 
 		return List.of(
-				"The PDF functionality relies on other software: wkhtmltopdf. This needs to be installed on the server. It is recommended to install a [wkhtmltopdf release](https://github.com/wkhtmltopdf/wkhtmltopdf/releases) from github to ensure that a version with patched qt is installed. See the [autogenerated documentation](https://wkhtmltopdf.org/usage/wkhtmltopdf.txt) for wkhtmltopdf.",
-				"**IMPORTANT**: If you are creating a PDF document from a **dynamic file**, make sure that there are no extraneous whitespaces after the dynamic script content. This will lead to corrupt PDFs and is very hard to detect! The dynamic file should have the charset `ISO-8859-1` specified in its contentType (e.g. `application/octet-stream; charset=ISO-8859-1`). If you experience caching issues, make sure that the `dontCache` flag of the file is set to `true`",
+				"The PDF is produced inside the JVM. Unlike earlier versions there is no external binary to install, and the function works from a cron job or `doPrivileged` context as well as from a request.",
 				"""
-				When using page-based HTML headers and/or footers the following keys are appended to the request URL so they can be used directly in the page:
-				`${request.page}`       Replaced by the number of the pages currently being printed
-				`${request.frompage}`   Replaced by the number of the first page to be printed
-				`${request.topage}`     Replaced by the number of the last page to be printed
-				`${request.webpage}`    Replaced by the URL of the page being printed
-				`${request.section}`    Replaced by the name of the current section
-				`${request.subsection}` Replaced by the name of the current subsection
-				`${request.date}`       Replaced by the current date in system local format
-				`${request.isodate}`    Replaced by the current date in ISO 8601 extended format
-				`${request.time}`       Replaced by the current time in system local format
-				`${request.title}`      Replaced by the title of the of the current page object
-				`${request.doctitle}`   Replaced by the title of the output document
-				`${request.sitepage}`   Replaced by the number of the page in the current site being converted
-				`${request.sitepages}`  Replaced by the number of pages in the current site being converted
-				""");
+				The renderer implements **CSS 2.1 plus paged media**. Flexbox, grid, custom properties (`var(--x)`) and JavaScript have no effect on paper, so a PDF is a print document with its own stylesheet rather than a screenshot of the screen layout. Declarations the renderer cannot use are written to the server log rather than dropped silently.
+				""",
+				"""
+				Headers, footers and page numbers are written in CSS instead of being separate pages:
+				```css
+				@page {
+				    size: A4;
+				    margin: 25mm 18mm;
+				    @top-left     { content: element(docheader); }
+				    @bottom-right { content: "Page " counter(page) " of " counter(pages); }
+				}
+				#docheader { position: running(docheader); }
+				```
+				""",
+				"The page is rendered with a request of its own, carrying exactly the parameters passed to the function and no others, so the same call produces the same document from a page, a cron job or `doPrivileged`. The caller's headers, cookies and locale are still visible to the page.",
+				"Images, stylesheets and fonts are read from the Structr filesystem by path, under the permissions of the user the page is rendered as. A `@font-face` rule pointing at a font file in the filesystem is embedded in the document, which is what non Latin-1 text needs. External URLs are not loaded unless `pdf.resources.external.allowed` is enabled.");
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("page", "the page that should be rendered as a PDF"),
-				Parameter.optional("wkhtmltopdfParameter", "this string is passed to wkhtmltopdf and may contain all parameters that wkhtmltopdf accepts. A useful parameter is `--disable-smart-shrinking`"),
-				Parameter.optional("baseUrl", "the baseUrl for the main page (the header and footer page need the baseUrl explicitly as they are currently provided as a string). Defaults to the value of the keyword `base_url`"),
-				Parameter.optional("runWithXServer", "forces the usage of xvfb"),
-				Parameter.optional("xServerSettings", "parameters for xvfb")
+				Parameter.mandatory("pagePath", "the name of the page to render, optionally followed by the id of the object it renders, for example `invoice/<uuid>`. That object is available in the page as `current`"),
+				Parameter.optional("fileName", "the name of the generated file. Defaults to the page name with a .pdf extension"),
+				Parameter.optional("parameters", "an object of request parameters, readable in the page as `${request.<name>}`. The page sees these and no others")
 		);
 	}
 

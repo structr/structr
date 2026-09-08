@@ -108,6 +108,12 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	private java.security.Principal userPrincipal = null;
 	private String requestedSessionId       = null;
 
+	/** A request standing for no request: empty headers and parameters, default locale, for callers that have none. */
+	public DetachedHttpServletRequest() {
+
+		locales.add(Locale.getDefault());
+	}
+
 	public DetachedHttpServletRequest(final HttpServletRequest source) {
 
 		// headers (preserve order and original names; lookups are case-insensitive)

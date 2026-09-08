@@ -89,6 +89,67 @@ without a host, an internal network address, or a URL outside the outgoing white
 A `File` passed as the request body is now sent as its content rather than as its string representation,
 so an upload no longer needs base64 or a multipart envelope. See the Filesystem chapter.
 
+### PDF Generation Without wkhtmltopdf
+
+The `pdf()` function and the `PdfServlet` no longer call the external `wkhtmltopdf` binary. The document
+is now produced inside the JVM, so nothing has to be installed on the server and PDF generation works
+from a cron job or a `doPrivileged` context as well as from a request.
+
+Three things change for existing applications.
+
+**`pdf()` returns a File, not a string.** The old return value was the document's bytes carried in an
+ISO-8859-1 string, which every caller then wrote into a file.
+
+```
+// Old (6.x)
+${ set_content(create('File', 'name', 'report.pdf'), pdf('report'), 'ISO-8859-1') }
+
+// New (7.x)
+${ pdf('report', 'report.pdf') }
+```
+
+**The wkhtmltopdf parameters are gone.** The second parameter is now the name of the generated file.
+Passing an argument string raises an error rather than being ignored, because a silently dropped
+`--header-html` produces a document that looks right and is missing its header.
+
+**A detail object still comes from the path, but parameters are now an argument.** The old function
+built a URL, so everything travelled in one string. The page path still carries the object the page
+renders, which it reads as `current`, while request parameters are passed as an object instead of a
+query string. A query string in the path is refused rather than ignored.
+
+```
+// Old (6.x)
+${ pdf(concat('invoice/', order.id, '?lang=de')) }
+
+// New (7.x)
+${ pdf(concat('invoice/', order.id), 'invoice.pdf', { lang: 'de' }) }
+```
+
+The page reads those as `${request.lang}`, and it sees exactly the parameters passed and no others, so
+the same call produces the same document from a page, a cron job or `doPrivileged`.
+
+**Headers, footers and page numbers move into the print stylesheet.** They used to be separate Structr
+pages fetched over HTTP. They are now page level CSS, and no second page is involved:
+
+```css
+@page {
+    size: A4;
+    margin: 25mm 18mm;
+    @top-left     { content: element(docheader); }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); }
+}
+#docheader { position: running(docheader); }
+```
+
+The renderer implements CSS 2.1 plus paged media. Flexbox, grid, custom properties and JavaScript have
+no effect on paper, so a page whose screen layout relies on them needs a print stylesheet. Declarations
+the renderer cannot use are written to the server log rather than dropped in silence, so the log tells
+you what a document lost.
+
+Images, stylesheets and fonts are read from the Structr filesystem by path, under the permissions of the
+user the page is rendered as. External URLs are not fetched unless `pdf.resources.external.allowed` is
+enabled.
+
 ## Migrating to Structr 6.x
 
 Version 6 introduces several breaking changes that require manual migration from 5.x.

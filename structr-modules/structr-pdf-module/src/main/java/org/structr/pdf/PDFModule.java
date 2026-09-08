@@ -18,6 +18,9 @@
  */
 package org.structr.pdf;
 
+import org.structr.api.config.BooleanSetting;
+import org.structr.api.config.Setting;
+import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
@@ -27,6 +30,9 @@ import org.structr.pdf.function.PDFFunction;
 import java.util.Set;
 
 public class PDFModule implements StructrModule {
+
+	public static final Setting<Boolean> AllowExternalResources = new BooleanSetting(Settings.miscGroup, "PDF Module", "pdf.resources.external.allowed", false,
+		"Whether a page being rendered to PDF may load images, stylesheets and fonts from external URLs. Disabled by default: references are resolved against the Structr filesystem, so enabling this lets page content decide what the server requests.");
 
 	@Override
 	public void onLoad() {
