@@ -469,21 +469,33 @@ public abstract class RESTCallHandler {
 		} else {
 
 			result = new RestMethodResult(200);
-			result.addContent(obj);
 
-			if (obj instanceof Collection c) {
+			if (obj instanceof Collection<?> c) {
 
+				result.addContent(c);
 				result.setOverriddenResultCount(c.size());
 
+			} else if (obj instanceof Iterable<?> i) {
+
+				final List<?> l = Iterables.toList(i);
+
+				result.addContent(l);
+				result.setOverriddenResultCount(l.size());
+
 			} else if (obj == null) {
+
+				result.addContent(null);
 
 				// A method that returns nothing has no results, so result_count must be 0. The null is
 				// still added as content above, because getContent() is dereferenced without a null check
 				// by the doGet() of every method handler and by the multi-object POST path in
 				// JsonRestServlet and CsvServlet -- leaving the content out turns a wrong count into an NPE.
 				result.setOverriddenResultCount(0);
-			}
 
+			} else {
+
+				result.addContent(obj);
+			}
 		}
 
 		return result;
