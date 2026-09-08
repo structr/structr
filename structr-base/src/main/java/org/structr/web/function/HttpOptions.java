@@ -53,10 +53,12 @@ public class HttpOptions {
 	public static final String REDIRECTS             = "redirects";
 	public static final String VALIDATE_CERTIFICATES = "validateCertificates";
 	/**
-	 * Two directions, two names. "binary" meant sending the body as a binary stream on POST and
-	 * streaming the response on GET, so one key stood for opposite things depending on the verb.
+	 * One key for one thing: return the response body as a stream.
+	 *
+	 * It was briefly split into binaryBody for POST and binaryResponse for GET, on the belief that the
+	 * two meant opposite things. They did not: both stream the RESPONSE, and binaryBody named a request
+	 * that it never affected. A binary request body is expressed by passing a File as the body instead.
 	 */
-	public static final String BINARY_BODY          = "binaryBody";
 	public static final String BINARY_RESPONSE      = "binaryResponse";
 	public static final String PARSE_RESPONSE        = "parseResponse";
 	public static final String SELECTOR              = "selector";
@@ -95,6 +97,35 @@ public class HttpOptions {
 		}
 
 		return this;
+	}
+
+	/**
+	 * The options object, wherever the caller actually put it.
+	 *
+	 * The options follow an OPTIONAL argument, so the natural call that omits it - POST(url, body, { ... })
+	 * - leaves the object one position early. Read positionally that map becomes the content type via
+	 * toString(), the request goes out with a Content-Type of "{timeout=5}" and the options are silently
+	 * dropped: no error, and nothing in the response says why the timeout had no effect.
+	 *
+	 * A Map is never a valid content type, so finding one in an earlier slot is unambiguous.
+	 */
+	public static HttpOptions fromAnyOf(final String functionName, final Object[] sources, final int index, final int... earlierSlots) {
+
+		for (final int slot : earlierSlots) {
+
+			if (sources != null && sources.length > slot && sources[slot] instanceof Map) {
+
+				return new HttpOptions((Map)sources[slot]);
+			}
+		}
+
+		return from(functionName, sources, index);
+	}
+
+	/** Whether the argument at the given position is an options object rather than a value. */
+	public static boolean isOptionsAt(final Object[] sources, final int index) {
+
+		return sources != null && sources.length > index && sources[index] instanceof Map;
 	}
 
 	/**

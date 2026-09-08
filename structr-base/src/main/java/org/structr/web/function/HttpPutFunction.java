@@ -28,6 +28,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -46,12 +47,23 @@ public class HttpPutFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
+
+			for (int i = 0; i < 2; i++) {
+
+				if (sources[i] == null) {
+
+					throw new ArgumentTypeException("PUT(): the url and the body must not be null.");
+				}
+			}
 
 			final String uri          = sources[0].toString();
 			final Object body         = HttpBody.of(sources[1]);
-			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : "application/json";
-			final HttpOptions options = HttpOptions.from("PUT", sources, 3).accepting("PUT", HttpOptions.PARSE_RESPONSE);
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : "application/json";
+			final HttpOptions options = HttpOptions.fromAnyOf("PUT", sources, 3, 2).accepting("PUT", HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("PUT", body, options);
 
@@ -71,6 +83,14 @@ public class HttpPutFunction extends UiAdvancedFunction {
 
 			return null;
 		}
+	}
+
+	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
 	}
 
 	@Override
@@ -125,6 +145,7 @@ public class HttpPutFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.PUT.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.PUT.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `PUT()` synchronously.",
 			"The `PUT()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"`contentType` is the expected response content type. If you need to define the request content type, use `addHeader('Content-Type', 'your-content-type-here')`",

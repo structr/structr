@@ -31,9 +31,10 @@ public class ArgumentTypeException extends IllegalArgumentException {
 		super(message);
 	}
 
-	public static ArgumentTypeException wrongTypes(final Object[] params, final int minimum, final Class... types) {
+	public static ArgumentTypeException wrongTypes(final String functionName, final Object[] params, final int minimum, final Class... types) {
 
-		final StringBuilder buf = new StringBuilder("Expected at least (");
+		final StringBuilder buf = new StringBuilder(functionName);
+		buf.append("(): Expected at least (");
 		buf.append(join(types, minimum, Class::getSimpleName));
 		buf.append("), got (");
 		buf.append(join(params, 1000, Object::toString));

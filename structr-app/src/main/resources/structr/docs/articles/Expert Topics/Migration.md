@@ -4,6 +4,91 @@ This chapter covers breaking changes and migration steps when upgrading between 
 
 > **Important:** Always create a full backup before upgrading Structr.
 
+## Migrating to Structr 7.x
+
+Version 7 changes the signatures of the outbound HTTP functions. All optional arguments moved into a
+single trailing options object, so a call no longer has to pass positional nulls to reach the last one,
+and an option that is not supported by a function is rejected instead of being silently ignored.
+
+### Outbound HTTP Function Signatures
+
+| Function | Signature |
+|----------|-----------|
+| `$.GET` | `url [, contentType [, options ]]` |
+| `$.HEAD` | `url [, options ]` |
+| `$.POST` | `url, body [, contentType [, options ]]` |
+| `$.PUT` | `url, body [, contentType [, options ]]` |
+| `$.PATCH` | `url, body [, contentType [, options ]]` |
+| `$.DELETE` | `url [, body [, contentType [, options ]]]` |
+| `$.FETCH` | `url, method [, body [, contentType [, options ]]]` |
+| `$.POST_multi_part` | `url, partsMap [, options ]` |
+
+```javascript
+// Old (6.x): charset, then credentials, as positional arguments
+$.POST(url, body, 'application/json', 'UTF-8', 'user', 'secret');
+
+// New (7.x): the charset belongs to the content type, everything else is an option
+$.POST(url, body, 'application/json; charset=UTF-8', { username: 'user', password: 'secret' });
+```
+
+`username`, `password`, `preemptive`, `headers`, `timeout`, `redirects` and `validateCertificates` are
+accepted by every function. `selector`, `binaryResponse` and `parseResponse` are accepted
+only where they mean something; passing one elsewhere is an error naming the function and the key.
+
+Most calls can be rewritten automatically. See `application.migration.mode` and the `migrate` maintenance
+command, which report every call that still uses the old form and can rewrite the unambiguous ones.
+
+### Binary Responses Are Streams
+
+`$.POST` previously returned the response body as a byte array when the content type was
+`application/octet-stream`. Streaming the response is now requested by the `binaryResponse` option, the
+same key `$.GET` uses, and the result is an `InputStream` for both. The stream removes the 2 GB limit
+that the array imposed.
+
+```javascript
+// Old (6.x): a byte array
+const bytes = $.POST(url, body, 'application/octet-stream').body;
+
+// New (7.x): a stream, which can be passed straight to setContent()
+const stream = $.POST(url, body, 'application/octet-stream', { binaryResponse: true }).body;
+$.get_or_create('File', { name: 'result.bin' }).setContent(stream);
+```
+
+**This change cannot be detected automatically.** The call text is unchanged, so the migration report
+will not flag it: any code that indexes into the result, measures its length or stores it as a byte array
+has to be adjusted by hand.
+
+### Failed Requests No Longer Throw
+
+A request that reached the server has always returned its status. A request that did NOT reach it - an
+unreachable host, a refused connection, a TLS failure, a timeout - used to throw a `FrameworkException`
+with status 422. It now returns a response with `status: 0` and an `error` field describing the failure.
+
+```javascript
+// Old (6.x): only a try/catch could survive an unreachable service, and StructrScript could not
+try { $.GET(url); } catch (e) { /* ... */ }
+
+// New (7.x): check the status, which StructrScript can do as well
+let response = $.GET(url);
+if (response.status === 0) { $.log('unreachable: ' + response.error); }
+```
+
+Two related corrections come with it. An error response WITHOUT a body, such as a bodyless `404` or a
+`204`, used to be reported as a thrown 422 because the empty body was read unchecked; it now returns the
+status the server sent. And a rejected URL used to be re-wrapped as that same 422; its own status now
+survives.
+
+Calls that cannot be made at all still throw: a malformed URL, a scheme other than http or https, a URL
+without a host, an internal network address, or a URL outside the outgoing whitelist.
+
+**Code that relies on a `catch` to detect an unreachable service will no longer enter it.** Check
+`status === 0` instead.
+
+### Binary Request Bodies
+
+A `File` passed as the request body is now sent as its content rather than as its string representation,
+so an upload no longer needs base64 or a multipart envelope. See the Filesystem chapter.
+
 ## Migrating to Structr 6.x
 
 Version 6 introduces several breaking changes that require manual migration from 5.x.

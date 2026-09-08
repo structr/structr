@@ -8907,39 +8907,39 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// this call overrides the schema node "Page"
-			final Object result1 = Scripting.evaluate(actionContext, null, "${dataSource('node:Page')}", "testDataSourceByName");
+			final Object result1 = Scripting.evaluate(actionContext, null, "${getDataSource('node:Page')}", "testDataSourceByName");
 
-			assertTrue("Invalid dataSource() function result", result1 instanceof List);
-			assertEquals("Invalid dataSource() function result size", 0, ((List)result1).size());
+			assertTrue("Invalid getDataSource() function result", result1 instanceof List);
+			assertEquals("Invalid getDataSource() function result size", 0, ((List)result1).size());
 
 			for (int i=0; i<10; i++) {
 
 				Page.createSimplePage(securityContext, "Page" + i);
 			}
 
-			final Object result2 = Scripting.evaluate(actionContext, null, "${dataSource('node:Page')}", "testDataSourceByName");
-			assertEquals("Invalid dataSource() function result size", 10, ((List)result2).size());
+			final Object result2 = Scripting.evaluate(actionContext, null, "${getDataSource('node:Page')}", "testDataSourceByName");
+			assertEquals("Invalid getDataSource() function result size", 10, ((List)result2).size());
 
-			final Object result3 = Scripting.evaluate(actionContext, null, "${dataSource('node:Page', 7)}", "testDataSourceByName");
-			assertEquals("Invalid dataSource() function result size", 7, ((List)result3).size());
+			final Object result3 = Scripting.evaluate(actionContext, null, "${getDataSource('node:Page', 7)}", "testDataSourceByName");
+			assertEquals("Invalid getDataSource() function result size", 7, ((List)result3).size());
 
-			final Object result4 = Scripting.evaluate(actionContext, null, "${dataSource('node:Page', 5, 1)}", "testDataSourceByName");
-			assertEquals("Invalid dataSource() function result size", 5, ((List)result4).size());
+			final Object result4 = Scripting.evaluate(actionContext, null, "${getDataSource('node:Page', 5, 1)}", "testDataSourceByName");
+			assertEquals("Invalid getDataSource() function result size", 5, ((List)result4).size());
 
-			assertEquals("Invalid dataSource() function result order", "Page0", ((List<NodeInterface>)result4).get(0).getName());
-			assertEquals("Invalid dataSource() function result order", "Page1", ((List<NodeInterface>)result4).get(1).getName());
-			assertEquals("Invalid dataSource() function result order", "Page2", ((List<NodeInterface>)result4).get(2).getName());
-			assertEquals("Invalid dataSource() function result order", "Page3", ((List<NodeInterface>)result4).get(3).getName());
-			assertEquals("Invalid dataSource() function result order", "Page4", ((List<NodeInterface>)result4).get(4).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page0", ((List<NodeInterface>)result4).get(0).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page1", ((List<NodeInterface>)result4).get(1).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page2", ((List<NodeInterface>)result4).get(2).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page3", ((List<NodeInterface>)result4).get(3).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page4", ((List<NodeInterface>)result4).get(4).getName());
 
-			final Object result5 = Scripting.evaluate(actionContext, null, "${dataSource('node:Page', 5, 2)}", "testDataSourceByName");
-			assertEquals("Invalid dataSource() function result size", 5, ((List)result5).size());
+			final Object result5 = Scripting.evaluate(actionContext, null, "${getDataSource('node:Page', 5, 2)}", "testDataSourceByName");
+			assertEquals("Invalid getDataSource() function result size", 5, ((List)result5).size());
 
-			assertEquals("Invalid dataSource() function result order", "Page5", ((List<NodeInterface>)result5).get(0).getName());
-			assertEquals("Invalid dataSource() function result order", "Page6", ((List<NodeInterface>)result5).get(1).getName());
-			assertEquals("Invalid dataSource() function result order", "Page7", ((List<NodeInterface>)result5).get(2).getName());
-			assertEquals("Invalid dataSource() function result order", "Page8", ((List<NodeInterface>)result5).get(3).getName());
-			assertEquals("Invalid dataSource() function result order", "Page9", ((List<NodeInterface>)result5).get(4).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page5", ((List<NodeInterface>)result5).get(0).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page6", ((List<NodeInterface>)result5).get(1).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page7", ((List<NodeInterface>)result5).get(2).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page8", ((List<NodeInterface>)result5).get(3).getName());
+			assertEquals("Invalid getDataSource() function result order", "Page9", ((List<NodeInterface>)result5).get(4).getName());
 
 			tx.success();
 
@@ -8948,7 +8948,6 @@ public class ScriptingTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 	}
 
 	@Test
@@ -8964,6 +8963,64 @@ public class ScriptingTest extends StructrTest {
 
 			e.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testLabelManagementFunctions() {
+
+		NodeInterface testUser = null;
+
+		// create test user
+		try (final Tx tx = app.tx()) {
+
+			testUser = app.create(StructrTraits.USER,  "test");
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext sctx = SecurityContext.getInstance(testUser.as(User.class), AccessMode.Backend);
+		final App userApp = StructrApp.getInstance(sctx);
+		final ActionContext actionContext = new ActionContext(sctx);
+
+		try (final Tx tx = userApp.tx()) {
+
+			final String getLabelsCode = "${getLabels(me)}";
+
+			List labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			final int baselineLabelCount = labels.size();
+
+			Scripting.evaluate(actionContext, null, "${addLabels(me, merge('User'))}", "addLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Adding a label that already exists on the node should keep label count at baseline", baselineLabelCount, labels.size());
+
+			Scripting.evaluate(actionContext, null, "${addLabels(me, merge('Test1', 'Test2', 'Test3'))}", "addLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Adding 3 labels should increase label count by 3", (baselineLabelCount + 3), labels.size());
+
+			Scripting.evaluate(actionContext, null, "${removeLabels(me, merge('Test1', 'Test3'))}", "removeLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Removing 2 labels should decrease label count by 2", (baselineLabelCount + 3 - 2), labels.size());
+
+			Scripting.evaluate(actionContext, null, "${removeLabels(me, merge('Test1', 'Test3'))}", "removeLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Removing 2 labels that do not exist on the node should not change label count", (baselineLabelCount + 3 - 2), labels.size());
+
+			Scripting.evaluate(actionContext, null, "${removeLabels(me, merge('Test2'))}", "removeLabels");
+			labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
+			assertEquals("Removing the last newly added label should change label count back to baseline", baselineLabelCount, labels.size());
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 

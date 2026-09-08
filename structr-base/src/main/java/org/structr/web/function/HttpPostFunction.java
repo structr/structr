@@ -32,6 +32,8 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
+import java.io.InputStream;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
@@ -55,12 +57,23 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
+
+			for (int i = 0; i < 2; i++) {
+
+				if (sources[i] == null) {
+
+					throw new ArgumentTypeException("POST(): the url and the body must not be null.");
+				}
+			}
 
 			final String address      = sources[0].toString();
 			final Object body         = HttpBody.of(sources[1]);
-			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final HttpOptions options = HttpOptions.from("POST", sources, 3).accepting("POST", HttpOptions.BINARY_BODY, HttpOptions.PARSE_RESPONSE);
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
+			final HttpOptions options = HttpOptions.fromAnyOf("POST", sources, 3, 2).accepting("POST", HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("POST", body, options);
 
@@ -70,12 +83,17 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			final String password              = options.getString(HttpOptions.PASSWORD);
 			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 
-			if (options.getBoolean(HttpOptions.BINARY_BODY, false)) {
+			if (options.getBoolean(HttpOptions.BINARY_RESPONSE, false)) {
 
-				final Map<String, Object> binaryData = HttpHelper.postBinary(address, body, charset, username, password, headers, validateCertificates);
-				final GraphObjectMap binaryResponse  = new GraphObjectMap();
+				// A stream, like GET's binaryResponse, rather than a byte[]: the two options describe the
+				// same thing and used to hand back different shapes, so a script dealing with both had to
+				// branch on which verb it had called. Streaming also removes the 2 GB array limit.
+				final Map<String, Object> binaryData = HttpHelper.postAsStream(address, body, charset, username, password,
+					null, null, null, null, headers, contentType, validateCertificates, options.asRequestConfig());
 
-				binaryResponse.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), binaryData.get(HttpHelper.FIELD_BODY));
+				final GraphObjectMap binaryResponse = new GraphObjectMap();
+
+				binaryResponse.setProperty(new GenericProperty<InputStream>(HttpHelper.FIELD_BODY), (InputStream) binaryData.get(HttpHelper.FIELD_BODY));
 
 				return binaryResponse;
 			}
@@ -122,6 +140,14 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 
 		return Signature.forAllScriptingLanguages("url, body [, contentType [, options ]]");
@@ -134,7 +160,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryBody` to return the RESPONSE body as a byte array (despite its name, it does not change how the request body is sent)")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryResponse` to return the response body as a stream. To SEND binary data, pass a File as the body instead")
 		);
 	}
 
@@ -175,6 +201,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.POST.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.POST.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `POST()` synchronously.",
 			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"7.0+: `contentType` is the content type of the REQUEST and is sent as the `Content-Type` header. Before 7.0 it never reached the request and `addHeader('Content-Type', ...)` was needed instead.",

@@ -69,7 +69,7 @@ public class ConsoleCommand extends AbstractCommand {
 
 		final String  line                   = webSocketData.getNodeDataStringValue(LINE_KEY);
 		final String  mode                   = webSocketData.getNodeDataStringValue(MODE_KEY);
-		final Boolean completion             = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
+		final Boolean isCompletion           = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
 		final ByteArrayOutputStream out      = new ByteArrayOutputStream();
 		final OutputStreamWritable writeable = new OutputStreamWritable(out);
 		ConsoleMode consoleMode = ConsoleMode.JavaScript;
@@ -103,7 +103,13 @@ public class ConsoleCommand extends AbstractCommand {
 				writeable.println("");
 			}
 
-			if (Boolean.TRUE.equals(completion)) {
+			final MessageBuilder messageBuilder = MessageBuilder.forName(getCommand())
+														  .callback(webSocketData.getCallback())
+														  .data(PROMPT_KEY, console.getPrompt())
+														  .data(MODE_KEY, console.getMode())
+														  .data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo());
+
+			if (isCompletion) {
 
 				final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
 				final List<String> commands = new ArrayList<>();
@@ -113,29 +119,18 @@ public class ConsoleCommand extends AbstractCommand {
 					commands.add(res.getCommand());
 				}
 
-				getWebSocket().send(MessageBuilder.forName(getCommand())
-						.callback(webSocketData.getCallback())
-						.data(COMMANDS_KEY, commands)
-						.data(PROMPT_KEY, console.getPrompt())
-						.data(MODE_KEY, console.getMode())
-						.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
-						.message(out.toString("UTF-8"))
-						.build(), true);
+				messageBuilder.data(COMMANDS_KEY, commands);
 
 			} else {
 
 				console.run(line, writeable);
-
-				getWebSocket().send(MessageBuilder.forName(getCommand())
-						.callback(webSocketData.getCallback())
-						.data(PROMPT_KEY, console.getPrompt())
-						.data(MODE_KEY, console.getMode())
-						.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
-						.message(out.toString("UTF-8"))
-						.build(), true);
 			}
 
 			tx.success();
+
+			// send message after tx.success() to allow exceptions to prevent this
+			// otherwise any sent exception WS message will not be handled because the callback has already been used
+			getWebSocket().send(messageBuilder.message(out.toString("UTF-8")).build(), true);
 
 		} catch (final FrameworkException ex) {
 

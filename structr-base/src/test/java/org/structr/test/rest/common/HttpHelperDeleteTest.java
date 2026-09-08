@@ -362,19 +362,39 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 	}
 
 	@Test
-	public void deleteToUnreachableAddressThrowsFrameworkException() {
+	public void deleteToUnreachableAddressReportsNoResponse() {
 
 		// nothing is listening on this port on loopback
 		final String unreachableUrl = "http://127.0.0.1:1/nowhere";
 
 		try {
 
-			HttpHelper.delete(unreachableUrl);
-			fail("Expected a FrameworkException for an unreachable address");
+			final Map<String, Object> returnData = HttpHelper.delete(unreachableUrl);
+
+			assertEquals("A request that never reached the server has no status", "0", returnData.get(HttpHelper.FIELD_STATUS));
+			assertNull("There is no body without a response", returnData.get(HttpHelper.FIELD_BODY));
+			assertNotNull("The transport failure belongs in the error field", returnData.get(HttpHelper.FIELD_ERROR));
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Expected status 422 for a connection failure", 422, fex.getStatus());
+			fail("An unreachable address is a failed request, not an unusable call, and must not throw. Got status "
+				+ fex.getStatus() + ": " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void deleteToUnusableAddressThrows() {
+
+		// the counterpart of the test above: a request that cannot be made at all is still an error, and
+		// must not be flattened into the same status-0 answer a failed request gets
+		try {
+
+			HttpHelper.delete("ftp://example.com/nowhere");
+			fail("A non-http address must be refused");
+
+		} catch (FrameworkException expected) {
+
+			assertEquals("An unusable address is a bad request, not a failed one", 400, expected.getStatus());
 		}
 	}
 }

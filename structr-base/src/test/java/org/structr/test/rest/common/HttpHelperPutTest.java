@@ -420,19 +420,23 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 	}
 
 	@Test
-	public void putThrowsFrameworkExceptionWhenServerUnreachable() {
+	public void putReportsNoResponseWhenServerUnreachable() {
 
 		// nothing listens on this port
 		final String unreachableUrl = "http://127.0.0.1:1/internal";
 
 		try {
 
-			HttpHelper.put(unreachableUrl, "body");
-			fail("Expected a FrameworkException to be thrown for an unreachable server");
+			final Map<String, Object> returnData = HttpHelper.put(unreachableUrl, "body");
+
+			assertEquals("A request that never reached the server has no status", "0", returnData.get(HttpHelper.FIELD_STATUS));
+			assertNull("There is no body without a response", returnData.get(HttpHelper.FIELD_BODY));
+			assertNotNull("The transport failure belongs in the error field", returnData.get(HttpHelper.FIELD_ERROR));
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Expected status 422 for a connection failure", 422, fex.getStatus());
+			fail("An unreachable server is a failed request, not an unusable call, and must not throw. Got status "
+				+ fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
 
@@ -448,12 +452,31 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 
 		try {
 
-			HttpHelper.put(loopbackUrl, "body", null, null, null, null, null, null, new HashMap<>(), "UTF-8", true, null, config);
-			fail("Expected a FrameworkException to be thrown because the server response exceeded the configured timeout");
+			final Map<String, Object> returnData = HttpHelper.put(loopbackUrl, "body", null, null, null, null, null, null, new HashMap<>(), "UTF-8", true, null, config);
+
+			assertEquals("A request that timed out received no response, so it has no status", "0", returnData.get(HttpHelper.FIELD_STATUS));
+			assertNotNull("The timeout belongs in the error field", returnData.get(HttpHelper.FIELD_ERROR));
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Expected status 422 for a timeout", 422, fex.getStatus());
+			fail("A timeout is a failed request, not an unusable call, and must not throw. Got status "
+				+ fex.getStatus() + ": " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void putToUnusableAddressThrows() {
+
+		// the counterpart of the two tests above: a request that cannot be made at all is still an error,
+		// and must not be flattened into the same status-0 answer a failed request gets
+		try {
+
+			HttpHelper.put("ftp://example.com/internal", "body");
+			fail("A non-http address must be refused");
+
+		} catch (FrameworkException expected) {
+
+			assertEquals("An unusable address is a bad request, not a failed one", 400, expected.getStatus());
 		}
 	}
 

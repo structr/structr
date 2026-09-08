@@ -40,6 +40,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
+import org.structr.core.script.polyglot.PendingThenables;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.script.polyglot.context.ContextFactory;
@@ -62,6 +63,21 @@ public class Scripting {
 
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final String PENDING_PROMISE_MESSAGE             = "Attempt to unwrap pending promise";
+
+	/**
+	 * Calls the transpiled async wrapper, which {@link JSFunctionTranspiler} deliberately leaves uncalled.
+	 *
+	 * <p>Being a plain arrow rather than an async function is the point.
+	 * {@code js.interop-complete-promises} completes the promise of an <em>async function</em> crossing
+	 * to the host, throwing if it cannot, so calling the wrapper directly leaves the host no pending
+	 * promise to hold and no opportunity to stop settling early. Called through a function that is not
+	 * itself async, the same promise crosses still pending, as a non-embedded snippet's completion value
+	 * does. Both dialects then settle through {@code PolyglotWrapper.unwrapThenable}.</p>
+	 */
+	private static final Source ASYNC_WRAPPER_TRAMPOLINE = Source.newBuilder("js", "((fn) => fn())", "structrAsyncWrapperCall")
+		.mimeType("application/javascript+module")
+		.buildLiteral();
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
@@ -299,8 +315,46 @@ public class Scripting {
 
 			try {
 
-				final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
-				result = PolyglotWrapper.unwrap(actionContext, value);
+				// The host can only settle a promise from outside every evaluation, so host-driven settlement
+				// is available to the outermost one alone. An open frame means an evaluation is already in
+				// progress on this thread -- a script reaching this method again through $.evaluateScript,
+				// a lifecycle method or rendering -- and this one has to complete its wrapper at its own
+				// call boundary instead. Read before openFrame(), which is what would make it true.
+				final AsyncCompletion asyncCompletion = PendingThenables.hasFrame()
+					? AsyncCompletion.AT_BOUNDARY
+					: AsyncCompletion.HOST_DRIVEN;
+
+				// Deferred async settlements belong to this evaluation, so the frame is opened inside the lock
+				// and the entered context: a drain has to happen on this thread, in this transaction, before
+				// the context is left. unwrap() is inside the frame as well, because that is where a
+				// thenable completion value is settled.
+				PendingThenables.openFrame();
+
+				try {
+
+					final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet, asyncCompletion);
+					result = PolyglotWrapper.unwrap(actionContext, value);
+
+				} finally {
+
+					PendingThenables.closeFrame();
+				}
+
+			} catch (final PolyglotWrapper.ThenableFailure tfx) {
+
+				// unwrap() has no throws clause, so a promise it could not resolve -- rejected, or still
+				// pending with nothing left that could settle it -- arrives wrapped in this marker.
+				//
+				// Each of the two failures it may carry has to leave by the same route the synchronous path
+				// uses, or the reported status would depend on whether the snippet was wrapped. An
+				// AssertException is not a FrameworkException, so it leaves unchecked for Actions.execute to
+				// convert using the status $.assert was given.
+				if (tfx.getReportedFailure() instanceof AssertException aex) {
+
+					throw aex;
+				}
+
+				throw tfx.getFrameworkException();
 
 			} finally {
 
@@ -335,14 +389,48 @@ public class Scripting {
 		return result;
 	}
 
+	/**
+	 * Who settles the promise of an embedded snippet's async wrapper.
+	 *
+	 * <p>Determined by whether an evaluation is already in progress on this thread, not by the caller.</p>
+	 *
+	 * <ul>
+	 * <li>{@link #HOST_DRIVEN} -- the outermost evaluation, and the only one where the host can settle
+	 * anything: it owns the thread and can keep joining deferred calls until the script's promise
+	 * resolves, which is what allows a race to stop at its winner.</li>
+	 * <li>{@link #AT_BOUNDARY} -- an evaluation nested inside a running one: a script calling a schema
+	 * method, or reaching {@link #evaluateScript} again through {@code $.evaluateScript}, a lifecycle
+	 * method or rendering. An interop call made while an outer host-to-guest call is still on the stack
+	 * does not get a job-queue drain of its own, so a promise the host registers reactions on there is
+	 * never settled; the wrapper's promise must be completed at its own call boundary instead. A nested
+	 * body that genuinely suspends consequently fails with <em>Attempt to unwrap pending promise</em>,
+	 * so {@code await} is not usable in one.</li>
+	 * </ul>
+	 */
+	public enum AsyncCompletion {
+
+		HOST_DRIVEN,
+		AT_BOUNDARY
+	}
+
+	/**
+	 * Evaluates a snippet nested inside a running evaluation, completing any async wrapper at its own
+	 * call boundary. The outermost evaluation goes through {@link #evaluateScript}.
+	 */
 	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
+
+		return evaluatePolyglot(actionContext, engineName, context, entity, snippet, AsyncCompletion.AT_BOUNDARY);
+	}
+
+	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet, final AsyncCompletion asyncCompletion) throws FrameworkException {
 
 		try {
 
 			Source source = null;
 			String code = snippet.getSource();
+			final boolean isAsyncWrapped = "js".equals(engineName) && snippet.embed();
 
-			if ("js".equals(engineName) && snippet.embed()) {
+			if (isAsyncWrapped) {
 
 				code = JSFunctionTranspiler.transpileSource(snippet);
 			}
@@ -353,13 +441,46 @@ public class Scripting {
 
 				if (source != null) {
 
-					final Value result = context.eval(source);
+					Value result = context.eval(source);
 
-					// Legacy print() support: Prefer explicitly printed output over actual result
-					final String outputBuffer = actionContext.getOutput();
-					if (outputBuffer != null && !outputBuffer.isEmpty()) {
+					// An embedded snippet is wrapped in an async arrow that JSFunctionTranspiler deliberately
+					// leaves uncalled, so the call happens here. How it is called decides who settles it.
+					if (isAsyncWrapped && result != null && result.canExecute()) {
 
-						return Value.asValue(outputBuffer);
+						if (asyncCompletion == AsyncCompletion.HOST_DRIVEN) {
+
+							// through a plain arrow, so the promise crosses still pending and the caller's
+							// unwrap can settle it -- and stop as soon as the script itself has answered
+							result = context.eval(ASYNC_WRAPPER_TRAMPOLINE).execute(result);
+
+						} else {
+
+							// js.interop-complete-promises drains the promise job queue at this boundary and
+							// answers with the resolved value; a rejection arrives as the PolyglotException
+							// handled below
+							result = executeAsyncWrapper(result, snippet);
+						}
+					}
+
+					// Legacy print() support: prefer explicitly printed output over the actual result.
+					//
+					// Only correct once the body has finished, which is why it comes after the call above,
+					// and why the outermost evaluation does not apply it here at all. There the value may be
+					// a promise that has not settled, with the body run no further than its first
+					// suspension, so preferring the buffer would answer with whatever had been printed by
+					// then and discard the promise carrying the rest of the script -- including every
+					// print() after an await. evaluateScript applies the same preference once the value has
+					// settled and the buffer is complete.
+					//
+					// A nested evaluation has no such gap: its wrapper was completed at the boundary above,
+					// so the body has finished and the buffer is final here.
+					if (asyncCompletion == AsyncCompletion.AT_BOUNDARY) {
+
+						final String outputBuffer = actionContext.getOutput();
+						if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+							return Value.asValue(outputBuffer);
+						}
 					}
 
 					return result;
@@ -424,6 +545,34 @@ public class Scripting {
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
+		}
+	}
+
+	/**
+	 * Calls the async wrapper produced by {@link JSFunctionTranspiler} and answers its resolved value.
+	 *
+	 * <p>The one failure mode worth naming is a promise that never settles. GraalJS reports that as a
+	 * bare {@code TypeError: Attempt to unwrap pending promise}, which says nothing about which script
+	 * is at fault, so it is translated here. It is hard to reach on purpose -- there is no event loop
+	 * and no timers in a Structr scripting context -- but a hand-built {@code new Promise(() => {})}
+	 * gets there.</p>
+	 */
+	private static Value executeAsyncWrapper(final Value wrapper, final Snippet snippet) throws FrameworkException {
+
+		try {
+
+			return wrapper.execute();
+
+		} catch (final PolyglotException ex) {
+
+			if (!ex.isHostException() && ex.getMessage() != null && ex.getMessage().contains(PENDING_PROMISE_MESSAGE)) {
+
+				throw new FrameworkException(422, "Server-side scripting error: " + snippet.getName()
+					+ " returned a promise that never resolved. Every promise a script awaits has to be settled by the"
+					+ " time the script ends; Structr scripting has no event loop, so nothing can settle it afterwards.");
+			}
+
+			throw ex;
 		}
 	}
 

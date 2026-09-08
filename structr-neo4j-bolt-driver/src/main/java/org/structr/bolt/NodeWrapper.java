@@ -145,7 +145,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		map.put("id", id);
 
-		tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", labels, " RETURN n"), map));
+		entity = tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", labels, " RETURN n"), map));
 	}
 
 	@Override
@@ -159,7 +159,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		map.put("id", id);
 
-		tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id REMOVE n:", label, " RETURN n"), map));
+		entity = tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id REMOVE n:", label, " RETURN n"), map));
 	}
 
 	@Override

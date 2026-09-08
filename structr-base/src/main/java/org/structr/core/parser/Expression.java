@@ -104,6 +104,12 @@ public abstract class Expression implements Documentable {
 		return concepts;
 	}
 
+	@Override
+	public boolean canShowDetails() {
+
+		return getLongDescription() != null || (getNotes() != null && !getNotes().isEmpty()) || (getExamples() != null && !getExamples().isEmpty());
+	}
+
 	public Expression getParent() {
 
 		return parent;

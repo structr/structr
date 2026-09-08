@@ -67,9 +67,9 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 					+ "so pass null as the body when there is none: DELETE(url, null, null, { ... }).");
 			}
 
-			final Object body         = (sources.length >= 2 && sources[1] != null) ? HttpBody.of(sources[1]) : null;
-			final String contentType  = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
-			final HttpOptions options = HttpOptions.from("DELETE", sources, 3).accepting("DELETE", HttpOptions.PARSE_RESPONSE);
+			final Object body         = (sources.length >= 2 && sources[1] != null) && !HttpOptions.isOptionsAt(sources, 1) ? HttpBody.of(sources[1]) : null;
+			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : null;
+			final HttpOptions options = HttpOptions.fromAnyOf("DELETE", sources, 3, 1, 2).accepting("DELETE", HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("DELETE", body, options);
 
@@ -88,6 +88,14 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 			return null;
 		}
+	}
+
+	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
 	}
 
 	@Override
@@ -148,6 +156,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.DELETE.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.DELETE.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `DELETE()` synchronously.",
 			"The `DELETE()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);

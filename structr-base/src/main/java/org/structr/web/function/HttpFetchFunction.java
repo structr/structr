@@ -29,6 +29,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -53,13 +54,24 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			// max length as well as min, and only the mandatory arguments checked for null: the optional
+			// ones may legitimately be passed as null to reach the options object behind them, which the
+			// code below is written to handle. Asserting no nulls anywhere contradicted that.
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 5);
+
+			for (int i = 0; i < 2; i++) {
+
+				if (sources[i] == null) {
+
+					throw new ArgumentTypeException("FETCH(): the url and the method must not be null.");
+				}
+			}
 
 			final String url          = sources[0].toString();
 			final String method       = sources[1].toString();
-			final Object body         = (sources.length >= 3 && sources[2] != null) ? HttpBody.of(sources[2]) : null;
-			final String contentType  = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : null;
-			final HttpOptions options = HttpOptions.from("FETCH", sources, 4).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
+			final Object body         = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? HttpBody.of(sources[2]) : null;
+			final String contentType  = (sources.length >= 4 && sources[3] != null) && !HttpOptions.isOptionsAt(sources, 3) ? sources[3].toString() : null;
+			final HttpOptions options = HttpOptions.fromAnyOf("FETCH", sources, 4, 2, 3).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("FETCH", body, options);
 
@@ -79,6 +91,14 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 			return null;
 		}
+	}
+
+	@Override
+	public boolean isAsyncCapable() {
+
+		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
+		// no graph access, no transaction, nothing read from the SecurityContext
+		return true;
 	}
 
 	@Override
@@ -171,9 +191,10 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
+			"7.0+: In JavaScript, `$.FETCH.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.FETCH.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `FETCH()` synchronously.",
 			"The `FETCH()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. Use `addHeader()` for authentication.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"The response body is always returned as a string. For binary content, consider using `GET()` with `application/octet-stream`.",
+			"The response body is always returned as a string. For binary content use `GET()` or `POST()` with `{ binaryResponse: true }`.",
 			"While `FETCH()` can also be used for standard methods like GET and POST, it is recommended to use the dedicated functions for those, as they offer additional features like automatic JSON parsing and binary content handling."
 		);
 	}
