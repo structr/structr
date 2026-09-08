@@ -76,6 +76,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.text.DecimalFormat;
@@ -318,7 +319,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				throw new ImportPreconditionFailedException("Please provide 'source' attribute for deployment source directory path.");
 			}
 
-			final Path source = Paths.get(path);
+			final Path source = resolvePath(path);
 			if (!Files.exists(source)) {
 
 				throw new ImportPreconditionFailedException("Source path " + path + " does not exist.");
@@ -625,6 +626,30 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	/**
+	 * A local directory, or a location on another filesystem given as a URI.
+	 *
+	 * Paths.get(String) always resolves on the default filesystem, so a target on any other provider is
+	 * unreachable through it. A scheme is what distinguishes the two: a Windows path carries a colon but
+	 * never "://".
+	 */
+	protected static Path resolvePath(final String path) throws FrameworkException {
+
+		if (path.matches("^[a-zA-Z][a-zA-Z0-9+.-]*://.*")) {
+
+			try {
+
+				return Paths.get(URI.create(path));
+
+			} catch (IllegalArgumentException | FileSystemNotFoundException ex) {
+
+				throw new FrameworkException(422, "Unable to resolve '" + path + "': " + ex.getMessage());
+			}
+		}
+
+		return Paths.get(path);
+	}
+
 	protected void doExport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final String path = (String) attributes.get("target");
@@ -635,7 +660,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			throw new FrameworkException(422, "Please provide target path for deployment export.");
 		}
 
-		final Path target  = Paths.get(path);
+		final Path target  = resolvePath(path);
 		if (!target.isAbsolute()) {
 
 			publishWarningMessage("Export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
@@ -989,8 +1014,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (Files.exists(targetPath)) {
 
-			// compare checksum
-			final Long checksumOfExistingFile = FileHelper.getChecksum(targetPath.toFile());
+			// compare checksum. Read through the Path, not through a java.io.File: toFile() only works on
+			// the default filesystem, and an export target may live on another provider.
+			final Long checksumOfExistingFile = FileHelper.getChecksum(Files.newInputStream(targetPath), Files.size(targetPath));
 			final Long checksumOfExportFile   = file.getChecksum();
 
 			doExport = !checksumOfExistingFile.equals(checksumOfExportFile);
@@ -1000,7 +1026,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				IOUtils.copy(file.getRawInputStream(), new FileOutputStream(targetPath.toFile()));
+				IOUtils.copy(file.getRawInputStream(), Files.newOutputStream(targetPath));
 
 			} catch (IOException ioex) {
 
@@ -3181,7 +3207,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final App app = StructrApp.getInstance(ctx);
 
-					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
+					try (final Reader reader = Files.newBufferedReader(schemaJsonFile, StandardCharsets.UTF_8)) {
 
 						final StructrSchemaDefinition schema   = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
 						final boolean shouldLoadSourceFromFile = schema.hasSourceCodeInFiles();
@@ -3335,14 +3361,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
+				// The builder is given no file: setFile() takes a java.io.File, which only exists on the
+				// default filesystem. The FileHandler reads the stream instead, which any provider gives.
 				final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
 						.configure(new Parameters().properties()
-								.setFile(confFile.toFile())
 								.setThrowExceptionOnMissing(true)
 								.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
 								.setIncludesAllowed(false));
 
 				final PropertiesConfiguration config = builder.getConfiguration();
+
+				try (final InputStream is = Files.newInputStream(confFile)) {
+
+					new FileHandler(config).load(is);
+				}
 				final Iterator<String> keys          = config.getKeys();
 
 				while (keys.hasNext()) {
@@ -3374,13 +3406,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
 					.configure(new Parameters().properties()
-							.setFile(confFile.toFile())
 							.setThrowExceptionOnMissing(true)
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
 							.setIncludesAllowed(false));
-
-			// Touch file, if it doesn't exist
-			confFile.toFile().createNewFile();
 
 			final PropertiesConfiguration config = builder.getConfiguration();
 
@@ -3388,8 +3416,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
 			config.setProperty(DEPLOYMENT_UUID_FORMAT_KEY,                     Settings.UUIDv4AllowedFormats.getValue());
 
-			final FileHandler fileHandler = builder.getFileHandler();
-			fileHandler.save();
+			// save through a stream, which also creates the file: the touch that used to precede this
+			// needed a java.io.File and is not needed at all this way
+			try (final OutputStream os = Files.newOutputStream(confFile)) {
+
+				new FileHandler(config).save(os);
+			}
 
 		} catch (Throwable t) {
 
@@ -3431,7 +3463,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected void writeStringToFile(final Path path, final String string) {
 
-		try (final Writer writer = new FileWriter(path.toFile())) {
+		try (final Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
 
 			if (string != null) {
 
@@ -3449,7 +3481,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected void writeJsonToFile(final Path path, final Object data) {
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(path.toFile()))) {
+		try (final Writer fos = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
 
 			getGson().toJson(data, fos);
 
@@ -3461,7 +3493,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected void writeSortedCompactJsonToFile (final Path target, final List<Map<String, Object>> objects, final AbstractMapComparator<Object> sortComparator) {
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+		try (final Writer fos = Files.newBufferedWriter(target, StandardCharsets.UTF_8)) {
 
 			if (sortComparator != null) {
 

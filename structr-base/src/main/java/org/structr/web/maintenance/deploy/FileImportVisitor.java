@@ -43,8 +43,10 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -315,7 +317,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				if (file != null) {
 
 					final Long checksumOfExistingFile = FileHelper.getChecksum(file.as(File.class));
-					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
+					final Long checksumOfNewFile      = FileHelper.getChecksum(Files.newInputStream(path), Files.size(path));
 
 					if (checksumOfExistingFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {
 
@@ -332,7 +334,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 					logger.info("Importing {}...", fullPath);
 
-					try (final FileInputStream fis = new FileInputStream(path.toFile())) {
+					try (final InputStream fis = Files.newInputStream(path)) {
 
 						final PropertyMap props = new PropertyMap();
 						String fileType         = StructrTraits.FILE;

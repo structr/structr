@@ -159,7 +159,7 @@ public final class AsyncFunctionExecutor {
 		 * The worker's answer, or its failure raised here as the synchronous call would have raised it.
 		 *
 		 * The translation mirrors the synchronous path exactly, so that what a script catches does not
-		 * depend on whether it called the function or its async variant.
+		 * depend on whether the call was made on the calling thread or on a worker.
 		 */
 		public T await() throws FrameworkException {
 
@@ -189,7 +189,7 @@ public final class AsyncFunctionExecutor {
 
 				Thread.currentThread().interrupt();
 
-				throw new FrameworkException(422, "Interrupted while waiting for " + functionName + ".async() to complete.");
+				throw new FrameworkException(422, "Interrupted while waiting for " + functionName + "() to complete.");
 			}
 		}
 

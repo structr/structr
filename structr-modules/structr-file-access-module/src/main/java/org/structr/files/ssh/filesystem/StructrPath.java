@@ -27,7 +27,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
+import java.net.URISyntaxException;
 import java.nio.file.*;
+import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -44,6 +46,8 @@ public abstract class StructrPath implements Path {
 
 	public static final String ROOT_DIRECTORY      = "/";
 	public static final String CURRENT_DIRECTORY   = ".";
+	public static final String PARENT_DIRECTORY    = "..";
+	public static final String SCHEME              = "structr";
 
 	protected StructrFilesystem fs = null;
 	protected StructrPath parent   = null;
@@ -76,7 +80,14 @@ public abstract class StructrPath implements Path {
 	public abstract StructrPath resolveStructrPath(final String pathComponent) throws FrameworkException;
 
 	// ----- public methods -----
-	public void checkAccess(final AccessMode... modes) {
+	/**
+	 * Whether the file behind this path can be accessed the given ways.
+	 *
+	 * Files.exists() is this method with the exception caught, so a subclass that never throws makes
+	 * every path on this filesystem report as existing. The default stays permissive for paths that are
+	 * not backed by a node, such as the root, and StructrFilePath decides for real files.
+	 */
+	public void checkAccess(final AccessMode... modes) throws IOException {
 	}
 
 	public boolean dontCache() {
@@ -130,12 +141,11 @@ public abstract class StructrPath implements Path {
 	@Override
 	public Path getRoot() {
 
+		// a relative path has no root, an absolute one has the filesystem's. Walking to the parent and
+		// returning null there, as this did, means every path reports no root at all.
 		if (isAbsolute()) {
 
-			if (parent != null) {
-
-				return parent.getRoot();
-			}
+			return fs.getRootDirectories().iterator().next();
 		}
 
 		return null;
@@ -175,75 +185,128 @@ public abstract class StructrPath implements Path {
 	}
 
 	@Override
-	public Path getName(int index) {
+	public Path getName(final int index) {
 
-		final List<Path> paths = new ArrayList<>();
-		Path path              = this;
+		final List<String> elements = getNameElements();
 
-		paths.add(this);
+		if (index < 0 || index >= elements.size()) {
 
-		// find root
-		while (path.getParent() != null) {
-
-			path = path.getParent();
-			paths.add(0, path);
+			throw new IllegalArgumentException("No name element at index " + index + " in " + this);
 		}
 
-		return paths.get(index);
+		// a single name element as a relative path of its own, not the ancestor path down to it: the
+		// difference decides what Files.walkFileTree and every relativize() built on it produce
+		return relativeOf(fs, elements.subList(index, index + 1));
 	}
 
 	@Override
-	public Path subpath(int beginIndex, int endIndex) {
+	public Path subpath(final int beginIndex, final int endIndex) {
 
-		logger.info("{}, {}", beginIndex, endIndex);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final List<String> elements = getNameElements();
+
+		if (beginIndex < 0 || beginIndex >= elements.size() || endIndex > elements.size() || beginIndex >= endIndex) {
+
+			throw new IllegalArgumentException("Illegal subpath(" + beginIndex + ", " + endIndex + ") of " + this);
+		}
+
+		return relativeOf(fs, elements.subList(beginIndex, endIndex));
 	}
 
 	@Override
-	public boolean startsWith(Path other) {
+	public boolean startsWith(final Path other) {
 
-		logger.info("{}", other);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (!(other instanceof StructrPath) || !other.getFileSystem().equals(fs) || other.isAbsolute() != isAbsolute()) {
+
+			return false;
+		}
+
+		final List<String> mine   = getNameElements();
+		final List<String> theirs = ((StructrPath)other).getNameElements();
+
+		return theirs.size() <= mine.size() && mine.subList(0, theirs.size()).equals(theirs);
 	}
 
 	@Override
-	public boolean startsWith(String other) {
+	public boolean startsWith(final String other) {
 
-		logger.info("{}", other);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return startsWith(pathOf(other));
 	}
 
 	@Override
-	public boolean endsWith(Path other) {
+	public boolean endsWith(final Path other) {
 
-		logger.info("{}", other);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (!(other instanceof StructrPath) || !other.getFileSystem().equals(fs)) {
+
+			return false;
+		}
+
+		final List<String> mine   = getNameElements();
+		final List<String> theirs = ((StructrPath)other).getNameElements();
+
+		// an absolute path only ends with another absolute path when they are the same path
+		if (other.isAbsolute()) {
+
+			return isAbsolute() && mine.equals(theirs);
+		}
+
+		return theirs.size() <= mine.size() && mine.subList(mine.size() - theirs.size(), mine.size()).equals(theirs);
 	}
 
 	@Override
-	public boolean endsWith(String other) {
+	public boolean endsWith(final String other) {
 
-		logger.info("{}", other);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return endsWith(pathOf(other));
 	}
 
 	@Override
 	public Path normalize() {
 
-		return this;
+		final List<String> normalized = new ArrayList<>();
+
+		for (final String element : getNameElements()) {
+
+			if (CURRENT_DIRECTORY.equals(element)) {
+
+				continue;
+			}
+
+			if (PARENT_DIRECTORY.equals(element)) {
+
+				// ".." above the root is the root itself, as on a Unix filesystem. On a relative path
+				// there is nothing above to drop, so it has to be kept.
+				if (!normalized.isEmpty() && !PARENT_DIRECTORY.equals(normalized.get(normalized.size() - 1))) {
+
+					normalized.remove(normalized.size() - 1);
+					continue;
+
+				} else if (isAbsolute()) {
+
+					continue;
+				}
+			}
+
+			normalized.add(element);
+		}
+
+		if (isAbsolute()) {
+
+			return fs.getPath(ROOT_DIRECTORY + String.join(ROOT_DIRECTORY, normalized));
+		}
+
+		return relativeOf(fs, normalized);
 	}
 
 	@Override
-	public Path resolve(Path other) {
+	public Path resolve(final Path other) {
 
 		if (other.isAbsolute()) {
 
 			return other;
 		}
 
-		logger.info("{}", other);
-
-		return null;
+		// returning null here, as this did, turns every Files call that resolves a child into a
+		// NullPointerException somewhere else entirely
+		return resolve(other.toString());
 	}
 
 	@Override
@@ -267,30 +330,70 @@ public abstract class StructrPath implements Path {
 	}
 
 	@Override
-	public Path resolveSibling(Path other) {
+	public Path resolveSibling(final Path other) {
 
-		logger.info("{}", other);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return parent != null ? parent.resolve(other) : other;
 	}
 
 	@Override
-	public Path resolveSibling(String other) {
+	public Path resolveSibling(final String other) {
 
-		logger.info("{}", other);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return resolveSibling(pathOf(other));
 	}
 
 	@Override
-	public Path relativize(Path other) {
+	public Path relativize(final Path other) {
 
-		logger.info("{}", other);
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (!(other instanceof StructrPath) || !other.getFileSystem().equals(fs)) {
+
+			throw new IllegalArgumentException("Cannot relativize " + other + " against " + this + ": different filesystem");
+		}
+
+		// "a relative path cannot be constructed if only one of the paths is absolute", and there is no
+		// working directory here to fall back on
+		if (other.isAbsolute() != isAbsolute()) {
+
+			throw new IllegalArgumentException("Cannot relativize " + other + " against " + this + ": one is absolute, the other is not");
+		}
+
+		final List<String> mine   = getNameElements();
+		final List<String> theirs = ((StructrPath)other).getNameElements();
+
+		int common = 0;
+
+		while (common < mine.size() && common < theirs.size() && mine.get(common).equals(theirs.get(common))) {
+
+			common++;
+		}
+
+		final List<String> result = new ArrayList<>();
+
+		// up out of what is left of this path, then down into what is left of the other
+		for (int i = common; i < mine.size(); i++) {
+
+			result.add(PARENT_DIRECTORY);
+		}
+
+		result.addAll(theirs.subList(common, theirs.size()));
+
+		return relativeOf(fs, result);
 	}
 
 	@Override
 	public URI toUri() {
-		
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+		final String path = toAbsolutePath().toString();
+
+		try {
+
+			// the authority names the user the filesystem acts as, so the URI round-trips back to a
+			// filesystem with the same view rather than to whatever the default one is
+			return new URI(StructrPath.SCHEME, fs.getUser(), path, null, null);
+
+		} catch (URISyntaxException uex) {
+
+			throw new IllegalStateException("Unable to build a URI for " + path, uex);
+		}
 	}
 
 	@Override
@@ -301,13 +404,16 @@ public abstract class StructrPath implements Path {
 			return this;
 		}
 
-		return fs.getPath(toString(), this.name);
+		// there is no working directory in this filesystem, so a relative path can only be anchored at
+		// the root. The previous version appended this path's own last name to itself.
+		return fs.getPath(ROOT_DIRECTORY + toString());
 	}
 
 	@Override
-	public Path toRealPath(LinkOption... options) throws IOException {
-		
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public Path toRealPath(final LinkOption... options) throws IOException {
+
+		// no links and no case folding here, so the real path is just the absolute, normalized one
+		return toAbsolutePath().normalize();
 	}
 
 	@Override
@@ -331,16 +437,133 @@ public abstract class StructrPath implements Path {
 	@Override
 	public Iterator<Path> iterator() {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		final List<Path> elements = new ArrayList<>();
+		final int count           = getNameCount();
+
+		for (int i = 0; i < count; i++) {
+
+			elements.add(getName(i));
+		}
+
+		return elements.iterator();
 	}
 
 	@Override
-	public int compareTo(Path other) {
-		
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public int compareTo(final Path other) {
+
+		// the contract is a ClassCastException, not false: a path of another provider is not orderable
+		// against this one, and returning an ordering anyway would corrupt any sort it takes part in
+		if (!(other instanceof StructrPath)) {
+
+			throw new ClassCastException("Cannot compare " + other + " to " + this + ": different provider");
+		}
+
+		return toString().compareTo(other.toString());
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+
+		// without this, two paths naming the same file are unequal, because Object identity is all that
+		// is left. Files and every collection of paths depend on it.
+		if (this == other) {
+
+			return true;
+		}
+
+		if (!(other instanceof StructrPath)) {
+
+			return false;
+		}
+
+		final StructrPath path = (StructrPath)other;
+
+		return fs.equals(path.fs) && toString().equals(path.toString());
+	}
+
+	@Override
+	public int hashCode() {
+
+		return Objects.hash(fs, toString());
 	}
 
 	// ----- protected methods -----
+	/**
+	 * The name elements of this path, root excluded, outermost first.
+	 *
+	 * The path is a chain of parents rather than a list, and every one of the name operations is defined
+	 * on the list. Building it once here keeps that translation in a single place.
+	 */
+	protected List<String> getNameElements() {
+
+		final LinkedList<String> elements = new LinkedList<>();
+		StructrPath current               = this;
+
+		while (current != null) {
+
+			if (current.name != null) {
+
+				elements.addFirst(current.name);
+			}
+
+			current = current.parent;
+		}
+
+		return elements;
+	}
+
+	/**
+	 * The given string as a path of this filesystem, relative if it does not start at the root.
+	 *
+	 * Not fs.getPath(), which anchors everything at the root: "c" through that becomes "/c", and an
+	 * absolute path never ends with another absolute path unless they are equal, so endsWith("c") would
+	 * answer false for /a/b/c.
+	 */
+	protected StructrPath pathOf(final String path) {
+
+		if (path.startsWith(ROOT_DIRECTORY)) {
+
+			return (StructrPath)fs.getPath(path);
+		}
+
+		final List<String> elements = new ArrayList<>();
+
+		for (final String element : path.split(ROOT_DIRECTORY)) {
+
+			if (!element.isEmpty()) {
+
+				elements.add(element);
+			}
+		}
+
+		return relativeOf(fs, elements);
+	}
+
+	/**
+	 * A relative path made of the given name elements.
+	 *
+	 * StructrPath is abstract, and StructrFilePath is what getFileName() already uses to represent a
+	 * bare name, so a chain of those is what a relative path is here. An empty list is the empty path,
+	 * which is what relativize() returns for two equal paths.
+	 */
+	protected static StructrPath relativeOf(final StructrFilesystem fs, final List<String> elements) {
+
+		if (elements.isEmpty()) {
+
+			return new StructrFilePath(fs, null, "");
+		}
+
+		StructrPath result = null;
+
+		for (final String element : elements) {
+
+			result = new StructrFilePath(fs, result, element);
+		}
+
+		return result;
+	}
+
+
 	protected String normalizeFileNameForJavaIdentifier(final String src) {
 
 		String dst = src;

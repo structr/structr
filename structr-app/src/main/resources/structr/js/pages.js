@@ -1189,7 +1189,15 @@ let _Pages = {
 			});
 
 			element.on('dblclick', function(e) {
-				_Entities.expandRecursively([ entity.id ]);
+
+				if (_Entities.isExpanded(element)) {
+
+					_Entities.toggleElement(entity.id, element, true);
+
+				} else {
+
+					_Entities.expandRecursively([ entity.id ]);
+				}
 			})
 		}
 	},
@@ -2875,7 +2883,7 @@ let _Pages = {
 			_Pages.pageTree.clear();
 
 			let pagerElement = document.querySelector('#pagesPager');
-			let pPager = _Pager.addPager('pages', pagerElement, true, 'Page', null, null, null, null, true);
+			let pPager = _Pager.addPager('pages', pagerElement, true, 'Page', 'all', null, null, null, true);
 
 			pPager.cleanupFunction = () => {
 				_Pages.pageTree.clear();

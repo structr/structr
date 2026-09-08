@@ -72,9 +72,10 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	/**
 	 * Whether this function's {@link #apply} may run on a worker thread instead of the caller's.
 	 *
-	 * Answering true is what makes {@code name.async(...)} exist for this function in JavaScript, so that
-	 * several calls can be in flight at once and awaiting them costs the slowest rather than their sum.
-	 * The synchronous call is unaffected either way.
+	 * Answering true is what lets a caller ask for the call with the {@code async} option, so that several
+	 * calls can be in flight at once and awaiting them costs the slowest rather than their sum. A call
+	 * that does not ask for it is unaffected either way, and so is every call to a function that answers
+	 * false -- there the option is not accepted at all.
 	 *
 	 * <p>Opting in is a statement about what apply() touches, and a narrow one. The function must:</p>
 	 *
@@ -105,14 +106,38 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * their storage providers, so it needs the calling thread's transaction. A test pins the set of
 	 * functions that answer true, so that a new subclass cannot acquire the flag unnoticed.</p>
 	 *
-	 * <p><b>StructrScript cannot reach the async variant</b>, because it resolves a dotted name through
-	 * its own parser and never goes through FunctionWrapper. Note this is not the same as "JavaScript
-	 * only": ContextFactory installs the same binding into every polyglot language, so Python reaches it
-	 * as {@code Structr.GET.async(...)} and receives a value it has no way to await.</p>
+	 * <p><b>StructrScript cannot run the call asynchronously</b>, because it resolves a function name
+	 * through its own parser and calls apply() directly, never going through FunctionWrapper. It rejects
+	 * the option instead of ignoring it. Note this is not the same as "JavaScript only": ContextFactory
+	 * installs the same binding into every polyglot language, so Python starts the call and receives a
+	 * value it has no way to await.</p>
 	 *
 	 * @return true if apply() is safe to run off the calling thread
 	 */
 	public boolean isAsyncCapable() {
+
+		return false;
+	}
+
+	/**
+	 * Whether these arguments ask for the call to be made asynchronously.
+	 *
+	 * Read by {@code FunctionWrapper} before the call, and only for a function that is also
+	 * {@link #isAsyncCapable()} -- so an implementation may assume the option is one it accepts.
+	 *
+	 * <p>There is no generic answer, which is why this is asked of the function rather than derived from
+	 * the arguments: the option travels in an options object whose position differs per function, and an
+	 * argument that is a map is not necessarily that object -- a POST body is one too, and may carry any
+	 * key at all.</p>
+	 *
+	 * <p>An implementation must not throw for a malformed argument. It runs before apply(), outside the
+	 * error handling that turns a bad argument into a logged usage error, so a throw here would surface
+	 * as an uncaught script error instead.</p>
+	 *
+	 * @param sources the call's arguments, already converted to plain Java values
+	 * @return true to run the call on a worker thread and answer a thenable
+	 */
+	public boolean isAsyncRequested(final Object[] sources) {
 
 		return false;
 	}

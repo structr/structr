@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
@@ -78,6 +79,8 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 					final PropertyKey<NodeInterface> schemaNodeKey = traits.key(SCHEMA_NODE_PROPERTY);
 					final NodeInterface parent                     = schemaView.getProperty(schemaNodeKey);
 					final String thisViewName                      = schemaView.getName();
+
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaViewNamePattern, "View names must start with a letter or underscore, followed by any number of letters, digits, or underscores (" + schemaViewNamePattern + ")", errorBuffer);
 
 					if (parent != null && thisViewName != null) {
 

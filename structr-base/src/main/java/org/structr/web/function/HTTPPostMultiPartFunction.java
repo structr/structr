@@ -87,7 +87,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 			final String uri                = sources[0].toString();
 			final Map<String, Object> parts = (HashMap) sources[1];
-			final HttpOptions options       = HttpOptions.from("POSTMultiPart", sources, 2).accepting("POSTMultiPart", HttpOptions.PARSE_RESPONSE);
+			final HttpOptions options       = HttpOptions.from("POSTMultiPart", sources, 2).accepting(ctx, "POSTMultiPart", HttpOptions.PARSE_RESPONSE);
 
 			// no contentType parameter: a multipart request builds its own Content-Type, including the
 			// boundary, so naming one here could only conflict with it
