@@ -7,8 +7,14 @@ Wants=network-online.target
 ## needed because we fork our process from the bash script (otherwise ExecStop is called immediately)
 Type=forking
 
+## bin/start backgrounds the JVM, so systemd needs this to know whose exit status to read
+PIDFile=/var/run/structr.pid
+
 Restart=always
 RestartSec=1
+
+# 4 is a deliberate dry run refusing to start, not a fault, and would otherwise restart forever
+RestartPreventExitStatus=4
 WorkingDirectory=/usr/lib/structr
 ExecStart=/usr/lib/structr/bin/start
 ExecStop=/usr/lib/structr/bin/stop

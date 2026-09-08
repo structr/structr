@@ -151,13 +151,20 @@ Structr migrates schema and data at startup. What it does with the database is g
 
 | mode | effect |
 | --- | --- |
-| `dry-run` (default) | Every step runs, logs what it would change, and the change is rolled back. Startup then stops. |
-| `apply` | The steps migrate for real. |
+| `apply` (default) | The steps migrate for real. |
+| `dry-run` | Every step runs, logs what it would change, and the change is rolled back. Startup then stops with exit status 4. |
 | `off` | No migrations run at all. |
 
 `dry-run` stops startup on purpose. A rolled back schema migration leaves the compiled schema in memory
 out of step with the database, so the instance must not go on to serve requests. Read the report in the
 server log, then set the mode to `apply` and start again.
+
+It is a diagnostic to be run deliberately, which is why it is not the default: a service that refuses to
+start is restarted by whatever supervises it, and a dry run changes nothing, so it finds the same work to
+do on every restart. The Debian unit carries `RestartPreventExitStatus=4` so that one dry run leaves the
+service stopped rather than looping. Under Docker or Kubernetes there is no such exemption, and the
+container will restart until the mode is changed. To preview a migration without stopping anything, use
+the `migrate` maintenance command on a running instance instead, which defaults to `dry-run`.
 
 Each step is rolled back on its own, so a dry run never holds more in one transaction than that step
 would have committed by itself.
