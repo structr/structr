@@ -119,17 +119,18 @@ You can configure this page to be displayed when specific HTTP errors occur. Ent
 #### Position
 When users access the root URL of your application, Structr uses the position attribute to determine which page is displayed. Among all visible pages, the one with the lowest position value is shown. See the Navigation & Routing chapter for a detailed explanation of page ordering and selection.
 
-#### Custom Path
-You can assign an alternative URL to the page using this field. Note that URL routing has replaced this setting and provides more flexibility, including support for type-safe path-based arguments that are directly mapped to keywords you can use in your page.
-
 #### Caching disabled
 Enable this when your page contains dynamic data that changes frequently or personalized content. Structr sends cache control headers that prevent browsers and proxies from caching the page output. Pages for authenticated users are never cached, so this flag only affects public users.
 
 #### Use binary encoding for output
 Enable this if your page generates binary data to make Structr use the correct character encoding automatically.
 
-#### Autorefresh
-Enable this to automatically reload the page preview in the Structr Admin UI whenever you make changes.
+#### Page is only reachable via its URL Routes
+Enable this if your page should only be reachable via its URL Routes. A page with this flag enabled, can not be accessed via its name, UUID, and position lookup for the root '/' path. Only lookup via URL Routes and error codes (if set) still works.
+
+This is intended for situations where reaching a page via multiple way would be considered duplicate content and could hurt SEO ratings.
+
+If all pages have this flag, all access must be organized via URL Routes. To have a defined starting page for the root URL of the application, one page must have a URL route "/".
 
 #### Preview Detail Object
 The preview detail object allows you to assign a fixed object that Structr uses as the detail object when rendering the preview, making it available under the `current` keyword.

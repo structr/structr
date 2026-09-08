@@ -478,8 +478,6 @@ let _Elements = {
 							_Elements.contextMenu.addContextMenuElements({ ul: wrapList, element: [ '|', { name: 'Suggested Widgets', elements: wrapElements } ], prepend: true, cssPositionClasses, entity });
 						}
 
-						console.log(wrapList);
-
 						_Elements.contextMenu.updateMenuGroupVisibility();
 					}
 				});
@@ -500,8 +498,6 @@ let _Elements = {
                         if (replaceList) {
                             _Elements.contextMenu.addContextMenuElements({ ul: replaceList, element: [ '|', { name: 'Suggested Widgets', elements: replaceElements } ], prepend: true, cssPositionClasses, entity });
                         }
-
-						console.log(replaceList);
 
 						_Elements.contextMenu.updateMenuGroupVisibility();
 					}
@@ -780,7 +776,7 @@ let _Elements = {
 
 			if (!entity.isPage && !entity.isWidget && (!entity.isContent || entity.type === 'Template')) {
 
-				Command.getSuggestions(entity.id, mode, (suggestions) => {
+				Command.getSuggestions(entity.id, mode, (suggestions = []) => {
 
 					for (let suggestion of suggestions) {
 						StructrModel.createFromData(suggestion, null, false);

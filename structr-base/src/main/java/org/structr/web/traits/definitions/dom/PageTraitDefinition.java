@@ -56,18 +56,20 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
  */
 public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String ELEMENTS_PROPERTY              = "elements";
-	public static final String PATHS_PROPERTY                 = "paths";
-	public static final String SITES_PROPERTY                 = "sites";
-	public static final String IS_PAGE_PROPERTY               = "isPage";
-	public static final String PAGE_CREATES_RAW_DATA_PROPERTY = "pageCreatesRawData";
-	public static final String VERSION_PROPERTY               = "version";
-	public static final String POSITION_PROPERTY              = "position";
-	public static final String CACHE_FOR_SECONDS_PROPERTY     = "cacheForSeconds";
-	public static final String PATH_PROPERTY                  = "path";
-	public static final String SHOW_ON_ERROR_CODES_PROPERTY   = "showOnErrorCodes";
-	public static final String CONTENT_TYPE_PROPERTY          = "contentType";
-	public static final String CATEGORY_PROPERTY              = "category";
+	public static final String ELEMENTS_PROPERTY               = "elements";
+	public static final String PATHS_PROPERTY                  = "paths";
+	public static final String SITES_PROPERTY                  = "sites";
+	public static final String IS_PAGE_PROPERTY                = "isPage";
+	public static final String PAGE_CREATES_RAW_DATA_PROPERTY  = "pageCreatesRawData";
+	public static final String VERSION_PROPERTY                = "version";
+	public static final String POSITION_PROPERTY               = "position";
+	public static final String CACHE_FOR_SECONDS_PROPERTY      = "cacheForSeconds";
+	public static final String PATH_PROPERTY                   = "path";
+	public static final String SHOW_ON_ERROR_CODES_PROPERTY    = "showOnErrorCodes";
+	public static final String CONTENT_TYPE_PROPERTY           = "contentType";
+	public static final String CATEGORY_PROPERTY               = "category";
+	public static final String RESTRICT_TO_URL_ROUTES_PROPERTY = "restrictToUrlRoutes";
+
 
 	public PageTraitDefinition() {
 
@@ -194,6 +196,8 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> showOnErrorCodesProperty          = new StringProperty(SHOW_ON_ERROR_CODES_PROPERTY).indexed();
 		final Property<String> contentTypeProperty               = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
 		final Property<String> categoryProperty                  = new StringProperty(CATEGORY_PROPERTY).indexed();
+		final Property<Boolean> restrictToUrlRoutesProperty      = new BooleanProperty(RESTRICT_TO_URL_ROUTES_PROPERTY).defaultValue(false);
+
 
 		return Set.of(
 			elementsProperty,
@@ -207,7 +211,8 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 			pathProperty,
 			showOnErrorCodesProperty,
 			contentTypeProperty,
-			categoryProperty
+			categoryProperty,
+			restrictToUrlRoutesProperty
 		);
 	}
 
@@ -228,7 +233,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 			newSet(
 					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, SITES_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY,
 					CACHE_FOR_SECONDS_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY,
-					DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY
+					DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY, RESTRICT_TO_URL_ROUTES_PROPERTY
 			),
 
 			"category", newSet(CATEGORY_PROPERTY));

@@ -40,6 +40,29 @@ import java.util.Map.Entry;
 
 public class PagePaths {
 
+	public static Page findIndexPageRoute(final RenderContext renderContext) throws FrameworkException {
+
+		// find URL Routes with name = "/"
+		final App app                         = StructrApp.getInstance();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+
+		for (final NodeInterface node : app.nodeQuery(StructrTraits.PAGE_PATH).name("/").sort(Traits.key(StructrTraits.PAGE_PATH, PagePathTraitDefinition.PRIORITY_PROPERTY), false).getResultStream()) {
+
+			final PagePath pathCandidate = node.as(PagePath.class);
+			final Page pageForPath       = pathCandidate.getPage();
+
+			if (pageForPath != null) {
+
+				if (securityContext.isReadable(pageForPath, false, false) && HtmlServlet.isVisibleForSite(securityContext.getRequest(), pageForPath)) {
+
+					return pageForPath;
+				}
+			}
+		}
+
+		return null;
+	}
+
 	public static Page findPageAndResolveParameters(final RenderContext renderContext, final String fullPath) throws FrameworkException {
 
 		// we need to split the path ourselves because we need to be able to detect "empty" parts (//)
@@ -57,9 +80,9 @@ public class PagePaths {
 			for (final NodeInterface node : app.nodeQuery(StructrTraits.PAGE_PATH).sort(Traits.key(StructrTraits.PAGE_PATH, PagePathTraitDefinition.PRIORITY_PROPERTY), false).getResultStream()) {
 
 				final PagePath pathCandidate = node.as(PagePath.class);
-				final Page resolvedPage      = pathCandidate.getPage();
+				final Page pageForPath       = pathCandidate.getPage();
 
-				if (resolvedPage != null) {
+				if (pageForPath != null) {
 
 					// only process path variables, if:
 					// a) we already have stored knowledge (in processPageVariablesMap) that the page is visible for the user AND site
@@ -68,16 +91,16 @@ public class PagePaths {
 					//    - the resolved page belongs to the site the request belongs to
 					final boolean processPathVariables;
 
-					if (processPageVariablesMap.containsKey(resolvedPage.getUuid())) {
+					if (processPageVariablesMap.containsKey(pageForPath.getUuid())) {
 
-						processPathVariables = processPageVariablesMap.get(resolvedPage.getUuid());
+						processPathVariables = processPageVariablesMap.get(pageForPath.getUuid());
 
 					} else {
 
-						processPathVariables = (securityContext.isReadable(resolvedPage, false, false) && HtmlServlet.isVisibleForSite(securityContext.getRequest(), resolvedPage));
+						processPathVariables = (securityContext.isReadable(pageForPath, false, false) && HtmlServlet.isVisibleForSite(securityContext.getRequest(), pageForPath));
 					}
 
-					processPageVariablesMap.put(resolvedPage.getUuid(), processPathVariables);
+					processPageVariablesMap.put(pageForPath.getUuid(), processPathVariables);
 
 					if (processPathVariables) {
 
@@ -92,7 +115,7 @@ public class PagePaths {
 								contextStore.setConstant(entry.getKey(), entry.getValue());
 							}
 
-							return resolvedPage;
+							return pageForPath;
 						}
 					}
 				}

@@ -1588,16 +1588,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Linkable linkable = node.as(Linkable.class);
 			final Page page         = node.as(Page.class);
 
-			putData(config, LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY,  linkable.getBasicAuthRealm());
-			putData(config, PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,     page.getCacheForSeconds());
-			putData(config, PageTraitDefinition.CATEGORY_PROPERTY,              page.getCategory());
-			putData(config, PageTraitDefinition.CONTENT_TYPE_PROPERTY,          page.getContentType());
-			putData(config, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY,         page.dontCache());
-			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY, linkable.getEnableBasicAuth());
-			putData(config, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,       page.isHidden());
-			putData(config, PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY, page.pageCreatesRawData());
-			putData(config, PageTraitDefinition.POSITION_PROPERTY,              page.getPosition());
-			putData(config, PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY,   page.getShowOnErrorCodes());
+			putData(config, LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY,   linkable.getBasicAuthRealm());
+			putData(config, PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,      page.getCacheForSeconds());
+			putData(config, PageTraitDefinition.CATEGORY_PROPERTY,               page.getCategory());
+			putData(config, PageTraitDefinition.CONTENT_TYPE_PROPERTY,           page.getContentType());
+			putData(config, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY,          page.dontCache());
+			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY,  linkable.getEnableBasicAuth());
+			putData(config, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,        page.isHidden());
+			putData(config, PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY,  page.pageCreatesRawData());
+			putData(config, PageTraitDefinition.POSITION_PROPERTY,               page.getPosition());
+			putData(config, PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY,    page.getShowOnErrorCodes());
+			putData(config, PageTraitDefinition.RESTRICT_TO_URL_ROUTES_PROPERTY, page.isRestrictedToUrlRoutes());
 		}
 
 		final Traits traits = node.getTraits();

@@ -807,7 +807,7 @@ let _Files = {
 			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsHeaderElement(), false, 'File', 'public', handleFileChildren, null, _Files.defaultFileAttributes, true, true);
 
 			filesPager.cleanupFunction = () => {
-				let toRemove = filesPager.el.querySelectorAll('.node.file');
+				let toRemove = _Files.getFolderContentsElement().querySelectorAll('.node.file');
 				for (let item of toRemove) {
 					_Helpers.fastRemoveElement(item.closest( (listModeActive ? 'tr' : '.tile') ));
 				}
