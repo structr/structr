@@ -71,7 +71,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 			final String method       = sources[1].toString();
 			final Object body         = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? HttpBody.of(sources[2]) : null;
 			final String contentType  = (sources.length >= 4 && sources[3] != null) && !HttpOptions.isOptionsAt(sources, 3) ? sources[3].toString() : null;
-			final HttpOptions options = HttpOptions.fromAnyOf("FETCH", sources, 4, 2, 3).accepting("FETCH", HttpOptions.PARSE_RESPONSE);
+			final HttpOptions options = optionsOf(sources).accepting(ctx, "FETCH", HttpOptions.ASYNC, HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("FETCH", body, options);
 
@@ -90,6 +90,32 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 
 			return null;
+		}
+	}
+
+	/**
+	 * The options object of this call, wherever the caller put it.
+	 *
+	 * One accessor rather than one per caller, so the positions the object may occupy are stated once:
+	 * apply() reads the settings from it, and the async opt-in below is read before the call is made.
+	 */
+	private static HttpOptions optionsOf(final Object[] sources) {
+
+		return HttpOptions.fromAnyOf("FETCH", sources, 4, 2, 3);
+	}
+
+	@Override
+	public boolean isAsyncRequested(final Object[] sources) {
+
+		try {
+
+			return optionsOf(sources).getBoolean(HttpOptions.ASYNC, false);
+
+		} catch (final IllegalArgumentException e) {
+
+			// a malformed options argument is not this method's to report: apply() runs either way, and
+			// turns it into the usage error that names what is wrong with it
+			return false;
 		}
 	}
 
@@ -115,7 +141,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 			Parameter.mandatory("method", "HTTP method (GET, POST, PUT, DELETE, PATCH, PROPFIND, MKCOL, MOVE, COPY, etc.)"),
 			Parameter.optional("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON")
 		);
 	}
 
@@ -191,7 +217,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"7.0+: In JavaScript, `$.FETCH.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.FETCH.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `FETCH()` synchronously.",
+			"7.0+: In JavaScript, the `async` option starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. The result is awaitable, not a full promise: use `Promise.resolve($.FETCH(url, { async: true })).catch(...)` to chain. `Promise.race()` answers as soon as its winner arrives, and the calls it beat are discarded. StructrScript has no way to await a result, so it rejects the option rather than calling `FETCH()` synchronously without saying so.",
 			"The `FETCH()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. Use `addHeader()` for authentication.",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"The response body is always returned as a string. For binary content use `GET()` or `POST()` with `{ binaryResponse: true }`.",

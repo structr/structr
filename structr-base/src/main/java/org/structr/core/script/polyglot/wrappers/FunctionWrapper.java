@@ -30,7 +30,6 @@ import org.structr.schema.action.Function;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * A built-in function as seen from JavaScript.
@@ -42,14 +41,14 @@ import java.util.List;
  *
  * StructrScript needs none of this: its parser resolves a dotted name directly.
  *
- * The same member lookup is what exposes {@code async} on a function that allows it -- see
- * {@link AsyncFunctionWrapper}. That variant lives here rather than in the function registry precisely
- * because this wrapper is only reachable from a polyglot language, so StructrScript's own resolution
- * cannot find it.
+ * It is also where a call that asked to run asynchronously is started rather than made -- see
+ * {@link PendingCallWrapper}. That decision lives here rather than in the function itself because it is
+ * about which thread makes the call, not about what the call does, and because this wrapper is the
+ * boundary at which the arguments have been converted and a thenable can be handed back. A call from
+ * StructrScript never arrives here at all, so it cannot start one: the function refuses the option
+ * instead.
  */
 public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
-
-	private static final String ASYNC = "async";
 
 	private final ActionContext actionContext;
 	private final GraphObject entity;
@@ -68,7 +67,18 @@ public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 
 		try {
 
+			// on the calling thread, and before anything else: these Values belong to this context, so a
+			// worker may not see them, and the function is asked about plain Java values
 			T[] args = (T[]) Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
+
+			// isAsyncCapable() first: it is the function's statement about what apply() touches, and asking
+			// a function that made no such statement whether these arguments want async is meaningless. A
+			// call that asks anyway falls through to the synchronous path, where apply() reports the option
+			// as one it does not accept.
+			if (func.isAsyncCapable() && func.isAsyncRequested(args)) {
+
+				return (R) new PendingCallWrapper<>(actionContext, entity, func, args);
+			}
 
 			return (R) PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
 
@@ -87,50 +97,24 @@ public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 			return new FunctionWrapper(actionContext, entity, namespaced);
 		}
 
-		if (isAsyncMember(key)) {
-
-			return new AsyncFunctionWrapper(actionContext, entity, func);
-		}
-
 		return null;
 	}
 
 	@Override
 	public boolean hasMember(final String key) {
 
-		// GraalJS asks this before it reads: answering false here makes $.GET.async undefined, with no
-		// error anywhere, so this has to stay in step with getMember
-		return Functions.get(func.getName() + "." + key) != null || isAsyncMember(key);
+		// GraalJS asks this before it reads, so a member this answers false for is undefined with no error
+		// anywhere: it has to stay in step with getMember
+		return Functions.get(func.getName() + "." + key) != null;
 	}
 
 	@Override
 	public Object getMemberKeys() {
 
-		final String prefix       = func.getName() + ".";
-		final List<String> members = new ArrayList<>(
+		final String prefix = func.getName() + ".";
+
+		return new ArrayList<>(
 			Functions.getNames().stream().filter(name -> name.startsWith(prefix)).map(name -> name.substring(prefix.length())).toList());
-
-		if (func.isAsyncCapable()) {
-
-			members.add(ASYNC);
-		}
-
-		return members;
-	}
-
-	/**
-	 * Whether "async" names this function's asynchronous variant.
-	 *
-	 * Checked after the namespaced lookup above, so a function that really is registered under
-	 * {@code <name>.async} would keep that meaning; nothing is today.
-	 *
-	 * This is why the variant is reachable from JavaScript and not from StructrScript: StructrScript
-	 * resolves a dotted name through its own parser, against the function registry, and never asks a
-	 * wrapper for a member. Nothing is added to that registry here.
-	 */
-	private boolean isAsyncMember(final String key) {
-
-		return ASYNC.equals(key) && func.isAsyncCapable();
 	}
 
 	@Override
