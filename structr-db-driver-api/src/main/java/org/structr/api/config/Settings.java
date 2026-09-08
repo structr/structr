@@ -304,6 +304,7 @@ public class Settings {
 	public static final Setting<Integer> PrefetchingThreshold        = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.threshold",   100, "How many identical queries must run in a transaction to activate prefetching for that query.");
 	public static final Setting<Integer> PrefetchingMaxDuration      = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxduration", 1000, "How long a prefetching query may take before prefetching will be deactivated for that query.");
 	public static final Setting<Integer> PrefetchingMaxCount         = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxcount",    50_000, "How many results a prefetching query may return before prefetching will be deactivated for that query.");
+	public static final Setting<Integer> PrefetchingCostRatio        = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.costratio",   100, "How many entities a prefetching query may load per lookup that it saves in the transaction. A prefetch that loads more than that is deactivated for the request it was learned for, because loading the graph costs more than the lookups it replaces.");
 
 	// Neo4j specific settings
 	public static final Setting<String> Neo4jDefaultUsername         = new StringSetting(databaseGroup,  "hidden",                  "database.neo4j.default.username",   "neo4j");

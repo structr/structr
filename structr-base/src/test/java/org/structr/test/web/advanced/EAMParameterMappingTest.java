@@ -274,6 +274,83 @@ public class EAMParameterMappingTest extends StructrUiTest {
 		assertEquals("UserInput without CSS id: input element must render data-structr-id so that id(uuid) can be resolved", inputUuid[0], getAttributes(input).get("data-structr-id"));
 	}
 
+	@Test
+	public void testUserInputParameterOutsideOfPartial() {
+
+		// The input elements live outside the partial that contains the trigger. When the partial is
+		// rendered on its own (/structr/html/<uuid>, e.g. for a partial reload), the trigger must still
+		// reference the inputs, with and without CSS id.
+		String inputUuid   = null;
+		String partialUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page          = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div        = page.getElementsByTagName("div").get(0);
+			final DOMElement inputs  = page.createElement("div");
+			final DOMElement partial = page.createElement("div");
+			final DOMElement input1  = page.createElement("input");
+			final DOMElement input2  = page.createElement("input");
+			final DOMElement btn     = page.createElement("button");
+
+			div.appendChild(inputs);
+			div.appendChild(partial);
+			inputs.appendChild(input1);
+			inputs.appendChild(input2);
+			partial.appendChild(btn);
+			btn.appendChild(page.createTextNode("Submit"));
+
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
+			input2.setProperty(Traits.of("Input").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "external");
+
+			inputUuid   = input1.getUuid();
+			partialUuid = partial.getUuid();
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			app.create(StructrTraits.PARAMETER_MAPPING,
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "user-input"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "withoutId"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY), input1)
+			);
+
+			app.create(StructrTraits.PARAMETER_MAPPING,
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "user-input"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "withId"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY), input2)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		// full page
+		final Map<String, String> pageAttrs = getAttributes(Jsoup.parse(fetchPageHtml("/html/page1")).getElementById("button"));
+
+		assertEquals("Page: parameter must reference the input without CSS id by uuid", "id(" + inputUuid + ")", pageAttrs.get("data-without-id"));
+		assertEquals("Page: parameter must reference the input with CSS id by selector", "css(#external)",      pageAttrs.get("data-with-id"));
+
+		// partial that does not contain the inputs
+		final Map<String, String> partialAttrs = getAttributes(Jsoup.parse(fetchPageHtml("/structr/html/" + partialUuid)).getElementById("button"));
+
+		assertEquals("Partial: parameter must reference the input without CSS id by uuid", "id(" + inputUuid + ")", partialAttrs.get("data-without-id"));
+		assertEquals("Partial: parameter must reference the input with CSS id by selector", "css(#external)",      partialAttrs.get("data-with-id"));
+	}
+
 	// -----------------------------------------------------------------------
 	// ScriptExpression
 	// -----------------------------------------------------------------------

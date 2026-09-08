@@ -27,6 +27,9 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.select.Evaluator;
+import org.jsoup.select.QueryParser;
+import org.jsoup.select.Selector;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
@@ -50,6 +53,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.VisibilityMapping;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.eam.EventBehaviour;
 import org.structr.web.entity.event.ActionMapping;
 
 import java.io.ByteArrayInputStream;
@@ -60,6 +64,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Holds information about the context in which a resource is rendered, like
@@ -80,6 +86,7 @@ public class RenderContext extends ActionContext {
 	private AsyncBuffer buffer                         = null;
 	private int depth                                  = 0;
 	private boolean inBody                             = false;
+	private SelectorReloadTargets selectorReloadTargets = null;
 	private GraphObject detailsDataObject              = null;
 	private GraphObject currentDataObject              = null;
 	private GraphObject sourceDataObject               = null;
@@ -123,6 +130,7 @@ public class RenderContext extends ActionContext {
 		this.editMode                   = other.editMode;
 		this.inBody                     = other.inBody;
 		this.detailsDataObject          = other.detailsDataObject;
+		this.selectorReloadTargets      = other.selectorReloadTargets;
 		this.currentDataObject          = other.currentDataObject;
 		this.sourceDataObject           = other.sourceDataObject;
 		this.listSource                 = other.listSource;
@@ -171,6 +179,179 @@ public class RenderContext extends ActionContext {
 	public GraphObject getDetailsDataObject() {
 
 		return detailsDataObject;
+	}
+
+	/**
+	 * Returns true if the given element matches one of the CSS selectors that action mappings use
+	 * to address their reload targets (success/failure behaviour "partial-refresh"). Those targets
+	 * are not linked to the action mapping, so this is the only way to recognize them at render
+	 * time. Reload targets are rendered with data-structr-id, data-current-object-id and the
+	 * request parameters, which frontend.js needs to reload the partial in the same context.
+	 *
+	 * This is called for every element that is rendered, so the common selectors (#id, .class)
+	 * are matched with set lookups, only other selectors are matched with jsoup.
+	 *
+	 * @param element the element to check
+	 * @return true if the element is addressed by a reload target selector
+	 */
+	public boolean isSelectorReloadTarget(final DOMElement element) {
+
+		final SelectorReloadTargets targets = getSelectorReloadTargets();
+		if (targets.isEmpty()) {
+
+			return false;
+		}
+
+		final String htmlId = element.getHtmlId();
+		if (htmlId != null && targets.ids.contains(htmlId.trim())) {
+
+			return true;
+		}
+
+		if (!targets.combinationsByClass.isEmpty()) {
+
+			final String cssClass = element.getCssClass();
+			if (StringUtils.isNotBlank(cssClass)) {
+
+				final String[] classes = StringUtils.split(cssClass);
+				Set<String> classSet   = null;
+
+				// only combinations that contain one of the element's classes can match
+				for (final String cls : classes) {
+
+					final List<Set<String>> candidates = targets.combinationsByClass.get(cls);
+					if (candidates != null) {
+
+						if (classSet == null) {
+
+							classSet = new HashSet<>(Arrays.asList(classes));
+						}
+
+						for (final Set<String> combination : candidates) {
+
+							if (classSet.containsAll(combination)) {
+
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!targets.evaluators.isEmpty()) {
+
+			final org.jsoup.nodes.Element matchElement = DOMElement.getMatchElement(element);
+			if (matchElement != null) {
+
+				for (final Evaluator evaluator : targets.evaluators) {
+
+					if (evaluator.matches(matchElement, matchElement)) {
+
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private SelectorReloadTargets getSelectorReloadTargets() {
+
+		// collected once per render (and shared with derived contexts)
+		if (selectorReloadTargets == null) {
+
+			selectorReloadTargets = new SelectorReloadTargets();
+
+			try {
+
+				// the action mappings are not restricted to the current page, because the trigger can be part
+				// of a shared component in another document (same as the frontend, which uses querySelector)
+				for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.ACTION_MAPPING).getAsList()) {
+
+					final ActionMapping actionMapping = node.as(ActionMapping.class);
+
+					selectorReloadTargets.add(actionMapping.getSuccessBehaviour(), actionMapping.getSuccessPartial());
+					selectorReloadTargets.add(actionMapping.getFailureBehaviour(), actionMapping.getFailurePartial());
+				}
+
+			} catch (FrameworkException fex) {
+
+				LoggerFactory.getLogger(RenderContext.class).warn("Unable to collect reload target selectors of action mappings: {}", fex.getMessage());
+			}
+		}
+
+		return selectorReloadTargets;
+	}
+
+	/**
+	 * The CSS selectors that action mappings use to address reload targets, split into
+	 * simple id selectors, simple class selectors (with combinations like .a.b) and
+	 * everything else (matched with jsoup).
+	 */
+	private static class SelectorReloadTargets {
+
+		private static final Pattern ID_SELECTOR    = Pattern.compile("#([A-Za-z0-9_-]+)");
+		private static final Pattern CLASS_SELECTOR = Pattern.compile("(\\.[A-Za-z0-9_-]+)+");
+
+		private final Set<String> ids                                  = new HashSet<>();
+		private final Map<String, List<Set<String>>> combinationsByClass = new HashMap<>();
+		private final List<Evaluator> evaluators                       = new LinkedList<>();
+
+		boolean isEmpty() {
+
+			return ids.isEmpty() && combinationsByClass.isEmpty() && evaluators.isEmpty();
+		}
+
+		void add(final String behaviour, final String selectors) {
+
+			if (StringUtils.isNotBlank(selectors) && EventBehaviour.PartialRefresh.equals(EventBehaviour.forName(behaviour))) {
+
+				for (final String part : selectors.split(",")) {
+
+					final String selector = part.trim();
+					if (StringUtils.isNotBlank(selector)) {
+
+						add(selector);
+					}
+				}
+			}
+		}
+
+		private void add(final String selector) {
+
+			final Matcher idMatcher = ID_SELECTOR.matcher(selector);
+			if (idMatcher.matches()) {
+
+				ids.add(idMatcher.group(1));
+
+				return;
+			}
+
+			if (CLASS_SELECTOR.matcher(selector).matches()) {
+
+				final Set<String> combination = new HashSet<>(Arrays.asList(selector.substring(1).split("\\.")));
+
+				// index the combination by each of its classes
+				for (final String cls : combination) {
+
+					combinationsByClass.computeIfAbsent(cls, k -> new LinkedList<>()).add(combination);
+				}
+
+				return;
+			}
+
+			try {
+
+				evaluators.add(QueryParser.parse(selector));
+
+			} catch (Selector.SelectorParseException spex) {
+
+				// the selector is user input, a malformed one is skipped (frontend.js cannot use it either)
+				LoggerFactory.getLogger(RenderContext.class).debug("Ignoring malformed reload target selector '{}': {}", selector, spex.getMessage());
+			}
+		}
 	}
 
 	public void setDataObject(GraphObject currentDataObject) {

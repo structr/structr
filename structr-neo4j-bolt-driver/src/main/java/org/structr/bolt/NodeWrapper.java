@@ -408,6 +408,8 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 			if (prefetched.contains(key)) {
 
+				countPrefetchHit(key, type, outgoing);
+
 				return List.of();
 			}
 
@@ -415,10 +417,14 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 				if (outgoing && db.getCurrentTransaction().prefetchedOutgoing.contains(type + "/" + key)) {
 
+					countPrefetchHit(key, type, outgoing);
+
 					return List.of();
 				}
 
 				if (!outgoing && db.getCurrentTransaction().prefetchedIncoming.contains(type + "/" + key)) {
+
+					countPrefetchHit(key, type, outgoing);
 
 					return List.of();
 				}
@@ -429,7 +435,27 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			return valueSupplier.get();
 		}
 
+		countPrefetchHit(key, type, outgoing);
+
 		return relationships;
+	}
+
+	/**
+	 * Counts a lookup that was served without a query if a prefetch pattern of the current
+	 * transaction covers it (the cache can also be filled by a query of this node itself).
+	 */
+	private void countPrefetchHit(final String key, final String type, final boolean outgoing) {
+
+		if (type != null) {
+
+			final SessionTransaction tx = db.getCurrentTransaction();
+			final String typedKey       = type + "/" + key;
+
+			if (outgoing ? tx.prefetchedOutgoing.contains(typedKey) : tx.prefetchedIncoming.contains(typedKey)) {
+
+				tx.countPrefetchHit(typedKey);
+			}
+		}
 	}
 
 	private String concat(final String... parts) {

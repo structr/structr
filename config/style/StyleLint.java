@@ -19,9 +19,9 @@
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.regex.*;
-import java.util.stream.*;
 
 /**
  * Structr semantic blank-line linter. Enforces the house-style blank-line rules that no
@@ -30,6 +30,11 @@ import java.util.stream.*;
  *
  *     java config/style/StyleLint.java --check <paths...>    report violations, exit 1 if any
  *     java config/style/StyleLint.java --fix   <paths...>    apply the fixes in place (converges)
+ *
+ * Directories are scanned like CodeQuality does it: only sources of real modules are taken, i.e.
+ * files under {@code <module>/src/main/java} or {@code <module>/src/test/java} where {@code <module>}
+ * has a pom.xml, and dot directories (.git, .idea, .claude, ...), target and node_modules are never
+ * entered. A file given explicitly is always linted.
  *
  * Rules — R1–R8 only insert/delete BLANK lines (behaviour-safe); R9 also joins a wrapped
  * continuation back onto one line, a whitespace-only merge guarded against comments, annotations
@@ -674,23 +679,99 @@ public class StyleLint {
 
 		for (int i = from; i < a.length; i++) {
 
-			final Path p = Paths.get(a[i]);
-			if (Files.isRegularFile(p) && p.toString().endsWith(".java")) {
+			final Path root = Paths.get(a[i]);
+			if (Files.isRegularFile(root) && root.toString().endsWith(".java")) {
 
-				files.add(p);
+				files.add(root);
 
-			} else if (Files.isDirectory(p)) {
+			} else if (Files.isDirectory(root)) {
 
-				try (Stream<Path> s = Files.walk(p)) {
+				Files.walkFileTree(root, new SimpleFileVisitor<>() {
 
-					s.filter(x -> x.toString().endsWith(".java")).forEach(files::add);
-				}
+					@Override
+					public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+
+						// the root itself may be a dot directory when given explicitly
+						if (!dir.equals(root) && isSkippedDirectory(dir)) {
+
+							return FileVisitResult.SKIP_SUBTREE;
+						}
+
+						return FileVisitResult.CONTINUE;
+					}
+
+					@Override
+					public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
+
+						if (isModuleSource(file)) {
+
+							files.add(file);
+						}
+
+						return FileVisitResult.CONTINUE;
+					}
+
+					@Override
+					public FileVisitResult visitFileFailed(final Path file, final IOException e) {
+
+						return FileVisitResult.CONTINUE;
+					}
+				});
 			}
 		}
 
 		Collections.sort(files);
 
 		return files;
+	}
+
+	/**
+	 * Directories that are never entered: dot directories (VCS, IDE and agent state), build output and
+	 * node_modules. None of them can contain sources of a module, and some are huge.
+	 */
+	static boolean isSkippedDirectory(final Path dir) {
+
+		final Path fileName = dir.getFileName();
+		if (fileName == null) {
+
+			return false;
+		}
+
+		final String name = fileName.toString();
+
+		return name.startsWith(".") || "target".equals(name) || "node_modules".equals(name);
+	}
+
+	/**
+	 * Whether a file is a source of a real module: {@code <module>/src/main/java/...} or
+	 * {@code <module>/src/test/java/...} where {@code <module>} contains a pom.xml. This leaves out
+	 * module-info.java (src/main/module), helper sources kept in src/main/resources, the tools in
+	 * config/ and any .java file outside a module.
+	 */
+	static boolean isModuleSource(final Path file) {
+
+		final String path = file.toString().replace('\\', '/');
+		if (!path.endsWith(".java")) {
+
+			return false;
+		}
+
+		for (final String marker : new String[] { "/src/main/java/", "/src/test/java/" }) {
+
+			final int index = path.indexOf(marker);
+			if (index >= 0) {
+
+				return Files.isRegularFile(Paths.get(path.substring(0, index), "pom.xml"));
+			}
+
+			// a relative path that starts inside the module, e.g. src/main/java/Foo.java
+			if (path.startsWith(marker.substring(1))) {
+
+				return Files.isRegularFile(Paths.get("pom.xml"));
+			}
+		}
+
+		return false;
 	}
 
 	public static void main(final String[] a) throws IOException {

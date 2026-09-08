@@ -357,12 +357,27 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		return indent.toString();
 	}
 
+	/**
+	 * Loads the DOM subtree of the given node (page or partial) with everything the rendering needs into
+	 * the transaction cache: all nodes reachable via the listed relationship types, plus the incoming
+	 * relationships of those types for every reached node. The incoming relationships are loaded
+	 * separately because the traversal only follows the outgoing direction: an incoming relationship
+	 * whose source lies outside the subtree (the input element of a parameter mapping when only a partial
+	 * is rendered, the parent of the partial root, a trigger of a reload target) would otherwise be
+	 * missing while the node is marked as fully prefetched, and the lookup would silently return nothing.
+	 */
 	static void prefetchDOMNodes(final String uuid) {
+
+		final String relationshipTypes = "RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY";
 
 		TransactionCommand.getCurrentTransaction().prefetch2(
 
-			//"MATCH (n:NodeInterface { id: $id })-[r:LINK|RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY*]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
-			"MATCH (n:NodeInterface { id: $id })-[r:RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY*]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+			"MATCH (n:NodeInterface { id: $id }) " +
+			"OPTIONAL MATCH (n)-[r:" + relationshipTypes + "*]->(x) " +
+			"WITH n, collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels " +
+			"UNWIND [n] + nodes AS m " +
+			"OPTIONAL MATCH (s)-[i:" + relationshipTypes + "]->(m) " +
+			"RETURN nodes, rels, collect(DISTINCT s) AS incomingNodes, collect(DISTINCT i) AS incomingRels",
 
 			Set.of(
 				"all/OUTGOING/CONTAINS",

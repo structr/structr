@@ -739,7 +739,7 @@ export class Frontend {
 	replacePartial(container, id, element, data, parameters, dontRebind, options) {
 
 		let base   = '/structr/html/' + id;
-		let params = this.encodeRequestParameters(data, parameters, options);
+		let params = this.encodeRequestParameters(data, parameters, options, element);
 		let uri    = base + params;
 
 		fetch(uri, {
@@ -888,7 +888,14 @@ export class Frontend {
 	 * @param {type} override
 	 * @returns {String} the URI-encoded objects
 	 */
-	encodeRequestParameters(fromDataset, override, options) {
+	/**
+	 * Builds the path and query string for a partial reload request from the dataset of the
+	 * reload target (data-current-object-id, data-request-*, render state), the override
+	 * parameters and the current location. Reload targets that are addressed by a CSS selector
+	 * are not linked to the action mapping and carry none of these attributes, so the current
+	 * object is taken from the trigger element in that case.
+	 */
+	encodeRequestParameters(fromDataset, override, options, element) {
 
 		let searchParams = new URLSearchParams(window.location.search);
 		let params  = {};
@@ -910,7 +917,12 @@ export class Frontend {
 
 		// current object set?
 		if (fromDataset.currentObjectId) {
+
 			current = '/' + fromDataset.currentObjectId;
+
+		} else if (element?.dataset?.currentObjectId) {
+
+			current = '/' + element.dataset.currentObjectId;
 		}
 
 		// copy all values prefixed with request (data-request-*)

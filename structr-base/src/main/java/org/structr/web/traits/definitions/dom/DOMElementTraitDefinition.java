@@ -578,7 +578,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, uuid).as(DOMElement.class);
 								final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getTriggeredActions();
 								final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
-								boolean outputStructrId = false;
+								final GraphObject currentObject                  = renderContext.getDetailsDataObject();
+								boolean outputStructrId                          = false;
+								boolean outputCurrentObjectId                    = false;
 
 								if (!list.isEmpty()) {
 
@@ -591,6 +593,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									if (pageId != null) {
 
 										out.append(" data-structr-page=\"").append(pageId).append("\"");
+									}
+
+									// make the current object ID available on the trigger as well, because reload targets that are
+									// addressed by a CSS selector are not linked and therefore not rendered with data-current-object-id
+									if (currentObject != null) {
+
+										out.append(" data-current-object-id=\"").append(currentObject.getUuid()).append("\"");
+										outputCurrentObjectId = true;
 									}
 
 									// why only the first one?!
@@ -810,15 +820,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 								}
 
-								if (thisElementWithSuperuserContext.isTargetElement()) {
+								// linked reload targets, or reload targets that are addressed by a CSS selector
+								if (thisElementWithSuperuserContext.isTargetElement() || renderContext.isSelectorReloadTarget(thisElementWithSuperuserContext)) {
 
 									outputStructrId = true;
 
 									// make current object ID available in reload targets
-									final GraphObject current = renderContext.getDetailsDataObject();
-									if (current != null) {
+									if (currentObject != null && !outputCurrentObjectId) {
 
-										out.append(" data-current-object-id=\"").append(current.getUuid()).append("\"");
+										out.append(" data-current-object-id=\"").append(currentObject.getUuid()).append("\"");
 									}
 
 									// realization: all dynamic parameters must be stored on the reload target!
