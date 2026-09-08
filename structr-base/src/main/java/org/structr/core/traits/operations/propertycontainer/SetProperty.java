@@ -23,6 +23,16 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 
+/**
+ * Overrides what happens when a single property is written through GraphObject.setProperty().
+ *
+ * NOT a chokepoint for property writes. A write that comes in as a map - which is what REST, the
+ * websocket and every other bulk update use - is handled by {@link SetProperties}, whose default
+ * implementation calls PropertyKey.setProperty() for each entry and never passes through here. An
+ * override that has to observe EVERY write of a property therefore belongs on the PropertyKey itself,
+ * where both paths converge; putting it here catches the single-key path only, which is easy to miss
+ * because that is the path a hand-written test usually takes.
+ */
 public abstract class SetProperty extends FrameworkMethod<SetProperty> {
 
 	public abstract <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;

@@ -159,24 +159,28 @@ public class StructrFilesRootPath extends StructrPath {
 	@Override
 	public void copy(final Path target, final CopyOption... options) throws IOException {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		// not "unimplemented": there is nowhere for the root of a filesystem to be copied to, and an
+		// IOException is what a caller of Files.copy is prepared to handle
+		throw new IOException("Cannot copy the root directory of the Structr filesystem.");
 	}
 
 	@Override
 	public void move(final Path target, final CopyOption... options) throws IOException {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new IOException("Cannot move the root directory of the Structr filesystem.");
 	}
 
 	@Override
 	public void setAttribute(final String attribute, final Object value, final LinkOption... options) throws IOException {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		// the root is not a node, so there is nothing to carry an attribute
+		throw new IOException("Cannot set attribute '" + attribute + "' on the root directory of the Structr filesystem.");
 	}
 
 	@Override
 	public boolean isSameFile(final Path path2) throws IOException {
 
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		// there is exactly one root per filesystem, so the question is whether the other path is that root
+		return equals(path2);
 	}
 }
