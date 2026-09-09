@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.apache.http.ParseException;
 import org.apache.http.entity.ContentType;
 import org.structr.common.error.ArgumentTypeException;
+import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
@@ -43,6 +44,10 @@ import java.util.Map;
  * two positions.
  *
  * StructrScript hands over its numbers as Double, so numeric values are read as Number.
+ *
+ * {@link #ASYNC} is the one key that is not read by apply() at all: it is read before the call is made,
+ * to decide which thread makes it. It still travels in this object so that a caller configures one call
+ * in one place.
  */
 public class HttpOptions {
 
@@ -61,6 +66,15 @@ public class HttpOptions {
 	 */
 	public static final String BINARY_RESPONSE      = "binaryResponse";
 	public static final String PARSE_RESPONSE        = "parseResponse";
+	/**
+	 * Run the call on a worker thread and answer a thenable immediately, instead of on the calling
+	 * thread.
+	 *
+	 * Only the functions that answer true to {@code Function#isAsyncCapable()} accept it, so a function
+	 * whose apply() may not leave the calling thread reports it as an unknown option rather than
+	 * accepting it and running synchronously.
+	 */
+	public static final String ASYNC                 = "async";
 	public static final String SELECTOR              = "selector";
 	public static final String PREEMPTIVE            = "preemptive";
 
@@ -81,7 +95,7 @@ public class HttpOptions {
 	 * nothing in the response. A timeout that does nothing surfaces much later as a hung call. Naming
 	 * the key and the function turns that into something the caller can fix.
 	 */
-	public HttpOptions accepting(final String functionName, final String... semanticKeys) {
+	public HttpOptions accepting(final ActionContext ctx, final String functionName, final String... semanticKeys) {
 
 		final Set<String> allowed = new LinkedHashSet<>(TRANSPORT);
 
@@ -94,6 +108,15 @@ public class HttpOptions {
 				throw new ArgumentTypeException(functionName + "(): unknown option '" + key + "'. " + functionName
 					+ " accepts " + String.join(", ", new TreeSet<>(allowed)) + ".");
 			}
+		}
+
+		// An accepted key that this caller cannot act on, which is the same failure as an unknown one: the
+		// call would run synchronously and nothing would say so. StructrScript reaches a function through
+		// its own parser and has no await, so it can neither receive a thenable nor resolve one.
+		if (ctx.isStructrScriptContext() && getBoolean(ASYNC, false)) {
+
+			throw new ArgumentTypeException(functionName + "(): the '" + ASYNC + "' option requires a language that can await the result, "
+				+ "such as JavaScript. Remove it to call " + functionName + "() synchronously from StructrScript.");
 		}
 
 		return this;

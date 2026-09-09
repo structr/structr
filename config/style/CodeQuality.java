@@ -16,8 +16,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
@@ -29,6 +31,12 @@ import java.util.stream.*;
  * smells) plus Structr-specific smells. Regex + brace-depth heuristics, no parser — expect some
  * false positives; treat scores as a "look here first" ordering. Test classes (anything under a
  * src/test directory) are skipped entirely, so test code never shows up in the ranking.
+ *
+ * Only the sources of real modules are scanned: files under {@code <module>/src/main/java} where
+ * {@code <module>} has a pom.xml. Everything else that happens to be a .java file in the tree
+ * (module-info.java in src/main/module, helper scripts in src/main/resources, the tools in config/,
+ * anything an IDE or agent keeps in a dot directory) is ignored, and dot directories, target and
+ * node_modules are not even entered. A file given explicitly on the command line is always scanned.
  *
  * Single-file program; runs with the JDK source launcher (no build, no dependencies, no Python):
  *     java config/style/CodeQuality.java [--top N] [--min SCORE] [--by SIGNAL] [--main-only] [--summary] [--detail N] [paths...]
@@ -1051,6 +1059,112 @@ public class CodeQuality {
 	}
 
 	/**
+	 * Collects the Java sources to scan. Directories are walked without entering dot directories
+	 * (.git, .idea, .claude, ...), build output (target) or node_modules, and only sources of real
+	 * modules are taken (see {@link #isModuleSource}). A path that names a file is taken as it is.
+	 */
+	static List<Path> collectSources(final List<String> paths) throws IOException {
+
+		final List<Path> files = new ArrayList<>();
+
+		for (final String p : paths) {
+
+			final Path root = Paths.get(p);
+			if (!Files.exists(root)) {
+
+				continue;
+			}
+
+			if (Files.isRegularFile(root)) {
+
+				if (root.toString().endsWith(".java")) {
+
+					files.add(root);
+				}
+
+				continue;
+			}
+
+			Files.walkFileTree(root, new SimpleFileVisitor<>() {
+
+				@Override
+				public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+
+					// the root itself may be a dot directory when given explicitly
+					if (!dir.equals(root) && isSkippedDirectory(dir)) {
+
+						return FileVisitResult.SKIP_SUBTREE;
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
+
+					if (isModuleSource(file)) {
+
+						files.add(file);
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFileFailed(final Path file, final IOException e) {
+
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		}
+
+		return files;
+	}
+
+	/**
+	 * Directories that are never entered: dot directories (VCS, IDE and agent state), build output and
+	 * node_modules. None of them can contain sources of a module, and some are huge.
+	 */
+	static boolean isSkippedDirectory(final Path dir) {
+
+		final Path fileName = dir.getFileName();
+		if (fileName == null) {
+
+			return false;
+		}
+
+		final String name = fileName.toString();
+
+		return name.startsWith(".") || "target".equals(name) || "node_modules".equals(name);
+	}
+
+	/**
+	 * Whether a file is a production source of a real module: {@code <module>/src/main/java/...} where
+	 * {@code <module>} contains a pom.xml. This leaves out module-info.java (src/main/module), helper
+	 * sources kept in src/main/resources, the tools in config/ and any .java file outside a module.
+	 * Test sources do not pass either, which is what {@link #isTestSource} guarantees for explicit files.
+	 */
+	static boolean isModuleSource(final Path file) {
+
+		final String path = file.toString().replace('\\', '/');
+		if (!path.endsWith(".java")) {
+
+			return false;
+		}
+
+		final String marker = "/src/main/java/";
+		final int index     = path.indexOf(marker);
+
+		if (index < 0) {
+
+			// a relative path that starts inside the module, e.g. src/main/java/Foo.java
+			return path.startsWith(marker.substring(1)) && Files.isRegularFile(Paths.get("pom.xml"));
+		}
+
+		return Files.isRegularFile(Paths.get(path.substring(0, index), "pom.xml"));
+	}
+
+	/**
 	 * Whether a file is a test source, i.e. lives under a {@code src/test} directory. Test classes are
 	 * skipped entirely - not just their {@code @Test} methods - because the scaffolding around those
 	 * methods (setup, fixtures, helpers) is written to different standards than production code and
@@ -1596,7 +1710,7 @@ public class CodeQuality {
 		System.out.println("  --min SCORE      omit files scoring below SCORE (default " + DEFAULT_THRESHOLD + "; a file with only switched-off signals scores 0)");
 		System.out.println("  --by SIGNAL      rank by one signal's count instead of the composite score");
 		System.out.println("  --detail N       list every finding in the file at ranking position N");
-		System.out.println("  --main-only      scan only src/main (test sources are always skipped)");
+		System.out.println("  --main-only      accepted for compatibility: only <module>/src/main/java is scanned anyway");
 		System.out.println("  --summary        one line per file, [" + LABEL + "]-prefixed (used by the build)");
 		System.out.println("  --show-accepted  include @code-quality:accept files in the listing");
 		System.out.println("  --color MODE     always | never | auto (default auto: only on a terminal)");
@@ -1688,7 +1802,6 @@ public class CodeQuality {
 			}
 		}
 
-		final boolean mo = mainOnly;
 
 		if (paths.isEmpty()) {
 
@@ -1714,24 +1827,7 @@ public class CodeQuality {
 		// runtime problem is swallowed with a one-line note and a zero exit.
 		try {
 
-			final List<Path> fs = new ArrayList<>();
-
-			for (String p : paths) {
-
-				final Path pp = Paths.get(p);
-				if (!Files.exists(pp)) {
-
-					continue;
-				}
-
-				try (Stream<Path> s = Files.walk(pp)) {
-
-					s.filter(x -> x.toString().endsWith(".java")
-						&& !x.toString().replace('\\', '/').contains("/target/")
-						&& !isTestSource(x)
-						&& (!mo || x.toString().replace('\\', '/').contains("/src/main/"))).forEach(fs::add);
-				}
-			}
+			final List<Path> fs = collectSources(paths);
 
 			// static_block needs to know which classes nothing references, which only the whole tree shows
 			indexReferences(fs);

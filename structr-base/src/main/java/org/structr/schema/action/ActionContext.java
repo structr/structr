@@ -666,6 +666,18 @@ public class ActionContext {
 	}
 
 	/**
+	 * Whether this evaluation is StructrScript rather than one of the polyglot languages.
+	 *
+	 * StructrScript resolves a function name through its own parser and calls the function directly, so
+	 * everything that a polyglot language receives through a wrapper is out of its reach. This is not the
+	 * negation of {@link #isJavaScriptContext()}: Python is neither.
+	 */
+	public boolean isStructrScriptContext() {
+
+		return scriptingEngine.equals(ScriptingEngine.STRUCTR_SCRIPT);
+	}
+
+	/**
 	 * Where in the script the function call being evaluated right now was written.
 	 *
 	 * Only StructrScript sets this: its parser records a row and column per expression, and

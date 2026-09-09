@@ -1,8 +1,48 @@
 # Authentication
 
-REST endpoints are protected by a security layer called Resource Access Permissions that controls which endpoints each type of user can access. This article explains how to configure these permissions and how to set up CORS for cross-origin requests.
+REST endpoints are protected by a security layer called Resource Access Permissions that controls which endpoints each type of user can access. This article explains how to authenticate a request, how to configure these permissions, and how to set up CORS for cross-origin requests.
 
-For general information about authentication methods (sessions, JWT, OAuth, two-factor authentication), see the Security chapter.
+Sessions, JWT, OAuth and two-factor authentication are covered in detail in the Security chapter.
+
+## Authentication Methods
+
+Structr determines the user context for each request by checking the following, in order:
+
+1. A session cookie
+2. A JWT in the `Authorization` header
+3. A session token in the `X-StructrSessionToken` header
+4. The `X-User` and `X-Password` headers
+
+If none of these are present, Structr treats the request as anonymous.
+
+Header authentication is described below because it is the method used in the REST examples throughout this guide. For the other methods, see the Security chapter.
+
+### Header Authentication
+
+Send the credentials as `X-User` and `X-Password` headers:
+
+**curl:**
+
+```bash
+curl http://localhost:8082/structr/rest/Project \
+  -H "X-User: admin" \
+  -H "X-Password: admin"
+```
+
+Structr authenticates each request on its own: it verifies the credentials, resolves the user, and processes the request in that user's context. No session is created and no token is stored, so there is nothing to expire, refresh or revoke.
+
+That makes header authentication the simplest option for scripts, scheduled jobs and server-to-server calls. For browser applications and mobile clients, prefer sessions or JWT, which avoid transmitting the password repeatedly.
+
+#### Security Considerations
+
+Because the credentials travel with every request:
+
+- **Use HTTPS.** Over plain HTTP the password is exposed on every call, not only at login. See SSL Configuration.
+- **Every request counts as a login attempt.** Structr blocks a user after `security.passwordpolicy.maxfailedattempts` failed attempts (default 4). A client that retries with wrong credentials locks the account within a few requests, so treat a 401 as a stop condition rather than something to retry automatically.
+
+Prefer a dedicated service user that holds only the permissions its client needs, rather than an administrator account. Such a user can be revoked without affecting anyone else, and a misconfigured client then blocks only that account.
+
+Authenticating successfully does not by itself grant access to any endpoint. Access is governed by Resource Access Permissions, described next.
 
 ## Resource Access Permissions
 
@@ -150,5 +190,6 @@ Configure CORS settings in the Security area of the Admin UI under the CORS tab.
 ## Related Topics
 
 - Security - Authentication methods, users, groups, and the permission system
+- SSL Configuration - Installing SSL certificates for HTTPS
 - Data Access - Once authentication is configured, this article explains how to read, create, update, and delete objects
 - Admin UI / Security - How to manage users, groups, and Resource Access Permissions in the Admin UI

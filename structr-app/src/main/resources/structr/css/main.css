@@ -4657,6 +4657,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .text-green {
     color: var(--structr-green);
 }
+.text-gray {
+	color: gray;
+}
 .text-red {
     color: var(--light-red);
 }

@@ -275,8 +275,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						logger.debug("No path supplied, trying to find index page");
 
-						// find a visible page
-						rootElement = findIndexPage(securityContext, edit);
+						// URL Route for "/" takes precedence over lowest position
+						rootElement = PagePaths.findIndexPageRoute(renderContext);
+
+						if (rootElement == null) {
+
+							// find a visible page
+							rootElement = findIndexPage(securityContext, edit);
+						}
 
 					} else {
 
@@ -286,9 +292,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							final NodeInterface node = findNodeByUuid(securityContext, uriParts[0]);
 							if (node != null && node.is(StructrTraits.DOM_NODE)) {
 
-								rootElement = node.as(DOMNode.class);
+								if (!isRestrictedToUrlRoutes(node)) {
 
-								renderContext.setIsPartialRendering(true);
+									rootElement = node.as(DOMNode.class);
+
+									renderContext.setIsPartialRendering(true);
+								}
 							}
 						}
 
@@ -366,7 +375,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 								if (possibleRootNode != null && possibleRootNode.is(StructrTraits.DOM_NODE)) {
 
-									rootElement = possibleRootNode.as(DOMNode.class);
+									if (!isRestrictedToUrlRoutes(possibleRootNode)) {
+
+										rootElement = possibleRootNode.as(DOMNode.class);
+									}
 								}
 							}
 
@@ -381,7 +393,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
 
 								// check visibleForSite here as well
-								if (possibleRootNode != null && possibleRootNode.is(StructrTraits.DOM_NODE) && (!(possibleRootNode.is(StructrTraits.PAGE)) || isVisibleForSite(request, possibleRootNode.as(Page.class)))) {
+								if (possibleRootNode != null && !isRestrictedToUrlRoutes(possibleRootNode) && possibleRootNode.is(StructrTraits.DOM_NODE) && (!(possibleRootNode.is(StructrTraits.PAGE)) || isVisibleForSite(request, possibleRootNode.as(Page.class)))) {
 
 									rootElement = possibleRootNode.as(DOMNode.class);
 								}
@@ -1059,6 +1071,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final NodeInterface node : errorPages) {
 
 			final Page errorPage = node.as(Page.class);
+			// do not check restrictToUrlRoutes flag because for error page lookup this is exempt
 			if (isVisibleForSite(securityContext.getRequest(), errorPage)) {
 
 				return errorPage;
@@ -1113,6 +1126,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		return null;
+	}
+
+	private boolean isRestrictedToUrlRoutes(final NodeInterface node) {
+
+		if (node.is(StructrTraits.PAGE) && node.as(Page.class).isRestrictedToUrlRoutes()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -1201,20 +1223,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final NodeInterface node : possiblePages) {
 
 			final Page page = node.as(Page.class);
-			if (!hasMultiplePathParts && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+			if (!hasMultiplePathParts && !page.isRestrictedToUrlRoutes() && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
 
 				return page;
 			}
 		}
 
 		// Check direct access by UUID
-		final int nameLength = name.length();
-		if (nameLength == 32 || nameLength == 36) {
+		if (Settings.isValidUuid(name)) {
 
 			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, name);
 			if (possiblePage != null && possiblePage.is(StructrTraits.PAGE) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), possiblePage.as(Page.class)))) {
 
-				return possiblePage.as(Page.class);
+				if (!isRestrictedToUrlRoutes(possiblePage)) {
+
+					return possiblePage.as(Page.class);
+				}
 			}
 		}
 
@@ -1239,7 +1263,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final NodeInterface node : possiblePages) {
 
 			final Page page = node.as(Page.class);
-			if (securityContext.isVisible(page) && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.as(Linkable.class).getEnableBasicAuth() && node.isVisibleToAuthenticatedUsers()))) {
+			if (securityContext.isVisible(page) && !page.isRestrictedToUrlRoutes() && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.as(Linkable.class).getEnableBasicAuth() && node.isVisibleToAuthenticatedUsers()))) {
 
 				return page;
 			}

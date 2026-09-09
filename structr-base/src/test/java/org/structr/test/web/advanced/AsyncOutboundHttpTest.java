@@ -45,7 +45,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 /**
- * The JavaScript-only async variants of the outbound HTTP functions, {@code $.GET.async(...)}.
+ * The JavaScript-only async mode of the outbound HTTP functions, {@code $.GET(url, { async: true })}.
  *
  * <p><b>Concurrency is asserted with a latch, not a clock.</b> The server counts each request in and
  * then waits for the others before answering any of them, so a 200 is reachable only if the requests
@@ -276,9 +276,9 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// all three started before anything is awaited: that is where the concurrency comes from, not
 			// from the await, which only joins them
 			final Object result = wrapped(
-				  "const a = $.GET.async(" + url + ");"
-				+ "const b = $.GET.async(" + url + ");"
-				+ "const c = $.GET.async(" + url + ");"
+				  "const a = $.GET(" + url + ", { async: true });"
+				+ "const b = $.GET(" + url + ", { async: true });"
+				+ "const c = $.GET(" + url + ", { async: true });"
 				+ "const r = await Promise.all([a, b, c]);"
 				+ "return r.map(x => x.status).join(',');");
 
@@ -314,7 +314,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			final Object result = wrapped(
 				  "$.addHeader('X-Early', 'yes');"
-				+ "const p = $.GET.async(" + slow + ");"
+				+ "const p = $.GET(" + slow + ", { async: true });"
 				+ "$.addHeader('X-Late', 'yes');"          // after the call was started: must not reach it
 				+ "const r2 = $.GET(" + release + ");"      // lets the rendezvous complete
 				+ "const r1 = await p;"
@@ -341,9 +341,9 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			final String base = "'http://localhost:" + port;
 
 			final Object result = wrapped(
-				  "const a = $.GET.async(" + base + "/a');"
-				+ "const b = $.GET.async(" + base + "/b');"
-				+ "const c = $.GET.async(" + base + "/c');"
+				  "const a = $.GET(" + base + "/a', { async: true });"
+				+ "const b = $.GET(" + base + "/b', { async: true });"
+				+ "const c = $.GET(" + base + "/c', { async: true });"
 				+ "const r = await Promise.all([c, a, b]);"
 				+ "return r.map(x => x.body).join(',');");
 
@@ -362,7 +362,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				  "const dead = 'http://localhost:1/';"
 				+ "let s, a;"
 				+ "try { const r = $.GET(dead); s = 'ok:' + (r === null ? 'null' : r.status); } catch (e) { s = 'err:' + e; }"
-				+ "try { const r = await $.GET.async(dead); a = 'ok:' + (r === null ? 'null' : r.status); } catch (e) { a = 'err:' + e; }"
+				+ "try { const r = await $.GET(dead, { async: true }); a = 'ok:' + (r === null ? 'null' : r.status); } catch (e) { a = 'err:' + e; }"
 				+ "return s + '||' + a;");
 
 			final String[] outcomes = result.toString().split("\\|\\|");
@@ -386,7 +386,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// then() once and treats "did not settle during that call" as an error, because there is no event
 			// loop to settle it afterwards. The pending call joins inside then(), so it settles in time --
 			// returning one without awaiting it is answered, not rejected.
-			final Object result = unwrapped("$.GET.async('http://localhost:" + port + "/x')");
+			final Object result = unwrapped("$.GET('http://localhost:" + port + "/x', { async: true })");
 
 			assertEquals("a pending call returned without await must still be resolved", "/x",
 				((org.structr.core.GraphObjectMap) result).toMap().get("body"));
@@ -407,7 +407,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// host no longer exercises this path at all. A wrong scheme is refused by
 			// checkAddressAgainstWhitelist inside the call, on the async thread, which is the rejection this
 			// test is about.
-			unwrapped("$.GET.async('ftp://example.com/')");
+			unwrapped("$.GET('ftp://example.com/', { async: true })");
 
 			fail("a failing pending call returned without await must report the failure, not answer null");
 
@@ -425,7 +425,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// The counterpart of the test above, pinning the other half of the 7.0 contract: a transport
 			// failure is data, not an error. The async path must agree with the synchronous one, which
 			// OutboundHttpApiTest asserts returns status 0 rather than throwing.
-			final Object result = unwrapped("$.GET.async('http://localhost:1/')");
+			final Object result = unwrapped("$.GET('http://localhost:1/', { async: true })");
 
 			assertNotNull("an unreachable host must resolve, not answer null", result);
 			assertEquals("no response means status 0", "0",
@@ -448,13 +448,13 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// The pending result is a thenable, not a Promise, so chaining directly off it is unavailable.
 			// If it ever becomes a real promise, these assertions are what report the change.
 			assertEquals("chaining directly off the pending result is not available", "undefined",
-				wrapped("return typeof $.GET.async(" + url + ").catch;"));
+				wrapped("return typeof $.GET(" + url + ", { async: true }).catch;"));
 
 			assertEquals("the documented chaining form works", "function",
-				wrapped("return typeof Promise.resolve($.GET.async(" + url + ")).catch;"));
+				wrapped("return typeof Promise.resolve($.GET(" + url + ", { async: true })).catch;"));
 
 			assertEquals("await is unaffected", 200,
-				wrapped("const r = await $.GET.async(" + url + "); return r.status;"));
+				wrapped("const r = await $.GET(" + url + ", { async: true }); return r.status;"));
 		});
 	}
 
@@ -467,8 +467,8 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withPacedServer(600, port -> {
 
 			final Object result = wrapped(
-				  "const slow = $.GET.async('http://localhost:" + port + "/slow');"
-				+ "const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				  "const slow = $.GET('http://localhost:" + port + "/slow', { async: true });"
+				+ "const fast = $.GET('http://localhost:" + port + "/fast', { async: true });"
 				+ "const r = await Promise.race([slow, fast]);"
 				+ "return r.body;");
 
@@ -485,8 +485,8 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withPacedServer(600, port -> {
 
 			final Object result = wrapped(
-				  "const slow = $.GET.async('http://localhost:" + port + "/slow');"
-				+ "const fast = $.GET.async('http://localhost:" + port + "/fast');"
+				  "const slow = $.GET('http://localhost:" + port + "/slow', { async: true });"
+				+ "const fast = $.GET('http://localhost:" + port + "/fast', { async: true });"
 				+ "const rs = await Promise.all([slow, fast]);"
 				+ "return rs.map(r => r.body).join(',');");
 
@@ -503,7 +503,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// arrow's own promise, which adopts the thenable rather than fulfilling with it, so the caller
 			// must still see the response and not the handle. Same reachable mistake as the unwrapped case,
 			// different machinery underneath -- worth its own test.
-			final Object result = wrapped("return $.GET.async('http://localhost:" + port + "/w');");
+			final Object result = wrapped("return $.GET('http://localhost:" + port + "/w', { async: true });");
 
 			assertEquals("what the caller gets must be the response, not the pending call",
 				"/w", ((org.structr.core.GraphObjectMap) result).toMap().get("body"));
@@ -514,7 +514,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 	}
 
 	@Test
-	public void testTheAsyncVariantAnswersTheSameWrappedAndUnwrapped() {
+	public void testTheAsyncCallAnswersTheSameWrappedAndUnwrapped() {
 
 		// Whether a snippet is wrapped is a stylistic choice Structr makes for the caller, so the async
 		// variant must not behave differently across it. The only difference between the two dialects is
@@ -525,7 +525,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			final String a = "'http://localhost:" + port + "/a'";
 
-			final String fromUnwrapped = unwrapped("$.GET.async(" + a + ")").toString();
+			final String fromUnwrapped = unwrapped("$.GET(" + a + ", { async: true })").toString();
 
 			assertTrue("the comparison is only meaningful if the call actually succeeded", fromUnwrapped.contains("status=200"));
 
@@ -534,14 +534,14 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			assertTrue("the rendered response is expected to carry a Date header", fromUnwrapped.contains("Date="));
 
 			assertEquals("a single pending call must answer the same either way",
-				withoutResponseDate(fromUnwrapped), withoutResponseDate(wrapped("return $.GET.async(" + a + ");").toString()));
+				withoutResponseDate(fromUnwrapped), withoutResponseDate(wrapped("return $.GET(" + a + ", { async: true });").toString()));
 		});
 
 		// and the concurrent case, which is the one that matters: Promise.all is itself a thenable, so an
 		// unwrapped snippet gets the full benefit without needing the await keyword at all
 		withRendezvousServer(2, 20, port -> {
 
-			final String pair = "Promise.all([$.GET.async('http://localhost:" + port + "/a'), $.GET.async('http://localhost:" + port + "/b')])";
+			final String pair = "Promise.all([$.GET('http://localhost:" + port + "/a', { async: true }), $.GET('http://localhost:" + port + "/b', { async: true })])";
 
 			final String fromUnwrapped = unwrapped(pair).toString();
 
@@ -570,7 +570,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withRendezvousServer(1, 20, port -> {
 
 			assertEquals("an unwrapped snippet must be able to await a single call inside an async function",
-				200, unwrapped("(async () => { const r = await $.GET.async('http://localhost:" + port + "/a'); return r.status; })()"));
+				200, unwrapped("(async () => { const r = await $.GET('http://localhost:" + port + "/a', { async: true }); return r.status; })()"));
 		});
 
 		// a barrier of two, because this makes two and they must overlap
@@ -578,8 +578,8 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			assertEquals("and to await several of them concurrently", "/a,/b",
 				unwrapped("(async () => { const r = await Promise.all(["
-					+ "$.GET.async('http://localhost:" + port + "/a'), "
-					+ "$.GET.async('http://localhost:" + port + "/b')"
+					+ "$.GET('http://localhost:" + port + "/a', { async: true }), "
+					+ "$.GET('http://localhost:" + port + "/b', { async: true })"
 					+ "]); return r.map(x => x.body).join(','); })()"));
 		});
 	}
@@ -600,15 +600,15 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		// so its promise reaches the host pending, as an unwrapped snippet's completion value does.
 		withPacedServer(3000, port -> {
 
-			final String body = "const slow = $.GET.async('http://localhost:" + port + "/slow');"
-				+ " const fast = $.GET.async('http://localhost:" + port + "/fast');"
+			final String body = "const slow = $.GET('http://localhost:" + port + "/slow', { async: true });"
+				+ " const fast = $.GET('http://localhost:" + port + "/fast', { async: true });"
 				+ " const r = await Promise.race([slow, fast]);";
 
 			// Warm the scripting engine and the outbound HTTP stack before timing anything. The first async
 			// call in a JVM costs on the order of a second by itself -- GraalJS warmup, the HTTP client's
 			// class loading and its first connection -- which is unrelated to whether the race waits for
 			// its loser and is large enough to dominate the measurement.
-			wrapped("const r = await $.GET.async('http://localhost:" + port + "/warmup'); return r.status;");
+			wrapped("const r = await $.GET('http://localhost:" + port + "/warmup', { async: true }); return r.status;");
 
 			final long startedWrapped = System.currentTimeMillis();
 			final Object fromWrapped  = wrapped(body + " return r.body;");
@@ -642,12 +642,12 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withRendezvousServer(1, 20, port -> {
 
 			assertEquals("both prints must survive an await in a wrapped snippet", "before|after|",
-				wrapped("$.print('before|'); const r = await $.GET.async('http://localhost:" + port + "/a');"
+				wrapped("$.print('before|'); const r = await $.GET('http://localhost:" + port + "/a', { async: true });"
 					+ " $.print('after|'); return r.status;"));
 
 			assertEquals("and in an unwrapped one", "before|after|",
 				unwrapped("(async () => { $.print('before|');"
-					+ " const r = await $.GET.async('http://localhost:" + port + "/a');"
+					+ " const r = await $.GET('http://localhost:" + port + "/a', { async: true });"
 					+ " $.print('after|'); return r.status; })()"));
 		});
 	}

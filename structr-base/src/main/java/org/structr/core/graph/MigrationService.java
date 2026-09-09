@@ -37,6 +37,7 @@ import org.structr.core.entity.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.graph.OutboundHttpCallMigrationHandler;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
