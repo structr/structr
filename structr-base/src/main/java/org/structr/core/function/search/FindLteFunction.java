@@ -53,18 +53,13 @@ public class FindLteFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			if (sources == null || sources.length > 1) {
-
-				throw new IllegalArgumentException();
-			}
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			return new RangePredicate(null, sources[0], false, true);
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
 		}
 	}
 

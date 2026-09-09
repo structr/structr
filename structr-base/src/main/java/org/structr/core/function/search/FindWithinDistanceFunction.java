@@ -54,7 +54,7 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 3);
+			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			if (sources.length == 3) {
 
@@ -67,9 +67,7 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
 		}
 
 		return null;
