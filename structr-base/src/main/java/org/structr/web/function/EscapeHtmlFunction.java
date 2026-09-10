@@ -18,7 +18,7 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -55,8 +55,6 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 			return StringEscapeUtils.escapeHtml4(sources[0].toString());
 
 		} catch (ArgumentNullException ane) {
-
-			// silently ignore null strings
 
 			return null;
 

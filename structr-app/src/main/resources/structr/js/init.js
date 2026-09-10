@@ -1462,7 +1462,7 @@ let Structr = {
 
 				if ((showForAuthUsers && !isForPublicUser) || (showForPublicUsers && isForPublicUser)) {
 
-					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation();
+					let builder = new WarningMessage().title(`REST Access denied`).text(data.message).requiresConfirmation();
 
 					let createPermission = (permissionData) => {
 
