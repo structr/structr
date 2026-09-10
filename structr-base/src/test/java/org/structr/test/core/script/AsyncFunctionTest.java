@@ -34,6 +34,7 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNotSame;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertSame;
@@ -41,10 +42,10 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
- * The generic half of the async function mechanism: which functions offer an async variant, how it is
- * reached, and what the worker is allowed to see.
+ * The generic half of the async function mechanism: which functions may run off the calling thread, how
+ * a call asks for it, and what the worker is allowed to see.
  *
- * The behaviour of the variant against a real server is in {@code AsyncOutboundHttpTest}.
+ * The behaviour of an asynchronous call against a real server is in {@code AsyncOutboundHttpTest}.
  */
 public class AsyncFunctionTest extends StructrTest {
 
@@ -89,20 +90,18 @@ public class AsyncFunctionTest extends StructrTest {
 	// ----- reachability -----
 
 	@Test
-	public void testAsyncMemberIsReadableOnlyWhereItApplies() {
+	public void testAsyncIsAnOptionAndNotAMember() {
 
 		try (final org.structr.core.graph.Tx tx = app.tx()) {
 
-			// GraalJS asks isMemberReadable before it reads, so a hasMember that disagrees with getMember
-			// makes the whole feature silently undefined rather than failing
-			assertEquals("$.GET.async must be a function", "function", wrapped("return typeof $.GET.async;"));
-			assertEquals("$.GET.async must be readable and enumerable consistently", true,
+			// The opt-in is read from the arguments of the ordinary call, so there is nothing to reach on
+			// the function object itself. GraalJS asks isMemberReadable before it reads, so a hasMember that
+			// answered true here would make $.GET.async readable and then null.
+			assertEquals("$.GET.async must not exist", "undefined", wrapped("return typeof $.GET.async;"));
+			assertEquals("async must not be enumerable on a function either", false,
 				wrapped("return Object.keys($.GET).includes('async');"));
 
-			assertEquals("a function that is not async-capable must not offer async", "undefined", wrapped("return typeof $.log.async;"));
-			assertEquals("POSTMultiPart must not offer async", "undefined", wrapped("return typeof $.POSTMultiPart.async;"));
-
-			// the real namespaced members still resolve, and async has not displaced them
+			// the real namespaced members still resolve
 			assertEquals("namespaced members must be unaffected", "function", wrapped("return typeof $.log.warn;"));
 
 			tx.success();
@@ -115,19 +114,43 @@ public class AsyncFunctionTest extends StructrTest {
 	}
 
 	@Test
-	public void testStructrScriptCannotReachTheAsyncVariant() {
+	public void testStructrScriptRefusesTheAsyncOption() {
 
 		try (final org.structr.core.graph.Tx tx = app.tx()) {
 
 			final ActionContext ctx = new ActionContext(securityContext);
 
-			// Nothing is registered under "GET.async", so StructrScript -- which resolves a dotted name
-			// against the registry rather than through FunctionWrapper -- cannot find it. Note the dot also
-			// suppresses the "Unknown function" error, because that spelling is how a method call on an
-			// entity is written, so the result is null rather than a failure.
-			assertNull("StructrScript must not resolve GET.async", Scripting.evaluate(ctx, null, "${GET.async('http://localhost:1/')}", "test"));
+			// StructrScript calls apply() directly and has no await, so it can neither receive a thenable nor
+			// resolve one. The option is refused rather than ignored, on the same grounds as an unknown one:
+			// a call that asked for concurrency and quietly did not get it says so nowhere.
+			//
+			// An unreachable host is what distinguishes refusing from running: a call that ran would answer a
+			// response with status 0, and only a refused one answers null.
+			assertNull("StructrScript must refuse the async option",
+				Scripting.evaluate(ctx, null, "${GET('http://localhost:1/', {async: true})}", "test"));
 
-			assertNull("nothing may be registered under the dotted name", Functions.get("GET.async"));
+			assertNotNull("the same call without the option must still be made",
+				Scripting.evaluate(ctx, null, "${GET('http://localhost:1/')}", "test"));
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testAFunctionThatIsNotAsyncCapableRefusesTheOption() {
+
+		try (final org.structr.core.graph.Tx tx = app.tx()) {
+
+			// POSTMultiPart does not list async among the options it accepts, so it reports it as an unknown
+			// one. That is the whole mechanism for a function whose apply() may not leave the calling thread:
+			// nothing has to be undone beyond the isAsyncCapable() override it already carries.
+			assertNull("a function that is not async-capable must refuse the async option",
+				wrapped("return $.POSTMultiPart('http://localhost:1/', { part: 'x' }, { async: true });"));
 
 			tx.success();
 

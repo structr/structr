@@ -73,8 +73,10 @@ fail your build. They are suggestions, not gates.
 
 **Code quality** (`config/style/CodeQuality.java`) ranks files by how much they would probably
 benefit from a careful read, using around twenty maintainability signals such as complexity, long
-methods, hand-written parsing, broad catch blocks, reflection and unexplained numbers. You can run it
-yourself with `java config/style/CodeQuality.java [--top N] [--by SIGNAL] [--main-only] <paths>`. If
+methods, hand-written parsing, broad catch blocks, reflection and unexplained numbers. It only looks at
+`src/main/java` of directories that have a `pom.xml`, and never enters dot directories (`.git`, `.idea`,
+`.claude`, ...), `target` or `node_modules`. You can run it yourself with
+`java config/style/CodeQuality.java [--top N] [--by SIGNAL] <paths>`. If
 you have read a file and are happy with it, add `@code-quality:accept` in a comment together with your
 reason and it drops off the list. `-DskipCodeQuality=true` hides the report.
 

@@ -71,11 +71,6 @@ public class QueryCommand extends AbstractCommand {
 		if (customView != null) {
 
 			securityContext.setCustomView(StringUtils.split(customView, ","));
-
-		} else {
-
-			// we use all-view to reduce linked nodes to id/type/name
-			webSocketData.setView(PropertyView.All);
 		}
 
 		final String sortKey           = webSocketData.getSortKey();

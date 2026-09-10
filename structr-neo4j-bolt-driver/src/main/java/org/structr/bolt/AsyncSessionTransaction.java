@@ -170,6 +170,9 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			resolveImmediately(session.closeAsync());
 		}
+
+		// prefetch bookkeeping (evaluation and optimization of the learned patterns), same as ReactiveSessionTransaction
+		super.close();
 	}
 
 	@Override

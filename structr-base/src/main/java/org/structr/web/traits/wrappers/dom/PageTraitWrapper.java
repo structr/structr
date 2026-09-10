@@ -140,6 +140,12 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	@Override
+	public boolean isRestrictedToUrlRoutes() {
+
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.RESTRICT_TO_URL_ROUTES_PROPERTY));
+	}
+
+	@Override
 	public Iterable<DOMNode> getElements() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PageTraitDefinition.ELEMENTS_PROPERTY);

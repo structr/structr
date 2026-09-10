@@ -29,8 +29,8 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * The settlements of host thenables that a script has registered but that have not been joined yet.
  *
- * <p>Registered by {@link org.structr.core.script.polyglot.wrappers.AsyncFunctionWrapper}'s thenable
- * when the script calls {@code then()} on it, and joined by {@link PolyglotWrapper#unwrap} while it
+ * <p>Registered by {@link org.structr.core.script.polyglot.wrappers.PendingCallWrapper} when the script
+ * calls {@code then()} on it, and joined by {@link PolyglotWrapper#unwrap} while it
  * settles the script's completion value. This is not an event loop: it schedules nothing, it cannot
  * settle a promise that nothing was going to settle, and it never outlives the evaluation that filled
  * it. It chooses the <em>order</em> in which already-running calls are joined -- by completion rather

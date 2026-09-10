@@ -73,7 +73,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			final String address      = sources[0].toString();
 			final Object body         = HttpBody.of(sources[1]);
 			final String contentType  = (sources.length >= 3 && sources[2] != null) && !HttpOptions.isOptionsAt(sources, 2) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final HttpOptions options = HttpOptions.fromAnyOf("POST", sources, 3, 2).accepting("POST", HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
+			final HttpOptions options = optionsOf(sources).accepting(ctx, "POST", HttpOptions.ASYNC, HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
 
 			HttpBody.checkRepeatable("POST", body, options);
 
@@ -139,6 +139,32 @@ public class HttpPostFunction extends UiAdvancedFunction {
 		return response;
 	}
 
+	/**
+	 * The options object of this call, wherever the caller put it.
+	 *
+	 * One accessor rather than one per caller, so the positions the object may occupy are stated once:
+	 * apply() reads the settings from it, and the async opt-in below is read before the call is made.
+	 */
+	private static HttpOptions optionsOf(final Object[] sources) {
+
+		return HttpOptions.fromAnyOf("POST", sources, 3, 2);
+	}
+
+	@Override
+	public boolean isAsyncRequested(final Object[] sources) {
+
+		try {
+
+			return optionsOf(sources).getBoolean(HttpOptions.ASYNC, false);
+
+		} catch (final IllegalArgumentException e) {
+
+			// a malformed options argument is not this method's to report: apply() runs either way, and
+			// turns it into the usage error that names what is wrong with it
+			return false;
+		}
+	}
+
 	@Override
 	public boolean isAsyncCapable() {
 
@@ -160,7 +186,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Parameter.mandatory("url", "URL to connect to"),
 			Parameter.mandatory("body", "request body"),
 			Parameter.optional("contentType", "content type of the request body, sent as the Content-Type header, charset included (`application/json; charset=UTF-8`)"),
-			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `parseResponse` to parse the response body as JSON, and `binaryResponse` to return the response body as a stream. To SEND binary data, pass a File as the body instead")
+			Parameter.optional("options", "object with optional settings: `username` and `password` for basic auth, `preemptive` to send them on the first request instead of waiting for a 401 challenge, `headers` merged over add_header(), `timeout` in seconds, `redirects` to follow redirects, `validateCertificates`, `async` to start the request on a worker thread and answer an awaitable result (JavaScript only), `parseResponse` to parse the response body as JSON, and `binaryResponse` to return the response body as a stream. To SEND binary data, pass a File as the body instead")
 		);
 	}
 
@@ -201,7 +227,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"7.0+: In JavaScript, `$.POST.async(...)` takes the same arguments but starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. It is awaitable, not a full promise: use `Promise.resolve($.POST.async(url)).catch(...)` to chain, `Promise.race()` answers the call that finished first, but the script still waits for the calls it did not answer with before it ends, so a race costs the slowest rather than the fastest. Only JavaScript has it - StructrScript always calls `POST()` synchronously.",
+			"7.0+: In JavaScript, the `async` option starts the request and returns immediately, so several requests can be in flight at once and `await Promise.all([...])` costs the slowest of them rather than their sum. The result is awaitable, not a full promise: use `Promise.resolve($.POST(url, { async: true })).catch(...)` to chain. `Promise.race()` answers as soon as its winner arrives, and the calls it beat are discarded. StructrScript has no way to await a result, so it rejects the option rather than calling `POST()` synchronously without saying so.",
 			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"7.0+: `contentType` is the content type of the REQUEST and is sent as the `Content-Type` header. Before 7.0 it never reached the request and `addHeader('Content-Type', ...)` was needed instead.",

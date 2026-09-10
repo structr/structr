@@ -578,12 +578,30 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, uuid).as(DOMElement.class);
 								final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getTriggeredActions();
 								final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
-								boolean outputStructrId = false;
+								final GraphObject currentObject                  = renderContext.getDetailsDataObject();
+								boolean outputStructrId                          = false;
+								boolean outputCurrentObjectId                    = false;
 
 								if (!list.isEmpty()) {
 
 									// all active elements need data-structr-id
 									outputStructrId = true;
+
+									// make the page ID available, frontend.js uses it to restrict the lookup of reload
+									// targets by HTML id or class to the current page (they can exist in other pages and in the trash)
+									final String pageId = renderContext.getPageId();
+									if (pageId != null) {
+
+										out.append(" data-structr-page=\"").append(pageId).append("\"");
+									}
+
+									// make the current object ID available on the trigger as well, because reload targets that are
+									// addressed by a CSS selector are not linked and therefore not rendered with data-current-object-id
+									if (currentObject != null) {
+
+										out.append(" data-current-object-id=\"").append(currentObject.getUuid()).append("\"");
+										outputCurrentObjectId = true;
+									}
 
 									// why only the first one?!
 									final ActionMapping triggeredAction = list.get(0);
@@ -594,7 +612,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									// support for configuration options
 									if (StringUtils.isNotBlank(options)) {
 
-										out.append(" data-structr-options=\"").append(StringEscapeUtils.escapeJson(options)).append("\"");
+										// options is a JSON string, escape for HTML attribute (not JSON!) so that the browser sees the original string
+										out.append(" data-structr-options=\"").append(DOMNode.escapeForHtmlAttributes(options)).append("\"");
 									}
 
 									String eventsString = null;
@@ -801,15 +820,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 								}
 
-								if (thisElementWithSuperuserContext.isTargetElement()) {
+								// linked reload targets, or reload targets that are addressed by a CSS selector
+								if (thisElementWithSuperuserContext.isTargetElement() || renderContext.isSelectorReloadTarget(thisElementWithSuperuserContext)) {
 
 									outputStructrId = true;
 
 									// make current object ID available in reload targets
-									final GraphObject current = renderContext.getDetailsDataObject();
-									if (current != null) {
+									if (currentObject != null && !outputCurrentObjectId) {
 
-										out.append(" data-current-object-id=\"").append(current.getUuid()).append("\"");
+										out.append(" data-current-object-id=\"").append(currentObject.getUuid()).append("\"");
 									}
 
 									// realization: all dynamic parameters must be stored on the reload target!

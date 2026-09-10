@@ -639,6 +639,9 @@ let _Schema = {
 					}
 				}
 			}
+
+			// nodes are measured before the UI font finishes loading, which leaves every cached endpoint offset a few pixels stale
+			document.fonts?.ready?.then(() => _Schema.ui.jsPlumbInstance.repaintEverything());
 		},
 		addTypeToCanvas: (entity, initialPosition) => {
 

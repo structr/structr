@@ -568,7 +568,13 @@ public class DocumentationServlet extends HttpServlet {
 
 		while (matcher.find() && replacements++ < 100) {
 
-			final Map<String, String> data = parseIncludeLink("markdown output", row, matcher.group(1));
+			final String group = matcher.group(1);
+			final Map<String, String> data = parseIncludeLink("markdown output", row, group);
+
+			if (data.isEmpty()) {
+				continue;
+			}
+
 			final List<Concept> concepts   = new LinkedList<>();
 			final String conceptName       = data.get("concept");
 
@@ -639,7 +645,7 @@ public class DocumentationServlet extends HttpServlet {
 
 				final String insertText = StringUtils.join(list, "\n");
 
-				content = matcher.replaceFirst(insertText);
+				content = content.replace(matcher.group(), insertText);
 				matcher.reset(content);
 			}
 		}
@@ -668,7 +674,7 @@ public class DocumentationServlet extends HttpServlet {
 			final String tokenContent = token.getContent();
 
 			// remove empty tokens and commas
-			if (StringUtils.isBlank(tokenContent) || tokenContent.trim().equals(","	)) {
+			if (StringUtils.isBlank(tokenContent) || tokenContent.trim().equals(",") || tokenContent.trim().equals("...")) {
 
 				continue;
 			}
