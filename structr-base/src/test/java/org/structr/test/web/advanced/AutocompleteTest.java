@@ -112,6 +112,10 @@ public class AutocompleteTest extends StructrUiTest {
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.contains($.", ";", 0, 0));
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.contains($.", ")", 0, 0));
 
+		// ensure predicate functions show up even after the dot
+		assertFirstResult("text", "predicate.empty", AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.predicate.e", "", 0, 0));
+		assertFirstResult("text", "predicate.range", AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.predicate.r", "", 0, 0));
+
 		// current is at least an AbstractNode
 		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.current.", "", 0, 0));
 		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${{\n\tlet test = $.current.c", "", 0, 0));

@@ -4192,7 +4192,14 @@ let _Pages = {
 
 						Command.deleteUnattachedNodes();
 
-						Structr.slideouts.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
+						Structr.slideouts.closeRightSlideOuts([_Pages.unusedElementsSlideout], () => {
+
+							_Pages.unusedElementsSlideout.onSlideoutClose();
+
+							_Pages.rightSlideoutClosedCallback();
+
+							Structr.resize();
+						});
 					}
 				});
 

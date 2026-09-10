@@ -58,11 +58,11 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			switch (sources.length) {
 
-				case 2: sortDescending = "true".equals(sources[1].toString().toLowerCase()); // no break here
+				case 2: sortDescending = "true".equals(sources[1].toString().toLowerCase());
 				case 1: sortKey        = sources[0].toString();
 			}
 
@@ -75,9 +75,7 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
 		}
 	}
 

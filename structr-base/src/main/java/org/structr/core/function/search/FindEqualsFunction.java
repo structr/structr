@@ -18,6 +18,7 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
@@ -53,7 +54,14 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasMinLengthAndMaxLength(sources, 1, 2);
+
+			if (sources.length == 2 && sources[0] == null) {
+
+				// if the two-parameter version is used, the first parameter (key) is not allowed to be null
+				// value can be null in both call-styles
+				throw new ArgumentNullException("key");
+			}
 
 			if (sources.length == 2) {
 
@@ -72,9 +80,7 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
 		}
 
 		return null;

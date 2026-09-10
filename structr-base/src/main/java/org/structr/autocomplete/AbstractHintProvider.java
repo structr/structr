@@ -147,6 +147,7 @@ public abstract class AbstractHintProvider {
 		final List<Documentable> allHints = getAllHints(actionContext, currentEntity, script, parseResult);
 		final List<GraphObject> hints     = new LinkedList<>();
 		final String lastToken            = parseResult.getLastToken();
+		final String tokensUntilRoot      = parseResult.getExpression() == null ? "" : (parseResult.getExpression().startsWith("$.") ? parseResult.getExpression().substring(2) : parseResult.getExpression());
 		final boolean unrestricted        = lastToken.endsWith("(") || lastToken.endsWith(("."));
 
 		for (final Documentable hint : allHints) {
@@ -156,7 +157,10 @@ public abstract class AbstractHintProvider {
 				final String functionName = getFunctionName(hint.getName());
 				final String displayName  = getFunctionName(hint.getDisplayName(true));
 
-				if ((unrestricted || displayName.startsWith(lastToken)) && ( (!script.endsWith(functionName)) || (script.endsWith(functionName) && hint instanceof Function) )) {
+				final boolean isFunctionHint     = (hint instanceof Function);
+				final boolean multiLevelFunction = isFunctionHint && tokensUntilRoot.contains(".");
+
+				if ((unrestricted || (!multiLevelFunction && displayName.startsWith(lastToken)) || (multiLevelFunction && displayName.startsWith(tokensUntilRoot))) && ( (!script.endsWith(functionName)) || (script.endsWith(functionName) && isFunctionHint) )) {
 
 					hints.add(toGraphObject(hint));
 				}
@@ -330,6 +334,10 @@ public abstract class AbstractHintProvider {
 					type = StructrTraits.NODE_INTERFACE;
 					break;
 
+				case "predicate":
+					tokenTypes.add("predicate");
+					break;
+
 				case "this":
 
 					if (currentNode != null && currentNode.isNode()) {
@@ -413,6 +421,7 @@ public abstract class AbstractHintProvider {
 						addAllHints(actionContext, hints);
 
 						return true;
+
 					}
 
 					break;
@@ -425,6 +434,12 @@ public abstract class AbstractHintProvider {
 
 						return true;
 					}
+
+					break;
+
+				case "predicate":
+
+					hints.addAll(Functions.getFunctions().stream().filter(f -> f.getReplacementHint().startsWith("predicate.")).toList());
 
 					break;
 

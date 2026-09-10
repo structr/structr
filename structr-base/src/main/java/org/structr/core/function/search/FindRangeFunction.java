@@ -59,10 +59,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			if (sources == null || sources.length < 2) {
-
-				throw new IllegalArgumentException();
-			}
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 4);
 
 			switch (sources.length) {
 
@@ -77,9 +74,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
 		}
 	}
 
