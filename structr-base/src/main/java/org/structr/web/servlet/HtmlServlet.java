@@ -572,7 +572,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							try {
 
-								writeOutputStream(response, buffer);
+								writeOutputStream(response, buffer, renderContext);
 
 							} catch (IOException ioex) {
 
@@ -1014,6 +1014,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 			}
 		});
+	}
+
+	/** Overload that also passes the RenderContext, which the two argument form cannot reach; delegates by default. */
+	protected void writeOutputStream(final HttpServletResponse response, final StringRenderBuffer buffer, final RenderContext renderContext) throws IOException {
+
+		writeOutputStream(response, buffer);
 	}
 
 	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {

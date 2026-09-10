@@ -18,45 +18,36 @@
  */
 package org.structr.pdf.servlet;
 
-import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.common.SecurityContext;
 import org.structr.core.graph.Tx;
 import org.structr.docs.Documentation;
+import org.structr.pdf.PdfRenderer;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.command.AbstractCommand;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Documentation(name="PdfServlet", parent="Servlets", children={ "PdfServlet Settings" })
 public class PdfServlet extends HtmlServlet {
 
-	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
-
-	private static final ExecutorService threadPool                   = Executors.newCachedThreadPool();
+	private static final Logger logger = LoggerFactory.getLogger(PdfServlet.class.getName());
 
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving = new LinkedHashSet<>();
@@ -113,131 +104,58 @@ public class PdfServlet extends HtmlServlet {
 		this.stats = stats;
 	}
 
+	/** A PDF cannot be streamed, so both of HtmlServlet's paths render synchronously here. */
 	@Override
 	protected void renderAsyncOutput(final HttpServletRequest request, final HttpServletResponse response, final App app, final RenderContext renderContext, final DOMNode rootElement, final long requestStartTime) throws IOException {
 
-		final AsyncContext async = request.startAsync();
-		final ServletOutputStream out = async.getResponse().getOutputStream();
-		final AtomicBoolean finished = new AtomicBoolean(false);
-		final DOMNode rootNode       = rootElement;
+		try {
 
-		setCustomResponseHeaders(response);
+			final String html = PdfRenderer.renderToHtml(rootElement, renderContext);
 
-		response.setContentType("application/pdf");
-		response.setHeader("Content-Disposition","attachment;filename=\"FileName.pdf\"");
+			writePdf(response, html, renderContext.getSecurityContext(), rootElement.getName());
 
-		threadPool.submit(new Runnable() {
+		} catch (final FrameworkException fex) {
 
-			@Override
-			public void run() {
+			logger.warn("Error while rendering page {} as PDF: {}", rootElement.getName(), fex.getMessage());
 
-				String name = "unknown";
-
-				try (final Tx tx = app.tx()) {
-
-					name = rootNode.getName();
-
-					// render
-					rootNode.render(renderContext, 0);
-					finished.set(true);
-
-					tx.success();
-
-				} catch (Throwable t) {
-
-					logger.warn("Error while rendering page {}: {}", name, t.getMessage());
-					logger.warn(ExceptionUtils.getStackTrace(t));
-
-					try {
-
-						response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-						finished.set(true);
-
-					} catch (IOException ex) {
-
-						logger.warn("", ex);
-					}
-				}
-			}
-
-		});
-
-		// start output write listener
-		out.setWriteListener(new WriteListener() {
-
-			@Override
-			public void onWritePossible() throws IOException {
-
-				try {
-
-					final Queue<String> queue = renderContext.getBuffer().getQueue();
-					String pageContent = "";
-
-					while (out.isReady()) {
-
-						String buffer = null;
-
-						synchronized (queue) {
-
-							buffer = queue.poll();
-						}
-
-						if (buffer != null) {
-
-							pageContent += buffer;
-
-						} else {
-
-							if (finished.get()) {
-
-								// TODO: implement parameters for wkhtmltopdf in settings
-
-								Pdf pdf = new Pdf();
-								pdf.addPageFromString(pageContent);
-
-								out.write(pdf.getPDF());
-
-								async.complete();
-
-								// prevent this block from being called again
-								break;
-							}
-
-							Thread.sleep(1);
-						}
-					}
-
-				} catch (EofException ee) {
-
-					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
-
-				} catch (IOException | InterruptedException t) {
-
-					logger.warn("Unexpected exception", t);
-				}
-			}
-
-			@Override
-			public void onError(Throwable t) {
-
-				if (t instanceof EofException) {
-
-					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
-
-				} else {
-
-					logger.warn("Unexpected exception", t);
-				}
-			}
-		});
+			response.sendError(fex.getStatus(), fex.getMessage());
+		}
 	}
 
+	/** HtmlServlet's synchronous path, taken when httpservice.async is off or the page sets pageCreatesRawData. */
 	@Override
-	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+	protected void writeOutputStream(final HttpServletResponse response, final StringRenderBuffer buffer, final RenderContext renderContext) throws IOException {
 
-		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+		final Page page = renderContext.getPage();
+
+		try {
+
+			writePdf(response, buffer.getBuffer().toString(), renderContext.getSecurityContext(), page != null ? page.getName() : null);
+
+		} catch (final FrameworkException fex) {
+
+			logger.warn("Error while converting rendered page to PDF: {}", fex.getMessage());
+
+			response.sendError(fex.getStatus(), fex.getMessage());
+		}
+	}
+
+	private void writePdf(final HttpServletResponse response, final String html, final SecurityContext securityContext, final String pageName) throws FrameworkException, IOException {
+
+		final byte[] pdf = PdfRenderer.toPdf(html, securityContext, pageName == null ? "page" : pageName);
+
+		// HtmlServlet has already applied the custom response headers on both of its paths
+		response.setContentType("application/pdf");
+		response.setContentLength(pdf.length);
+
+		// a page may set its own disposition while rendering, so only supply a default
+		if (!response.containsHeader("Content-Disposition")) {
+
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + PdfRenderer.fileNameFor(pageName) + "\"");
+		}
+
+		response.getOutputStream().write(pdf);
 		response.getOutputStream().flush();
-		response.getOutputStream().close();
 	}
 
 }

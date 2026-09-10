@@ -1450,7 +1450,7 @@ let Structr = {
 				break;
 
 			case "SCRIPT_JOB_EXCEPTION":
-				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().show();
+				new WarningMessage().title('Exception in Scheduled Job').text(_Helpers.escapeForHtmlAttributes(data.message)).requiresConfirmation().show();
 				break;
 
 			case "RESOURCE_ACCESS":
@@ -1462,7 +1462,7 @@ let Structr = {
 
 				if ((showForAuthUsers && !isForPublicUser) || (showForPublicUsers && isForPublicUser)) {
 
-					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation();
+					let builder = new WarningMessage().title(`REST Access denied`).text(data.message).requiresConfirmation();
 
 					let createPermission = (permissionData) => {
 
@@ -2850,7 +2850,7 @@ class MessageBuilder {
 
 		for (let btn of this.params.specialInteractionButtons) {
 
-			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mr-0">${btn.text}</button>`);
+			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mr-0">${_Helpers.sanitizeHtml(btn.text)}</button>`);
 			buttonContainer.appendChild(specialBtn);
 
 			specialBtn.addEventListener('click', () => {
@@ -2897,30 +2897,30 @@ class MessageBuilder {
 				if (this.params.updatesText) {
 
 					if (titleElement) {
-						titleElement.innerHTML = this.getTitle();
+						titleElement.innerHTML = _Helpers.sanitizeHtml(this.getTitle());
 					}
 
-					messageTextElement.innerHTML = this.params.text;
+					messageTextElement.innerHTML = _Helpers.sanitizeHtml(this.params.text);
 
 				} else if (this.params.prependsText) {
 
 					if (titleElement) {
-						titleElement.innerHTML = this.getTitle();
+						titleElement.innerHTML = _Helpers.sanitizeHtml(this.getTitle());
 					}
 
 					let prependTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.prependSelector) ?? messageTextElement);
 
-					prependTarget.insertAdjacentHTML('afterbegin', this.params.text);
+					prependTarget.insertAdjacentHTML('afterbegin', _Helpers.sanitizeHtml(this.params.text));
 
 				} else if (this.params.appendsText) {
 
 					if (titleElement) {
-						titleElement.innerHTML = this.getTitle();
+						titleElement.innerHTML = _Helpers.sanitizeHtml(this.getTitle());
 					}
 
 					let appendTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.appendSelector) ?? messageTextElement);
 
-					appendTarget.insertAdjacentHTML('beforeend', this.params.text);
+					appendTarget.insertAdjacentHTML('beforeend', _Helpers.sanitizeHtml(this.params.text));
 
 				} else if (this.params.replacesElement) {
 
@@ -2933,11 +2933,11 @@ class MessageBuilder {
 
 					if (replaceElement) {
 
-						replaceElement.replaceWith(..._Helpers.createDOMElementsFromHTML(this.params.text));
+						replaceElement.replaceWith(..._Helpers.createDOMElementsFromHTML(_Helpers.sanitizeHtml(this.params.text)));
 
 					} else {
 
-						parentElement.insertAdjacentHTML('beforeend', this.params.text);
+						parentElement.insertAdjacentHTML('beforeend', _Helpers.sanitizeHtml(this.params.text));
 					}
 				}
 
@@ -2967,7 +2967,7 @@ class MessageBuilder {
 						<div class="flex gap-6">
 
 							<div class="flex-grow font-bold text-lg">
-								<span class="message-title -mt-0.5 inline-block">${this.getTitle()}</span>
+								<span class="message-title -mt-0.5 inline-block">${_Helpers.sanitizeHtml(this.getTitle())}</span>
 								${this.getUniqueCountElement()}
 							</div>
 
@@ -2979,7 +2979,7 @@ class MessageBuilder {
 						</div>
 
 						<div class="message-text overflow-y-auto leading-6">
-							${this.params.text}
+							${_Helpers.sanitizeHtml(this.params.text)}
 						</div>
 
 						<div class="message-buttons flex flex-wrap gap-2 justify-end"></div>

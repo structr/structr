@@ -19,8 +19,12 @@
 module structr.pdf.module {
 
     requires structr.base;
-    requires java.wkhtmltopdf.wrapper;
+    requires openhtmltopdf.core;
+    requires openhtmltopdf.pdfbox;
     requires org.apache.pdfbox.io;
+
+    // PdfRenderer is the public entry point; reflective callers add their own read edge, so this module stays optional
+    exports org.structr.pdf;
 
     // instantiated reflectively by HttpService in structr.base (configured by class name)
     exports org.structr.pdf.servlet;
