@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -123,6 +124,72 @@ public class HttpHelperSsrfTest {
 
 			assertEquals("Expected 403 SSRF block, got status " + fex.getStatus() + ": " + fex.getMessage(), 403, fex.getStatus());
 			assertTrue("Expected SSRF block message, got: " + fex.getMessage(), fex.getMessage() != null && fex.getMessage().contains("internal network addresses"));
+		}
+	}
+
+	// ----- #1580: the caller-supplied proxy is otherwise connected to unchecked -----
+
+	private void assertProxyBlocked(final String proxyUrl) {
+
+		try {
+
+			HttpHelper.validateProxyUrl(proxyUrl);
+			fail("Expected FrameworkException(403) blocking internal proxy " + proxyUrl);
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("Expected 403 for proxy " + proxyUrl + ", got " + fex.getStatus() + ": " + fex.getMessage(), 403, fex.getStatus());
+		}
+	}
+
+	@Test
+	public void validateProxyUrl_shouldRejectInternalProxies() {
+
+		// loopback, link-local (incl. the cloud metadata IP), site-local (RFC1918)
+		assertProxyBlocked("http://127.0.0.1:8080");
+		assertProxyBlocked("169.254.169.254:80");
+		assertProxyBlocked("http://169.254.169.254:80");
+		assertProxyBlocked("http://10.0.0.5:3128");
+		assertProxyBlocked("http://192.168.1.1:3128");
+
+		// ranges InetAddress does not flag on its own
+		assertProxyBlocked("http://100.64.0.1:3128");   // carrier-grade NAT 100.64.0.0/10
+		assertProxyBlocked("http://[fd00::1]:3128");    // IPv6 unique local fc00::/7
+	}
+
+	@Test
+	public void validateProxyUrl_shouldAllowPublicProxyAndBlank() throws FrameworkException {
+
+		// a public proxy address must pass, and a blank proxy is a no-op (falls back to the trusted admin setting)
+		HttpHelper.validateProxyUrl("http://8.8.8.8:3128");
+		HttpHelper.validateProxyUrl("");
+		HttpHelper.validateProxyUrl(null);
+	}
+
+	@Test
+	public void validateProxyUrl_shouldRespectDisabledSsrfProtection() throws FrameworkException {
+
+		Settings.SsrfProtection.setValue(false);
+
+		// with protection off, even an internal proxy passes (restored by tearDown)
+		HttpHelper.validateProxyUrl("http://127.0.0.1:8080");
+	}
+
+	@Test
+	public void validateUrl_shouldRejectRangesInetAddressDoesNotFlag() {
+
+		// these are public-looking to InetAddress' built-in checks but are internal: CGNAT and IPv6 ULA
+		for (final String url : new String[] { "http://100.64.0.1/", "http://[fd00::1]/" }) {
+
+			try {
+
+				HttpHelper.validateUrl(url);
+				fail("Expected FrameworkException(403) blocking internal url " + url);
+
+			} catch (FrameworkException fex) {
+
+				assertEquals("Expected 403 for " + url + ", got " + fex.getStatus() + ": " + fex.getMessage(), 403, fex.getStatus());
+			}
 		}
 	}
 }

@@ -678,7 +678,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										if (StringUtils.isNotBlank(value)) {
 
 											final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
-											out.append(" data-structr-" + keyHyphenated + "=\"").append(value).append("\"");
+											out.append(" data-structr-" + keyHyphenated + "=\"").append(DOMNode.escapeForHtmlAttributes(value)).append("\"");
 										}
 
 										if (key.equals(ActionMappingTraitDefinition.EVENT_PROPERTY)) {
@@ -689,7 +689,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									if (eventsString != null) {
 
-										out.append(" data-structr-events=\"").append(eventsString).append("\"");
+										out.append(" data-structr-events=\"").append(DOMNode.escapeForHtmlAttributes(eventsString)).append("\"");
 									}
 
 									renderDialogAttributes(renderContext, out, triggeredAction);
@@ -737,7 +737,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 											continue;
 										}
 
-										final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName);
+										final String nameAttributeHyphenated = DOMNode.sanitizeAttributeName(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName));
 										final ParameterType parameterType    = ParameterType.forName(parameterTypeString);
 
 										switch (parameterType) {
@@ -750,7 +750,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 													final String elementCssId = element.getPropertyWithVariableReplacement(renderContext, htmlIdKey);
 													if (elementCssId != null) {
 
-														out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(elementCssId).append(")\"");
+														out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(DOMNode.escapeForHtmlAttributes(elementCssId)).append(")\"");
 
 													} else {
 
@@ -778,30 +778,34 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												final String value        = renderContext.getRequestParameter(parameterName);
 												final EventAction action  = EventAction.forName(actionString);
 
+																// #1579: parameterName is a dynamically configured name; sanitize it for use as an attribute name and escape it for use as a value
+																final String pageParamName   = DOMNode.sanitizeAttributeName(parameterName);
+																final String pageParamTarget = DOMNode.escapeForHtmlAttributes(parameterName);
+
 												// special handling for pagination (migrated code)
 												switch (action) {
 
 													case EventAction.PrevPage:
-														out.append(" data-structr-target=\"").append(parameterName).append("\"");
+														out.append(" data-structr-target=\"").append(pageParamTarget).append("\"");
 														final int prev = DOMElement.intOrOne(value);
-														out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
+														out.append(" data-").append(pageParamName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
 														break;
 
 													case EventAction.NextPage:
-														out.append(" data-structr-target=\"").append(parameterName).append("\"");
+														out.append(" data-structr-target=\"").append(pageParamTarget).append("\"");
 														final int next = DOMElement.intOrOne(value);
-														out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(next + 1)).append("\"");
+														out.append(" data-").append(pageParamName).append("=\"").append(String.valueOf(next + 1)).append("\"");
 														break;
 
 													case EventAction.FirstPage:
-														out.append(" data-structr-target=\"").append(parameterName).append("\"");
-														out.append(" data-").append(parameterName).append("=\"1\"");
+														out.append(" data-structr-target=\"").append(pageParamTarget).append("\"");
+														out.append(" data-").append(pageParamName).append("=\"1\"");
 														break;
 
 													case EventAction.LastPage:
 														// should we really count all objects?
-														out.append(" data-structr-target=\"").append(parameterName).append("\"");
-														out.append(" data-").append(parameterName).append("=\"1000\"");
+														out.append(" data-structr-target=\"").append(pageParamTarget).append("\"");
+														out.append(" data-").append(pageParamName).append("=\"1000\"");
 														break;
 
 													default:
@@ -844,7 +848,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 											if (values.length > 0 && !RequestParameterBlacklist.contains(key)) {
 
-												out.append(" data-request-").append(DOMElement.toHtmlAttributeName(key)).append("=\"").append(values[0]).append("\"");
+												// #1579: request parameter name and value are attacker-controlled; restrict the name to
+												// [A-Za-z0-9-] and escape the value for an HTML attribute context
+												final String requestAttrName = DOMNode.sanitizeAttributeName(DOMElement.toHtmlAttributeName(key));
+												if (!requestAttrName.isEmpty()) {
+
+													out.append(" data-request-").append(requestAttrName).append("=\"").append(DOMNode.escapeForHtmlAttributes(values[0])).append("\"");
+												}
 											}
 										}
 									}
@@ -2620,7 +2630,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY));
 		if (StringUtils.isNotBlank(idExpression)) {
 
-			out.append(" data-structr-target=\"").append(idExpression).append("\"");
+			out.append(" data-structr-target=\"").append(DOMNode.escapeForHtmlAttributes(idExpression)).append("\"");
 		}
 
 		final String action = triggeredAction.getAction();
@@ -2631,13 +2641,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			final String dataType = triggeredAction.getResolvedDataTypeName();
 			if (StringUtils.isNotBlank(dataType)) {
 
-				out.append(" data-structr-target=\"").append(dataType).append("\"");
+				out.append(" data-structr-target=\"").append(DOMNode.escapeForHtmlAttributes(dataType)).append("\"");
 			}
 		}
 
 		if (StringUtils.isNotBlank(successTargetString)) {
 
-			out.append(" data-structr-success-target=\"").append(successTargetString).append("\"");
+			out.append(" data-structr-success-target=\"").append(DOMNode.escapeForHtmlAttributes(successTargetString)).append("\"");
 		}
 	}
 

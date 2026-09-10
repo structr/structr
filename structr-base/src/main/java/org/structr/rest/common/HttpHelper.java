@@ -1162,7 +1162,7 @@ public class HttpHelper {
 		try {
 
 			final InetAddress resolved = InetAddress.getByName(host);
-			if (resolved.isLoopbackAddress() || resolved.isLinkLocalAddress() || resolved.isSiteLocalAddress() || resolved.isAnyLocalAddress() || resolved.isMulticastAddress()) {
+			if (isBlockedAddress(resolved)) {
 
 				logger.warn("Blocked outbound request to internal address {} (resolved from {})", resolved.getHostAddress(), host);
 				throw new FrameworkException(403, "Requests to internal network addresses are not allowed");
@@ -1171,6 +1171,87 @@ public class HttpHelper {
 		} catch (UnknownHostException e) {
 
 			throw new FrameworkException(400, "Unable to resolve hostname: " + host);
+		}
+	}
+
+	/**
+	 * SSRF address filter shared by {@link #validateUrl} and {@link #validateProxyUrl}. Blocks loopback,
+	 * link-local (incl. 169.254.169.254), site-local (RFC1918), wildcard and multicast addresses, plus the
+	 * ranges {@link InetAddress} does not flag: IPv4 carrier-grade NAT 100.64.0.0/10 and IPv6 unique local
+	 * addresses fc00::/7 (which covers fd00::/8). #1580
+	 */
+	private static boolean isBlockedAddress(final InetAddress address) {
+
+		if (address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress() || address.isAnyLocalAddress() || address.isMulticastAddress()) {
+
+			return true;
+		}
+
+		final byte[] bytes = address.getAddress();
+
+		// IPv4 carrier-grade NAT: 100.64.0.0/10
+		if (bytes.length == 4) {
+
+			final int first  = bytes[0] & 0xff;
+			final int second = bytes[1] & 0xff;
+
+			if (first == 100 && second >= 64 && second <= 127) {
+
+				return true;
+			}
+		}
+
+		// IPv6 unique local addresses: fc00::/7
+		if (bytes.length == 16 && (bytes[0] & 0xfe) == 0xfc) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Validates a proxy address (host:port or scheme://host:port) against the same SSRF filter as
+	 * {@link #validateUrl}. The connection to a proxy goes to the proxy's own host:port regardless of the
+	 * requested URL, so a caller-supplied proxy must not be allowed to point at an internal service. #1580
+	 */
+	public static void validateProxyUrl(final String proxyUrl) throws FrameworkException {
+
+		if (!Settings.SsrfProtection.getValue() || StringUtils.isBlank(proxyUrl)) {
+
+			return;
+		}
+
+		final String host;
+
+		try {
+
+			// parse exactly as the client will (org.apache.http.HttpHost.create), so the validated host is
+			// the host actually connected to
+			host = HttpHost.create(proxyUrl).getHostName();
+
+		} catch (final IllegalArgumentException e) {
+
+			throw new FrameworkException(400, "Invalid proxy URL: " + proxyUrl);
+		}
+
+		if (StringUtils.isBlank(host)) {
+
+			throw new FrameworkException(400, "Proxy URL has no host component: " + proxyUrl);
+		}
+
+		try {
+
+			final InetAddress resolved = InetAddress.getByName(host);
+			if (isBlockedAddress(resolved)) {
+
+				logger.warn("Blocked outbound request via internal proxy address {} (resolved from {})", resolved.getHostAddress(), host);
+				throw new FrameworkException(403, "Proxies on internal network addresses are not allowed");
+			}
+
+		} catch (final UnknownHostException e) {
+
+			throw new FrameworkException(400, "Unable to resolve proxy hostname: " + host);
 		}
 	}
 

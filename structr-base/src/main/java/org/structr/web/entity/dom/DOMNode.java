@@ -324,6 +324,28 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
 	}
 
+	static String sanitizeAttributeName(final String raw) {
+
+		if (raw == null) {
+
+			return "";
+		}
+
+		final StringBuilder buf = new StringBuilder(raw.length());
+
+		raw.chars().forEach(c -> {
+
+			// keep the characters HTML attribute names legitimately use (e.g. dotted sort keys like
+			// "project.sort"); drop everything that could break out of the name and inject an attribute
+			if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.') {
+
+				buf.append((char) c);
+			}
+		});
+
+		return buf.toString();
+	}
+
 	static String unescapeForHtmlAttributes(final String raw) {
 
 		return StringUtils.replaceEach(raw, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"}, new String[]{"&", "<", ">", "\""});

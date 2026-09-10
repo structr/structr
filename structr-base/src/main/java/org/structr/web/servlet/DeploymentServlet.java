@@ -502,14 +502,15 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 					throw new FrameworkException(422, "Absolute paths are not allowed");
 				}
 
-				if (!requestedPath.toFile().getCanonicalPath().startsWith(rootPath.toFile().getCanonicalPath())) {
-
-					throw new FrameworkException(422, "Directory traversal not allowed");
-				}
-
 				if (!requestedPath.toFile().exists()) {
 
 					throw new FrameworkException(422, "Given folder does not exist in provided zip file!");
+				}
+
+				// compare path components instead of string prefixes so that siblings of rootPath are rejected as well
+				if (!requestedPath.toRealPath().startsWith(rootPath.toRealPath())) {
+
+					throw new FrameworkException(422, "Directory traversal not allowed");
 				}
 
 				deploymentFolderSourcePath = directoryPath  + "/" + zipContentPath;

@@ -23,6 +23,7 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 
 import java.util.*;
+import org.structr.web.entity.dom.DOMNode;
 
 public class TagWithCSSInfo {
 
@@ -80,7 +81,7 @@ public class TagWithCSSInfo {
 
 			if (id != null) {
 
-				buffer.append(" id=\"" + id + "\"");
+				buffer.append(" id=\"" + DOMNode.escapeForHtmlAttributes(id) + "\"");
 			}
 
 			if (!mergedClasses.isEmpty()) {
@@ -94,7 +95,15 @@ public class TagWithCSSInfo {
 
 				for (final String key : additionalValues.keySet()) {
 
-					buffer.append(" " + key + "=\"" + additionalValues.get(key) + "\"");
+					// attribute name and value can carry request-derived data (e.g. pagination key / channel values),
+					// so restrict the name to [A-Za-z0-9-] and escape the value for an HTML attribute context (#1579)
+					final String sanitizedKey = DOMNode.sanitizeAttributeName(key);
+					if (sanitizedKey.isEmpty()) {
+
+						continue;
+					}
+
+					buffer.append(" " + sanitizedKey + "=\"" + DOMNode.escapeForHtmlAttributes(additionalValues.get(key)) + "\"");
 				}
 			}
 

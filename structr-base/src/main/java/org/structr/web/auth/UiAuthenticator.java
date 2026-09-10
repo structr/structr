@@ -23,6 +23,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +92,7 @@ public class UiAuthenticator implements Authenticator {
 		.maximumSize(1000)
 		.expireAfterWrite(10, TimeUnit.MINUTES)
 		.build();
-	private static final Map<String, Method> methods                       = new HashMap();
+	private static final Map<String, Method> methods = new HashMap<>();
 
 	protected boolean examined = false;
 
@@ -325,9 +326,8 @@ public class UiAuthenticator implements Authenticator {
 		final Principal user             = securityContext.getUser(false);
 		final boolean validUser          = (user != null);
 
-		// super user is always authenticated
+		// superuser is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
-
 			return;
 		}
 
@@ -335,35 +335,40 @@ public class UiAuthenticator implements Authenticator {
 		final List<ResourceAccess> permissions = ResourceAccessTraitWrapper.findPermissions(securityContext, rawResourceSignature);
 		final Method method                    = methods.get(request.getMethod());
 
-		// flatten permissons
+		if (method == null) {
+
+			logger.warn("Unknown method '{}', cannot determine resource access.", request.getMethod());
+
+			throw new UnauthorizedException("Access denied - Method not implemented");
+		}
+
+		// flatten permissions
 		long combinedFlags   = 0;
 		int permissionsFound = 0;
 
-		if (permissions != null) {
+		// combine allowed flags for permissions user is allowed to see
+		for (final ResourceAccess permission : permissions) {
 
-			// combine allowed flags for permissions user is allowed to see
-			for (final ResourceAccess permission : permissions) {
+			if (securityContext.isReadable(permission, false, false)) {
 
-				if (securityContext.isReadable(permission, false, false)) {
-
-					permissionsFound++;
-					combinedFlags = combinedFlags | permission.getFlags();
-				}
+				permissionsFound++;
+				combinedFlags = combinedFlags | permission.getFlags();
 			}
 		}
 
-		// no permissions => no access rights
+		final boolean isServicePrincipal      = validUser && (user instanceof ServicePrincipal);
+		final String escapedURI               = StringEscapeUtils.escapeHtml4(securityContext.getCompoundRequestURI());
+		final String escapedUsername          = (validUser ? StringEscapeUtils.escapeHtml4(user.getName()) : "");
+		final String userInfo                 = (validUser ? (isServicePrincipal ? "service principal '" + escapedUsername + "'" : "user '" + escapedUsername + "'") : "anonymous users");
+		final Map<String, Object> eventLogMap = new HashMap<>(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal, "uri", escapedURI));
+
+		if (validUser) {
+			eventLogMap.put("userName", escapedUsername);
+		}
+
 		if (permissionsFound == 0) {
 
-			final boolean isServicePrincipal = validUser && (user instanceof ServicePrincipal);
-			final String userInfo     = (validUser ? (isServicePrincipal ? "service principal '" + user.getName() + "'" : "user '" + user.getName() + "'") : "anonymous users");
-			final String errorMessage = "Found no resource access permission for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
-			final Map eventLogMap     = new HashMap(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal));
-
-			if (validUser) {
-
-				eventLogMap.put("userName", user.getName());
-			}
+			final String errorMessage = "Found no resource access permission for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + escapedURI + ").";
 
 			if (deniedAccessLog.allow(rawResourceSignature + " " + method)) {
 
@@ -375,128 +380,108 @@ public class UiAuthenticator implements Authenticator {
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 				"type",           "RESOURCE_ACCESS",
 				"message",            errorMessage,
-				"uri",                securityContext.getCompoundRequestURI(),
+				"uri",                escapedURI,
 				"signature",          rawResourceSignature,
 				"method",             method,
 				"validUser",          validUser,
 				"isServicePrincipal", isServicePrincipal,
 				"userid",             (validUser ? user.getUuid() : ""),
-				"username",           (validUser ? user.getName() : "")
+				"username",           escapedUsername
 			));
 
 			throw new UnauthorizedException("Access denied");
 
-		} else if (method != null) {
+		} else {
 
 			switch (method) {
 
-				case GET :
+				case GET:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_GET, combinedFlags)) {
-
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_GET, combinedFlags)) {
-
 						return;
 					}
 
 					break;
 
-				case PUT :
+				case PUT:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PUT, combinedFlags)) {
-
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PUT, combinedFlags)) {
-
 						return;
 					}
 
 					break;
 
-				case POST :
+				case POST:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_POST, combinedFlags)) {
-
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_POST, combinedFlags)) {
-
 						return;
 					}
 
 					break;
 
-				case DELETE :
+				case DELETE:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_DELETE, combinedFlags)) {
-
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_DELETE, combinedFlags)) {
-
 						return;
 					}
 
 					break;
 
-				case OPTIONS :
+				case OPTIONS:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_OPTIONS, combinedFlags)) {
-
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_OPTIONS, combinedFlags)) {
-
 						return;
 					}
 
 					break;
 
-				case HEAD :
+				case HEAD:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_HEAD, combinedFlags)) {
-
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_HEAD, combinedFlags)) {
-
 						return;
 					}
 
 					break;
 
-				case PATCH :
+				case PATCH:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PATCH, combinedFlags)) {
-
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PATCH, combinedFlags)) {
-
 						return;
 					}
 
 					break;
 			}
-
-		} else {
-
-			logger.warn("Unknown method {}, cannot determine resource access.", request.getMethod());
 		}
 
-		final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
-		final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
-		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
+		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + escapedURI + "), but method '" + method + "' not allowed in any of them.";
 
 		if (deniedAccessLog.allow(rawResourceSignature + " " + method)) {
 
@@ -508,12 +493,12 @@ public class UiAuthenticator implements Authenticator {
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 			"type",  "RESOURCE_ACCESS",
 			"message",   errorMessage,
-			"uri",       securityContext.getCompoundRequestURI(),
+			"uri",       escapedURI,
 			"signature", rawResourceSignature,
 			"method",    method,
 			"validUser", validUser,
 			"userid",    (validUser ? user.getUuid() : ""),
-			"username",  (validUser ? user.getName() : "")
+			"username",  escapedUsername
 		));
 
 		throw new UnauthorizedException("Access denied");
