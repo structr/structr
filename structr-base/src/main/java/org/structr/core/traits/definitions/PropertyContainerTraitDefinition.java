@@ -210,7 +210,17 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 						// no old value exists  OR  old value exists and is NOT equal => set property
 						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!Objects.deepEquals(oldValue, value)) || (key instanceof FunctionProperty)) ) {
 
-							if (!key.equals(traits.key(GraphObjectTraitDefinition.ID_PROPERTY))) {
+							if (key.equals(traits.key(GraphObjectTraitDefinition.ID_PROPERTY))) {
+
+								// #1578: id (uuid) is write-once. Privileged code (creation, deployment/import) reassigns it as
+								// super user; a normal (non-super-user) caller must not change a node's uuid via an
+								// update (e.g. PUT /me {"id": "<other uuid>"}), which would let it inherit another node's grants.
+								if (!isCreation && !securityContext.isSuperUser()) {
+
+									throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(graphObject.getType(), key.jsonName()));
+								}
+
+							} else {
 
 								// check for system properties
 								if (key.isSystemInternal() && !graphObject.systemPropertiesUnlocked()) {

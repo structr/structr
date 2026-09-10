@@ -204,6 +204,10 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				}
 			}
 
+			// #1580: the caller-supplied proxy (request parameter or the user's stored proxy settings) is
+			// otherwise connected to unchecked, bypassing the SSRF check on 'url'. Validate it the same way.
+			HttpHelper.validateProxyUrl(proxyUrl);
+
 			final Map<String, Object> responseData = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true);
 			final String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 

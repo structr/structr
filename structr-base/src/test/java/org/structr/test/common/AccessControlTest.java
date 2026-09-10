@@ -1387,6 +1387,168 @@ public class AccessControlTest extends StructrTest {
 	}
 
 	@Test
+	public void test09aOwnershipAndGroupPrivilegeEscalation() {
+
+		// #1577: a non-admin must not be able to take ownership of, or gain membership in,
+		// nodes they can merely read. ownedNodes and groups are relationship properties whose
+		// write check only covers the principal being modified - and the caller always has write
+		// on themselves. Setting them via /me therefore established OWNS / GROUP_CONTAINS_PRINCIPAL
+		// relationships to nodes the caller does not control. Both are now read-only, matching
+		// grantedNodes/grantees; ownership stays settable via owner/setOwner and membership via
+		// Group.addMember (the members side, which requires write on the group).
+
+		clearResourceAccess();
+
+		try {
+
+			final Traits nodeTraits      = Traits.of(StructrTraits.NODE_INTERFACE);
+			final Traits principalTraits = Traits.of(StructrTraits.PRINCIPAL);
+			final Traits groupTraits     = Traits.of(StructrTraits.GROUP);
+
+			final PropertyKey<Boolean> visibleToAuthKey              = nodeTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
+			final PropertyKey<NodeInterface> ownerKey                = nodeTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY);
+			final PropertyKey<Iterable<NodeInterface>> ownedNodesKey = principalTraits.key(PrincipalTraitDefinition.OWNED_NODES_PROPERTY);
+			final PropertyKey<Iterable<NodeInterface>> groupsKey      = principalTraits.key(PrincipalTraitDefinition.GROUPS_PROPERTY);
+
+			// set up as super user: a readable foreign node and a readable admin group
+			final NodeInterface targetNode = createTestNode("TestOne", new NodeAttribute<>(visibleToAuthKey, true));
+
+			final NodeInterface adminGroup = createTestNode(StructrTraits.GROUP,
+				new NodeAttribute<>(groupTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "adminGroup"),
+				new NodeAttribute<>(groupTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true),
+				new NodeAttribute<>(visibleToAuthKey, true)
+			);
+
+			final User nonAdmin = createTestNode(StructrTraits.USER, "tester").as(User.class);
+
+			final SecurityContext userContext = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
+			nonAdmin.setSecurityContext(userContext);
+
+			final App userApp = StructrApp.getInstance(userContext);
+
+			// attempt 1: take ownership of a readable node via ownedNodes on self
+			try (final Tx tx = userApp.tx()) {
+
+				final PropertyMap props = new PropertyMap();
+				props.put(ownedNodesKey, List.of(targetNode));
+
+				nonAdmin.setProperties(userContext, props);
+
+				fail("Privilege escalation: non-admin took ownership of a readable node via 'ownedNodes'!");
+
+				tx.success();
+
+			} catch (FrameworkException expected) {
+
+				assertEquals(422, expected.getStatus());
+			}
+
+			// attempt 2: join a readable admin group via groups on self
+			try (final Tx tx = userApp.tx()) {
+
+				final PropertyMap props = new PropertyMap();
+				props.put(groupsKey, List.of(adminGroup));
+
+				nonAdmin.setProperties(userContext, props);
+
+				fail("Privilege escalation: non-admin joined a group via 'groups'!");
+
+				tx.success();
+
+			} catch (FrameworkException expected) {
+
+				assertEquals(422, expected.getStatus());
+			}
+
+			// verify the attacker gained nothing
+			try (final Tx tx = app.tx()) {
+
+				assertNull("Non-admin must not have become owner of a foreign node", targetNode.getProperty(ownerKey));
+				assertFalse("Non-admin must not have gained group membership", nonAdmin.getProperty(groupsKey).iterator().hasNext());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void test09bIdOverwriteViaSetProperties() {
+
+		// #1578: id (uuid) is systemInternal + readOnly + writeOnce, yet setProperties() exempted it
+		// from those checks. A PUT applies its whole body via setProperties(), so a non-admin could
+		// overwrite a node's id - e.g. PUT /me {"id": "<admin uuid>"} - to inherit the admin's grants
+		// (Security/schema grants are keyed by uuid) and displace them in uuid/token lookups. id is
+		// immutable after creation; changing it via setProperties() must be rejected.
+
+		clearResourceAccess();
+
+		try {
+
+			final PropertyKey<String> idKey = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
+
+			final NodeInterface victim = createTestNode(StructrTraits.USER, "victim");
+			final User nonAdmin        = createTestNode(StructrTraits.USER, "attacker").as(User.class);
+
+			String victimUuid   = null;
+			String attackerUuid = null;
+
+			try (final Tx tx = app.tx()) {
+
+				victimUuid   = victim.getUuid();
+				attackerUuid = nonAdmin.getUuid();
+
+				tx.success();
+			}
+
+			final SecurityContext userContext = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
+			nonAdmin.setSecurityContext(userContext);
+
+			final App userApp = StructrApp.getInstance(userContext);
+
+			// attempt to overwrite the attacker's own id with the victim's uuid
+			try (final Tx tx = userApp.tx()) {
+
+				final PropertyMap props = new PropertyMap();
+				props.put(idKey, victimUuid);
+
+				nonAdmin.setProperties(userContext, props);
+
+				fail("Privilege escalation: non-admin overwrote a node id via setProperties()!");
+
+				tx.success();
+
+			} catch (FrameworkException expected) {
+
+				assertEquals(422, expected.getStatus());
+			}
+
+			// verify no id collision was created: both uuids still resolve to their own distinct node
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface reloadedAttacker = app.getNodeById(StructrTraits.USER, attackerUuid);
+				final NodeInterface reloadedVictim   = app.getNodeById(StructrTraits.USER, victimUuid);
+
+				assertNotNull("Attacker must still exist under its original uuid", reloadedAttacker);
+				assertNotNull("Victim must still exist under its own uuid", reloadedVictim);
+				assertEquals("Attacker uuid must still map to the attacker", "attacker", reloadedAttacker.getName());
+				assertEquals("Victim uuid must still map to the victim", "victim", reloadedVictim.getName());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void test10LowercaseEMail() {
 
 		final String type               = StructrTraits.USER;
