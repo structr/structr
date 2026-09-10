@@ -24,4 +24,9 @@ public class ArgumentNullException extends IllegalArgumentException {
 
 		super("Expected all parameters to be non-null");
 	}
+
+	public ArgumentNullException(final String parameterName) {
+
+		super("Expected parameter '" + parameterName + "' to be non-null");
+	}
 }

@@ -64,14 +64,12 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				throw new FrameworkException(422, "find.any: first parameter must be a collection");
+				throw new FrameworkException(422, getName() + "(): first parameter must be a collection");
 			}
 
 		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
+			throw new FrameworkException(422, getName() + "(): " + e.getMessage());
 		}
 	}
 
@@ -99,6 +97,8 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 			The main use case for predicate.any is remote properties but it can also be used for local properties (not array properties at the moment).
 
 			predicate.any is always used in conjunction with `predicate.equals` or `predicate.contains` and the elements of `listOfOptions` must be of the same type as the property that is being searched.
+
+			Note that null values can not be used in the collection of values.
 
 			Examples for different property types:
 			```

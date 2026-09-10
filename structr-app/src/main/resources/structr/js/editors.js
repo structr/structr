@@ -534,6 +534,15 @@ let _Editors = {
 
 					let doAutocomplete = forceAllowAutoComplete || modelLanguage === 'javascript' || isAutoscriptEnv === true;
 
+					const word = model.getWordUntilPosition(position);
+
+					let range = {
+						startLineNumber: position.lineNumber,
+						endLineNumber: position.lineNumber,
+						startColumn: word.startColumn,
+						endColumn: word.endColumn
+					};
+
 					let fetchPromise = new Promise((resolve, reject) => {
 
 						if (doAutocomplete) {
@@ -546,6 +555,25 @@ let _Editors = {
 
 								resolve(
 									result.map((hint) => {
+
+										let insertText = hint.replacement ?? hint.text;
+
+										// basically special handling for "predicate." replacements
+										if (insertText.contains('.')) {
+
+											let firstPartOfReplacement = insertText.substring(0, insertText.indexOf('.'));
+											let textToBeReplaced       = textBefore.substring(textBefore.lastIndexOf(firstPartOfReplacement));
+
+											if (insertText.startsWith(textToBeReplaced)) {
+												insertText = insertText.substring(textToBeReplaced.length);
+												range = {
+													startLineNumber: position.lineNumber,
+													endLineNumber: position.lineNumber,
+													startColumn: position.column,
+													endColumn: position.column
+												};
+											}
+										}
 
 										// see https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html#documentation
 										return {
@@ -563,7 +591,8 @@ let _Editors = {
 											},
 
 											kind:          _Editors.getAutoCompletionHintKind(hint.type),
-											insertText:    hint.replacement ?? hint.text
+											range:         range,
+											insertText:    insertText
 										}
 									})
 								);
