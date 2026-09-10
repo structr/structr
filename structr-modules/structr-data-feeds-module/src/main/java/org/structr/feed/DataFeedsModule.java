@@ -52,7 +52,7 @@ public class DataFeedsModule implements StructrModule {
 		StructrTraits.registerTrait(new FeedItemEnclosureTraitDefinition());
 		StructrTraits.registerTrait(new RemoteDocumentTraitDefinition());
 
-		StructrTraits.registerNodeType(StructrTraits.ABSTRACT_FEED_ITEM,  StructrTraits.ABSTRACT_FEED_ITEM);
+		StructrTraits.registerAbstractNodeType(StructrTraits.ABSTRACT_FEED_ITEM,  StructrTraits.ABSTRACT_FEED_ITEM);
 		StructrTraits.registerNodeType(StructrTraits.DATA_FEED,           StructrTraits.DATA_FEED);
 		StructrTraits.registerNodeType(StructrTraits.FEED_ITEM,           StructrTraits.ABSTRACT_FEED_ITEM, StructrTraits.FEED_ITEM);
 		StructrTraits.registerNodeType(StructrTraits.FEED_ITEM_CONTENT,   StructrTraits.ABSTRACT_FEED_ITEM, StructrTraits.FEED_ITEM_CONTENT);

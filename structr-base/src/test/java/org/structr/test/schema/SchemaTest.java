@@ -215,6 +215,155 @@ public class SchemaTest extends StructrTest {
 
 	}
 
+	/**
+	 * isAbstract is stored, exported, and was never enforced: nothing carried it from the SchemaNode into
+	 * the runtime Traits, so the guard in StructrApp.create asked a constant and every type was concrete.
+	 */
+	@Test
+	public void testAbstractTypeCannotBeInstantiated() {
+
+		final String abstractType = "AbstractContractPartner";
+		final String concreteType = "ConcreteSupplier";
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface parent = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), abstractType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.IS_ABSTRACT_PROPERTY), true));
+
+			app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), concreteType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { abstractType }));
+
+			assertNotNull(parent);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception creating the schema.");
+		}
+
+		// the flag has to reach the runtime type, not just the schema node
+		try (final Tx tx = app.tx()) {
+
+			assertTrue("The abstract flag did not reach the runtime type", Traits.of(abstractType).isAbstract());
+			assertFalse("A concrete subtype must not inherit the prohibition", Traits.of(concreteType).isAbstract());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(abstractType, "should not be creatable");
+
+			tx.success();
+
+			fail("Creating an instance of an abstract type should have been refused");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("An abstract type should be refused with 422", 422, fex.getStatus());
+		}
+
+		// and the prohibition must not leak onto the concrete subtype
+		try (final Tx tx = app.tx()) {
+
+			assertNotNull(app.create(concreteType, "a supplier"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("A concrete subtype of an abstract type must still be creatable.");
+		}
+	}
+
+	@Test
+	public void testBuiltinSupertypesCannotBeInstantiated() {
+
+		// these carry only their own trait, so an instance would have no concrete behaviour at all
+		for (final String type : new String[] { StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_SCHEMA_NODE }) {
+
+			try (final Tx tx = app.tx()) {
+
+				assertTrue(type + " should be marked abstract", Traits.of(type).isAbstract());
+
+				app.create(type, "should not be creatable");
+
+				tx.success();
+
+				fail("Creating an instance of " + type + " should have been refused");
+
+			} catch (FrameworkException fex) {
+
+				assertEquals("An abstract builtin type should be refused with 422", 422, fex.getStatus());
+			}
+		}
+
+		// the concrete types built on them are unaffected
+		try (final Tx tx = app.tx()) {
+
+			assertFalse(StructrTraits.FILE + " must stay instantiable", Traits.of(StructrTraits.FILE).isAbstract());
+			assertFalse(StructrTraits.FOLDER + " must stay instantiable", Traits.of(StructrTraits.FOLDER).isAbstract());
+			assertNotNull(app.create(StructrTraits.FOLDER, "a folder"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("A concrete subtype of an abstract builtin type must still be creatable.");
+		}
+	}
+
+	@Test
+	public void testInterfaceTypesCannotBeInstantiated() {
+
+		// these exist only to be mixed into other types, exactly like a Java interface
+		for (final String type : new String[] { StructrTraits.LINKABLE, StructrTraits.LINK_SOURCE, StructrTraits.DATA_SOURCE }) {
+
+			try (final Tx tx = app.tx()) {
+
+				assertTrue(type + " should be marked as an interface", Traits.of(type).isInterface());
+				assertFalse(type + " is an interface, not an abstract type", Traits.of(type).isAbstract());
+
+				app.create(type, "should not be creatable");
+
+				tx.success();
+
+				fail("Creating an instance of " + type + " should have been refused");
+
+			} catch (FrameworkException fex) {
+
+				assertEquals("An interface type should be refused with 422", 422, fex.getStatus());
+				assertTrue("The message should name the interface, not call it abstract, but was: " + fex.getMessage(),
+					fex.getMessage().contains("is an interface"));
+			}
+		}
+
+		// carrying the trait is not the same as being the type
+		try (final Tx tx = app.tx()) {
+
+			assertFalse(StructrTraits.FILE + " carries Linkable but must stay instantiable", Traits.of(StructrTraits.FILE).isInterface());
+			assertNotNull(app.create(StructrTraits.FILE, "a file"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("A type that merely carries an interface trait must still be creatable.");
+		}
+	}
+
 	@Test
 	public void test02SimpleSymmetricReferences() {
 

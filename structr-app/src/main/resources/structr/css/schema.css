@@ -196,6 +196,17 @@
 	border-radius: 1rem;
 }
 
+/* the graph has height to spare and no width, so the keyword goes above the name as UML draws it */
+#schema-graph .node.interface-type {
+	text-align: center;
+	line-height: 1.15;
+}
+
+#schema-graph .node.interface-type::before {
+	display: block;
+	margin-right: 0;
+}
+
 #schema-graph .node h2 {
 	margin: 6px 0;
 }

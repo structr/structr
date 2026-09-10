@@ -384,6 +384,20 @@ public class StructrTraits {
 		rootInstance.registerNodeType(typeName, traits);
 	}
 
+	public static void registerAbstractNodeType(final String typeName, final String... traits) {
+
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
+		rootInstance.registerAbstractNodeType(typeName, traits);
+	}
+
+	public static void registerInterfaceNodeType(final String typeName, final String... traits) {
+
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
+		rootInstance.registerInterfaceNodeType(typeName, traits);
+	}
+
 	public static void registerRelationshipType(final String typeName, final String... traits) {
 
 		final TraitsInstance rootInstance = TraitsManager.getRootInstance();

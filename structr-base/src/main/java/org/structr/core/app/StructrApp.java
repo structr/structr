@@ -58,6 +58,9 @@ import java.util.*;
  */
 public class StructrApp implements App {
 
+	// a long list in an error message is noise, not help
+	private static final int MAX_SUGGESTED_SUBTYPES = 5;
+
 	private static final String INSTANCE_ID = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 	private static final Logger logger      = LoggerFactory.getLogger(StructrApp.class);
 
@@ -77,6 +80,40 @@ public class StructrApp implements App {
 		this.securityContext = securityContext;
 		this.relFactory      = new RelationshipFactory(securityContext);
 		this.nodeFactory     = new NodeFactory(securityContext);
+	}
+
+	// both create overloads reach CreateNodeCommand independently, so the prohibition sits on each of them
+	private static void assertInstantiable(final String type) throws FrameworkException {
+
+		final Traits traits = Traits.of(type);
+
+		if (traits != null && (traits.isInterface() || traits.isAbstract())) {
+
+			throw new FrameworkException(422, "Type " + type + (traits.isInterface() ? " is an interface" : " is abstract")
+				+ " and cannot be instantiated" + suggestConcreteSubtypes(type));
+		}
+	}
+
+	// the caller reached an abstract type by name, so the useful answer is which types it can use instead
+	private static String suggestConcreteSubtypes(final String type) {
+
+		final List<String> concrete = Traits.getAllTypes(t -> t.contains(type) && !t.isAbstract() && !t.isInterface() && !type.equals(t.getName()))
+			.stream()
+			.sorted()
+			.toList();
+
+		if (concrete.isEmpty()) {
+
+			return "";
+		}
+
+		if (concrete.size() > MAX_SUGGESTED_SUBTYPES) {
+
+			return ", use one of its " + concrete.size() + " concrete subtypes, for example "
+				+ String.join(", ", concrete.subList(0, MAX_SUGGESTED_SUBTYPES));
+		}
+
+		return ", use one of " + String.join(", ", concrete) + " instead";
 	}
 
 	// ----- public methods -----
@@ -108,15 +145,13 @@ public class StructrApp implements App {
 				// overwrite type information when creating a node (adhere to type specified by resource!)
 				properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
-			} else if (actualType.isInterface() || actualType.isAbstract()) {
-
-				throw new FrameworkException(422, "Invalid abstract type " + type + ", please supply a non-abstract class name in the type property");
-
 			} else {
 
 				finalType = actualType.getName();
 			}
 		}
+
+		assertInstantiable(finalType);
 
 		// set type
 		properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), finalType);
@@ -129,6 +164,8 @@ public class StructrApp implements App {
 
 		final List<NodeAttribute<?>> attrs = new LinkedList<>(Arrays.asList(attributes));
 		final CreateNodeCommand command    = command(CreateNodeCommand.class);
+
+		assertInstantiable(type);
 
 		// add type information when creating a node
 		attrs.add(new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type));

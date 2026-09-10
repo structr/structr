@@ -294,6 +294,22 @@ public class TraitsInstance {
 		impl.resolveTraits();
 	}
 
+	// a builtin supertype that carries only its own trait: instantiating it yields a node with no concrete behaviour
+	public void registerAbstractNodeType(final String typeName, final String... traits) {
+
+		registerNodeType(typeName, traits);
+
+		((TraitsImplementation) getTraits(typeName)).setAbstract(true);
+	}
+
+	// a builtin type that exists only to be mixed into others, like a Java interface
+	public void registerInterfaceNodeType(final String typeName, final String... traits) {
+
+		registerNodeType(typeName, traits);
+
+		((TraitsImplementation) getTraits(typeName)).setInterface(true);
+	}
+
 	public void registerRelationshipType(final String typeName, final String... traits) {
 
 		final TraitsImplementation impl = new TraitsImplementation(this, typeName, true, false, true, false, false);
@@ -312,7 +328,7 @@ public class TraitsInstance {
 		impl.resolveTraits();
 	}
 
-	public void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final Set<String> traits) {
+	public void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final boolean isAbstract, final boolean isInterface, final Set<String> traits) {
 
 		TraitsImplementation impl;
 
@@ -338,6 +354,15 @@ public class TraitsInstance {
 		for (final String trait : traits) {
 
 			impl.addTrait(trait);
+		}
+
+		// only ever added: overloading a builtin supertype must not make it instantiable again
+		if (isAbstract) {
+			impl.setAbstract(true);
+		}
+
+		if (isInterface) {
+			impl.setInterface(true);
 		}
 
 		impl.resolveTraits();
