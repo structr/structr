@@ -358,11 +358,12 @@ public class UiAuthenticator implements Authenticator {
 
 		final boolean isServicePrincipal      = validUser && (user instanceof ServicePrincipal);
 		final String escapedURI               = StringEscapeUtils.escapeHtml4(securityContext.getCompoundRequestURI());
-		final String userInfo                 = (validUser ? (isServicePrincipal ? "service principal '" + user.getName() + "'" : "user '" + user.getName() + "'") : "anonymous users");
+		final String escapedUsername          = (validUser ? StringEscapeUtils.escapeHtml4(user.getName()) : "");
+		final String userInfo                 = (validUser ? (isServicePrincipal ? "service principal '" + escapedUsername + "'" : "user '" + escapedUsername + "'") : "anonymous users");
 		final Map<String, Object> eventLogMap = new HashMap<>(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal, "uri", escapedURI));
 
 		if (validUser) {
-			eventLogMap.put("userName", user.getName());
+			eventLogMap.put("userName", escapedUsername);
 		}
 
 		if (permissionsFound == 0) {
@@ -385,7 +386,7 @@ public class UiAuthenticator implements Authenticator {
 				"validUser",          validUser,
 				"isServicePrincipal", isServicePrincipal,
 				"userid",             (validUser ? user.getUuid() : ""),
-				"username",           (validUser ? user.getName() : "")
+				"username",           escapedUsername
 			));
 
 			throw new UnauthorizedException("Access denied");
@@ -497,7 +498,7 @@ public class UiAuthenticator implements Authenticator {
 			"method",    method,
 			"validUser", validUser,
 			"userid",    (validUser ? user.getUuid() : ""),
-			"username",  (validUser ? user.getName() : "")
+			"username",  escapedUsername
 		));
 
 		throw new UnauthorizedException("Access denied");

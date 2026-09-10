@@ -1450,7 +1450,7 @@ let Structr = {
 				break;
 
 			case "SCRIPT_JOB_EXCEPTION":
-				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().show();
+				new WarningMessage().title('Exception in Scheduled Job').text(_Helpers.escapeForHtmlAttributes(data.message)).requiresConfirmation().show();
 				break;
 
 			case "RESOURCE_ACCESS":
