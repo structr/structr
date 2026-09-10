@@ -1707,11 +1707,14 @@ let _Dashboard = {
 								<td>${new Date(event.absoluteTimestamp).toISOString()}</td>
 								<td>${event.type}</td>
 								<td>${event.threadName}</td>
-								<td>${event.description}</td>
-								<td>${(data ? JSON.stringify(data) : '')}</td>
+								<td data-description></td>
+								<td data-data></td>
 								<td class="actions-cell"></td>
 							</tr>
 						`);
+
+						row.querySelector('[data-description]').textContent = event.description;
+						row.querySelector('[data-data]').textContent = (data ? JSON.stringify(data) : '');
 
 						tbody.appendChild(row);
 

@@ -1056,6 +1056,13 @@ let _Helpers = {
 	getModuleReadinessClass: (module) => module._moduleName + '-area-ready',
 	setModuleReadyIndicator: (module, element) => {
 		element.classList.add(_Helpers.getModuleReadinessClass(module));
+	},
+	sanitizeHtml: (rawHtml) => {
+
+		return DOMPurify.sanitize(rawHtml, {
+			// no tags that can load resources
+			ALLOWED_TAGS: ['div', 'span', 'p', 'br', 'b', 'strong', 'i', 'em', 'u', 'ul', 'ol', 'li', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code', 'pre']
+		});
 	}
 };
 

@@ -51,6 +51,7 @@ import java.util.*;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -2953,6 +2954,58 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Map<String, String> attrs = getAttributes(button);
 
 		assertEquals("Options must arrive unchanged in the browser", options, attrs.get("data-structr-options"));
+	}
+
+	@Test
+	public void testDataStructrAttributesAreEscaped() {
+
+		// #1579: EAM data-structr-* attributes were written from variable-replaced expressions without
+		// attribute escaping, so a value carrying a quote broke out of the attribute and injected markup.
+		// Here idExpression carries an event-handler payload; after the fix the rendered attribute must
+		// stay a single escaped attribute and must not produce an onmouseover attribute on the element.
+
+		final String payload = "x\" onmouseover=\"alert(document.cookie)";
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
+
+			div.appendChild(btn);
+			btn.appendChild(text);
+
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			// attacker-influenced value reflected into a data-structr-* attribute
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), payload);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String html    = fetchPageHtml("/html/page1");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
+
+		assertFalse("Payload must not break out into a separate onmouseover attribute", button.hasAttr("onmouseover"));
+		assertEquals("idExpression payload must be preserved as a single escaped attribute value", payload, button.attr("data-structr-id-expression"));
 	}
 
 	final Map<String, String> getAttributes(final Element element) {

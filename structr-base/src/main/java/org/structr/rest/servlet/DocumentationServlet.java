@@ -28,14 +28,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.Services;
 import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.Documentable;
 import org.structr.docs.Documentation;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
@@ -55,9 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -159,64 +155,18 @@ public class DocumentationServlet extends HttpServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		// simply write out the markdown documentation on POST for now..
-		Documentable.createMarkdownDocumentation();
+		// #1582: writing documentation over HTTP was an unauthenticated development-time convenience.
+		// It is disabled; any use must fail loudly rather than write to disk or overwrite served docs.
+		throw new ServletException("The DocumentationServlet does not support POST requests.");
 	}
 
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		// update markdown file here
-		final String conceptId = request.getParameter("id");
-		if (StringUtils.isNotBlank(conceptId)) {
-
-			final HttpService service                = Services.getInstance().getServiceImplementation(HttpService.class);
-			final ResourceHandler resourceHandler    = service.getExportedResourceHandler();
-			final Resource baseResource              = resourceHandler.getBaseResource();
-			final Resource facts                     = baseResource.resolve("facts");
-			final Ontology ontology                  = new Ontology(baseResource, facts.getPath());
-			final Concept concept                    = ontology.getConceptById(conceptId);
-
-			if (concept != null) {
-
-				try (final InputStream inputStream = request.getInputStream()) {
-
-					final String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-					final String key     = request.getParameter("key");
-
-					// update content
-					concept.updateContent(key, content);
-
-					// write facts files
-					ontology.updateFactsContainers();
-
-					// send new HTML content to client
-					response.setContentType("text/html; charset=utf-8");
-
-					final MutableDataSet options = new MutableDataSet();
-
-					options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
-					//options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
-
-					final Parser parser         = Parser.builder(options).build();
-					final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
-					final Document doc          = parser.parse(content);
-					final Writer writer         = response.getWriter();
-
-					renderer.render(doc, writer);
-				}
-
-			} else {
-
-				response.setStatus(404);
-				response.getWriter().print("Concept " + conceptId + " does not exist.");
-			}
-
-		} else {
-
-			response.setStatus(422);
-			response.getWriter().print("No fileName provided for update.");
-		}
+		// #1582: PUT loaded a Concept by id and wrote the request body to the served ontology and to disk
+		// (structr/docs/<snippet>, facts files) without any authentication. It was a development-time tool
+		// and is disabled; any use must fail loudly.
+		throw new ServletException("The DocumentationServlet does not support PUT requests.");
 	}
 
 	// ----- private methods -----

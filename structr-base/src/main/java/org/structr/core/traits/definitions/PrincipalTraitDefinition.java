@@ -228,8 +228,8 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		return newSet(
-			new StartNodes(traitsInstance, GROUPS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL),
-			new EndNodes(traitsInstance, OWNED_NODES_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE),
+			new StartNodes(traitsInstance, GROUPS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL).readOnly(),
+			new EndNodes(traitsInstance, OWNED_NODES_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE).readOnly(),
 			new EndNodes(traitsInstance, GRANTED_NODES_PROPERTY, StructrTraits.SECURITY).readOnly(),
 			new BooleanProperty(PrincipalTraitDefinition.IS_ADMIN_PROPERTY).indexed().readOnly(),
 			new BooleanProperty(BLOCKED_PROPERTY),
