@@ -1782,31 +1782,53 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) throws FrameworkException {
 
-		final List<NodeInterface> sites = StructrApp.getInstance().nodeQuery(StructrTraits.SITE).getAsList();
-		if (sites == null || sites.isEmpty()) {
+		final List<Site> pageSites = Iterables.toList(page.getSites());
+		final String serverName    = request.getServerName();
+		final int serverPort       = request.getServerPort();
 
-			return true;
+		// a page that names sites is served only where one of them matches
+		if (!pageSites.isEmpty()) {
+
+			for (final Site site : pageSites) {
+
+				if (matchesRequest(site, serverName, serverPort)) {
+
+					return true;
+				}
+			}
+
+			return false;
 		}
 
-		final String serverName = request.getServerName();
-		final int serverPort    = request.getServerPort();
-		boolean isVisible = false;
+		// a page without a site is served on every host that no site claims
+		for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SITE).getAsList()) {
 
-		for (final Site site : Iterables.toList(page.getSites())) {
+			if (matchesRequest(node.as(Site.class), serverName, serverPort)) {
 
-				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
-
-					isVisible = true;
-				}
-
-				final Integer sitePort = site.getPort();
-				if (isVisible && (sitePort == null || serverPort == sitePort)) {
-
-					isVisible = true;
-				}
+				return false;
+			}
 		}
 
-		return isVisible;
+		return true;
+	}
+
+	// every field a site configures has to match, so a site that configures nothing claims nothing
+	private static boolean matchesRequest(final Site site, final String serverName, final int serverPort) {
+
+		final String hostname  = site.getHostname();
+		final Integer sitePort = site.getPort();
+
+		if (StringUtils.isBlank(hostname) && sitePort == null) {
+
+			return false;
+		}
+
+		if (StringUtils.isNotBlank(hostname) && !hostname.equals(serverName)) {
+
+			return false;
+		}
+
+		return sitePort == null || sitePort == serverPort;
 	}
 
 	public static void processConfiguredPropertyNamesForObjectResolution(final Query query, final String value) {
