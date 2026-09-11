@@ -1814,21 +1814,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return true;
 	}
 
-	// every field a site configures has to match, so a site that configures nothing claims nothing
+	// a site is identified by its hostname, so one without a hostname claims nothing whatever else it configures
 	private static boolean matchesRequest(final Site site, final String serverName, final int serverPort) {
 
-		final String hostname  = site.getHostname();
+		final String hostname = site.getHostname();
+
+		if (StringUtils.isBlank(hostname) || !hostname.equals(serverName)) {
+
+			return false;
+		}
+
 		final Integer sitePort = site.getPort();
-
-		if (StringUtils.isBlank(hostname) && sitePort == null) {
-
-			return false;
-		}
-
-		if (StringUtils.isNotBlank(hostname) && !hostname.equals(serverName)) {
-
-			return false;
-		}
 
 		return sitePort == null || sitePort == serverPort;
 	}

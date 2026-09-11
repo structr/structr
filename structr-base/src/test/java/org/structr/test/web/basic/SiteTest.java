@@ -249,7 +249,7 @@ public class SiteTest extends StructrUiTest {
 	}
 
 	@Test
-	public void test06SiteWithPortOnlyClaimsThatPortOnEveryHost() {
+	public void test06SiteWithoutHostnameClaimsNothing() {
 
 		try (final Tx tx = app.tx()) {
 
@@ -266,15 +266,14 @@ public class SiteTest extends StructrUiTest {
 
 		RestAssured.basePath = "";
 
-		// the site configures only a port, so that port is claimed whatever the hostname is
-		RestAssured.given().header("Host", "test1.example.com:8876").expect().statusCode(200).when().get("/sitepage");
-		RestAssured.given().header("Host", "test1.example.com:8876").expect().statusCode(404).when().get("/orphanpage");
-
-		RestAssured.given().header("Host", "other.example.com:8876").expect().statusCode(200).when().get("/sitepage");
-		RestAssured.given().header("Host", "other.example.com:8876").expect().statusCode(404).when().get("/orphanpage");
-
-		// any other port is untouched by it
+		// a port alone does not identify a site, so it never becomes visible, not even on its own port
+		RestAssured.given().header("Host", "test1.example.com:8876").expect().statusCode(404).when().get("/sitepage");
+		RestAssured.given().header("Host", "other.example.com:8876").expect().statusCode(404).when().get("/sitepage");
 		RestAssured.given().header("Host", "test1.example.com:9999").expect().statusCode(404).when().get("/sitepage");
+
+		// and it claims no host, so a page without a site is served everywhere
+		RestAssured.given().header("Host", "test1.example.com:8876").expect().statusCode(200).when().get("/orphanpage");
+		RestAssured.given().header("Host", "other.example.com:8876").expect().statusCode(200).when().get("/orphanpage");
 		RestAssured.given().header("Host", "test1.example.com:9999").expect().statusCode(200).when().get("/orphanpage");
 	}
 
