@@ -1844,20 +1844,30 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final MailTemplate mailTemplate = node.as(MailTemplate.class);
 
-					// generate filename for output file
-					String filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + ".html";
+					// generate and sanitize filename for output file
+					String filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale();
+					filename = filename.replaceAll("[^a-zA-Z0-9\\-]", "_");
+
+					// shorten sanitized filename before appending UUID/suffix
+					if (filename.length() > 100) {
+
+						filename = filename.substring(0, 100);
+					}
+
 					if (Files.exists(targetFolder.resolve(filename))) {
 
-						filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + "_-_" + mailTemplate.getUuid() + ".html";
+						filename = filename + "_-_" + mailTemplate.getUuid();
 					}
+
+					filename += ".html";
 
 					final Map<String, Object> entry = new TreeMap<>();
 					mailTemplates.add(entry);
 
-					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                            mailTemplate.getUuid());
-					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                        mailTemplate.getName());
-					putData(entry, GENERIC_FILENAME_KEY,                    filename);
-					putData(entry, MailTemplateTraitDefinition.LOCALE_PROPERTY,                      mailTemplate.getLocale());
+					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             mailTemplate.getUuid());
+					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                         mailTemplate.getName());
+					putData(entry, GENERIC_FILENAME_KEY,                                               filename);
+					putData(entry, MailTemplateTraitDefinition.LOCALE_PROPERTY,                        mailTemplate.getLocale());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, mailTemplate.isVisibleToAuthenticatedUsers());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        mailTemplate.isVisibleToPublicUsers());
 
@@ -2156,6 +2166,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						// sanitize name for deployment
 						filename = name.replaceAll("[^a-zA-Z0-9\\-]", "_");
 
+						// shorten sanitized filename before appending UUID/suffix
 						if (filename.length() > 100) {
 
 							filename = filename.substring(0, 100);
@@ -2180,8 +2191,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					entry.put(ScratchpadTraitDefinition.COLLAPSED_PROPERTY,           scratchpad.getCollapsed());
 
 					entry.put(GENERIC_FILENAME_KEY, filename);
-
-					exportOwnershipAndSecurity(node, entry);
 
 					final Path scratchpadFile = targetFolder.resolve(filename);
 					writeStringToFile(scratchpadFile, scratchpad.getSource());
