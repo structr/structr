@@ -60,6 +60,72 @@ import static org.testng.AssertJUnit.fail;
 public class EventActionMappingTest extends StructrUiTest {
 
 	@Test
+	public void testNotificationTextAndCssClassAttributes() {
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1      = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div     = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn  = page1.createElement("button");
+			final DOMElement btn2 = page1.createElement("button");
+
+			div.appendChild(btn);
+			div.appendChild(btn2);
+
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "inline");
+			btn2.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "alert");
+
+			final Traits traits            = Traits.of(StructrTraits.ACTION_MAPPING);
+			final NodeInterface inlineEam  = app.create(StructrTraits.ACTION_MAPPING);
+			final NodeInterface alertEam   = app.create(StructrTraits.ACTION_MAPPING);
+
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY), "inline-text-message");
+			// quotes and ampersands have to survive the attribute escaping, ${...} is evaluated like the dialog texts
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_TEXT_PROPERTY), "Gespeichert & \"fertig\", ${me.name} ({status})");
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY), "toast toast-success");
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY), "inline-text-message");
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_TEXT_PROPERTY), "Fehler bei ${me.name}: {message}");
+			inlineEam.setProperty(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_CSS_CLASS_PROPERTY), "toast toast-error");
+
+			// a system alert renders the same text, but has nothing a CSS class could style
+			alertEam.setProperty(traits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn2));
+			alertEam.setProperty(traits.key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			alertEam.setProperty(traits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			alertEam.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY), "system-alert");
+			alertEam.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_TEXT_PROPERTY), "Fertig");
+			alertEam.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY), "ignored-for-an-alert");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final Document doc = Jsoup.parse(fetchPageHtml("/html/page1"));
+
+		final Map<String, String> inline = getAttributes(doc.getElementById("inline"));
+
+		assertEquals("The notification text keeps its literal parts and has ${...} replaced", "Gespeichert & \"fertig\", admin ({status})", inline.get("data-structr-success-notifications-text"));
+		assertEquals("Wrong success notification CSS class", "toast toast-success", inline.get("data-structr-success-notifications-css-class"));
+		assertEquals("Wrong failure notification text", "Fehler bei admin: {message}", inline.get("data-structr-failure-notifications-text"));
+		assertEquals("Wrong failure notification CSS class", "toast toast-error", inline.get("data-structr-failure-notifications-css-class"));
+
+		final Map<String, String> alert = getAttributes(doc.getElementById("alert"));
+
+		assertEquals("A system alert renders the configured text too", "Fertig", alert.get("data-structr-success-notifications-text"));
+		assertEquals("A system alert has no element to style, so no CSS class belongs on it", null, alert.get("data-structr-success-notifications-css-class"));
+	}
+
+	@Test
 	public void testDialogAttributes() {
 
 		String uuid = null;
@@ -125,9 +191,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedNullValues.add("data-structr-success-notifications");
 		expectedNullValues.add("data-structr-success-notifications-partial");
 		expectedNullValues.add("data-structr-success-notifications-event");
+		expectedNullValues.add("data-structr-success-notifications-text");
+		expectedNullValues.add("data-structr-success-notifications-css-class");
 		expectedNullValues.add("data-structr-failure-notifications");
 		expectedNullValues.add("data-structr-failure-notifications-partial");
 		expectedNullValues.add("data-structr-failure-notifications-event");
+		expectedNullValues.add("data-structr-failure-notifications-text");
+		expectedNullValues.add("data-structr-failure-notifications-css-class");
 		expectedNullValues.add("data-structr-success-target");
 		expectedNullValues.add("data-structr-failure-target");
 

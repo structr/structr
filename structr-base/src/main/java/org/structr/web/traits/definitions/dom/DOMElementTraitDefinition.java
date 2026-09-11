@@ -2495,13 +2495,22 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	public void renderSuccessNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
+	public void renderSuccessNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
 
 		// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
 		final String successNotificationsString = triggeredAction.getSuccessNotifications();
 		if (StringUtils.isNotBlank(successNotificationsString)) {
 
 			out.append(" data-structr-success-notifications=\"").append(successNotificationsString).append("\"");
+
+			// the text is rendered by the inline message and the system alert alike, so it sits outside the switch
+			final PropertyKey<String> successTextKey = triggeredAction.getTraits().key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_TEXT_PROPERTY);
+			final String successNotificationsText    = triggeredAction.getPropertyWithVariableReplacement(renderContext, successTextKey);
+
+			if (StringUtils.isNotBlank(successNotificationsText)) {
+
+				out.append(" data-structr-success-notifications-text=\"").append(DOMNode.escapeForHtmlAttributes(successNotificationsText)).append("\"");
+			}
 
 			final EventNotification successNotifications = EventNotification.forName(successNotificationsString);
 			switch (successNotifications) {
@@ -2517,6 +2526,12 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				case EventNotification.InlineTextMessage:
 					final Integer delay = triggeredAction.getSuccessNotificationsDelay();
 					out.append(" data-structr-success-notifications-delay=\"").append(delay.toString()).append("\"");
+
+					final String successCssClass = triggeredAction.getSuccessNotificationsCssClass();
+					if (StringUtils.isNotBlank(successCssClass)) {
+
+						out.append(" data-structr-success-notifications-css-class=\"").append(DOMNode.escapeForHtmlAttributes(successCssClass)).append("\"");
+					}
 					break;
 
 				default:
@@ -2532,13 +2547,22 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	public void renderFailureNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
+	public void renderFailureNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
 
 		// Possible values for failure notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
 		final String failureNotificationsString = triggeredAction.getFailureNotifications();
 		if (StringUtils.isNotBlank(failureNotificationsString)) {
 
 			out.append(" data-structr-failure-notifications=\"").append(failureNotificationsString).append("\"");
+
+			// the text is rendered by the inline message and the system alert alike, so it sits outside the switch
+			final PropertyKey<String> failureTextKey = triggeredAction.getTraits().key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_TEXT_PROPERTY);
+			final String failureNotificationsText    = triggeredAction.getPropertyWithVariableReplacement(renderContext, failureTextKey);
+
+			if (StringUtils.isNotBlank(failureNotificationsText)) {
+
+				out.append(" data-structr-failure-notifications-text=\"").append(DOMNode.escapeForHtmlAttributes(failureNotificationsText)).append("\"");
+			}
 
 			final EventNotification failureNotifications = EventNotification.forName(failureNotificationsString);
 			switch (failureNotifications) {
@@ -2554,6 +2578,12 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				case EventNotification.InlineTextMessage:
 					final Integer delay = triggeredAction.getFailureNotificationsDelay();
 					out.append(" data-structr-failure-notifications-delay=\"").append(delay.toString()).append("\"");
+
+					final String failureCssClass = triggeredAction.getFailureNotificationsCssClass();
+					if (StringUtils.isNotBlank(failureCssClass)) {
+
+						out.append(" data-structr-failure-notifications-css-class=\"").append(DOMNode.escapeForHtmlAttributes(failureCssClass)).append("\"");
+					}
 					break;
 
 				default:

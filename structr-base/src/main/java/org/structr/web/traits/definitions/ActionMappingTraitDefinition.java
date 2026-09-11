@@ -110,10 +110,14 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY = "successNotificationsPartial";
 	public static final String SUCCESS_NOTIFICATIONS_EVENT_PROPERTY   = "successNotificationsEvent";
 	public static final String SUCCESS_NOTIFICATIONS_DELAY_PROPERTY   = "successNotificationsDelay";
+	public static final String SUCCESS_NOTIFICATIONS_TEXT_PROPERTY    = "successNotificationsText";
+	public static final String SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY = "successNotificationsCssClass";
 	public static final String FAILURE_NOTIFICATIONS_PROPERTY         = "failureNotifications";
 	public static final String FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY = "failureNotificationsPartial";
 	public static final String FAILURE_NOTIFICATIONS_EVENT_PROPERTY   = "failureNotificationsEvent";
 	public static final String FAILURE_NOTIFICATIONS_DELAY_PROPERTY   = "failureNotificationsDelay";
+	public static final String FAILURE_NOTIFICATIONS_TEXT_PROPERTY    = "failureNotificationsText";
+	public static final String FAILURE_NOTIFICATIONS_CSS_CLASS_PROPERTY = "failureNotificationsCssClass";
 	public static final String SUCCESS_BEHAVIOUR_PROPERTY             = "successBehaviour";
 	public static final String SUCCESS_PARTIAL_PROPERTY               = "successPartial";
 	public static final String SUCCESS_URL_PROPERTY                   = "successURL";
@@ -340,10 +344,14 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> successNotificationsPartialProperty           = new StringProperty(SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY).description("CSS selector for partial to display as success notification");
 		final Property<String> successNotificationsEventProperty             = new StringProperty(SUCCESS_NOTIFICATIONS_EVENT_PROPERTY).description("Event to raise for success notifications");
 		final Property<Integer> successNotificationsDelayProperty            = new IntProperty(SUCCESS_NOTIFICATIONS_DELAY_PROPERTY).description("Delay before hiding success notifications").defaultValue(5000);
+		final Property<String> successNotificationsTextProperty              = new StringProperty(SUCCESS_NOTIFICATIONS_TEXT_PROPERTY).description("Text of the success notification, {status} and {message} are replaced. Empty means the default text");
+		final Property<String> successNotificationsCssClassProperty          = new StringProperty(SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY).description("CSS class for the inline success message. Setting one removes the built-in styling, including its positioning");
 		final Property<String> failureNotificationsProperty                  = new StringProperty(FAILURE_NOTIFICATIONS_PROPERTY).description("Notifications after failed execution of action");
 		final Property<String> failureNotificationsPartialProperty           = new StringProperty(FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY).description("CSS selector for partial to display as failure notification");
 		final Property<String> failureNotificationsEventProperty             = new StringProperty(FAILURE_NOTIFICATIONS_EVENT_PROPERTY).description("Event to raise for failure notifications");
 		final Property<Integer> failureNotificationsDelayProperty            = new IntProperty(FAILURE_NOTIFICATIONS_DELAY_PROPERTY).description("Delay before hiding failure notifications").defaultValue(5000);
+		final Property<String> failureNotificationsTextProperty              = new StringProperty(FAILURE_NOTIFICATIONS_TEXT_PROPERTY).description("Text of the failure notification, {status} and {message} are replaced. Empty means the default text");
+		final Property<String> failureNotificationsCssClassProperty          = new StringProperty(FAILURE_NOTIFICATIONS_CSS_CLASS_PROPERTY).description("CSS class for the inline failure message. Setting one removes the built-in styling, including its positioning");
 		final Property<String> successBehaviourProperty                      = new StringProperty(SUCCESS_BEHAVIOUR_PROPERTY).description("Behaviour after successful execution of action");
 		final Property<String> successPartialProperty                        = new StringProperty(SUCCESS_PARTIAL_PROPERTY).description("CSS selector for partial to refresh on success");
 		final Property<String> successURLProperty                            = new StringProperty(SUCCESS_URL_PROPERTY).description("URL to navigate to on success");
@@ -368,6 +376,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 			dialogTypeProperty, dialogTitleProperty, dialogTextProperty,
 
 			successNotificationsProperty, successNotificationsPartialProperty, successNotificationsEventProperty, successNotificationsDelayProperty,
+			successNotificationsTextProperty, successNotificationsCssClassProperty, failureNotificationsTextProperty, failureNotificationsCssClassProperty,
 
 			failureNotificationsProperty, failureNotificationsPartialProperty, failureNotificationsEventProperty, failureNotificationsDelayProperty,
 
@@ -391,7 +400,9 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 					SUCCESS_EVENT_PROPERTY, SUCCESS_NOTIFICATIONS_DELAY_PROPERTY, FAILURE_BEHAVIOUR_PROPERTY, FAILURE_PARTIAL_PROPERTY,
 					FAILURE_URL_PROPERTY, FAILURE_EVENT_PROPERTY, SUCCESS_SHOW_PROPERTY, SUCCESS_HIDE_PROPERTY, FAILURE_SHOW_PROPERTY, FAILURE_HIDE_PROPERTY, SUCCESS_SCOPE_PROPERTY, FAILURE_SCOPE_PROPERTY, FAILURE_NOTIFICATIONS_DELAY_PROPERTY, TRIGGER_ELEMENTS_PROPERTY,
 					SUCCESS_TARGETS_PROPERTY, FAILURE_TARGETS_PROPERTY, SUCCESS_HIDE_TARGETS_PROPERTY, FAILURE_HIDE_TARGETS_PROPERTY,
-					SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, PARAMETER_MAPPINGS_PROPERTY
+					SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, PARAMETER_MAPPINGS_PROPERTY,
+					SUCCESS_NOTIFICATIONS_TEXT_PROPERTY, SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY,
+					FAILURE_NOTIFICATIONS_TEXT_PROPERTY, FAILURE_NOTIFICATIONS_CSS_CLASS_PROPERTY
 			)
 		);
 	}

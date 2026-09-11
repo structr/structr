@@ -364,6 +364,35 @@ export class Frontend {
 		}
 	}
 
+	// the configured text replaces the wording but keeps the icon: a fully custom element is what the custom dialog modes are for
+	notificationText(configuredText, icon, defaultText, status, parameter) {
+
+		const message = parameter?.message ?? '';
+
+		if (configuredText) {
+
+			return icon + ' ' + configuredText.replaceAll('{status}', status).replaceAll('{message}', this.escapeHTML(message));
+		}
+
+		return icon + ' ' + defaultText + ' (' + status + (message ? ': ' + this.escapeHTML(message) : '') + ')';
+	}
+
+	// a configured class takes the element over completely, so none of the built-in styling is written
+	notificationHTML(id, cssClass, color) {
+
+		if (cssClass) {
+
+			return '<div class="structr-event-action-notification ' + cssClass + '" id="notification-for-' + id + '">';
+		}
+
+		return '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:' + color + '">';
+	}
+
+	escapeHTML(text) {
+
+		return String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+	}
+
 	async handleNotifications(element, parameter, status, options) {
 
 		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth, delay;
@@ -372,8 +401,8 @@ export class Frontend {
 
 		if (success) {
 			mode = element.dataset.structrSuccessNotifications;
-			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : '') + ')';
-			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:green">' + statusText + '</div>';
+			statusText = this.notificationText(element.dataset.structrSuccessNotificationsText, '✅', 'Operation successful', status, parameter);
+			statusHTML = this.notificationHTML(id, element.dataset.structrSuccessNotificationsCssClass, 'green') + statusText + '</div>';
 			delay = element.dataset.structrSuccessNotificationsDelay;
 
 			for (let elementWithError of document.querySelectorAll('[data-error]')) {
@@ -382,8 +411,8 @@ export class Frontend {
 			}
 		} else {
 			mode = element.dataset.structrFailureNotifications;
-			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : '') + ')';
-			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:red">' + statusText + '<br>';
+			statusText = this.notificationText(element.dataset.structrFailureNotificationsText, '❌', 'Operation failed', status, parameter);
+			statusHTML = this.notificationHTML(id, element.dataset.structrFailureNotificationsCssClass, 'red') + statusText + '<br>';
 			delay = element.dataset.structrFailureNotificationsDelay;
 
 			if (parameter?.errors?.length) {

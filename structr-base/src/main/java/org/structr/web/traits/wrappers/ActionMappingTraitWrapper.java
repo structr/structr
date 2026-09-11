@@ -321,6 +321,30 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public String getSuccessNotificationsText() {
+
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_TEXT_PROPERTY));
+	}
+
+	@Override
+	public String getSuccessNotificationsCssClass() {
+
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY));
+	}
+
+	@Override
+	public String getFailureNotificationsText() {
+
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_TEXT_PROPERTY));
+	}
+
+	@Override
+	public String getFailureNotificationsCssClass() {
+
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_CSS_CLASS_PROPERTY));
+	}
+
+	@Override
 	public String getFailureNotifications() {
 
 		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY));
@@ -411,6 +435,10 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY), getFailureNotificationsPartial());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY),   getFailureNotificationsEvent());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY),   getFailureNotificationsDelay());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_TEXT_PROPERTY),      getSuccessNotificationsText());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY), getSuccessNotificationsCssClass());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_TEXT_PROPERTY),      getFailureNotificationsText());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_CSS_CLASS_PROPERTY), getFailureNotificationsCssClass());
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY),             getSuccessBehaviour());
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY),               getSuccessPartial());
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY),                   getSuccessURL());
