@@ -45,11 +45,15 @@ import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import java.lang.reflect.Field;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.fail;
@@ -58,6 +62,30 @@ import static org.testng.AssertJUnit.fail;
  *
  */
 public class EventActionMappingTest extends StructrUiTest {
+
+	@Test
+	public void testEveryEventParameterIsStrippedBeforeTheRestBecomesProperties() throws Exception {
+
+		// an explicit exclusion list is only safe while it is complete: every parameter constant has to be in it,
+		// or that attribute reaches PropertyMap as an unknown JSON key and is silently accepted onto the object
+		final Set<String> missing = new LinkedHashSet<>();
+
+		for (final Field field : DOMElement.class.getDeclaredFields()) {
+
+			if (field.getName().startsWith("EVENT_ACTION_MAPPING_PARAMETER_") && String.class.equals(field.getType())) {
+
+				final String key = (String) field.get(null);
+
+				if (!DOMElement.EVENT_ACTION_MAPPING_INTERNAL_KEYS.contains(key)) {
+
+					missing.add(field.getName() + " = \"" + key + "\"");
+				}
+			}
+		}
+
+		assertTrue("Not stripped from the event payload, so these arrive as unknown JSON keys on the created object: "
+			+ missing + ". Add them to DOMElement.EVENT_ACTION_MAPPING_INTERNAL_KEYS.", missing.isEmpty());
+	}
 
 	@Test
 	public void testNotificationTextAndCssClassAttributes() {

@@ -44,6 +44,20 @@ export class Frontend {
 		this.bindEvents();
 	}
 
+	// display configuration the server never reads: it is applied here in the browser, so it is not payload.
+	// named exactly, not matched by prefix, so a property called structrSomething stays the developer's own
+	static clientOnlyDataKeys = new Set([
+		'structrPage', 'structrRenderState', 'structrTemplateId',
+		'structrDialogType', 'structrDialogTitle', 'structrDialogText',
+		'structrSuccessTarget', 'structrFailureTarget',
+		'structrSuccessNotifications', 'structrSuccessNotificationsDelay', 'structrSuccessNotificationsText',
+		'structrSuccessNotificationsCssClass', 'structrSuccessNotificationsPartial', 'structrSuccessNotificationsEvent',
+		'structrSuccessNotificationsCustomDialogElement',
+		'structrFailureNotifications', 'structrFailureNotificationsDelay', 'structrFailureNotificationsText',
+		'structrFailureNotificationsCssClass', 'structrFailureNotificationsPartial', 'structrFailureNotificationsEvent',
+		'structrFailureNotificationsCustomDialogElement'
+	]);
+
 	resolveData(event, target) {
 
 		let resolved = {};
@@ -58,7 +72,7 @@ export class Frontend {
 		for (const key in data) {
 
 			let value = data[key];
-			if (!value) {
+			if (!value || Frontend.clientOnlyDataKeys.has(key)) {
 				continue;
 			}
 
