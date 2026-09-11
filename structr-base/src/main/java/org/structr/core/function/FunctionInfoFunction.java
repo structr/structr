@@ -32,6 +32,7 @@ import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,15 +58,11 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		if (sources.length == 0) {
 
-			final AbstractMethod currentMethod = ctx.getCurrentMethod();
-			if (currentMethod != null) {
-
-				return getFunctionInfo(currentMethod);
-			}
+			return getCurrentFunctionInfo(ctx);
 
 		} else if (sources.length == 2) {
 
@@ -90,8 +87,6 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_ARGUMENT_COUNT_ERROR_MESSAGE.formatted(getName(), sources.length));
 		}
-
-		return null;
 	}
 
 	@Override
@@ -118,7 +113,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 				| Key                   | Type    | Description                                                                                                                   |
 				|-----------------------|---------|-------------------------------------------------------------------------------------------------------------------------------|
 				| name                  | String  | name of the method                                                                                                            |
-				| declaringTrait        | String  | name of the type the method is declared on (`null` if if `isUserDefinedFunction === true`)                                    |
+				| declaringTrait        | String  | name of the type the method is declared on (`null` if `isUserDefinedFunction === true`)                                       |
 				| isUserDefinedFunction | boolean | `true` if the method is not a type- or service class method, `false` otherwise                                                |
 				| isStatic              | boolean | `true` if the method can be called statically, `false` if it can only be called in an object context                          |
 				| isPrivate             | boolean | `true` if the method can only be called via scripting, `false` if it can be called via REST as well                           |
@@ -163,8 +158,25 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 		);
 	}
 
+	@Override
+	public FunctionCategory getCategory() {
+
+		return FunctionCategory.Schema;
+	}
+
+	public static Map<String, Object> getCurrentFunctionInfo(final ActionContext ctx) {
+
+		final AbstractMethod currentMethod = ctx.getCurrentMethod();
+		if (currentMethod != null) {
+
+			return getFunctionInfo(currentMethod);
+		}
+
+		return null;
+	}
+
 	// ----- private methods -----
-	private Map<String, Object> getFunctionInfo(final AbstractMethod method) {
+	private static Map<String, Object> getFunctionInfo(final AbstractMethod method) {
 
 		final Map<String, Object> info = new LinkedHashMap<>();
 
@@ -207,11 +219,5 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 		}
 
 		return info;
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Schema;
 	}
 }

@@ -2793,4 +2793,60 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
+
+	/**
+	 * A type change through setProperties() has to relabel the node, exactly like a type change through
+	 * setProperty() does.
+	 *
+	 * <p>Ticket 1505: setting contentType to image/... on a File switches its type to Image, but the
+	 * Image label never appeared, so the file could no longer be found by a query for Image. The type
+	 * property said one thing and the labels another.
+	 */
+	@Test
+	public void testTypeChangeViaSetPropertiesUpdatesLabels() {
+
+		String id = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testEntity = createTestNode("TestFour");
+
+			id = testEntity.getUuid();
+
+			final PropertyMap map = new PropertyMap();
+
+			map.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), "TestOne");
+
+			// the same two calls FileHelper.updateMetadata() makes
+			testEntity.unlockSystemPropertiesOnce();
+			testEntity.setProperties(securityContext, map);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface changed = app.getNodeById(id);
+
+			assertNotNull("The node must still exist", changed);
+			assertEquals("The type property must be the new type", "TestOne", changed.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY)));
+
+			final Set<String> labels = Iterables.toSet(changed.getNode().getLabels());
+
+			assertTrue("The new type's label must be on the node, otherwise no query finds it: " + labels, labels.contains("TestOne"));
+			assertNotNull("A query for the new type must find the node", app.getNodeById("TestOne", id));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
 }
