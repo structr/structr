@@ -1782,16 +1782,18 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) throws FrameworkException {
 
-		final List<Site> pageSites = Iterables.toList(page.getSites());
-		final String serverName    = request.getServerName();
-		final int serverPort       = request.getServerPort();
+		// read as superuser: which host serves a page is configuration, not something a visitor may be denied sight of
+		final PropertyKey<Iterable<NodeInterface>> sitesKey = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY);
+		final List<NodeInterface> pageSites                 = Iterables.toList(sitesKey.getProperty(SecurityContext.getSuperUserInstance(), page, false));
+		final String serverName                             = request.getServerName();
+		final int serverPort                                = request.getServerPort();
 
 		// a page that names sites is served only where one of them matches
 		if (!pageSites.isEmpty()) {
 
-			for (final Site site : pageSites) {
+			for (final NodeInterface site : pageSites) {
 
-				if (matchesRequest(site, serverName, serverPort)) {
+				if (matchesRequest(site.as(Site.class), serverName, serverPort)) {
 
 					return true;
 				}

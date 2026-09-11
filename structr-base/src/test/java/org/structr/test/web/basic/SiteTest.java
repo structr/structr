@@ -312,6 +312,40 @@ public class SiteTest extends StructrUiTest {
 		RestAssured.given().header("Host", "test2.example.com:9999").expect().statusCode(200).when().get("/orphanpage");
 	}
 
+	@Test
+	public void test08SiteRoutesEvenWhenItIsNotVisibleToTheVisitor() {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface site = createSite("site1", "test1.example.com", null);
+
+			// which host serves a page is configuration, so an anonymous visitor not being allowed to see the
+			// site node must not turn its pages into pages without a site
+			site.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
+			site.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
+
+			createPublicPage("sitepage", site);
+			createPublicPage("orphanpage", null);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "";
+
+		// the site still claims its host for everyone
+		RestAssured.given().header("Host", "test1.example.com").expect().statusCode(200).when().get("/sitepage");
+		RestAssured.given().header("Host", "test1.example.com").expect().statusCode(404).when().get("/orphanpage");
+
+		// and still keeps its own page off every other host
+		RestAssured.given().header("Host", "other.example.com").expect().statusCode(404).when().get("/sitepage");
+		RestAssured.given().header("Host", "other.example.com").expect().statusCode(200).when().get("/orphanpage");
+	}
+
 	private NodeInterface createSite(final String name, final String hostname, final Integer port) throws FrameworkException {
 
 		final Traits traits      = Traits.of(StructrTraits.SITE);
