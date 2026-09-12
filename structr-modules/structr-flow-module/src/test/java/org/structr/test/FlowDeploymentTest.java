@@ -32,10 +32,10 @@ import org.structr.test.web.advanced.DeploymentTestBase;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 public class FlowDeploymentTest extends DeploymentTestBase {
 
@@ -46,7 +46,8 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 		final PropertyKey<String> nameKey        = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 		Object result                            = null;
 		FlowContainer container                  = null;
-		String containerUuid                     = null;
+
+		final String desiredEffectiveName = "flow.deployment.test";
 
 		try {
 
@@ -54,8 +55,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 				container = app.create(StructrTraits.FLOW_CONTAINER, "testFlow").as(FlowContainer.class);
 
-				container.setEffectiveName("flow.deployment.test");
-				containerUuid = container.getUuid();
+				container.setEffectiveName(desiredEffectiveName);
 
 				FlowAction action = app.create(StructrTraits.FLOW_ACTION, "createAction").as(FlowAction.class);
 				action.setScript("{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
@@ -72,32 +72,22 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 				container.setStartNode(action);
 
-				ds.setQuery("find('User')");
+				ds.setQuery("join(extract(find('User', sort('name')), 'name'), ',')");
 				result = container.evaluate(securityContext, flowParameters);
-				assertNotNull(result);
+				assertEquals("a,b,c", result);
 
 				tx.success();
 			}
 
-			try (final Tx tx = app.tx()) {
-
-				app.nodeQuery(StructrTraits.FLOW_CONTAINER).uuid(containerUuid).getFirst();
-
-				doImportExportRoundtrip(true);
-
-				tx.success();
-			}
-
-			// this is correct
-			//doImportExportRoundtrip(true);
+			doImportExportRoundtrip(true);
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.nodeQuery(StructrTraits.FLOW_CONTAINER).key(Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), "flow.deployment.test").getFirst().as(FlowContainer.class);
+				container = app.nodeQuery(StructrTraits.FLOW_CONTAINER).key(Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), desiredEffectiveName).getFirst().as(FlowContainer.class);
 
 				assertNotNull(container);
 				result = container.evaluate(securityContext, flowParameters);
-				assertNotNull(result);
+				assertEquals("a,b,c", result);
 
 				tx.success();
 			}
@@ -107,7 +97,92 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 	}
 
+	@Test
+	public void testFlowDeploymentRoundtripWhereFlowElementsHaveSlashesInTheirNames() {
+
+		final Map<String, Object> flowParameters = new HashMap<>();
+
+		final String desiredEffectiveName1 = "fl/ow.deploy/ment.te/st1.te/st2.te/st3.te/st4.with?funky(characters)";
+		final String desiredEffectiveName2 = "fl/ow.deploy/ment.te/st1.te/st2.flow-at?different(path)";
+
+		final List<String> desiredEffectiveNames = List.of(desiredEffectiveName1, desiredEffectiveName2);
+
+		final int expectedNumberOfFlowContainers = 2;
+		final int expectedNumberOfFlowContainerPackages = 6;
+
+
+		try {
+
+			for (final String effectiveName : desiredEffectiveNames) {
+
+				try (final Tx tx = app.tx()) {
+
+					final FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlow").as(FlowContainer.class);
+
+					container.setEffectiveName(effectiveName);
+
+					FlowAction action = app.create(StructrTraits.FLOW_ACTION, "createAction").as(FlowAction.class);
+					action.setScript("""
+						{
+							['a','b','c'].forEach(data => $.getOrCreate('User', 'name', data))
+						}""");
+					action.setFlowContainer(container);
+
+					FlowDataSource ds = app.create(StructrTraits.FLOW_DATA_SOURCE, "ds").as(FlowDataSource.class);
+					ds.setFlowContainer(container);
+
+					FlowReturn ret = app.create(StructrTraits.FLOW_RETURN, "ds").as(FlowReturn.class);
+					ret.setDataSource(ds);
+					ret.setFlowContainer(container);
+
+					action.setNext(ret);
+
+					container.setStartNode(action);
+
+					ds.setQuery("join(extract(find('User', sort('name')), 'name'), ',')");
+					assertEquals("a,b,c", container.evaluate(securityContext, flowParameters));
+
+					tx.success();
+				}
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Expected number of flow container packages (BEFORE deployment roundtrip) does not match actual number", expectedNumberOfFlowContainerPackages, app.nodeQuery(StructrTraits.FLOW_CONTAINER_PACKAGE).getAsList().size());
+				assertEquals("Expected number of flow containers (BEFORE deployment roundtrip) does not match actual number", expectedNumberOfFlowContainers, app.nodeQuery(StructrTraits.FLOW_CONTAINER).getAsList().size());
+
+				tx.success();
+			}
+
+			doImportExportRoundtrip(true);
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Expected number of flow container packages (AFTER deployment roundtrip) does not match actual number", expectedNumberOfFlowContainerPackages, app.nodeQuery(StructrTraits.FLOW_CONTAINER_PACKAGE).getAsList().size());
+				assertEquals("Expected number of flow containers (AFTER deployment roundtrip) does not match actual number", expectedNumberOfFlowContainers, app.nodeQuery(StructrTraits.FLOW_CONTAINER).getAsList().size());
+
+				tx.success();
+			}
+
+			for (final String effectiveName : desiredEffectiveNames) {
+
+				try (final Tx tx = app.tx()) {
+
+					final FlowContainer container = app.nodeQuery(StructrTraits.FLOW_CONTAINER).key(Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), effectiveName).getFirst().as(FlowContainer.class);
+
+					assertNotNull(container);
+					assertEquals("a,b,c", container.evaluate(securityContext, flowParameters));
+
+					tx.success();
+				}
+			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
 }

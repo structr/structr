@@ -79,6 +79,18 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 		return Iterables.map(n -> n.as(FlowContainerConfiguration.class), nodes);
 	}
 
+	public FlowContainerPackage getFlowPackage() {
+
+		final NodeInterface flowPackage = wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.FLOW_PACKAGE_PROPERTY));
+
+		if (flowPackage != null) {
+
+			return flowPackage.as(FlowContainerPackage.class);
+		}
+
+		return null;
+	}
+
 	public String getEffectiveName() {
 
 		return wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY));
