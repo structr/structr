@@ -626,8 +626,21 @@ let _Flows = {
 
 		if (!id) {
 
-			Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName', displayFunction);
-			Command.list('FlowContainerPackage', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName,flows', displayFunctionPackage);
+			// load packages first because they would also be created for the effectiveName of the containers which makes them problematic to interact with in the tree
+			Command.listPromise('FlowContainerPackage', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName,flows').then(packages => {
+
+				// sort by depth (number of dots) to handle packages from root onwards to not break editing functionality
+				packages = packages.toSorted((p1, p2) => {
+					return p1.effectiveName.split('.').length - p2.effectiveName.split('.').length;
+				})
+
+				displayFunctionPackage(packages);
+
+				return Command.listPromise('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName');
+
+			}).then((containers) => {
+				displayFunction(containers);
+			});
 
 		} else {
 
