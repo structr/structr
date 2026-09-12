@@ -55,57 +55,14 @@ let _Flows = {
 	},
 	onload: () => {
 
-		async function getOrCreateFlowPackage(packageArray) {
-
-			if (packageArray !== null && packageArray.length > 0) {
-
-				let currentPackage = packageArray[packageArray.length-1];
-				packageArray.pop();
-
-				let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
-
-				let expectedEffectiveName = ((packageArray.length > 0) ? packageArray.join('.') + '.' : '') + currentPackage;
-
-				if (result != null && result.length > 0 && result[0].effectiveName === expectedEffectiveName) {
-
-					result = result[0];
-				} else {
-
-					result = await persistence.createNode({type: "FlowContainerPackage", name: currentPackage});
-				}
-
-				if (packageArray.length > 0) {
-					result.parent = await getOrCreateFlowPackage(packageArray);
-				}
-
-				return result;
-			}
-
-			return null;
-		}
-
 		async function createFlow(inputElement) {
 			let name = inputElement.value;
 			inputElement.value = "";
 
-			let parentPackage = null;
-
-			if (name.indexOf(".") !== -1) {
-				let nameElements = name.split(".");
-				name = nameElements[nameElements.length -1];
-				nameElements.pop();
-
-				parentPackage = await getOrCreateFlowPackage(nameElements);
-			}
-
 			let flowObject = {
 				type: "FlowContainer",
-				name: name
+				effectiveName: name
 			};
-
-			if (parentPackage !== null) {
-				flowObject.flowPackage = parentPackage.id;
-			}
 
 			persistence.createNode(flowObject).then( (r) => {
 				if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
