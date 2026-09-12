@@ -64,7 +64,9 @@ let _Flows = {
 
 				let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
 
-				if (result != null && result.length > 0 && result[0].effectiveName === (packageArray.join('.') + '.' + currentPackage)) {
+				let expectedEffectiveName = ((packageArray.length > 0) ? packageArray.join('.') + '.' : '') + currentPackage;
+
+				if (result != null && result.length > 0 && result[0].effectiveName === expectedEffectiveName) {
 
 					result = result[0];
 				} else {
