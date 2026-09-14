@@ -63,6 +63,17 @@ import java.util.*;
 public class JWTHelper {
 
 	public static final String TOKEN_ERROR_MSG = "The given access_token or refresh_token is invalid";
+
+	/**
+	 * The claim marking a token as belonging to the MCP endpoint, and its only accepted value.
+	 *
+	 * Mirrors org.structr.ai.mcp.oauth.TokenService in structr-ai-module. Duplicated as a literal
+	 * rather than imported
+	 * because structr.base cannot depend on a feature module - and the value is part of a token
+	 * format, so it is frozen either way.
+	 */
+	private static final String MCP_TOKEN_USE_CLAIM = "token_use";
+	private static final String MCP_TOKEN_USE_VALUE = "mcp";
 	private static final Logger logger = LoggerFactory.getLogger(JWTHelper.class.getName());
 
 	public static Principal getPrincipalForAccessToken(final String token, final PropertyKey<String> eMailKey) throws FrameworkException {
@@ -252,6 +263,24 @@ public class JWTHelper {
 	}
 
 	private static Principal getPrincipalForTokenClaims(final Map<String, Claim> claims, final PropertyKey<String> eMailKey) throws FrameworkException {
+
+		// An MCP access token is a capability for one endpoint, issued to an external service by the
+		// MCP authorization server in structr-ai-module. It must never authenticate anything else,
+		// and this path is reached before any resource check, so refusing it here is what keeps
+		// "MCP token" from meaning "REST token".
+		//
+		// Those tokens are signed with their own secret (mcp.oauth.jwt.secret), so one normally
+		// fails verification long before this. This is the second lock: it still holds if an
+		// instance is ever configured with the same secret for both.
+		final Claim tokenUse = claims.get(MCP_TOKEN_USE_CLAIM);
+
+		if (tokenUse != null && !tokenUse.isNull() && MCP_TOKEN_USE_VALUE.equals(tokenUse.asString())) {
+
+			logger.warn("An MCP access token was presented to the REST API and refused. MCP tokens are only "
+				+ "valid at the MCP endpoint.");
+
+			return null;
+		}
 
 		final String instanceName = Settings.InstanceName.getValue();
 		NodeInterface userNode    = null;
