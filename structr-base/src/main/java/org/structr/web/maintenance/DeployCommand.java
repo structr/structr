@@ -2268,6 +2268,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_TEXT_PROPERTY,      actionMapping.getSuccessNotificationsText());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_CSS_CLASS_PROPERTY, actionMapping.getSuccessNotificationsCssClass());
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_SHOW_PROPERTY,                  actionMapping.getSuccessShow());
@@ -2280,6 +2282,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_TEXT_PROPERTY,      actionMapping.getFailureNotificationsText());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_CSS_CLASS_PROPERTY, actionMapping.getFailureNotificationsCssClass());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_SHOW_PROPERTY,                  actionMapping.getFailureShow());
