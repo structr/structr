@@ -225,7 +225,10 @@ public class PropertyViewTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8")
 				.header(X_USER_HEADER, "superadmin")
 				.header(X_PASSWORD_HEADER, "sehrgeheim")
-				.body(" { 'name' : '" + username + "', 'password': '" + password + "' } ")
+				/* Ticket 1584: the internal "ui" and "all" views are administrators-only, and this test
+				   renders exactly those to check their layout. The user is an admin so the test keeps
+				   testing what it is about - the shape of the views, not who may read them. */
+				.body(" { 'name' : '" + username + "', 'password': '" + password + "', 'isAdmin': true } ")
 
 			.expect()
 				.statusCode(201)

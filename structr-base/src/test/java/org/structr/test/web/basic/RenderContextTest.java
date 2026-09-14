@@ -530,11 +530,14 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("tester1", Scripting.replaceVariables(tester1Context, p1, "${me.name}"));
 			assertEquals("tester2", Scripting.replaceVariables(tester2Context, p2, "${me.name}"));
 
+			/* Ticket 1584: the internal "ui" and "all" views are administrators-only, so no grant can open
+			   them to an anonymous caller any more. This test is about the GET notation, not about which
+			   view it reads, so it uses the default view of the same resource. */
 			// allow unauthenticated GET on /pages
-			grant("Page/_Ui", 16, true);
+			grant("Page", 16, true);
 
 			// test GET REST access
-			assertEquals("Invalid GET notation result", page.getName(), Scripting.replaceVariables(ctx, p1, "${from_json(GET('http://localhost:" + httpPort + "/structr/rest/Page/ui').body).result[0].name}"));
+			assertEquals("Invalid GET notation result", page.getName(), Scripting.replaceVariables(ctx, p1, "${from_json(GET('http://localhost:" + httpPort + "/structr/rest/Page').body).result[0].name}"));
 
 			grant(StructrTraits.FOLDER, 64, true);
 			grant("_login", 64, false);
