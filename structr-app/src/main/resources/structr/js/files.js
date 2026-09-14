@@ -211,9 +211,13 @@ let _Files = {
 
 		// ctrl-a / cmd-a
 		if ((code === 'KeyA' || keyCode === 65) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-			event.preventDefault();
 
-			_Files.selection.selectAll();
+			if (document.activeElement?.tagName !== 'INPUT') {
+
+				event.preventDefault();
+
+				_Files.selection.selectAll();
+			}
 		}
 	},
 	handleNodeRefresh: (node) => {
@@ -645,7 +649,7 @@ let _Files = {
 			let start = c * _Files.chunkSize;
 			let end   = (c + 1) * _Files.chunkSize;
 			let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
-			Command.chunk(targetFile.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback?.() : undefined));
+			Command.chunk(targetFile.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback : undefined));
 		}
 	},
 	loadAndSetWorkingDir: async () => {
