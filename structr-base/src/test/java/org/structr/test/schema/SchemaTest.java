@@ -32,6 +32,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -213,7 +214,6 @@ public class SchemaTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-
 	}
 
 	/**
@@ -1987,6 +1987,62 @@ public class SchemaTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			assert(fex.toString().contains(SchemaViewTraitDefinition.schemaViewNamePattern));
+		}
+	}
+
+	@Test
+	public void testInheritedTraitsAreCleanedUpOnDeletion() {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface parent = app.create(StructrTraits.SCHEMA_NODE,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Contact")
+			);
+
+			app.create(StructrTraits.SCHEMA_NODE,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Customer"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { "Contact" })
+			);
+
+			assertNotNull(parent);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception creating the schema.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface contactType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Contact").getFirst();
+
+			app.delete(contactType);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception deleting the Parent type.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface contactType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Contact").getFirst();
+
+			assertNull(contactType);
+
+			final SchemaNode customerType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Customer").getFirst().as(SchemaNode.class);
+
+			assertEquals("Customer type should not have any trait - we just deleted the one it inherited from.",0, customerType.getInheritedTraits().size());
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception deleting the Parent type.");
 		}
 	}
 
