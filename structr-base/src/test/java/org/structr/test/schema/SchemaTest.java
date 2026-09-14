@@ -34,6 +34,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -361,6 +362,156 @@ public class SchemaTest extends StructrTest {
 
 			fex.printStackTrace();
 			fail("A type that merely carries an interface trait must still be creatable.");
+		}
+	}
+
+	/**
+	 * The prohibition has to hold from the other side as well: relabelling an existing node to a type
+	 * that has no instances leaves exactly the state that refusing instantiation is meant to prevent.
+	 * Both ways of writing ‛type‛ are covered - the single-key path and the bulk path in
+	 * PropertyContainerTraitDefinition, which is the one the Files area uses.
+	 */
+	@Test
+	public void testTypeCannotBeChangedToATypeWithoutInstances() {
+
+		final PropertyKey<String> typeKey = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY);
+		String id                         = null;
+
+		try (final Tx tx = app.tx()) {
+
+			id = app.create(StructrTraits.FILE, "aFile").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		// the bulk path, the same two calls FileHelper.updateMetadata() makes
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = app.getNodeById(id);
+			final PropertyMap map    = new PropertyMap();
+
+			map.put(typeKey, StructrTraits.ABSTRACT_FILE);
+
+			file.unlockSystemPropertiesOnce();
+			file.setProperties(securityContext, map);
+
+			tx.success();
+
+			fail("Changing the type to an abstract type should have been refused");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("A type change to an abstract type should be refused with 422", 422, fex.getStatus());
+			assertTrue("The refusal must be about instantiation, not about the property being read-only, but was: " + fex.getMessage(),
+				fex.getMessage().contains("is abstract and cannot be instantiated"));
+		}
+
+		// and the single-key path
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = app.getNodeById(id);
+
+			file.unlockSystemPropertiesOnce();
+			file.setProperty(typeKey, StructrTraits.LINKABLE);
+
+			tx.success();
+
+			fail("Changing the type to an interface type should have been refused");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("A type change to an interface type should be refused with 422", 422, fex.getStatus());
+			assertTrue("The refusal must be about instantiation, not about the property being read-only, but was: " + fex.getMessage(),
+				fex.getMessage().contains("is an interface and cannot be instantiated"));
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = app.getNodeById(id);
+
+			assertNotNull("The file must still exist", file);
+			assertEquals("The refused type change must not have taken effect", StructrTraits.FILE, file.getType());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * The suggestion in the message is either the complete list or nothing but a count. Five names out
+	 * of forty in alphabetical order read like the answer while most likely not containing it.
+	 */
+	@Test
+	public void testSuggestedSubtypesAreListedInFullOrOnlyCounted() {
+
+		final String fewSubtypes  = "AbstractContainer";
+		final String manySubtypes = "AbstractPart";
+
+		try (final Tx tx = app.tx()) {
+
+			createAbstractTypeWithSubtypes(fewSubtypes, 2);
+			createAbstractTypeWithSubtypes(manySubtypes, 6);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception creating the schema.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(fewSubtypes, "should not be creatable");
+
+			tx.success();
+
+			fail("Creating an instance of an abstract type should have been refused");
+
+		} catch (FrameworkException fex) {
+
+			assertTrue("A list this short should be given in full, but was: " + fex.getMessage(),
+				fex.getMessage().endsWith("use one of " + fewSubtypes + "0, " + fewSubtypes + "1 instead"));
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(manySubtypes, "should not be creatable");
+
+			tx.success();
+
+			fail("Creating an instance of an abstract type should have been refused");
+
+		} catch (FrameworkException fex) {
+
+			assertTrue("Beyond the limit the count should replace the list, but was: " + fex.getMessage(), fex.getMessage().endsWith("use one of its 6 concrete subtypes instead"));
+
+			assertFalse("A truncated list of examples is what this replaces, but was: " + fex.getMessage(), fex.getMessage().contains(manySubtypes + "0"));
+		}
+	}
+
+	private void createAbstractTypeWithSubtypes(final String name, final int subtypeCount) throws FrameworkException {
+
+		final Traits traits = Traits.of(StructrTraits.SCHEMA_NODE);
+
+		app.create(StructrTraits.SCHEMA_NODE,
+			new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
+			new NodeAttribute<>(traits.key(SchemaNodeTraitDefinition.IS_ABSTRACT_PROPERTY), true));
+
+		for (int i = 0; i < subtypeCount; i++) {
+
+			app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name + i),
+				new NodeAttribute<>(traits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { name }));
 		}
 	}
 

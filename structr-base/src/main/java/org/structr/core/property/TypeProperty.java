@@ -39,6 +39,11 @@ public class TypeProperty extends StringProperty {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeProperty.class.getName());
 
+	/* A complete short list is an answer, a truncated one is a guess: the type the caller actually wants
+	   is probably not among the first five names in alphabetical order. Up to this many the list still
+	   fits in the sentence, beyond it the count says more than a sample would. */
+	private static final int MAX_LISTED_SUBTYPES = 5;
+
 	public TypeProperty() {
 
 		super("type");
@@ -64,6 +69,16 @@ public class TypeProperty extends StringProperty {
 				new InvalidPropertySchemaToken(obj.getType(), jsonName(), value, "no_such_type", "There is no type named ‛" + value + "‛"));
 		}
 
+		/* A node that is relabelled to an abstract type is exactly what refusing instantiation is meant to
+		   prevent, only reached from the other side: the node would end up carrying a type nothing can be
+		   an instance of. Both writes to ‛type‛ pass through here - the single-key path and the bulk path
+		   in PropertyContainerTraitDefinition, which sets the key on a CreationContainer - so this one
+		   check covers the type change, and node creation reaches it too via CreateNodeCommand. */
+		if (value != null) {
+
+			assertInstantiable(value);
+		}
+
 		super.setProperty(securityContext, obj, value);
 
 		if (obj instanceof NodeInterface node) {
@@ -74,6 +89,42 @@ public class TypeProperty extends StringProperty {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Refuses a type that exists but can have no instances. The prohibition lives next to the ‛type‛
+	 * property rather than in the create command because both ways of reaching it are writes to this
+	 * key: creating a node with the type, and changing an existing node's type to it.
+	 */
+	public static void assertInstantiable(final String type) throws FrameworkException {
+
+		final Traits traits = Traits.of(type);
+		if (traits != null && (traits.isInterface() || traits.isAbstract())) {
+
+			throw new FrameworkException(422, "Type " + type + (traits.isInterface() ? " is an interface" : " is abstract")
+				+ " and cannot be instantiated" + suggestConcreteSubtypes(type));
+		}
+	}
+
+	// the caller reached a type that has no instances by name, so the useful answer is what to use instead
+	private static String suggestConcreteSubtypes(final String type) {
+
+		final List<String> concrete = Traits.getAllTypes(t -> t.contains(type) && !t.isAbstract() && !t.isInterface() && !type.equals(t.getName()))
+			.stream()
+			.sorted()
+			.toList();
+
+		if (concrete.isEmpty()) {
+
+			return "";
+		}
+
+		if (concrete.size() > MAX_LISTED_SUBTYPES) {
+
+			return ", use one of its " + concrete.size() + " concrete subtypes instead";
+		}
+
+		return ", use one of " + String.join(", ", concrete) + " instead";
 	}
 
 	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Traits inputType, final boolean removeUnused) {
