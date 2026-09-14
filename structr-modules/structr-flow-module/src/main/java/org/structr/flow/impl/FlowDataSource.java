@@ -26,7 +26,7 @@ import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
-import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.FlowDataSourceOperations;
 import org.structr.module.api.DeployableEntity;
 
 public class FlowDataSource extends FlowNode implements DeployableEntity, ThrowingElement {
@@ -71,7 +71,7 @@ public class FlowDataSource extends FlowNode implements DeployableEntity, Throwi
 
 	public final Object get(final Context context) throws FlowException {
 
-		return traits.getMethod(DataSourceOperations.class).get(context, this);
+		return traits.getMethod(FlowDataSourceOperations.class).get(context, this);
 	}
 
 	@Override

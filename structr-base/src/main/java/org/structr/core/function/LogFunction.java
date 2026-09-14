@@ -20,8 +20,13 @@ package org.structr.core.function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -31,6 +36,7 @@ import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
+import java.util.Map;
 
 public class LogFunction extends CoreFunction {
 
@@ -55,9 +61,34 @@ public class LogFunction extends CoreFunction {
 
 			final StringBuilder buf = new StringBuilder();
 
-			if (caller != null) {
+			if (Settings.LogFunctionShowCaller.getValue()) {
 
-				buf.append("Caller: ").append(Scripting.formatForLogging(caller)).append(" - ");
+				final Map<String, Object> functionInfo = FunctionInfoFunction.getCurrentFunctionInfo(ctx);
+
+				if (functionInfo != null) {
+
+					final String functionName = functionInfo.get(NodeInterfaceTraitDefinition.NAME_PROPERTY).toString();
+
+					if (Boolean.TRUE.equals(functionInfo.get(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY))) {
+
+						buf.append("[").append(functionName).append("()]: ");
+
+					} else {
+
+						buf.append("[").append(functionInfo.get(FunctionInfoFunction.DECLARING_TRAIT_KEY).toString());
+
+						if (Boolean.FALSE.equals(functionInfo.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY)) && caller instanceof NodeInterface node) {
+							buf.append("(").append(node.getUuid()).append(")");
+						}
+
+						buf.append(".").append(functionName).append("()]: ");
+					}
+
+				} else if (caller instanceof NodeInterface node && node.is(StructrTraits.DOM_NODE)) {
+					// Test this after functionInfo because otherwise log output generated from the console logs the ShadowDocument
+
+					buf.append("[").append(Scripting.formatForLogging(caller)).append("]: ");
+				}
 			}
 
 			for (final Object obj : sources) {

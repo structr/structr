@@ -23,7 +23,7 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowDataSource;
 
-public abstract class DataSourceOperations extends FrameworkMethod<DataSourceOperations> {
+public abstract class FlowDataSourceOperations extends FrameworkMethod<FlowDataSourceOperations> {
 
 	public abstract Object get(final Context context, final FlowDataSource dataSource) throws FlowException;
 }

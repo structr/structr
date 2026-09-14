@@ -26,6 +26,12 @@ test.beforeAll(async ({playwright}) => {
 	await initialize(playwright, {
 		'SchemaNode': [
 			{name: 'Project'}
+		],
+		// one named and one nameless data source: the create button in the Code area makes them without
+		// a name, so the nameless one is the normal case, not an edge case
+		'ScriptDataSource': [
+			{name: 'seededScriptSource'},
+			{}
 		]
 	});
 });
@@ -124,6 +130,53 @@ test('user-defined-functions', async ({page}, testInfo) => {
 
 	await page.waitForTimeout(200);
 	await page.screenshot({path: 'screenshots/code_project-method.png'});
+
+	await logout(page);
+});
+
+test('data-sources', async ({page}, testInfo) => {
+
+	console.log(testInfo.title);
+
+	await login(page);
+
+	await goToModule(page, '#code_');
+
+	// Wait for Code UI to load all components
+	await page.waitForTimeout(1000);
+
+	await page.getByRole('link', {name: 'Data Sources', exact: true}).click();
+	await expect(page.getByText('Create New Data Source')).toBeVisible();
+
+	// The section lists nodes by the DataSource label rather than by a fixed set of types, so an entry
+	// without a name has to say what it is - it used to render as a bare "[unnamed]" that could not be
+	// attributed to anything.
+	await page.locator('[data-id="datasources"] .jstree-ocl').first().click();
+	await page.getByRole('link', {name: 'seededScriptSource', exact: true}).waitFor({state: 'visible'});
+	await expect(page.getByRole('link', {name: '[unnamed ScriptDataSource]', exact: true})).toBeVisible();
+
+	await page.screenshot({path: 'screenshots/code_data-sources.png'});
+
+	// Clicking an entry has to open the editor. The click used to fall through the type switch in
+	// handleNodeObjectClick() without a matching case and do nothing at all, so both entries are
+	// clicked here: selecting a second one proves the dispatch runs rather than the panel just
+	// happening to be left over from before.
+	await page.getByRole('link', {name: 'seededScriptSource', exact: true}).click();
+	await expect(page.locator('#data-source-name-input')).toHaveValue('seededScriptSource');
+
+	await page.getByRole('link', {name: '[unnamed ScriptDataSource]', exact: true}).click();
+	await expect(page.locator('#data-source-name-input')).toHaveValue('');
+	await expect(page.locator('#values-script-editor')).toBeVisible();
+
+	// Give it a name and check the tree picks it up
+	await page.locator('#data-source-name-input').click();
+	await page.keyboard.type('namedInTheEditor');
+	await page.getByRole('button', {name: 'Save', exact: true}).click();
+
+	await page.waitForTimeout(1000);
+	await expect(page.getByRole('link', {name: 'namedInTheEditor', exact: true})).toBeVisible();
+
+	await page.screenshot({path: 'screenshots/code_data-source-editor.png'});
 
 	await logout(page);
 });

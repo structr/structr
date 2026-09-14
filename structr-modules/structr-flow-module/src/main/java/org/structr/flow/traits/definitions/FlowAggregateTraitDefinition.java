@@ -33,7 +33,7 @@ import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowAggregate;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowNode;
-import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.FlowDataSourceOperations;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
@@ -65,7 +65,7 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			DataSourceOperations.class, new DataSourceOperations() {
+			FlowDataSourceOperations.class, new FlowDataSourceOperations() {
 
 				@Override
 				public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {

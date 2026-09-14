@@ -447,6 +447,29 @@ let _Code = {
 		refreshTree: () => {
 			_TreeHelper.refreshTree(_Code.codeTree);
 		},
+		createDataSourceEntry: (entity, path) => {
+
+			// A data source is created without a name, so a nameless entry is normal and has to stay
+			// selectable - but it has to say what it is, otherwise the tree shows a row that cannot be
+			// attributed to anything.
+			let text = entity.name || `[unnamed ${entity.type}]`;
+			let icon = (entity.type === 'QueryDataSource') ? _Icons.iconFilterFunnel : _Icons.iconScriptWrapped;
+
+			return {
+				id:       path + '/' + entity.id,
+				text:     text,
+				children: false,
+				icon:     icon,
+				li_attr:  { 'data-id': entity.id },
+				data: {
+					svgIcon:      _Icons.getSvgIcon(icon, 16, 24),
+					key:          entity.type,
+					isDataSource: true,
+					id:           entity.id,
+					path:         path + '/' + entity.id
+				},
+			};
+		},
 		displayFunction: (result, data, dontSort, isSearch) => {
 
 			let path = data.path;
@@ -458,6 +481,17 @@ let _Code = {
 				if (entity?.category !== 'html') {
 
 					let icon = _Icons.getIconForSchemaNodeType(entity);
+
+					// Everything below "Data Sources" is a data source, whatever its concrete type: the
+					// section lists nodes by the DataSource label, not by a fixed set of types. A type
+					// without a case of its own below fell through to the generic branch, where it showed
+					// up as an unattributable "[unnamed]" row that did nothing when clicked.
+					if (data.key === 'datasources') {
+
+						list.push(_Code.tree.createDataSourceEntry(entity, path));
+
+						continue;
+					}
 
 					switch (entity.type) {
 
@@ -481,37 +515,11 @@ let _Code = {
 							break;
 						}
 
+						// reached from search results; the "Data Sources" section is handled above
 						case 'QueryDataSource':
-							list.push({
-								id:       path + '/' + entity.id,
-								text:     entity.name,
-								children: false,
-								icon:     _Icons.iconFilterFunnel,
-								li_attr:  { 'data-id': entity.id },
-								data: {
-									svgIcon: _Icons.getSvgIcon(_Icons.iconFilterFunnel, 16, 24),
-									key:     entity.type,
-									id:      entity.id,
-									path:    path + '/' + entity.id
-								},
-							});
-							break;
-
 						case 'ScriptDataSource':
 						case 'DataSource':
-							list.push({
-								id:       path + '/' + entity.id,
-								text:     entity.name,
-								children: false,
-								icon:     _Icons.iconScriptWrapped,
-								li_attr:  { 'data-id': entity.id },
-								data: {
-									svgIcon: _Icons.getSvgIcon(_Icons.iconScriptWrapped, 16, 24),
-									key:     entity.type,
-									id:      entity.id,
-									path:    path + '/' + entity.id
-								},
-							});
+							list.push(_Code.tree.createDataSourceEntry(entity, path));
 							break;
 
 						case 'SchemaNode': {
@@ -926,6 +934,15 @@ let _Code = {
 		},
 		handleNodeObjectClick: (data) => {
 
+			// asked before the type switch below, so that a data source whose type has no case there
+			// still opens instead of silently doing nothing
+			if (data.isDataSource) {
+
+				_Code.mainArea.displayDataSourceContent(data);
+
+				return;
+			}
+
 			let nodeType = data.key || data.type;
 			if (nodeType) {
 
@@ -957,6 +974,7 @@ let _Code = {
 
 					case 'QueryDataSource':
 					case 'ScriptDataSource':
+					case 'DataSource':
 						_Code.mainArea.displayDataSourceContent(data);
 						break;
 				}
@@ -1385,6 +1403,17 @@ let _Code = {
 
 					_Editors.getMonacoEditor(entity, 'valuesScript', _Code.codeContents[0].querySelector('#values-script-editor'), config);
 					_Editors.getMonacoEditor(entity, 'fieldsScript', _Code.codeContents[0].querySelector('#fields-script-editor'), config);
+
+				} else {
+
+					// A type that carries the DataSource trait but has no editor of its own: without this
+					// branch the panel stayed empty and the name input the code below wires up did not
+					// exist, so the click ended in a TypeError.
+					_Code.codeContents.append(_Code.templates.dataSourceEditor('Edit Data Source "' + (entity.name || entity.id) + '"'));
+
+					let container = _Code.codeContents[0].querySelector('#datasource-container');
+
+					container.insertAdjacentHTML('beforeend', _Code.templates.genericDataSourceEditor(entity));
 				}
 
 				let changeHandler = () => {
@@ -4144,6 +4173,17 @@ let _Code = {
 		swaggerui: config => `
 			<div id="swagger-ui-container" class="flex-grow">
 				<iframe class="border-0" src="${config.iframeSrc}" width="100%" height="100%"></iframe>
+			</div>
+		`,
+		genericDataSourceEditor: config => `
+			<div class="@container">
+				<div class="grid grid-cols-2 gap-8">
+					<div class="@lg:col-span-1 col-span-2">
+						<label class="block mt-8 mb-2 font-bold" data-comment="The name of the data source">Name</label>
+						<input id="data-source-name-input" data-property="name" class="w-full box-border" placeholder="Data Source Name..." value="${config.name || ''}">
+						<p class="mt-8">This is a data source of type <b>${config.type}</b>, which has no editor of its own. Its values and fields are supplied by the type itself.</p>
+					</div>
+				</div>
 			</div>
 		`,
 		scriptDataSourceEditor: config => `
