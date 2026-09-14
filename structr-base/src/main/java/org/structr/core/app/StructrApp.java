@@ -42,6 +42,7 @@ import org.structr.core.graph.search.FulltextSearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.TypeProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -108,15 +109,13 @@ public class StructrApp implements App {
 				// overwrite type information when creating a node (adhere to type specified by resource!)
 				properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
-			} else if (actualType.isInterface() || actualType.isAbstract()) {
-
-				throw new FrameworkException(422, "Invalid abstract type " + type + ", please supply a non-abstract class name in the type property");
-
 			} else {
 
 				finalType = actualType.getName();
 			}
 		}
+
+		TypeProperty.assertInstantiable(finalType);
 
 		// set type
 		properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), finalType);
@@ -129,6 +128,8 @@ public class StructrApp implements App {
 
 		final List<NodeAttribute<?>> attrs = new LinkedList<>(Arrays.asList(attributes));
 		final CreateNodeCommand command    = command(CreateNodeCommand.class);
+
+		TypeProperty.assertInstantiable(type);
 
 		// add type information when creating a node
 		attrs.add(new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type));

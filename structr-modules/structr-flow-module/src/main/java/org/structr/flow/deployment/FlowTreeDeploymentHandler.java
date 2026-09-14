@@ -34,11 +34,15 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.flow.impl.FlowContainerPackage;
+import org.structr.flow.traits.definitions.FlowContainerPackageTraitDefinition;
 import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
+import org.structr.web.maintenance.DeployCommand;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -59,6 +63,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 	private final static String FLOW_DEPLOYMENT_TREE_CONFIG_FOLDER                          = "config";
 
 	private final static String FLOW_DEPLOYMENT_CONTAINER_FILE                              = "flow-container.json";
+	private final static String FLOW_DEPLOYMENT_CONTAINER_PACKAGE_FILE                      = "flow-container-package.json";
 	private final static String FLOW_DEPLOYMENT_NODE_FILE                                   = "node.json";
 	private final static String FLOW_DEPLOYMENT_REL_FILE                                    = "rel.json";
 	private final static String FLOW_DEPLOYMENT_CONFIG_FILE                                 = "config.json";
@@ -123,8 +128,38 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			for (final File dir : children) {
 
+				String dirName = dir.getName();
+
+				// Import flow container package from file (if it exists)
+				final Path flowContainerPackageConf = dir.toPath().resolve(FLOW_DEPLOYMENT_CONTAINER_PACKAGE_FILE);
+				if (flowContainerPackageConf.toFile().isFile()) {
+
+					try (final Tx tx = app.tx()) {
+
+						final Map<String, Object> flowContainerPackageData = readData(flowContainerPackageConf);
+						final Traits flowContainerPackageTraits            = Traits.of(StructrTraits.FLOW_CONTAINER_PACKAGE);
+
+						final Object flowContainerPackageId = flowContainerPackageData.remove(FlowContainerPackageTraitDefinition.PARENT_PROPERTY);
+
+						final NodeInterface flowContainerPackage = app.create(StructrTraits.FLOW_CONTAINER_PACKAGE, convertMapToPropertyMap(StructrTraits.FLOW_CONTAINER_PACKAGE, flowContainerPackageData));
+
+						if (flowContainerPackageId != null) {
+
+							flowContainerPackage.setProperty(flowContainerPackageTraits.key(FlowContainerPackageTraitDefinition.PARENT_PROPERTY), app.getNodeById(flowContainerPackageId.toString()));
+						}
+
+						// update package path in case the name was sanitized on export
+						dirName = flowContainerPackageData.get(NodeInterfaceTraitDefinition.NAME_PROPERTY).toString();
+
+						// set the correct name again (can not be used from the path because the path elements are sanitized to prevent '/' etc. in names)
+						flowContainerPackage.setName(dirName);
+
+						tx.success();
+					}
+				}
+
 				// Construct effective path based on current flow dir
-				final String effectivePackagePath = packagePath != null ? packagePath + "." + dir.getName() : dir.getName();
+				final String effectivePackagePath = packagePath != null ? packagePath + "." + dirName : dirName;
 
 				// Import flow from file
 				if (dir.toPath().resolve(FLOW_DEPLOYMENT_CONTAINER_FILE).toFile().isFile()) {
@@ -154,7 +189,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			try {
 
-				logger.info("Importing flow: " + packagePath);
+				logger.info("Importing flow: {}", packagePath);
 
 				// 1. Create flow packages
 				// 2. Create flow container
@@ -164,6 +199,9 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 				// Set flow package implicitly (by triggering write function)
 				flowContainer.setProperty(flowContainerTraits.key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), packagePath);
+
+				// set the correct name again (can not be used from the path because the path elements are sanitized to prevent '/' etc. in names)
+				flowContainer.setName(flowContainerData.get(NodeInterfaceTraitDefinition.NAME_PROPERTY).toString());
 
 				// 3. Create flow nodes
 				final File nodesDir = new File(flowRootDir.resolve(FLOW_DEPLOYMENT_TREE_NODE_FOLDER).toAbsolutePath().toString());
@@ -261,8 +299,15 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 		try {
 
-			final String effectiveName                  = flow.getEffectiveName();
-			final String effectiveFlowPath              = effectiveName.contains(".") ? String.join("/"+ FLOW_DEPLOYMENT_TREE_NODE_CHILDREN_FOLDER + "/",effectiveName.split("\\.")) : effectiveName;
+			final String effectiveName = DeployCommand.sanitizeAndShortenFileOrFolderName(flow.getEffectiveName());
+
+			if (effectiveName.contains(".")) {
+
+				// create parent folders along with FlowContainerPackage
+				exportFlowPackages(target, flow.getFlowPackage());
+			}
+
+			final String effectiveFlowPath              = effectiveName.contains(".") ? String.join("/" + FLOW_DEPLOYMENT_TREE_NODE_CHILDREN_FOLDER + "/", effectiveName.split("\\.")) : effectiveName;
 			final Path flowFolder                       = Files.createDirectories(target.resolve(effectiveFlowPath));
 			final Path nodePath                         = Files.createDirectories(flowFolder.resolve(FLOW_DEPLOYMENT_TREE_NODE_FOLDER));
 			final Path relPath                          = Files.createDirectories(flowFolder.resolve(FLOW_DEPLOYMENT_TREE_REL_FOLDER));
@@ -350,6 +395,30 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			throw new FrameworkException(500, ex.getMessage());
 		}
+	}
+
+	private Path exportFlowPackages(final Path target, final FlowContainerPackage flowContainerPackage) throws FrameworkException, IOException {
+
+		final FlowContainerPackage parent = flowContainerPackage.getParent();
+
+		Path current = target;
+
+		if (parent != null) {
+			current = exportFlowPackages(target, parent);
+		}
+
+		// sanitize name
+		final String sanitizedName = DeployCommand.sanitizeAndShortenFileOrFolderName(flowContainerPackage.getName());
+
+		final Path p = current.resolve(sanitizedName + "/" + FLOW_DEPLOYMENT_TREE_NODE_CHILDREN_FOLDER + "/");
+
+		// create directory
+		Files.createDirectories(p);
+
+		// write flow-container-package.json
+		writeData(current.resolve(sanitizedName).resolve(FLOW_DEPLOYMENT_CONTAINER_PACKAGE_FILE), gson.toJson(flowContainerPackage.exportData()));
+
+		return p;
 	}
 
 	private PropertyMap convertMapToPropertyMap(final String type, final Map<String,Object> map) {

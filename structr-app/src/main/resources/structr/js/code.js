@@ -531,7 +531,7 @@ let _Code = {
 								text:     entity.name,
 								children: _Code.tree.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
 								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': entity.id, class: doHighlight ? 'highlight-name' : '' },
+								li_attr:  { 'data-id': entity.id, class: `${doHighlight ? 'highlight-name' : ''}${entity.isAbstract ? ' abstract-type' : ''}${entity.isInterface ? ' interface-type' : ''}`.trim() },
 								data: {
 									svgIcon: icon,
 									key:     entity.type,

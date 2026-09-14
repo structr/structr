@@ -572,7 +572,12 @@ let _Schema = {
 			let nameToSchemaNodeMap             = Object.fromEntries(Object.values(nodeData).map(node => [node.name, node]));
 			let initialPosition                 = { left: 40, top: 20 };
 			let customTypeNames                 = Object.keys(nameToSchemaNodeMap).sort();
-			let otherNodeTypes                  = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass && !customTypeNames.includes(type.name));
+			let allNodeTypes                    = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass);
+			let otherNodeTypes                  = allNodeTypes.filter(type => !customTypeNames.includes(type.name));
+
+			// the enforced flags live on the runtime type, not on the schema node: a builtin supertype has no
+			// schema node at all, and an overloaded one reports false while the server still refuses instances
+			let markersByTypeName = Object.fromEntries(allNodeTypes.map(type => [type.name, { isAbstract: type.isAbstract, isInterface: type.isInterface }]));
 			let firstCustomThenBuiltinTypeNames = [...customTypeNames, ...otherNodeTypes.map(type => type.name).sort()];
 			let visibleTypes                    = firstCustomThenBuiltinTypeNames.filter(t => _Schema.ui.visibility.isTypeVisible(t));
 
@@ -595,20 +600,20 @@ let _Schema = {
 
 				if (customSchemaNode) {
 
-					initialPosition = _Schema.nodes.addTypeToCanvas(customSchemaNode, initialPositionForType);
+					initialPosition = _Schema.nodes.addTypeToCanvas({ ...customSchemaNode, ...markersByTypeName[typeName] }, initialPositionForType);
 
 				} else {
 
 					initialPosition = _Schema.nodes.addTypeToCanvas({
 						id: _Schema.nodes.getIdForBuiltinTypePlacerHolder(typeName),
 						name: typeName,
-						isBuiltinType: true
+						isBuiltinType: true,
+						...markersByTypeName[typeName]
 					}, initialPositionForType);
 				}
 			}
 
 			// draw inheritance arrows
-			let allNodeTypes    = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass);
 			let inheritanceInfo = _Schema.nodes.getInheritanceInfoForJsPlumb(allNodeTypes, Object.values(nameToSchemaNodeMap));
 
 			for (let typeConfig of inheritanceInfo) {
@@ -648,7 +653,7 @@ let _Schema = {
 			let id = 'id_' + entity.id;
 
 			let node = _Helpers.createSingleDOMElementFromHTML(`
-				<div class="schema node compact${(entity.isBuiltinType ? ' text-gray-999' : '')}" id="${id}" data-type="${entity.name}">
+				<div class="schema node compact${(entity.isBuiltinType ? ' text-gray-999' : '')}${(entity.isAbstract ? ' abstract-type' : '')}${(entity.isInterface ? ' interface-type' : '')}" id="${id}" data-type="${entity.name}">
 					<b>${entity.name}</b>
 					<div class="icons-container flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']), 'Edit type')}
@@ -868,12 +873,30 @@ let _Schema = {
 				nameInput.classList.add('disabled');
 			}
 
-			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
+			let schemaNodeFlags = ['isServiceClass', 'isAbstract', 'isInterface', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
 			for (let flag of schemaNodeFlags) {
 
 				let checkbox = container.querySelector(`[data-property="${flag}"]`);
 				if (checkbox) checkbox.checked = (true === entity[flag]);
+			}
+
+			// an overload of a builtin supertype inherits its prohibition and cannot clear it, so the box
+			// has to show the enforced value and stop being an input, exactly like the name of a builtin type
+			let runtimeType = _Schema.caches._schema?.[entity.name];
+
+			for (let flag of ['isAbstract', 'isInterface']) {
+
+				let checkbox = container.querySelector(`[data-property="${flag}"]`);
+
+				if (checkbox && runtimeType?.[flag] === true && entity[flag] !== true) {
+
+					delete checkbox.dataset['property'];
+					checkbox.checked  = true;
+					checkbox.disabled = true;
+					checkbox.classList.add('disabled');
+					checkbox.title    = `${entity.name} is ${flag === 'isAbstract' ? 'abstract' : 'an interface'} because the builtin type is, this cannot be changed here`;
+				}
 			}
 
 			_Code.mainArea.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
@@ -882,11 +905,15 @@ let _Schema = {
 
 			fetch(`${Structr.rootUrl}_schema`).then(response => response.json()).then(schemaData => {
 
-				let customTypes  = schemaData.result.filter(type => !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
-				let builtinTypes = schemaData.result.filter(type => !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
+				// abstract types belong in this list: a supertype nobody instantiates is the reason to mark one abstract
+				let customTypes  = schemaData.result.filter(type => !type.isRel && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
+				let builtinTypes = schemaData.result.filter(type => !type.isRel && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
+
+				let abstractTypeNames  = new Set(schemaData.result.filter(type => type.isAbstract).map(type => type.name));
+				let interfaceTypeNames = new Set(schemaData.result.filter(type => type.isInterface).map(type => type.name));
 
 				let getOptionsForListOfTypes = (typeList) => {
-					return typeList.map(type => type.name).sort().map(name => `<option ${(entity.inheritedTraits ?? []).includes(name) ? 'selected' : ''} value="${name}">${name}</option>`).join('');
+					return typeList.map(type => type.name).sort().map(name => `<option ${(entity.inheritedTraits ?? []).includes(name) ? 'selected' : ''} class="${abstractTypeNames.has(name) ? 'abstract-type' : ''}${interfaceTypeNames.has(name) ? 'interface-type' : ''}" value="${name}">${name}</option>`).join('');
 				};
 
 				let classSelect = container.querySelector('[data-property="inheritedTraits"]');
@@ -895,10 +922,17 @@ let _Schema = {
 					${(builtinTypes.length > 0) ? `<optgroup label="System Traits">${getOptionsForListOfTypes(builtinTypes)}</optgroup>` : ''}
 				`);
 
+				let renderTypeName = (data) => {
+					let marker = ['abstract-type', 'interface-type'].find(c => data.element?.classList?.contains(c));
+					return (marker ? $(`<span class="${marker}">${data.text}</span>`) : data.text);
+				};
+
 				$(classSelect).select2({
 					search_contains: true,
 					width: '500px',
-					dropdownParent: $(container)
+					dropdownParent: $(container),
+					templateResult: renderTypeName,
+					templateSelection: renderTypeName
 				}).on('change', () => {
 					changeFn?.();
 				});
@@ -3091,10 +3125,10 @@ let _Schema = {
 					_Schema.views.rowChanged(gridRow, entity, initialViewConfig);
 				});
 
-				_Schema.views.bindRowEvents(gridRow, entity, view, initialViewConfig);
+				_Schema.views.bindRowEvents(gridBody, gridRow, entity, view, initialViewConfig);
 			});
 		},
-		bindRowEvents: (gridRow, entity, view, initialViewConfig) => {
+		bindRowEvents: (gridBody, gridRow, entity, view, initialViewConfig) => {
 
 			let viewInfoChangeHandler = () => { _Schema.views.rowChanged(gridRow, entity, initialViewConfig); };
 
@@ -3110,6 +3144,24 @@ let _Schema = {
 
 			// jquery is required for change handler of select2 plugin
 			$(gridRow.querySelector('.view.property-attrs')).on('change', viewInfoChangeHandler);
+
+			gridRow.querySelector('.clone-action')?.addEventListener('click', () => {
+
+				let clonedGridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.views.templates.viewNew());
+				gridBody.appendChild(clonedGridRow);
+
+				_Schema.views.appendViewSelectionElement(clonedGridRow, { name: view.name }, entity, (selectElement) => {
+
+					selectElement.select2Sortable();
+
+					_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+				});
+
+				clonedGridRow.querySelector('.discard-changes').addEventListener('click', () => {
+					_Helpers.fastRemoveElement(clonedGridRow);
+					_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+				});
+			});
 
 			gridRow.querySelector('.discard-changes')?.addEventListener('click', () => {
 
@@ -3324,6 +3376,7 @@ let _Schema = {
 						<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
 					</div>
 					<div class="actions-col gap-1 flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Delete') : ''}
 	
@@ -4725,6 +4778,7 @@ let _Schema = {
 		_schema_slash_type: {},
 		clearCaches: () => {
 			_Schema.caches.nodeData = {};
+			_Schema.caches._schema = {};
 			_Schema.ui.layouts.nodePositions = {};
 			_Schema.caches._schema_slash_type = {};
 		},
@@ -6160,6 +6214,12 @@ let _Schema = {
 								</label>
 							` : ''}
 							${!config.isServiceClass ? `
+								<label class="flex items-center mr-8" data-comment="Abstract types cannot be instantiated, they only serve as a supertype for other types">
+									<input id="abstract-checkbox" type="checkbox" data-property="isAbstract"> Is Abstract
+								</label>
+								<label class="flex items-center mr-8" data-comment="Interface types cannot be instantiated either, they only exist to be mixed into other types">
+									<input id="interface-checkbox" type="checkbox" data-property="isInterface"> Is Interface
+								</label>
 								<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
 									<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
 								</label>

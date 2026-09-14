@@ -20,6 +20,7 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.Permission;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -44,12 +45,35 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		if (securityContext.doCascadingDelete()) {
 
+			// checked inside, where the node itself is one entry of the collected set
 			cascadeDelete(node);
 
 		} else {
 
+			assertDeleteAllowed(node);
+
 			node.onNodeDeletion(securityContext);
 			node.getNode().delete(true);
+		}
+	}
+
+	/**
+	 * Refuses a deletion the caller has no delete permission for.
+	 *
+	 * <p>Ticket 1585: this command deleted whatever it was handed, and genericDelete() hands it
+	 * everything doGet() returned - so a DELETE grant on a collection resource deleted every node the
+	 * caller could READ. Being allowed to see something was enough to destroy it. Only UuidResource and
+	 * TypedIdResource checked, two entry points out of five.
+	 *
+	 * <p>The whole call is refused rather than the impermissible parts skipped: a DELETE that removes
+	 * some of what it matched, keeps the rest and answers 200 is not something a caller can act on. The
+	 * transaction rolls back and nothing is deleted.
+	 */
+	private void assertDeleteAllowed(final NodeInterface node) throws FrameworkException {
+
+		if (!node.isGranted(Permission.delete, securityContext)) {
+
+			throw new FrameworkException(403, "Deletion of " + node.getType() + " with ID " + node.getUuid() + " is not permitted");
 		}
 	}
 
@@ -66,6 +90,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		// remove all deleted nodes from nodes to check
 		nodesToCheck.removeAll(nodesToDelete);
+
+		/* The cascade reaches nodes the caller never named, so each one is asked for on its own.
+		   Checking only the node that was named would let one delete permission take out everything
+		   hanging off it, which is the same mistake one level down. */
+		for (final NodeInterface deleteMe : nodesToDelete) {
+
+			assertDeleteAllowed(deleteMe);
+		}
 
 		// notify nodes of pending deletion
 		for (final NodeInterface deleteMe : nodesToDelete) {

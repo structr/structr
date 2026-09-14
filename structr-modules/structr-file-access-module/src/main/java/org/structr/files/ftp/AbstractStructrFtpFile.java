@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -166,13 +167,44 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public boolean isWritable() {
 
-		return true;
+		return isGranted(Permission.write);
 	}
 
 	@Override
 	public boolean isRemovable() {
 
-		return true;
+		return isGranted(Permission.delete);
+	}
+
+	/**
+	 * Ticket 1586: both of these answered a flat "true", which is what ftpserver asks before it lets a
+	 * STOR or a DELE through. Structr's own permission check sits in setProperty, on node properties, so
+	 * it never sees the byte I/O that follows - being allowed to SEE a file was enough to replace its
+	 * contents, and a JS asset of a public site is exactly such a file.
+	 */
+	private boolean isGranted(final Permission permission) {
+
+		if (structrFile == null) {
+
+			// a path that does not exist yet; whether it may be created is a question about the parent
+			// folder, and ftpserver asks that separately
+			return true;
+		}
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			final boolean granted = structrFile.isGranted(permission, securityContext);
+
+			tx.success();
+
+			return granted;
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to determine {} permission for {}", permission.name(), structrFile, fex);
+
+			return false;
+		}
 	}
 
 	@Override
@@ -282,13 +314,15 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 			tx.success();
 
+			return true;
+
 		} catch (FrameworkException ex) {
 
+			// a refused delete used to be logged here and then reported to the client as a success
 			logger.error("", ex);
 		}
 
-		return true;
-
+		return false;
 	}
 
 	@Override

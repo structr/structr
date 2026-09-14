@@ -122,7 +122,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.GENERIC_NODE);
 		StructrTraits.registerNodeType(StructrTraits.DATA_ADAPTER,             StructrTraits.DATA_ADAPTER);
 		StructrTraits.registerNodeType(StructrTraits.DATA_ADAPTER_FIELD,       StructrTraits.DATA_ADAPTER_FIELD);
-		StructrTraits.registerNodeType(StructrTraits.DATA_SOURCE,              StructrTraits.DATA_SOURCE);
+		StructrTraits.registerInterfaceNodeType(StructrTraits.DATA_SOURCE,              StructrTraits.DATA_SOURCE);
 		StructrTraits.registerNodeType(StructrTraits.PRINCIPAL,                StructrTraits.PRINCIPAL);
 		StructrTraits.registerNodeType(StructrTraits.GROUP,                    StructrTraits.PRINCIPAL, StructrTraits.GROUP);
 		StructrTraits.registerNodeType(StructrTraits.LOCALIZATION,             StructrTraits.LOCALIZATION);
@@ -130,7 +130,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.MAIL_TEMPLATE,            StructrTraits.MAIL_TEMPLATE);
 		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        StructrTraits.SESSION_DATA_NODE);
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_GRANT,             StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_GRANT);
-		StructrTraits.registerNodeType(StructrTraits.ABSTRACT_SCHEMA_NODE,     StructrTraits.ABSTRACT_SCHEMA_NODE);
+		StructrTraits.registerAbstractNodeType(StructrTraits.ABSTRACT_SCHEMA_NODE,     StructrTraits.ABSTRACT_SCHEMA_NODE);
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_NODE,              StructrTraits.DATA_SOURCE, StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.ABSTRACT_SCHEMA_NODE, StructrTraits.SCHEMA_NODE);
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_METHOD,            StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_METHOD);
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_METHOD_PARAMETER,  StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_METHOD_PARAMETER);

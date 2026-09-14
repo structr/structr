@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.util.AbstractProcess;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
@@ -52,17 +54,28 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 	public void preprocess() {
 	}
 
+	/**
+	 * Ticket 1587: see ConverterProcess.getCommandArguments(). The command is an argument list so that
+	 * the input file path - commented out below pending the filesystem abstraction, and carrying the
+	 * file name in a mounted folder - cannot be read as shell syntax when it is switched back on.
+	 */
+	@Override
+	public List<String> getCommandArguments() {
+
+		final List<String> arguments = new LinkedList<>();
+
+		arguments.addAll(List.of("avconv", "-y", "-loglevel", "quiet", "-i"));
+		// Todo: Fix for fs abstraction
+		//arguments.add(inputVideo.getDiskFilePath(securityContext));
+		arguments.addAll(List.of("-f", "ffmetadata", "-"));
+
+		return arguments;
+	}
+
 	@Override
 	public StringBuilder getCommandLine() {
 
-		StringBuilder commandLine = new StringBuilder("avconv -y -loglevel quiet -i ");
-
-		// build command line from builder options
-		// Todo: Fix for fs abstraction
-		//commandLine.append(inputVideo.getDiskFilePath(securityContext));
-		commandLine.append(" -f ffmetadata -");
-
-		return commandLine;
+		return null;
 	}
 
 	@Override

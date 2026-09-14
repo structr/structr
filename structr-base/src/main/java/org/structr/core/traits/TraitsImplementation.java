@@ -52,6 +52,10 @@ public class TraitsImplementation implements Traits {
 	private final boolean isBuiltInType;
 	private final boolean isServiceClass;
 	private final boolean changelogEnabled;
+
+	// not constructor arguments: the constructor already takes five bare booleans
+	private boolean isAbstract  = false;
+	private boolean isInterface = false;
 	private final String typeName;
 
 	TraitsImplementation(final TraitsInstance traitsInstance, final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType, final boolean changelogEnabled, final boolean isServiceClass) {
@@ -71,6 +75,8 @@ public class TraitsImplementation implements Traits {
 
 		copy.traitNames.addAll(traitNames);
 		copy.traits.addAll(traits);
+		copy.isAbstract  = isAbstract;
+		copy.isInterface = isInterface;
 
 		return copy;
 	}
@@ -397,13 +403,23 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public boolean isInterface() {
 
-		return false;
+		return isInterface;
+	}
+
+	void setInterface(final boolean isInterface) {
+
+		this.isInterface = isInterface;
 	}
 
 	@Override
 	public boolean isAbstract() {
 
-		return false;
+		return isAbstract;
+	}
+
+	void setAbstract(final boolean isAbstract) {
+
+		this.isAbstract = isAbstract;
 	}
 
 	@Override

@@ -47,10 +47,10 @@ The parameters control the certificate request:
 |-----------|-------------|
 | `server` | `production` for real certificates, `staging` for testing |
 | `challenge` | `http` for HTTP-01 validation, `dns` for DNS-01 |
-| `wait` | Seconds to wait for challenge completion |
+| `wait` | Waiting time in seconds before trying to authorize challenge. (Accepts numbers and also parses strings for numbers for historic reasons) |
 | `reload` | Reload HTTPS certificate without restart (default: false) |
 
-This maintenance command can also be run via scripting and thus also automated.
+This maintenance command can also be run via scripting and thus can be automated.
 
 ### Certificate Renewal
 
@@ -62,12 +62,15 @@ To manually trigger renewal, execute the certificate request again or automate t
 
 By combining a scheduled job with the `letsencrypt` maintenance command, we can automate certificate renewal.
 
-First, create the following user-defined method `renewSSLCertificate` and test it with a small change: Set the config `server` to `staging`, as per Let's Encrypt's best practices. If successful, set `server` back to `production` and continue.
+First, create the following user-defined method `renewSSLCertificate` and test it with `server` set to `staging`, as per Let's Encrypt's best practices. If successful, set `server` to `production` and re-run.
+
+If your setup requires a DNS challenge, it may be advisable to increase the `parameter`, depending on the update speed of the DNS system.
 
 ```javascript
 {
 	let config = {
 		server: "production",
+		challenge: 'http',
 		wait: 10,
 		reload: true
 	};

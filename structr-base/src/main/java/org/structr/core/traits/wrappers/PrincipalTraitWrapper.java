@@ -154,6 +154,12 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	}
 
 	@Override
+	public void setTwoFactorSecret(final String secret) throws FrameworkException {
+
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY), secret);
+	}
+
+	@Override
 	public boolean isTwoFactorUser() {
 
 		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY));

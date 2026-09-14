@@ -86,6 +86,63 @@ public abstract class RESTCallHandler {
 		return call.getURL();
 	}
 
+	/**
+	 * Whether the caller may delete the given relationship, which is the case when they may write both
+	 * of the nodes it connects.
+	 *
+	 * <p>Ticket 1585: the node branch of a DELETE on /&lt;uuid&gt; and /&lt;type&gt;/&lt;uuid&gt; asks for
+	 * Permission.delete, the relationship branch asked for nothing at all - so a DELETE grant plus a
+	 * relationship id removed somebody's group membership or a Security grant, and a GET on /Security
+	 * hands out the ids to use. A relationship carries no permissions of its own, so the question goes
+	 * to the two nodes it connects.
+	 *
+	 * <p>Here and deliberately not in DeleteRelationshipCommand, which would cover more paths: revoking
+	 * the last permission of a grant deletes the Security relationship itself
+	 * (SecurityTraitWrapper.setAllowed), and whoever administers grants holds accessControl on the node
+	 * but not necessarily write on the principal at the other end. The command is the wrong altitude for
+	 * a rule that exists for callers who supplied the id from outside.
+	 */
+	protected boolean mayDeleteRelationship(final SecurityContext securityContext, final RelationshipInterface rel) throws FrameworkException {
+
+		final NodeInterface sourceNode = rel.getSourceNode();
+		final NodeInterface targetNode = rel.getTargetNode();
+
+		if (sourceNode == null || targetNode == null) {
+
+			return false;
+		}
+
+		return sourceNode.isGranted(Permission.write, securityContext) && targetNode.isGranted(Permission.write, securityContext);
+	}
+
+	/**
+	 * Whether the caller may see the given relationship, which is the case when both nodes it connects
+	 * are readable for them.
+	 *
+	 * <p>Ticket 1585: relationships were never filtered, so reading one node told you about every node
+	 * it is attached to. A GET on a user's incoming relationships listed the CONTAINS of groups that
+	 * user may not see and the SECURITY grants of nodes they may not see - the permission matrix, from a
+	 * single readable node. Nodes have been filtered this way all along (NodeFactory:68); this is the
+	 * same rule for the other half of the graph.
+	 */
+	protected boolean mayReadRelationship(final SecurityContext securityContext, final RelationshipInterface rel) {
+
+		if (securityContext.isSuperUser()) {
+
+			return true;
+		}
+
+		final NodeInterface sourceNode = rel.getSourceNode();
+		final NodeInterface targetNode = rel.getTargetNode();
+
+		if (sourceNode == null || targetNode == null) {
+
+			return false;
+		}
+
+		return securityContext.isReadable(sourceNode, false, false) && securityContext.isReadable(targetNode, false, false);
+	}
+
 	public final String getResourceSignature() {
 
 		String signature = call.getResourceSignature();

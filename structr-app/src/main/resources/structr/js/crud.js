@@ -125,7 +125,7 @@ let _Crud = {
 		},
 		populateTypeList: () => {
 
-			let typeListHtml = Object.keys(_Crud.types).sort().map(typeName => `<div class="crud-type truncate hidden" data-type="${typeName}">${typeName}</div>`).join('');
+			let typeListHtml = Object.keys(_Crud.types).sort().map(typeName => `<div class="crud-type truncate hidden${_Crud.types[typeName].isAbstract ? ' abstract-type' : ''}${_Crud.types[typeName].isInterface ? ' interface-type' : ''}" data-type="${typeName}">${typeName}</div>`).join('');
 			let typesListEl  = document.querySelector('#crud-types-list');
 
 			typesListEl.insertAdjacentHTML('beforeend', typeListHtml);
@@ -217,7 +217,7 @@ let _Crud = {
 					let recentTypesList = document.querySelector('#crud-recent-types-list');
 
 					recentTypesList.innerHTML = recentTypes.map(type => `
-						<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}" data-type="${type}">
+						<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}${(_Crud.types[type]?.isAbstract ? ' abstract-type' : '')}${(_Crud.types[type]?.isInterface ? ' interface-type' : '')}" data-type="${type}">
 							<div class="truncate">${type}</div>
 							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
 						</div>

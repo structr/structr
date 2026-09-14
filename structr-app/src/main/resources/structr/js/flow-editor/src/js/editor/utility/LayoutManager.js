@@ -38,7 +38,7 @@ export class LayoutManager {
 
         let layouts = null;
 
-        let r = await this._structrRest.get('FlowContainerConfiguration?&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId + '&' + '_sort' + '=lastModifiedDate&' + '_order' + '=asc');
+        let r = await this._structrRest.get('FlowContainerConfiguration?&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId + '&' + Structr.getRequestParameterName('sort') + '=lastModifiedDate&' + Structr.getRequestParameterName('order') + '=asc');
 
         if (r !== null && r !== undefined && r.result_count > 0 && !raw) {
             layouts = r.result.map( res => JSON.parse(res.configJson));

@@ -28,6 +28,8 @@ import org.structr.core.graph.Tx;
 import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -79,46 +81,42 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 		} catch (FrameworkException fex) {}
 	}
 
+	/**
+	 * Ticket 1587: see ConverterProcess.getCommandArguments(). As an argument list each -metadata value
+	 * is one argument, which is why clean()/escape() are gone from here: they existed to survive the
+	 * shell, and URL-encoding a value that ffmpeg then stores verbatim wrote percent escapes into the
+	 * metadata. The key keeps its check, because ffmpeg's own key=value syntax still has to hold.
+	 */
 	@Override
-	public StringBuilder getCommandLine() {
+	public List<String> getCommandArguments() {
 
 		if (metadata.isEmpty()) {
 
 			return null;
 		}
 
-		final StringBuilder commandLine = new StringBuilder("ffmpeg -y -i ");
-		//final String diskFilePath       = inputVideo.getDiskFilePath(securityContext);
+		final List<String> arguments = new LinkedList<>();
+		//final String diskFilePath  = inputVideo.getDiskFilePath(securityContext);
 
-		// build command line from builder options
-		//commandLine.append(diskFilePath);
+		arguments.addAll(List.of("ffmpeg", "-y", "-i"));
+		//arguments.add(diskFilePath);
 
 		for (final Entry<String, String> meta : metadata.entrySet()) {
 
-			try {
-
-				commandLine.append(" -metadata ");
-				commandLine.append(clean(meta.getKey()));
-				commandLine.append("=\"");
-				commandLine.append(escape(meta.getValue()));
-				commandLine.append("\"");
-
-			} catch (Throwable t) {
-
-				logger.warn("", t);
-			}
+			arguments.add("-metadata");
+			arguments.add(clean(meta.getKey()) + "=" + meta.getValue());
 		}
 
-		commandLine.append(" -codec copy ");
-		//commandLine.append(diskFilePath);
+		arguments.addAll(List.of("-codec", "copy"));
+		//arguments.add(diskFilePath + (fileExtension.isEmpty() ? "" : "." + fileExtension));
 
-		if (!fileExtension.isEmpty()) {
+		return arguments;
+	}
 
-			commandLine.append(".");
-			commandLine.append(fileExtension);
-		}
+	@Override
+	public StringBuilder getCommandLine() {
 
-		return commandLine;
+		return null;
 	}
 
 	@Override

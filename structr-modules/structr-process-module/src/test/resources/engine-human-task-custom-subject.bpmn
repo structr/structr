@@ -2,10 +2,10 @@
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xmlns:structr="http://structr.org/schema/process/1.0"
-                  id="Definitions_HumanTask"
+                  id="Definitions_HumanTaskCustom"
                   targetNamespace="http://structr.org/bpmn">
 
-  <bpmn:process id="Process_HumanTask" name="Human Task Process" isExecutable="true">
+  <bpmn:process id="Process_HumanTaskCustom" name="Human Task Process" isExecutable="true">
 
     <bpmn:startEvent id="Start_1" name="Start" />
 
@@ -13,7 +13,7 @@
       <!-- Ticket 1588: a step writes only the subject fields it declares. This fixture has no vendor
            form, so it names its contract explicitly; without one the step writes no subject fields. -->
       <bpmn:extensionElements>
-        <structr:subjectContract formView="ui"/>
+        <structr:subjectContract formView="custom"/>
       </bpmn:extensionElements>
       <bpmn:humanPerformer id="hp_1">
         <bpmn:resourceAssignmentExpression>

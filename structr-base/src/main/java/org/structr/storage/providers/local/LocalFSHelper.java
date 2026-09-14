@@ -52,6 +52,29 @@ public class LocalFSHelper {
 		return getFileOnDisk(parentFolder, thisFile.as(File.class), create);
 	}
 
+	/**
+	 * Refuses a path that has left its mount target.
+	 *
+	 * <p>Ticket 1587: the path above is string concatenation of mountTarget, the relativized parent path
+	 * and the name, and nothing normalises or checks the result. Names may no longer be ".." since the
+	 * same ticket, which closes the way in that was actually reachable - but relativize() also produces
+	 * ".." segments whenever the parent is not below the configuration supplier, and a stored node with
+	 * a name from an older version is not revalidated. This is the check that makes the property hold
+	 * regardless of how the segments got there, and it runs BEFORE mkdirs(), which would otherwise create
+	 * the escaped directory as a side effect of asking where a file lives.
+	 */
+	private void assertWithinMountTarget(final String mountTarget, final java.io.File fileOnDisk) {
+
+		final Path mountRoot = Path.of(mountTarget).toAbsolutePath().normalize();
+		final Path resolved  = fileOnDisk.toPath().toAbsolutePath().normalize();
+
+		// Path.startsWith compares whole segments, so /srv/mount-evil does not pass as /srv/mount
+		if (!resolved.startsWith(mountRoot)) {
+
+			throw new IllegalStateException("Refusing path outside the mount target " + mountRoot + ": " + resolved);
+		}
+	}
+
 	public java.io.File getFileOnDisk(final Folder parentFolder, final File file, final boolean create) {
 
 		// Check if configuration contains a mountTarget, indicating a mounted/mapped folder
@@ -62,6 +85,8 @@ public class LocalFSHelper {
 			final Path relativeParentPath     = parentFolder != null ? Path.of(configSupplier.getPath()).relativize(Path.of(parentFolder.getPath())) : Path.of("/");
 			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getName());
 			final java.io.File fileOnDisk     = new java.io.File(fullPath);
+
+			assertWithinMountTarget(_mountTarget, fileOnDisk);
 
 			fileOnDisk.getParentFile().mkdirs();
 

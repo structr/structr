@@ -66,7 +66,7 @@ import java.util.Map;
  *   "kafka"     - publish to Kafka topic
  *   "webhook"   - HTTP POST to URL
  */
-public class NotifyFunction extends Function<Object, Object> {
+public class NotifyFunction extends ProcessModuleFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(NotifyFunction.class.getName());
 
@@ -90,12 +90,6 @@ public class NotifyFunction extends Function<Object, Object> {
 	public String getName() {
 
 		return "notify";
-	}
-
-	@Override
-	public String getRequiredModule() {
-
-		return null;
 	}
 
 	@Override
@@ -264,11 +258,5 @@ public class NotifyFunction extends Function<Object, Object> {
 				"Send email notification in JavaScript using dynamic data"
 			)
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Miscellaneous;
 	}
 }

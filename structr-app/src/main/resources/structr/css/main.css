@@ -1078,6 +1078,46 @@ span.id {
 	white-space: nowrap;
 }
 
+/* UML marks an abstract classifier by italicising its name */
+.abstract-type {
+	font-style: italic;
+}
+
+/* and marks an interface with a keyword instead, which is why the name here stays upright */
+.interface-type::before {
+	content: "\00AB" "interface" "\00BB";
+	font-size: .78em;
+	font-style: normal;
+	font-weight: 400;
+	color: var(--gray-999);
+	margin-right: .35em;
+}
+
+/* in the tree the class sits on the li, where the keyword would land before the expander */
+li.interface-type::before {
+	content: none;
+}
+
+/* the anchor holds the icon and then the name, so the keyword is ordered between the two */
+li.interface-type > .jstree-anchor {
+	display: inline-flex;
+	align-items: center;
+}
+
+li.interface-type > .jstree-anchor > .jstree-themeicon {
+	order: -1;
+}
+
+li.interface-type > .jstree-anchor::before {
+	content: "\00AB" "interface" "\00BB";
+	order: 0;
+	font-size: .78em;
+	font-style: normal;
+	font-weight: 400;
+	color: var(--gray-999);
+	margin-right: .35em;
+}
+
 .node-container {
 	position: relative;
 }

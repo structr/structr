@@ -44,6 +44,17 @@ public class TwoFactorAuthenticationRequiredException extends UnauthorizedExcept
 
 	public Map<String, String> getData() {
 
+		return buildData(user, nextStepToken, showQrCode);
+	}
+
+	/**
+	 * The parameters a client needs to complete the second step, in one place. The REST login returns
+	 * them as response headers, and the login paths that can only redirect a browser - an OAuth return,
+	 * a confirmation link - put the same names in the query string of the two-factor page, so an
+	 * application's two-factor page reads the same parameters whichever path sent the user there.
+	 */
+	public static Map<String, String> buildData(final Principal user, final String nextStepToken, final boolean showQrCode) {
+
 		final Map<String, String> data = new HashMap<>(Map.of(
 				"token", nextStepToken,
 				"twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue(),

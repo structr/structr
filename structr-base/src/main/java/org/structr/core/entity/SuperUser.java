@@ -668,6 +668,11 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
+	public void setTwoFactorSecret(String secret) throws FrameworkException {
+
+	}
+
+	@Override
 	public boolean isTwoFactorUser() {
 
 		return false;

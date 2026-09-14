@@ -154,6 +154,14 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 						errorBuffer);
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameKey, errorBuffer);
 
+					/* Ticket 1587: "." and ".." are not names, they are the two segments every filesystem
+					   reserves, and a node carrying one cannot mean anything else. LocalFSHelper builds the
+					   path on disk by concatenating names, so a folder named ".." walked straight out of its
+					   mount target - /srv/mount plus ../../etc plus passwd resolved to /srv/etc/passwd, and
+					   the next line created that directory. Names that merely contain dots ("...", ".hidden")
+					   are ordinary names and stay valid. */
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, "(?!^\\.{1,2}$).*", "File and folder names may not be \".\" or \"..\".", errorBuffer);
+
 					return valid;
 				}
 			}

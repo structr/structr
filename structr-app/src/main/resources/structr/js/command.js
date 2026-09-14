@@ -218,6 +218,12 @@ let Command = {
 		if (properties) obj.data.properties = properties;
 		return StructrWS.sendObj(obj, callback);
 	},
+	listPromise: async function(type, rootOnly, pageSize, page, sort, order, properties) {
+
+		return new Promise((resolve, reject) => {
+			Command.list(type, rootOnly, pageSize, page, sort, order, properties, resolve);
+		});
+	},
 	/**
 	 * Send a QUERY command to the server.
 	 *

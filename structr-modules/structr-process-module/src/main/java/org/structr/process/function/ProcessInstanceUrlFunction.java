@@ -59,7 +59,7 @@ import java.util.List;
  * {@code current} by the page). An optional second argument is appended as
  * {@code ?token=<token>} for sessionless access (see {@code processToken}).
  */
-public class ProcessInstanceUrlFunction extends Function<Object, Object> {
+public class ProcessInstanceUrlFunction extends ProcessModuleFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProcessInstanceUrlFunction.class);
 
@@ -67,12 +67,6 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 	public String getName() {
 
 		return "processInstanceUrl";
-	}
-
-	@Override
-	public String getRequiredModule() {
-
-		return null;
 	}
 
 	@Override
@@ -252,11 +246,5 @@ public class ProcessInstanceUrlFunction extends Function<Object, Object> {
 				"Instance URL with a sessionless access token appended"
 			)
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Http;
 	}
 }

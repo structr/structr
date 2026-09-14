@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.files.ssh.filesystem.StructrFileWriteAccess;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.files.ssh.StructrSSHFileSystem;
@@ -163,6 +164,11 @@ public class StructrFilePath extends StructrPath {
 				if (actualFile != null && actualFile.is(StructrTraits.FILE)) {
 
 					final File file = actualFile.as(File.class);
+
+					if (StructrFileWriteAccess.isWriteAccess(options)) {
+
+						StructrFileWriteAccess.assertWritable(fs.getSecurityContext(), actualFile);
+					}
 
 					channel = StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(options);
 

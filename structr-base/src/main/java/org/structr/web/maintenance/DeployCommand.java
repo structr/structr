@@ -1846,13 +1846,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					// generate and sanitize filename for output file
 					String filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale();
-					filename = filename.replaceAll("[^a-zA-Z0-9\\-]", "_");
-
-					// shorten sanitized filename before appending UUID/suffix
-					if (filename.length() > 100) {
-
-						filename = filename.substring(0, 100);
-					}
+					filename = sanitizeAndShortenFileOrFolderName(filename);
 
 					if (Files.exists(targetFolder.resolve(filename))) {
 
@@ -2164,13 +2158,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					} else {
 
 						// sanitize name for deployment
-						filename = name.replaceAll("[^a-zA-Z0-9\\-]", "_");
-
-						// shorten sanitized filename before appending UUID/suffix
-						if (filename.length() > 100) {
-
-							filename = filename.substring(0, 100);
-						}
+						filename = sanitizeAndShortenFileOrFolderName(name);
 
 						if (Files.exists(targetFolder.resolve(filename))) {
 
@@ -3740,6 +3728,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public static void addMissingSchemaFile (final String fileName) {
 
 		missingSchemaFile.add(fileName);
+	}
+
+	public static String sanitizeAndShortenFileOrFolderName(final String name) {
+
+		return sanitizeAndShortenFileOrFolderName(name, 100);
+	}
+
+	public static String sanitizeAndShortenFileOrFolderName(final String name, final int maxLength) {
+
+		String sanitized = name.replaceAll("[^a-zA-Z0-9\\-.]", "_");
+
+		if (sanitized.length() > maxLength) {
+
+			sanitized = sanitized.substring(0, maxLength);
+		}
+
+		return sanitized;
 	}
 
 	// ----- interface Documentable -----

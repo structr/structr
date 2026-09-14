@@ -21,6 +21,7 @@ package org.structr.files.ssh;
 import org.apache.sshd.common.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.files.ssh.filesystem.StructrFileWriteAccess;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -86,6 +87,8 @@ public class StructrSSHFileSystem extends FileSystem {
 					}
 
 					if (actualFile != null) {
+
+						StructrFileWriteAccess.assertWritable(securityContext, (NodeInterface) actualFile);
 
 						os = ((File) actualFile).getOutputStream();
 					}
@@ -165,7 +168,12 @@ public class StructrSSHFileSystem extends FileSystem {
 				if (fileNode != null) {
 
 					try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-						
+
+						if (StructrFileWriteAccess.isWriteAccess(options)) {
+
+							StructrFileWriteAccess.assertWritable(securityContext, (NodeInterface) fileNode);
+						}
+
 						channel             = StorageProviderFactory.getStorageProvider(fileNode).getSeekableByteChannel(options);
 
 						tx.success();

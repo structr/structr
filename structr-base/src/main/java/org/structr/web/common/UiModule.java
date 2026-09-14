@@ -171,7 +171,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new WidgetTraitDefinition());
 
 		// nodes: types
-		StructrTraits.registerNodeType(StructrTraits.ABSTRACT_FILE,                       StructrTraits.ABSTRACT_FILE);
+		StructrTraits.registerAbstractNodeType(StructrTraits.ABSTRACT_FILE,                       StructrTraits.ABSTRACT_FILE);
 		StructrTraits.registerNodeType(StructrTraits.ACTION_MAPPING,                      StructrTraits.ACTION_MAPPING);
 		StructrTraits.registerNodeType(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE, StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 		StructrTraits.registerNodeType(StructrTraits.COMMENT,                             StructrTraits.DOM_NODE, StructrTraits.CONTENT, StructrTraits.COMMENT);
@@ -187,8 +187,8 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.FILE,                                StructrTraits.ABSTRACT_FILE, StructrTraits.LINKABLE, StructrTraits.FILE);
 		StructrTraits.registerNodeType(StructrTraits.IMAGE,                               StructrTraits.ABSTRACT_FILE, StructrTraits.LINKABLE, StructrTraits.FILE, StructrTraits.IMAGE);
 		StructrTraits.registerNodeType(StructrTraits.FOLDER,                              StructrTraits.DATA_SOURCE, StructrTraits.ABSTRACT_FILE, StructrTraits.FOLDER);
-		StructrTraits.registerNodeType(StructrTraits.LINKABLE,                            StructrTraits.LINKABLE);
-		StructrTraits.registerNodeType(StructrTraits.LINK_SOURCE,                         StructrTraits.LINK_SOURCE);
+		StructrTraits.registerInterfaceNodeType(StructrTraits.LINKABLE,                            StructrTraits.LINKABLE);
+		StructrTraits.registerInterfaceNodeType(StructrTraits.LINK_SOURCE,                         StructrTraits.LINK_SOURCE);
 		StructrTraits.registerNodeType(StructrTraits.PAGE,                                StructrTraits.DOM_NODE, StructrTraits.LINKABLE, StructrTraits.PAGE);
 		StructrTraits.registerNodeType(StructrTraits.PAGE_PATH,                           StructrTraits.PAGE_PATH);
 		StructrTraits.registerNodeType(StructrTraits.PAGE_PATH_PARAMETER,                 StructrTraits.PAGE_PATH_PARAMETER);

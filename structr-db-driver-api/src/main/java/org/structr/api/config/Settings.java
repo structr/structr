@@ -62,6 +62,14 @@ public class Settings {
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
+	/* Keys that were valid once and are not any more. Without this, an old configuration file is read
+	   in silence: the key is unknown, becomes a dynamic setting in the misc group, and nothing ever
+	   acts on it. For a key that used to switch a security check off, silence is the worst outcome,
+	   because the administrator goes on believing it applies. */
+	private static final Map<String, String> REMOVED_SETTINGS = Map.of(
+		"security.twofactorauthentication.whitelistedips", "The two-factor IP allowlist was removed: the address it matched was taken from the X-Forwarded-For header, which a client can set itself, so knowing an allowlisted address and a password was enough to skip the second factor. Clients from those addresses are now asked for a code; use device trust (security.twofactorauthentication.devicetrust.enabled) to spare a known browser instead."
+	);
+
 	public static final String CRON_EXPRESSION_INFO_HTML      = "A cron expression is defined as <pre>&lt;s&gt; &lt;m&gt; &lt;h&gt; &lt;dom&gt; &lt;m&gt; &lt;dow&gt;</pre> It is similar to a normal cron expression with an additional \"seconds\" field at the beginning. Search for \"cron\" or \"periodic task scheduler\" in the documentation to find more info and examples.";
 
 	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
@@ -644,7 +652,12 @@ public class Settings {
 	public static final Setting<Integer> TwoFactorPeriod                = new IntegerSetting(securityGroup,       CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br>Respected by the most recent Google Authenticator implementations. <i>Warning: Changing this setting after users are already confirmed will effectively lock them out. Set [User].twoFactorConfirmed to false to show them a new QR code.</i>");
 	public static final Setting<Integer> TwoFactorLoginTimeout          = new IntegerSetting(securityGroup,       CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.logintimeout",         300,           "Defines how long the two-factor login time window in seconds is. After entering the username and password the user has this amount of time to enter a two factor token before he has to re-authenticate via password");
 	public static final Setting<String> TwoFactorLoginPage              = new StringSetting(securityGroup,        CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
-	public static final Setting<String> TwoFactorWhitelistedIPs         = new StringSetting(securityGroup,        CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.whitelistedips",       "",            "Comma-separated list of IPs for which two factor authentication is disabled. Both IPv4 and IPv6 are supported. CIDR notation is also supported. (e.g. 192.168.0.1/24 or 2A01:598:FF30:C500::/64)");
+	// NOTE: there is no security.twofactorauthentication.whitelistedips - the IP allowlist was removed
+	// because it decided the second factor from an address that the client itself could choose. The
+	// address came from ActionContext.getRemoteAddr(), which reads X-Forwarded-For whether or not
+	// httpservice.forwardedfor is on, so anyone who knew an allowlisted address and a password could
+	// send that header and skip the second factor entirely. Device trust is the supported way to spare
+	// a known client the code; see REMOVED_SETTINGS below for what an old configuration does now.
 
 	public static final Setting<Boolean> TwoFactorDeviceTrustEnabled    = new BooleanSetting(securityGroup, CATEGORY_NAME_TWO_FACTOR_AUTHENTICATION, "security.twofactorauthentication.devicetrust.enabled", false, "Enables or disables users to trust the browser they are logging in with.")
 																				  .setLongDescription("""
@@ -731,7 +744,7 @@ public class Settings {
 	public static final Setting<Integer> ConfirmationKeyRegistrationValidityPeriod  = new IntegerSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.registration.validityperiod",  2880,  "Validity period (in minutes) of the confirmation key generated during self registration. Default is 2 days (2880 minutes)");
 	public static final Setting<Boolean> ConfirmationKeyValidWithoutTimestamp       = new BooleanSetting(securityGroup, "Confirmation Key Validity", "confirmationkey.validwithouttimestamp",        false, "How to interpret confirmation keys without a timestamp");
 
-	public static final Setting<Integer> LetsEncryptWaitBeforeAuthorization         = new IntegerSetting(securityGroup,  "Letsencrypt", "letsencrypt.wait", 300, "Waiting time in seconds before trying to authorize challenge. Default is 300 seconds (5 minutes).");
+	public static final Setting<Integer> LetsEncryptWaitBeforeAuthorization         = new IntegerSetting(securityGroup,  "Letsencrypt", "letsencrypt.wait", 30, "Waiting time in seconds before trying to authorize challenge.");
 	public static final Setting<String> LetsEncryptChallengeType                    = new ChoiceSetting(securityGroup,   "Letsencrypt", "letsencrypt.challenge.type", "http", Settings.getStringsAsSet("http", "dns"), "Challenge type for Let's Encrypt authorization. Possible values are 'http' and 'dns'.");
 	public static final Setting<String> LetsEncryptDomains                          = new StringSetting(securityGroup,   "Letsencrypt", "letsencrypt.domains", "", "List of domains separated by space to fetch and update Let's Encrypt certificates for");
 	public static final Setting<String> LetsEncryptProductionServerURL              = new StringSetting(securityGroup,   "Letsencrypt", "letsencrypt.production.server.url", "acme://letsencrypt.org", "URL of Let's Encrypt server. Default is 'acme://letsencrypt.org'");
@@ -1238,6 +1251,12 @@ public class Settings {
 				} else {
 
 					// unknown setting => dynamic
+
+					final String removalNote = REMOVED_SETTINGS.get(lcKey);
+					if (removalNote != null) {
+
+						logger.warn("Setting {} no longer exists and is ignored. {}", key, removalNote);
+					}
 
 					SettingsGroup targetGroup = miscGroup;
 

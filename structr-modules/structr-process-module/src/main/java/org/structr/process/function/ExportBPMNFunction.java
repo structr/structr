@@ -32,18 +32,12 @@ import org.structr.schema.action.Function;
 
 import java.util.List;
 
-public class ExportBPMNFunction extends Function<Object, Object> {
+public class ExportBPMNFunction extends ProcessModuleFunction {
 
 	@Override
 	public String getName() {
 
 		return "exportBpmn";
-	}
-
-	@Override
-	public String getRequiredModule() {
-
-		return null;
 	}
 
 	@Override
@@ -105,11 +99,5 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 			Example.structrScript("${export_bpmn(first(find('BpmnDefinitions')))}", "Export the first BpmnDefinitions node to XML"),
 			Example.javaScript("${{let xml = $.exportBpmn(def);}}", "Export in JavaScript")
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.InputOutput;
 	}
 }
