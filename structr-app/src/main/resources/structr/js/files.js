@@ -649,7 +649,7 @@ let _Files = {
 			let start = c * _Files.chunkSize;
 			let end   = (c + 1) * _Files.chunkSize;
 			let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
-			Command.chunk(targetFile.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback?.() : undefined));
+			Command.chunk(targetFile.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback : undefined));
 		}
 	},
 	loadAndSetWorkingDir: async () => {
