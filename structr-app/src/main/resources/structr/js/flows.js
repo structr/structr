@@ -55,55 +55,14 @@ let _Flows = {
 	},
 	onload: () => {
 
-		async function getOrCreateFlowPackage(packageArray) {
-
-			if (packageArray !== null && packageArray.length > 0) {
-
-				let currentPackage = packageArray[packageArray.length-1];
-				packageArray.pop();
-
-				let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
-
-				if (result != null && result.length > 0 && result[0].effectiveName === (packageArray.join('.') + '.' + currentPackage)) {
-
-					result = result[0];
-				} else {
-
-					result = await persistence.createNode({type: "FlowContainerPackage", name: currentPackage});
-				}
-
-				if (packageArray.length > 0) {
-					result.parent = await getOrCreateFlowPackage(packageArray);
-				}
-
-				return result;
-			}
-
-			return null;
-		}
-
 		async function createFlow(inputElement) {
 			let name = inputElement.value;
 			inputElement.value = "";
 
-			let parentPackage = null;
-
-			if (name.indexOf(".") !== -1) {
-				let nameElements = name.split(".");
-				name = nameElements[nameElements.length -1];
-				nameElements.pop();
-
-				parentPackage = await getOrCreateFlowPackage(nameElements);
-			}
-
 			let flowObject = {
 				type: "FlowContainer",
-				name: name
+				effectiveName: name
 			};
-
-			if (parentPackage !== null) {
-				flowObject.flowPackage = parentPackage.id;
-			}
 
 			persistence.createNode(flowObject).then( (r) => {
 				if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
@@ -626,8 +585,21 @@ let _Flows = {
 
 		if (!id) {
 
-			Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName', displayFunction);
-			Command.list('FlowContainerPackage', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName,flows', displayFunctionPackage);
+			// load packages first because they would also be created for the effectiveName of the containers which makes them problematic to interact with in the tree
+			Command.listPromise('FlowContainerPackage', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName,flows').then(packages => {
+
+				// sort by depth (number of dots) to handle packages from root onwards to not break editing functionality
+				packages = packages.toSorted((p1, p2) => {
+					return p1.effectiveName.split('.').length - p2.effectiveName.split('.').length;
+				})
+
+				displayFunctionPackage(packages);
+
+				return Command.listPromise('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName');
+
+			}).then((containers) => {
+				displayFunction(containers);
+			});
 
 		} else {
 

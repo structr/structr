@@ -46,7 +46,7 @@ import java.util.Map;
  * Returns a map with keys: processInstanceId, taskId, action, scope
  * or null if the token is invalid, expired, or tampered with.
  */
-public class ValidateProcessTokenFunction extends Function<Object, Object> {
+public class ValidateProcessTokenFunction extends ProcessModuleFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(ValidateProcessTokenFunction.class);
 
@@ -54,12 +54,6 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 	public String getName() {
 
 		return "validateProcessToken";
-	}
-
-	@Override
-	public String getRequiredModule() {
-
-		return null;
 	}
 
 	@Override
@@ -154,12 +148,6 @@ public class ValidateProcessTokenFunction extends Function<Object, Object> {
 				"Validate a process access token (call inside doPrivileged)"
 			)
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Security;
 	}
 
 	/**

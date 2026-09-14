@@ -146,6 +146,13 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
 						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
 
+						final FlowContainerPackage fcp = flowBaseNode.as(FlowContainerPackage.class).getParent();
+
+						if (fcp != null) {
+
+							result.put(FlowContainerPackageTraitDefinition.PARENT_PROPERTY, fcp.getUuid());
+						}
+
 						return result;
 					}
 				}

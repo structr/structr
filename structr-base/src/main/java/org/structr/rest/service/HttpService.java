@@ -79,6 +79,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @ServiceDependency(SchemaService.class)
@@ -601,7 +602,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			//rewriteHandler.setRewriteRequestURI(true);
 
-			rewriteHandler.addRule(new RewriteRegexRule("^(\\/(?!structr$|structr\\/.*).*)", "/structr/html$1"));
+			rewriteHandler.addRule(new RewriteRegexRule(frontendRewriteRegex(servlets.keySet()), "/structr/html$1"));
 			rewriteHandler.setHandler(contexts);
 			server.setHandler(rewriteHandler);
 
@@ -1313,6 +1314,68 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		return result;
+	}
+
+	/**
+	 * The rewrite that makes an application's own URLs work, minus the paths a servlet has claimed.
+	 *
+	 * <p>Everything outside {@code /structr} is rewritten to {@code /structr/html/...} so that
+	 * {@link org.structr.web.servlet.HtmlServlet} can serve a page for it. But a {@code RewriteHandler}
+	 * runs <b>before</b> Jetty matches servlets, so a servlet mounted outside {@code /structr} was
+	 * previously unreachable: its mapping existed and nothing ever arrived, and the request came out as
+	 * a 404 - or, in an application with an error page, as whatever that page does. Exempting the
+	 * mounted paths is what makes such a mapping mean anything.
+	 *
+	 * <p>For some of them it is not optional. RFC 8414 and RFC 9728 place OAuth metadata at
+	 * {@code /.well-known/...} on the host root, and a client derives those URLs from the issuer's
+	 * host - so a servlet serving discovery for an authorization server cannot be moved under
+	 * {@code /structr} to dodge the rewrite.
+	 *
+	 * <p>Generated from the servlets actually mounted, so nothing here names a particular feature and
+	 * a module that adds a root-level servlet needs no change to this class.
+	 */
+	private String frontendRewriteRegex(final Set<String> servletPaths) {
+
+		/* The rule matches getPathQuery(), NOT the path alone - RegexRule.isMatchQuery() defaults to
+		   true - so every alternative here has to allow a query string to follow. An exemption
+		   anchored with "$" alone silently stops working the moment a client appends parameters,
+		   which is exactly the shape of bug that lets /mcp-oauth/authorize?... slip through to the
+		   frontend while the bare path works. Hence [/?] rather than /. */
+		final StringBuilder exemptions = new StringBuilder("structr$|structr[\\/?].*");
+		final List<String> exempted    = new LinkedList<>();
+
+		for (final String spec : servletPaths) {
+
+			// collectServlets appends /* to every spec it collects
+			final String prefix = StringUtils.removeEnd(spec, "/*");
+
+			if (!prefix.startsWith("/") || prefix.startsWith("/structr")) {
+
+				// already covered by the two alternatives above, or not a path we can reason about
+				continue;
+			}
+
+			if (prefix.length() < 2) {
+
+				// a servlet mounted on the root would exempt every path and disable the frontend
+				logger.warn("Servlet path \"{}\" covers the whole server; not exempting it from the "
+					+ "frontend rewrite, because that would make application pages unreachable.", spec);
+				continue;
+			}
+
+			// quoted: a path like /.well-known/... is full of regex metacharacters
+			final String quoted = Pattern.quote(prefix.substring(1));
+
+			exemptions.append('|').append(quoted).append("$|").append(quoted).append("[\\/?].*");
+			exempted.add(prefix);
+		}
+
+		if (!exempted.isEmpty()) {
+
+			logger.info("Not rewriting {} to the frontend: claimed by a mounted servlet.", exempted);
+		}
+
+		return "^(\\/(?!" + exemptions + ").*)";
 	}
 
 	private Map<String, ServletHolder> collectServlets(final LicenseManager licenseManager) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
