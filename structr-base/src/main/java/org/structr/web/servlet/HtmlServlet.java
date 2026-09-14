@@ -1638,6 +1638,46 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
+	/**
+	 * Content types a browser will execute as a DOCUMENT when it navigates to the file. A subresource -
+	 * a script tag, a stylesheet, an image - is not the problem here; being able to open the file as a
+	 * page in the application's own origin is.
+	 */
+	private static final Set<String> SCRIPTABLE_DOCUMENT_TYPES = Set.of("text/html", "application/xhtml+xml", "image/svg+xml", "text/xml", "application/xml");
+
+	/**
+	 * Ticket 1589: an upload keeps the content type of the multipart part, contentType is an ordinary
+	 * writable property, and this method used to hand both straight to the browser. Content-Disposition
+	 * was set only when the CALLER passed downloadAsFilename - the one thing someone sending a link does
+	 * not do. So x.html uploaded as text/html, made public, and linked to an administrator ran as a page
+	 * in this origin, with their session against /structr/rest and the websocket backend.
+	 *
+	 * <p>Template files are exempt: those are developer-authored dynamic files whose content Structr
+	 * renders on purpose, and isTemplate is readOnly and not on UploadServlet's property whitelist, so
+	 * an uploader cannot mark their own file as one.
+	 */
+	private void hardenFileDelivery(final HttpServletResponse response, final File file, final String contentType, final String downloadAsFilename) {
+
+		// no sniffing: a declared text/plain must not become a document because the bytes look like one
+		response.setHeader("X-Content-Type-Options", "nosniff");
+
+		if (file.isTemplate()) {
+
+			return;
+		}
+
+		// an uploaded file is data, so it gets no origin, no scripts and no forms of its own
+		response.setHeader("Content-Security-Policy", "sandbox");
+
+		final String bareType = contentType == null ? "" : StringUtils.substringBefore(contentType, ";").trim().toLowerCase();
+		if (SCRIPTABLE_DOCUMENT_TYPES.contains(bareType) && downloadAsFilename == null) {
+
+			final String cleanedFilename = FilenameCleanerPattern.matcher(file.getName()).replaceAll("");
+
+			response.addHeader("Content-Disposition", "attachment; filename=\"" + cleanedFilename + "\"");
+		}
+	}
+
 	private void streamFile(final ActionContext actionContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
@@ -1721,6 +1761,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					// Default
 					response.setContentType("application/octet-stream");
 				}
+
+				hardenFileDelivery(response, file, contentType, downloadAsFilename);
 
 				final String range = request.getHeader(RequestHeaders.Range.getName());
 

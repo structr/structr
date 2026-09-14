@@ -71,7 +71,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private final Logger logger = LoggerFactory.getLogger(OpenAPIServlet.class);
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
 
-	private SecurityContext securityContext;
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -92,7 +91,13 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 			assertInitialized();
 
-			Authenticator authenticator = null;
+			Authenticator authenticator     = null;
+
+			/* Local, not a field: servlets are singletons, so a field holding the caller's context is
+			   shared by every concurrent request. Two overlapping requests overwrote each other's, and
+			   whoever read it next - checkResourceAccess, the App instance - ran with the other caller's
+			   identity. Ticket 1590. */
+			SecurityContext securityContext = null;
 
 			// isolate request authentication in a transaction
 			// Ensure CORS settings apply by letting the authenticator examine the request.

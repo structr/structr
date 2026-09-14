@@ -91,18 +91,18 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 	private static final String WRITE_BOM = "bom";
 
-	private SecurityContext securityContext;
-
-	private static boolean removeLineBreaks = false;
-	private static boolean writeBom = false;
-
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
 		CsvServlet.super.stats.recordStatsValue("http", "get", System.currentTimeMillis());
 
-		Authenticator authenticator = null;
-		RESTCallHandler handler      = null;
+		Authenticator authenticator     = null;
+		RESTCallHandler handler         = null;
+
+		/* Local, not a field: servlets are singletons, so a field holding the caller's context is shared
+		   by every concurrent request. Two overlapping requests overwrote each other's, and whoever read
+		   it next - checkResourceAccess, doGet - ran with the other caller's identity. Ticket 1590. */
+		SecurityContext securityContext = null;
 
 		setCustomResponseHeaders(response);
 
@@ -154,11 +154,11 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				final String type                       = handler.getEntityClassOrDefault(securityContext);
 				final SortOrder sortOrder               = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 
-				// Should line breaks be removed?
-				removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
-
-				// Should a leading BOM be written?
-				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
+				/* Locals, not static fields: these are request parameters, and a static field holding one
+				   means the last request to arrive decides how every concurrent export is written.
+				   Harmless next to the security context above, wrong all the same. Ticket 1590. */
+				final boolean removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
+				final boolean writeBom         = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
 				// do action
 				try (final ResultStream result = handler.doGet(securityContext, sortOrder, pageSize, page)) {
@@ -172,7 +172,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 								writeUtf8Bom(writer);
 							}
 
-							writeCsv(result, writer, handler.getRequestedView());
+							writeCsv(result, writer, handler.getRequestedView(), removeLineBreaks);
 							response.setStatus(HttpServletResponse.SC_OK);
 							writer.flush();
 						}
@@ -245,6 +245,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		final Authenticator authenticator;
 		final RESTCallHandler handler;
+
+		// local for the same reason as in doGet, see there
+		SecurityContext securityContext = null;
 
 		setCustomResponseHeaders(response);
 
@@ -522,7 +525,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		}
 	}
 
-	private static String escapeForCsv(final Object value) {
+	private static String escapeForCsv(final Object value, final boolean removeLineBreaks) {
 
 		final String escaped = escapeForCsv(value, '"');
 
@@ -624,6 +627,11 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	 */
 	public static void writeCsv(final ResultStream<GraphObject> result, final Writer out, final String propertyView) throws IOException {
 
+		writeCsv(result, out, propertyView, false);
+	}
+
+	public static void writeCsv(final ResultStream<GraphObject> result, final Writer out, final String propertyView, final boolean removeLineBreaks) throws IOException {
+
 		final StringBuilder row      = new StringBuilder();
 		boolean headerWritten        = false;
 
@@ -666,7 +674,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 					Object value = obj.getProperty(key);
 
-					row.append("\"").append(escapeForCsv(value)).append("\"").append(DEFAULT_FIELD_SEPARATOR);
+					row.append("\"").append(escapeForCsv(value, removeLineBreaks)).append("\"").append(DEFAULT_FIELD_SEPARATOR);
 				}
 			}
 

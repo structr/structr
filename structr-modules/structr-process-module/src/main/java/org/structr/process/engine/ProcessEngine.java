@@ -88,6 +88,14 @@ public class ProcessEngine {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProcessEngine.class);
 
+	/* Properties that decide who may see a node, who controls it, and who someone IS. A task form may
+	   carry business data; it may not re-own a node or hand out administrator rights. Ticket 1588. */
+	private static final Set<String> NEVER_WRITABLE_FROM_A_FORM = Set.of(
+		"id", "type", "owner", "grantees", "visibleToPublicUsers", "visibleToAuthenticatedUsers",
+		"password", "salt", "isAdmin", "sessionIds", "refreshTokens", "twoFactorSecret", "twoFactorToken",
+		"twoFactorConfirmed", "isTwoFactorUser", "deviceTrustSecret", "confirmationKey", "passwordAttempts"
+	);
+
 	private final Principal caller;
 
 	/**
@@ -381,6 +389,8 @@ public class ProcessEngine {
 		// tokens, and parameter values must not be filtered by caller perms.
 		final NodeInterface taskNode = elevate(callerTaskNode);
 		final TaskInstance task = taskNode.as(TaskInstance.class);
+
+		assertMayCompleteTask(task);
 
 		if (task.isCompleted()) {
 
@@ -1804,6 +1814,69 @@ public class ProcessEngine {
 	 * Claim an available task for the calling user. Requires status = AVAILABLE and the caller
 	 * to be among the candidate assignees (directly or via group membership).
 	 */
+	/**
+	 * Whether the caller is among the task's candidate assignees, directly or through one of their
+	 * groups. Group membership is read privileged, so the answer does not depend on whether the caller
+	 * may see the group.
+	 */
+	private boolean isCandidateAssignee(final TaskInstance task) throws FrameworkException {
+
+		final Set<String> callerGroupIds = new HashSet<>();
+
+		for (final NodeInterface g : caller.getParentsPrivileged()) {
+
+			callerGroupIds.add(g.getUuid());
+		}
+
+		for (final NodeInterface owner : task.getCandidateAssignees()) {
+
+			if (owner.getUuid().equals(caller.getUuid()) || callerGroupIds.contains(owner.getUuid())) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Refuses completing a task the caller has no claim on.
+	 *
+	 * <p>Ticket 1588: claimTask() asks whether the caller is a candidate assignee, completeTask() asked
+	 * nothing at all - so a participant who could merely reach a TaskInstance could finish it, including
+	 * one somebody else had already claimed, and including the parameter write that comes with it. Two
+	 * entry points guarding the same task, only one of which knew who was calling.
+	 *
+	 * <p>A null caller is the engine itself: the constructor maps superuser contexts to null, and the
+	 * engine completes tasks while advancing a token. An admin is let through for the same reason they
+	 * are everywhere else - somebody has to be able to unstick a process.
+	 */
+	private void assertMayCompleteTask(final TaskInstance task) throws FrameworkException {
+
+		if (caller == null || caller.isAdmin()) {
+
+			return;
+		}
+
+		final NodeInterface assignee = task.getAssignee();
+
+		// once claimed, the task belongs to whoever claimed it
+		if (assignee != null) {
+
+			if (!assignee.getUuid().equals(caller.getUuid())) {
+
+				throw new FrameworkException(403, "Caller is not the assignee of this task");
+			}
+
+			return;
+		}
+
+		if (!isCandidateAssignee(task)) {
+
+			throw new FrameworkException(403, "Caller is not a candidate assignee of this task");
+		}
+	}
+
 	public void claimTask(final NodeInterface callerTaskNode) throws FrameworkException {
 
 		if (caller == null) {
@@ -1829,27 +1902,7 @@ public class ProcessEngine {
 				+ "at the intended step -- prefer Control-process action with idExpression=${current.id} and step=<the user task>.");
 		}
 
-		// Collect the UUIDs of the caller's groups (privileged so we see groups regardless of ACLs).
-		final Set<String> callerGroupIds = new HashSet<>();
-
-		for (final NodeInterface g : caller.getParentsPrivileged()) {
-
-			callerGroupIds.add(g.getUuid());
-		}
-
-		// The caller is eligible if they are a direct candidate assignee or if one of their groups is.
-		boolean eligible = false;
-
-		for (final NodeInterface owner : task.getCandidateAssignees()) {
-
-			if (owner.getUuid().equals(caller.getUuid()) || callerGroupIds.contains(owner.getUuid())) {
-
-				eligible = true;
-				break;
-			}
-		}
-
-		if (!eligible) {
+		if (!isCandidateAssignee(task)) {
 
 			throw new FrameworkException(403, "Caller is not a candidate assignee of this task");
 		}
@@ -3651,6 +3704,60 @@ public class ProcessEngine {
 	 * <p>When no subject is attached to the instance, every submitted field becomes
 	 * a PV (current behaviour for processes without a domain object).</p>
 	 */
+	/**
+	 * The subject properties this step is allowed to write, taken from what the process author declared.
+	 *
+	 * <p>Ticket 1588: the split used to be "is this the name of any property the subject type happens to
+	 * have", with only id and type excluded, and the write went through
+	 * SecurityContext.getSuperUserInstance(). A superuser write skips the readOnly and systemInternal
+	 * checks (PropertyContainerTraitDefinition.setPropertyInternal), so the declaration a property
+	 * carries did not protect it either: a task form could set visibleToPublicUsers or owner, and on a
+	 * Principal subject isAdmin or password. Inheriting from NodeInterface was enough to make a field
+	 * writable.
+	 *
+	 * <p>The answer is already in the graph. SubjectTypeSynthesizer wires every user task to the view
+	 * naming its form fields, and to a separate writable view whenever the vendor marked any of them
+	 * read-only. So the question "what may this step write" has a declared answer per step, and a field
+	 * the form only displays is as much out of bounds as one nobody declared at all.
+	 *
+	 * <p>A step with no declared view writes no subject fields. That is deliberate: an undeclared form is
+	 * not a form that may write everything.
+	 */
+	private Set<String> writableSubjectFields(final NodeInterface element, final NodeInterface subject) {
+
+		if (element == null || subject == null) {
+
+			return Set.of();
+		}
+
+		final Traits elemTraits   = element.getTraits();
+		final String writableView = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_WRITABLE_VIEW_PROPERTY));
+		final String formView     = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY));
+
+		// the writable view names the editable subset; without one, every field of the form is editable
+		final String viewName = StringUtils.isNotBlank(writableView) ? writableView : formView;
+		if (StringUtils.isBlank(viewName)) {
+
+			return Set.of();
+		}
+
+		final Set<String> names = new LinkedHashSet<>();
+
+		for (final PropertyKey key : subject.getTraits().getPropertyKeysForView(viewName)) {
+
+			names.add(key.jsonName());
+		}
+
+		/* A floor under the declaration. Declaring a wide view is a normal thing to do - "ui" is one
+		   click - and on a Principal subject that view carries password, isAdmin, sessionIds and the
+		   rest. None of those is a form field in any process, so no declaration makes them one. Without
+		   this, the rule above would be exactly as good as the least careful subjectContract in the
+		   system. */
+		names.removeAll(NEVER_WRITABLE_FROM_A_FORM);
+
+		return names;
+	}
+
 	private void storeParameterValues(final NodeInterface instance, final NodeInterface element, final Map<String, Object> parameters) throws FrameworkException {
 
 		final App app               = StructrApp.getInstance();
@@ -3664,24 +3771,19 @@ public class ProcessEngine {
 		final Map<String, Object> subjectFields   = new LinkedHashMap<>();
 		final Map<String, Object> parameterFields = new LinkedHashMap<>();
 
+		final Set<String> writableFields = writableSubjectFields(element, subject);
+
 		for (final Map.Entry<String, Object> entry : parameters.entrySet()) {
 
 			final String name = entry.getKey();
 
-			// Reserved fields never go to the subject -- "id" and "type" are
-			// framework-managed and would corrupt subject identity / typing.
-			if ("id".equals(name) || "type".equals(name)) {
-
-				parameterFields.put(name, entry.getValue());
-				continue;
-			}
-
-			if (subjectTraits != null && subjectTraits.hasKey(name)) {
+			if (writableFields.contains(name)) {
 
 				subjectFields.put(name, entry.getValue());
 
 			} else {
 
+				// everything else is kept as process data rather than dropped
 				parameterFields.put(name, entry.getValue());
 			}
 		}

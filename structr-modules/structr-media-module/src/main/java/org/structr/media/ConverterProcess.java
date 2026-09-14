@@ -35,6 +35,8 @@ import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -90,25 +92,33 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 		}
 	}
 
+	/**
+	 * Ticket 1587: the command used to be a string handed to /bin/sh -c, which makes every character of
+	 * it shell syntax. The one part that carries data is the input file path - commented out below
+	 * pending the filesystem abstraction - and in a mounted folder that path carries the file NAME, which
+	 * a non-admin chooses. As an argument list there is no shell to interpret it.
+	 *
+	 * <p>This path is currently unreachable ({@link AVConv} is only entered through getVideoInfo()), so
+	 * converting it costs nothing today. It is done anyway because the commented-out line is marked to be
+	 * switched back on: whoever does that should land in the safe variant rather than reintroduce the
+	 * injection in code that looks like it always worked.
+	 */
 	@Override
-	public StringBuilder getCommandLine() {
+	public List<String> getCommandArguments() {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			final String scriptNameFromConfig = Settings.getOrCreateStringSetting("VideoFile", scriptName).getValue();
 			if (StringUtils.isNotBlank(scriptNameFromConfig)) {
 
-				final StringBuilder commandLine = new StringBuilder(scriptNameFromConfig);
+				final List<String> arguments = new LinkedList<>();
 
-				// build command line from builder options
-				commandLine.append(" ");
+				arguments.add(scriptNameFromConfig);
 				//Todo: Fix for new fs abstraction
-				//commandLine.append(inputFile.getDiskFilePath(securityContext));
-				commandLine.append(" ");
-				commandLine.append(outputFileName);
-				commandLine.append(fileExtension);
+				//arguments.add(inputFile.getDiskFilePath(securityContext));
+				arguments.add(outputFileName + fileExtension);
 
-				return commandLine;
+				return arguments;
 
 			} else {
 
@@ -119,6 +129,12 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 
 			logger.warn("", fex);
 		}
+
+		return null;
+	}
+
+	@Override
+	public StringBuilder getCommandLine() {
 
 		return null;
 	}

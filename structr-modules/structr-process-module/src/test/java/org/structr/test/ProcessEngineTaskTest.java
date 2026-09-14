@@ -180,6 +180,98 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		}
 	}
 
+	/**
+	 * Ticket 1588: claimTask checks that the caller is a candidate assignee, completeTask checked
+	 * nothing at all - so anyone who could reach a TaskInstance could finish it, including a task
+	 * somebody else had already claimed. The two entry points guard the same task; only one of them
+	 * asked who was calling.
+	 */
+	@Test
+	public void testCompleteByNonCandidateFails() throws Exception {
+
+		final Ctx c                  = startCandidateTask();
+		final NodeInterface outsider = createUser("outsider");
+
+		try (final Tx tx = app.tx()) {
+
+			try {
+
+				engineAs(outsider).completeTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"), Map.of());
+				fail("expected 403 completing as a non-candidate");
+
+			} catch (final FrameworkException expected) {
+
+				assertEquals(403, expected.getStatus());
+			}
+
+			tx.success();
+		}
+	}
+
+	/**
+	 * The other half: once a task is claimed it belongs to the assignee, and a second candidate must not
+	 * be able to complete it out from under them.
+	 */
+	@Test
+	public void testCompleteOfAForeignClaimedTaskFails() throws Exception {
+
+		final Ctx c                 = startCandidateTask();
+		final NodeInterface member2 = createUser("member2");
+
+		addToGroup(c.group, member2);
+
+		try (final Tx tx = app.tx()) {
+
+			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			try {
+
+				engineAs(member2).completeTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"), Map.of());
+				fail("expected 403 completing a task claimed by someone else");
+
+			} catch (final FrameworkException expected) {
+
+				assertEquals(403, expected.getStatus());
+			}
+
+			tx.success();
+		}
+	}
+
+	/**
+	 * The counterpart, so the rule cannot be satisfied by refusing everyone: the assignee themselves must
+	 * still be able to finish their own task.
+	 */
+	@Test
+	public void testCompleteByTheAssigneeStillWorks() throws Exception {
+
+		final Ctx c = startCandidateTask();
+
+		try (final Tx tx = app.tx()) {
+
+			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			engineAs(c.member).completeTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"), Map.of());
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("The assignee must be able to complete their own task",
+				TaskInstanceTraitDefinition.STATUS_COMPLETED, taskStatus(anyTaskAt(app.getNodeById(c.instId), "Task_Review")));
+
+			tx.success();
+		}
+	}
+
 	@Test
 	public void testClaimAlreadyReservedFails() throws Exception {
 
@@ -697,7 +789,11 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		createSubjectType("Claim", "title");
 
 		final NodeInterface init = createUser("initiator");
-		final String procUuid    = importProcess("/engine-human-task.bpmn");
+
+		/* Ticket 1588: a step writes only what it declares. A property created through SchemaProperty
+		   lands in the "custom" view, so this fixture's subjectContract names that one - unlike
+		   engine-human-task.bpmn, whose subject is the static TestOne and whose fields are in "ui". */
+		final String procUuid    = importProcess("/engine-human-task-custom-subject.bpmn");
 
 		final String instId;
 
@@ -731,7 +827,11 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		createSubjectType("Claim", "title");
 
 		final NodeInterface init = createUser("initiator");
-		final String procUuid    = importProcess("/engine-human-task.bpmn");
+
+		/* Ticket 1588: a step writes only what it declares. A property created through SchemaProperty
+		   lands in the "custom" view, so this fixture's subjectContract names that one - unlike
+		   engine-human-task.bpmn, whose subject is the static TestOne and whose fields are in "ui". */
+		final String procUuid    = importProcess("/engine-human-task-custom-subject.bpmn");
 
 		final String instId;
 		final String existingSubjectId;

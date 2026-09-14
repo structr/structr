@@ -147,7 +147,14 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 				} else {
 
-					app.delete((RelationshipInterface) obj);
+					final RelationshipInterface rel = (RelationshipInterface) obj;
+
+					if (!mayDeleteRelationship(securityContext, rel)) {
+
+						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+					}
+
+					app.delete(rel);
 				}
 
 				tx.success();

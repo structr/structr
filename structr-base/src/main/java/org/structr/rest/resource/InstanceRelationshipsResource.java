@@ -140,19 +140,17 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 
 					// allow the user to remove internal relationship types from
 					// the result set using the request parameter "filterInternal=true"
-					if (filterInternalRelationshipTypes) {
+					for (final RelationshipInterface rel : relationships) {
 
-						for (final RelationshipInterface rel : relationships) {
+						if (filterInternalRelationshipTypes && rel.getRelation().isInternal()) {
 
-							if (!rel.getRelation().isInternal()) {
-
-								resultList.add(rel);
-							}
+							continue;
 						}
 
-					} else {
+						if (mayReadRelationship(securityContext, rel)) {
 
-						resultList.addAll(relationships);
+							resultList.add(rel);
+						}
 					}
 				}
 			}
