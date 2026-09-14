@@ -71,4 +71,20 @@ public interface PropertyView {
 
 		return viewName.equals(All) || viewName.equals(Custom);
 	}
+
+	/**
+	 * The views Structr's own back end works with, as opposed to the views an application publishes.
+	 * Neither is curated for an audience: "all" is generated from every registered property of a type,
+	 * and "ui" is hand-picked for the back end, which is allowed to see everything anyway. On a
+	 * Principal that means session ids, refresh tokens, the two-factor token and the confirmation key,
+	 * each of which is enough to take the account over, so reading them is restricted to administrators
+	 * (ticket 1584).
+	 *
+	 * <p>"_html_" and "schema" are internal in the same sense but carry no such properties, so they are
+	 * deliberately not in here: restricting them would break applications without closing anything.
+	 */
+	static boolean isInternalView(final String viewName) {
+
+		return All.equals(viewName) || Ui.equals(viewName);
+	}
 }

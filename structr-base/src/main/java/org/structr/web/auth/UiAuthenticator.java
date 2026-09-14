@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.LogThrottle;
+import org.structr.common.PropertyView;
 import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -329,6 +330,33 @@ public class UiAuthenticator implements Authenticator {
 		// superuser is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
 			return;
+		}
+
+		/* Everything below decides what a non-admin may do with a RESOURCE, and nothing in it looks at
+		   which view the answer is rendered in - so a permission granted for /User was equally a
+		   permission for /User/ui, and that view hands out session ids, refresh tokens, the two-factor
+		   token and the confirmation key of every user the caller can read. One of those in a cookie is
+		   someone else's session. Structr's internal views are for the back end, which runs as an
+		   administrator; an application asking for one is asking for data it has no interface to. */
+		if (PropertyView.isInternalView(propertyView)) {
+
+			final String errorMessage = "Access denied - the '" + propertyView + "' view is internal and restricted to administrators (requested by "
+				+ (validUser ? "user '" + StringEscapeUtils.escapeHtml4(user.getName()) + "'" : "anonymous users")
+				+ ", URI: " + StringEscapeUtils.escapeHtml4(securityContext.getCompoundRequestURI()) + ").";
+
+			if (deniedAccessLog.allow("internal view " + propertyView)) {
+
+				logger.info(errorMessage);
+			}
+
+			RuntimeEventLog.resourceAccess("Internal view", Map.of(
+				"raw",       rawResourceSignature,
+				"view",      propertyView,
+				"validUser", validUser,
+				"userName",  (validUser ? StringEscapeUtils.escapeHtml4(user.getName()) : "")
+			));
+
+			throw new UnauthorizedException("Access denied");
 		}
 
 		// only necessary for non-admin users!
