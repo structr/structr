@@ -41,14 +41,28 @@ import java.util.TreeMap;
 public class DiffReport {
 
 	public static Map<String, Object> of(final String leftName, final String rightName,
-			final List<Entity> left, final List<Entity> right, final List<Delta> deltas) {
+			final List<Entity> left, final List<Entity> right, final List<Delta> deltas,
+			final Map<String, Object> congruence) {
 
 		final Map<String, Object> report = new LinkedHashMap<>();
 
 		report.put("summary", summary(leftName, rightName, left, right, deltas));
+		report.put("congruence", congruence);
+		report.put("profiles", profiles(left, right));
 		report.put("deltas", deltaList(deltas));
 
 		return report;
+	}
+
+	/** What each side contains, so the reader can see what the two apps are before reading what differs. */
+	private static Map<String, Object> profiles(final List<Entity> left, final List<Entity> right) {
+
+		final Map<String, Object> profiles = new LinkedHashMap<>();
+
+		profiles.put("left", Profile.of(left));
+		profiles.put("right", Profile.of(right));
+
+		return profiles;
 	}
 
 	private static Map<String, Object> summary(final String leftName, final String rightName,

@@ -1,0 +1,110 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+.export-diff-tree-entry {
+	padding: .35rem .5rem;
+	cursor: pointer;
+	border-radius: 3px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.export-diff-tree-entry:hover {
+	background-color: #f3f3f3;
+}
+
+.export-diff-tree-entry.selected {
+	background-color: #e5efe5;
+	font-weight: 600;
+}
+
+/* deliberately not .inline-info: that pattern is a hover tooltip whose children leave the flow, so a
+   block using it collapses to zero height */
+.export-diff-verdict {
+	padding: .75rem 1rem;
+	margin-bottom: 1rem;
+	background-color: #fafafa;
+	border-left: 4px solid #bdbdbd;
+}
+
+.export-diff-verdict-title {
+	font-weight: 600;
+	margin-bottom: .25rem;
+}
+
+.export-diff-verdict-detail {
+	font-size: .85rem;
+	color: #666;
+	margin-top: .35rem;
+}
+
+.export-diff-empty {
+	padding: 1rem;
+	max-width: 40rem;
+}
+
+/* the verdict is the first thing read, so it carries the colour rather than the table below it */
+.export-diff-verdict.export-diff-same_lineage {
+	border-left: 4px solid #4caf50;
+}
+
+.export-diff-verdict.export-diff-same_app_different_lineage {
+	border-left: 4px solid #ffb300;
+}
+
+.export-diff-verdict.export-diff-different_apps {
+	border-left: 4px solid #e53935;
+}
+
+.export-diff-table td, .export-diff-table th {
+	padding: .3rem .6rem;
+	vertical-align: top;
+}
+
+.export-diff-counts td {
+	padding: .3rem .6rem;
+	vertical-align: top;
+}
+
+/* low signal stays visible, only quieter: the classifier reports everything */
+.export-diff-table tr.export-diff-low td {
+	color: #888;
+}
+
+.export-diff-profiles {
+	display: flex;
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.export-diff-profile {
+	flex: 1;
+	padding: .75rem 1rem;
+	background-color: #fafafa;
+	border: 1px solid #e5e5e5;
+	font-size: .85rem;
+	line-height: 1.5;
+}
+
+.export-diff-profile-name {
+	font-weight: 600;
+	margin-bottom: .35rem;
+	word-break: break-all;
+}

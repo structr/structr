@@ -21,9 +21,8 @@ module structr.diff.module {
 	// gson and slf4j arrive as 'requires transitive' on structr.base, so they are not named again
 	requires structr.base;
 
-	/* Nothing is exported yet. Everything this module hands to the platform it hands over from
-	   DiffModule.onLoad(). Add an export the day something outside has to name one of these
-	   types - the Companion will, when the diff becomes a skill. */
+	// StructrWebSocket instantiates the command reflectively, which JPMS refuses without an export
+	exports org.structr.diff.websocket;
 
 	/* The module-path half of discovery. META-INF/services/org.structr.module.StructrModule must
 	   carry the same entry: tests run on the CLASS path, where only that file is read. */

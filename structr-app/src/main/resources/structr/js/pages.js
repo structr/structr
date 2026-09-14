@@ -1731,11 +1731,15 @@ let _Pages = {
 		let successNotificationsPartialInput = container.querySelector('#success-notifications-custom-dialog-input');
 		let successNotificationsEventInput   = container.querySelector('#success-notifications-fire-event-input');
 		let successNotificationsDelayInput   = container.querySelector('#success-inline-message-delay-input');
+		let successNotificationsTextInput    = container.querySelector('#success-notifications-text-input');
+		let successNotificationsCssClassInput = container.querySelector('#success-notifications-css-class-input');
 
 		let failureNotificationsSelect       = container.querySelector('#failure-notifications-select');
 		let failureNotificationsPartialInput = container.querySelector('#failure-notifications-custom-dialog-input');
 		let failureNotificationsEventInput   = container.querySelector('#failure-notifications-fire-event-input');
 		let failureNotificationsDelayInput   = container.querySelector('#failure-inline-message-delay-input');
+		let failureNotificationsTextInput    = container.querySelector('#failure-notifications-text-input');
+		let failureNotificationsCssClassInput = container.querySelector('#failure-notifications-css-class-input');
 
 
 		let successBehaviourSelect           = container.querySelector('#success-behaviour-select');
@@ -1910,7 +1914,7 @@ let _Pages = {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,controlsProcess,controlsProcessIdExpression,targetsElement,processOperation,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,successShow,successHide,successScope,failureBehaviour,failurePartial,failureURL,failureEvent,failureShow,failureHide,failureScope,dialogType,dialogTitle,dialogText', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,controlsProcess,controlsProcessIdExpression,targetsElement,processOperation,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,successNotificationsText,successNotificationsCssClass,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,failureNotificationsText,failureNotificationsCssClass,successBehaviour,successPartial,successURL,successEvent,successShow,successHide,successScope,failureBehaviour,failurePartial,failureURL,failureEvent,failureShow,failureHide,failureScope,dialogType,dialogTitle,dialogText', (result) => {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
@@ -2246,11 +2250,15 @@ let _Pages = {
 			successNotificationsPartialInput.value = actionMapping.successNotificationsPartial;
 			successNotificationsEventInput.value   = actionMapping.successNotificationsEvent;
 			successNotificationsDelayInput.value   = actionMapping.successNotificationsDelay;
+			successNotificationsTextInput.value     = actionMapping.successNotificationsText ?? '';
+			successNotificationsCssClassInput.value = actionMapping.successNotificationsCssClass ?? '';
 
 			failureNotificationsSelect.value       = actionMapping.failureNotifications;
 			failureNotificationsPartialInput.value = actionMapping.failureNotificationsPartial;
 			failureNotificationsEventInput.value   = actionMapping.failureNotificationsEvent;
 			failureNotificationsDelayInput.value   = actionMapping.failureNotificationsDelay;
+			failureNotificationsTextInput.value     = actionMapping.failureNotificationsText ?? '';
+			failureNotificationsCssClassInput.value = actionMapping.failureNotificationsCssClass ?? '';
 
 			successBehaviourSelect.value           = actionMapping.successBehaviour;
 			successPartialRefreshInput.value       = actionMapping.successPartial;
@@ -2767,10 +2775,14 @@ let _Pages = {
 				successNotificationsPartial: successNotificationsPartialInput.value,
 				successNotificationsEvent:   successNotificationsEventInput.value,
 				successNotificationsDelay:	 successNotificationsDelayInput.value === '' ? '5000' : successNotificationsDelayInput.value,
+				successNotificationsText:     successNotificationsTextInput.value,
+				successNotificationsCssClass: successNotificationsCssClassInput.value,
 				failureNotifications:        failureNotificationsSelect.value,
 				failureNotificationsPartial: failureNotificationsPartialInput.value,
 				failureNotificationsEvent:   failureNotificationsEventInput.value,
 				failureNotificationsDelay:   failureNotificationsDelayInput.value === '' ? '5000' : failureNotificationsDelayInput.value,
+				failureNotificationsText:     failureNotificationsTextInput.value,
+				failureNotificationsCssClass: failureNotificationsCssClassInput.value,
 				successBehaviour:            successBehaviourSelect?.value,
 				successPartial:              successPartialRefreshInput?.value,
 				successURL:                  successBehaviourSelect?.value === 'show-hide-section'        ? successShowUrlInput?.value
@@ -5689,6 +5701,12 @@ let _Pages = {
 								<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
 									<label class="block mb-2" for="success-inline-message-delay-input" data-comment="How long the inline message stays before it auto-hides. Enter -1 to keep it visible until the next action (never auto-hide).">Display duration (ms)</label>
 									<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000 (-1 = never hide)">
+
+									<label class="block mb-2 mt-4" for="success-notifications-text-input" data-comment="Replaces the wording of the message, the icon is kept. \${...} is evaluated when the page is rendered, so \${me.name} works. {status} and {message} come from the response and are filled in when the message is shown. Leave empty for the default text, and use a custom dialog element for a message that needs its own markup.">Message text</label>
+									<input type="text" id="success-notifications-text-input" placeholder="Leave empty for the default text">
+
+									<label class="block mb-2 mt-4" for="success-notifications-css-class-input" data-comment="CSS class for the message element. Setting one removes the built-in styling completely, including the positioning, so the class has to place the message itself.">CSS class</label>
+									<input type="text" id="success-notifications-css-class-input" placeholder="Leave empty for the built-in styling">
 								</div>
 	
 								<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
@@ -5734,6 +5752,12 @@ let _Pages = {
 								<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
 									<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="How long the inline message stays before it auto-hides. Enter -1 to keep it visible until the next action (never auto-hide).">Display duration (ms)</label>
 									<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000 (-1 = never hide)">
+
+									<label class="block mb-2 mt-4" for="failure-notifications-text-input" data-comment="Replaces the wording of the message, the icon is kept. \${...} is evaluated when the page is rendered, so \${me.name} works. {status} and {message} come from the response and are filled in when the message is shown. Leave empty for the default text, and use a custom dialog element for a message that needs its own markup.">Message text</label>
+									<input type="text" id="failure-notifications-text-input" placeholder="Leave empty for the default text">
+
+									<label class="block mb-2 mt-4" for="failure-notifications-css-class-input" data-comment="CSS class for the message element. Setting one removes the built-in styling completely, including the positioning, so the class has to place the message itself.">CSS class</label>
+									<input type="text" id="failure-notifications-css-class-input" placeholder="Leave empty for the built-in styling">
 								</div>
 	
 								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">

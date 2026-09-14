@@ -18,6 +18,7 @@
  */
 package org.structr.diff.websocket;
 
+import com.google.gson.Gson;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -25,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.diff.compare.Delta;
+import org.structr.diff.compare.Congruence;
 import org.structr.diff.compare.DiffReport;
 import org.structr.diff.compare.Matcher;
 import org.structr.diff.export.ExportSource;
@@ -38,8 +40,12 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Compares two exports held in the virtual filesystem and returns the diff.
@@ -97,13 +103,22 @@ public class CompareExportsCommand extends AbstractCommand {
 				return;
 			}
 
-			final List<Entity> a     = parse(left);
-			final List<Entity> b     = parse(right);
+			final Parsed parsedLeft  = parse(left);
+			final Parsed parsedRight = parse(right);
+			final List<Entity> a     = parsedLeft.entities();
+			final List<Entity> b     = parsedRight.entities();
 			final List<Delta> deltas = new Matcher(a, b).getDeltas();
 
-			webSocketData.setNodeData(DiffReport.of(left.getName(), right.getName(), a, b, deltas));
+			final Map<String, Object> congruence = Congruence.of(a, b,
+				parsedLeft.structrVersion(), parsedRight.structrVersion(), taken(left), taken(right));
 
-			getWebSocket().send(webSocketData, true);
+			// FINISHED with the original callback is how a command answers one caller; echoing the request
+			// back does not reach it. The report travels as JSON text because the websocket serializer
+			// turns anything that is not a primitive into value.toString().
+			getWebSocket().send(MessageBuilder.finished()
+				.callback(webSocketData.getCallback())
+				.data("json", new Gson().toJson(DiffReport.of(left.getName(), right.getName(), a, b, deltas, congruence)))
+				.build(), true);
 
 			tx.success();
 
@@ -123,13 +138,38 @@ public class CompareExportsCommand extends AbstractCommand {
 		return node != null ? node.as(File.class) : null;
 	}
 
-	private List<Entity> parse(final File file) throws IOException, FrameworkException {
+	/** Entities plus the build the export came from, read while the source is still open. */
+	private record Parsed(List<Entity> entities, String structrVersion) {}
+
+	private Parsed parse(final File file) throws IOException, FrameworkException {
 
 		try (final InputStream in = file.getRawInputStream()) {
 
 			final ExportSource source = ZipExportSource.read(in, file.getName());
 
-			return new ExportParser(source).getEntities();
+			return new Parsed(new ExportParser(source).getEntities(), structrVersion(source));
 		}
+	}
+
+	private String structrVersion(final ExportSource source) throws IOException {
+
+		if (!source.exists("deployment.conf")) {
+
+			return null;
+		}
+
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(source.open("deployment.conf"), StandardCharsets.UTF_8))) {
+
+			return reader.lines()
+				.filter(line -> line.startsWith("structr-version"))
+				.map(line -> line.substring(line.indexOf('=') + 1).trim())
+				.findFirst()
+				.orElse(null);
+		}
+	}
+
+	private Congruence.Taken taken(final File file) {
+
+		return new Congruence.Taken(file.getCreatedDate(), file.getLastModifiedDate());
 	}
 }
