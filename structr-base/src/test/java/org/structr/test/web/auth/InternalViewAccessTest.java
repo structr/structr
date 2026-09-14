@@ -133,6 +133,73 @@ public class InternalViewAccessTest extends StructrUiTest {
 				.get("/User/public");
 	}
 
+
+	/**
+	 * The back end is the reason these views exist, and it reaches them over plain REST: dashboard.js
+	 * asks for me/ui, files.js for File/ui, schema.js for SchemaNode/ui, entities.js and crud.js for
+	 * &lt;type&gt;/&lt;id&gt;/all, processes.js for a dozen more. Restricting the views must not cost the
+	 * back end any of that, so the shapes it uses are pinned here rather than assumed.
+	 */
+	@Test
+	public void testTheShapesTheBackEndUsesStillWorkForAdmins() {
+
+		final String userId = createUser("subject-of-interest", true);
+
+		createAdminUser();
+
+		grant(StructrTraits.USER, UiAuthenticator.AUTH_USER_GET, true);
+
+		for (final String path : new String[] {
+			"/me/ui",                       // dashboard.js
+			"/User/ui",                     // files.js, schema.js, processes.js pattern: <Type>/ui
+			"/User/" + userId + "/ui",      // processes.js pattern: <Type>/<id>/ui
+			"/User/" + userId + "/all",     // entities.js, crud.js pattern: <Type>/<id>/all
+			"/_schema/User/all"             // job-queue.js
+		}) {
+
+			RestAssured
+				.given()
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+					.statusCode(200)
+				.when()
+					.get(path);
+		}
+	}
+
+	/**
+	 * The part of the change that reaches past the back end: a view is a path segment, so _schema/User/all
+	 * is the _schema resource rendered in the "all" view, and it is now administrators-only like any
+	 * other. That is a deliberate consequence rather than an oversight - an application reading the
+	 * schema can use _schema/User, which is unaffected - but it is worth having written down.
+	 */
+	@Test
+	public void testSchemaEndpointInTheAllViewIsAdminOnlyToo() {
+
+		createUser("schema-reader", false);
+
+		// the signature carries the type: _schema/<type>, and the view becomes another segment
+		grant("_schema/User", UiAuthenticator.AUTH_USER_GET, true);
+		grant("_schema/User/_All", UiAuthenticator.AUTH_USER_GET, false);
+
+		// the default view of the same resource keeps working
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, "schema-reader", X_PASSWORD_HEADER, PASSWORD)
+			.expect()
+				.statusCode(200)
+			.when()
+				.get("/_schema/User");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, "schema-reader", X_PASSWORD_HEADER, PASSWORD)
+			.expect()
+				.statusCode(401)
+			.when()
+				.get("/_schema/User/all");
+	}
+
 	// ----- private methods -----
 	private String createUser(final String name, final boolean visibleToAuthenticated) {
 
