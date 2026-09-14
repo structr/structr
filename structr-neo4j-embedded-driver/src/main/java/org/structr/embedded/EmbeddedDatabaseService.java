@@ -552,7 +552,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 							CASE
 								WHEN n[prop] IS NULL THEN false
 								WHEN n[prop] IS :: STRING THEN toLower(n[prop]) CONTAINS searchString
-								WHEN n[prop] IS :: LIST<STRING> THEN ANY (v IN n[prop] WHERE toLower(v) CONTAINS searchString)
+								WHEN n[prop] IS :: LIST<ANY> THEN ANY (v IN [x IN n[prop] | toString(x)] WHERE toLower(v) CONTAINS searchString)
 								ELSE toLower(toString(n[prop])) CONTAINS searchString
 							END
 						| prop] AS matchedKeys,
@@ -566,8 +566,8 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 					keys:            matchedKeys,
 					values:          [key IN matchedKeys |
 					   CASE
-						 WHEN n[key] IS :: LIST<STRING> THEN
-						   head([v IN n[key] WHERE toLower(v) CONTAINS searchString |
+						 WHEN n[key] IS :: LIST<ANY> THEN
+						   head([v IN [x IN n[key] | toString(x)] WHERE toLower(v) CONTAINS searchString |
 							 {
 							   before: right(substring(v, 0, size(split(toLower(v), searchString)[0])), 24),
 							   match:  substring(v, size(split(toLower(v), searchString)[0]), size(searchString)),

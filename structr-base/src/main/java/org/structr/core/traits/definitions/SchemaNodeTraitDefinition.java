@@ -66,6 +66,7 @@ import org.structr.web.datasource.FieldDefinition;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -223,6 +224,20 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+
+					// Clean up other types that inherit this trait
+					{
+						final String name = nodeInterface.getName();
+
+						final List<NodeInterface> inheritingTypes = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).key(nodeInterface.getTraits().key(INHERITED_TRAITS_PROPERTY), new String[]{ name }, false).getAsList();
+
+						for (final NodeInterface node : inheritingTypes) {
+
+							final SchemaNode schemaNode = node.as(SchemaNode.class);
+
+							schemaNode.setInheritedTraits(schemaNode.getInheritedTraits().stream().filter(inheritedTrait -> !inheritedTrait.equals(name)).collect(Collectors.toSet()));
+						}
+					}
 
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}

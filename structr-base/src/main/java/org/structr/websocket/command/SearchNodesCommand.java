@@ -89,7 +89,7 @@ public class SearchNodesCommand extends AbstractCommand {
 		if (searchContexts.contains(SEARCH_CONTEXT_DOM))            { types.add("((n:DOMNode or n:Site or n:ActionMapping or n:ParameterMapping) AND NOT n:ShadowDocument)"); }
 		if (searchContexts.contains(SEARCH_CONTEXT_FLOWS))          { types.add("(n:FlowNode)"); }
 		if (searchContexts.contains(SEARCH_CONTEXT_SCHEMA))         { types.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
-		if (searchContexts.contains(SEARCH_CONTEXT_FILES))          { types.add("(n:AbstractFile)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_FILES))          { types.add("(n:AbstractFile AND NOT ((n:Image OR n:VideoFile) AND coalesce(n.isTemplate, false) = false))"); }
 		if (searchContexts.contains(SEARCH_CONTEXT_LOCALIZATIONS))  { types.add("(n:Localization)"); }
 		if (searchContexts.contains(SEARCH_CONTEXT_MAIL_TEMPLATES)) { types.add("(n:MailTemplate)"); }
 
