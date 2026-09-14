@@ -211,9 +211,13 @@ let _Files = {
 
 		// ctrl-a / cmd-a
 		if ((code === 'KeyA' || keyCode === 65) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-			event.preventDefault();
 
-			_Files.selection.selectAll();
+			if (document.activeElement?.tagName !== 'INPUT') {
+
+				event.preventDefault();
+
+				_Files.selection.selectAll();
+			}
 		}
 	},
 	handleNodeRefresh: (node) => {
