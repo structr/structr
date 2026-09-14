@@ -743,6 +743,31 @@ public class UiAuthenticator implements Authenticator {
 
 							stateParameters.invalidate(originalRequestState);
 
+							/* Settled before anything is handed out, because both ways out of this block are a
+							   finished login: a session from doLogin(), or a JWT pair from
+							   createTokensForUser(). Neither ever reached handleTwoFactorAuthentication(), so a
+							   configuration that requires a second factor was satisfied by the provider's
+							   redirect alone. The provider proves who the user is, not that they hold the
+							   second factor this instance asks for - and whether the provider did any MFA of
+							   its own is not something Structr can see from here. */
+							final String twoFactorRedirect = AuthHelper.getTwoFactorRedirectForPrincipal(request, user);
+							if (twoFactorRedirect != null) {
+
+								logger.info("OAuth login for {} requires a second factor, redirecting to {}", user.getName(), Settings.TwoFactorLoginPage.getValue());
+
+								HtmlServlet.setNoCacheHeaders(response);
+
+								response.resetBuffer();
+								response.setHeader(StructrTraits.LOCATION, twoFactorRedirect);
+								response.setStatus(HttpServletResponse.SC_FOUND);
+								response.flushBuffer();
+
+								// null, not the user: no session and no tokens were handed out, so this
+								// request has no authenticated principal to report
+
+								return null;
+							}
+
 							Boolean isTokenLogin = false;
 							URIBuilder uriBuilder = new URIBuilder();
 

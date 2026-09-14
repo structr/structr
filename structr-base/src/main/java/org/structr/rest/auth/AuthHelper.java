@@ -46,17 +46,15 @@ import org.structr.schema.action.Actions;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utility class for authentication.
@@ -570,6 +568,83 @@ public class AuthHelper {
 		}
 	}
 
+	/**
+	 * Records a wrong two-factor code and reports whether that used up what the account is allowed. The
+	 * budget is the one a wrong password spends (security.passwordpolicy.maxfailedattempts), so guessing
+	 * codes ends the same way guessing passwords does.
+	 */
+	public static boolean registerFailedTwoFactorAttempt (final Principal principal) {
+
+		final String uuid                    = principal.getUuid();
+		final Object lock                    = userLocks.computeIfAbsent(uuid, k -> new Object());
+		final AtomicBoolean tokenInvalidated = new AtomicBoolean(false);
+
+		synchronized (lock) {
+
+			/* Its own thread, and with it its own transaction, for the same reason
+			   incrementFailedLoginAttemptsCounter() needs one. Not every caller of
+			   handleTwoFactorAuthentication() catches TwoFactorAuthenticationFailedException inside a
+			   transaction it then commits, and where it does not, both writes below would roll back with
+			   the calling thread - leaving the counter untouched and the token alive for the next guess,
+			   which is the whole thing being fixed here. Joined, so the next attempt sees the result. */
+			final Thread t = new Thread(() -> {
+
+				final App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					final NodeInterface node = app.getNodeById(uuid);
+					if (node != null) {
+
+						final Principal freshPrincipal = node.as(Principal.class);
+
+						Integer failedAttempts = freshPrincipal.getPasswordAttempts();
+						if (failedAttempts == null) {
+
+							failedAttempts = 0;
+						}
+
+						failedAttempts++;
+
+						freshPrincipal.setPasswordAttempts(failedAttempts);
+
+						final int maximumAllowedFailedAttempts = Settings.PasswordAttempts.getValue();
+						if (maximumAllowedFailedAttempts > 0 && failedAttempts > maximumAllowedFailedAttempts) {
+
+							/* The counter alone would not stop this: the token stays valid for
+							   security.twofactorauthentication.logintimeout and the password step that issues
+							   a new one RESETS the counter on its way through, so the budget would refill as
+							   fast as it is spent. Dropping the token forces that password step, and it runs
+							   checkTooManyFailedLoginAttempts() before the reset. */
+							freshPrincipal.setTwoFactorToken(null);
+
+							tokenInvalidated.set(true);
+						}
+					}
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Exception while registering failed two factor attempt", fex);
+				}
+			});
+
+			t.start();
+
+			try {
+
+				t.join();
+
+			} catch (InterruptedException iex) {
+
+				Thread.currentThread().interrupt();
+			}
+		}
+
+		return tokenInvalidated.get();
+	}
+
 	public static void resetFailedLoginAttemptsCounter (final Principal principal) {
 
 		final String uuid = principal.getUuid();
@@ -577,6 +652,14 @@ public class AuthHelper {
 
 		synchronized (lock) {
 
+			/* Its own thread, and therefore its own transaction, for the same reason
+			   incrementFailedLoginAttemptsCounter() needs one: header authentication (X-User/X-Password)
+			   runs this inside a transaction the servlet code never commits, so a write on the calling
+			   thread is simply lost - FailedLoginAttemptsCounterTest covers exactly that.
+
+			   The consequence is that this must NOT be called from a transaction that is holding the
+			   principal node, because the thread below would wait for a node the caller still has and the
+			   caller then joins that thread. See HtmlServlet.checkResetPassword(). */
 			final Thread t = new Thread(() -> {
 
 				final App app = StructrApp.getInstance();
@@ -695,139 +778,116 @@ public class AuthHelper {
 		return false;
 	}
 
-	public static boolean isRequestingIPWhitelistedForTwoFactorAuthentication(final String requestIP, final String whitelistEntries) {
-
-		if (!StringUtils.isEmpty(requestIP) && !StringUtils.isEmpty(whitelistEntries)) {
-
-			try {
-
-				final InetAddress requestAddress     = InetAddress.getByName(requestIP);
-				final String[] splitWhitelistEntries = whitelistEntries.split("[ ,]+");
-
-				final BigInteger maxIP;
-				final int maxPrefix;
-				boolean isIPv6 = false;
-				boolean isIPv4 = false;
-
-				if (requestAddress instanceof Inet6Address) {
-
-					isIPv6    = true;
-					maxIP     = new BigInteger("ffffffffffffffffffffffffffffffff", 16);
-					maxPrefix = 128;
-
-				} else if (requestAddress instanceof Inet4Address) {
-
-					isIPv4    = true;
-					maxIP     = new BigInteger("ffffffff", 16);
-					maxPrefix = 32;
-
-				} else {
-
-					return false;
-				}
-
-				for (final String wlEntry : splitWhitelistEntries) {
-
-					final String[] wlEntryParts = wlEntry.split("/");
-
-					try {
-
-						final InetAddress wlAddress = InetAddress.getByName(wlEntryParts[0]);
-						if (wlAddress instanceof Inet4Address && isIPv4 || wlAddress instanceof Inet6Address && isIPv6) {
-
-							int prefixLength = maxPrefix;
-
-							if (wlEntryParts.length == 2) {
-
-								try {
-
-									final int definedPrefix = Integer.parseInt(wlEntryParts[1]);
-									if (definedPrefix > 0) {
-
-										prefixLength = definedPrefix;
-
-									} else {
-
-										logger.warn("Prefix length for '{}' is invalid, using most restrictive value {}", wlEntry, maxPrefix);
-									}
-
-								} catch (NumberFormatException nfe) {
-
-									logger.warn("Unable to parse numeric prefix length for '{}', using most restrictive value {}", wlEntry, maxPrefix);
-								}
-							}
-
-							final BigInteger prefixMask          = maxIP.shiftLeft(maxPrefix - prefixLength).and(maxIP);
-							final BigInteger wildcard            = prefixMask.xor(maxIP);
-							final BigInteger requestIPAsBigInt   = new BigInteger(1, requestAddress.getAddress());
-							final BigInteger whiteListIpAsBigInt = new BigInteger(1, wlAddress.getAddress());
-							final BigInteger lowerBound          = whiteListIpAsBigInt.and(prefixMask);
-							final BigInteger upperBound          = lowerBound.or(wildcard);
-							final boolean myIp_GTE_lowerBound    = (-1 != requestIPAsBigInt.compareTo(lowerBound));
-							final boolean myIp_LTE_upperBound    = (-1 != upperBound.compareTo(requestIPAsBigInt));
-
-							if (myIp_GTE_lowerBound && myIp_LTE_upperBound) {
-
-								return true;
-							}
-						}
-
-					} catch (UnknownHostException uhe) {
-
-						logger.warn("Unable to parse whitelist entry '{}': {}", wlEntryParts[0], uhe.getMessage());
-					}
-				}
-
-			} catch (UnknownHostException uhe) {
-
-				logger.warn("Unable to parse request IP address '{}': {}", requestIP, uhe.getMessage());
-			}
-		}
-
-		return false;
-	}
-
 	public enum TwoFactorAuthenticationResult {
 		DISABLED,
 		NOT_REQUIRED_FOR_USER,
 		SUCCESS,
-		IP_WHITELISTED,
 		TRUSTED,
 		FAILURE
 	}
 
-	public static TwoFactorAuthenticationResult handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP, final String userAgentString, final String trustToken) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
+	/**
+	 * The reason this principal does not have to produce a code, or null when it does. One place decides
+	 * it, because the answer is needed both here and on the login paths that cannot ask for a code
+	 * themselves, and two copies of a rule like this drift apart in exactly the direction that hurts.
+	 */
+	private static TwoFactorAuthenticationResult getTwoFactorExemption(final Principal principal, final String userAgentString, final String trustToken) throws FrameworkException {
 
-		final int twoFactorLevel   = Settings.TwoFactorLevel.getValue();
-		boolean isTwoFactorUser    = principal.isTwoFactorUser();
-		boolean twoFactorConfirmed = principal.isTwoFactorConfirmed();
-		boolean userNeedsTwoFactor = twoFactorLevel == 2 || (twoFactorLevel == 1 && isTwoFactorUser);
-
+		final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
 		if (twoFactorLevel == 0) {
+
 			return TwoFactorAuthenticationResult.DISABLED;
 		}
 
-		if (!userNeedsTwoFactor) {
+		if (twoFactorLevel == 1 && !principal.isTwoFactorUser()) {
+
 			return TwoFactorAuthenticationResult.NOT_REQUIRED_FOR_USER;
 		}
 
-		final boolean ipWhitelistedForTwoFactorAuthentication = AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP, Settings.TwoFactorWhitelistedIPs.getValue());
+		if (trustToken != null && principal.isDeviceTrustPossible() && DeviceTrustHelper.isValidDeviceTrustToken(trustToken, userAgentString, principal.getDeviceTrustSecret())) {
 
-		if (ipWhitelistedForTwoFactorAuthentication) {
-			return TwoFactorAuthenticationResult.IP_WHITELISTED;
+			return TwoFactorAuthenticationResult.TRUSTED;
 		}
 
-		if (trustToken != null) {
+		return null;
+	}
 
-			if (principal.isDeviceTrustPossible() && DeviceTrustHelper.isValidDeviceTrustToken(trustToken, userAgentString, principal.getDeviceTrustSecret())) {
+	public static boolean isTwoFactorStepRequired(final Principal principal, final String userAgentString, final String trustToken) throws FrameworkException {
 
-				return TwoFactorAuthenticationResult.TRUSTED;
+		return getTwoFactorExemption(principal, userAgentString, trustToken) == null;
+	}
+
+	/**
+	 * Starts the second factor for a login that has no way to ask for a code itself - an OAuth return or
+	 * a confirmation link - and returns the address to send the browser to. Returns null when this
+	 * principal needs no second factor, which is the caller's signal that it may log them in.
+	 *
+	 * <p>The caller must not create a session or issue tokens when this returns an address: those paths
+	 * never reached handleTwoFactorAuthentication(), so a configuration that requires a second factor
+	 * was satisfied by the redirect alone.
+	 */
+	public static String getTwoFactorRedirectForPrincipal(final HttpServletRequest request, final Principal principal) throws FrameworkException {
+
+		if (!isTwoFactorStepRequired(principal, request.getHeader("User-Agent"), getDeviceTrustCookie(request))) {
+
+			return null;
+		}
+
+		final String twoFactorToken = getIdentificationTokenForPrincipal();
+
+		principal.setTwoFactorToken(twoFactorToken);
+
+		/* No enrolment here, which is why buildData() is called with showQrCode false whatever the user's
+		   state is. A QR code is a 200x200 image, and in a redirect it would have to travel as a query
+		   parameter - tens of kilobytes of base64 in a Location header, which is past what a server will
+		   emit and a browser will accept. Enrolment stays on the password login, where the same data goes
+		   back in response headers and the application decides what to do with it. A user who has not
+		   confirmed a second factor yet therefore cannot start here: they get the code prompt, cannot
+		   answer it, and have to log in with their password - which is the flow that can enrol them. */
+		final Map<String, String> data = TwoFactorAuthenticationRequiredException.buildData(principal, twoFactorToken, false);
+		final StringBuilder redirect   = new StringBuilder(Settings.TwoFactorLoginPage.getValue());
+		String separator               = "?";
+
+		for (final Map.Entry<String, String> entry : data.entrySet()) {
+
+			// twoFactorLoginPage is the address being built here, passing it along as a parameter says nothing
+			if (!"twoFactorLoginPage".equals(entry.getKey())) {
+
+				redirect.append(separator).append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
+				separator = "&";
 			}
+		}
+
+		return redirect.toString();
+	}
+
+	public static TwoFactorAuthenticationResult handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String userAgentString, final String trustToken) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
+
+		final TwoFactorAuthenticationResult exemption = getTwoFactorExemption(principal, userAgentString, trustToken);
+		if (exemption != null) {
+
+			return exemption;
 		}
 
 		if (twoFactorToken == null) {
 
 			// user just logged in via username/password - no two factor identification token
+
+			final boolean twoFactorConfirmed = principal.isTwoFactorConfirmed();
+			if (!twoFactorConfirmed) {
+
+				/* The exception below carries a QR code, and that QR code carries the TOTP secret, so a
+				   password is all it takes to be handed the second factor of an account that has not
+				   confirmed one yet. Two people who both know the password would walk away with the SAME
+				   working secret, and whoever confirms first makes it permanent for both: the one who
+				   should not have it keeps generating valid codes afterwards, and a password change does
+				   not take that away. Rotating the secret on every handout means only the most recent
+				   request can confirm, so an earlier copy stops working the moment the real user starts
+				   their own enrolment. */
+				principal.setTwoFactorSecret(TimeBasedOneTimePasswordHelper.generateBase32Secret());
+
+				RuntimeEventLog.login("Two factor enrolment secret issued", Map.of("id", principal.getUuid(), "name", principal.getName()));
+			}
 
 			final String newTwoFactorToken = AuthHelper.getIdentificationTokenForPrincipal();
 			principal.setTwoFactorToken(newTwoFactorToken);
@@ -840,8 +900,10 @@ public class AuthHelper {
 
 				final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(principal.getTwoFactorSecret(), AuthHelper.getCryptoAlgorithm(), Settings.TwoFactorPeriod.getValue(), Settings.TwoFactorDigits.getValue());
 
-				// check two-factor authentication
-				if (currentKey.equals(twoFactorCode)) {
+				/* Not String.equals: it returns as soon as two digits differ, so how long the answer takes
+				   says how much of the code was right, and a six-digit secret guessed digit by digit is a
+				   few hundred attempts rather than a million. */
+				if (twoFactorCode != null && java.security.MessageDigest.isEqual(currentKey.getBytes(java.nio.charset.StandardCharsets.UTF_8), twoFactorCode.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
 
 					principal.setTwoFactorToken(null);   // reset token
 					principal.setTwoFactorConfirmed(true);   // user has verified two factor use
@@ -855,12 +917,24 @@ public class AuthHelper {
 
 				} else {
 
-					// two-factor authentication not successful
-				   logger.info("Two factor authentication failed ({})", principal.getName());
+					/* Nothing used to count a wrong code. The token stayed valid for
+					   security.twofactorauthentication.logintimeout no matter how many guesses were spent on
+					   it, and a fresh one was always one password round away - a round that RESET the failed
+					   attempt counter on its way through. Six digits with no limit is not a second factor,
+					   only a delay. A wrong code now feeds the same counter a wrong password does, and once
+					   that is used up the token dies with it, so the next guess has to go back through the
+					   password step - where checkTooManyFailedLoginAttempts() runs before the counter is
+					   reset and turns the account away. */
+					if (AuthHelper.registerFailedTwoFactorAttempt(principal)) {
 
-				   RuntimeEventLog.failedLogin("Two factor authentication failed", Map.of("id", principal.getUuid(), "name", principal.getName()));
+						logger.info("Two factor authentication failed too often, token invalidated ({})", principal.getName());
+					}
 
-				   throw new TwoFactorAuthenticationFailedException();
+					logger.info("Two factor authentication failed ({})", principal.getName());
+
+					RuntimeEventLog.failedLogin("Two factor authentication failed", Map.of("id", principal.getUuid(), "name", principal.getName()));
+
+					throw new TwoFactorAuthenticationFailedException();
 				}
 
 			} catch (GeneralSecurityException ex) {

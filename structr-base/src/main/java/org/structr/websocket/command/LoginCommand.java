@@ -41,7 +41,6 @@ import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.DeviceTrustHelper;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.schema.action.ActionContext;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -106,7 +105,7 @@ public class LoginCommand extends AbstractCommand {
 					final boolean userRequestedTrust = webSocketData.getNodeDataBooleanValue(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING);
 					final String userAgentString     = request.getHeader(HttpHeader.USER_AGENT.asString());
 
-					final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(request), userAgentString, AuthHelper.getDeviceTrustCookie(request));
+					final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, userAgentString, AuthHelper.getDeviceTrustCookie(request));
 
 					if (result == AuthHelper.TwoFactorAuthenticationResult.FAILURE) {
 						throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);

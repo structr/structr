@@ -23,7 +23,6 @@ Configure two-factor authentication in `structr.conf` or through the Configurati
 | `security.twofactorauthentication.period` | 30 | Code validity period in seconds |
 | `security.twofactorauthentication.logintimeout` | 30 | Time window in seconds to enter the code after password authentication |
 | `security.twofactorauthentication.loginpage` | /twofactor | Application page for entering the two-factor code |
-| `security.twofactorauthentication.whitelistedIPs` | | Comma-separated list of IP addresses that bypass two-factor authentication |
 | `security.twofactorauthentication.devicetrust.enabled` | false | Enables or disables users to trust the browser they are logging in with |
 | `security.twofactorauthentication.devicetrust.signingsecret` | | Secret key that signs device trust tokens (auto-generated if not set manually) |
 | `security.twofactorauthentication.devicetrust.duration` | 30 | Trust period in days for trusted browsers |
@@ -63,6 +62,39 @@ The basic two-factor login process works as follows:
 5. User enters the 6-digit code from their authenticator app
 6. User submits the code with the temporary token to `/structr/rest/login`
 7. If the code is valid, Structr creates a session and returns HTTP status 200
+
+### Wrong Codes
+
+A wrong code counts against the same budget a wrong password counts against,
+`security.passwordpolicy.maxfailedattempts`. When that budget is used up the temporary token is
+discarded, so the next attempt has to start again at step 1 with the password — and that step refuses
+an account whose failed attempts are over the limit. Six digits with unlimited guesses would otherwise
+make the second factor a delay rather than a factor.
+
+Clear `passwordAttempts` on the user to lift a lockout.
+
+### The Secret is Re-Issued on Every Enrolment
+
+Step 3 hands out the secret, and the only thing needed to get that far is the password. So every time
+a QR code is issued for a user who has not confirmed yet, the secret behind it is generated anew and
+the previous one stops working. Two people who both know the password can therefore never end up with
+the same working secret: whoever asked last is the only one who can complete step 5.
+
+For the user this means a QR code has to be scanned in the same login it was shown in. Starting the
+login again shows a new QR code, and an authenticator entry from an earlier attempt no longer matches.
+
+A confirmed user's secret is never touched — it lives in their authenticator app.
+
+### Login Paths That Cannot Ask for a Code
+
+An OAuth return, a registration confirmation link and a password reset link all identify a user
+without ever asking for a code. Where the configuration requires a second factor, none of them creates
+a session: the browser is redirected to `security.twofactorauthentication.loginpage` with a `token`
+parameter, and the login is finished there exactly as in step 6 above.
+
+These paths do not enrol. They carry no QR code — it would have to travel as a URL parameter, which
+does not fit in a redirect — so a user who has not confirmed a second factor yet has to log in with
+their password once, which is the flow that can enrol them.
 
 ## Implementation
 
@@ -302,15 +334,11 @@ curl -X PUT http://localhost:8082/structr/rest/User/<UUID> \
   -d '{"isTwoFactorUser": false}'
 ```
 
-## IP Whitelisting
+## IP Whitelisting (removed)
 
-For trusted networks or automated systems, you can bypass two-factor authentication based on IP address. Add IP addresses to the `security.twofactorauthentication.whitelistedIPs` setting:
+Earlier versions could skip the second factor for addresses listed in `security.twofactorauthentication.whitelistedIPs`. That setting no longer exists. The address it matched was read from the `X-Forwarded-For` header, which a client sets itself, so anyone who knew a listed address and a password could send that header and log in without a code. Structr logs a warning at startup if the key is still present in `structr.conf`, and requests from those addresses are asked for a code like any other.
 
-```
-security.twofactorauthentication.whitelistedIPs = 192.168.1.100, 10.0.0.0/24
-```
-
-Requests from whitelisted IPs proceed with password authentication only, even if the user has two-factor authentication enabled.
+Use **Trusted Devices** below to spare a known browser the code, or a reverse proxy in front of Structr if access really has to be decided by network address.
 
 
 ## Trusted Devices

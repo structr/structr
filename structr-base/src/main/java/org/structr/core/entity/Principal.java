@@ -61,6 +61,7 @@ public interface Principal extends NodeInterface {
 	String getTwoFactorUrl();
 	void setTwoFactorConfirmed(final boolean b) throws FrameworkException;
 	void setTwoFactorToken(final String token) throws FrameworkException;
+	void setTwoFactorSecret(final String secret) throws FrameworkException;
 	boolean isTwoFactorUser();
 	void setIsTwoFactorUser(final boolean b) throws FrameworkException;
 	boolean isTwoFactorConfirmed();

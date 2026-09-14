@@ -39,7 +39,6 @@ import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.DeviceTrustHelper;
 import org.structr.rest.auth.JWTHelper;
-import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
@@ -93,7 +92,7 @@ public class TokenResource extends ExactMatchEndpoint {
 				final boolean userRequestedTrust = propertySet.containsKey(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING) && (boolean) propertySet.get(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING);
 				final String userAgentString     = request.getHeader(HttpHeader.USER_AGENT.asString());
 
-				final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(request), userAgentString, AuthHelper.getDeviceTrustCookie(request));
+				final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, userAgentString, AuthHelper.getDeviceTrustCookie(request));
 
 				if (result != AuthHelper.TwoFactorAuthenticationResult.FAILURE) {
 

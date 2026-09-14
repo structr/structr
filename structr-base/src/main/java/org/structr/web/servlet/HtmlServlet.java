@@ -1314,6 +1314,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				final NodeInterface user = results.get(0);
 				Identity<?> userId;
+				String twoFactorRedirect = null;
+				String userName          = null;
 
 				try (final Tx tx = app.tx()) {
 
@@ -1324,7 +1326,17 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						if (Settings.RestUserAutologin.getValue()) {
 
-							AuthHelper.doLogin(request, user.as(Principal.class));
+							/* A confirmation link is a single factor - possession of the mailbox - and this
+							   path never went near handleTwoFactorAuthentication(), so a configuration that
+							   requires a second factor was satisfied by clicking a link in an e-mail. Send
+							   the browser to the two-factor page instead of opening a session here; the
+							   registration itself is already confirmed above either way. */
+							twoFactorRedirect = AuthHelper.getTwoFactorRedirectForPrincipal(request, user.as(Principal.class));
+
+							if (twoFactorRedirect == null) {
+
+								AuthHelper.doLogin(request, user.as(Principal.class));
+							}
 
 						} else {
 
@@ -1336,9 +1348,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
 					}
 
-					userId = user.getNode().getId();
+					userId   = user.getNode().getId();
+					userName = user.getName();
 
 					tx.success();
+				}
+
+				if (twoFactorRedirect != null) {
+
+					logger.info("Registration confirmation for {} requires a second factor, redirecting to {}", userName, Settings.TwoFactorLoginPage.getValue());
+
+					sendRedirectHeader(response, twoFactorRedirect, false);
+
+					return true;
 				}
 
 				// broadcast login to cluster for the user
@@ -1407,24 +1429,31 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			if (!results.isEmpty()) {
 
-				final NodeInterface user = results.get(0);
-				Identity<?> userId;
+				final boolean confirmationKeyValid = AuthHelper.isConfirmationKeyValid(key, Settings.ConfirmationKeyPasswordResetValidityPeriod.getValue());
+				final NodeInterface user           = results.get(0);
+				Identity<?> userId                 = null;
+				String twoFactorRedirect           = null;
+				String userName                    = null;
 
 				try (final Tx tx = app.tx()) {
 
 					// Clear confirmation key and set session id
 					user.setProperty(confirmationKeyKey, null);
 
-					if (AuthHelper.isConfirmationKeyValid(key, Settings.ConfirmationKeyPasswordResetValidityPeriod.getValue())) {
+					if (confirmationKeyValid) {
 
 						if (Settings.RestUserAutologin.getValue()) {
 
-							if (Settings.PasswordResetFailedCounterOnPWReset.getValue()) {
+							/* The reset link proves the mailbox, nothing more, and this path never went near
+							   handleTwoFactorAuthentication(). A password reset is the one flow an attacker
+							   reaches without knowing the password at all, so opening a session here handed
+							   out an account that the configuration says needs a second factor. */
+							twoFactorRedirect = AuthHelper.getTwoFactorRedirectForPrincipal(request, user.as(Principal.class));
 
-								AuthHelper.resetFailedLoginAttemptsCounter(user.as(Principal.class));
+							if (twoFactorRedirect == null) {
+
+								AuthHelper.doLogin(request, user.as(Principal.class));
 							}
-
-							AuthHelper.doLogin(request, user.as(Principal.class));
 
 						} else {
 
@@ -1436,9 +1465,35 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
 					}
 
-					userId = user.getNode().getId();
+					userId   = user.getNode().getId();
+					userName = user.getName();
 
 					tx.success();
+				}
+
+				/* After the transaction above, not inside it. resetFailedLoginAttemptsCounter() has to commit
+				   independently of its caller - header authentication runs it in a transaction the servlet
+				   never commits - so it writes on a thread of its own and joins that thread. Called from
+				   inside the transaction above, which has just written to this same user, that thread waits
+				   for a node this one is still holding and the request never answers. The short transaction
+				   here only reads the uuid, so nothing is held while the write happens. */
+				if (confirmationKeyValid && Settings.RestUserAutologin.getValue() && Settings.PasswordResetFailedCounterOnPWReset.getValue()) {
+
+					try (final Tx tx = app.tx()) {
+
+						AuthHelper.resetFailedLoginAttemptsCounter(user.as(Principal.class));
+
+						tx.success();
+					}
+				}
+
+				if (twoFactorRedirect != null) {
+
+					logger.info("Password reset login for {} requires a second factor, redirecting to {}", userName, Settings.TwoFactorLoginPage.getValue());
+
+					sendRedirectHeader(response, twoFactorRedirect, false);
+
+					return true;
 				}
 
 				Services.getInstance().broadcastLogin(userId.hash());
