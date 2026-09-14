@@ -36,11 +36,17 @@ export class StructrRest {
 
     getByName(type, name, view) {
         let queryPath = this.restEndPoint;
-        if (type !== undefined && type !== null && type.length > 0) {
-            queryPath += (type + "/");
+		let typeIsSet = (type !== undefined && type !== null && type.length > 0);
+		let viewIsSet = (view !== undefined && view !== null && view.length > 0);
+
+		if (typeIsSet) {
+			queryPath += type;
         }
 
-        if (view !== undefined && view !== null && view.length > 0) {
+        if (viewIsSet) {
+			if (typeIsSet) {
+				queryPath += "/";
+			}
             queryPath += view;
         }
 

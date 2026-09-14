@@ -46,6 +46,17 @@ public class FlowContainerPackage extends FlowBaseNode implements DeployableEnti
 		return Iterables.map(n -> n.as(FlowContainer.class), nodes);
 	}
 
+	public FlowContainerPackage getParent() {
+
+		final NodeInterface parent = wrappedObject.getProperty(traits.key(FlowContainerPackageTraitDefinition.PARENT_PROPERTY));
+
+		if (parent != null) {
+			return parent.as(FlowContainerPackage.class);
+		}
+
+		return null;
+	}
+
 	public Iterable<FlowContainerPackage> getPackages() {
 
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowContainerPackageTraitDefinition.PACKAGES_PROPERTY));
