@@ -904,8 +904,8 @@ public class MigrationService {
 					}
 				}
 
-				// flow -> FlowContainer
-				if (eam.getProperty(flowNodeKey) == null && StringUtils.isNotBlank(flowName)) {
+				// flow -> FlowContainer, skipped without the flow module: it registers the type this query needs
+				if (eam.getProperty(flowNodeKey) == null && StringUtils.isNotBlank(flowName) && Traits.exists(StructrTraits.FLOW_CONTAINER)) {
 
 					final NodeInterface resolvedFlow = app.nodeQuery(StructrTraits.FLOW_CONTAINER).name(flowName).getFirst();
 					if (resolvedFlow != null) {

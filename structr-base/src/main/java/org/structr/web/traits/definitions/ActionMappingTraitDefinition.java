@@ -220,7 +220,8 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		// flow -> FlowContainer
 		NodeInterface resolvedFlow = null;
 
-		if (StringUtils.isNotBlank(flowName)) {
+		// the flow module registers the type, so an installation without it has a flow name but no type to query
+		if (StringUtils.isNotBlank(flowName) && Traits.exists(StructrTraits.FLOW_CONTAINER)) {
 
 			resolvedFlow = app.nodeQuery(StructrTraits.FLOW_CONTAINER).name(flowName).getFirst();
 
