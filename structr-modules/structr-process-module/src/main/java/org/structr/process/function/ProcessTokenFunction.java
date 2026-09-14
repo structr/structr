@@ -46,7 +46,7 @@ import java.util.Map;
  * as ?token=<jwt>. The token is self-contained, tamper-proof, and has
  * a configurable expiry (default: 48 hours).
  */
-public class ProcessTokenFunction extends Function<Object, Object> {
+public class ProcessTokenFunction extends ProcessModuleFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProcessTokenFunction.class);
 
@@ -54,12 +54,6 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 	public String getName() {
 
 		return "processToken";
-	}
-
-	@Override
-	public String getRequiredModule() {
-
-		return null;
 	}
 
 	@Override
@@ -169,11 +163,5 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 				"Create token and build notification URL in JavaScript"
 			)
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.Security;
 	}
 }

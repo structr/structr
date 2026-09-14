@@ -31,18 +31,12 @@ import org.structr.schema.action.Function;
 
 import java.util.List;
 
-public class ImportBPMNFunction extends Function<Object, Object> {
+public class ImportBPMNFunction extends ProcessModuleFunction {
 
 	@Override
 	public String getName() {
 
 		return "importBpmn";
-	}
-
-	@Override
-	public String getRequiredModule() {
-
-		return null;
 	}
 
 	@Override
@@ -105,11 +99,5 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 			Example.structrScript("${import_bpmn(xml)}", "Import BPMN XML and return the BpmnDefinitions node"),
 			Example.javaScript("${{let def = $.importBpmn(xml);}}", "Import BPMN XML in JavaScript")
 		);
-	}
-
-	@Override
-	public FunctionCategory getCategory() {
-
-		return FunctionCategory.InputOutput;
 	}
 }
