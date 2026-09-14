@@ -60,6 +60,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.AssertJUnit.*;
@@ -1047,5 +1048,74 @@ public class UiTest extends StructrUiTest {
 		}
 
 		return "TestImage";
+	}
+
+	/**
+	 * Ticket 1505: a file uploaded under a name that hides its type ("test.jpg_thumb100x100") becomes a
+	 * File with content type application/octet-stream. Setting contentType to image/... switches the type
+	 * to Image - but the Image label was never written, so no query for Image found the file afterwards.
+	 *
+	 * <p>The cause was not in FileHelper but in the bulk write path, see
+	 * PropertyTest.testTypeChangeViaSetPropertiesUpdatesLabels().
+	 */
+	@Test
+	public void testContentTypeChangeToImageRelabelsTheFile() {
+
+		String id = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = FileHelper.createFile(securityContext, "not really an image".getBytes(), "application/octet-stream", StructrTraits.FILE, "test.jpg_thumb100x100", false);
+
+			id = file.getUuid();
+
+			assertFalse("The file must start out as a plain File", file.is(StructrTraits.IMAGE));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		// what the General tab does: set the content type, then let FileHelper work out the consequences
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = app.getNodeById(StructrTraits.FILE, id);
+
+			file.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY), "image/jpeg");
+
+			FileHelper.updateMetadata(file.as(File.class));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface changed = app.getNodeById(id);
+
+			assertNotNull("The file must still exist", changed);
+			assertEquals("The type must have switched to Image", StructrTraits.IMAGE, changed.getType());
+
+			final Set<String> labels = Iterables.toSet(changed.getNode().getLabels());
+
+			assertTrue("The Image label must be on the node: " + labels, labels.contains(StructrTraits.IMAGE));
+			assertTrue("The File label must survive, Image is a File", labels.contains(StructrTraits.FILE));
+
+			assertNotNull("A query for Image must find the file", app.getNodeById(StructrTraits.IMAGE, id));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception: " + ex.getMessage());
+		}
 	}
 }

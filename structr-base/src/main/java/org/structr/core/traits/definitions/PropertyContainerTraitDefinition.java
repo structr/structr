@@ -363,7 +363,6 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 	private static void setPropertiesInternal(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
 		final CreationContainer container = new CreationContainer(graphObject.getTraits(), graphObject);
-		final Traits traits               = graphObject.getTraits();
 		boolean atLeastOnePropertyChanged = false;
 
 		for (final Map.Entry<PropertyKey, Object> attr : properties.entrySet()) {
@@ -390,9 +389,14 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 						if (propertyKey instanceof TypeProperty) {
 
-							if (graphObject instanceof NodeInterface node) {
+							if (graphObject instanceof NodeInterface node && value instanceof String newType) {
 
-								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), node, traits, true);
+								// The traits of the NEW type. This used to pass graphObject.getTraits(), which is still
+								// the type the node had before this write, so the labels were recomputed from the old
+								// type and the new one never appeared: the type property said Image while the labels
+								// still said File, and no query for Image found the node (ticket 1505). The single-key
+								// path in TypeProperty.setProperty() always got this right, only the bulk path did not.
+								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), node, Traits.of(newType), true);
 							}
 						}
 

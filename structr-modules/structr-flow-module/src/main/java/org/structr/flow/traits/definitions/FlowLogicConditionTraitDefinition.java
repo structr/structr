@@ -35,7 +35,7 @@ import org.structr.flow.impl.FlowCondition;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowLogicCondition;
 import org.structr.flow.impl.FlowNode;
-import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.FlowDataSourceOperations;
 import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
@@ -69,7 +69,7 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 					}
 				},
 
-				DataSourceOperations.class, new DataSourceOperations() {
+				FlowDataSourceOperations.class, new FlowDataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {

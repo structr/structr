@@ -34,7 +34,7 @@ import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowNotNull;
-import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.FlowDataSourceOperations;
 import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.List;
@@ -58,7 +58,7 @@ public class FlowNotNullTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-				DataSourceOperations.class, new DataSourceOperations() {
+				FlowDataSourceOperations.class, new FlowDataSourceOperations() {
 
 					@Override
 					public Object get(final Context context, final FlowDataSource node) throws FlowException {

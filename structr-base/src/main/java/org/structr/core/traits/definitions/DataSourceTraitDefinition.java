@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -34,8 +36,10 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.operations.graphobject.Evaluate;
+import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.wrappers.DataSourceTraitWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -54,6 +58,32 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public DataSourceTraitDefinition() {
 
 		super(StructrTraits.DATA_SOURCE);
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance) {
+
+		return Map.of(
+
+			OnCreation.class, new OnCreation() {
+
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					// DataSource is the shared base type of the concrete data sources, not one itself: every
+					// operation below throws, so a node of this exact type would be a data source that cannot
+					// deliver values, fields or a data type. The type has to refuse instantiation itself
+					// because the framework offers no way to mark a built-in type as abstract -
+					// TraitsImplementation.isAbstract() is hardcoded to false, which leaves the check in
+					// StructrApp.create() unreachable.
+					if (StructrTraits.DATA_SOURCE.equals(graphObject.getType())) {
+
+						throw new FrameworkException(422, "Cannot create a node of abstract type " + StructrTraits.DATA_SOURCE
+							+ ", use one of its concrete types instead (" + StructrTraits.SCRIPT_DATA_SOURCE + " or " + StructrTraits.QUERY_DATA_SOURCE + ").");
+					}
+				}
+			}
+		);
 	}
 
 	@Override

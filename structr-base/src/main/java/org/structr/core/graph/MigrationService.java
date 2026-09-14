@@ -24,6 +24,8 @@ import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
+import org.structr.api.DatabaseService;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
 import org.structr.api.config.Settings;
@@ -40,6 +42,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.graph.OutboundHttpCallMigrationHandler;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.web.entity.Folder;
@@ -191,6 +194,20 @@ public class MigrationService {
 	public static final String DRY_RUN = "dry-run";
 	public static final String OFF     = "off";
 
+	/**
+	 * Raised by a step that changes the database in a way the modification queue does not see.
+	 *
+	 * <p>currentTransactionHasChanges() asks the queue, and raw label writes (addLabels/removeLabel)
+	 * go straight to the driver, so a dry run of such a step would otherwise report that nothing is
+	 * pending. A step that writes outside the queue works out for itself whether it has anything to
+	 * do and raises this instead; in a dry run it then does not write at all, rather than writing and
+	 * relying on the rollback.
+	 *
+	 * <p>Migrations run single-threaded behind hasExclusiveDatabaseAccess(), and execute() clears the
+	 * flag before every step.
+	 */
+	private static boolean stepReportedChanges = false;
+
 	@FunctionalInterface
 	private interface Step {
 
@@ -202,7 +219,8 @@ public class MigrationService {
 	/** The migration steps in the order they have to run. */
 	private static final List<MigrationStep> STEPS = List.of(
 		new MigrationStep("migrateStaticSchema",                        Kind.WRITING, false, apply -> migrateStaticSchema()),
-		new MigrationStep("migratePrincipalToPrincipalInterface",       Kind.WRITING, false, apply -> migratePrincipalToPrincipalInterface()),
+		new MigrationStep("migratePrincipalToPrincipalInterface",       Kind.WRITING, false, MigrationService::migratePrincipalToPrincipalInterface),
+		new MigrationStep("migrateDataSourceLabels",                    Kind.WRITING, false, MigrationService::migrateDataSourceLabels),
 		new MigrationStep("migrateFolderMountTarget",                   Kind.WRITING, false, apply -> migrateFolderMountTarget()),
 		new MigrationStep("migrateEventActionMapping",                  Kind.WRITING, false, apply -> migrateEventActionMapping()),
 		new MigrationStep("migrateActionMappingTargetsToRelationships", Kind.WRITING, false, apply -> migrateActionMappingTargetsToRelationships()),
@@ -295,12 +313,15 @@ public class MigrationService {
 
 						try (final Tx dryRun = StructrApp.getInstance().tx()) {
 
+							stepReportedChanges = false;
+
 							step.action().run(!reportOnly);
 
 							// asked before the rollback, while the queue still holds what the step did. A step
 							// that found nothing to migrate records nothing, and that is what lets an instance
-							// with nothing pending start normally instead of stopping to report no news.
-							if (TransactionCommand.currentTransactionHasChanges()) {
+							// with nothing pending start normally instead of stopping to report no news. A step
+							// that writes past the queue reports through stepReportedChanges instead.
+							if (TransactionCommand.currentTransactionHasChanges() || stepReportedChanges) {
 
 								changesPending = true;
 
@@ -476,21 +497,192 @@ public class MigrationService {
 		}
 	}
 
-	private static void migratePrincipalToPrincipalInterface() throws FrameworkException {
+	/**
+	 * Adds the Principal label to principal nodes written before Principal became a label of its own.
+	 *
+	 * <p>The previous version of this step queried for the Principal label and called addLabels() on
+	 * every hit. That could not repair anything: a type query becomes MATCH (n:Principal ...), so a node
+	 * missing the label is never returned, and every node that was returned already had it. What it did
+	 * do was write one unconditional SET n:Principal per principal on every single startup.
+	 *
+	 * <p>The concrete types that have the trait are surveyed instead. Only the missing direction is
+	 * applied: this step exists to add a label older versions did not write, and stripping other labels
+	 * off User and Group nodes is not part of that.
+	 */
+	private static void migratePrincipalToPrincipalInterface(final boolean apply) throws FrameworkException {
 
-		final App app = StructrApp.getInstance();
+		final Map<String, Integer> missing = findNodesMissingLabel(StructrTraits.PRINCIPAL);
+
+		if (missing.isEmpty()) {
+
+			return;
+		}
+
+		logger.info("MigrationService: nodes missing the {} label, by type: {}.", StructrTraits.PRINCIPAL, missing);
+
+		if (!apply) {
+
+			stepReportedChanges = true;
+
+			return;
+		}
+
+		recomputeLabels(missing.keySet(), false);
+	}
+
+	/**
+	 * Counts the nodes that should carry {@code label} but do not, per type.
+	 *
+	 * <p>A node carries the labels its type had when the node was written, so a type that gained a trait
+	 * in a later version leaves its existing nodes without that label. Those nodes cannot be found by
+	 * querying for the label - it is the very label they are missing - so the types that have the trait
+	 * are surveyed instead.
+	 *
+	 * <p>Only built-in types are surveyed: a dynamic type can only have the trait by inheriting it from a
+	 * built-in ancestor, and a query for the ancestor returns its nodes as well.
+	 */
+	private static Map<String, Integer> findNodesMissingLabel(final String label) throws FrameworkException {
+
+		final Map<String, Integer> missing = new TreeMap<>();
+		final App app                      = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			// check (and fix) principal nodes
+			for (final String type : Traits.getAllTypes(t -> t.isNodeType() && t.isBuiltinType() && t.contains(label))) {
 
-			for (final NodeInterface p : app.nodeQuery(StructrTraits.PRINCIPAL).getResultStream()) {
+				// a query for the label's own type returns nodes that carry it by definition
+				if (label.equals(type)) {
 
-				p.getNode().addLabels(Set.of(StructrTraits.PRINCIPAL));
+					continue;
+				}
+
+				for (final NodeInterface node : app.nodeQuery(type).getAsList()) {
+
+					if (!Iterables.toSet(node.getNode().getLabels()).contains(label)) {
+
+						missing.merge(type, 1, Integer::sum);
+					}
+				}
 			}
 
 			tx.success();
 		}
+
+		return missing;
+	}
+
+	/**
+	 * Has BulkCreateLabelsCommand recompute the labels of all nodes of the given types from their type.
+	 *
+	 * <p>It writes nothing for a node whose labels already match, and it recomputes from the node's own
+	 * type, so querying a built-in type also puts the right labels on nodes of its dynamic subtypes.
+	 */
+	private static void recomputeLabels(final Collection<String> types, final boolean removeUnused) {
+
+		final App app = StructrApp.getInstance();
+
+		for (final String type : types) {
+
+			app.command(BulkCreateLabelsCommand.class).execute(Map.of("type", type, "removeUnused", removeUnused));
+		}
+	}
+
+	/**
+	 * Brings the DataSource label in line with the DataSource trait, in both directions.
+	 *
+	 * <p><b>Missing:</b> a node carries the labels its type had when the node was written, so nodes
+	 * from before a type became a data source lack the label. SchemaNode and Folder are the types that
+	 * applies to today.
+	 *
+	 * <p><b>Stale:</b> before the flow module was ported to traits, its nodes implemented an interface
+	 * that happened to be called DataSource as well (org.structr.flow.api.DataSource, removed 03/2025),
+	 * and a node was labelled with every interface its type implemented. Seventeen flow types carried
+	 * it, so an upgraded instance has FlowTypeQuery, FlowConstant, FlowStore, ... nodes labelled
+	 * DataSource, where the label now means something entirely different. A type query does find them:
+	 * SearchCommand applies TypeSearchAttribute.includeInResult() only when the query has graph,
+	 * spatial or relationship-visibility sources, and a plain type query has none of those - so they
+	 * surface as data sources in the UI.
+	 *
+	 * <p>Both directions are one and the same operation: recompute a node's labels from its type. That
+	 * is what BulkCreateLabelsCommand does, so this step only works out which types to run it for. The
+	 * stale types are discovered through the label instead of being listed, so a leftover from some
+	 * other removed interface is picked up as well.
+	 *
+	 * <p>The survey is separate from the fix so that a dry run can say what it would do: label writes
+	 * bypass the modification queue, so the step has to report through stepReportedChanges. Keeping
+	 * them apart also means an instance whose labels are in order never runs the bulk command at all.
+	 */
+	private static void migrateDataSourceLabels(final boolean apply) throws FrameworkException {
+
+		final Set<String> typesWithTrait    = Traits.getAllTypes(t -> t.isNodeType() && t.contains(StructrTraits.DATA_SOURCE));
+		final DatabaseService<?> graphDb    = Services.getInstance().getDatabaseService();
+		final Map<String, Integer> missing  = findNodesMissingLabel(StructrTraits.DATA_SOURCE);
+		final Map<String, Integer> stale    = new TreeMap<>();
+		final Set<String> unknownTypes      = new TreeSet<>();
+		final App app                       = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			// stale: everything that carries the label, counted by the type that actually owns the node
+			for (final Node node : graphDb.getNodesByLabel(StructrTraits.DATA_SOURCE)) {
+
+				final Object type = node.getProperty(GraphObjectTraitDefinition.TYPE_PROPERTY);
+
+				// A node whose type cannot be read is left alone: TypeProperty derives the type from a
+				// single label for nodes without a type property, so such a node may well be a data source.
+				if (type instanceof String typeName && !typesWithTrait.contains(typeName)) {
+
+					// A type that no longer exists cannot be recomputed from - and getNodeQuery() falls back
+					// to a query over ALL nodes for an unknown type, which must not happen here.
+					if (Traits.exists(typeName)) {
+
+						stale.merge(typeName, 1, Integer::sum);
+
+					} else {
+
+						unknownTypes.add(typeName);
+					}
+				}
+			}
+
+			tx.success();
+		}
+
+		if (!unknownTypes.isEmpty()) {
+
+			logger.warn("MigrationService: {} label found on nodes of unknown types {}; leaving those alone.", StructrTraits.DATA_SOURCE, unknownTypes);
+		}
+
+		if (stale.isEmpty() && missing.isEmpty()) {
+
+			return;
+		}
+
+		if (!missing.isEmpty()) {
+
+			logger.info("MigrationService: nodes missing the {} label, by type: {}.", StructrTraits.DATA_SOURCE, missing);
+		}
+
+		if (!stale.isEmpty()) {
+
+			logger.info("MigrationService: nodes carrying the {} label whose type does not have the trait, by type: {}.", StructrTraits.DATA_SOURCE, stale);
+		}
+
+		if (!apply) {
+
+			// the label writes below would not show up in the modification queue, so say so here
+			stepReportedChanges = true;
+
+			return;
+		}
+
+		final Set<String> types = new TreeSet<>(missing.keySet());
+
+		types.addAll(stale.keySet());
+
+		// removeUnused, because the stale direction is the point here: the DataSource label has to come
+		// off the flow nodes again
+		recomputeLabels(types, true);
 	}
 
 	private static void migrateEventActionMapping() throws FrameworkException {
