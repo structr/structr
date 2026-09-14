@@ -85,6 +85,8 @@ public interface ActionMapping extends NodeInterface {
 	String getSuccessNotificationsPartial();
 	String getSuccessNotificationsEvent();
 	Integer getSuccessNotificationsDelay();
+	String getSuccessNotificationsText();
+	String getSuccessNotificationsCssClass();
 
 	String getFailureNotifications();
 	String getFailureBehaviour();
@@ -97,6 +99,8 @@ public interface ActionMapping extends NodeInterface {
 	String getFailureNotificationsPartial();
 	String getFailureNotificationsEvent();
 	Integer getFailureNotificationsDelay();
+	String getFailureNotificationsText();
+	String getFailureNotificationsCssClass();
 
 	NodeInterface cloneActionMapping(final Map<String, DOMNode> mapOfClonedNodes) throws FrameworkException;
 }

@@ -1782,31 +1782,51 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) throws FrameworkException {
 
-		final List<NodeInterface> sites = StructrApp.getInstance().nodeQuery(StructrTraits.SITE).getAsList();
-		if (sites == null || sites.isEmpty()) {
+		// read as superuser: which host serves a page is configuration, not something a visitor may be denied sight of
+		final PropertyKey<Iterable<NodeInterface>> sitesKey = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY);
+		final List<NodeInterface> pageSites                 = Iterables.toList(sitesKey.getProperty(SecurityContext.getSuperUserInstance(), page, false));
+		final String serverName                             = request.getServerName();
+		final int serverPort                                = request.getServerPort();
 
-			return true;
+		// a page that names sites is served only where one of them matches
+		if (!pageSites.isEmpty()) {
+
+			for (final NodeInterface site : pageSites) {
+
+				if (matchesRequest(site.as(Site.class), serverName, serverPort)) {
+
+					return true;
+				}
+			}
+
+			return false;
 		}
 
-		final String serverName = request.getServerName();
-		final int serverPort    = request.getServerPort();
-		boolean isVisible = false;
+		// a page without a site is served on every host that no site claims
+		for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SITE).getAsList()) {
 
-		for (final Site site : Iterables.toList(page.getSites())) {
+			if (matchesRequest(node.as(Site.class), serverName, serverPort)) {
 
-				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
-
-					isVisible = true;
-				}
-
-				final Integer sitePort = site.getPort();
-				if (isVisible && (sitePort == null || serverPort == sitePort)) {
-
-					isVisible = true;
-				}
+				return false;
+			}
 		}
 
-		return isVisible;
+		return true;
+	}
+
+	// a site is identified by its hostname, so one without a hostname claims nothing whatever else it configures
+	private static boolean matchesRequest(final Site site, final String serverName, final int serverPort) {
+
+		final String hostname = site.getHostname();
+
+		if (StringUtils.isBlank(hostname) || !hostname.equals(serverName)) {
+
+			return false;
+		}
+
+		final Integer sitePort = site.getPort();
+
+		return sitePort == null || sitePort == serverPort;
 	}
 
 	public static void processConfiguredPropertyNamesForObjectResolution(final Query query, final String value) {
