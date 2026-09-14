@@ -3125,10 +3125,10 @@ let _Schema = {
 					_Schema.views.rowChanged(gridRow, entity, initialViewConfig);
 				});
 
-				_Schema.views.bindRowEvents(gridRow, entity, view, initialViewConfig);
+				_Schema.views.bindRowEvents(gridBody, gridRow, entity, view, initialViewConfig);
 			});
 		},
-		bindRowEvents: (gridRow, entity, view, initialViewConfig) => {
+		bindRowEvents: (gridBody, gridRow, entity, view, initialViewConfig) => {
 
 			let viewInfoChangeHandler = () => { _Schema.views.rowChanged(gridRow, entity, initialViewConfig); };
 
@@ -3144,6 +3144,24 @@ let _Schema = {
 
 			// jquery is required for change handler of select2 plugin
 			$(gridRow.querySelector('.view.property-attrs')).on('change', viewInfoChangeHandler);
+
+			gridRow.querySelector('.clone-action')?.addEventListener('click', () => {
+
+				let clonedGridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.views.templates.viewNew());
+				gridBody.appendChild(clonedGridRow);
+
+				_Schema.views.appendViewSelectionElement(clonedGridRow, { name: view.name }, entity, (selectElement) => {
+
+					selectElement.select2Sortable();
+
+					_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+				});
+
+				clonedGridRow.querySelector('.discard-changes').addEventListener('click', () => {
+					_Helpers.fastRemoveElement(clonedGridRow);
+					_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+				});
+			});
 
 			gridRow.querySelector('.discard-changes')?.addEventListener('click', () => {
 
@@ -3358,6 +3376,7 @@ let _Schema = {
 						<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
 					</div>
 					<div class="actions-col gap-1 flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Delete') : ''}
 	
