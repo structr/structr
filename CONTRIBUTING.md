@@ -96,13 +96,12 @@ java config/testlog/TestLogReview.java /tmp/run.log
 Handy flags: `--section passed|calibration|unowned` for the per-test views, `--top N` for more rows,
 `--ignore REGEX` for noise you know about, and `--fail-on-new` if you want CI to be strict.
 
-`config/testlog/normal.baseline` is a record of the log output we currently live with, so a run can
-point out only what is new or has grown. It hides nothing: every section is still computed and printed
-in full, and the baseline simply adds the "what is new" view. `--write-baseline` refreshes it, and CI
-is the better place to do that, since a baseline written on a laptop carries that machine's JDK
-version and language settings with it. A refresh is also how noise quietly becomes normal, so it is
-worth keeping in its own commit where someone can see it; the file's header says which run it came
-from.
+A baseline records the log output a run already lived with, so a later run can point out only what is
+new or has grown. `--write-baseline FILE` writes one and `--baseline FILE` reads it back; the tool also
+picks up `config/testlog/normal.baseline` on its own when that file exists. None is committed: a
+baseline is written from one run and replaces the whole file, so it only describes the modules that
+run covered, and one written on a laptop carries that machine's JDK version and language settings with
+it. Write your own when you want the "what is new" view, from a full run and preferably on CI.
 
 Both reports come from `.mvn/lib/structr-build-extension.jar`, which is committed and loaded through
 `.mvn/maven.config`, so a fresh clone shows them straight away. If you change that extension, rebuild
