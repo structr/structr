@@ -27,7 +27,7 @@ import org.structr.process.auth.ProcessJWTHelper;
 import org.structr.process.bpmn.BpmnImporter;
 import org.structr.process.function.ExportBPMNFunction;
 import org.structr.process.function.ImportBPMNFunction;
-import org.structr.process.function.NotifyFunction;
+import org.structr.process.function.ProcessNotifyFunction;
 import org.structr.process.function.ProcessInstanceUrlFunction;
 import org.structr.process.function.ProcessTokenFunction;
 import org.structr.process.function.ValidateProcessTokenFunction;
@@ -209,12 +209,12 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 		try (final Tx tx = app.tx()) {
 
 			// 'log' channel is SMTP-free and returns TRUE.
-			assertEquals(Boolean.TRUE, new NotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject", "body" }));
+			assertEquals(Boolean.TRUE, new ProcessNotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject", "body" }));
 
 			// unknown channel -> 422.
 			try {
 
-				new NotifyFunction().apply(ctx(), null, new Object[] { "carrier-pigeon", "x", "s", "m" });
+				new ProcessNotifyFunction().apply(ctx(), null, new Object[] { "carrier-pigeon", "x", "s", "m" });
 				fail("expected 422 for an unknown notification channel");
 
 			} catch (final FrameworkException expected) {
@@ -223,7 +223,7 @@ public class ProcessEngineFunctionTest extends AbstractProcessEngineTest {
 			}
 
 			// too few args -> returns null (not TRUE).
-			final Object resultForInvalidCall = new NotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject" });
+			final Object resultForInvalidCall = new ProcessNotifyFunction().apply(ctx(), null, new Object[] { "log", "admin", "subject" });
 			assertNull(resultForInvalidCall);
 			tx.success();
 		}

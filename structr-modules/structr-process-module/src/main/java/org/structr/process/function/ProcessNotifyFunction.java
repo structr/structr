@@ -37,15 +37,11 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
-import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 import org.structr.web.resource.ResetPasswordResource;
-import org.structr.web.resource.ResetPasswordResourceHandler;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Generic notification function for the Structr Process Engine.
@@ -55,7 +51,7 @@ import java.util.Map;
  * for process-driven notifications.
  *
  * Usage:
- *   notify(channel, recipient, subject, message)
+ *   processNotify(channel, recipient, subject, message)
  *
  * Channels:
  *   "email"     - sends HTML email via configured SMTP (falls back to plaintext)
@@ -66,9 +62,9 @@ import java.util.Map;
  *   "kafka"     - publish to Kafka topic
  *   "webhook"   - HTTP POST to URL
  */
-public class NotifyFunction extends ProcessModuleFunction {
+public class ProcessNotifyFunction extends ProcessModuleFunction {
 
-	private static final Logger logger = LoggerFactory.getLogger(NotifyFunction.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ProcessNotifyFunction.class.getName());
 
 	private enum TemplateKey {
 
@@ -89,7 +85,7 @@ public class NotifyFunction extends ProcessModuleFunction {
 	@Override
 	public String getName() {
 
-		return "notify";
+		return "processNotify";
 	}
 
 	@Override
@@ -111,13 +107,13 @@ public class NotifyFunction extends ProcessModuleFunction {
 					return sendEmailNotification(recipient, subject, message);
 
 				case "log":
-					logger.info("NOTIFY [{}] to={} subject={} message={}", channel, recipient, subject, message);
+					logger.info("PROCESS NOTIFY [{}] to={} subject={} message={}", channel, recipient, subject, message);
 
 					return true;
 
 				default:
-					logger.warn("Unknown notification channel: {}. Supported channels: email, log", channel);
-					throw new FrameworkException(422, "Unknown notification channel: " + channel + ". Supported channels: email, log");
+					logger.warn("Unknown process notification channel: {}. Supported channels: email, log", channel);
+					throw new FrameworkException(422, "Unknown process notification channel: " + channel + ". Supported channels: email, log");
 			}
 
 		} catch (ArgumentNullException | ArgumentCountException ex) {
@@ -201,7 +197,7 @@ public class NotifyFunction extends ProcessModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${notify(channel, recipient, subject, message)}"), Usage.javaScript("Usage: ${{$.notify(channel, recipient, subject, message)}}"));
+		return List.of(Usage.structrScript("Usage: ${processNotify(channel, recipient, subject, message)}"), Usage.javaScript("Usage: ${{$.processNotify(channel, recipient, subject, message)}}"));
 	}
 
 	@Override
@@ -246,15 +242,15 @@ public class NotifyFunction extends ProcessModuleFunction {
 
 		return List.of(
 			Example.structrScript(
-				"${notify('email', 'user@example.com', 'Leave Request Approved', 'Your leave request has been approved.')}",
+				"${processNotify('email', 'user@example.com', 'Leave Request Approved', 'Your leave request has been approved.')}",
 				"Send an email notification"
 			),
 			Example.structrScript(
-				"${notify('log', 'admin', 'Process Completed', 'Leave request process completed for user X.')}",
+				"${processNotify('log', 'admin', 'Process Completed', 'Leave request process completed for user X.')}",
 				"Log a notification (for testing)"
 			),
 			Example.javaScript(
-				"${{$.notify('email', user.eMail, 'Task Assigned', 'You have a new task: ' + task.name);}}",
+				"${{$.processNotify('email', user.eMail, 'Task Assigned', 'You have a new task: ' + task.name);}}",
 				"Send email notification in JavaScript using dynamic data"
 			)
 		);
