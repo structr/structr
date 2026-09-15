@@ -106,7 +106,11 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(traitsInstance, HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER).description("The home directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
 		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(traitsInstance, WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER).description("The work directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
 		final Property<NodeInterface> imgProperty                 = new StartNode(traitsInstance, IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
-		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed().description("Temporary token for email verification during self-registration. Set automatically when a user registers and cleared after successful confirmation.");
+		// readOnly for the same reason as the credentials on Principal: holding this key logs its holder
+		// in through /confirm_registration when registration.autologin is on (ticket 1584). The
+		// registration and password-reset handlers write it through a superuser context and are unaffected;
+		// an application with its own invitation flow sets it with setPrivileged().
+		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed().readOnly().description("Temporary token for email verification during self-registration. Set automatically when a user registers and cleared after successful confirmation.");
 		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
 		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed().description("When true, excludes this user from relationship-based permission checks. Useful for system users or service accounts that should bypass normal access control evaluation.");
 		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty(IS_USER_PROPERTY, true);

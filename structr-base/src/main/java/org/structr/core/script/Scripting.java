@@ -45,6 +45,7 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
+import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -330,6 +331,11 @@ public class Scripting {
 				// thenable completion value is settled.
 				PendingThenables.openFrame();
 
+				// The scripting file system is shared by every context, so it learns whose evaluation this
+				// is from the thread. It covers unwrap() as well as the evaluation itself, because a
+				// host-driven drain settles promises - and can therefore finish an import() - out here.
+				final ActionContext previousEvaluation = PolyglotFilesystem.bind(actionContext);
+
 				try {
 
 					final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet, asyncCompletion);
@@ -337,6 +343,7 @@ public class Scripting {
 
 				} finally {
 
+					PolyglotFilesystem.unbind(previousEvaluation);
 					PendingThenables.closeFrame();
 				}
 
@@ -423,6 +430,10 @@ public class Scripting {
 	}
 
 	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet, final AsyncCompletion asyncCompletion) throws FrameworkException {
+
+		// Also bound here, and not only in evaluateScript: a schema method reaches this method directly
+		// through AbstractMethod, with an inner ActionContext that evaluateScript never sees.
+		final ActionContext previousEvaluation = PolyglotFilesystem.bind(actionContext);
 
 		try {
 
@@ -545,6 +556,10 @@ public class Scripting {
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
+
+		} finally {
+
+			PolyglotFilesystem.unbind(previousEvaluation);
 		}
 	}
 

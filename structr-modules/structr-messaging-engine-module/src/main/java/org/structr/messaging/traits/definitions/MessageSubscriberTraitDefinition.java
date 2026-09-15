@@ -128,10 +128,16 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 		return newSet(clientsProperty, topicProperty, callbackProperty);
 	}
 
+	/**
+	 * The callback is script text that runs as the superuser on every message, and it is the place
+	 * credentials for whatever the subscriber talks to end up in. It used to be in the public view, so a
+	 * GET grant on MessageSubscriber handed out its source; it stays in "ui", which is the back end's own
+	 * view and restricted to administrators (tickets 1584 and 1592).
+	 */
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(PropertyView.Public, newSet(TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY), PropertyView.Ui, newSet(TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY));
+		return Map.of(PropertyView.Public, newSet(TOPIC_PROPERTY, CLIENTS_PROPERTY), PropertyView.Ui, newSet(TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY));
 	}
 
 	@Override

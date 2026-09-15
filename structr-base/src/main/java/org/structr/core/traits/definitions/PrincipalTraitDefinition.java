@@ -233,8 +233,18 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new EndNodes(traitsInstance, GRANTED_NODES_PROPERTY, StructrTraits.SECURITY).readOnly(),
 			new BooleanProperty(PrincipalTraitDefinition.IS_ADMIN_PROPERTY).indexed().readOnly(),
 			new BooleanProperty(BLOCKED_PROPERTY),
-			new ArrayProperty(SESSION_IDS_PROPERTY, String.class).indexed(),
-			new ArrayProperty(REFRESH_TOKENS_PROPERTY, String.class).indexed(),
+
+			/* Credentials in their own right, not descriptions of one: a session id is matched against the
+			   session cookie (AuthHelper.getPrincipalForSessionId), a refresh token against the JWT
+			   (JWTHelper), and a two-factor token identifies the account on its own
+			   (AuthHelper.getUserForTwoFactorToken). Writing one onto an account is therefore becoming that
+			   account, which is not what write access to a user record is handed out for - ticket 1584 gave
+			   delegated user administration as the example. readOnly stops that without stopping the auth
+			   system, which writes them through a superuser context throughout (login, self-registration,
+			   password reset, JWT issuance), and a superuser is exempt. An application that needs to write
+			   one - a custom invitation flow setting confirmationKey - goes through setPrivileged(). */
+			new ArrayProperty(SESSION_IDS_PROPERTY, String.class).indexed().readOnly(),
+			new ArrayProperty(REFRESH_TOKENS_PROPERTY, String.class).indexed().readOnly(),
 			new StringProperty(SESSION_DATA_PROPERTY),
 			new StringProperty(EMAIL_PROPERTY).indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName()),
 			new PasswordProperty(PASSWORD_PROPERTY),
@@ -242,7 +252,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new IntProperty(PASSWORD_ATTEMPTS_PROPERTY),
 			new DateProperty(LAST_LOGIN_DATE_PROPERTY),
 			new StringProperty(TWO_FACTOR_SECRET_PROPERTY),
-			new StringProperty(TWO_FACTOR_TOKEN_PROPERTY).indexed(),
+			new StringProperty(TWO_FACTOR_TOKEN_PROPERTY).indexed().readOnly(),
 			new BooleanProperty(IS_TWO_FACTOR_USER_PROPERTY),
 			new BooleanProperty(TWO_FACTOR_CONFIRMED_PROPERTY),
 			new StringProperty(SALT_PROPERTY),

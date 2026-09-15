@@ -745,37 +745,26 @@ public class AuthHelper {
 		return principal;
 	}
 
+	/**
+	 * Only the HMAC-signed format counts. The unsigned legacy shape "&lt;anything&gt;!&lt;timestamp&gt;"
+	 * used to be accepted as a fallback, which made the token something an attacker could state rather
+	 * than something the server issued - the timestamp was the only thing checked, and it is part of the
+	 * value (ticket 1584). Dropping it costs nothing on upgrade: a token lives
+	 * {@code security.twofactorauthentication.logintimeout} seconds, 300 by default, so the worst case is
+	 * that someone between password and second factor at the moment of the restart enters their password
+	 * again.
+	 */
 	public static boolean isTwoFactorTokenValid(final String twoFactorIdentificationToken) {
 
-		// Try new HMAC-signed format first
 		final Long created = extractTimestampFromToken(twoFactorIdentificationToken);
-		if (created != null) {
+		if (created == null) {
 
-			final long maxTokenValidity = created + Settings.TwoFactorLoginTimeout.getValue() * 1000L;
-
-			return (maxTokenValidity >= System.currentTimeMillis());
+			return false;
 		}
 
-		// Legacy format: uuid!timestamp
-		final String[] parts = twoFactorIdentificationToken.split("!");
-		if (parts.length == 2) {
+		final long maxTokenValidity = created + Settings.TwoFactorLoginTimeout.getValue() * 1000L;
 
-			try {
-
-				final long tokenCreatedTimestamp = Long.parseLong(parts[1]);
-				final long maxTokenValidity      = tokenCreatedTimestamp + Settings.TwoFactorLoginTimeout.getValue() * 1000L;
-
-				return (maxTokenValidity >= System.currentTimeMillis());
-
-			} catch (NumberFormatException e) {
-
-				logger.warn("Invalid legacy two-factor token format");
-
-				return false;
-			}
-		}
-
-		return false;
+		return (maxTokenValidity >= System.currentTimeMillis());
 	}
 
 	public enum TwoFactorAuthenticationResult {

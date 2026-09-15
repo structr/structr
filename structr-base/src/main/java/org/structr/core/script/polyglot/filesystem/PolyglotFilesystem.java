@@ -19,8 +19,7 @@
 package org.structr.core.script.polyglot.filesystem;
 
 import org.graalvm.polyglot.io.FileSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -32,6 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -47,9 +47,57 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The file system a scripting context sees: paths are resolved against the file area in the database,
+ * so a script can {@code import('/lib/util.js')} and every JavaScript snippet is a module, which means
+ * every script has import() available.
+ *
+ * <p>Ticket 1592: this used to resolve every path through {@code StructrApp.getInstance()}, and an App
+ * without a security context is the superuser instance - so import() read any file in the instance no
+ * matter who ran the script, and {@code checkAccess} caught FrameworkException and returned normally,
+ * which is a granted access. The file area is ACL-controlled like everything else in Structr, and there
+ * is no reason for the way in to change that, so access is resolved in the context of whoever is
+ * running the script: {@link #bind} publishes it for the duration of an evaluation, and a script
+ * running inside {@code $.doPrivileged()} sees the superuser context because that is what the
+ * ActionContext carries there.</p>
+ *
+ * <p>Failure is denial throughout. A file the caller may not read is indistinguishable from one that
+ * does not exist, because the node query in the caller's context does not return it either way.</p>
+ */
 public class PolyglotFilesystem implements FileSystem {
 
-	private static final Logger logger = LoggerFactory.getLogger(PolyglotFilesystem.class);
+	/**
+	 * The evaluation currently running on this thread. Set around every polyglot evaluation, because
+	 * the Context builders - and with them this file system - are static and shared by all of them,
+	 * while the caller is not. Read lazily on each call rather than captured, so a $.doPrivileged()
+	 * block, which swaps the security context on the ActionContext, is seen while it is in effect.
+	 */
+	private static final ThreadLocal<ActionContext> currentEvaluation = new ThreadLocal<>();
+
+	/**
+	 * Publishes the given evaluation to the file system and answers the one it replaced, which the
+	 * caller passes back to {@link #unbind} - scripts call scripts, so these nest.
+	 */
+	public static ActionContext bind(final ActionContext actionContext) {
+
+		final ActionContext previous = currentEvaluation.get();
+
+		currentEvaluation.set(actionContext);
+
+		return previous;
+	}
+
+	public static void unbind(final ActionContext previous) {
+
+		if (previous != null) {
+
+			currentEvaluation.set(previous);
+
+		} else {
+
+			currentEvaluation.remove();
+		}
+	}
 
 	@Override
 	public Path parsePath(URI uri) {
@@ -78,12 +126,12 @@ public class PolyglotFilesystem implements FileSystem {
 	@Override
 	public void checkAccess(Path path, Set<? extends AccessMode> modes, LinkOption... linkOptions) throws IOException {
 
-		final App app = StructrApp.getInstance();
+		final SecurityContext securityContext = getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface abstractFile  = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, path.toString()).getFirst();
+			final NodeInterface abstractFile = findByPath(app, StructrTraits.ABSTRACT_FILE, path);
 
 			tx.success();
 
@@ -92,25 +140,30 @@ public class PolyglotFilesystem implements FileSystem {
 				throw new NoSuchFileException("No file or folder found for path: " + path.toString());
 			}
 
+			if (modes.contains(AccessMode.WRITE) && !abstractFile.isGranted(Permission.write, securityContext)) {
+
+				throw new AccessDeniedException(path.toString());
+			}
+
 		} catch (FrameworkException ex) {
 
-			logger.error("Could not open directory stream for dir: {}.", path.toString(), ex);
+			throw new IOException("Could not check access for path: " + path.toString(), ex);
 		}
 	}
 
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
 
-        App app = StructrApp.getInstance();
+		final SecurityContext securityContext = getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface folder        = app.nodeQuery(StructrTraits.FOLDER).key(pathKey, dir.toString()).getFirst();
+			final NodeInterface folder = findByPath(app, StructrTraits.FOLDER, dir);
 
 			if (folder == null) {
 
-				FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
+				FileHelper.createFolderPath(securityContext, dir.toString());
 
 			} else {
 
@@ -119,21 +172,20 @@ public class PolyglotFilesystem implements FileSystem {
 
 			tx.success();
 
-        } catch (FrameworkException ex) {
+		} catch (FrameworkException ex) {
 
-			logger.error("Unexpected exception while trying to create folder", ex);
-        }
-    }
+			throw new IOException("Could not create folder for path: " + dir.toString(), ex);
+		}
+	}
 
 	@Override
 	public void delete(Path path) throws IOException {
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(getSecurityContext());
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface file          = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, path.toString()).getFirst();
+			final NodeInterface file = findByPath(app, StructrTraits.ABSTRACT_FILE, path);
 
 			if (file != null) {
 
@@ -148,27 +200,27 @@ public class PolyglotFilesystem implements FileSystem {
 
 		} catch (FrameworkException ex) {
 
-			logger.error("Unexpected exception while trying to delete file", ex);
+			throw new IOException("Could not delete file or folder for path: " + path.toString(), ex);
 		}
 	}
 
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
 
-		final App app = StructrApp.getInstance();
+		final SecurityContext securityContext = getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
 			final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
-			final PropertyKey<String> pathKey          = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
 			final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
-			NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(pathKey, path.toString()).getFirst();
+			NodeInterface file = findByPath(app, StructrTraits.FILE, path);
 
 			if (file == null && (options.contains(StandardOpenOption.CREATE) || options.contains(StandardOpenOption.CREATE_NEW))) {
 
 				if (path.getParent() != null) {
 
-					NodeInterface  parent = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path.getParent().toString());
+					NodeInterface  parent = FileHelper.createFolderPath(securityContext, path.getParent().toString());
 
 					file = app.create(StructrTraits.FILE,
 						new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString()),
@@ -187,7 +239,14 @@ public class PolyglotFilesystem implements FileSystem {
 
 			if (file == null) {
 
-				throw new IOException("Cannot open file. No file found or created for path: " + path.toString());
+				throw new NoSuchFileException("Cannot open file. No file found or created for path: " + path.toString());
+			}
+
+			// The channel writes bytes through the storage provider, which knows nothing about the node
+			// it belongs to, so a write permission the node query cannot express has to be checked here.
+			if (isWriting(options) && !file.isGranted(Permission.write, securityContext)) {
+
+				throw new AccessDeniedException(path.toString());
 			}
 
 			tx.success();
@@ -196,39 +255,33 @@ public class PolyglotFilesystem implements FileSystem {
 
 		} catch (FrameworkException ex) {
 
-			logger.error("Unexpected exception while trying to open new bytechannel", ex);
-
-			return null;
+			throw new IOException("Could not open byte channel for path: " + path.toString(), ex);
 		}
 	}
 
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
 
-		final App app = StructrApp.getInstance();
+		final SecurityContext securityContext = getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> path = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface folder     = app.nodeQuery(StructrTraits.FOLDER).key(path, dir.toString()).getFirst();
+			final NodeInterface folder = findByPath(app, StructrTraits.FOLDER, dir);
 
-			if (folder != null) {
+			tx.success();
 
-				tx.success();
-
-				return new VirtualDirectoryStream(dir, filter);
-
-			} else {
+			if (folder == null) {
 
 				throw new NotDirectoryException("No directory found for path: " + dir.toString());
 			}
 
+			return new VirtualDirectoryStream(securityContext, dir, filter);
+
 		} catch (FrameworkException ex) {
 
-			logger.error("Could not open directory stream for dir: {}.", dir.toString(), ex);
+			throw new IOException("Could not open directory stream for path: " + dir.toString(), ex);
 		}
-
-		throw new NotDirectoryException(dir.toString());
 	}
 
 	@Override
@@ -246,7 +299,7 @@ public class PolyglotFilesystem implements FileSystem {
 	@Override
 	public Map<String, Object> readAttributes(Path path, String rawattributes, LinkOption... options) throws IOException {
 
-		final NodeInterface file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path.toString());
+		final NodeInterface file = FileHelper.getFileByAbsolutePath(getSecurityContext(), path.toString());
 		if (file == null && rawattributes.equals("isDirectory")) {
 
 			return Map.of("isDirectory", false);
@@ -293,5 +346,36 @@ public class PolyglotFilesystem implements FileSystem {
 		}
 
 		return attributeMap;
+	}
+
+	// ----- private methods -----
+	/**
+	 * The security context every path in this file system is resolved in. There is no fallback: this
+	 * file system is reachable from a running script and nowhere else, so an unbound thread is a path
+	 * into the file area that nobody is answerable for, and answering it as the superuser is the bug
+	 * this class was carrying.
+	 */
+	private SecurityContext getSecurityContext() throws IOException {
+
+		final ActionContext actionContext = currentEvaluation.get();
+		if (actionContext == null) {
+
+			throw new IOException("File system access outside of a running script is not allowed.");
+		}
+
+		return actionContext.getSecurityContext();
+	}
+
+	private NodeInterface findByPath(final App app, final String type, final Path path) throws FrameworkException {
+
+		final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
+
+		return app.nodeQuery(type).key(pathKey, path.toString()).getFirst();
+	}
+
+	private boolean isWriting(final Set<? extends OpenOption> options) {
+
+		return options.contains(StandardOpenOption.WRITE) || options.contains(StandardOpenOption.APPEND)
+			|| options.contains(StandardOpenOption.CREATE) || options.contains(StandardOpenOption.CREATE_NEW);
 	}
 }

@@ -175,13 +175,18 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
+	/**
+	 * groupId is not the plain identifier it looks like: KafkaClientTraitWrapper evaluates it as script,
+	 * and in a superuser ActionContext, so it is script source and belongs where script source belongs -
+	 * in "ui", which is restricted to administrators, and not in the public view (tickets 1584 and 1592).
+	 */
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					SERVERS_PROPERTY, GROUP_ID_PROPERTY, ENABLED_PROPERTY, MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY
+					SERVERS_PROPERTY, ENABLED_PROPERTY, MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

@@ -258,13 +258,18 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return newSet(mainBrokerURLProperty, fallbackBrokerURLsProperty, qosProperty, isEnabledProperty, isConnectedProperty, usernameProperty, passwordProperty);
 	}
 
+	/**
+	 * The broker credentials used to be in the public view, so a GET grant on MQTTClient handed them out
+	 * to whoever holds it - and the public view is what an application's own users see. They stay in
+	 * "ui", the back end's own view, which is restricted to administrators (tickets 1584 and 1592).
+	 */
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, USERNAME_PROPERTY, PASSWORD_PROPERTY
+					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

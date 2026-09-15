@@ -20,6 +20,7 @@ package org.structr.core.script.polyglot.filesystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -41,12 +42,18 @@ import java.util.List;
 public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
 	private static final Logger logger = LoggerFactory.getLogger(VirtualDirectoryStream.class);
+	private final SecurityContext securityContext;
 	private final Path root;
 	private final DirectoryStream.Filter<? super Path> filter;
 	private List<Path> virtualPaths = new LinkedList<>();
 
-	public VirtualDirectoryStream(final Path root, final DirectoryStream.Filter<? super Path> filter) {
+	/**
+	 * The listing belongs to whoever runs the script, so it is queried in their security context and
+	 * shows the files they may read - see {@link PolyglotFilesystem} and ticket 1592.
+	 */
+	public VirtualDirectoryStream(final SecurityContext securityContext, final Path root, final DirectoryStream.Filter<? super Path> filter) {
 
+		this.securityContext = securityContext;
 		this.root = root;
 		this.filter = filter;
 	}
@@ -94,7 +101,7 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
 	private void findPaths(Path root) {
 
-		final App app = StructrApp.getInstance();
+		final App app = StructrApp.getInstance(securityContext);
 		final Traits traits = Traits.of(StructrTraits.ABSTRACT_FILE);
 
 		try (final Tx tx = app.tx()) {
