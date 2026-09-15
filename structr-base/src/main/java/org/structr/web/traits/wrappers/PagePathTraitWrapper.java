@@ -370,6 +370,12 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 				index++;
 			}
 
+			if (index < requestParts.length) {
+
+				// page path does not consume all parts of the request => does not match
+				return null;
+			}
+
 		} else {
 
 			LoggerFactory.getLogger(PagePath.class).warn("PagePath with ID {} has no name attribute, ignoring.", getUuid());
