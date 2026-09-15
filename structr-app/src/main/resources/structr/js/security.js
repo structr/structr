@@ -81,8 +81,12 @@ let _Security = {
 			let parentGroupEl = userOrGroupEl.parent().closest('.group');
 			if (parentGroupEl.length) {
 				let parentGroupId = _UsersAndGroups.getGroupId(parentGroupEl);
+
+				let htmlSafeMemberName = _Helpers.escapeForHtmlAttributes(isGroup ? _UsersAndGroups.getDisplayNameForGroup(entity) : _UsersAndGroups.getDisplayNameForUser(entity));
+				let htmlSafeGroupName  = _Helpers.escapeForHtmlAttributes($('.name_', parentGroupEl).attr('title'));
+
 				elements.push({
-					name: `Remove ${isGroup ? _UsersAndGroups.getDisplayNameForGroup(entity) : _UsersAndGroups.getDisplayNameForUser(entity)} from ${$('.name_', parentGroupEl).attr('title')}`,
+					name: `Remove ${htmlSafeMemberName} from ${htmlSafeGroupName}`,
 					clickHandler: () => {
 
 						Command.removeFromCollection(parentGroupId, 'members', entity.id, async () => {
@@ -880,7 +884,7 @@ let _ResourceAccessPermissions = {
 		}
 
 		let flags  = parseInt(resourceAccess.flags);
-		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b>${resourceAccess.signature}</b></td>`;
+		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b></b></td>`;
 
 		let noAuthAccessPossible = resourceAccess.visibleToAuthenticatedUsers === false && (!resourceAccess.grantees || resourceAccess.grantees.length === 0);
 
@@ -948,6 +952,7 @@ let _ResourceAccessPermissions = {
 
 		let tr         = $(trHtml);
 		let actionsCol = $('td.actions', tr);
+		$('.title-cell b', tr).text(resourceAccess.signature);
 		_ResourceAccessPermissions.appendPrincipalIconOrMargin(actionsCol, resourceAccess);
 		_Entities.appendNewAccessControlIcon(actionsCol, resourceAccess, false);
 
@@ -964,6 +969,19 @@ let _ResourceAccessPermissions = {
 				text: 'Permission has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two permissions.',
 				element: $('.title-cell b', tr),
 				customToggleIcon: _Icons.iconWarningYellowFilled,
+				customToggleIconClasses: [],
+				css: {
+					float:'right',
+					marginRight: '5px'
+				}
+			});
+		}
+
+		if (resourceAccess.signature.endsWith('/_Ui') || resourceAccess.signature.endsWith('/_All')) {
+			_Helpers.appendInfoTextToElement({
+				text: 'Permission has no effect. The "ui" and "all" views are internal views that are only allowed to be used by administrators',
+				element: $('.title-cell b', tr),
+				customToggleIcon: _Icons.iconErrorRedFilled,
 				customToggleIconClasses: [],
 				css: {
 					float:'right',
