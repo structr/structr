@@ -85,9 +85,6 @@ public class StructrTraits {
 	public static final String FEED_ITEM_CONTENT                   = "FeedItemContent";
 	public static final String FEED_ITEM_ENCLOSURE                 = "FeedItemEnclosure";
 	public static final String REMOTE_DOCUMENT                     = "RemoteDocument";
-	public static final String LOG_EVENT                           = "LogEvent";
-	public static final String LOG_OBJECT                          = "LogObject";
-	public static final String LOG_SUBJECT                         = "LogSubject";
 	public static final String XMPP_CLIENT                         = "XMPPClient";
 	public static final String XMPP_REQUEST                        = "XMPPRequest";
 	public static final String APPLICATION_CONFIGURATION_DATA_NODE = "ApplicationConfigurationDataNode";
@@ -288,8 +285,6 @@ public class StructrTraits {
 	public static final String DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM                             = "DataFeedHAS_FEED_ITEMSFeedItem";
 	public static final String FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT                 = "FeedItemFEED_ITEM_CONTENTSFeedItemContent";
 	public static final String FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE             = "FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure";
-	public static final String OBJECT_EVENT_RELATIONSHIP                                      = "ObjectEventRelationship";
-	public static final String SUBJECT_EVENT_RELATIONSHIP                                     = "SubjectEventRelationship";
 	public static final String XMPP_CLIENT_REQUEST                                            = "XMPPClientRequest";
 	public static final String ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION              = "AbstractFileCONFIGURED_BYStorageConfiguration";
 	public static final String ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING                     = "ActionMappingPARAMETERParameterMapping";

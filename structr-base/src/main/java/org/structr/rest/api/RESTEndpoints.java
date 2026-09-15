@@ -53,7 +53,6 @@ public class RESTEndpoints {
 		RESTEndpoints.register(new UserDefinedFunctionsResource());
 		RESTEndpoints.register(new InstanceMethodResource());
 		RESTEndpoints.register(new InstanceRelationshipsResource());
-		RESTEndpoints.register(new LogResource());
 		RESTEndpoints.register(new LoginResource());
 		RESTEndpoints.register(new LogoutResource());
 		RESTEndpoints.register(new MaintenanceResource());

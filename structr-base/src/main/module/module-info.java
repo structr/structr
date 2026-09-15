@@ -203,9 +203,6 @@ module structr.base {
 	exports org.structr.rest.serialization;
 	exports org.structr.rest.service;
 	exports org.structr.rest.servlet;
-	exports org.structr.rest.traits.definitions;
-	exports org.structr.rest.traits.relationships;
-	exports org.structr.rest.traits.wrappers;
 	exports org.structr.schema;
 	exports org.structr.schema.action;
 	exports org.structr.schema.export;
