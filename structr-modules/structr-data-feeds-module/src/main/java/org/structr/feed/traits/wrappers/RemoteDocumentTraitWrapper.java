@@ -61,6 +61,12 @@ public class RemoteDocumentTraitWrapper extends AbstractNodeTraitWrapper impleme
 			// answering null is what the caller already expects when the document cannot be fetched.
 			try {
 
+				/* Ticket 1595: this fetched whatever URL the node carried, with no address check at all -
+				   and the body does not stay inside the server, it is indexed into extractedContent and
+				   readable from there. Anyone who may create a RemoteDocument could therefore read the
+				   instance's own network through it. DataFeed validates the same way. */
+				HttpHelper.validateUrl(remoteUrl);
+
 				final Map<String, Object> responseData = HttpHelper.getAsStream(remoteUrl);
 				if (responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream stream) {
 

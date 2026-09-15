@@ -25,6 +25,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
 import org.apache.http.config.ConnectionConfig;
@@ -40,6 +41,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +118,7 @@ public class HttpHelper {
 		final HttpClientBuilder clientBuilder = HttpClients.custom()
 				.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
 				.setUserAgent(Settings.HttpUserAgent.getValue())
-				.setRedirectStrategy(new LaxRedirectStrategy())
+				.setRedirectStrategy(new AddressCheckingRedirectStrategy())
 				.setDefaultCredentialsProvider(credsProvider);
 
 		if (!validateCertificates) {
@@ -1161,16 +1163,106 @@ public class HttpHelper {
 
 		try {
 
-			final InetAddress resolved = InetAddress.getByName(host);
-			if (isBlockedAddress(resolved)) {
+			/* Every address the name answers with, not just the first: a name that resolves to a public
+			   and a private address would otherwise pass the check and then be connected to on whichever
+			   one the client picks (ticket 1595). */
+			for (final InetAddress resolved : InetAddress.getAllByName(host)) {
 
-				logger.warn("Blocked outbound request to internal address {} (resolved from {})", resolved.getHostAddress(), host);
-				throw new FrameworkException(403, "Requests to internal network addresses are not allowed");
+				if (isBlockedAddress(resolved)) {
+
+					logger.warn("Blocked outbound request to internal address {} (resolved from {})", resolved.getHostAddress(), host);
+					throw new FrameworkException(403, "Requests to internal network addresses are not allowed");
+				}
 			}
 
 		} catch (UnknownHostException e) {
 
 			throw new FrameworkException(400, "Unable to resolve hostname: " + host);
+		}
+	}
+
+	/**
+	 * Whether the given URL points at an address this instance must not reach. Same filter as
+	 * {@link #validateUrl}, as a question rather than an exception, for the redirect strategy.
+	 */
+	public static boolean isBlockedUrl(final URI uri) {
+
+		return uri != null && isBlockedHost(uri.getHost());
+	}
+
+	/** Whether any address this host name answers with is one this instance must not reach. */
+	public static boolean isBlockedHost(final String host) {
+
+		if (StringUtils.isBlank(host)) {
+
+			return false;
+		}
+
+		try {
+
+			for (final InetAddress resolved : InetAddress.getAllByName(host)) {
+
+				if (isBlockedAddress(resolved)) {
+
+					return true;
+				}
+			}
+
+		} catch (final UnknownHostException uhe) {
+
+			// a name that does not resolve cannot be connected to either, so let the client fail on it
+			return false;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether a redirect from {@code sourceHost} to {@code target} crosses into the internal network.
+	 *
+	 * <p>The direction is what matters, not the destination. A request that starts inside and is
+	 * redirected inside is an internal service talking to itself, and refusing that would break ordinary
+	 * deployments; a request that starts outside and is pulled inside is the SSRF (ticket 1595). It also
+	 * keeps the existing split intact: asking for an internal address directly is still the whitelist's
+	 * business, not this filter's.</p>
+	 */
+	public static boolean isBlockedRedirect(final String sourceHost, final URI target) {
+
+		return !isBlockedHost(sourceHost) && isBlockedUrl(target);
+	}
+
+	/**
+	 * Follows redirects like {@link LaxRedirectStrategy}, but refuses one that points into the internal
+	 * network.
+	 *
+	 * <p>Ticket 1595: the address checks ran on the URL a caller passed in, and the client then followed
+	 * 3xx wherever they led - so {@code https://attacker/redir} to {@code http://169.254.169.254/} went
+	 * through every check there was. A redirect target is never something the caller chose, which is why
+	 * this applies to all outbound requests and not only to the ones that validated their start URL:
+	 * asking for an internal address stays possible, being sent to one from outside does not. A request
+	 * that already started inside may be redirected inside - see {@link #isBlockedRedirect}.</p>
+	 */
+	private static class AddressCheckingRedirectStrategy extends LaxRedirectStrategy {
+
+		@Override
+		public URI getLocationURI(final HttpRequest request, final HttpResponse response, final HttpContext context) throws ProtocolException {
+
+			final URI uri = super.getLocationURI(request, response, context);
+
+			if (Settings.SsrfProtection.getValue()) {
+
+				final HttpHost currentHost = HttpClientContext.adapt(context).getTargetHost();
+				final String sourceHost    = (currentHost != null) ? currentHost.getHostName() : null;
+
+				if (isBlockedRedirect(sourceHost, uri)) {
+
+					logger.warn("Blocked redirect from {} to internal address {}", sourceHost, uri);
+
+					throw new ProtocolException("Redirect to an internal network address is not allowed: " + uri);
+				}
+			}
+
+			return uri;
 		}
 	}
 
@@ -1253,6 +1345,15 @@ public class HttpHelper {
 
 			throw new FrameworkException(400, "Unable to resolve proxy hostname: " + host);
 		}
+	}
+
+	/**
+	 * The whitelist and scheme check every outbound HTTP function goes through, for callers that build
+	 * their own request instead of using one of the methods here (ticket 1595).
+	 */
+	public static URI validateOutgoingAddress(final String address) throws FrameworkException {
+
+		return checkAddressAgainstWhitelist(address);
 	}
 
 	private static URI checkAddressAgainstWhitelist(final String address) throws FrameworkException {

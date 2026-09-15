@@ -153,7 +153,9 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 		try {
 
-			final URI uri      = new URL(address).toURI();
+			// the whitelist every other outbound function goes through, and the one this function's own
+			// notes promise - it used to build the request straight from the address (ticket 1595)
+			final URI uri      = HttpHelper.validateOutgoingAddress(address);
 			final HttpPost req = new HttpPost(uri);
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 			CloseableHttpClient client = HttpHelper.getClient(req, DEFAULT_CHARSET, null, null, null, null, null, null, headers, false, validateCertificates);

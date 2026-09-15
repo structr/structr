@@ -183,6 +183,11 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 		try {
 
 			final URL url                      = getWFSUrl(baseUrl, version, typeName, parameters);
+
+			// same whitelist as every other outbound function - these two sites opened the connection
+			// straight off the URL and went past it entirely (ticket 1595)
+			HttpHelper.validateOutgoingAddress(url.toString());
+
 			final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 
 			connection.connect();
@@ -285,6 +290,9 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 		try {
 
 			final URL url                      = getWCSDescriptionUrl(baseUrl, coverageId);
+
+			HttpHelper.validateOutgoingAddress(url.toString());
+
 			final HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 
 			connection.connect();
