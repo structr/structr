@@ -26,6 +26,7 @@ public enum FunctionCategory implements Category {
 	Collection("Collection", null),
 	Conversion("Conversion", null),
 	Database("Database", "Functions that operate on the graph directly: queries, Cypher, transactions, labels and relationships."),
+	Deployment("Deployment", "Functions that work on deployment exports: comparing them, and describing what a deployment would change."),
 	Predicate("Predicate", ""),
 	EMail("EMail", ""),
 	Geocoding("Geocoding", ""),
