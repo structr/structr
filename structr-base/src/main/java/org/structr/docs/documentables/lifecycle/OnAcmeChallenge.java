@@ -77,8 +77,13 @@ public class OnAcmeChallenge extends LifecycleBase {
 				// Call your DNS provider API to create the TXT record
 				$.POST(
 					'https://dns.provider.example/api/records',
-					'application/json',
-					'{"type":"TXT","name":"' + $.args.record + '","content":"' + $.args.digest + '","ttl":60}'
+					JSON.stringify({
+						type: "TXT",
+						name: $.args.record,
+						content: $.args.digest,
+						ttl: 60
+					}),
+					'application/json'
 				);
 
 				// Return a non-null value to signal that the record was created
