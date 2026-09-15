@@ -166,7 +166,6 @@ public class HttpOptions {
 		}
 
 		final Object source = sources[index];
-
 		if (source instanceof Map map) {
 
 			return new HttpOptions(map);
@@ -271,7 +270,6 @@ public class HttpOptions {
 			for (final Object key : headers.keySet()) {
 
 				final Object value = headers.get(key);
-
 				if (key != null && value != null) {
 
 					merged.put(key.toString(), value.toString());

@@ -33,6 +33,7 @@ public class LogWarnFunction extends LogLevelFunction {
 	public List<String> aliases() {
 
 		// log.warning() for anyone who does not have slf4j's abbreviation in their fingers
+
 		return List.of("log.warning");
 	}
 }

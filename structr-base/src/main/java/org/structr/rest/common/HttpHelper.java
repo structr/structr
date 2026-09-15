@@ -269,7 +269,6 @@ public class HttpHelper {
 		try {
 
 			final Map<String, Object> result = getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
-
 			if (result.get(HttpHelper.FIELD_BODY) instanceof InputStream body) {
 
 				// closing the stream is what closes the response and the client behind it, so it has to happen
@@ -478,6 +477,7 @@ public class HttpHelper {
 	private static Integer timeoutFrom(final Map<String, Object> config) {
 
 		// Number, not Integer: StructrScript hands over its numeric literals as Double
+
 		return (config != null && config.get("timeout") instanceof Number number) ? number.intValue() : null;
 	}
 
@@ -547,6 +547,7 @@ public class HttpHelper {
 		if (requestBody instanceof InputStream stream) {
 
 			// length unknown, so the request is sent chunked
+
 			return type != null ? new InputStreamEntity(stream, -1, type) : new InputStreamEntity(stream, -1);
 		}
 
@@ -756,7 +757,6 @@ public class HttpHelper {
 		try {
 
 			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
-
 			final HttpRequestBase req = isEmptyBody(requestBody) ? new HttpDelete(uri) : new HttpDeleteWithBody(uri);
 			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirectsFrom(config, false), validateCertificates, timeoutFrom(config));
 
@@ -764,6 +764,7 @@ public class HttpHelper {
 
 				withBody.setEntity(entityFor(requestBody, contentType, hc.charset()));
 			}
+
 			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
 			String content = null;
@@ -1211,6 +1212,7 @@ public class HttpHelper {
 		} catch (final UnknownHostException uhe) {
 
 			// a name that does not resolve cannot be connected to either, so let the client fail on it
+
 			return false;
 		}
 

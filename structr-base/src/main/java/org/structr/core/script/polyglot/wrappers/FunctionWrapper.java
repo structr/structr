@@ -105,6 +105,7 @@ public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 
 		// GraalJS asks this before it reads, so a member this answers false for is undefined with no error
 		// anywhere: it has to stay in step with getMember
+
 		return Functions.get(func.getName() + "." + key) != null;
 	}
 
@@ -113,8 +114,7 @@ public class FunctionWrapper<T,R> implements ProxyExecutable, ProxyObject {
 
 		final String prefix = func.getName() + ".";
 
-		return new ArrayList<>(
-			Functions.getNames().stream().filter(name -> name.startsWith(prefix)).map(name -> name.substring(prefix.length())).toList());
+		return new ArrayList<>(Functions.getNames().stream().filter(name -> name.startsWith(prefix)).map(name -> name.substring(prefix.length())).toList());
 	}
 
 	@Override

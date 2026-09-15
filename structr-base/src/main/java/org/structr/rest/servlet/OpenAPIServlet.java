@@ -71,7 +71,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private final Logger logger = LoggerFactory.getLogger(OpenAPIServlet.class);
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
 
-
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 

@@ -89,6 +89,7 @@ public abstract class UiFunction extends Function<Object, Object> {
 
 		// the caller's merged headers rather than the ActionContext's alone: preemptive basic auth is added
 		// by HttpOptions.mergeHeaders, so passing ctx.getHeaders() here silently disabled it
+
 		return HttpHelper.getAsStream(requestUrl, charset, username, password, null, null, null, null, headers, validateCertificates, config);
 	}
 

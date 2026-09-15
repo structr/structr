@@ -241,6 +241,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		AbstractHintProvider.addBuiltInKeywordHints(keywords);
 
 		final Set<String> keywordNames = keywords.stream().map(Documentable::getName).collect(Collectors.toSet());
+
 		return keywordNames;
 	}
 

@@ -691,7 +691,6 @@ public class TransactionCommand {
 	public static boolean currentTransactionHasChanges() {
 
 		final TransactionCommand command = commands.get();
-
 		if (command == null || command.queue == null) {
 
 			return false;

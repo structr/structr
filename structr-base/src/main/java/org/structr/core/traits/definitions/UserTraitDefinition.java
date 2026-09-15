@@ -106,6 +106,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(traitsInstance, HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER).description("The home directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
 		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(traitsInstance, WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER).description("The work directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
 		final Property<NodeInterface> imgProperty                 = new StartNode(traitsInstance, IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
+
 		// readOnly for the same reason as the credentials on Principal: holding this key logs its holder
 		// in through /confirm_registration when registration.autologin is on (ticket 1584). The
 		// registration and password-reset handlers write it through a superuser context and are unaffected;

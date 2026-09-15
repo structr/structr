@@ -384,8 +384,7 @@ public abstract class PolyglotWrapper {
 
 		} catch (Throwable t) {
 
-			logger.error("Unable to unwrap value of type {} coming out of the scripting engine.",
-				obj != null ? obj.getClass().getName() : "null", t);
+			logger.error("Unable to unwrap value of type {} coming out of the scripting engine.", obj != null ? obj.getClass().getName() : "null", t);
 
 		} finally {
 
@@ -675,16 +674,18 @@ public abstract class PolyglotWrapper {
 
 		final Object[] outcome  = new Object[] { null, null };
 		final boolean[] settled = new boolean[] { false, false };
-
 		final ProxyExecutable onFulfilled = args -> {
 			settled[0] = true;
+
 			outcome[0] = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+
 			return null;
 		};
 
 		final ProxyExecutable onRejected = args -> {
 			settled[1] = true;
 			outcome[1] = args.length > 0 ? unwrap(actionContext, args[0]) : null;
+
 			return null;
 		};
 

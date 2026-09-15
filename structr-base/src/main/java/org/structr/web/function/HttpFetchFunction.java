@@ -79,7 +79,6 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
 			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
 			final Integer timeout              = options.getTimeoutMillis();
-
 			final Map<String, Object> responseData = HttpHelper.fetch(url, method, body, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
 				headers, charset, validateCertificates, options.getBoolean(HttpOptions.REDIRECTS, false), timeout, contentType);
 
@@ -115,6 +114,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 			// a malformed options argument is not this method's to report: apply() runs either way, and
 			// turns it into the usage error that names what is wrong with it
+
 			return false;
 		}
 	}
@@ -124,6 +124,7 @@ public class HttpFetchFunction extends UiAdvancedFunction {
 
 		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
 		// no graph access, no transaction, nothing read from the SecurityContext
+
 		return true;
 	}
 

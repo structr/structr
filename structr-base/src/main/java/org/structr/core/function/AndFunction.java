@@ -62,6 +62,7 @@ public class AndFunction extends CoreFunction {
 			} else {
 
 				// null is false
+
 				return false;
 			}
 		}

@@ -376,7 +376,6 @@ public class AuthHelper {
 		if (session != null) {
 
 			final String sessionId = session.getId();
-
 			if (previousSessionId != null && !previousSessionId.equals(sessionId)) {
 
 				SessionHelper.clearSession(previousSessionId);
@@ -518,7 +517,6 @@ public class AuthHelper {
 			   calling thread's transaction ends up doing. We join the thread so the counter is durably
 			   persisted before returning, since the next login attempt's lockout check depends on it. */
 			final Thread t = new Thread(() -> {
-
 				final App app = StructrApp.getInstance();
 
 				try (final Tx tx = app.tx()) {
@@ -527,8 +525,8 @@ public class AuthHelper {
 					if (node != null) {
 
 						final Principal freshPrincipal = node.as(Principal.class);
-
 						Integer failedAttempts = freshPrincipal.getPasswordAttempts();
+
 						if (failedAttempts == null) {
 
 							failedAttempts = 0;
@@ -603,7 +601,6 @@ public class AuthHelper {
 			   the calling thread - leaving the counter untouched and the token alive for the next guess,
 			   which is the whole thing being fixed here. Joined, so the next attempt sees the result. */
 			final Thread t = new Thread(() -> {
-
 				final App app = StructrApp.getInstance();
 
 				try (final Tx tx = app.tx()) {
@@ -612,8 +609,8 @@ public class AuthHelper {
 					if (node != null) {
 
 						final Principal freshPrincipal = node.as(Principal.class);
-
 						Integer failedAttempts = freshPrincipal.getPasswordAttempts();
+
 						if (failedAttempts == null) {
 
 							failedAttempts = 0;
@@ -676,7 +673,6 @@ public class AuthHelper {
 			   principal node, because the thread below would wait for a node the caller still has and the
 			   caller then joins that thread. See HtmlServlet.checkResetPassword(). */
 			final Thread t = new Thread(() -> {
-
 				final App app = StructrApp.getInstance();
 
 				try (final Tx tx = app.tx()) {
@@ -783,11 +779,8 @@ public class AuthHelper {
 	}
 
 	public enum TwoFactorAuthenticationResult {
-		DISABLED,
-		NOT_REQUIRED_FOR_USER,
-		SUCCESS,
-		TRUSTED,
-		FAILURE
+
+		DISABLED, NOT_REQUIRED_FOR_USER, SUCCESS, TRUSTED, FAILURE
 	}
 
 	/**
@@ -958,7 +951,6 @@ public class AuthHelper {
 	public static String getDeviceTrustCookie (final HttpServletRequest request) {
 
 		final String trustCookieName = Settings.TwoFactorDeviceTrustCookieName.getValue();
-
 		final Cookie[] cookies = request.getCookies();
 
 		if (cookies != null) {

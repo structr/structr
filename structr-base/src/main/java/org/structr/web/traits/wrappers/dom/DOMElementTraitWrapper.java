@@ -65,7 +65,9 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 	@Override
 	public String getHtmlName() {
+
 		// it's safe to use _html_name even if the underlying node type doesn't declare it
+
 		return wrappedObject.getProperty(traits.key("_html_name"));
 	}
 

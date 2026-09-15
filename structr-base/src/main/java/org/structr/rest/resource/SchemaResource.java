@@ -221,7 +221,6 @@ public class SchemaResource extends ExactMatchEndpoint {
 		putPossibleTypes(map, sourceType, allSourceTypesPossibleProperty, htmlSourceTypesPossibleProperty, possibleSourceTypesProperty);
 		putPossibleTypes(map, targetType, allTargetTypesPossibleProperty, htmlTargetTypesPossibleProperty, possibleTargetTypesProperty);
 
-
 		return map;
 	}
 

@@ -65,6 +65,7 @@ public class RestMethodResult {
 	public void addHeaders(final Map<String, String> data) {
 
 		for (Map.Entry<String, String> entry : data.entrySet()) {
+
 			addHeader(entry.getKey(), entry.getValue());
 		}
 	}

@@ -99,14 +99,14 @@ public class GetThemeFunction extends UiCommunityFunction {
 
 	@Override
 	public Category getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"Can only be used in page context"
-		);
+
+		return List.of("Can only be used in page context");
 	}
 
 	// ----- private methods -----

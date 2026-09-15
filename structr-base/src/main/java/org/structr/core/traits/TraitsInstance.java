@@ -358,10 +358,12 @@ public class TraitsInstance {
 
 		// only ever added: overloading a builtin supertype must not make it instantiable again
 		if (isAbstract) {
+
 			impl.setAbstract(true);
 		}
 
 		if (isInterface) {
+
 			impl.setInterface(true);
 		}
 

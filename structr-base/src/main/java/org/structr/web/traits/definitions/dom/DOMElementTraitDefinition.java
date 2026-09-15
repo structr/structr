@@ -2512,6 +2512,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						out.append(" data-structr-success-notifications-css-class=\"").append(DOMNode.escapeForHtmlAttributes(successCssClass)).append("\"");
 					}
+
 					break;
 
 				default:
@@ -2564,6 +2565,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						out.append(" data-structr-failure-notifications-css-class=\"").append(DOMNode.escapeForHtmlAttributes(failureCssClass)).append("\"");
 					}
+
 					break;
 
 				default:

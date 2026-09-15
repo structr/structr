@@ -91,7 +91,6 @@ public class TokenResource extends ExactMatchEndpoint {
 				final HttpServletRequest request = securityContext.getRequest();
 				final boolean userRequestedTrust = propertySet.containsKey(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING) && (boolean) propertySet.get(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING);
 				final String userAgentString     = request.getHeader(HttpHeader.USER_AGENT.asString());
-
 				final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, userAgentString, AuthHelper.getDeviceTrustCookie(request));
 
 				if (result != AuthHelper.TwoFactorAuthenticationResult.FAILURE) {

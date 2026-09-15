@@ -89,6 +89,7 @@ public class ScriptMethod extends AbstractMethod {
 
 		// getSnippet() answers null for a method whose source was never set, and toString() is called
 		// from logging and debugging -- the last place that should be the one to throw.
+
 		return name + "(" + parameters.toString() + "): " + (snippet != null ? snippet.getSource() : "");
 	}
 

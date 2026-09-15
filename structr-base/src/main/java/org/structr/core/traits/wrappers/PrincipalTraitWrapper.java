@@ -523,7 +523,6 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	public String getDeviceTrustSecret() throws FrameworkException {
 
 		final Node dbNode = wrappedObject.getNode();
-
 		if (!dbNode.hasProperty(PrincipalTraitDefinition.DEVICE_TRUST_SECRET_PROPERTY)) {
 
 			wrappedObject.as(Principal.class).rotateDeviceTrustSecret();

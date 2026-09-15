@@ -62,8 +62,7 @@ public final class AsyncFunctionExecutor {
 	 * The name matters in a stack dump and in a support ticket -- an unnamed virtual thread reports
 	 * itself as VirtualThread[#123]/runnable@ForkJoinPool-1-worker-3, which says nothing.
 	 */
-	private static final ExecutorService EXECUTOR = Executors.newThreadPerTaskExecutor(
-		Thread.ofVirtual().name("structr-async-", 0).factory());
+	private static final ExecutorService EXECUTOR = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("structr-async-", 0).factory());
 
 	/**
 	 * The bound on calls in flight for the whole instance.
@@ -97,7 +96,6 @@ public final class AsyncFunctionExecutor {
 		final ActionContext detached      = actionContext.detached();
 		final Map<String, String> mdc     = MDC.getCopyOfContextMap();
 		final String name                 = func.getName();
-
 		final Future<T> future = EXECUTOR.submit(() -> {
 
 			if (mdc != null) {
@@ -170,16 +168,18 @@ public final class AsyncFunctionExecutor {
 			} catch (final ExecutionException ex) {
 
 				final Throwable cause = ex.getCause();
-
 				if (cause instanceof FrameworkException fex) {
+
 					throw fex;
 				}
 
 				if (cause instanceof RuntimeException rex) {
+
 					throw rex;
 				}
 
 				if (cause instanceof Error err) {
+
 					throw err;
 				}
 

@@ -109,6 +109,7 @@ public class GetDataSourceFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public Category getCategory() {
+
 		return FunctionCategory.Rendering;
 	}
 }

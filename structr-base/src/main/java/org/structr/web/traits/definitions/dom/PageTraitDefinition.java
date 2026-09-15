@@ -70,7 +70,6 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CATEGORY_PROPERTY               = "category";
 	public static final String RESTRICT_TO_URL_ROUTES_PROPERTY = "restrictToUrlRoutes";
 
-
 	public PageTraitDefinition() {
 
 		super(StructrTraits.PAGE);
@@ -197,7 +196,6 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> contentTypeProperty               = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
 		final Property<String> categoryProperty                  = new StringProperty(CATEGORY_PROPERTY).indexed();
 		final Property<Boolean> restrictToUrlRoutesProperty      = new BooleanProperty(RESTRICT_TO_URL_ROUTES_PROPERTY).defaultValue(false);
-
 
 		return Set.of(
 			elementsProperty,

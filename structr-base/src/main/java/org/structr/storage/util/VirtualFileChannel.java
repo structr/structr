@@ -210,7 +210,6 @@ public class VirtualFileChannel extends FileChannel {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.getNodeById(StructrTraits.FILE, id);
-
 			if (node != null) {
 
 				node.as(File.class).notifyUploadCompletion();

@@ -64,7 +64,6 @@ public class LogFunction extends CoreFunction {
 			if (Settings.LogFunctionShowCaller.getValue()) {
 
 				final Map<String, Object> functionInfo = FunctionInfoFunction.getCurrentFunctionInfo(ctx);
-
 				if (functionInfo != null) {
 
 					final String functionName = functionInfo.get(NodeInterfaceTraitDefinition.NAME_PROPERTY).toString();
@@ -78,6 +77,7 @@ public class LogFunction extends CoreFunction {
 						buf.append("[").append(functionInfo.get(FunctionInfoFunction.DECLARING_TRAIT_KEY).toString());
 
 						if (Boolean.FALSE.equals(functionInfo.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY)) && caller instanceof NodeInterface node) {
+
 							buf.append("(").append(node.getUuid()).append(")");
 						}
 
@@ -85,6 +85,7 @@ public class LogFunction extends CoreFunction {
 					}
 
 				} else if (caller instanceof NodeInterface node && node.is(StructrTraits.DOM_NODE)) {
+
 					// Test this after functionInfo because otherwise log output generated from the console logs the ShadowDocument
 
 					buf.append("[").append(Scripting.formatForLogging(caller)).append("]: ");

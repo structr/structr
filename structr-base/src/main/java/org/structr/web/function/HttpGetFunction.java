@@ -66,22 +66,19 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				final String address      = sources[0].toString();
 				final String contentType  = (sources.length >= 2 && sources[1] != null) && !HttpOptions.isOptionsAt(sources, 1) ? sources[1].toString() : null;
 				final HttpOptions options = optionsOf(sources).accepting(ctx, "GET", HttpOptions.ASYNC, HttpOptions.SELECTOR, HttpOptions.BINARY_RESPONSE, HttpOptions.PARSE_RESPONSE);
-
 				final String charset  = HttpOptions.charsetOf(contentType, null);
 				final String username = options.getString(HttpOptions.USERNAME);
 				final String password = options.getString(HttpOptions.PASSWORD);
 				final String selector = options.getString(HttpOptions.SELECTOR);
-
 				final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
 				final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
-
 				final GraphObjectMap response = new GraphObjectMap();
+
 				final Map<String, Object> responseData;
 
 				if ("text/html".equals(contentType)) {
 
-					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null,
-						headers, validateCertificates, options.asRequestConfig());
+					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null, headers, validateCertificates, options.asRequestConfig());
 
 					final String body  = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
 					final Document doc = Jsoup.parse(body);
@@ -123,8 +120,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 					// HttpHelper.get directly, not getFromUrl: that helper passes no request config, so a
 					// timeout given in the options would be accepted here and quietly do nothing
-					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null,
-						headers, validateCertificates, options.asRequestConfig());
+					responseData = HttpHelper.get(address, charset, username, password, null, null, null, null, headers, validateCertificates, options.asRequestConfig());
 
 					if (options.getBoolean(HttpOptions.PARSE_RESPONSE, false)) {
 
@@ -184,6 +180,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 			// a malformed options argument is not this method's to report: apply() runs either way, and
 			// turns it into the usage error that names what is wrong with it
+
 			return false;
 		}
 	}
@@ -193,16 +190,14 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
 		// no graph access, no transaction, nothing read from the SecurityContext
+
 		return true;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 
-		return List.of(
-			Signature.javaScript("url [, contentType [, options ]]"),
-			Signature.structrScript("url [, contentType [, options ]]")
-		);
+		return List.of(Signature.javaScript("url [, contentType [, options ]]"), Signature.structrScript("url [, contentType [, options ]]"));
 	}
 
 	@Override

@@ -228,7 +228,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					// Clean up other types that inherit this trait
 					{
 						final String name = nodeInterface.getName();
-
 						final List<NodeInterface> inheritingTypes = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).key(nodeInterface.getTraits().key(INHERITED_TRAITS_PROPERTY), new String[]{ name }, false).getAsList();
 
 						for (final NodeInterface node : inheritingTypes) {

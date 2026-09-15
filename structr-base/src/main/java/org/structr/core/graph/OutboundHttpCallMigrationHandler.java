@@ -71,13 +71,7 @@ public class OutboundHttpCallMigrationHandler {
 	);
 
 	/** Where the content type sits, for the verbs whose content type used to change what the call does. */
-	private static final Map<String, Integer> CONTENT_TYPE_INDEX = Map.of(
-		"GET",   1,
-		"POST",  2,
-		"PUT",   2,
-		"PATCH", 2,
-		"FETCH", 3
-	);
+	private static final Map<String, Integer> CONTENT_TYPE_INDEX = Map.of("GET",   1, "POST",  2, "PUT",   2, "PATCH", 2, "FETCH", 3);
 
 	private static final Pattern CALL = Pattern.compile("\\b(GET|HEAD|DELETE|POST|PUT|PATCH|POSTMultiPart|FETCH)\\s*\\(");
 
@@ -123,7 +117,6 @@ public class OutboundHttpCallMigrationHandler {
 	private static void scan(final List<Finding> findings, final boolean apply, final String type, final String propertyName) throws FrameworkException {
 
 		final Traits traits = Traits.of(type);
-
 		if (!traits.hasKey(propertyName)) {
 
 			return;
@@ -137,7 +130,6 @@ public class OutboundHttpCallMigrationHandler {
 			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(type).getResultStream()) {
 
 				final String source = node.getProperty(key);
-
 				if (source != null && !source.isEmpty()) {
 
 					String migrated = source;
@@ -145,7 +137,6 @@ public class OutboundHttpCallMigrationHandler {
 					for (final String call : findCalls(source)) {
 
 						final Finding finding = assess(type, node.getUuid(), node.getProperty(nameKey), propertyName, call);
-
 						if (finding.verdict() == Verdict.UP_TO_DATE) {
 
 							continue;
@@ -156,7 +147,6 @@ public class OutboundHttpCallMigrationHandler {
 						if (apply && finding.verdict() == Verdict.AUTOMATIC) {
 
 							final String replacement = rewrite(call);
-
 							if (replacement != null) {
 
 								migrated = migrated.replace(call, replacement);
@@ -190,7 +180,6 @@ public class OutboundHttpCallMigrationHandler {
 		while (matcher.find()) {
 
 			final int end = matchingBrace(source, matcher.end() - 1);
-
 			if (end > 0) {
 
 				calls.add(source.substring(matcher.start(), end + 1));
@@ -212,12 +201,10 @@ public class OutboundHttpCallMigrationHandler {
 
 			if (isObjectLiteral(args.get(1))) {
 
-				return new Finding(type, id, name, property, call, Verdict.AUTOMATIC,
-					"the options moved behind the new body and content type: DELETE(url, null, null, { ... })");
+				return new Finding(type, id, name, property, call, Verdict.AUTOMATIC, "the options moved behind the new body and content type: DELETE(url, null, null, { ... })");
 			}
 
-			return new Finding(type, id, name, property, call, Verdict.MANUAL,
-				"the second argument is the request body now, not the response content type. It used to decide whether the "
+			return new Finding(type, id, name, property, call, Verdict.MANUAL, "the second argument is the request body now, not the response content type. It used to decide whether the "
 				+ "response was parsed as JSON, which is options.parseResponse today");
 		}
 
@@ -234,7 +221,6 @@ public class OutboundHttpCallMigrationHandler {
 
 			// one key for both verbs now: it always describes the RESPONSE
 			final String binaryKey = "binaryResponse";
-
 			if ("application/octet-stream".equals(contentType) && hasOptionKey(args, optionsAt, binaryKey)) {
 
 				return new Finding(type, id, name, property, call, Verdict.UP_TO_DATE, "already carries " + binaryKey);
@@ -244,16 +230,15 @@ public class OutboundHttpCallMigrationHandler {
 
 				// the key differs by verb: GET streams the RESPONSE, POST sends the BODY as a stream, and
 				// an unknown option is refused, so naming the wrong one produces a call that fails
+
 				return new Finding(type, id, name, property, call, Verdict.AUTOMATIC,
 					"application/octet-stream no longer switches to binary transport: add { " + binaryKey + ": true }");
 			}
 
 			final Integer contentTypeAt = CONTENT_TYPE_INDEX.get(verb);
-
 			if (contentTypeAt != null && args.size() > contentTypeAt && !isLiteral(args.get(contentTypeAt))) {
 
-				return new Finding(type, id, name, property, call, Verdict.MANUAL,
-					"the content type is an expression (" + args.get(contentTypeAt).trim() + "); if it can be "
+				return new Finding(type, id, name, property, call, Verdict.MANUAL, "the content type is an expression (" + args.get(contentTypeAt).trim() + "); if it can be "
 					+ "application/octet-stream the call needs { " + "binaryResponse"
 					+ ": true }, and for GET whether the next argument is a selector or a user name depends on it");
 			}
@@ -311,7 +296,6 @@ public class OutboundHttpCallMigrationHandler {
 		return "all arguments are literals: " + String.join(", ", moved);
 	}
 
-
 	/**
 	 * The migrated form of a call, or null when it cannot be produced exactly.
 	 *
@@ -347,11 +331,9 @@ public class OutboundHttpCallMigrationHandler {
 		// DELETE's options used to sit at index 1, where the body is now, so they are the tail here even
 		// though the new options index is further right
 		final boolean deleteWithOldOptions = "DELETE".equals(verb) && args.size() == 2 && isObjectLiteral(args.get(1));
-
 		if (deleteWithOldOptions) {
 
 			final String inner = args.get(1).trim().substring(1, args.get(1).trim().length() - 1).trim();
-
 			if (!inner.isEmpty()) {
 
 				options.put("__raw__", inner);
@@ -372,7 +354,6 @@ public class OutboundHttpCallMigrationHandler {
 		if (tail.size() == 1 && isObjectLiteral(tail.get(0))) {
 
 			final String inner = tail.get(0).trim().substring(1, tail.get(0).trim().length() - 1).trim();
-
 			if (!inner.isEmpty()) {
 
 				options.put("__raw__", inner);
@@ -415,7 +396,6 @@ public class OutboundHttpCallMigrationHandler {
 
 						// the old configMap held timeout and redirects, which are options keys now
 						final String inner = value.substring(1, value.length() - 1).trim();
-
 						if (!inner.isEmpty()) {
 
 							options.put("__raw__", inner);
@@ -442,7 +422,6 @@ public class OutboundHttpCallMigrationHandler {
 
 		// the leading arguments, with the charset folded into the content type where there was one
 		final Integer contentTypeAt = CONTENT_TYPE_INDEX.get(verb);
-
 		final int headCount = deleteWithOldOptions ? 1 : Math.min(args.size(), optionsAt);
 
 		for (int i = 0; i < headCount; i++) {
@@ -452,7 +431,6 @@ public class OutboundHttpCallMigrationHandler {
 			if (contentTypeAt != null && i == contentTypeAt && !tail.isEmpty() && contentType != null) {
 
 				final String charset = charsetLiteral(verb, tail);
-
 				if (charset != null) {
 
 					if (contentType.contains("charset=")) {
@@ -506,7 +484,6 @@ public class OutboundHttpCallMigrationHandler {
 		}
 
 		final String first = tail.get(0).trim();
-
 		if (!isLiteral(first) || isObjectLiteral(first)) {
 
 			return null;
@@ -532,7 +509,6 @@ public class OutboundHttpCallMigrationHandler {
 	private static String literalContentType(final String verb, final List<String> args) {
 
 		final Integer index = CONTENT_TYPE_INDEX.get(verb);
-
 		if (index == null || args.size() <= index || !isLiteral(args.get(index))) {
 
 			return null;
@@ -662,14 +638,12 @@ public class OutboundHttpCallMigrationHandler {
 	public static boolean isLiteral(final String argument) {
 
 		final String trimmed = argument.trim();
-
 		if (trimmed.length() < 2) {
 
 			return false;
 		}
 
 		final char quote = trimmed.charAt(0);
-
 		if (quote == '\'' || quote == '"') {
 
 			// the closing quote has to be the LAST character, otherwise this is an expression such as
@@ -677,7 +651,6 @@ public class OutboundHttpCallMigrationHandler {
 			for (int i = 1; i < trimmed.length(); i++) {
 
 				final char c = trimmed.charAt(i);
-
 				if (c == '\\') {
 
 					i++;

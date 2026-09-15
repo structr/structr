@@ -70,7 +70,6 @@ public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSou
 	protected EventSource newEventSource(final HttpServletRequest hsr) {
 
 		final Object attribute = hsr.getAttribute(SECURITY_CONTEXT_ATTRIBUTE);
-
 		if (attribute instanceof SecurityContext requestContext) {
 
 			return new StructrEventSource(requestContext.getSessionId());

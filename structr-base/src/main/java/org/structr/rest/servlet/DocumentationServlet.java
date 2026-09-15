@@ -522,6 +522,7 @@ public class DocumentationServlet extends HttpServlet {
 			final Map<String, String> data = parseIncludeLink("markdown output", row, group);
 
 			if (data.isEmpty()) {
+
 				continue;
 			}
 

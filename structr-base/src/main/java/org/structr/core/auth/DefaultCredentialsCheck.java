@@ -115,7 +115,6 @@ public class DefaultCredentialsCheck implements InitializationCallback {
 		// to something of their own has chosen that password, and warning about it would be noise. What
 		// is worth reporting is the password anyone can look up in the documentation.
 		final String defaultPassword = Settings.InitialAdminUserPassword.getDefaultValue();
-
 		if (defaultPassword == null) {
 
 			return false;

@@ -141,6 +141,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 					final RelationshipType relType    = getRelationForType(type);
 
 					// every relationship of that type, no matter which end this node is at
+
 					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(Direction.BOTH, relType), factory);
 				}
 

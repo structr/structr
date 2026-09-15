@@ -156,7 +156,6 @@ public abstract class AbstractHintProvider {
 
 				final String functionName = getFunctionName(hint.getName());
 				final String displayName  = getFunctionName(hint.getDisplayName(true));
-
 				final boolean isFunctionHint     = (hint instanceof Function);
 				final boolean multiLevelFunction = isFunctionHint && tokensUntilRoot.contains(".");
 

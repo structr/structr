@@ -1131,6 +1131,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private boolean isRestrictedToUrlRoutes(final NodeInterface node) {
 
 		if (node.is(StructrTraits.PAGE) && node.as(Page.class).isRestrictedToUrlRoutes()) {
+
 			return true;
 		}
 
@@ -1915,7 +1916,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private static boolean matchesRequest(final Site site, final String serverName, final int serverPort) {
 
 		final String hostname = site.getHostname();
-
 		if (StringUtils.isBlank(hostname) || !hostname.equals(serverName)) {
 
 			return false;

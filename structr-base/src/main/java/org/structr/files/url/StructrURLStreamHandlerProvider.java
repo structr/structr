@@ -43,13 +43,13 @@ public class StructrURLStreamHandlerProvider extends URLStreamHandlerProvider {
 
 		// fetch temporarily stored security context based on the random UUID used as a protocol string in the URL
 		final SecurityContext securityContext = SecurityContext.getTemporaryStoredContext(protocol);
-
 		if (securityContext != null) {
 
 			return new StructrURLStreamHandler(securityContext);
 		}
 
 		// not one of ours: let the JDK carry on looking
+
 		return null;
 	}
 }

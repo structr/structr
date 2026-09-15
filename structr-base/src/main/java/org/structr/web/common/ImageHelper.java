@@ -219,8 +219,8 @@ public abstract class ImageHelper extends FileHelper {
 			// thumbnails are stored next to the original, that is the thumbnail's own folder.
 			final String thumbnailFolderPath = PathHelper.getFolderPath(thumbnail.getPath());
 			final String originalFolderPath  = stripThumbnailFolder(thumbnailFolderPath);
-
 			NodeInterface originalNode = app.nodeQuery(StructrTraits.IMAGE).key(pathKey, joinPath(originalFolderPath, originalImageName)).getFirst();
+
 			if (originalNode == null && !originalFolderPath.equals(thumbnailFolderPath)) {
 
 				originalNode = app.nodeQuery(StructrTraits.IMAGE).key(pathKey, joinPath(thumbnailFolderPath, originalImageName)).getFirst();
@@ -230,6 +230,7 @@ public abstract class ImageHelper extends FileHelper {
 
 				final Image originalImage    = originalNode.as(Image.class);
 				final ThumbnailProperty spec = findMatchingThumbnailSpec(originalImage, thumbnail.getName());
+
 				if (spec != null) {
 
 					app.create(originalImage, thumbnail, thumbnailRel, getThumbnailRelationshipProperties(originalImage, spec));
@@ -288,6 +289,7 @@ public abstract class ImageHelper extends FileHelper {
 			// With cropToFit the dimensions come from finalImageDimensions() rather than from the scale
 			// ratio, and the ratio-based name is the name of the NON-cropped thumbnail of the same size.
 			// Deriving it here would connect that thumbnail and label it as cropped, so don't guess.
+
 			return null;
 		}
 
@@ -337,7 +339,6 @@ public abstract class ImageHelper extends FileHelper {
 	private static String stripThumbnailFolder(final String path) {
 
 		final String thumbnailFolder = PathHelper.PATH_SEP + PathHelper.clean(Image.STRUCTR_THUMBNAIL_FOLDER);
-
 		if (path.equals(thumbnailFolder)) {
 
 			return PathHelper.PATH_SEP;
@@ -359,7 +360,6 @@ public abstract class ImageHelper extends FileHelper {
 		for (final String part : parts) {
 
 			final String cleaned = part == null ? null : PathHelper.clean(part);
-
 			if (StringUtils.isNotBlank(cleaned)) {
 
 				buf.append(PathHelper.PATH_SEP).append(cleaned);

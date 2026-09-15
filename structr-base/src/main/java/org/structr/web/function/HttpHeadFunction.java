@@ -49,12 +49,12 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 				final String address      = sources[0].toString();
 				final HttpOptions options = optionsOf(sources).accepting(ctx, "HEAD", HttpOptions.ASYNC);
-
 				final Map<String, Object> responseData = HttpHelper.head(address, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
 					null, null, null, null, options.mergeHeaders(ctx.getHeaders()),
 					options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates()), options.asRequestConfig());
 
 				// the same shape as every other verb: a HEAD has no body, but status is an int here too
+
 				return buildResponse(ctx, caller, responseData, false);
 
 			} catch (IllegalArgumentException e) {
@@ -96,6 +96,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 			// a malformed options argument is not this method's to report: apply() runs either way, and
 			// turns it into the usage error that names what is wrong with it
+
 			return false;
 		}
 	}
@@ -105,6 +106,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
 		// no graph access, no transaction, nothing read from the SecurityContext
+
 		return true;
 	}
 

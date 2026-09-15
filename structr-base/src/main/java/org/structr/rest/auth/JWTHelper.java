@@ -273,7 +273,6 @@ public class JWTHelper {
 		// fails verification long before this. This is the second lock: it still holds if an
 		// instance is ever configured with the same secret for both.
 		final Claim tokenUse = claims.get(MCP_TOKEN_USE_CLAIM);
-
 		if (tokenUse != null && !tokenUse.isNull() && MCP_TOKEN_USE_VALUE.equals(tokenUse.asString())) {
 
 			logger.warn("An MCP access token was presented to the REST API and refused. MCP tokens are only "

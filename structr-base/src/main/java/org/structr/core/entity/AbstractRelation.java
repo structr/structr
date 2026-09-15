@@ -111,6 +111,7 @@ public abstract class AbstractRelation {
 		}
 
 		// neither end, so no direction can be derived
+
 		return Direction.BOTH;
 	}
 

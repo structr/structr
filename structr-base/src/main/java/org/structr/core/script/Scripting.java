@@ -416,8 +416,7 @@ public class Scripting {
 	 */
 	public enum AsyncCompletion {
 
-		HOST_DRIVEN,
-		AT_BOUNDARY
+		HOST_DRIVEN, AT_BOUNDARY
 	}
 
 	/**

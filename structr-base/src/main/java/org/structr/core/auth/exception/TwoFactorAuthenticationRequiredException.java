@@ -64,10 +64,7 @@ public class TwoFactorAuthenticationRequiredException extends UnauthorizedExcept
 
 		if (showQrCode) {
 
-			final Map<String, Object> hints = Map.of(
-					"MARGIN", 0,
-					"ERROR_CORRECTION", "M"
-			);
+			final Map<String, Object> hints = Map.of("MARGIN", 0, "ERROR_CORRECTION", "M");
 
 			data.put("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(user.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes(StandardCharsets.ISO_8859_1)));
 		}

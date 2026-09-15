@@ -161,6 +161,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 			// a malformed options argument is not this method's to report: apply() runs either way, and
 			// turns it into the usage error that names what is wrong with it
+
 			return false;
 		}
 	}
@@ -170,6 +171,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
 		// no graph access, no transaction, nothing read from the SecurityContext
+
 		return true;
 	}
 

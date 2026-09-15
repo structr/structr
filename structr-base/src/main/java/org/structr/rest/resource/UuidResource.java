@@ -141,7 +141,6 @@ public class UuidResource extends ExactMatchEndpoint {
 				} else {
 
 					final RelationshipInterface rel = (RelationshipInterface) obj;
-
 					if (!mayDeleteRelationship(securityContext, rel)) {
 
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);

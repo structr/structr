@@ -273,6 +273,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 						relationProperty.addSingleElement(securityContext, (NodeInterface) sourceEntity, relatedNode);
 
 						// no node was created, only the relationship, so this is not a 201 with a Location header
+
 						return new RestMethodResult(HttpServletResponse.SC_OK);
 					}
 

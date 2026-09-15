@@ -77,7 +77,6 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DEVICE_TRUST_SECRET_PROPERTY   = "deviceTrustSecret";
 	public static final String DEVICE_TRUST_POSSIBLE_PROPERTY = "deviceTrustPossible";
 
-
 	public PrincipalTraitDefinition() {
 
 		super(StructrTraits.PRINCIPAL);

@@ -331,11 +331,11 @@ public class UiAuthenticator implements Authenticator {
 
 		// superuser is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
+
 			return;
 		}
 
 		final Method method = methods.get(request.getMethod());
-
 		if (method == null) {
 
 			logger.warn("Unknown method '{}', cannot determine resource access.", request.getMethod());
@@ -358,12 +358,7 @@ public class UiAuthenticator implements Authenticator {
 				logger.info(errorMessage);
 			}
 
-			RuntimeEventLog.resourceAccess("Internal view", Map.of(
-				"raw",       rawResourceSignature,
-				"view",      propertyView,
-				"validUser", validUser,
-				"userName",  escapedUsername
-			));
+			RuntimeEventLog.resourceAccess("Internal view", Map.of("raw",       rawResourceSignature, "view",      propertyView, "validUser", validUser, "userName",  escapedUsername));
 
 			throw new UnauthorizedException("Access denied");
 		}
@@ -387,6 +382,7 @@ public class UiAuthenticator implements Authenticator {
 		final Map<String, Object> eventLogMap = new HashMap<>(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal, "uri", escapedURI));
 
 		if (validUser) {
+
 			eventLogMap.put("userName", escapedUsername);
 		}
 
@@ -422,10 +418,12 @@ public class UiAuthenticator implements Authenticator {
 				case GET:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_GET, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_GET, combinedFlags)) {
+
 						return;
 					}
 
@@ -434,10 +432,12 @@ public class UiAuthenticator implements Authenticator {
 				case PUT:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PUT, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PUT, combinedFlags)) {
+
 						return;
 					}
 
@@ -446,10 +446,12 @@ public class UiAuthenticator implements Authenticator {
 				case POST:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_POST, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_POST, combinedFlags)) {
+
 						return;
 					}
 
@@ -458,10 +460,12 @@ public class UiAuthenticator implements Authenticator {
 				case DELETE:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_DELETE, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_DELETE, combinedFlags)) {
+
 						return;
 					}
 
@@ -470,10 +474,12 @@ public class UiAuthenticator implements Authenticator {
 				case OPTIONS:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_OPTIONS, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_OPTIONS, combinedFlags)) {
+
 						return;
 					}
 
@@ -482,10 +488,12 @@ public class UiAuthenticator implements Authenticator {
 				case HEAD:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_HEAD, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_HEAD, combinedFlags)) {
+
 						return;
 					}
 
@@ -494,10 +502,12 @@ public class UiAuthenticator implements Authenticator {
 				case PATCH:
 
 					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PATCH, combinedFlags)) {
+
 						return;
 					}
 
 					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PATCH, combinedFlags)) {
+
 						return;
 					}
 
@@ -532,8 +542,8 @@ public class UiAuthenticator implements Authenticator {
 	public Principal doLogin(final HttpServletRequest request, final String userProvidedValueForAuthenticationKey, final String password) throws FrameworkException {
 
 		final LinkedHashSet<PropertyKey<String>> authenticationPropertyKeySet = getAuthenticationPropertyKeySet();
-
 		final Principal user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userProvidedValueForAuthenticationKey, password);
+
 		if  (user != null) {
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
@@ -944,7 +954,6 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		final ManagedSession session = SessionHelper.getSessionBySessionId(sessionId);
-
 		if (session == null || SessionHelper.isSessionTimedOut(SessionHandler.ServletSessionApi.wrapSession(session))) {
 
 			logger.debug("Refusing session token {}: the session is gone or timed out.", sessionId);

@@ -813,7 +813,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		// we need to test if the method exists because the result can be null even if the method exists
 		final boolean methodExists = Methods.resolveMethod(null, Actions.NOTIFICATION_ON_ACME_CHALLENGE) != null;
-
 		if (methodExists) {
 
 			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Calling lifecycle method '" + Actions.NOTIFICATION_ON_ACME_CHALLENGE + "'");

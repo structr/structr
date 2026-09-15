@@ -64,6 +64,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 		// Undoes the true this would otherwise inherit from HttpPostFunction. Unlike the other verbs, this
 		// one resolves File and Folder nodes and opens their storage providers to build the request body,
 		// which is graph work and needs the calling thread's transaction.
+
 		return false;
 	}
 

@@ -104,10 +104,10 @@ public class LoginCommand extends AbstractCommand {
 					final HttpServletRequest request = getWebSocket().getRequest();
 					final boolean userRequestedTrust = webSocketData.getNodeDataBooleanValue(DeviceTrustHelper.DEVICE_TRUST_REQUESTED_STRING);
 					final String userAgentString     = request.getHeader(HttpHeader.USER_AGENT.asString());
-
 					final AuthHelper.TwoFactorAuthenticationResult result = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, userAgentString, AuthHelper.getDeviceTrustCookie(request));
 
 					if (result == AuthHelper.TwoFactorAuthenticationResult.FAILURE) {
+
 						throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 					}
 

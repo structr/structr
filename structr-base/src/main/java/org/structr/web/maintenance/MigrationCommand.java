@@ -47,7 +47,6 @@ public class MigrationCommand extends NodeServiceCommand implements MaintenanceC
 	public void execute(final Map<String, Object> parameters) throws FrameworkException {
 
 		final String mode = parameters.containsKey("mode") ? String.valueOf(parameters.get("mode")) : MigrationService.DRY_RUN;
-
 		if (!MigrationService.DRY_RUN.equals(mode) && !"apply".equals(mode)) {
 
 			throw new FrameworkException(422, "Unknown mode '" + mode + "', expected '" + MigrationService.DRY_RUN + "' or 'apply'.");
@@ -73,6 +72,7 @@ public class MigrationCommand extends NodeServiceCommand implements MaintenanceC
 	public boolean requiresEnclosingTransaction() {
 
 		// every step opens its own transaction, and a dry run needs to roll its own back
+
 		return false;
 	}
 
@@ -80,6 +80,7 @@ public class MigrationCommand extends NodeServiceCommand implements MaintenanceC
 	public boolean requiresFlushingOfCaches() {
 
 		// a migration that applied changes has touched schema and data the caches hold
+
 		return true;
 	}
 

@@ -90,12 +90,14 @@ public class GetFunction extends CoreFunction {
 						} else {
 
 							logger.warn("get(): first element of collection is of type {} which is not supported.", value.getClass());
+
 							return null;
 						}
 
 					} else {
 
 						logger.warn("get(): first element of collection is null.");
+
 						return null;
 					}
 				}
@@ -145,6 +147,7 @@ public class GetFunction extends CoreFunction {
 			} else {
 
 				logger.warn("get(): Cannot evaluate first argument to entity, must be entity or single element list of entities.");
+
 				return null;
 			}
 

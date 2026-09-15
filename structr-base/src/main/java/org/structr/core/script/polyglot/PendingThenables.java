@@ -134,11 +134,9 @@ public final class PendingThenables {
 	public static void closeFrame() {
 
 		final List<Frame> frames = FRAMES.get();
-
 		if (!frames.isEmpty()) {
 
 			final Frame frame = frames.remove(frames.size() - 1);
-
 			if (!frame.deferred.isEmpty()) {
 
 				logger.debug("{} asynchronous settlement(s) were never needed; their results are discarded.", frame.deferred.size());
@@ -174,7 +172,6 @@ public final class PendingThenables {
 	public static void defer(final Completion completion, final Runnable settle) {
 
 		final List<Frame> frames = FRAMES.get();
-
 		if (frames.isEmpty()) {
 
 			// callers are expected to check hasFrame() first; settling inline rather than dropping the
@@ -214,14 +211,12 @@ public final class PendingThenables {
 	public static void settleNextCompleted() {
 
 		final List<Frame> frames = FRAMES.get();
-
 		if (frames.isEmpty()) {
 
 			return;
 		}
 
 		final Frame frame = frames.get(frames.size() - 1);
-
 		if (frame.deferred.isEmpty()) {
 
 			return;
@@ -249,7 +244,6 @@ public final class PendingThenables {
 			while (candidates.hasNext()) {
 
 				final Deferred candidate = candidates.next();
-
 				if (candidate.completion().isDone()) {
 
 					candidates.remove();
@@ -263,6 +257,7 @@ public final class PendingThenables {
 			if (Thread.currentThread().isInterrupted()) {
 
 				// the evaluation is being torn down; join in registration order rather than park again
+
 				return frame.deferred.remove(0);
 			}
 		}

@@ -38,14 +38,14 @@ public class JavaScriptTabCompletionProvider extends AbstractTabCompletionProvid
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
 		final List<TabCompletionResult> results = new LinkedList<>();
-
 		final Matcher structrCallPatternMatcher = Pattern.compile(".*(Structr|\\$)\\.([A-Za-z0-9]+)$").matcher(line);
+
 		if (structrCallPatternMatcher.matches()) {
 
 			final String callStylePrefix  = structrCallPatternMatcher.group(1);
 			final String completionPrefix = structrCallPatternMatcher.group(2);
-
 			final List<TabCompletionResult> intermediateList = getExactResultsForCollection(Functions.getNames(), completionPrefix, "(");
+
 			intermediateList.addAll(getExactResultsForCollection(SchemaMethodTraitDefinition.getKeywordNames(), completionPrefix, " "));
 			intermediateList.addAll(getExactResultsForCollection(Traits.getAllTypes(Traits::isNodeType), completionPrefix, "."));
 

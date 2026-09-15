@@ -160,7 +160,6 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface folder = findByPath(app, StructrTraits.FOLDER, dir);
-
 			if (folder == null) {
 
 				FileHelper.createFolderPath(securityContext, dir.toString());
@@ -186,7 +185,6 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface file = findByPath(app, StructrTraits.ABSTRACT_FILE, path);
-
 			if (file != null) {
 
 				app.delete(file);

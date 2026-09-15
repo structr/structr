@@ -3377,6 +3377,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					new FileHandler(config).load(is);
 				}
+
 				final Iterator<String> keys          = config.getKeys();
 
 				while (keys.hasNext()) {
@@ -3738,7 +3739,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public static String sanitizeAndShortenFileOrFolderName(final String name, final int maxLength) {
 
 		String sanitized = name.replaceAll("[^a-zA-Z0-9\\-.]", "_");
-
 		if (sanitized.length() > maxLength) {
 
 			sanitized = sanitized.substring(0, maxLength);

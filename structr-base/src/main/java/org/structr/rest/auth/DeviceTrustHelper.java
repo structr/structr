@@ -58,10 +58,8 @@ public class DeviceTrustHelper {
 
 		final String signingSecret = Settings.getOrGenerateDeviceTrustSecret();
 		final Algorithm algorithm  = Algorithm.HMAC256(signingSecret);
-
 		final String fingerprintHash = DeviceTrustHelper.generateFingerprintHash(userAgentString);
 		final String secretHash      = sha256Hex(userDeviceTrustSecret);
-
 		final int durationInDays = Settings.TwoFactorDeviceTrustDuration.getValue();
 		final Instant expiresAt  = Instant.now().plus(durationInDays, ChronoUnit.DAYS);
 
@@ -76,6 +74,7 @@ public class DeviceTrustHelper {
 	public static boolean isValidDeviceTrustToken(final String token, final String userAgentString, final String userDeviceTrustSecret) {
 
 		if (token == null || token.isBlank()) {
+
 			return false;
 		}
 
@@ -84,13 +83,12 @@ public class DeviceTrustHelper {
 			final String signingSecret = Settings.getOrGenerateDeviceTrustSecret();
 			final Algorithm algorithm  = Algorithm.HMAC256(signingSecret);
 			final JWTVerifier verifier = JWT.require(algorithm).build();
-
 			final DecodedJWT jwt = verifier.verify(token);
-
 			final String fingerprintHashClaim = jwt.getClaim(FINGERPRINT_HASH).asString();
 			final String secretHashClaim = jwt.getClaim(SECRET_HASH).asString();
 
 			if (fingerprintHashClaim == null || secretHashClaim == null) {
+
 				return false;
 			}
 
@@ -102,6 +100,7 @@ public class DeviceTrustHelper {
 		} catch (JWTVerificationException e) {
 
 			// Covers: bad signature, expired token, malformed token
+
 			return false;
 		}
 	}
@@ -116,21 +115,20 @@ public class DeviceTrustHelper {
 	public static String generateFingerprintHash(final String userAgentHeader) {
 
 		final String normalized = normalizeUserAgent(userAgentHeader);
+
 		return sha256Hex(normalized);
 	}
-
-
 
 	// ----- private methods -----
 
 	private static String normalizeUserAgent(final String userAgentHeader) {
 
 		if (userAgentHeader == null || userAgentHeader.isBlank()) {
+
 			return "unknown";
 		}
 
 		final UserAgent agent = UAA.parse(userAgentHeader);
-
 		final String browserName    = agent.getValue(UserAgent.AGENT_NAME);
 		final String browserVersion = agent.getValue(UserAgent.AGENT_VERSION_MAJOR);
 		final String osName         = agent.getValue(UserAgent.OPERATING_SYSTEM_NAME);
@@ -138,16 +136,12 @@ public class DeviceTrustHelper {
 		final String deviceClass    = agent.getValue(UserAgent.DEVICE_CLASS);
 
 		// Pipe-delimited, coarse fields only - no full version strings
-		return String.join("|",
-				safe(browserName),
-				safe(browserVersion),
-				safe(osName),
-				safe(osVersion),
-				safe(deviceClass)
-		);
+
+		return String.join("|", safe(browserName), safe(browserVersion), safe(osName), safe(osVersion), safe(deviceClass));
 	}
 
 	private static String safe(final String value) {
+
 		return (value == null) ? "?" : value;
 	}
 
@@ -157,15 +151,17 @@ public class DeviceTrustHelper {
 
 			final MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			final byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-
 			final StringBuilder hex = new StringBuilder();
+
 			for (byte b : hash) {
+
 				hex.append(String.format("%02x", b));
 			}
 
 			return hex.toString();
 
 		} catch (NoSuchAlgorithmException e) {
+
 			// SHA-256 is guaranteed available on every JVM - this should never happen
 			throw new IllegalStateException("SHA-256 not available", e);
 		}
@@ -174,12 +170,10 @@ public class DeviceTrustHelper {
 	private static boolean constantTimeEquals(final String a, final String b) {
 
 		if (a == null || b == null) {
+
 			return false;
 		}
 
-		return java.security.MessageDigest.isEqual(
-				a.getBytes(StandardCharsets.UTF_8),
-				b.getBytes(StandardCharsets.UTF_8)
-		);
+		return java.security.MessageDigest.isEqual(a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
 	}
 }

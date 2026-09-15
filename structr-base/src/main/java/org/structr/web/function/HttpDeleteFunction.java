@@ -75,7 +75,6 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 			final Map<String, String> headers  = options.mergeHeaders(ctx.getHeaders());
 			final boolean validateCertificates = options.getBoolean(HttpOptions.VALIDATE_CERTIFICATES, ctx.isValidateCertificates());
-
 			final Map<String, Object> responseData = HttpHelper.delete(uri, options.getString(HttpOptions.USERNAME), options.getString(HttpOptions.PASSWORD),
 				null, null, null, null, headers, validateCertificates, options.asRequestConfig(),
 				body, contentType, HttpOptions.charsetOf(contentType, "utf-8"));
@@ -112,6 +111,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 			// a malformed options argument is not this method's to report: apply() runs either way, and
 			// turns it into the usage error that names what is wrong with it
+
 			return false;
 		}
 	}
@@ -121,6 +121,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 		// argument parsing, one call into HttpHelper, and building a GraphObjectMap out of the response:
 		// no graph access, no transaction, nothing read from the SecurityContext
+
 		return true;
 	}
 

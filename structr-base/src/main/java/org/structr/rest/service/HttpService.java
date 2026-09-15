@@ -1355,7 +1355,6 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			// collectServlets appends /* to every spec it collects
 			final String prefix = StringUtils.removeEnd(spec, "/*");
-
 			if (!prefix.startsWith("/") || prefix.startsWith("/structr")) {
 
 				// already covered by the two alternatives above, or not a path we can reason about

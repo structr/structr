@@ -270,8 +270,7 @@ public class MigrationService {
 
 				logger.info("MigrationService: {} is '{}'. Every step runs and reports what it would change, and the change is rolled back. "
 					+ "If anything would change, startup stops afterwards: a rolled back schema migration leaves the compiled schema in "
-					+ "memory out of step with the database, so this instance must not go on to serve anything.",
-					Settings.MigrationMode.getKey(), DRY_RUN);
+					+ "memory out of step with the database, so this instance must not go on to serve anything.", Settings.MigrationMode.getKey(), DRY_RUN);
 			}
 
 			// A migration is a hard, all-or-nothing operation: if any step fails, the
@@ -512,7 +511,6 @@ public class MigrationService {
 	private static void migratePrincipalToPrincipalInterface(final boolean apply) throws FrameworkException {
 
 		final Map<String, Integer> missing = findNodesMissingLabel(StructrTraits.PRINCIPAL);
-
 		if (missing.isEmpty()) {
 
 			return;

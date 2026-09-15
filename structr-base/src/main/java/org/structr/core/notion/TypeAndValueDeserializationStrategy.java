@@ -89,7 +89,6 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 		// exist. The uuid is deliberately not accepted as an alternative identifier - identifying objects by
 		// uuid is what IdDeserializationStrategy (ObjectNotion) is for.
 		Object identifyingValue = source;
-
 		if (identifyingValue instanceof Map map) {
 
 			identifyingValue = map.get(propertyKeyName);

@@ -137,6 +137,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 					// send HTTP headers and redirect
 					final Map<String, String> headers = result.getHeaders();
+
 					for (final Entry<String, String> entry : headers.entrySet()) {
 
 						response.addHeader(entry.getKey(), entry.getValue());
