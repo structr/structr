@@ -173,19 +173,119 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testAFreshInstanceIsNotTheSameLineageAsAnApplication() {
+
+		final String freshId;
+		final String appId;
+
+		try (final Tx tx = app.tx()) {
+
+			// what a brand new instance exports: the platform's own boilerplate, and one page of its own
+			freshId = createExport("fresh.zip", Map.of(
+				"widgets.json", widgets(PLATFORM_WIDGETS),
+				"pages.json",   pages(Map.of("index", "f0000000000000000000000000000001"))));
+
+			// an application, exported from an instance carrying the same bundled widgets
+			appId = createExport("app.zip", Map.of(
+				"widgets.json", widgets(PLATFORM_WIDGETS),
+				"pages.json",   pages(Map.of(
+					"orders",    "a0000000000000000000000000000001",
+					"customers", "a0000000000000000000000000000002",
+					"invoices",  "a0000000000000000000000000000003"))));
+
+			tx.success();
+
+		} catch (final Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception while creating the exports: " + ex.getMessage());
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Map<String, Object> report     = (Map<String, Object>) apply(freshId, appId);
+			final Map<String, Object> congruence = (Map<String, Object>) report.get("congruence");
+
+			final double raw         = ((Number) congruence.get("identityOverlapAllEntities")).doubleValue();
+			final double application = ((Number) congruence.get("identityOverlap")).doubleValue();
+
+			// the symptom: counted over everything, the shared boilerplate alone carries identity past the
+			// SAME_LINEAGE threshold, which is what made a fresh instance read as a version of the app
+			assertTrue("The fixture has to reproduce the boilerplate overlap, otherwise it proves nothing about"
+				+ " excluding it. Raw identity was " + raw, raw >= 0.5);
+
+			// the fix: the two share no application entity at all
+			assertEquals("A fresh instance shares no application entity with an app it has never seen",
+				0.0, application, 0.0001);
+
+			assertTrue("A fresh instance must not be reported as a version of an application it has never held,"
+				+ " because a caller refuses or permits a deployment on this verdict: " + congruence.get("verdict"),
+				!"SAME_LINEAGE".equals(congruence.get("verdict")));
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
 	private Object apply(final String leftId, final String rightId) throws FrameworkException {
 
 		// exactly what a server-side caller writes: no import from this module, no reflection
 		return Functions.get("compareExports").apply(new ActionContext(securityContext), null, new Object[] { leftId, rightId });
 	}
 
+	/** Widget uuids that ship with the platform, so every instance exports them under the same keys. */
+	private static final List<String> PLATFORM_WIDGETS = List.of(
+		"126e7efc2ddc4e449d7a554ee9ed2ecb", "226e7efc2ddc4e449d7a554ee9ed2ecb", "326e7efc2ddc4e449d7a554ee9ed2ecb");
+
+	private String widgets(final List<String> ids) {
+
+		final StringBuilder json = new StringBuilder("[");
+
+		for (int i = 0; i < ids.size(); i++) {
+
+			json.append(i > 0 ? "," : "")
+				.append("{\"id\":\"").append(ids.get(i)).append("\",\"name\":\"widget-").append(i).append("\"}");
+		}
+
+		return json.append("]").toString();
+	}
+
+	/** pages.json is a manifest: a name to an object carrying the page's uuid. */
+	private String pages(final Map<String, String> idsByName) {
+
+		final StringBuilder json = new StringBuilder("{");
+		boolean first            = true;
+
+		for (final Map.Entry<String, String> entry : idsByName.entrySet()) {
+
+			json.append(first ? "" : ",")
+				.append("\"").append(entry.getKey()).append("\":{\"id\":\"").append(entry.getValue()).append("\",\"visibleToPublicUsers\":true}");
+
+			first = false;
+		}
+
+		return json.append("}").toString();
+	}
+
 	/** A minimal but real export: the parser reads what it finds and ignores what it does not. */
 	private String createExport(final String name, final String localizations) throws Exception {
+
+		return createExport(name, Map.of("localizations.json", localizations));
+	}
+
+	private String createExport(final String name, final Map<String, String> files) throws Exception {
 
 		final Map<String, String> entries = new LinkedHashMap<>();
 
 		entries.put("deployment.conf", "structr-version = 7.0-SNAPSHOT\n");
-		entries.put("localizations.json", localizations);
+		entries.putAll(files);
 
 		final File file = FileHelper.createFile(securityContext, zip(entries), "application/zip", StructrTraits.FILE, name, true).as(File.class);
 

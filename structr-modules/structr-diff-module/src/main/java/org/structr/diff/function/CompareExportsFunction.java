@@ -101,6 +101,9 @@ public class CompareExportsFunction extends Function<Object, Object> {
 			"Beside the verdict, `congruence` carries `identityOverlap` and `similarity` as ratios, the four `signals` they are "
 				+ "computed from (`pageNames`, `schemaTypes`, `localizations`, `pageStructure`), and `provenance`, which names "
 				+ "the Structr version each export came from and when it was taken.",
+			"`identityOverlap` counts application entities only: config files are keyed by their path and the bundled widgets "
+				+ "ship with every installation, so both would match between two instances that have no application in common. "
+				+ "`identityOverlapAllEntities` is the same ratio over everything, kept beside it so the difference is visible.",
 			"The comparison runs inline and returns when it is done; a large real export parses in roughly 180ms, so two "
 				+ "parses and the match stay well under a second.",
 			"The files are looked up by uuid, which is what an export has once it is stored. Pass the uuid of the File "

@@ -43,12 +43,17 @@ public class Congruence {
 	// a page is structurally the same when its element count differs by no more than this share
 	private static final double STRUCTURE_TOLERANCE = 0.1;
 
+	// Entities every instance carries whatever application is installed, so they agree before an app is
+	// even considered: config files are keyed by their path, and the bundled widgets ship with the platform.
+	private static final Set<String> PLATFORM_KINDS = Set.of(Kind.CONFIG_FILE, Kind.WIDGET);
+
 	/** When an export was taken, read from the File node rather than from the export, which carries no dates. */
 	public record Taken(java.util.Date created, java.util.Date modified) {}
 
 	public static Map<String, Object> of(final List<Entity> left, final List<Entity> right, final String leftVersion, final String rightVersion, final Taken leftTaken, final Taken rightTaken) {
 
-		final double identity      = overlap(keys(left), keys(right));
+		final double identity      = overlap(applicationKeys(left), applicationKeys(right));
+		final double rawIdentity   = overlap(keys(left), keys(right));
 		final double pages         = jaccard(names(left, Kind.PAGE), names(right, Kind.PAGE));
 		final double schema        = jaccard(names(left, Kind.SCHEMA_TYPE), names(right, Kind.SCHEMA_TYPE));
 		final double localizations = jaccard(names(left, Kind.LOCALIZATION), names(right, Kind.LOCALIZATION));
@@ -63,6 +68,7 @@ public class Congruence {
 		result.put("verdict", verdict);
 		result.put("explanation", explain(verdict, identity, similarity));
 		result.put("identityOverlap", round(identity));
+		result.put("identityOverlapAllEntities", round(rawIdentity));
 		result.put("similarity", round(similarity));
 
 		final Map<String, Object> signals = new LinkedHashMap<>();
@@ -93,10 +99,10 @@ public class Congruence {
 		return switch (verdict) {
 
 			case "SAME_LINEAGE" -> String.format(
-				"Versions of one application: %.0f%% of entities carry the same uuid, so a change between them can be expressed as an update.", identity * 100);
+				"Versions of one application: %.0f%% of application entities carry the same uuid, so a change between them can be expressed as an update.", identity * 100);
 
 			case "SAME_APP_DIFFERENT_LINEAGE" -> String.format(
-				"The same application, but installed independently: names and structure agree to %.0f%% while only %.0f%% of uuids are shared. An update cannot be computed from identity alone.", similarity * 100, identity * 100);
+				"The same application, but installed independently: names and structure agree to %.0f%% while only %.0f%% of application uuids are shared. An update cannot be computed from identity alone.", similarity * 100, identity * 100);
 
 			default -> String.format(
 				"Different applications: names and structure agree to only %.0f%%, uuid overlap %.0f%%. A diff between them describes two unrelated apps rather than a change.", similarity * 100, identity * 100);
@@ -193,6 +199,16 @@ public class Congruence {
 		return entities.stream().map(Entity::getKey).filter(k -> k != null).collect(Collectors.toSet());
 	}
 
+	/** Keys that belong to the application rather than to the platform every instance ships with. */
+	private static Set<String> applicationKeys(final List<Entity> entities) {
+
+		return entities.stream()
+			.filter(e -> !PLATFORM_KINDS.contains(e.getKind()))
+			.map(Entity::getKey)
+			.filter(k -> k != null)
+			.collect(Collectors.toSet());
+	}
+
 	private static Set<String> names(final List<Entity> entities, final String kind) {
 
 		return entities.stream()
@@ -214,6 +230,7 @@ public class Congruence {
 
 		both.retainAll(b);
 
+		// the smaller side on purpose, not the union: uuids do not collide, so a contained export is one lineage, and Jaccard would read a grown app as a different one
 		return (double) both.size() / Math.min(a.size(), b.size());
 	}
 
