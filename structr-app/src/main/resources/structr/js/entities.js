@@ -1746,7 +1746,7 @@ let _Entities = {
 				<div class="pt-4 pb-6">
 					<div class="font-bold pb-3 text-xl">Owner</div>
 					<div>
-						<select  data-is-owner-select></select>
+						<select data-is-owner-select></select>
 					</div>
 				</div>
 				<div class="pb-6">
@@ -1854,7 +1854,9 @@ let _Entities = {
 					}
 					let icon = _Icons.getIconForPrincipal(JSON.parse(state.element.dataset.principal));
 
-					return $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} <div class="truncate">${state.text}</div></span>`);
+					let tpl = $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} <div class="truncate"></div></span>`);
+					$('.truncate', tpl).text(state.text);
+					return tpl;
 				};
 
 				let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
@@ -1911,7 +1913,7 @@ let _Entities = {
 	},
 	templateForPrincipalOption: (p, selected = false) => `
 		<option value="${p.id}" data-principal="${_Helpers.escapeForHtmlAttributes(JSON.stringify(p))}" ${(selected ? 'selected' : '')}>
-			${p.isGroup ? _UsersAndGroups.getDisplayNameForGroup(p) : _UsersAndGroups.getDisplayNameForUser(p)}
+			${_Helpers.escapeForHtmlAttributes(p.isGroup ? _UsersAndGroups.getDisplayNameForGroup(p) : _UsersAndGroups.getDisplayNameForUser(p))}
 		</option>
 	`,
 	showAccessControlDialog: (entity) => {
@@ -1959,10 +1961,11 @@ let _Entities = {
 			return;
 		}
 
+		let htmlSafePrincipalName = _Helpers.escapeForHtmlAttributes(principal.isGroup ? _UsersAndGroups.getDisplayNameForGroup(principal) : _UsersAndGroups.getDisplayNameForUser(principal));
 		let row = $(`
 			<tr class="_${principal.id}">
 				<td>
-					<div class="flex items-center gap-2">${_Icons.getIconForPrincipal(principal)}<span class="name">${principal.isGroup ? _UsersAndGroups.getDisplayNameForGroup(principal) : _UsersAndGroups.getDisplayNameForUser(principal)}</span></div>
+					<div class="flex items-center gap-2">${_Icons.getIconForPrincipal(principal)}<span class="name">${htmlSafePrincipalName}</span></div>
 				</td>
 			</tr>
 		`);
