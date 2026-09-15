@@ -109,6 +109,12 @@ public abstract class StructrUiTest {
 		// allow use of EncryptedStringProperty
 		Settings.GlobalSecret.setValue("test_secret");
 
+		/* The tests talk plain HTTP to localhost, and a Secure cookie is one a client is entitled to
+		   withhold from an http:// request - which would end every session-based test here. The default
+		   is on (ticket 1594); saying so explicitly is what makes this an HTTP test setup rather than a
+		   weakened default. */
+		Settings.CookieSecure.setValue(false);
+
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized

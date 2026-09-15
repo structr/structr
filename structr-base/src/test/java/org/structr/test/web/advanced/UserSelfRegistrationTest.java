@@ -19,6 +19,7 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import io.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
@@ -59,7 +60,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		Settings.RestUserAutocreate.setValue(true);
 		Settings.RestUserAutologin.setValue(true);
 
-		final String eMail = "test@structr.com";
+		final String eMail = uniqueEMail();
 		String id          = null;
 		String confKey     = null;
 
@@ -141,7 +142,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		Settings.RestUserAutologin.setValue(true);
 
 		final SessionFilter sessionFilter = new SessionFilter();
-		final String eMail                = "test@structr.com";
+		final String eMail                = uniqueEMail();
 		String id                         = null;
 		String confKey                    = null;
 
@@ -193,20 +194,38 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// switch to HTML servlet
 		RestAssured.basePath = htmlUrl;
 
-		// expect 404 Not Found when logging in because Jetty or
-		// RestAssured don't preserve the session ID
-		RestAssured
+		/* Confirming logs the user in, and a login rotates the session id (ticket 1594), so the browser
+		   leaves this request with a different session than it arrived with. The redirect is therefore
+		   followed by hand with the id the server just handed out - following it inside RestAssured makes
+		   the test depend on whether its SessionFilter notices the new cookie, which is a property of the
+		   test harness and not of Structr. The target page is visible to authenticated users only, so
+		   rendering it is what proves the new session is the logged-in one. */
+		final Response confirmation = RestAssured
 			.given()
 				.filter(sessionFilter)
+				.redirects().follow(false)
 				.param(HtmlServlet.CONFIRMATION_KEY_KEY, confKey)
 				.param(HtmlServlet.TARGET_PATH_KEY, "success")
+			.expect()
+			.statusCode(302)
+			.when()
+			.get(HtmlServlet.CONFIRM_REGISTRATION_PAGE)
+			.andReturn();
+
+		final String rotatedSessionId = confirmation.getSessionId();
+
+		assertNotNull("Confirmation did not answer with a session", rotatedSessionId);
+
+		RestAssured
+			.given()
+				.sessionId(rotatedSessionId)
 			.expect()
 			.statusCode(200)
 			.body("html.head.title", Matchers.equalTo("Success"))
 			.body("html.body.h1", Matchers.equalTo("Success"))
 			.body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when()
-			.get(HtmlServlet.CONFIRM_REGISTRATION_PAGE);
+			.get(confirmation.getHeader("Location"));
 
 		// verify that the user has no confirmation key
 		try (final Tx tx = app.tx()) {
@@ -220,7 +239,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			final String[] sessionIds  = user.getProperty(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));
 
 			assertEquals("Invalid number of sessions after user confirmation", 1, sessionIds.length);
-			assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(sessionFilter.getSessionId(), "."), sessionIds[0]);
+			// the rotated id, not the one the browser brought along - that one is worthless now
+			assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(rotatedSessionId, "."), sessionIds[0]);
 
 			tx.success();
 
@@ -233,7 +253,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 	@Test
 	public void testResetPassword() {
 
-		final String eMail = "test@structr.com";
+		final String eMail = uniqueEMail();
 		String id          = null;
 
 		// since we cannot test the mail confirmation workflow, we just disable sending an e-mail
@@ -325,5 +345,19 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		} );
 
 		return src;
+	}
+
+	/**
+	 * A registration address nobody has used before, per test method and per attempt.
+	 *
+	 * <p>EmailRateLimiter allows three registrations per address per hour, and its cache is static, so
+	 * it outlives a test method: with every method registering "test@structr.com", the budget was shared
+	 * across the class and a retry could spend the last of it. The endpoint answers 201 either way -
+	 * deliberately, so a caller cannot tell "accepted" from "throttled" - so the test failed later, at
+	 * "User was not created", which points nowhere near the cause.</p>
+	 */
+	private String uniqueEMail() {
+
+		return "test-" + java.util.UUID.randomUUID().toString().replace("-", "") + "@structr.com";
 	}
 }

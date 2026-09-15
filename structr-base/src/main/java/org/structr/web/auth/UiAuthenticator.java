@@ -60,6 +60,8 @@ import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
+import org.eclipse.jetty.session.ManagedSession;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
@@ -919,6 +921,43 @@ public class UiAuthenticator implements Authenticator {
 		}
 	}
 
+	/**
+	 * The user behind a session id presented in the X-Structr-Session-Token header, but only while that
+	 * session is still there.
+	 *
+	 * <p>Ticket 1594: this header used to go straight to AuthHelper.getPrincipalForSessionId(), which
+	 * only asks whether any user lists the id in sessionIds. The cookie path reaches
+	 * SessionHelper.checkSessionAuthentication(), which is where a session is checked for having timed
+	 * out or gone away; this one never did. Jetty is deliberately configured not to expire sessions
+	 * itself (HttpService sets maxInactiveInterval to -1, because Structr handles the timeout), so for
+	 * this header nobody handled it at all and an id stayed valid until the account logged in or out
+	 * again - application.session.timeout notwithstanding.</p>
+	 */
+	private Principal getPrincipalForLiveSession(final String token) throws FrameworkException {
+
+		final String sessionId = SessionHelper.getShortSessionId(token);
+		final Principal user   = AuthHelper.getPrincipalForSessionId(sessionId);
+
+		if (user == null) {
+
+			return null;
+		}
+
+		final ManagedSession session = SessionHelper.getSessionBySessionId(sessionId);
+
+		if (session == null || SessionHelper.isSessionTimedOut(SessionHandler.ServletSessionApi.wrapSession(session))) {
+
+			logger.debug("Refusing session token {}: the session is gone or timed out.", sessionId);
+
+			SessionHelper.clearSession(sessionId);
+			SessionHelper.invalidateSession(sessionId);
+
+			return null;
+		}
+
+		return user;
+	}
+
 	@Override
 	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
@@ -950,7 +989,7 @@ public class UiAuthenticator implements Authenticator {
 			// Try to authorize with a session token first
 			if (token != null) {
 
-				user = AuthHelper.getPrincipalForSessionId(token);
+				user = getPrincipalForLiveSession(token);
 
 			} else if ((userName != null) && (password != null)) {
 

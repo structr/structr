@@ -119,6 +119,18 @@ public class LoginCommand extends AbstractCommand {
 						logger.debug("Unable to login {}: No sessionId found", username);
 						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), true);
 
+					} else if (SessionHelper.getSessionBySessionId(SessionHelper.getShortSessionId(sessionId)) == null) {
+
+						/* The id arrives in the message, so the client picks it. Binding one that has no
+						   session behind it means the client can name its own credential - and it is a
+						   credential over HTTP too, because both sides read the same sessionIds property.
+						   It would also never expire, because StructrWebSocket.authenticate() reads a
+						   missing session as a valid one (ticket 1594). The websocket is opened from a
+						   page that already has a session; requiring it to exist costs that flow nothing. */
+						logger.info("Refusing websocket login for {}: no session exists for the id the client sent.", username);
+
+						getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), true);
+
 					} else {
 
 						sessionId = SessionHelper.getShortSessionId(sessionId);

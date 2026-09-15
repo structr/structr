@@ -21,7 +21,13 @@ package org.structr.test.mock;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SessionDataNodeTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.websocket.StructrWebSocket;
@@ -32,6 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 public class StructrWebsocketBaseTest extends StructrUiTest {
 
@@ -91,9 +98,45 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 		return gson.fromJson(src, Map.class);
 	}
 
+	/**
+	 * Logs in over the websocket the way a browser does: from a page that already holds a session.
+	 *
+	 * <p>Ticket 1594 made LoginCommand refuse a session id with no session behind it, because the id
+	 * comes from the client and binding one it invented lets it name its own credential. The session is
+	 * established here so that these tests keep standing for what they are about - use
+	 * {@link #loginWithUnknownSession} to test the refusal itself.</p>
+	 */
 	protected void login(final StructrWebSocket websocket, final String username, final String password, final String sessionId) {
 
+		establishSession(sessionId);
+
+		loginWithUnknownSession(websocket, username, password, sessionId);
+	}
+
+	/** Sends the LOGIN message as it stands, with no session established for the id. */
+	protected void loginWithUnknownSession(final StructrWebSocket websocket, final String username, final String password, final String sessionId) {
+
 		websocket.onWebSocketText(toJson(Map.of("command", "LOGIN", "sessionId", sessionId, "data", Map.of("username", username, "password", password))));
+	}
+
+	/** Creates the SessionDataNode the session cache resolves a session id through, once per id. */
+	protected void establishSession(final String sessionId) {
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> key = Traits.of(StructrTraits.SESSION_DATA_NODE).key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY);
+
+			if (app.nodeQuery(StructrTraits.SESSION_DATA_NODE).key(key, sessionId).getFirst() == null) {
+
+				createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception establishing a session: " + fex.getMessage());
+		}
 	}
 
 	protected Map<String, Object> assertResponse(final MockedWebsocketSetup mock, final String command, final double statusCode, final boolean sessionValid) {

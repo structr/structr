@@ -91,19 +91,14 @@ public class SessionHelper {
 
 	public static void newSession(final HttpServletRequest request) {
 
-		if (request.getSession(true) == null) {
+		if (request instanceof ServerUpgradeRequest) {
 
-			if (request instanceof ServerUpgradeRequest) {
+			logger.debug("Requested to create a new session on a Websocket request, aborting");
 
-				logger.debug("Requested to create a new session on a Websocket request, aborting");
-
-				return;
-			}
-
-			request.changeSessionId();
+			return;
 		}
 
-		final HttpSession session = request.getSession(false);
+		final HttpSession session = request.getSession(true);
 		if (session != null) {
 
 			logger.debug("Created new session " + session.getId());
@@ -111,6 +106,39 @@ public class SessionHelper {
 		} else {
 
 			logger.warn("Request still has no valid session");
+		}
+	}
+
+	/**
+	 * Gives the request a session id it did not arrive with, and answers the new one.
+	 *
+	 * <p>Ticket 1594. This used to live inside {@code newSession} as
+	 * {@code if (request.getSession(true) == null) { ... request.changeSessionId(); }} - and
+	 * {@code getSession(true)} creates a session rather than answering null, so the rotation never ran.
+	 * A login therefore kept whatever id the browser brought along, which is the whole of session
+	 * fixation: an attacker who gets an id of their choosing into the victim's browser beforehand holds
+	 * an authenticated session the moment the victim logs in.</p>
+	 *
+	 * <p>Answers null when there is nothing to rotate, which is the case on a websocket upgrade - the
+	 * websocket binds its session in LoginCommand instead.</p>
+	 */
+	public static String rotateSessionId(final HttpServletRequest request) {
+
+		if (request instanceof ServerUpgradeRequest || request.getSession(false) == null) {
+
+			return null;
+		}
+
+		try {
+
+			return request.changeSessionId();
+
+		} catch (final IllegalStateException ise) {
+
+			// no session to change, which servlet containers report by throwing
+			logger.debug("Unable to rotate session id: {}", ise.getMessage());
+
+			return null;
 		}
 	}
 

@@ -19,6 +19,7 @@
 package org.structr.rest.service;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.SessionTrackingMode;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -532,6 +533,12 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		// configure the Secure flag for JSESSIONID cookie
 		sessionHandler.getSessionCookieConfig().setSecure(Settings.CookieSecure.getValue());
+
+		/* Cookie only. Jetty's default is COOKIE and URL, and URL means ";jsessionid=<id>" in a link is
+		   accepted as an identity - which hands an attacker the easiest possible way to put a session id
+		   of their choosing into someone else's browser, and that is the first half of session fixation
+		   (ticket 1594). Nothing in Structr produces such a link, so nothing loses a way in. */
+		sessionHandler.setSessionTrackingModes(EnumSet.of(SessionTrackingMode.COOKIE));
 
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
 

@@ -471,6 +471,12 @@
 													<STRUCTR_db_uri>bolt://neo4j-test:7687</STRUCTR_db_uri>
 													<STRUCTR_db_username>neo4j</STRUCTR_db_username>
 													<STRUCTR_db_password>admin123</STRUCTR_db_password>
+													<!-- The rig is reached over plain HTTP (BASE_URL below), and a browser will not
+													     send a Secure cookie there - the session would never arrive and every test
+													     that needs a login would time out waiting for one. The setting defaults to
+													     on (ticket 1594); this says the test rig is the exception, not that the
+													     default is wrong. -->
+													<STRUCTR_httpservice_cookies_secure>false</STRUCTR_httpservice_cookies_secure>
 												</env>
 											</run>
 										</image>

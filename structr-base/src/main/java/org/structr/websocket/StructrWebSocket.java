@@ -495,8 +495,11 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 				synchronized (this) {
 
+					/* A missing session is not a valid one. It used to count as valid, which meant an id
+					   that exists nowhere but in a user's sessionIds - one the client named itself at
+					   login time, see LoginCommand - was never subject to the idle timeout (ticket 1594). */
 					final ManagedSession session  = SessionHelper.getSessionBySessionId(sessionId);
-					final boolean sessionValid = session == null || !SessionHelper.isSessionTimedOut(SessionHandler.ServletSessionApi.wrapSession(session));
+					final boolean sessionValid = session != null && !SessionHelper.isSessionTimedOut(SessionHandler.ServletSessionApi.wrapSession(session));
 
 					//logger.info("[{}]: session from cache: {}, valid? {}", nodeName, session, sessionValid);
 

@@ -361,11 +361,26 @@ public class AuthHelper {
 
 		SessionHelper.clearInvalidSessions(user);
 
+		/* A new id for the authenticated session, and the old one is left bound to nobody: whatever id
+		   the browser arrived with may have been chosen by somebody else - a cookie set from a sibling
+		   subdomain, a ";jsessionid=" link, plain HTTP - and binding that one to the account is session
+		   fixation (ticket 1594). Every way into Structr that ends in a session comes through here:
+		   REST login, the websocket's HTTP counterpart, /confirm_registration, the password-reset
+		   landing page and the OAuth callback. */
+		final String previousSessionId = request.getSession(false) != null ? request.getSession(false).getId() : null;
+
+		SessionHelper.rotateSessionId(request);
+
 		// We need a session to login a user
 		final HttpSession session = request.getSession(false);
 		if (session != null) {
 
 			final String sessionId = session.getId();
+
+			if (previousSessionId != null && !previousSessionId.equals(sessionId)) {
+
+				SessionHelper.clearSession(previousSessionId);
+			}
 
 			SessionHelper.clearSession(sessionId);
 
