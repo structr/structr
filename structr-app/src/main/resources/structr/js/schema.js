@@ -3113,6 +3113,16 @@ let _Schema = {
 			let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.views.templates.view({ view: view, type: entity }));
 			gridBody.appendChild(gridRow);
 
+			if (view.name === 'ui' || view.name === 'all') {
+				_Helpers.appendInfoTextToElement({
+					text: 'Internal view only accessible by administrators.',
+					element: gridRow.querySelector('.name-col'),
+					css: {
+						marginRight: '5px'
+					}
+				});
+			}
+
 			_Schema.views.appendViewSelectionElement(gridRow, view, entity, (selectElement) => {
 
 				// store initial configuration for later comparison

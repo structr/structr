@@ -324,25 +324,32 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView) throws FrameworkException {
 
-		final Principal user             = securityContext.getUser(false);
-		final boolean validUser          = (user != null);
+		final Principal user    = securityContext.getUser(false);
+		final boolean validUser = (user != null);
 
 		// superuser is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
 			return;
 		}
 
-		/* Everything below decides what a non-admin may do with a RESOURCE, and nothing in it looks at
-		   which view the answer is rendered in - so a permission granted for /User was equally a
-		   permission for /User/ui, and that view hands out session ids, refresh tokens, the two-factor
-		   token and the confirmation key of every user the caller can read. One of those in a cookie is
-		   someone else's session. Structr's internal views are for the back end, which runs as an
-		   administrator; an application asking for one is asking for data it has no interface to. */
+		final Method method = methods.get(request.getMethod());
+
+		if (method == null) {
+
+			logger.warn("Unknown method '{}', cannot determine resource access.", request.getMethod());
+
+			throw new UnauthorizedException("Access denied - Method not implemented");
+		}
+
+		final boolean isServicePrincipal = validUser && (user instanceof ServicePrincipal);
+		final String escapedURI          = StringEscapeUtils.escapeHtml4(securityContext.getCompoundRequestURI());
+		final String escapedUsername     = (validUser ? StringEscapeUtils.escapeHtml4(user.getName()) : "");
+		final String userInfo            = (validUser ? (isServicePrincipal ? "service principal '" + escapedUsername + "'" : "user '" + escapedUsername + "'") : "anonymous users");
+
+		// Prevent non-admin access to internal views (because they contain sensitive data)
 		if (PropertyView.isInternalView(propertyView)) {
 
-			final String errorMessage = "Access denied - the '" + propertyView + "' view is internal and restricted to administrators (requested by "
-				+ (validUser ? "user '" + StringEscapeUtils.escapeHtml4(user.getName()) + "'" : "anonymous users")
-				+ ", URI: " + StringEscapeUtils.escapeHtml4(securityContext.getCompoundRequestURI()) + ").";
+			final String errorMessage = "Access denied - the '" + propertyView + "' view is internal and restricted to administrators (requested by " + userInfo + ", URI: " + escapedURI + ").";
 
 			if (deniedAccessLog.allow("internal view " + propertyView)) {
 
@@ -353,22 +360,13 @@ public class UiAuthenticator implements Authenticator {
 				"raw",       rawResourceSignature,
 				"view",      propertyView,
 				"validUser", validUser,
-				"userName",  (validUser ? StringEscapeUtils.escapeHtml4(user.getName()) : "")
+				"userName",  escapedUsername
 			));
 
 			throw new UnauthorizedException("Access denied");
 		}
 
-		// only necessary for non-admin users!
 		final List<ResourceAccess> permissions = ResourceAccessTraitWrapper.findPermissions(securityContext, rawResourceSignature);
-		final Method method                    = methods.get(request.getMethod());
-
-		if (method == null) {
-
-			logger.warn("Unknown method '{}', cannot determine resource access.", request.getMethod());
-
-			throw new UnauthorizedException("Access denied - Method not implemented");
-		}
 
 		// flatten permissions
 		long combinedFlags   = 0;
@@ -384,10 +382,6 @@ public class UiAuthenticator implements Authenticator {
 			}
 		}
 
-		final boolean isServicePrincipal      = validUser && (user instanceof ServicePrincipal);
-		final String escapedURI               = StringEscapeUtils.escapeHtml4(securityContext.getCompoundRequestURI());
-		final String escapedUsername          = (validUser ? StringEscapeUtils.escapeHtml4(user.getName()) : "");
-		final String userInfo                 = (validUser ? (isServicePrincipal ? "service principal '" + escapedUsername + "'" : "user '" + escapedUsername + "'") : "anonymous users");
 		final Map<String, Object> eventLogMap = new HashMap<>(Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "isServicePrincipal", isServicePrincipal, "uri", escapedURI));
 
 		if (validUser) {
@@ -516,7 +510,7 @@ public class UiAuthenticator implements Authenticator {
 			logger.info(errorMessage);
 		}
 
-		RuntimeEventLog.resourceAccess("Method not allowed", eventLogMap);
+		RuntimeEventLog.resourceAccess("No matching permission", eventLogMap);
 
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 			"type",  "RESOURCE_ACCESS",
