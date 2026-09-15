@@ -111,10 +111,12 @@ public class StructrPathAlgebraTest {
 		final StringBuilder unix    = new StringBuilder();
 
 		for (final Path p : structrPath("/a/b/c")) {
+
 			structr.append("[").append(p).append("]");
 		}
 
 		for (final Path p : Paths.get("/a/b/c")) {
+
 			unix.append("[").append(p).append("]");
 		}
 
@@ -128,9 +130,7 @@ public class StructrPathAlgebraTest {
 		assertEquals("equal paths must have equal hash codes", structrPath("/a/b").hashCode(), structrPath("/a/b").hashCode());
 		assertFalse("different paths must not be equal", structrPath("/a/b").equals(structrPath("/a/c")));
 
-		assertEquals("ordering must follow the platform's",
-			Integer.signum(Paths.get("/a/b").compareTo(Paths.get("/a/c"))),
-			Integer.signum(structrPath("/a/b").compareTo(structrPath("/a/c"))));
+		assertEquals("ordering must follow the platform's", Integer.signum(Paths.get("/a/b").compareTo(Paths.get("/a/c"))), Integer.signum(structrPath("/a/b").compareTo(structrPath("/a/c"))));
 
 		try {
 
@@ -173,9 +173,7 @@ public class StructrPathAlgebraTest {
 
 	private void bothAgree2(final TwoArgs op, final String a, final String b) {
 
-		assertEquals("differs from the platform for " + a + " and " + b,
-			op.apply(Paths.get(a), Paths.get(b)),
-			op.apply(structrPath(a), structrPath(b)));
+		assertEquals("differs from the platform for " + a + " and " + b, op.apply(Paths.get(a), Paths.get(b)), op.apply(structrPath(a), structrPath(b)));
 	}
 
 	/**

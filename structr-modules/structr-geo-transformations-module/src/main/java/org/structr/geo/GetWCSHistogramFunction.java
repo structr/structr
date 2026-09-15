@@ -160,9 +160,7 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-				Usage.structrScript("Usage: getWcsHistogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])")
-		);
+		return List.of(Usage.structrScript("Usage: getWcsHistogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])"));
 	}
 
 	@Override

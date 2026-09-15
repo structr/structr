@@ -48,6 +48,7 @@ public class Classifier {
 		if (Delta.Operation.REIDENTIFIED.equals(delta.getOperation())) {
 
 			delta.setSignal(Signal.LOW, "same entity under a different uuid");
+
 			return;
 		}
 
@@ -57,6 +58,7 @@ public class Classifier {
 		if (Delta.Detail.CONTENT_WHITESPACE_ONLY.equals(delta.getDetailCode())) {
 
 			delta.setSignal(Signal.LOW, "whitespace only");
+
 			return;
 		}
 
@@ -64,6 +66,7 @@ public class Classifier {
 		if (Kind.SCRATCHPAD.equals(delta.getKind())) {
 
 			delta.setSignal(Signal.LOW, "scratchpad, working data");
+
 			return;
 		}
 
@@ -72,6 +75,7 @@ public class Classifier {
 		if (Kind.CONFIG_FILE.equals(delta.getKind()) && "deployment.conf".equals(delta.getKey())) {
 
 			delta.setSignal(Signal.LOW, "build stamp");
+
 			return;
 		}
 

@@ -129,8 +129,8 @@ public class Matcher {
 
 		final Map<String, Entity> leftAlt  = unambiguousByAlternateKey(leftRest);
 		final Map<String, Entity> rightAlt = unambiguousByAlternateKey(rightRest);
-
 		final Set<String> paired = new TreeSet<>(leftAlt.keySet());
+
 		paired.retainAll(rightAlt.keySet());
 
 		final Set<String> pairedIdentities = new TreeSet<>();
@@ -181,7 +181,6 @@ public class Matcher {
 		for (final Entity e : entities) {
 
 			final String alt = e.getAlternateIdentity();
-
 			if (alt == null) {
 
 				continue;
@@ -211,8 +210,7 @@ public class Matcher {
 
 		if (!Objects.equals(a.getName(), b.getName())) {
 
-			deltas.add(new Delta(a.getKind(), a.getKey(), Delta.Operation.RENAMED, a.getName(),
-				Delta.Detail.NAME, a.getName() + " -> " + b.getName(), a.getOrigin(), matchedBy));
+			deltas.add(new Delta(a.getKind(), a.getKey(), Delta.Operation.RENAMED, a.getName(), Delta.Detail.NAME, a.getName() + " -> " + b.getName(), a.getOrigin(), matchedBy));
 		}
 
 		if (!Objects.equals(a.getParent(), b.getParent()) || !Objects.equals(a.getOrdinal(), b.getOrdinal())) {
@@ -223,7 +221,6 @@ public class Matcher {
 		}
 
 		final List<String> changedAttributes = changedAttributes(a, b);
-
 		if (!changedAttributes.isEmpty()) {
 
 			deltas.add(new Delta(a.getKind(), a.getKey(), Delta.Operation.CHANGED, a.getName(),

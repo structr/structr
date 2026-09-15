@@ -134,7 +134,6 @@ public class ExportParser {
 	private void manifest(final String path, final String kind) {
 
 		final JsonObject root = object(path);
-
 		if (root == null) {
 
 			return;
@@ -150,16 +149,13 @@ public class ExportParser {
 			final JsonObject value = entry.getValue().getAsJsonObject();
 			final String id        = string(value, "id");
 
-			entities.add(new Entity(kind, id != null ? id : "name:" + entry.getKey(), null, null, entry.getKey(),
-				attributes(value, "id"), null, null, path));
+			entities.add(new Entity(kind, id != null ? id : "name:" + entry.getKey(), null, null, entry.getKey(), attributes(value, "id"), null, null, path));
 		}
 	}
 
-	private void array(final String path, final String kind, final Function<JsonObject, String> key,
-			final Function<JsonObject, String> alternateKey) {
+	private void array(final String path, final String kind, final Function<JsonObject, String> key, final Function<JsonObject, String> alternateKey) {
 
 		final JsonArray root = jsonArray(path);
-
 		if (root == null) {
 
 			return;
@@ -180,8 +176,7 @@ public class ExportParser {
 				continue;
 			}
 
-			entities.add(new Entity(kind, primary, alternateKey != null ? alternateKey.apply(value) : null,
-				null, string(value, "name"), attributes(value, "id"), null, null, path));
+			entities.add(new Entity(kind, primary, alternateKey != null ? alternateKey.apply(value) : null, null, string(value, "name"), attributes(value, "id"), null, null, path));
 		}
 	}
 
@@ -206,14 +201,12 @@ public class ExportParser {
 	private void schema() {
 
 		final JsonObject root = object("schema/schema.json");
-
 		if (root == null) {
 
 			return;
 		}
 
 		final JsonObject definitions = root.getAsJsonObject("definitions");
-
 		if (definitions != null) {
 
 			for (final Map.Entry<String, JsonElement> entry : definitions.entrySet()) {
@@ -226,8 +219,7 @@ public class ExportParser {
 				final String typeName    = entry.getKey();
 				final JsonObject typeDef = entry.getValue().getAsJsonObject();
 
-				entities.add(new Entity(Kind.SCHEMA_TYPE, typeName, null, null, typeName,
-					attributes(typeDef, "properties", "methods", "views"), null, null, "schema/schema.json"));
+				entities.add(new Entity(Kind.SCHEMA_TYPE, typeName, null, null, typeName, attributes(typeDef, "properties", "methods", "views"), null, null, "schema/schema.json"));
 
 				members(typeDef, "properties", Kind.SCHEMA_PROPERTY, typeName);
 				members(typeDef, "methods",    Kind.SCHEMA_METHOD,   typeName);
@@ -235,7 +227,6 @@ public class ExportParser {
 		}
 
 		final JsonElement methods = root.get("methods");
-
 		if (methods != null && methods.isJsonArray()) {
 
 			for (final JsonElement element : methods.getAsJsonArray()) {
@@ -247,8 +238,7 @@ public class ExportParser {
 
 					if (name != null) {
 
-						entities.add(new Entity(Kind.GLOBAL_METHOD, name, null, null, name,
-							attributes(method, "name"), null, null, "schema/schema.json"));
+						entities.add(new Entity(Kind.GLOBAL_METHOD, name, null, null, name, attributes(method, "name"), null, null, "schema/schema.json"));
 					}
 				}
 			}
@@ -265,7 +255,6 @@ public class ExportParser {
 	private void members(final JsonObject typeDef, final String member, final String kind, final String typeName) {
 
 		final JsonElement value = typeDef.get(member);
-
 		if (value == null) {
 
 			return;
@@ -291,8 +280,7 @@ public class ExportParser {
 
 					if (name != null) {
 
-						entities.add(new Entity(kind, typeName + "." + name, null, typeName, name,
-							attributes(entry, "name"), null, null, "schema/schema.json"));
+						entities.add(new Entity(kind, typeName + "." + name, null, typeName, name, attributes(entry, "name"), null, null, "schema/schema.json"));
 					}
 				}
 			}
@@ -332,7 +320,6 @@ public class ExportParser {
 				if (entry.getValue().isJsonObject()) {
 
 					final String uuid = string(entry.getValue().getAsJsonObject(), "id");
-
 					if (uuid != null) {
 
 						id.put(stripLeadingSlash(entry.getKey()), uuid);
@@ -355,15 +342,13 @@ public class ExportParser {
 			attributes.put("sha256", digest(bytes));
 			attributes.put("size", bytes.length);
 
-			entities.add(new Entity(Kind.FILE_PAYLOAD, id.getOrDefault(relative, "path:" + relative),
-				"path:" + relative, null, relative, attributes, null, null, path));
+			entities.add(new Entity(Kind.FILE_PAYLOAD, id.getOrDefault(relative, "path:" + relative), "path:" + relative, null, relative, attributes, null, null, path));
 		}
 	}
 
 	private void bpmnNodes() {
 
 		final JsonObject root = object("modules/process/bpmn-deployment.json");
-
 		if (root == null || !root.has("nodes") || !root.get("nodes").isJsonArray()) {
 
 			return;
@@ -378,8 +363,7 @@ public class ExportParser {
 
 				if (id != null) {
 
-					entities.add(new Entity(Kind.BPMN_NODE, id, null, null, string(node, "name"),
-						attributes(node, "id"), null, null, "modules/process/bpmn-deployment.json"));
+					entities.add(new Entity(Kind.BPMN_NODE, id, null, null, string(node, "name"), attributes(node, "id"), null, null, "modules/process/bpmn-deployment.json"));
 				}
 			}
 		}

@@ -101,6 +101,7 @@ public class EventActionMappingProcessDeploymentTest extends DeploymentTestBase 
 		for (final PropertyKey key : configurationProperties()) {
 
 			if (!exported.contains(key.jsonName())) {
+
 				missing.add(key.jsonName());
 			}
 		}
@@ -123,6 +124,7 @@ public class EventActionMappingProcessDeploymentTest extends DeploymentTestBase 
 		for (final PropertyKey key : Traits.getTrait(StructrTraits.ACTION_MAPPING).getPropertyKeys().values()) {
 
 			if (key instanceof RelationProperty) {
+
 				continue;
 			}
 
@@ -137,7 +139,6 @@ public class EventActionMappingProcessDeploymentTest extends DeploymentTestBase 
 	private Object valueFor(final PropertyKey key) {
 
 		final Class valueType = key.valueType();
-
 		if (String.class.equals(valueType)) {
 
 			return "value-for-" + key.jsonName();

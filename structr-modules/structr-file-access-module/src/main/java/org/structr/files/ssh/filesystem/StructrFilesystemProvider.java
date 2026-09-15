@@ -103,7 +103,6 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 	public FileSystem getFileSystem(final URI uri) {
 
 		final FileSystem fs = filesystems.get(userOf(uri));
-
 		if (fs == null) {
 
 			throw new FileSystemNotFoundException(uri.toString());
@@ -116,7 +115,6 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 	public Path getPath(final URI uri) {
 
 		final String path = uri.getPath();
-
 		if (path == null || !path.startsWith(StructrPath.ROOT_DIRECTORY)) {
 
 			throw new IllegalArgumentException("Expected an absolute path in " + uri + ", for example " + SCHEME + ":///dir/file.txt");
@@ -125,6 +123,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 		// unlike getFileSystem, this creates the filesystem on demand: Paths.get(URI) is the entry point
 		// for code that only has a URI, and requiring a newFileSystem call first would make every caller
 		// carry the same two lines
+
 		return fileSystemFor(userOf(uri), null).getPath(path);
 	}
 
@@ -193,6 +192,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 		final Path name = path.getFileName();
 
 		// the Unix rule, which is the one this filesystem's paths follow
+
 		return name != null && name.toString().startsWith(".");
 	}
 
@@ -280,7 +280,6 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(user).getFirst();
-
 			if (node == null) {
 
 				throw new IllegalArgumentException("No such user: " + user);

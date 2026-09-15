@@ -54,6 +54,7 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> isStartNodeOfContainer = new StartNode(traitsInstance, IS_START_NODE_OF_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_FLOW_NODE);
 		final Property<Iterable<NodeInterface>> prev         = new StartNodes(traitsInstance, PREV_PROPERTY, StructrTraits.FLOW_NODES);
 		final Property<NodeInterface> next                   = new EndNode(traitsInstance, NEXT_PROPERTY, StructrTraits.FLOW_NODES);
+
 		// No inverse of FlowForEach.loopBody here: nothing reads it, and the editor connects a loop body
 		// through loopBody and prev (see FlowConnectionTypes.js / FlowSockets.js).
 

@@ -181,6 +181,7 @@ public class StructrFilesRootPath extends StructrPath {
 	public boolean isSameFile(final Path path2) throws IOException {
 
 		// there is exactly one root per filesystem, so the question is whether the other path is that root
+
 		return equals(path2);
 	}
 }

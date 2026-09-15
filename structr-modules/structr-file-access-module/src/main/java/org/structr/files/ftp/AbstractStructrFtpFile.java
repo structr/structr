@@ -188,6 +188,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 			// a path that does not exist yet; whether it may be created is a question about the parent
 			// folder, and ftpserver asks that separately
+
 			return true;
 		}
 

@@ -294,14 +294,12 @@ public class StructrFilePath extends StructrPath {
 	public void copy(final Path target, final CopyOption... options) throws IOException {
 
 		final NodeInterface thisFile = getActualFile();
-
 		if (thisFile == null) {
 
 			throw new NoSuchFileException(toString());
 		}
 
 		final Set<CopyOption> optionSet = Set.of(options);
-
 		if (!optionSet.contains(StandardCopyOption.REPLACE_EXISTING) && Files.exists(target)) {
 
 			throw new FileAlreadyExistsException(target.toString());
@@ -380,6 +378,7 @@ public class StructrFilePath extends StructrPath {
 		}
 
 		// neither exists yet: fall back to the paths, which is all there is to compare
+
 		return thisFile == null && otherFile == null && equals(path2);
 	}
 

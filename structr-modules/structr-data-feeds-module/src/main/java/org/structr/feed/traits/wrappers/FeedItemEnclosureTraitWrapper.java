@@ -58,6 +58,7 @@ public class FeedItemEnclosureTraitWrapper extends AbstractFeedItemTraitWrapper 
 		// The fulltext indexer stores the extracted text under the File key for every node it indexes
 		// (see FulltextIndexingAgent), so it has to be read with that same key: this type does not
 		// declare the property itself since it no longer has the removed "Indexable" trait.
+
 		return wrappedObject.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 

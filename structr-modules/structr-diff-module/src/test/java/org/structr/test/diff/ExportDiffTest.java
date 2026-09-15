@@ -112,15 +112,13 @@ public class ExportDiffTest {
 		final List<Entity> fromZip       = parse(zip);
 
 		assertTrue("The directory parsed to nothing", fromDirectory.size() > 1000);
-		assertEquals("The two readings disagree on how many entities the export holds",
-			fromDirectory.size(), fromZip.size());
+		assertEquals("The two readings disagree on how many entities the export holds", fromDirectory.size(), fromZip.size());
 
 		final List<Delta> deltas = new Matcher(fromDirectory, fromZip).getDeltas();
 
 		report(directory + " -> " + zip, fromDirectory, fromZip, deltas, describe(deltas));
 
-		assertEquals("A zip and a directory of one export must not differ, but: " + describe(deltas),
-			0, deltas.size());
+		assertEquals("A zip and a directory of one export must not differ, but: " + describe(deltas), 0, deltas.size());
 	}
 
 	// ----- helpers -----
@@ -140,8 +138,7 @@ public class ExportDiffTest {
 	 * printed in the same shape structr.export.expected accepts, so a new pair can be pinned by
 	 * reading this and pasting it back.
 	 */
-	private static void report(final String pair, final List<Entity> left, final List<Entity> right,
-			final List<Delta> deltas, final Map<String, Integer> counts) {
+	private static void report(final String pair, final List<Entity> left, final List<Entity> right, final List<Delta> deltas, final Map<String, Integer> counts) {
 
 		final StringBuilder buf = new StringBuilder();
 		int total               = 0;
@@ -162,8 +159,7 @@ public class ExportDiffTest {
 
 		for (final String kind : kinds) {
 
-			buf.append(String.format("%n    %6d %6d  %s", leftKinds.getOrDefault(kind, 0),
-				rightKinds.getOrDefault(kind, 0), kind));
+			buf.append(String.format("%n    %6d %6d  %s", leftKinds.getOrDefault(kind, 0), rightKinds.getOrDefault(kind, 0), kind));
 		}
 
 		int low = 0;
@@ -252,21 +248,18 @@ public class ExportDiffTest {
 		for (final String entry : value.split(",")) {
 
 			final String trimmed = entry.trim();
-
 			if (trimmed.isEmpty()) {
 
 				continue;
 			}
 
 			final int equals = trimmed.lastIndexOf('=');
-
 			if (equals < 0) {
 
 				throw new IllegalArgumentException("Expected \"OPERATION Kind=count\", got: " + trimmed);
 			}
 
-			result.put(trimmed.substring(0, equals).trim(),
-				Integer.valueOf(trimmed.substring(equals + 1).trim()));
+			result.put(trimmed.substring(0, equals).trim(), Integer.valueOf(trimmed.substring(equals + 1).trim()));
 		}
 
 		return result;
@@ -280,7 +273,6 @@ public class ExportDiffTest {
 	private static String required(final String property) {
 
 		final String value = System.getProperty(property);
-
 		if (value == null || value.isBlank()) {
 
 			throw new SkipException("Set -D" + property + " to run this test.");

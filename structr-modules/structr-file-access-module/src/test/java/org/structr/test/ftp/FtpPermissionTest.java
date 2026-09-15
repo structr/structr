@@ -56,7 +56,6 @@ public class FtpPermissionTest extends FtpTest {
 	public void testStoreDoesNotOverwriteAFileTheUserMayOnlyRead() {
 
 		final String fileId = createReadableFileOwnedBySomeoneElse();
-
 		final FTPClient attacker = setupFTPClient("ftpattacker");
 
 		try (final Tx tx = app.tx()) {
@@ -91,9 +90,7 @@ public class FtpPermissionTest extends FtpTest {
 	public void testDeleteOfAForeignFileIsRefusedAndReported() {
 
 		final String fileId = createReadableFileOwnedBySomeoneElse();
-
 		final FTPClient attacker = setupFTPClient("ftpattacker2");
-
 		boolean deleteReportedSuccess = true;
 
 		try (final Tx tx = app.tx()) {

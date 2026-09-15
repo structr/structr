@@ -138,9 +138,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 						final Map<String, Object> flowContainerPackageData = readData(flowContainerPackageConf);
 						final Traits flowContainerPackageTraits            = Traits.of(StructrTraits.FLOW_CONTAINER_PACKAGE);
-
 						final Object flowContainerPackageId = flowContainerPackageData.remove(FlowContainerPackageTraitDefinition.PARENT_PROPERTY);
-
 						final NodeInterface flowContainerPackage = app.create(StructrTraits.FLOW_CONTAINER_PACKAGE, convertMapToPropertyMap(StructrTraits.FLOW_CONTAINER_PACKAGE, flowContainerPackageData));
 
 						if (flowContainerPackageId != null) {
@@ -300,7 +298,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 		try {
 
 			final String effectiveName = DeployCommand.sanitizeAndShortenFileOrFolderName(flow.getEffectiveName());
-
 			if (effectiveName.contains(".")) {
 
 				// create parent folders along with FlowContainerPackage
@@ -400,16 +397,15 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 	private Path exportFlowPackages(final Path target, final FlowContainerPackage flowContainerPackage) throws FrameworkException, IOException {
 
 		final FlowContainerPackage parent = flowContainerPackage.getParent();
-
 		Path current = target;
 
 		if (parent != null) {
+
 			current = exportFlowPackages(target, parent);
 		}
 
 		// sanitize name
 		final String sanitizedName = DeployCommand.sanitizeAndShortenFileOrFolderName(flowContainerPackage.getName());
-
 		final Path p = current.resolve(sanitizedName + "/" + FLOW_DEPLOYMENT_TREE_NODE_CHILDREN_FOLDER + "/");
 
 		// create directory

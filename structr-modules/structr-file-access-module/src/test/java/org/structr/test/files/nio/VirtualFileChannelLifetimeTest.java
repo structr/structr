@@ -180,9 +180,7 @@ public class VirtualFileChannelLifetimeTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create(StructrTraits.FILE,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name)
-			);
+			final NodeInterface node = app.create(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 
 			tx.success();
 

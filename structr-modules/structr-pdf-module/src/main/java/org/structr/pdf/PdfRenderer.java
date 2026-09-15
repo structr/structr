@@ -85,7 +85,6 @@ public class PdfRenderer {
 		report(documentName, unsupportedCss, resources.getUnresolvedReferences());
 
 		final byte[] pdf = out.toByteArray();
-
 		if (pdf.length == 0) {
 
 			throw new FrameworkException(500, "pdf(): conversion of " + documentName + " produced an empty document.");
@@ -103,6 +102,7 @@ public class PdfRenderer {
 		}
 
 		// keep the page name recognisable, but a header value must not carry quotes or line breaks
+
 		return pageName.replaceAll("[^A-Za-z0-9._-]", "_") + ".pdf";
 	}
 

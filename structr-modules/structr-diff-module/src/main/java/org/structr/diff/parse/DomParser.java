@@ -77,9 +77,7 @@ public class DomParser {
 	 * To an XML parser an unclosed {@code <img>} is an open container that swallows its following
 	 * siblings, which corrupts the parent and ordinal of everything after it. One app had 126.
 	 */
-	private static final Set<String> VOID_ELEMENTS = Set.of(
-		"area", "base", "br", "col", "embed", "hr", "img", "input",
-		"link", "meta", "param", "source", "track", "wbr");
+	private static final Set<String> VOID_ELEMENTS = Set.of("area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr");
 
 	private static final String META_ID   = "data-structr-meta-id";
 	private static final String META_NAME = "data-structr-meta-name";
@@ -134,7 +132,6 @@ public class DomParser {
 			if (child instanceof Comment comment) {
 
 				final String data = comment.getData().strip();
-
 				if (data.startsWith("@structr:")) {
 
 					pendingMetadata = data;
@@ -170,7 +167,6 @@ public class DomParser {
 
 					// its content is text: take it whole rather than walking what the XML parser made of it
 					final String data = element.html();
-
 					if (!data.isBlank()) {
 
 						addContent(key, 0, data);
@@ -186,8 +182,7 @@ public class DomParser {
 
 	private void addContent(final String parentKey, final int ordinal, final String text) {
 
-		entities.add(new Entity(Kind.CONTENT, parentKey + "#" + ordinal, null, parentKey, null,
-			null, text, ordinal, origin));
+		entities.add(new Entity(Kind.CONTENT, parentKey + "#" + ordinal, null, parentKey, null, null, text, ordinal, origin));
 	}
 
 	private String addElement(final Element element, final String parentKey, final int ordinal, final String metadata) {

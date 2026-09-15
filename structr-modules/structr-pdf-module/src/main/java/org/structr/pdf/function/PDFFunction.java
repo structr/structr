@@ -77,7 +77,6 @@ public class PDFFunction extends Function<Object, Object> {
 		}
 
 		final String[] parts = StringUtils.split(pagePath, "/");
-
 		if (parts.length == 0 || parts.length > 2) {
 
 			throw new FrameworkException(422, "pdf(): the page path is a page name, optionally followed by the id of the object the page renders, for example 'invoice/<uuid>'.");
@@ -131,14 +130,12 @@ public class PDFFunction extends Function<Object, Object> {
 	private NodeInterface resolveDetailsObject(final SecurityContext securityContext, final String detailsId) throws FrameworkException {
 
 		final NodeInterface byId = StructrApp.getInstance(securityContext).getNodeById(detailsId);
-
 		if (byId != null) {
 
 			return byId;
 		}
 
 		final NodeInterface byName = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.NODE_INTERFACE).name(detailsId).getFirst();
-
 		if (byName != null) {
 
 			return byName;
@@ -196,7 +193,6 @@ public class PDFFunction extends Function<Object, Object> {
 		if (sources.length == 2 && sources[1] != null) {
 
 			final String second = sources[1].toString();
-
 			if (second.trim().startsWith("-")) {
 
 				throw new FrameworkException(422, "pdf(): the second parameter is the file name of the generated document. The wkhtmltopdf parameters of earlier versions no longer exist: headers, footers and page numbers are now written in the page's print stylesheet. See the 7.x migration notes.");
@@ -211,10 +207,7 @@ public class PDFFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-				Usage.structrScript("Usage: ${ pdf(pagePath [, fileName [, parameters ]]) }"),
-				Usage.javaScript("Usage: ${{ $.pdf(pagePath [, fileName [, parameters ]]); }}")
-		);
+		return List.of(Usage.structrScript("Usage: ${ pdf(pagePath [, fileName [, parameters ]]) }"), Usage.javaScript("Usage: ${{ $.pdf(pagePath [, fileName [, parameters ]]); }}"));
 	}
 
 	@Override

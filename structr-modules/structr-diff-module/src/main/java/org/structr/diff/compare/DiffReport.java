@@ -65,8 +65,7 @@ public class DiffReport {
 		return profiles;
 	}
 
-	private static Map<String, Object> summary(final String leftName, final String rightName,
-			final List<Entity> left, final List<Entity> right, final List<Delta> deltas) {
+	private static Map<String, Object> summary(final String leftName, final String rightName, final List<Entity> left, final List<Entity> right, final List<Delta> deltas) {
 
 		final Map<String, Object> summary   = new LinkedHashMap<>();
 		final Map<String, Integer> byGroup  = new TreeMap<>();

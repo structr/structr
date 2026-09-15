@@ -46,7 +46,6 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 		final PropertyKey<String> nameKey        = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 		Object result                            = null;
 		FlowContainer container                  = null;
-
 		final String desiredEffectiveName = "flow.deployment.test";
 
 		try {
@@ -103,15 +102,11 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 	public void testFlowDeploymentRoundtripWhereFlowElementsHaveSlashesInTheirNames() {
 
 		final Map<String, Object> flowParameters = new HashMap<>();
-
 		final String desiredEffectiveName1 = "fl/ow.deploy/ment.te/st1.te/st2.te/st3.te/st4.with?funky(characters)";
 		final String desiredEffectiveName2 = "fl/ow.deploy/ment.te/st1.te/st2.flow-at?different(path)";
-
 		final List<String> desiredEffectiveNames = List.of(desiredEffectiveName1, desiredEffectiveName2);
-
 		final int expectedNumberOfFlowContainers = 2;
 		final int expectedNumberOfFlowContainerPackages = 6;
-
 
 		try {
 

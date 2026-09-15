@@ -132,9 +132,7 @@ public class LatLonToUTMFunction extends GeoFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-				Usage.structrScript("Usage: ${latLonToUtm(latitude, longitude)}. Example: ${latLonToUtm(41.3445, 7.35)}")
-		);
+		return List.of(Usage.structrScript("Usage: ${latLonToUtm(latitude, longitude)}. Example: ${latLonToUtm(41.3445, 7.35)}"));
 	}
 
 	@Override

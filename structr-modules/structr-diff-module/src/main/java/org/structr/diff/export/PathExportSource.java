@@ -96,7 +96,6 @@ public class PathExportSource implements ExportSource {
 	public InputStream open(final String path) throws IOException {
 
 		final Path resolved = pathsByName.get(normalise(path));
-
 		if (resolved == null) {
 
 			throw new IOException("No such entry in " + name + ": " + path);

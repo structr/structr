@@ -82,7 +82,6 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	public FlowContainerPackage getFlowPackage() {
 
 		final NodeInterface flowPackage = wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.FLOW_PACKAGE_PROPERTY));
-
 		if (flowPackage != null) {
 
 			return flowPackage.as(FlowContainerPackage.class);

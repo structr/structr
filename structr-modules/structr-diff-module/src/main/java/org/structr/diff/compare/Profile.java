@@ -43,7 +43,6 @@ public class Profile {
 		final List<Entity> types      = entities.stream().filter(e -> Kind.SCHEMA_TYPE.equals(e.getKind())).toList();
 		final List<Entity> domain     = types.stream().filter(e -> !isRelationship(e)).toList();
 		final Map<String, Integer> propertiesPerType = propertiesPerType(entities);
-
 		final List<String> topTypes = domain.stream()
 			.map(Entity::getName)
 			.filter(n -> n != null)
@@ -67,7 +66,6 @@ public class Profile {
 			if (Kind.LOCALIZATION.equals(e.getKind()) && e.getAttributes() != null) {
 
 				final Object locale = e.getAttributes().get("locale");
-
 				if (locale != null) {
 
 					locales.add(unquote(locale.toString()));
@@ -86,8 +84,7 @@ public class Profile {
 		profile.put("locales", new ArrayList<>(locales));
 		profile.put("topTypes", topTypes);
 		profile.put("samplePages", pageNames.stream().limit(SAMPLE).collect(Collectors.toList()));
-		profile.put("description", describe(pageNames.size(), domain.size(), types.size() - domain.size(),
-			count(entities, Kind.SCHEMA_PROPERTY), topTypes, pageNames, locales));
+		profile.put("description", describe(pageNames.size(), domain.size(), types.size() - domain.size(), count(entities, Kind.SCHEMA_PROPERTY), topTypes, pageNames, locales));
 
 		return profile;
 	}

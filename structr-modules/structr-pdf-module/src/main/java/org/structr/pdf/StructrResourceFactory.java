@@ -63,7 +63,6 @@ public class StructrResourceFactory implements FSStreamFactory {
 	public FSStream getUrl(final String url) {
 
 		final File file = fileFor(url);
-
 		if (file != null) {
 
 			return streamOf(() -> StorageProviderFactory.getStorageProvider(file).getInputStream());
@@ -87,14 +86,12 @@ public class StructrResourceFactory implements FSStreamFactory {
 	private File fileFor(final String url) {
 
 		final String path = pathOf(url);
-
 		if (path == null) {
 
 			return null;
 		}
 
 		final NodeInterface node = FileHelper.getFileByAbsolutePath(securityContext, path);
-
 		if (node != null && node.is(StructrTraits.FILE)) {
 
 			return node.as(File.class);
@@ -108,7 +105,6 @@ public class StructrResourceFactory implements FSStreamFactory {
 		try {
 
 			final Map<String, Object> response = HttpHelper.getAsStream(url);
-
 			if (response.get(HttpHelper.FIELD_BODY) instanceof InputStream body) {
 
 				return streamOf(() -> body);

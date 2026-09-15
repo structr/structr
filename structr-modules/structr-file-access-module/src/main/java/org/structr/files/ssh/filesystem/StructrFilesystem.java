@@ -153,7 +153,6 @@ public class StructrFilesystem extends FileSystem {
 		}
 
 		final String fullPath = pathBuilder.toString();
-
 		if (fullPath.equals(lastFullPath) && last != null && !last.dontCache()) {
 
 			return last;

@@ -63,7 +63,6 @@ public class FlowStore extends FlowDataSource implements DeployableEntity {
 		if (op != null && _key != null) {
 
 			final Operation operation = parseOperation(op);
-
 			if (operation == null) {
 
 				logger.warn("Unable to handle FlowStore {}, unknown operation {}.", getUuid(), op);

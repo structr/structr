@@ -154,7 +154,6 @@ public class ZipExportSource implements ExportSource {
 	public InputStream open(final String path) throws IOException {
 
 		final byte[] bytes = entries.get(normalise(path));
-
 		if (bytes == null) {
 
 			throw new IOException("No such entry in " + name + ": " + path);

@@ -46,7 +46,6 @@ public class ProcessSubjectFieldTest extends AbstractProcessEngineTest {
 	public void testUndeclaredFieldsNeverReachTheSubject() throws Exception {
 
 		final String instId = startFormsProcess();
-
 		final Map<String, Object> submitted = new LinkedHashMap<>();
 
 		submitted.put("title", "a title");

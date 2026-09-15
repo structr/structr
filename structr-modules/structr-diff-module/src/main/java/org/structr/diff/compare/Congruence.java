@@ -46,9 +46,7 @@ public class Congruence {
 	/** When an export was taken, read from the File node rather than from the export, which carries no dates. */
 	public record Taken(java.util.Date created, java.util.Date modified) {}
 
-	public static Map<String, Object> of(final List<Entity> left, final List<Entity> right,
-			final String leftVersion, final String rightVersion,
-			final Taken leftTaken, final Taken rightTaken) {
+	public static Map<String, Object> of(final List<Entity> left, final List<Entity> right, final String leftVersion, final String rightVersion, final Taken leftTaken, final Taken rightTaken) {
 
 		final double identity      = overlap(keys(left), keys(right));
 		final double pages         = jaccard(names(left, Kind.PAGE), names(right, Kind.PAGE));
@@ -60,7 +58,6 @@ public class Congruence {
 		// only speaks for pages both sides have, which is why it does not carry more weight than the rest
 		final double similarity = mean(pages, schema, localizations, structure);
 		final String verdict     = verdict(identity, similarity);
-
 		final Map<String, Object> result = new LinkedHashMap<>();
 
 		result.put("verdict", verdict);
@@ -138,6 +135,7 @@ public class Congruence {
 
 		// over every origin either side has, not just the shared ones: measured against the shared subset,
 		// a handful of coincidental matches between unrelated apps scored 52% and dominated the mean
+
 		return (double) agreeing / either.size();
 	}
 
@@ -161,8 +159,7 @@ public class Congruence {
 	 * not folded into the score, because two exports being close in time says nothing about whether they
 	 * are the same app, but it does say whether a large difference between them is plausible.
 	 */
-	private static Map<String, Object> provenance(final String leftVersion, final String rightVersion,
-			final Taken leftTaken, final Taken rightTaken) {
+	private static Map<String, Object> provenance(final String leftVersion, final String rightVersion, final Taken leftTaken, final Taken rightTaken) {
 
 		final Map<String, Object> provenance = new LinkedHashMap<>();
 

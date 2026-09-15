@@ -92,9 +92,7 @@ public class GetWFSDataFunction extends AbstractGeoserverFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-				Usage.structrScript("Usage: getWfsData(baseUrl, version, typeName [, parameterString ])")
-		);
+		return List.of(Usage.structrScript("Usage: getWfsData(baseUrl, version, typeName [, parameterString ])"));
 	}
 
 	@Override

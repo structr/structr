@@ -70,7 +70,6 @@ public class DeploymentExportToVfsTest extends StructrUiTest {
 			export(cmd, vfsTarget);
 
 			final Path vfs = Paths.get(URI.create(vfsTarget));
-
 			final Set<String> localTree = treeOf(local, local);
 			final Set<String> vfsTree   = treeOf(vfs, vfs);
 
@@ -130,8 +129,7 @@ public class DeploymentExportToVfsTest extends StructrUiTest {
 				}
 
 				assertEquals("different size for " + relative, localBytes.length, vfsBytes.length);
-				assertEquals("different content for " + relative,
-					new String(localBytes, StandardCharsets.UTF_8), new String(vfsBytes, StandardCharsets.UTF_8));
+				assertEquals("different content for " + relative, new String(localBytes, StandardCharsets.UTF_8), new String(vfsBytes, StandardCharsets.UTF_8));
 
 				compared++;
 			}

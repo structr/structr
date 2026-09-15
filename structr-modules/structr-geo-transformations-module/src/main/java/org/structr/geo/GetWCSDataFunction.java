@@ -94,9 +94,7 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-				Usage.structrScript("Usage: getWcsData(baseUrl, coverageId, boundingBox, min, max)")
-		);
+		return List.of(Usage.structrScript("Usage: getWcsData(baseUrl, coverageId, boundingBox, min, max)"));
 	}
 
 	@Override

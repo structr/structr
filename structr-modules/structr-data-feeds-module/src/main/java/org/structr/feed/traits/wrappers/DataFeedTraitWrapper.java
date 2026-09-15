@@ -180,7 +180,6 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 				// getAsStream reports a failed fetch rather than answering null, and the catch below already
 				// handles a FrameworkException -- so only a genuinely body-less response reaches the guard.
 				final Map<String, Object> responseData = HttpHelper.getAsStream(remoteUrl);
-
 				if (responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream stream) {
 
 					inputStream = stream;

@@ -1398,6 +1398,7 @@ public class ProcessEngine {
 
 		final int aLength  = a.length();
 		final int endQuote = a.indexOf(q, 1);
+
 		if (endQuote < 0) {
 
 			return null;
@@ -3770,13 +3771,11 @@ public class ProcessEngine {
 		// Split submitted fields by name-match against the subject's schema.
 		final Map<String, Object> subjectFields   = new LinkedHashMap<>();
 		final Map<String, Object> parameterFields = new LinkedHashMap<>();
-
 		final Set<String> writableFields = writableSubjectFields(element, subject);
 
 		for (final Map.Entry<String, Object> entry : parameters.entrySet()) {
 
 			final String name = entry.getKey();
-
 			if (writableFields.contains(name)) {
 
 				subjectFields.put(name, entry.getValue());

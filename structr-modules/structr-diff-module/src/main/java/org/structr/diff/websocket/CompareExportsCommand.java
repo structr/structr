@@ -108,9 +108,7 @@ public class CompareExportsCommand extends AbstractCommand {
 			final List<Entity> a     = parsedLeft.entities();
 			final List<Entity> b     = parsedRight.entities();
 			final List<Delta> deltas = new Matcher(a, b).getDeltas();
-
-			final Map<String, Object> congruence = Congruence.of(a, b,
-				parsedLeft.structrVersion(), parsedRight.structrVersion(), taken(left), taken(right));
+			final Map<String, Object> congruence = Congruence.of(a, b, parsedLeft.structrVersion(), parsedRight.structrVersion(), taken(left), taken(right));
 
 			// FINISHED with the original callback is how a command answers one caller; echoing the request
 			// back does not reach it. The report travels as JSON text because the websocket serializer

@@ -76,7 +76,6 @@ public class PdfRendererTest extends StructrUiTest {
 
 			final Page page   = Page.createSimplePage(securityContext, "statement");
 			final String html = PdfRenderer.renderToHtml(page, new RenderContext(securityContext));
-
 			final byte[] pdf = PdfRenderer.toPdf(html, securityContext, "statement");
 
 			assertTrue("Conversion produced no bytes", pdf.length > 0);
@@ -171,7 +170,6 @@ public class PdfRendererTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface group = app.create(StructrTraits.GROUP, "Wholesale");
-
 			final Page page           = Page.createNewPage(securityContext, "detail");
 			final DOMElement html     = page.createElement("html");
 			final DOMElement body     = page.createElement("body");
@@ -186,8 +184,7 @@ public class PdfRendererTest extends StructrUiTest {
 
 			try (final Tx tx2 = app.tx()) {
 
-				Scripting.replaceVariables(new ActionContext(securityContext), null,
-					"${{ $.pdf('detail/" + group.getUuid() + "', 'detail.pdf', { lang: 'de' }); }}");
+				Scripting.replaceVariables(new ActionContext(securityContext), null, "${{ $.pdf('detail/" + group.getUuid() + "', 'detail.pdf', { lang: 'de' }); }}");
 
 				tx2.success();
 			}
@@ -235,8 +232,7 @@ public class PdfRendererTest extends StructrUiTest {
 			} catch (final FrameworkException expected) {
 
 				assertEquals(422, expected.getStatus());
-				assertTrue("The error should point at the parameters argument: " + expected.getMessage(),
-					expected.getMessage().contains("third parameter"));
+				assertTrue("The error should point at the parameters argument: " + expected.getMessage(), expected.getMessage().contains("third parameter"));
 			}
 
 			tx.success();

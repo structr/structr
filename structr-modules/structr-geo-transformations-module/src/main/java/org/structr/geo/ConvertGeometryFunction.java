@@ -87,9 +87,7 @@ public class ConvertGeometryFunction extends GeoFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-				Usage.structrScript("Usage: convertGeometry(sourceCRS, destCRS, geometry)")
-		);
+		return List.of(Usage.structrScript("Usage: convertGeometry(sourceCRS, destCRS, geometry)"));
 	}
 
 	@Override

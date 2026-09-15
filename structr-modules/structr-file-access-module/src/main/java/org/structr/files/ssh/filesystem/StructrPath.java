@@ -188,7 +188,6 @@ public abstract class StructrPath implements Path {
 	public Path getName(final int index) {
 
 		final List<String> elements = getNameElements();
-
 		if (index < 0 || index >= elements.size()) {
 
 			throw new IllegalArgumentException("No name element at index " + index + " in " + this);
@@ -196,6 +195,7 @@ public abstract class StructrPath implements Path {
 
 		// a single name element as a relative path of its own, not the ancestor path down to it: the
 		// difference decides what Files.walkFileTree and every relativize() built on it produce
+
 		return relativeOf(fs, elements.subList(index, index + 1));
 	}
 
@@ -203,7 +203,6 @@ public abstract class StructrPath implements Path {
 	public Path subpath(final int beginIndex, final int endIndex) {
 
 		final List<String> elements = getNameElements();
-
 		if (beginIndex < 0 || beginIndex >= elements.size() || endIndex > elements.size() || beginIndex >= endIndex) {
 
 			throw new IllegalArgumentException("Illegal subpath(" + beginIndex + ", " + endIndex + ") of " + this);
@@ -306,6 +305,7 @@ public abstract class StructrPath implements Path {
 
 		// returning null here, as this did, turns every Files call that resolves a child into a
 		// NullPointerException somewhere else entirely
+
 		return resolve(other.toString());
 	}
 
@@ -358,7 +358,6 @@ public abstract class StructrPath implements Path {
 
 		final List<String> mine   = getNameElements();
 		final List<String> theirs = ((StructrPath)other).getNameElements();
-
 		int common = 0;
 
 		while (common < mine.size() && common < theirs.size() && mine.get(common).equals(theirs.get(common))) {
@@ -388,6 +387,7 @@ public abstract class StructrPath implements Path {
 
 			// the authority names the user the filesystem acts as, so the URI round-trips back to a
 			// filesystem with the same view rather than to whatever the default one is
+
 			return new URI(StructrPath.SCHEME, fs.getUser(), path, null, null);
 
 		} catch (URISyntaxException uex) {
@@ -406,6 +406,7 @@ public abstract class StructrPath implements Path {
 
 		// there is no working directory in this filesystem, so a relative path can only be anchored at
 		// the root. The previous version appended this path's own last name to itself.
+
 		return fs.getPath(ROOT_DIRECTORY + toString());
 	}
 
@@ -413,6 +414,7 @@ public abstract class StructrPath implements Path {
 	public Path toRealPath(final LinkOption... options) throws IOException {
 
 		// no links and no case folding here, so the real path is just the absolute, normalized one
+
 		return toAbsolutePath().normalize();
 	}
 
@@ -562,7 +564,6 @@ public abstract class StructrPath implements Path {
 
 		return result;
 	}
-
 
 	protected String normalizeFileNameForJavaIdentifier(final String src) {
 

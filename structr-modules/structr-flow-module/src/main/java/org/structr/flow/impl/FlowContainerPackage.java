@@ -49,8 +49,8 @@ public class FlowContainerPackage extends FlowBaseNode implements DeployableEnti
 	public FlowContainerPackage getParent() {
 
 		final NodeInterface parent = wrappedObject.getProperty(traits.key(FlowContainerPackageTraitDefinition.PARENT_PROPERTY));
-
 		if (parent != null) {
+
 			return parent.as(FlowContainerPackage.class);
 		}
 

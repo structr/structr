@@ -33,12 +33,7 @@ public class Delta {
 
 	public enum Operation {
 
-		ADDED,
-		REMOVED,
-		CHANGED,
-		RENAMED,
-		MOVED,
-		REIDENTIFIED
+		ADDED, REMOVED, CHANGED, RENAMED, MOVED, REIDENTIFIED
 	}
 
 	/**
@@ -49,20 +44,13 @@ public class Delta {
 	 */
 	public enum Detail {
 
-		NAME,
-		POSITION,
-		ATTRIBUTES,
-		CONTENT,
-		CONTENT_WHITESPACE_ONLY,
-		IDENTITY
+		NAME, POSITION, ATTRIBUTES, CONTENT, CONTENT_WHITESPACE_ONLY, IDENTITY
 	}
 
 	/** How the two sides were paired. Reported, because a fallback match is weaker evidence. */
 	public enum MatchedBy {
 
-		KEY,
-		ALTERNATE_KEY,
-		UNMATCHED
+		KEY, ALTERNATE_KEY, UNMATCHED
 	}
 
 	private final String kind;
@@ -76,8 +64,7 @@ public class Delta {
 	private Signal signal = Signal.NORMAL;
 	private String signalReason;
 
-	public Delta(final String kind, final String key, final Operation operation, final String name,
-			final Detail detailCode, final String detail, final String origin, final MatchedBy matchedBy) {
+	public Delta(final String kind, final String key, final Operation operation, final String name, final Detail detailCode, final String detail, final String origin, final MatchedBy matchedBy) {
 
 		this.kind       = kind;
 		this.key        = key;

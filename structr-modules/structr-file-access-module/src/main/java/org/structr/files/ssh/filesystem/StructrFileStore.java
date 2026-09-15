@@ -95,6 +95,7 @@ public class StructrFileStore extends FileStore {
 	public <V extends FileStoreAttributeView> V getFileStoreAttributeView(final Class<V> type) {
 
 		// the contract is null for an unsupported view, and this store has none at all
+
 		return null;
 	}
 
