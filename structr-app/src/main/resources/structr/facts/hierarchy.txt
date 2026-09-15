@@ -111,7 +111,6 @@ Topic "Security" has markdown-file "articles/Security/Rate Limiting.md"
 
 
 # Expert Topics
-"Expert Topics" has markdown-file "articles/Expert Topics/Built-in Analytics.md"
 "Expert Topics" has markdown-file "articles/Expert Topics/Migration.md"
 
 
