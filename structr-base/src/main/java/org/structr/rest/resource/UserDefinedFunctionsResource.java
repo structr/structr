@@ -64,7 +64,10 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		if (methodName != null) {
 
 			final AbstractMethod method = Methods.resolveMethod(null, methodName);
-			if (method != null) {
+
+			// isPrivate as well as existence: a private method is not reachable over REST, which the
+			// static, instance and /me method resources all enforce and these two did not (ticket 1597)
+			if (method != null && !method.isPrivate()) {
 
 				return new GlobalSchemaMethodResourceHandler(call, method);
 			}

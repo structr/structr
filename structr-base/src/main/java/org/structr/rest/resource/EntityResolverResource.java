@@ -70,7 +70,10 @@ public class EntityResolverResource extends ExactMatchEndpoint {
 
 					if (obj instanceof String) {
 
-						NodeInterface node = StructrApp.getInstance().getNodeById((String)obj);
+						/* Ticket 1597: StructrApp.getInstance() is the superuser instance, so this answered
+						   for any uuid the caller could name - and the nodes came back carrying that context,
+						   which resolved their nested properties unfiltered too. */
+						NodeInterface node = StructrApp.getInstance(securityContext).getNodeById((String)obj);
 						if (node != null) {
 
 							result.addContent(node);

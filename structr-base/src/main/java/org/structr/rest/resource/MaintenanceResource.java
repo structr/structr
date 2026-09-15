@@ -63,6 +63,28 @@ import java.util.*;
 @Documentation(name="Maintenance command execution endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class MaintenanceResource extends ExactMatchEndpoint {
 
+	/**
+	 * Refuses anyone but an administrator. The maintenance endpoint is administrators-only, and its
+	 * handlers each have to say so: the schema handler did not, and answered with the whole schema
+	 * including every method's source to whoever held the grant (ticket 1597).
+	 */
+	private static void assertSuperUser(final SecurityContext securityContext) throws FrameworkException {
+
+		final boolean isSuperUser;
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			isSuperUser = (securityContext != null && securityContext.isSuperUser());
+
+			tx.success();
+		}
+
+		if (!isSuperUser) {
+
+			throw new NotAllowedException("Use of the maintenance endpoint is restricted to admin users");
+		}
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class);
 
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
@@ -334,6 +356,12 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
+			/* Ticket 1597: read through StructrApp.getInstance(), which is the superuser instance, so
+			   this answered with the entire schema - every type, every view and the source of every
+			   method - to whoever held the grant. Its sibling handler in this same class checks first,
+			   and the maintenance endpoint is administrators-only for exactly this kind of reason. */
+			assertSuperUser(securityContext);
+
 			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
 			final String schema         = jsonSchema.toString();
 
@@ -343,6 +371,8 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 		@Override
 		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
+			assertSuperUser(securityContext);
 
 			if(propertySet != null && propertySet.containsKey("schema")) {
 

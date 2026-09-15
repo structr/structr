@@ -61,7 +61,10 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 		if (methodName != null) {
 
 			final AbstractMethod method = Methods.resolveMethod(null, methodName);
-			if (method != null) {
+
+			// isPrivate as well as existence: a private method is not reachable over REST, which the
+			// static, instance and /me method resources all enforce and these two did not (ticket 1597)
+			if (method != null && !method.isPrivate()) {
 
 				logger.warn("Using deprecated URL {} to call user-defined function {}, please use {} instead. Support for this path will be dropped in the near future.",
 					call.getURL(),

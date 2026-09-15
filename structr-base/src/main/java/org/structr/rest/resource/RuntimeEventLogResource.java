@@ -26,6 +26,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.rest.exception.NotAllowedException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
@@ -48,6 +49,21 @@ import java.util.stream.Collectors;
  */
 @Documentation(name="Runtime event log endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class RuntimeEventLogResource extends ExactMatchEndpoint {
+
+	/**
+	 * Refuses anyone but an administrator. This log holds failed logins with the names that were tried,
+	 * the URIs that were refused and the full parameter set of every maintenance call - a record of what
+	 * the instance has been attacked with, which is not something to hand to whoever holds a grant. The
+	 * dashboard reads this same signature, so granting it "for the UI" is an easy mistake and this is
+	 * what makes it harmless (ticket 1597).
+	 */
+	private static void assertSuperUser(final SecurityContext securityContext) throws FrameworkException {
+
+		if (securityContext == null || !securityContext.isSuperUser()) {
+
+			throw new NotAllowedException("Access to the runtime event log is restricted to admin users");
+		}
+	}
 
 	public enum UriPart {
 
@@ -75,6 +91,8 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
+			assertSuperUser(securityContext);
+
 			final Predicate<RuntimeEvent> predicate = getPredicate(securityContext);
 			final List<GraphObject> resultList      = RuntimeEventLog.getEvents(predicate).stream().map(e -> e.toGraphObject()).collect(Collectors.toList());
 
@@ -83,6 +101,8 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 
 		@Override
 		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
+			assertSuperUser(securityContext);
 
 			final Consumer<RuntimeEvent> visitor    = getVisitor(propertySet);
 			final Predicate<RuntimeEvent> predicate = getPredicate(securityContext);
