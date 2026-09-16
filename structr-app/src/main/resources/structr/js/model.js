@@ -442,22 +442,22 @@ let StructrModel = {
 
 			_Entities.updateNewAccessControlIconInElement(obj, element);
 
-			let displayName = _Helpers.getHTMLTreeElementDisplayName(obj);
+			let escapedDisplayName = _Helpers.getHTMLTreeEscapedElementDisplayName(obj);
 
 			if (obj.hasOwnProperty('name')) {
 
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('.node-container').find('.content_').replaceWith(`<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`);
+						element.children('.node-container').find('.content_').replaceWith(`<b title="${escapedDisplayName}" class="tag_ name_">${escapedDisplayName}</b>`);
 
-						element.children('.node-container').find('.name_').replaceWith(`<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`);
+						element.children('.node-container').find('.name_').replaceWith(`<b title="${escapedDisplayName}" class="tag_ name_">${escapedDisplayName}</b>`);
 
 					} else {
-						element.children('.node-container').find('.name_').html(_Helpers.escapeTags(obj.content));
+						element.children('.node-container').find('.name_').text(obj.content);
 					}
 				} else {
-					element.children('.node-container').find('.name_').attr('title', displayName).html(displayName);
+					element.children('.node-container').find('.name_').attr('title', escapedDisplayName).html(escapedDisplayName);
 				}
 			}
 		}

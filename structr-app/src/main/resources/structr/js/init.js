@@ -480,7 +480,7 @@ let Structr = {
 					errorMsg += `.${error.property}`;
 				}
 				if (error.value) {
-					errorMsg += ` ${error.value}`;
+					errorMsg += ` ${_Helpers.escapeForHtmlAttributes(error.value)}`;
 				}
 				if (error.token) {
 					errorMsg += ` ${error.token}`;
@@ -489,7 +489,7 @@ let Structr = {
 					if (errorMsg.trim().length > 0) {
 						errorMsg += ': ';
 					}
-					errorMsg += error.existingNodeUuid ?? error.detail;
+					errorMsg += error.existingNodeUuid ?? _Helpers.escapeForHtmlAttributes(error.detail);
 				}
 
 				errorLines.push(errorMsg);
@@ -507,7 +507,7 @@ let Structr = {
 			errorText += Object.entries(response).filter(([k, v]) => (k !== 'code' && v && v.length > 0)).map(([k, v]) => (useHtml) ? `<b>${k}</b>: ${v}` : `${k}: ${v}`).join(lineJoin);
 		}
 
-		return errorText;
+		return _Helpers.sanitizeHtml(errorText);
 	},
 	errorFromResponse: (response, url, additionalParameters) => {
 
@@ -2016,6 +2016,8 @@ let Structr = {
 
 						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
 
+						el.querySelector('.name').textContent = result.name ? `${result.name} [${result.type}]` : result.type;
+
 						Structr.globalSearch.insertValuePreview(el, value);
 
 						resultsElement.appendChild(el);
@@ -2159,7 +2161,7 @@ let Structr = {
 			result: (result, key) => `
 				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" data-type="${result.type}" title="${key}">
 					<td title="${result.id}"><div class="max-w-12 truncate">${result.id}</div></td>
-					<td class="name">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
+					<td class="name"></td>
 					<td class="key">${Structr.globalSearch.htmlCodeForKey(key)}</td>
 					<td class="value"><span data-before-match></span><mark data-is-match></mark><span data-after-match></span></td>
 				</tr>

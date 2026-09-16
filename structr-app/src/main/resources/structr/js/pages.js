@@ -1116,7 +1116,7 @@ let _Pages = {
 				<div class="node-container flex items-center">
 					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
-						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
+						<b class="name_"></b>
 						<span class="position_">${((entity.position !== undefined && entity.position !== null) ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
@@ -1127,6 +1127,10 @@ let _Pages = {
 		let div            = Structr.node(entity.id);
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
+
+		let nameEl = div[0].querySelector('b.name_');
+		nameEl.textContent = pageName;
+		nameEl.title       = entity.name;
 
 		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
 
@@ -2603,7 +2607,7 @@ let _Pages = {
 					});
 				});
 
-			}, 'afterbegin', _Helpers.getHTMLTreeElementDisplayName(StructrModel.obj(obj.id)));
+			}, 'afterbegin', _Helpers.getHTMLTreeEscapedElementDisplayName(StructrModel.obj(obj.id)));
 		};
 
 		const getAndAppendParameterMapping = (id) => {
@@ -2686,7 +2690,7 @@ let _Pages = {
 					hiddenUserInputInput.value = '';
 					saveParameterMappings(dropzoneElement);
 				})
-			}, 'beforeend', _Helpers.getHTMLTreeElementDisplayName(StructrModel.obj(obj.id)));
+			}, 'beforeend', _Helpers.getHTMLTreeEscapedElementDisplayName(StructrModel.obj(obj.id)));
 
 			dropzoneElement.classList.add('hidden');
 			saveParameterMappings(dropzoneElement);
@@ -3177,14 +3181,12 @@ let _Pages = {
 				return;
 			}
 
-			let pageName = (entity.name ?? entity.hostname ?? entity.id);
-
 			sitesListEl.insertAdjacentHTML('beforeend', `
 				<div id="id_${entity.id}" class="node site">
 					<div class="node-container flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconSite, 16, 16, ['typeIcon', 'icon-grey'])}
 						<span class="abbr-ellipsis abbr-pages-tree-page">
-							<b title="${_Helpers.escapeForHtmlAttributes(pageName)}" class="name_">${pageName}</b>
+							<b class="name_"></b>
 						</span>
 						<div class="icons-container flex items-center"></div>
 					</div>
@@ -3194,6 +3196,10 @@ let _Pages = {
 			let div            = Structr.node(entity.id);
 			let nodeContainer  = $('.node-container', div);
 			let iconsContainer = $('.icons-container', div);
+
+			let nameEl = div[0].querySelector('b.name_');
+			nameEl.textContent = (entity.name ?? entity.hostname ?? entity.id);
+			nameEl.title       = entity.name;
 
 			_Pages.registerDetailClickHandler(nodeContainer, entity);
 
@@ -3421,7 +3427,7 @@ let _Pages = {
 				return existing.querySelector('tbody');
 			}
 
-			let displayName = _Helpers.getHTMLTreeElementDisplayName(entity);
+			let escapedDisplayName = _Helpers.getHTMLTreeEscapedElementDisplayName(entity);
 			let iconClasses = ['mr-2', 'flex-shrink-0'];
 			let iconHTML    = (entity.isDOMNode) ? (entity.isContent ?_Icons.getSvgIconForContentNode(entity, iconClasses) : _Icons.getSvgIconForElementNode(entity, iconClasses)) : _Icons.getSvgIcon(_Icons.iconSchemaNodeDefault, 16, 16, iconClasses);
 			let detailHtml  = '';
@@ -3433,7 +3439,7 @@ let _Pages = {
 			} else if (entity.type === 'Template') {
 
 				if (entity.name) {
-					detailHtml = displayName;
+					detailHtml = escapedDisplayName;
 				} else {
 					detailHtml = _Helpers.escapeTags(entity.content);
 				}
@@ -3441,7 +3447,7 @@ let _Pages = {
 			} else if (!entity.isDOMNode) {
 				detailHtml = `<b title="${_Helpers.escapeForHtmlAttributes(entity.type)}" class="tag_ name_">${entity.type}</b>`;
 			} else {
-				detailHtml = `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`;
+				detailHtml = `<b title="${escapedDisplayName}" class="tag_ name_">${escapedDisplayName}</b>`;
 			}
 
 			let div = _Helpers.createSingleDOMElementFromHTML(`
@@ -4270,10 +4276,14 @@ let _Pages = {
 							let div = _Helpers.createSingleDOMElementFromHTML(`
 								<div class="node page ${_Pages.linkableDialog.nodeClasses}">
 									<div class="node-container flex items-center gap-x-2 p-2">
-										${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['icon-grey'])}<b title="${_Helpers.escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
+										${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['icon-grey'])}<b class="name_ abbr-ellipsis abbr-120"></b>
 									</div>
 								</div>
 							`);
+
+							let nameEl = div.querySelector('b.name_');
+							nameEl.textContent = page.name;
+							nameEl.title       = page.name;
 
 							pagesToLink.appendChild(div);
 
@@ -4314,10 +4324,14 @@ let _Pages = {
 						let div = _Helpers.createSingleDOMElementFromHTML(`
 							<div class="node file ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
-									${_Icons.getSvgIcon(_Icons.getFileIconSVG(file))}<b title="${_Helpers.escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-120">${file.name}</b>
+									${_Icons.getSvgIcon(_Icons.getFileIconSVG(file))}<b class="name_ abbr-ellipsis abbr-120"></b>
 								</div>
 							</div>
 						`);
+
+						let nameEl = div.querySelector('b.name_');
+						nameEl.textContent = file.name;
+						nameEl.title       = file.name;
 
 						filesToLink.appendChild(div);
 
@@ -4345,10 +4359,14 @@ let _Pages = {
 						let div = _Helpers.createSingleDOMElementFromHTML(`
 							<div class="node file ${_Pages.linkableDialog.nodeClasses}" title="${_Helpers.escapeForHtmlAttributes(image.path)}">
 								<div class="node-container flex items-center gap-x-2 p-2">
-									${_Icons.getImageOrIcon(image)}<b class="name_ abbr-ellipsis abbr-120">${image.name}</b>
+									${_Icons.getImageOrIcon(image)}<b class="name_ abbr-ellipsis abbr-120"></b>
 								</div>
 							</div>
 						`);
+
+						let nameEl = div.querySelector('b.name_');
+						nameEl.textContent = image.name;
+						nameEl.title       = image.name;
 
 						imagesToLink.append(div);
 
@@ -4367,11 +4385,15 @@ let _Pages = {
 			let subFolderEl = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${_Pages.linkableDialog.nodeClasses}">
 					<div class="node-container flex items-center gap-x-2 p-2">
-						${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}<b title="${_Helpers.escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
+						${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}<b class="name_ abbr-ellipsis abbr-200"></b>
 					</div>
 				</div>
 			`);
 			folderEl.appendChild(subFolderEl);
+
+			let nameEl = subFolderEl.querySelector('b.name_');
+			nameEl.textContent = subFolder.name;
+			nameEl.title       = subFolder.name;
 
 			let nodeContainer = subFolderEl.querySelector('.node-container');
 
@@ -4422,10 +4444,15 @@ let _Pages = {
 						let div = _Helpers.createSingleDOMElementFromHTML(`
 							<div class="node file sub ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
-									${_Icons.getSvgIcon(_Icons.getFileIconSVG(file))}<b title="${_Helpers.escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-200">${file.name}</b>
+									${_Icons.getSvgIcon(_Icons.getFileIconSVG(file))}<b class="name_ abbr-ellipsis abbr-200"></b>
 								</div>
 							</div>
 						`);
+
+						let nameEl = div.querySelector('b.name_');
+						nameEl.textContent = file.name;
+						nameEl.title       = file.path;
+
 						folderEl.appendChild(div);
 
 						_Pages.linkableDialog.handleLinkableElement(div, entityToLinkTo, file);
@@ -5671,7 +5698,7 @@ let _Pages = {
 								<label class="block mb-2" for="dialog-title" data-comment="Enter title for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Title</label>
 								<input type="text" id="dialog-title">
 					
-								<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;"">Dialog Text</label>
+								<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Text</label>
 								<input type="text" id="dialog-text">
 							</div>
 

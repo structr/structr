@@ -144,6 +144,10 @@
 	font-weight: 600;
 }
 
+.crud-table thead th:not(.___action_header) {
+	min-width: 10rem;
+}
+
 .column-sorted-active {
 	color: var(--active-link) ! important;
 }

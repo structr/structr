@@ -677,7 +677,7 @@ let _Files = {
 
 				return {
 					id:       d.id,
-					text:     d?.name ?? '[unnamed]',
+					text:     _Helpers.escapeForHtmlAttributes(d?.name ?? '[unnamed]'),
 					children: d.foldersCount > 0,
 					icon:     _Icons.nonExistentEmptyIcon,
 					data:     { svgIcon: _Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 24) },
@@ -881,7 +881,7 @@ let _Files = {
 
 			parents = [].concat(parents).reverse().slice(1);
 
-			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
+			let pathNames = ((nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'))).map(pathEl => _Helpers.escapeForHtmlAttributes(pathEl));
 
 			_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
 				<div class="folder-path">
@@ -995,7 +995,7 @@ let _Files = {
 		let fileIcon              = (d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d));
 		let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize, 'cursor-pointer');
 		let parentIdString        = d.parentId ? `data-parent-id="${d.parentId}"` : '';
-		let ownerString           = (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '');
+		let ownerString           = _Helpers.escapeForHtmlAttributes(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '');
 
 		if (listModeActive) {
 
@@ -1551,7 +1551,8 @@ let _Files = {
 
 				loadedEditors++;
 
-				let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
+				let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab"></li>`);
+				tab.textContent     = entity.name;
 				let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex relative"></div>`);
 
 				filesTabsUl.appendChild(tab);
