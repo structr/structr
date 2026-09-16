@@ -62,6 +62,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PASSWORD_PROPERTY              = "password";
 	public static final String PASSWORD_CHANGE_DATE_PROPERTY  = "passwordChangeDate";
 	public static final String PASSWORD_ATTEMPTS_PROPERTY     = "passwordAttempts";
+	public static final String LAST_FAILED_LOGIN_DATE_PROPERTY = "lastFailedLoginDate";
 	public static final String LAST_LOGIN_DATE_PROPERTY       = "lastLoginDate";
 	public static final String TWO_FACTOR_SECRET_PROPERTY     = "twoFactorSecret";
 	public static final String TWO_FACTOR_TOKEN_PROPERTY      = "twoFactorToken";
@@ -249,6 +250,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new PasswordProperty(PASSWORD_PROPERTY),
 			new DateProperty(PASSWORD_CHANGE_DATE_PROPERTY),
 			new IntProperty(PASSWORD_ATTEMPTS_PROPERTY),
+			new DateProperty(LAST_FAILED_LOGIN_DATE_PROPERTY),
 			new DateProperty(LAST_LOGIN_DATE_PROPERTY),
 			new StringProperty(TWO_FACTOR_SECRET_PROPERTY),
 			new StringProperty(TWO_FACTOR_TOKEN_PROPERTY).indexed().readOnly(),

@@ -537,8 +537,18 @@ public class UiAuthenticator implements Authenticator {
 
 		if  (user != null) {
 
+			/* Ticket 1598: a confirmation key blocks the login of an account that has never been used -
+			   an unconfirmed registration - and of nothing else. The key is also what a password reset
+			   writes, onto an account that is already in use, so refusing every account that carries one
+			   made POST /reset-password with a stranger's e-mail address a way to lock them out until
+			   they click a mail they never asked for. Having logged in once is what tells the two apart,
+			   which is a good signal rather than a perfect one: an account that registered, never logged
+			   in and then asked for a reset still counts as new and stays blocked until it is confirmed.
+			   That case is a user who has never used the account, which is what the key is for. */
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
-			if (user.is(StructrTraits.USER) && user.as(User.class).getConfirmationKey() != null && !allowLoginBeforeConfirmation) {
+			final boolean neverLoggedIn                = (user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY)) == null);
+
+			if (user.is(StructrTraits.USER) && user.as(User.class).getConfirmationKey() != null && neverLoggedIn && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as '{}' ({}) not allowed before confirmation.", userProvidedValueForAuthenticationKey, user.getUuid());
 
