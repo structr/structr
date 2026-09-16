@@ -181,7 +181,7 @@ let _Documentation = {
 				// navigation happens automatically... we only need to update the context
 
 				const el = e.target;
-				if (el.tagName === 'A' && !el.href.startsWith('javascript')) {
+				if (el.tagName === 'A' && el.target !== '_blank' && !el.href.startsWith('javascript')) {
 
 					let href = el.getAttribute('href');
 
