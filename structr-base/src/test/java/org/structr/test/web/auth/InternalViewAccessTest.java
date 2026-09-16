@@ -137,7 +137,7 @@ public class InternalViewAccessTest extends StructrUiTest {
 	/**
 	 * The back end is the reason these views exist, and it reaches them over plain REST: dashboard.js
 	 * asks for me/ui, files.js for File/ui, schema.js for SchemaNode/ui, entities.js and crud.js for
-	 * &lt;type&gt;/&lt;id&gt;/all, processes.js for a dozen more. Restricting the views must not cost the
+	 * &lt;type&gt;/&lt;id&gt;/all, processes.js for nine more across five types. Restricting the views must not cost the
 	 * back end any of that, so the shapes it uses are pinned here rather than assumed.
 	 */
 	@Test

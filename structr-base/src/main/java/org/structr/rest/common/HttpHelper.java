@@ -1269,7 +1269,8 @@ public class HttpHelper {
 	}
 
 	/**
-	 * SSRF address filter shared by {@link #validateUrl} and {@link #validateProxyUrl}. Blocks loopback,
+	 * SSRF address filter shared by {@link #validateUrl}, {@link #isBlockedHost} - and with it the
+	 * redirect strategy - and {@link #validateProxyUrl}. Blocks loopback,
 	 * link-local (incl. 169.254.169.254), site-local (RFC1918), wildcard and multicast addresses, plus the
 	 * ranges {@link InetAddress} does not flag: IPv4 carrier-grade NAT 100.64.0.0/10 and IPv6 unique local
 	 * addresses fc00::/7 (which covers fd00::/8). #1580
@@ -1336,11 +1337,16 @@ public class HttpHelper {
 
 		try {
 
-			final InetAddress resolved = InetAddress.getByName(host);
-			if (isBlockedAddress(resolved)) {
+			/* Every address the name answers with, the same rule the target host goes through: a proxy name
+			   that resolves to a public and a private address would otherwise pass on whichever one came
+			   first and then be connected to on the other. */
+			for (final InetAddress resolved : InetAddress.getAllByName(host)) {
 
-				logger.warn("Blocked outbound request via internal proxy address {} (resolved from {})", resolved.getHostAddress(), host);
-				throw new FrameworkException(403, "Proxies on internal network addresses are not allowed");
+				if (isBlockedAddress(resolved)) {
+
+					logger.warn("Blocked outbound request via internal proxy address {} (resolved from {})", resolved.getHostAddress(), host);
+					throw new FrameworkException(403, "Proxies on internal network addresses are not allowed");
+				}
 			}
 
 		} catch (final UnknownHostException e) {

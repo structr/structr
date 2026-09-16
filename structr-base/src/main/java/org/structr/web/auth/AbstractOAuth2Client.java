@@ -27,6 +27,7 @@ import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.oauth.AccessTokenRequestParams;
 import com.github.scribejava.core.oauth.OAuth20Service;
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,6 +48,7 @@ import java.net.URI;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract base class for OAuth2 clients.
@@ -180,9 +182,33 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public String getAuthorizationURL(final String state) {
+	public String getAuthorizationURL(final OAuth2Flow flow) {
 
-		return service.getAuthorizationUrl(state);
+		/* PKCE (RFC 7636) and the OIDC nonce ride along with every authorization request, for every
+		   provider, with nothing to configure: RFC 6749 3.1 has the authorization server ignore request
+		   parameters it does not recognise, so a provider that implements neither behaves as it did
+		   before. What they buy is the two things state alone does not cover - an authorization code
+		   intercepted on its way back is worthless without the verifier that only this Structr instance
+		   holds, and an id_token from an earlier exchange cannot be replayed into this one. */
+		final Map<String, String> additionalParams = new HashMap<>(getAdditionalAuthorizationParameters());
+
+		additionalParams.put("nonce", flow.getNonce());
+
+		return service.createAuthorizationUrlBuilder()
+			.state(flow.getState())
+			.pkce(flow.getPKCE())
+			.additionalParams(additionalParams)
+			.build();
+	}
+
+	/**
+	 * Provider-specific parameters to add to the authorization request. Overriding this rather than
+	 * {@link #getAuthorizationURL(OAuth2Flow)} is what keeps a provider from silently dropping the state,
+	 * nonce and PKCE binding the base implementation puts there.
+	 */
+	protected Map<String, String> getAdditionalAuthorizationParameters() {
+
+		return Map.of();
 	}
 
 	@Override
@@ -210,11 +236,17 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public OAuth2AccessToken getAccessToken(final String authorizationReplyCode) {
+	public OAuth2AccessToken getAccessToken(final String authorizationReplyCode, final OAuth2Flow flow) {
 
 		try {
 
-			return service.getAccessToken(authorizationReplyCode);
+			final OAuth2AccessToken accessToken = service.getAccessToken(AccessTokenRequestParams.create(authorizationReplyCode).pkceCodeVerifier(flow.getCodeVerifier()));
+			if (accessToken != null && !hasMatchingNonce(accessToken, flow.getNonce())) {
+
+				return null;
+			}
+
+			return accessToken;
 
 		} catch (Exception e) {
 
@@ -224,6 +256,91 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			}
 
 			logger.debug("Access token error details", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Checks the nonce of the id_token the provider returned alongside the access token, if it returned
+	 * one at all.
+	 *
+	 * <p>A provider that speaks plain OAuth2 rather than OIDC answers without an id_token, so the absence
+	 * of one is not treated as a failure - which does mean the nonce buys nothing against such a
+	 * provider, and that is the honest position rather than refusing a login over a protocol the provider
+	 * does not speak. What must not happen is accepting an id_token whose nonce is missing or belongs to
+	 * a different request.
+	 *
+	 * <p>The signature is not re-verified: the id_token comes back on this instance's own request to the
+	 * token endpoint rather than through the browser, and OIDC Core 3.1.3.7 lets TLS server validation
+	 * stand in for checking the token signature when it arrives that way. That rests on the token
+	 * endpoint being https, which is the provider's URL and not something checked here. Only the nonce
+	 * binding is at stake.
+	 */
+	protected boolean hasMatchingNonce(final OAuth2AccessToken accessToken, final String expectedNonce) {
+
+		final String idToken = extractIdToken(accessToken);
+		if (idToken == null) {
+
+			return true;
+		}
+
+		try {
+
+			final Claim nonce = JWT.decode(idToken).getClaim("nonce");
+			if (nonce == null || nonce.isNull()) {
+
+				logger.warn("Refusing OAuth login for provider {}: the id_token carries no nonce, so it cannot be tied to this login attempt.", provider);
+
+				return false;
+			}
+
+			if (!StringUtils.equals(expectedNonce, nonce.asString())) {
+
+				logger.warn("Refusing OAuth login for provider {}: the nonce in the id_token belongs to a different login attempt.", provider);
+
+				return false;
+			}
+
+			return true;
+
+		} catch (Exception e) {
+
+			logger.warn("Refusing OAuth login for provider {}: the id_token could not be decoded: {}", provider, e.getMessage());
+
+			return false;
+		}
+	}
+
+	/**
+	 * Returns the raw id_token from the token endpoint response, or null if there is none.
+	 *
+	 * <p>Read out of the raw response because that is the one place it is available whichever provider
+	 * answered. ScribeJava models the id_token as OpenIdOAuth2AccessToken, but only for an API whose
+	 * token extractor produces one, and of the APIs reachable here that is GoogleApi20 alone.
+	 *
+	 * <p>Nor is the raw response always JSON: GitHubApi extracts with OAuth2AccessTokenExtractor, which
+	 * scans for {@code access_token=([^&]+)} in a form-encoded body. That is why the shape is checked
+	 * before parsing rather than left to an exception.
+	 */
+	protected String extractIdToken(final OAuth2AccessToken accessToken) {
+
+		final String rawResponse = accessToken.getRawResponse();
+		if (StringUtils.isBlank(rawResponse) || !rawResponse.trim().startsWith("{")) {
+
+			return null;
+		}
+
+		try {
+
+			final Map<String, Object> response = new Gson().fromJson(rawResponse, Map.class);
+			final Object idToken               = response != null ? response.get("id_token") : null;
+
+			return idToken != null ? idToken.toString() : null;
+
+		} catch (Exception e) {
+
+			logger.debug("Could not read id_token from token response of {}: {}", provider, e.getMessage());
 		}
 
 		return null;
@@ -288,14 +405,22 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 
 			// Extract and return the credential value
 			final Object credentialValue = params.get(getCredentialKey());
-			final String credentialValueString = credentialValue != null ? credentialValue.toString() : null;
+			if (credentialValue == null) {
 
-			if (Settings.OAuthVerboseLogging.getValue(false)) {
+				if (Settings.OAuthVerboseLogging.getValue(false)) {
 
-				logger.error("User details from location {} for provider {} does not contain credentials key {}", userDetailsURI , provider, getCredentialKey());
+					logger.error("User details from location {} for provider {} does not contain credentials key {}", userDetailsURI , provider, getCredentialKey());
+				}
+
+				return null;
 			}
 
-			return credentialValue != null ? credentialValue.toString() : null;
+			if (!isCredentialVerified(params)) {
+
+				return null;
+			}
+
+			return credentialValue.toString();
 
 		} catch (Exception e) {
 
@@ -308,6 +433,41 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Refuses a credential the provider itself says it has not verified.
+	 *
+	 * <p>The credential is the e-mail address for every provider registered here, and Structr looks the
+	 * local account up by it - so an address the provider has not verified is an address anybody with an
+	 * account at that provider can claim. With an open registration at the IdP, typing someone else's
+	 * address into the profile and running the login is enough to be handed their Structr account. OIDC
+	 * providers report this as {@code email_verified} on the userinfo response; both spellings are
+	 * checked because the endpoint is configurable ({@code user_details_resource_uri}) and Google's
+	 * older v2 userinfo answers {@code verified_email}.
+	 *
+	 * <p>Only an explicit "no" is refused: a provider that does not report verification at all leaves the
+	 * behaviour as it was, because there is nothing to act on and an installation that has been running
+	 * on such a provider must not be locked out by an upgrade.
+	 */
+	protected boolean isCredentialVerified(final Map<String, Object> userDetails) {
+
+		for (final String key : Set.of("email_verified", "verified_email")) {
+
+			final Object verified = userDetails.get(key);
+
+			// an explicit "no" only: anything else, including a value shaped in some way this code does not
+			// know, is treated as "the provider did not say"
+			if (verified != null && "false".equalsIgnoreCase(verified.toString().trim())) {
+
+				logger.warn("Refusing OAuth login for provider {}: the provider reports {}=false for the {} it returned, so it cannot be used to identify an account here.",
+					provider, key, getCredentialKey());
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

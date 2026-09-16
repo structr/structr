@@ -85,7 +85,7 @@ docker compose up -d
 
 ```
 
-Access Structr in your browser at http://localhost:8082/structr.
+Access Structr in your browser at [http://localhost:8082/structr](http://localhost:8082/structr).
 
 ### Option 3: Manual Installation (Advanced Users)
 
@@ -175,21 +175,23 @@ In this example, you have to press `1` to select and configure the correct versi
 Don't forget to re-run `systemctl start structr' to start the Structr process.
 
 If Structr has been started successfully, the last lines of its system log file should look similar to the following:
- 
-    2025-09-24 12:33:20.695 [main] INFO  o.structr.rest.service.HttpService - Starting Structr (host=0.0.0.0:8082, maxIdleTime=1800, requestHeaderSize=8192)
-    2025-09-24 12:33:20.696 [main] INFO  o.structr.rest.service.HttpService - Base path ./
-    2025-09-24 12:33:20.697 [main] INFO  o.structr.rest.service.HttpService - Structr started at http://0.0.0.0:8082
-    2025-09-24 12:33:20.701 [main] INFO  org.eclipse.jetty.server.Server - jetty-12.0.23; built: 2025-07-02T14:02:02.445Z; git: 01a4119797e9cee53c974ae126cc316d0c8a533a; jvm 25+37-LTS-jvmci-b01
-    2025-09-24 12:33:20.770 [main] INFO  o.e.j.s.DefaultSessionIdManager - Session workerName=93118b0075dc8a19a6d487948fe5ddf7
-    2025-09-24 12:33:20.777 [main] INFO  o.e.j.server.handler.ContextHandler - Started oeje10s.ServletContextHandler@4c0d7878{ROOT,/,b=null,a=AVAILABLE,h=GzipHandler@5a349644{STARTED,min=256,inflate=32768}}
-    2025-09-24 12:33:20.788 [main] INFO  o.e.j.e.s.ServletContextHandler - Started oeje10s.ServletContextHandler@4c0d7878{ROOT,/,b=null,a=AVAILABLE,h=GzipHandler@5a349644{STARTED,min=256,inflate=32768}}
-    2025-09-24 12:33:20.789 [main] INFO  o.e.j.server.handler.ContextHandler - Started oejsh.ContextHandler@18dda2e1{/structr,/structr,b=null,a=AVAILABLE,h=osrs.HttpService$@3c0b9643{STARTED}}
-    2025-09-24 12:33:20.802 [main] INFO  o.e.jetty.server.AbstractConnector - Started ServerConnector@4bd29a01{HTTP/1.1, (http/1.1, h2c)}{0.0.0.0:8082}
-    2025-09-24 12:33:20.809 [main] INFO  org.eclipse.jetty.server.Server - Started oejs.Server@6e1d939e{STARTING}[12.0.23,sto=1000] @6888ms
-    2025-09-24 12:33:20.811 [main] INFO  org.structr.core.Services - 5 service(s) processed
-    2025-09-24 12:33:20.812 [main] INFO  org.structr.core.Services - Registering shutdown hook.
-    2025-09-24 12:33:20.826 [main] INFO  org.structr.core.Services - Started Structr 6.1.0 abcde 202601291210
-    2025-09-24 12:33:20.827 [main] INFO  org.structr.core.Services - ---------------- Initialization complete ---------------- 
+
+    2026-09-16 05:46:00.435 [main] INFO  o.structr.rest.service.HttpService - Starting Structr (host=0.0.0.0:8082, maxIdleTime=1800, requestHeaderSize=8192)
+    2026-09-16 05:46:00.436 [main] INFO  o.structr.rest.service.HttpService - Base path ./
+    2026-09-16 05:46:00.436 [main] INFO  o.structr.rest.service.HttpService - Structr started at http://0.0.0.0:8082
+    2026-09-16 05:46:00.437 [main] INFO  org.eclipse.jetty.server.Server - jetty-12.1.11; built: 2026-07-02T20:57:42.640Z; git: 6c1ced3f077bc633716c54758a743b09b21328e8; jvm 25.0.3+9-LTS-jvmci-b01
+    2026-09-16 05:46:00.451 [main] INFO  o.e.j.s.DefaultSessionIdManager - Session workerName=4f43cb7c8e721c74b8ae37912c0d506f
+    2026-09-16 05:46:00.452 [main] INFO  o.e.j.server.handler.ContextHandler - Started oeje10s.ServletContextHandler@4fd63c43{ROOT,/,b=null,a=AVAILABLE,h=oejshg.GzipHandler@7d483ebe{STARTED,min=256,inflate=32768}}
+    2026-09-16 05:46:00.458 [main] INFO  o.e.j.e.s.ServletContextHandler - Started oeje10s.ServletContextHandler@4fd63c43{ROOT,/,b=null,a=AVAILABLE,h=oejshg.GzipHandler@7d483ebe{STARTED,min=256,inflate=32768}}
+    2026-09-16 05:46:00.458 [main] INFO  o.e.j.server.handler.ContextHandler - Started oejsh.ContextHandler@468f2a6f{/structr,/structr,b=null,a=AVAILABLE,h=osrs.HttpService$@2ed84be9{STARTED}}
+    2026-09-16 05:46:00.460 [main] INFO  o.e.jetty.server.AbstractConnector - Started oejs.ServerConnector@50ff368c{HTTP/1.1, (http/1.1, h2c)}{0.0.0.0:8082}
+    2026-09-16 05:46:00.460 [main] INFO  org.eclipse.jetty.server.Server - Started oejs.Server@20e48e63{STARTING}[12.1.11,sto=1000] @24ms
+    2026-09-16 05:46:00.461 [main] INFO  org.structr.core.Services - Creating StorageSyncService..
+    2026-09-16 05:46:00.466 [main] INFO  org.structr.core.Services - Creating ProcessTimerService..
+    2026-09-16 05:46:00.466 [main] INFO  org.structr.core.Services - 7 service(s) processed
+    2026-09-16 05:46:00.466 [main] INFO  org.structr.core.Services - Registering shutdown hook.
+    2026-09-16 05:46:00.701 [main] INFO  org.structr.core.Services - Started Structr 7.0
+    2026-09-16 05:46:00.701 [main] INFO  org.structr.core.Services - ---------------- Initialization complete ----------------
 
 ## Initial Configuration
 

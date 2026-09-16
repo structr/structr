@@ -40,7 +40,8 @@ import static org.testng.AssertJUnit.fail;
  * Ticket 1592, under the premise that only an EXTERNAL user reaching the scripting engine is critical.
  *
  * <p>UploadServlet takes every non-file form field of the upload as a property of the file it creates
- * (UploadServlet:309, :434, with unlockSystemPropertiesOnce() around the write), so the uploader
+ * (it collects them into its params map and writes them as a PropertyMap, with
+ * unlockSystemPropertiesOnce() around the write), so the uploader
  * decides what the new node looks like. File.isTemplate would turn the upload into server-side script:
  * a template file has its content evaluated whenever it is read (FileTraitWrapper.getInputStream()),
  * which would hand script execution to every user who may upload - by default every authenticated one,

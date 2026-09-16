@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.testng.AssertJUnit.fail;
 
 /**
- * Ticket 1589: an upload keeps the content type of the multipart part (UploadServlet:325), contentType
+ * Ticket 1589: an upload keeps the content type UploadServlet reads off the multipart part, contentType
  * is an ordinary writable property, and HtmlServlet streams the file with exactly that type. A file
  * uploaded as text/html and made public therefore runs as a document in the application's own origin -
  * send the link to an administrator and the script has their session against /structr/rest and the

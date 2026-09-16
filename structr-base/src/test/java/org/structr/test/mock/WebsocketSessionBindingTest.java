@@ -23,8 +23,8 @@ import org.testng.annotations.Test;
 
 /**
  * Ticket 1594: the websocket LOGIN command takes the session id out of the message
- * (LoginCommand:124) and calls user.addSessionId() with it, without ever asking whether a session by
- * that id exists. The id is the client's to choose, and afterwards it is an authenticated session of
+ * ({@code webSocketData.getSessionId()}) and calls user.addSessionId() with it, without ever asking
+ * whether a session by that id exists. The id is the client's to choose, and afterwards it is an authenticated session of
  * that account - reachable over HTTP as well, because both sides read the same sessionIds property.
  *
  * <p>StructrWebSocket.authenticate() completes the picture: it treats {@code session == null} as a

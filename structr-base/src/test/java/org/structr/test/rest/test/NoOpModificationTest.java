@@ -156,8 +156,8 @@ public class NoOpModificationTest extends StructrRestTestBase {
 			// onModification is listed in SchemaMethodTraitWrapper.DeprecatedLifecycleMethods and is
 			// never dispatched, so a test using that name observes nothing and passes every "did not
 			// run" assertion. Only the SchemaMethod name is dead: the Java trait callback of the same
-			// name is live, dispatched from GraphObjectModificationState:314 and implemented by
-			// DOMNodeTraitDefinition and others.
+			// name is live, dispatched from the modification callback in GraphObjectModificationState
+			// (object.onModification) and implemented by DOMNodeTraitDefinition and others.
 			department.addMethod("onSave", "create('Audit', 'name', 'touched')");
 
 			employee.relate(department, "WORKS_IN", Cardinality.ManyToOne, "employees", "department");

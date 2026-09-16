@@ -120,13 +120,17 @@ public class JWTHelper {
 
 							Jwk jwk = jwkProvider.get(kid);
 							Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
-							JWTVerifier verifier = JWT.require(algorithm)
-								.withIssuer(issuer)
-								.build();
+							JWTVerifier verifier = buildJWKSVerifier(algorithm, issuer);
 
-							jwt = verifier.verify(jwt);
+							if (verifier != null) {
 
-							user = getPrincipalForTokenClaims(jwt.getClaims(), eMailKey);
+								jwt = verifier.verify(jwt);
+
+								/* Not self-issued. Everything this instance knows about the token is that the
+								   configured provider signed it for the configured audience - the claims inside
+								   are the provider's, not Structr's. */
+								user = getPrincipalForTokenClaims(jwt.getClaims(), eMailKey, false);
+							}
 						}
 
 					} catch (JWTVerificationException ex) {
@@ -262,7 +266,14 @@ public class JWTHelper {
 		return Arrays.asList(refreshTokens).contains(tokenId);
 	}
 
-	private static Principal getPrincipalForTokenClaims(final Map<String, Claim> claims, final PropertyKey<String> eMailKey) throws FrameworkException {
+	/**
+	 * Resolves the principal a set of verified token claims refers to.
+	 *
+	 * @param selfIssued whether the token was issued by this instance, i.e. signed with the secret or the
+	 *                   key pair configured here. Only such a token may use the instance/uuid shortcut
+	 *                   below - see the comment there.
+	 */
+	private static Principal getPrincipalForTokenClaims(final Map<String, Claim> claims, final PropertyKey<String> eMailKey, final boolean selfIssued) throws FrameworkException {
 
 		// An MCP access token is a capability for one endpoint, issued to an external service by the
 		// MCP authorization server in structr-ai-module. It must never authenticate anything else,
@@ -284,17 +295,23 @@ public class JWTHelper {
 		final String instanceName = Settings.InstanceName.getValue();
 		NodeInterface userNode    = null;
 		Principal user            = null;
-		String instance = claims.get("instance").isNull() ? null : claims.get("instance").asString();
-		String uuid     = claims.get("uuid").isNull()     ? null : claims.get("uuid").asString();
-		String eMail    = claims.get("eMail").isNull()    ? null : claims.get("eMail").asString();
+		String instance = claimAsString(claims, "instance");
+		String uuid     = claimAsString(claims, "uuid");
+		String eMail    = claimAsString(claims, "eMail");
 
 		if (StringUtils.isEmpty(eMail)) {
 
-			eMail = claims.get("email").isNull() ? null : claims.get("email").asString();
+			eMail = claimAsString(claims, "email");
 		}
 
-		// if the instance is the same that issued the token, we can lookup the user with uuid claim
-		if (StringUtils.equals(instance, instanceName)) {
+		/* The instance/uuid shortcut, and why it is guarded by selfIssued (ticket 1593): "the instance
+		   name matches, so take the uuid claim and log in that node" is only an identity statement when
+		   the token came from this instance. In jwks mode it did not - it came from an external identity
+		   provider, whose claims an administrator there controls. Neither value protects anything:
+		   application.instance.name is empty by default and is displayed in the UI when it is set, and
+		   the uuid of an admin user is not a secret either. A token carrying those two claims would
+		   otherwise be a login as that admin, with no e-mail address involved and nothing else checked. */
+		if (selfIssued && StringUtils.equals(instance, instanceName)) {
 
 			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).disableSorting().getFirst();
 
@@ -416,7 +433,7 @@ public class JWTHelper {
 			return null;
 		}
 
-		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
+		Principal user = getPrincipalForTokenClaims(claims, eMailKey, true);
 		if (user == null) {
 
 			return null;
@@ -424,7 +441,7 @@ public class JWTHelper {
 
 		// Check if the access_token is still valid.
 		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
-		String tokenReference = claims.get("tokenId").isNull() ? null : claims.get("tokenId").asString();
+		String tokenReference = claimAsString(claims, "tokenId");
 		if (validateTokenForUser(tokenReference, user)) {
 
 			return user;
@@ -443,7 +460,7 @@ public class JWTHelper {
 			return null;
 		}
 
-		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
+		Principal user = getPrincipalForTokenClaims(claims, eMailKey, true);
 		if (user == null) {
 
 			return null;
@@ -451,7 +468,7 @@ public class JWTHelper {
 
 		// Check if the access_token is still valid.
 		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
-		String tokenReference = claims.get("tokenId").isNull() ? null : claims.get("tokenId").asString();
+		String tokenReference = claimAsString(claims, "tokenId");
 		if (validateTokenForUser(tokenReference, user)) {
 
 			return user;
@@ -726,16 +743,89 @@ public class JWTHelper {
 	 */
 	public static String[] configuredAudiences() {
 
-		final String raw = Settings.JWTAudience.getValue("");
+		return audienceList(Settings.JWTAudience.getValue(""));
+	}
+
+	/**
+	 * Builds the verifier for a token signed by the external identity provider configured in jwks mode,
+	 * or null if the instance is not configured to accept such tokens at all.
+	 *
+	 * <p>Unlike {@link #buildVerifier(Algorithm)}, the audience is not optional here (ticket 1593). A
+	 * verifier that checks only the signature and the issuer accepts <b>every</b> token that provider
+	 * ever issued - including the ones it issued to a completely different application that happens to
+	 * use the same tenant, and, where the provider allows self-registration, the ones it issues to
+	 * anybody who signs up there. The
+	 * {@code aud} claim is what says "this token was meant for this installation", so without a value to
+	 * check it against there is no honest way to accept the token, and Structr refuses instead of
+	 * pretending.
+	 */
+	public static JWTVerifier buildJWKSVerifier(final Algorithm algorithm, final String issuer) {
+
+		final String[] audiences = configuredJWKSAudiences();
+		if (audiences.length == 0) {
+
+			logger.error("Refusing a token from the configured JWKS provider because {} is not set. Set it to the audience the provider "
+				+ "issues tokens for this installation with - usually the client id of this application at the provider.", Settings.JWKSAudience.getKey());
+
+			return null;
+		}
+
+		// "any of": a token is accepted when its aud claim carries at least one of the configured values,
+		// which is what a recipient of a multi-audience token actually wants (see buildVerifier)
+		Verification verification = JWT.require(algorithm).withAnyOfAudience(audiences);
+
+		if (StringUtils.isNotBlank(issuer)) {
+
+			verification = verification.withIssuer(issuer);
+
+		} else {
+
+			logger.warn("No value for {} while verifying a token from the configured JWKS provider: the issuer of the token is not checked.", Settings.JWTIssuer.getKey());
+		}
+
+		return verification.build();
+	}
+
+	/**
+	 * Returns the audience values accepted for tokens from the external JWKS provider. Kept apart from
+	 * {@link #configuredAudiences()} because the two mean different things: that one is the audience this
+	 * instance puts into the tokens it issues and checks again when one comes back, this one is the
+	 * audience an external provider puts into the tokens it issues for this instance.
+	 */
+	public static String[] configuredJWKSAudiences() {
+
+		return audienceList(Settings.JWKSAudience.getValue(""));
+	}
+
+	/**
+	 * Splits a configured, comma-separated audience list. An empty array means the setting is not in use.
+	 */
+	private static String[] audienceList(final String raw) {
+
 		if (StringUtils.isBlank(raw)) {
 
 			return new String[0];
 		}
 
-		return java.util.Arrays.stream(raw.split(","))
+		return Arrays.stream(raw.split(","))
 			.map(String::trim)
 			.filter(s -> !s.isEmpty())
 			.toArray(String[]::new);
+	}
+
+	/**
+	 * Reads a string claim, answering null when the token does not carry it at all.
+	 *
+	 * <p>DecodedJWT.getClaim() answers a NullClaim for a claim that is not in the token, but the map
+	 * from getClaims() is built from the keys the payload actually has, so a missing claim is simply not
+	 * in it and Map.get() answers null. Calling isNull() on that is an NPE - and an externally issued
+	 * token is under no obligation to carry the claims this instance writes.
+	 */
+	private static String claimAsString(final Map<String, Claim> claims, final String name) {
+
+		final Claim claim = claims.get(name);
+
+		return claim == null || claim.isNull() ? null : claim.asString();
 	}
 
 	/**

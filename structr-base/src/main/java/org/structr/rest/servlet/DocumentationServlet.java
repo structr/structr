@@ -36,6 +36,7 @@ import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentation;
 import org.structr.docs.Formatter;
+import org.structr.docs.MarkdownLinkTargetBlankAttributeProvider;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.json.JsonConceptFormatter;
@@ -179,7 +180,7 @@ public class DocumentationServlet extends HttpServlet {
 		options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
 
 		final Parser parser         = Parser.builder(options).build();
-		final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+		final HtmlRenderer renderer = HtmlRenderer.builder(options).attributeProviderFactory(new MarkdownLinkTargetBlankAttributeProvider.Factory()).build();
 		final Document doc          = parser.parse(StringUtils.join(lines, "\n"));
 		final Writer writer         = response.getWriter();
 
@@ -196,7 +197,7 @@ public class DocumentationServlet extends HttpServlet {
 		//options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
 
 		final Parser parser         = Parser.builder(options).build();
-		final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+		final HtmlRenderer renderer = HtmlRenderer.builder(options).attributeProviderFactory(new MarkdownLinkTargetBlankAttributeProvider.Factory()).build();
 		final Document doc          = parser.parse(StringUtils.join(lines, "\n"));
 		final Writer writer         = response.getWriter();
 

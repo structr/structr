@@ -122,7 +122,8 @@ public abstract class RESTCallHandler {
 	 * <p>Ticket 1585: relationships were never filtered, so reading one node told you about every node
 	 * it is attached to. A GET on a user's incoming relationships listed the CONTAINS of groups that
 	 * user may not see and the SECURITY grants of nodes they may not see - the permission matrix, from a
-	 * single readable node. Nodes have been filtered this way all along (NodeFactory:68); this is the
+	 * single readable node. Nodes have been filtered this way all along - NodeFactory asks
+	 * securityContext.isReadable() before it hands one out; this is the
 	 * same rule for the other half of the graph.
 	 */
 	protected boolean mayReadRelationship(final SecurityContext securityContext, final RelationshipInterface rel) {

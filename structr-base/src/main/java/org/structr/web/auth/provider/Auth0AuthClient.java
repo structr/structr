@@ -99,7 +99,7 @@ public class Auth0AuthClient extends AbstractOAuth2Client {
 	}
 
 	@Override
-	public String getAuthorizationURL(final String state) {
+	protected Map<String, String> getAdditionalAuthorizationParameters() {
 
 		final Map<String, String> additionalParams = new HashMap<>();
 
@@ -108,10 +108,7 @@ public class Auth0AuthClient extends AbstractOAuth2Client {
 			additionalParams.put("audience", audience);
 		}
 
-		return service.createAuthorizationUrlBuilder()
-				.state(state)
-				.additionalParams(additionalParams)
-				.build();
+		return additionalParams;
 	}
 
 	@Override

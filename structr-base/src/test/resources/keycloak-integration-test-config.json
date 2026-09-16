@@ -71,6 +71,24 @@
 	  "attributes": {
 		"locale": ["en"]
 	  }
+	},
+	{
+	  "username": "unverifieduser",
+	  "enabled": true,
+	  "email": "unverified@example.com",
+	  "emailVerified": false,
+	  "firstName": "Unverified",
+	  "lastName": "User",
+	  "credentials": [
+		{
+		  "type": "password",
+		  "value": "unverifiedpass",
+		  "temporary": false
+		}
+	  ],
+	  "realmRoles": [
+		"user"
+	  ]
 	}
   ],
   "roles": {

@@ -43,7 +43,8 @@ import static org.testng.AssertJUnit.fail;
  *
  * <ul>
  * <li>{@code /maintenance/_schemaJson} reads the whole schema, method source included, as the superuser
- * - while every other maintenance handler checks isSuperUser() first.</li>
+ * - while the maintenance endpoint's own dispatch refuses a non-administrator before it reaches any of
+ * the mapped commands, which this handler is routed past.</li>
  * <li>{@code /resolver} looks nodes up through StructrApp.getInstance(), which is the superuser
  * instance, so it answers for any uuid the caller can name.</li>
  * <li>A user-defined function marked private is callable over REST, while the static, instance and
@@ -88,13 +89,21 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.post("/maintenance/_schemaJson");
 	}
 
-	/** The counterpart: an administrator still gets the schema, or the endpoint would just be broken. */
+	/**
+	 * The counterpart: an administrator still gets the schema, or the endpoint would just be broken. Both
+	 * verbs, because both are guarded and a guard that refuses everyone is not a fix.
+	 *
+	 * <p>The POST carries no schema, which is the point: it gets past the guard and is then turned away
+	 * by the handler itself with 400, so an administrator is demonstrably not refused while nothing is
+	 * written. A body with a schema in it would have replaceDatabaseSchema() replace the schema of the
+	 * running instance, which is a great deal more than this test needs to know.
+	 */
 	@Test
 	public void testSchemaJsonStillWorksForAdmins() {
 
 		createAdminUser();
 
-		grant("maintenance/_schemaJson", UiAuthenticator.AUTH_USER_GET, true);
+		grant("maintenance/_schemaJson", UiAuthenticator.AUTH_USER_GET | UiAuthenticator.AUTH_USER_POST, true);
 
 		RestAssured
 			.given()
@@ -103,6 +112,16 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.statusCode(200)
 			.when()
 				.get("/maintenance/_schemaJson");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.body("{}")
+			.expect()
+				.statusCode(400)
+			.when()
+				.post("/maintenance/_schemaJson");
 	}
 
 	/**
@@ -130,6 +149,31 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.post("/resolver");
 	}
 
+	/**
+	 * The counterpart to the test above, and the reason it is needed: that one asserts an absence, which
+	 * an endpoint answering nothing at all would satisfy just as well. Running the resolver in the
+	 * caller's context has to keep it a resolver - a node the caller may read still comes back, and a
+	 * user may read itself.
+	 */
+	@Test
+	public void testResolverStillAnswersForReadableNodes() {
+
+		final String callerId = createUser("resolver-reader");
+
+		grant("resolver", UiAuthenticator.AUTH_USER_POST, true);
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.headers(X_USER_HEADER, "resolver-reader", X_PASSWORD_HEADER, PASSWORD)
+				.body("{ 'ids': [ '" + callerId + "' ] }")
+			.expect()
+				.statusCode(200)
+				.body(containsString("resolver-reader"))
+			.when()
+				.post("/resolver");
+	}
+
 	@Test
 	public void testRuntimeEventLogIsRefusedForNonAdmins() {
 
@@ -144,15 +188,27 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.statusCode(403)
 			.when()
 				.get("/_runtimeEventLog");
+
+		/* POST is the acknowledge operation, and it is guarded separately - reading the log and clearing
+		   the record of what the instance has been attacked with are two different things to be refused. */
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.headers(X_USER_HEADER, "logreader", X_PASSWORD_HEADER, PASSWORD)
+				.body("{ 'action': 'acknowledge' }")
+			.expect()
+				.statusCode(403)
+			.when()
+				.post("/_runtimeEventLog");
 	}
 
-	/** The counterpart, so the assertion above cannot pass because the endpoint is simply gone. */
+	/** The counterpart, so the assertions above cannot pass because the endpoint is simply gone. */
 	@Test
 	public void testRuntimeEventLogStillWorksForAdmins() {
 
 		createAdminUser();
 
-		grant("_runtimeEventLog", UiAuthenticator.AUTH_USER_GET, true);
+		grant("_runtimeEventLog", UiAuthenticator.AUTH_USER_GET | UiAuthenticator.AUTH_USER_POST, true);
 
 		RestAssured
 			.given()
@@ -161,6 +217,16 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.statusCode(200)
 			.when()
 				.get("/_runtimeEventLog");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.body("{ 'action': 'acknowledge' }")
+			.expect()
+				.statusCode(200)
+			.when()
+				.post("/_runtimeEventLog");
 	}
 
 	/**

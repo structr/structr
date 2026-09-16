@@ -21,12 +21,8 @@ package org.structr.test.web.auth;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.hamcrest.Matchers;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
@@ -35,81 +31,13 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
-import org.structr.test.web.StructrUiTest;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testng.Assert;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
-
-import dasniko.testcontainers.keycloak.KeycloakContainer;
-
-import java.time.Duration;
-import java.util.Map;
 
 import static org.testng.AssertJUnit.*;
 
-public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
+public class KeycloakOAuth2IntegrationTest extends KeycloakOAuth2TestBase {
 
 	private static final Logger logger = LoggerFactory.getLogger(KeycloakOAuth2IntegrationTest.class.getName());
-
-	private static final String TEST_REALM = "test-realm";
-	private static final String TEST_CLIENT_ID = "structr-test-client";
-	private static final String TEST_CLIENT_SECRET = "test-secret";
-
-	private static final String TEST_USERNAME = "testuser";
-	private static final String TEST_PASSWORD = "testpass";
-	private static final String TEST_EMAIL = "testuser@example.com";
-
-	private KeycloakContainer keycloakContainer;
-	private String keycloakUrl;
-
-	@BeforeClass(alwaysRun = true)
-	@Parameters("testDatabaseConnection")
-	@Override
-	public void setup(@Optional String testDatabaseConnection) {
-
-		startKeycloakContainer();
-
-		super.setup(testDatabaseConnection);
-
-		assertTrue("Keycloak container not available", verifyKeycloakAvailable());
-
-		configureKeycloakSettings();
-	}
-
-	@AfterClass(alwaysRun = true)
-	@Override
-	public void teardown() throws Exception {
-
-		super.teardown();
-
-		if (keycloakContainer != null) {
-
-			keycloakContainer.stop();
-		}
-	}
-
-	private void startKeycloakContainer() {
-
-		keycloakContainer = new KeycloakContainer("keycloak/keycloak:23.0")
-								.withRealmImportFile("keycloak-integration-test-config.json")
-								.waitingFor(Wait.forHttp("/realms/master")
-									.forPort(8080)
-									.withStartupTimeout(Duration.ofMinutes(2)));
-
-		keycloakContainer.start();
-
-		keycloakUrl = keycloakContainer.getAuthServerUrl();
-
-		// Remove trailing slash if present for consistency
-		if (keycloakUrl.endsWith("/")) {
-
-			keycloakUrl = keycloakUrl.substring(0, keycloakUrl.length() - 1);
-		}
-	}
 
 	@Test
 	public void test01LoginRedirectToKeycloak() {
@@ -163,90 +91,17 @@ public class KeycloakOAuth2IntegrationTest extends StructrUiTest {
 
 	// ----- Helper Methods -----
 
-	private boolean verifyKeycloakAvailable() {
-
-		String url = keycloakUrl + "/realms/" + TEST_REALM;
-		Response response = RestAssured
-				.given()
-				.relaxedHTTPSValidation()
-				.when()
-				.get(url)
-				.then()
-				.extract().response();
-
-		return response.getStatusCode() == 200;
-	}
-
-	private void configureKeycloakSettings() {
-
-		Settings.OAuthKeycloakServerUrl.setValue(keycloakUrl);
-		Settings.OAuthKeycloakRealm.setValue(TEST_REALM);
-		Settings.OAuthKeycloakClientId.setValue(TEST_CLIENT_ID);
-		Settings.OAuthKeycloakClientSecret.setValue(TEST_CLIENT_SECRET);
-		Settings.RestUserAutocreate.setValue(true);
-		Settings.RestUserAutologin.setValue(true);
-
-	}
-
 	/**
 	 * Performs a complete login flow and returns the User.
 	 */
 	private Principal performCompleteLogin() {
 
-		RestAssured.basePath = "/";
+		final StartedFlow flow      = startLogin(null);
+		final String callbackUrl    = authorizeAtKeycloak(flow, TEST_USERNAME, TEST_PASSWORD);
 
-		// Get authorization URL
-		Response loginResponse = RestAssured
-				.given()
-				.redirects().follow(false)
-				.when()
-				.get("/oauth/keycloak/login")
-				.then()
-				.statusCode(302)
-				.extract().response();
-
-		String keycloakAuthUrl = loginResponse.getHeader("Location");
-
-		// Get login form
-		Response loginPage = RestAssured
-				.given()
-				.redirects().follow(false)
-				.urlEncodingEnabled(false)
-				.when()
-				.get(keycloakAuthUrl)
-				.then()
-				.statusCode(200)
-				.extract().response();
-
-		Map<String, String> cookies = loginPage.getCookies();
-
-		// Submit credentials
-		Document doc = Jsoup.parse(loginPage.getBody().asString());
-		Element form = doc.select("form").first();
-
-		Assert.assertNotNull(form, "No form found for login page of Keycloak");
-		String formAction = form.attr("action");
-		Response loginSubmit = RestAssured
-				.given()
-				.redirects().follow(false)
-				.cookies(cookies)  // Include session cookies
-				.formParam("username", TEST_USERNAME)
-				.formParam("password", TEST_PASSWORD)
-				.when()
-				.post(formAction)
-				.then()
-				.statusCode(302)
-				.extract().response();
-
-		String callbackUrl = loginSubmit.getHeader("Location");
-
-		RestAssured
-				.given()
-				.redirects().follow(false)
-				.when()
-				.get(callbackUrl)
-				.then()
-				.statusCode(Matchers.anyOf(Matchers.is(302), Matchers.is(200)));
+		deliverCallback(callbackUrl, flow.stateCookie)
+			.then()
+			.statusCode(Matchers.anyOf(Matchers.is(302), Matchers.is(200)));
 
 		final PropertyKey credentialKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 

@@ -29,9 +29,9 @@ import org.testng.annotations.Test;
  * "log", which an application that logs client-side events plausibly hands to anonymous users. The same
  * resource created LogEvent nodes with visibleToPublicUsers = true.
  *
- * <p>The decision on both this ticket and 55ce5dfb ("Status und Schicksal LogResource") was to remove
- * the resource rather than gate it: it is undocumented, unused, and there are better external tools for
- * what it did. This test is what keeps it removed - the grant is deliberately in place, so a 404 means
+ * <p>A second ticket asked for the same removal and has since been deleted as redundant, so this one
+ * carries the decision on its own: remove the resource rather than gate it, because it is
+ * undocumented, unused, and there are better external tools for what it did. This test is what keeps it removed - the grant is deliberately in place, so a 404 means
  * the resource is gone rather than merely unreachable.
  */
 public class LogResourceRemovedTest extends StructrUiTest {

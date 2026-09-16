@@ -32,18 +32,24 @@ public interface OAuth2Client {
 	/**
 	 * Gets the authorization URL for the OAuth2 flow.
 	 *
-	 * @param state The state parameter for CSRF protection
+	 * @param flow The flow this authorization request belongs to, carrying state, nonce and PKCE challenge
 	 * @return The authorization URL
 	 */
-	String getAuthorizationURL(final String state);
+	String getAuthorizationURL(final OAuth2Flow flow);
 
 	/**
 	 * Exchanges authorization code for access token.
 	 *
+	 * <p>The flow is passed in because redeeming a code takes more than the code: the PKCE verifier goes
+	 * to the token endpoint with it, which is what makes an intercepted code unusable by anyone else, and
+	 * the nonce is checked against the id_token, for a provider that returns one. An implementation
+	 * answers null when the token endpoint refuses the exchange or the nonce does not match.
+	 *
 	 * @param authorizationReplyCode The authorization code from the provider
-	 * @return The access token
+	 * @param flow The flow the callback was matched to
+	 * @return The access token, or null if the code could not be redeemed for this flow
 	 */
-	OAuth2AccessToken getAccessToken(final String authorizationReplyCode);
+	OAuth2AccessToken getAccessToken(final String authorizationReplyCode, final OAuth2Flow flow);
 
 	/**
 	 * Retrieves user credentials from the provider using the access token.
