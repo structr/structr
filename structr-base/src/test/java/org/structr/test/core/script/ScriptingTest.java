@@ -3276,20 +3276,72 @@ public class ScriptingTest extends StructrTest {
 
 	}
 
+	/**
+	 * Ticket 1601: set_encryption_key() used to replace a static field, so the key one script chose was
+	 * the key every request running at that moment encrypted with, and the last writer won. It now lives
+	 * in the context of the evaluation that set it - which is also why a thread-local would not do, since
+	 * request threads are pooled and the key would outlive the request.
+	 */
+	@Test
+	public void testEncryptionKeyIsScopedToTheRequestAndNeverReachesAProperty() {
+
+		Settings.GlobalSecret.setValue("the-configured-secret");
+
+		try (final Tx tx = app.tx()) {
+
+			/* Two security contexts, because that is what two requests are: the context store lives on the
+			   SecurityContext and is shared by everything within one request. Two ActionContexts over the
+			   same SecurityContext are one request and are supposed to see the same key. */
+			final ActionContext first  = new ActionContext(SecurityContext.getSuperUserInstance());
+			final ActionContext second = new ActionContext(SecurityContext.getSuperUserInstance());
+
+			Scripting.replaceVariables(first, null, "${set_encryption_key('a-key-of-its-own')}");
+
+			final Object cipher = Scripting.replaceVariables(first, null, "${encrypt('legacy', 'plaintext')}");
+
+			assertEquals("the key set in this evaluation was not used", "plaintext", Scripting.replaceVariables(first, null, "${decrypt('legacy', '" + cipher + "', 'a-key-of-its-own')}"));
+
+			assertFalse("the key set in one evaluation was visible in another, which is the race this fixes",
+				"plaintext".equals(Scripting.replaceVariables(second, null, "${decrypt('legacy', '" + cipher + "')}")));
+
+			/* And the rule that matters more than the isolation: a key somebody set in a script must never
+			   reach an EncryptedString property. A property is a statement about data at rest, and a key
+			   that came from the request would make the same stored bytes readable or unreadable depending
+			   on what the caller did a moment earlier. CryptFunction.encrypt(String) is the path the
+			   property converter takes, and it has to keep answering with the configured secret while the
+			   context key above is set. */
+			assertEquals("the property path used a key set in the request instead of the configured secret", "plaintext", CryptFunction.decrypt(CryptFunction.encrypt("plaintext")));
+
+			assertFalse("the property path can be read with the key a script chose, so it used that key",
+				"plaintext".equals(Scripting.replaceVariables(first, null, "${decrypt('legacy', '" + CryptFunction.encrypt("plaintext") + "', 'a-key-of-its-own')}")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+
+		} finally {
+
+			Settings.GlobalSecret.setValue(null);
+		}
+	}
+
 	@Test
 	public void testCryptoFunctions() {
 
 		final ActionContext ctx = new ActionContext(securityContext);
 
 		// static encryption state can leak across tests in the same fork; start from a clean "no key" state
-		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
 		Settings.GlobalSecret.setValue(null);
 
 		// with no encryption key configured, encrypt() now auto-generates and persists a global secret
 		// on first use (instead of throwing a 422)
 		try {
 
-			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('aes-gcm-pbkdf2', 'plaintext')}");
 			assertTrue("encrypt() should auto-generate a key and return ciphertext when none is configured", cipher != null && !cipher.toString().isEmpty());
 
 		} catch (FrameworkException fex) {
@@ -3299,13 +3351,13 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		// reset to a genuine "no key" state for the remaining assertions
-		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
 		Settings.GlobalSecret.setValue(null);
 
 		// test failures
 		try {
 
-			assertEquals("Decrypt function should return null when no initial encryption key is set.", "", Scripting.replaceVariables(ctx, null, "${decrypt('plaintext')}"));
+			assertEquals("Decrypt function should return null when no initial encryption key is set.", "", Scripting.replaceVariables(ctx, null, "${decrypt('aes-gcm-pbkdf2', 'plaintext')}"));
 
 		} catch (FrameworkException fex) {
 
@@ -3317,8 +3369,8 @@ public class ScriptingTest extends StructrTest {
 		try {
 
 			// test decrypt-encrypt roundtrip with new implementation (because of the IV, the results are not predictable)
-			assertEquals("Invalid decryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'structr'), 'structr')}"));
-			assertEquals("Invalid decryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'password'), 'password')}"));
+			assertEquals("Invalid decryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('aes-gcm-pbkdf2', encrypt('aes-gcm-pbkdf2', 'plaintext', 'structr'), 'structr')}"));
+			assertEquals("Invalid decryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('aes-gcm-pbkdf2', encrypt('aes-gcm-pbkdf2', 'plaintext', 'password'), 'password')}"));
 
 		} catch (FrameworkException fex) {
 
@@ -3331,14 +3383,16 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid response when setting encryption key via scripting", "", Scripting.replaceVariables(ctx, null, "${set_encryption_key('structr')}"));
 
 			// test decrypt-encrypt roundtrip with new implementation (because of the IV, the results are not predictable)
-			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext'))}"));
-			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'structr'), 'structr')}"));
-			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'password'), 'password')}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('aes-gcm-pbkdf2', encrypt('aes-gcm-pbkdf2', 'plaintext'))}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('aes-gcm-pbkdf2', encrypt('aes-gcm-pbkdf2', 'plaintext', 'structr'), 'structr')}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('aes-gcm-pbkdf2', encrypt('aes-gcm-pbkdf2', 'plaintext', 'password'), 'password')}"));
 
-			// test auto-fallback to previous mode to be able to decrypt ciphertexts encrypted with the old implementation
-			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('ZuAM6SQ7GTc2KW55M/apUA==')}"));
-			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('ZuAM6SQ7GTc2KW55M/apUA==', 'structr')}"));
-			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('b4bn2+w7yaEve3YGtn4IGA==', 'password')}"));
+			/* Ciphertexts from the old implementation, read through the scheme that names it. They were
+			   written with an unsalted MD5 digest of the passphrase and AES/ECB, and 'legacy' exists so
+			   that values like these keep opening (ticket 1601). */
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('legacy', 'ZuAM6SQ7GTc2KW55M/apUA==')}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('legacy', 'ZuAM6SQ7GTc2KW55M/apUA==', 'structr')}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('legacy', 'b4bn2+w7yaEve3YGtn4IGA==', 'password')}"));
 
 		} catch (FrameworkException fex) {
 
@@ -3358,7 +3412,7 @@ public class ScriptingTest extends StructrTest {
 		// after resetting the key, encrypt() again auto-generates instead of throwing
 		try {
 
-			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('aes-gcm-pbkdf2', 'plaintext')}");
 			assertTrue("encrypt() should auto-generate a key and return ciphertext when none is configured", cipher != null && !cipher.toString().isEmpty());
 
 		} catch (FrameworkException fex) {
@@ -3368,7 +3422,7 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		// do not leak the auto-generated secret / cached key / persisted structr.conf to other tests
-		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
 		Settings.GlobalSecret.setValue(null);
 		new java.io.File(Settings.ConfigFileName).delete();
 	}

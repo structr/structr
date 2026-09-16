@@ -49,11 +49,14 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 			if (sources[0] == null) {
 
-				CryptFunction.setEncryptionKey(null);
+				/* Stored in the context of this evaluation, which ends with the request. It used to replace
+				   a static field for the whole process, so one script deciding on a key decided it for
+				   every request running at that moment (ticket 1601). */
+				ctx.store(CryptFunction.CONTEXT_KEY, null);
 
 			} else {
 
-				CryptFunction.setEncryptionKey(sources[0].toString());
+				ctx.store(CryptFunction.CONTEXT_KEY, sources[0].toString());
 			}
 
 			return null;
@@ -75,7 +78,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getShortDescription() {
 
-		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf.";
+		return "Sets the secret key encrypt() and decrypt() use for the rest of this request, overriding the value from structr.conf.";
 	}
 
 	@Override
