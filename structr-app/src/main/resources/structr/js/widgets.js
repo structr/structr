@@ -180,7 +180,7 @@ let _Widgets = {
 					<div class="w-full" style="border-top: 1px solid #ddd;"></div>
 				</div>
 				<div class="relative flex justify-center">
-					<span class="bg-white px-3 text-lg font-medium text-gray-500">${name}</span>
+					<span class="bg-white px-3 text-lg font-medium text-gray-500">${_Helpers.escapeForHtmlAttributes(name)}</span>
 				</div>
 			</div>
 			<div id="${id}_folder" class="widget-folder"></div>
@@ -199,10 +199,11 @@ let _Widgets = {
 
 			let widgetElement = $(`
 				<div id="id_${widget.id}" class="widget p-2 hover:icon-active" draggable="true">
-					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" src="${widget.svgIconPath ?? '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}" draggable="false">
+					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" draggable="false">
 					<span class="name_ flex-grow mt-4"></span>
 				</div>
 			`);
+			$('img', widgetElement)[0].src = widget.svgIconPath ?? '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg';
 
 			let nameElement         = widgetElement[0].querySelector('.name_');
 			nameElement.textContent = widget.name;
@@ -336,7 +337,7 @@ let _Widgets = {
 
 			} catch (e) {
 				activateTab('config');
-				alert('Configuration is not valid JSON - please review, otherwise the widget configuration dialog will not function correctly');
+				new WarningMessage().title('Widget configuration is not valid JSON').text('Please review, otherwise the widget configuration dialog will not function correctly').requiresConfirmation().show();
 			}
 		};
 
@@ -485,16 +486,16 @@ let _Widgets = {
 		if (widgetDescription.length) {
 
 			dialogText.insertAdjacentHTML('beforeend', `
-						<h3>Description</h3>
-						<p>${widgetDescription}</p>
-					`);
+				<h3>Description</h3>
+				<p>${widgetDescription}</p>
+			`);
 		}
 
 		dialogText.insertAdjacentHTML('beforeend', `
-						<h3>Settings</h3>
-						<p>Please select values for the following settings before inserting the widget.</p>
-						<form id="widget-form"><div class="widget-props grid grid-cols-3 gap-8"></div></formi>
-					`);
+			<h3>Settings</h3>
+			<p>Please select values for the following settings before inserting the widget.</p>
+			<form id="widget-form"><div class="widget-props grid grid-cols-3 gap-8"></div></formi>
+		`);
 
 		let form = $('div', $(dialogText));
 		let formElement = document.querySelector('#widget-form');

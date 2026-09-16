@@ -1472,15 +1472,15 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
-	getRelatedNodeHTML: (node, displayName = null, includeRemoveIcon = true) => {
+	getRelatedNodeHTML: (node, escapedDisplayName = null, includeRemoveIcon = true) => {
 
-		if (!displayName) {
-			displayName = _Crud.helpers.getDisplayName(node);
+		if (!escapedDisplayName) {
+			escapedDisplayName = _Crud.helpers.getEscapedDisplayName(node);
 		}
 
 		return `
-			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node related-node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
-				<span class="abbr-ellipsis abbr-80">${displayName}</span>
+			<div title="${escapedDisplayName}" class="_${node.id} node related-node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
+				<span class="abbr-ellipsis abbr-80">${escapedDisplayName}</span>
 				${includeRemoveIcon ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])) : ''}
 			</div>
 		`;
@@ -1490,14 +1490,14 @@ let _Entities = {
 		relatedNodeEl.title = _Helpers.escapeForHtmlAttributes(newName);
 		relatedNodeEl.querySelector('span').textContent = newName;
 	},
-	insertRelatedNode: (cell, node, onDelete, position, displayName) => {
+	insertRelatedNode: (cell, node, onDelete, position, escapedDisplayName) => {
 		/** Alternative function to appendRelatedNode
 			- no jQuery
 			- uses insertAdjacentHTML
 			- default position: beforeend
 		*/
 		cell = (cell instanceof jQuery ? cell[0] : cell);
-		cell.insertAdjacentHTML(position ?? 'beforeend', _Entities.getRelatedNodeHTML(node, displayName));
+		cell.insertAdjacentHTML(position ?? 'beforeend', _Entities.getRelatedNodeHTML(node, escapedDisplayName));
 
 		let nodeEl = cell.querySelector('._' + node.id);
 
@@ -2519,7 +2519,9 @@ let _Entities = {
 		let oldValue                = $.trim(attributeElement.attr('title'));
 		let attributeElementRawHTML = attributeElement[0].outerHTML;
 
-		attributeElement.replaceWith(`<input type="text" size="${oldValue.length + 4}" class="new-${attributeName} ${additionalInputClass}" value="${oldValue}">`);
+		let newInput = $(`<input type="text" size="${oldValue.length + 4}" class="new-${attributeName} ${additionalInputClass}" value="">`);
+		newInput.val(oldValue);
+		attributeElement.replaceWith(newInput);
 
 		let input = $('input', parentElement);
 		input.focus().select();
@@ -2864,7 +2866,7 @@ let _Entities = {
 
 					if (response.ok) {
 
-						_Dialogs.custom.showAndHideInfoBoxMessage('Device Trust Secret rotatet - all previous trust invalidated.', 'success', 2000, 200);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Device Trust Secret rotated - all previous trust invalidated.', 'success', 2000, 200);
 
 					} else {
 

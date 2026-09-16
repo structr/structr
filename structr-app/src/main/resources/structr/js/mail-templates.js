@@ -433,7 +433,7 @@ let _MailTemplates = {
 		return editor;
 	},
 	updatePreview: (text) => {
-		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = text;
+		_MailTemplates.previewElement.srcdoc = text;
 	},
 	saveMailTemplateContent: async () => {
 
@@ -575,7 +575,7 @@ let _MailTemplates = {
 
 							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-preview">Preview</label>
-								<iframe id="mail-template-preview" class="mt-2"></iframe>
+								<iframe id="mail-template-preview" class="mt-2" sandbox></iframe>
 							</div>
 						</div>
 
