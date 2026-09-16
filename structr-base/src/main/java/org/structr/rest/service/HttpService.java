@@ -667,9 +667,20 @@ public class HttpService implements RunnableService, StatsCallback {
 		   before httpsConfig is copied from httpConfig below, so it applies to both connectors. */
 		if (Settings.ForwardedForEnabled.getValue()) {
 
-			httpConfig.addCustomizer(new ForwardedRequestCustomizer());
+			final ForwardedRequestCustomizer forwardedRequestCustomizer = new ForwardedRequestCustomizer();
 
-			logger.info("Forwarded-for handling enabled: the client address is taken from the X-Forwarded-For / Forwarded headers. Make sure Structr is only reachable through a trusted reverse proxy.");
+			/* Ticket 1599: X-Forwarded-For only, and the RFC 7239 "Forwarded" header explicitly not.
+			   Jetty prefers Forwarded over X-Forwarded-For when both are present, and the common proxies
+			   do not touch it: nginx overwrites X-Forwarded-For and passes Forwarded straight through
+			   from the client. A caller sending "Forwarded: for=127.0.0.1" would therefore arrive as
+			   127.0.0.1 - which is what the metrics, health check and histogram allowlists contain, what
+			   security.twofactorauthentication.whitelistedips is compared against, and what the rate
+			   limiter exempts. Honouring only the header the proxy is known to overwrite closes that. */
+			forwardedRequestCustomizer.setForwardedHeader(null);
+
+			httpConfig.addCustomizer(forwardedRequestCustomizer);
+
+			logger.info("Forwarded-for handling enabled: the client address is taken from the X-Forwarded-For header. The RFC 7239 Forwarded header is ignored because proxies commonly pass it through unchanged. Make sure Structr is only reachable through a trusted reverse proxy.");
 		}
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {

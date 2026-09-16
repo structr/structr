@@ -33,6 +33,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.Tx;
 import org.structr.docs.Documentation;
+import org.structr.rest.common.RemoteAddressWhitelist;
 import org.structr.rest.common.Stats;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -87,37 +88,35 @@ public class HealthCheckServlet extends AbstractDataServlet {
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("application/health+json; charset=utf-8");
 
-		final String remoteAddress = request.getRemoteAddr();
-		if (remoteAddress != null) {
+		/* No "if the request has a remote address" around this: without one there is nothing to check
+		   the whitelist against, and this used to skip the check and serve the report (ticket 1599).
+		   RemoteAddressWhitelist answers that case with a refusal, which only helps if it is asked. */
+		if ("/ready".equals(request.getPathInfo())) {
 
-			if ("/ready".equals(request.getPathInfo())) {
+			if (error || DeployCommand.isDeploymentActive() || SchemaService.getSchemaIsBeingReplaced() || !Services.getInstance().isInitialized()) {
 
-				if (error || DeployCommand.isDeploymentActive() || SchemaService.getSchemaIsBeingReplaced() || !Services.getInstance().isInitialized()) {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 
-					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+			} else {
 
-				} else {
-
-					response.setStatus(HttpServletResponse.SC_OK);
-				}
-
-				return;
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
 
-			final Set<String> wl = getWhitelistAddresses();
-			if (!wl.contains(remoteAddress)) {
+			return;
+		}
 
-				if (!Services.getInstance().isInitialized()) {
+		if (!RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the health check endpoint")) {
 
-					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+			if (!Services.getInstance().isInitialized()) {
 
-				} else {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 
-					response.setStatus(HttpServletResponse.SC_OK);
-				}
+			} else {
 
-				return;
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
+
+			return;
 		}
 
 		try (final Writer writer = response.getWriter()) {
