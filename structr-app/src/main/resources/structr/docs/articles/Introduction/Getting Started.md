@@ -85,7 +85,7 @@ docker compose up -d
 
 ```
 
-Access Structr in your browser at http://localhost:8082/structr.
+Access Structr in your browser at [http://localhost:8082/structr](http://localhost:8082/structr).
 
 ### Option 3: Manual Installation (Advanced Users)
 
