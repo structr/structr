@@ -158,6 +158,13 @@ public class StructrBinding implements ProxyObject {
 
 			default:
 
+				// while a page is being rendered, a repeater's data key shadows constants, types and
+				// functions alike, so that a name resolves the same way as it does in StructrScript
+				if (actionContext instanceof RenderContext renderContext && renderContext.hasDataForKey(name)) {
+
+					return wrap(actionContext, renderContext.getDataNode(name));
+				}
+
 				// check if a named constant exists
 				if (actionContext.getConstant(name) != null) {
 
