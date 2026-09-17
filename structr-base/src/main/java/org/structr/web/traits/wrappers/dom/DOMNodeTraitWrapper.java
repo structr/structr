@@ -1713,9 +1713,17 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				}
 			}
 
-			// restore previous data object
-			renderContext.putDataObject(dataKey, previousDataObject);
-			renderContext.setDataObject(previousDataObject);
+			// restore previous data object; the key must be removed rather than set to null when
+			// there was none, because a key that is merely mapped to null still shadows a function
+			// or constant of the same name for the rest of the rendering pass
+			if (previousDataObject != null) {
+
+				renderContext.putDataObject(dataKey, previousDataObject);
+
+			} else {
+
+				renderContext.clearDataObject(dataKey);
+			}
 		}
 
 	}

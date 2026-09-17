@@ -171,8 +171,16 @@ public class RenderEachFunction extends UiCommunityFunction {
 					}
 				}
 
-				// restore previous value
-				renderContext.putDataObject(dataKey, previousValue);
+				// restore previous value; see DOMNode.renderNodeList() for why a null value has to
+				// remove the key instead of being written into it
+				if (previousValue != null) {
+
+					renderContext.putDataObject(dataKey, previousValue);
+
+				} else {
+
+					renderContext.clearDataObject(dataKey);
+				}
 			}
 
 		} else {
