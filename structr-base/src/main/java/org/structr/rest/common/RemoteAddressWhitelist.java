@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Setting;
+import org.structr.common.LogThrottle;
 import org.structr.api.config.Settings;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +55,11 @@ public class RemoteAddressWhitelist {
 
 	private static final Logger logger = LoggerFactory.getLogger(RemoteAddressWhitelist.class.getName());
 
+	/**
+	 * These three endpoints are unauthenticated, so the rate of refusals is the caller's to choose and a
+	 * line per refusal is an amplification vector. One line per endpoint, address and reason per window.
+	 */
+	private static final LogThrottle deniedEndpointLog = new LogThrottle("Denied endpoint access", 1);
 
 	/**
 	 * The headers a reverse proxy uses to pass the original client address on. Their presence is what
@@ -70,23 +76,32 @@ public class RemoteAddressWhitelist {
 		final String remoteAddress = request.getRemoteAddr();
 		if (remoteAddress == null) {
 
-			logger.warn("Access to {} denied: the request has no remote address to check against the whitelist.", endpoint);
+			if (deniedEndpointLog.allow(endpoint + " no address")) {
+
+				logger.warn("Access to {} denied: the request has no remote address to check against the whitelist.", endpoint);
+			}
 
 			return false;
 		}
 
 		if (!Settings.ForwardedForEnabled.getValue() && hasForwardingHeader(request)) {
 
-			logger.warn("Access to {} denied for remote address {}: the request carries a forwarding header, so this address is the proxy's and not the caller's, and the whitelist cannot be applied to it. "
+			if (deniedEndpointLog.allow(endpoint + " forwarded " + remoteAddress)) {
+
+				logger.warn("Access to {} denied for remote address {}: the request carries a forwarding header, so this address is the proxy's and not the caller's, and the whitelist cannot be applied to it. "
 				+ "Set {} to true so that the caller's address is used - and make sure the proxy overwrites the forwarding headers it receives.",
-				endpoint, remoteAddress, Settings.ForwardedForEnabled.getKey());
+					endpoint, remoteAddress, Settings.ForwardedForEnabled.getKey());
+			}
 
 			return false;
 		}
 
 		if (!matches(remoteAddress, whitelist)) {
 
-			logger.warn("Access to {} denied for remote address {}: not in whitelist.", endpoint, remoteAddress);
+			if (deniedEndpointLog.allow(endpoint + " " + remoteAddress)) {
+
+				logger.warn("Access to {} denied for remote address {}: not in whitelist.", endpoint, remoteAddress);
+			}
 
 			return false;
 		}
