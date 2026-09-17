@@ -210,6 +210,7 @@ public class ToCsvFunction extends CsvFunction {
 
 		return List.of(
 				"If the column values contain the quote character, a `\\` is prepended before that instance of the quote character",
+				"Text values starting with `=`, `+`, `-`, `@`, a tab or a carriage return are prefixed with an apostrophe so that the spreadsheet application opening the file shows them as text instead of evaluating them as a formula. Numbers and booleans are written unchanged.",
 				"All instances of `\n` or `\r` in the column values are replaced by `\\n` and `\\r` respectively so we can guarantee that only intended newlines (i.e. the record separator) occurr inside the produced CSV",
 				"The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.",
 				"If a view is given, the (optionally localized) property names of that view are used as header row",

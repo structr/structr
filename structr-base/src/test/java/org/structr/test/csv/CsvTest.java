@@ -537,4 +537,31 @@ public class CsvTest extends StructrCsvTest {
 		assertEquals(testOneCSVWithDefaultCharacters5EntriesNoError, resultString);
 
 	}
+
+	/**
+	 * Test that exported values are not evaluated as formulas by the spreadsheet application
+	 * that opens the export
+	 */
+	@Test
+	public void test11CsvOutputNeutralizesFormulas() {
+
+		final String formulaId = getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
+			.body(" { 'name' : '=1+1', 'anInt' : -3, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
+			.expect().statusCode(201).when().post(restUrl + testOneResource).getHeader("Location"));
+
+		final Object result = RestAssured
+
+			.given()
+				.contentType("application/csv; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+			.when()
+				.get(csvUrl + testOneResource);
+
+		// the name is prefixed with an apostrophe, the negative number stays a number
+		final String expected = "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
+			+ "\"" + formulaId + "\";\"TestOne\";\"'=1+1\";\"-3\";\"0\";\"2012-09-17T22:33:12+0000\"\r\n";
+
+		assertEquals(expected, ((RestAssuredResponseImpl) result).asString());
+	}
 }
