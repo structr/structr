@@ -25,14 +25,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.rest.common.RemoteAddressWhitelist;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.docs.Documentation;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Documentation(name="MetricsServlet", parent="Servlets", children={ "MetricsServlet Settings" })
@@ -45,8 +43,6 @@ public class MetricsServlet extends AbstractDataServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(MetricsServlet.class);
 
-	protected final Set<String> whitelist    = new LinkedHashSet<>();
-	protected String previousWhitelist       = "";
 
 	public MetricsServlet() {
 
@@ -76,24 +72,6 @@ public class MetricsServlet extends AbstractDataServlet {
 	// ----- protected methods -----
 	protected synchronized Set<String> getWhitelistAddresses() {
 
-		final String whitelistSource = Settings.MetricsServletWhitelist.getValue();
-		if (!whitelistSource.equals(previousWhitelist)) {
-
-			whitelist.clear();
-
-			for (final String entry : whitelistSource.split(",")) {
-
-				final String trimmed = entry.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
-
-					whitelist.add(trimmed);
-				}
-			}
-
-			// cache contents to detect changes
-			previousWhitelist = whitelistSource;
-		}
-
-		return whitelist;
+		return RemoteAddressWhitelist.parsed(Settings.MetricsServletWhitelist);
 	}
 }
