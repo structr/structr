@@ -19,6 +19,8 @@
 package org.structr.web.maintenance.deploy;
 
 import java.util.stream.Collectors;
+
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -547,21 +549,21 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				problems.add(
 						"The following entries were configured in files.json, but the <b>expected files/folders were not found</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
-						+ "<ul><li>" + configuredButNotEncountered.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>");
+						+ "<ul><li>" + configuredButNotEncountered.stream().sorted().map(StringEscapeUtils::escapeHtml4).collect(Collectors.joining("</li><li>")) + "</li></ul>");
 			}
 
 			if (!encounteredButNotConfigured.isEmpty()) {
 
 				problems.add(
 						"The following files/folders were ignored because they <b>are missing in files.json</b>. For folders the complete subtree is ignored. The most common cause is that files.json was not correctly committed."
-						+ "<ul><li>" + encounteredButNotConfigured.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>");
+						+ "<ul><li>" + encounteredButNotConfigured.stream().sorted().map(StringEscapeUtils::escapeHtml4).collect(Collectors.joining("</li><li>")) + "</li></ul>");
 			}
 
 			if (!forceRenamedFilesAndFolders.isEmpty()) {
 
 				problems.add(
 						"The following files/folders were auto-renamed to prevent name clashes. The most common cause is that a previously installed app was not removed completely. If files/folders are linked in the application, this link will not be restored and thus the app will not work as expected. Removing the clashing file/folder and re-importing is recommended."
-						+ "<ul><li>" + forceRenamedFilesAndFolders.entrySet().stream().map(entry -> entry.getKey() + " renamed to " + entry.getValue()).collect(Collectors.joining("</li><li>")) + "</li></ul>"
+						+ "<ul><li>" + forceRenamedFilesAndFolders.entrySet().stream().map(entry -> entry.getKey() + " renamed to " + entry.getValue()).map(StringEscapeUtils::escapeHtml4).collect(Collectors.joining("</li><li>")) + "</li></ul>"
 				);
 			}
 

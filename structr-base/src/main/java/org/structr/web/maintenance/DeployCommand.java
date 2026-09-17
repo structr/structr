@@ -28,6 +28,7 @@ import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -1068,15 +1069,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put(SiteTraitDefinition.PORT_PROPERTY,                                  site.getPort());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, site.isVisibleToAuthenticatedUsers());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        site.isVisibleToPublicUsers());
-
-				final List<String> pageNames = new LinkedList<>();
-
-				for (final NodeInterface page : site.getPages()) {
-
-					pageNames.add(page.getName());
-				}
-
-				entry.put(SiteTraitDefinition.PAGES_PROPERTY, pageNames);
+				entry.put(SiteTraitDefinition.PAGES_PROPERTY,                                 Iterables.toList(site.getPages()).stream().map(GraphObject::getUuid).toList());
 
 				exportOwnershipAndSecurity(node, entry);
 			}
@@ -1167,7 +1160,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)).getAsList()) {
 
 				if (!page.is(StructrTraits.SHADOW_DOCUMENT)) {
 
@@ -1175,10 +1168,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					if (content != null) {
 
 						final Map<String, Object> properties = new TreeMap<>();
-						final String name                    = page.getName();
-						final Path pageFile                  = targetFolder.resolve(name + ".html");
+						final String uuid                    = page.getUuid();
 
-						pagesConfig.put(name, properties);
+						String exportFilename = page.getName();
+
+						if (exportFilename != null) {
+
+							if (Files.exists(targetFolder.resolve(exportFilename + ".html"))) {
+
+								exportFilename += "-" + uuid;
+							}
+
+						} else {
+
+							exportFilename = uuid;
+						}
+
+						final Path pageFile = targetFolder.resolve(exportFilename + ".html");
+
+						pagesConfig.put(exportFilename, properties);
 						exportConfiguration(page, properties);
 						exportOwnershipAndSecurity(page, properties);
 
@@ -1588,6 +1596,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Linkable linkable = node.as(Linkable.class);
 			final Page page         = node.as(Page.class);
 
+			putData(config, NodeInterfaceTraitDefinition.NAME_PROPERTY,          page.getName());
 			putData(config, LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY,   linkable.getBasicAuthRealm());
 			putData(config, PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,      page.getCacheForSeconds());
 			putData(config, PageTraitDefinition.CATEGORY_PROPERTY,               page.getCategory());
@@ -1848,7 +1857,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					String filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale();
 					filename = sanitizeAndShortenFileOrFolderName(filename);
 
-					if (Files.exists(targetFolder.resolve(filename))) {
+					if (Files.exists(targetFolder.resolve(filename + ".html"))) {
 
 						filename = filename + "_-_" + mailTemplate.getUuid();
 					}
@@ -3070,9 +3079,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final List<NodeInterface> pages = new LinkedList();
 
-				for (final String pageName : (List<String>)entry.get(SiteTraitDefinition.PAGES_PROPERTY)) {
+				for (final String linkedPageId : (List<String>)entry.get(SiteTraitDefinition.PAGES_PROPERTY)) {
 
-					pages.add(app.nodeQuery(StructrTraits.PAGE).name(pageName).getFirst());
+					pages.add(app.getNodeById(StructrTraits.PAGE, linkedPageId));
 				}
 
 				entry.remove(SiteTraitDefinition.PAGES_PROPERTY);
@@ -3673,7 +3682,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		return map.entrySet()
 				.stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-				.map(entry -> entry.getValue() + "x " + entry.getKey())
+				.map(entry -> entry.getValue() + "x " + StringEscapeUtils.escapeHtml4(entry.getKey()))
 				.collect(Collectors.joining(separator));
 	}
 

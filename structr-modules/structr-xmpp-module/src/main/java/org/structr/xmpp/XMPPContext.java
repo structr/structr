@@ -106,16 +106,9 @@ public class XMPPContext {
 
 		new Java7SmackInitializer().initialize();
 
-		final XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-			.setUsernameAndPassword(callback.getUsername(), callback.getPassword())
-			.setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
-			.setHost(callback.getHostName())
-			.setPort(callback.getPort())
-			.build();
-
 		try {
 
-			final AbstractXMPPConnection connection = new XMPPTCPConnection(config);
+			final AbstractXMPPConnection connection = new XMPPTCPConnection(getConnectionConfiguration(callback));
 			connections.put(callback.getUuid(), new StructrXMPPConnection(callback, connection));
 			connection.connect();
 
@@ -123,6 +116,26 @@ public class XMPPContext {
 
 			logger.warn("", ex);
 		}
+	}
+
+	/**
+	 * Builds the connection configuration for the given client. TLS is required, not merely attempted:
+	 * with SecurityMode.ifpossible, an attacker in the network path strips the STARTTLS offer and the
+	 * connection continues in plaintext, handing over the XMPP password and every message that follows.
+	 *
+	 * @param info the client to connect
+	 * @return a configuration that refuses to connect without TLS
+	 * @throws XmppStringprepException if the client carries a service name that is not a valid XMPP domain
+	 */
+	public static XMPPTCPConnectionConfiguration getConnectionConfiguration(final XMPPInfo info) throws XmppStringprepException {
+
+		return XMPPTCPConnectionConfiguration.builder()
+			.setUsernameAndPassword(info.getUsername(), info.getPassword())
+			.setXmppDomain(info.getService())
+			.setSecurityMode(ConnectionConfiguration.SecurityMode.required)
+			.setHost(info.getHostName())
+			.setPort(info.getPort())
+			.build();
 	}
 
 	public static XMPPClientConnection getClientForId(final String id) {
