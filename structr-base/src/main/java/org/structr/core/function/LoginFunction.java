@@ -18,10 +18,12 @@
  */
 package org.structr.core.function;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -54,13 +56,43 @@ public class LoginFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			Principal user  = ((AbstractNode) sources[0]).as(Principal.class);
-			String password =                 sources[1].toString();
+			final Principal user             = ((AbstractNode) sources[0]).as(Principal.class);
+			final String password            =                 sources[1].toString();
+			final HttpServletRequest request = ctx.getSecurityContext().getRequest();
 
-			if (AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("id"), user.getUuid(), password) != null) {
+			if (request == null) {
 
-				AuthHelper.doLogin(ctx.getSecurityContext().getRequest(), user);
+				logger.warn("login(): no request to open a session on, refusing the login.");
+
+				return false;
 			}
+
+			/* This function exists to delegate authentication to whatever source the script decides on,
+			   and a second factor belongs to that source. While Structr is configured to demand one for
+			   this account, there is no step here that could ask for a code - so a session opened here
+			   would be one that the configured level says must not exist, and which login does the asking
+			   would decide whether the setting means anything. */
+			if (AuthHelper.isTwoFactorStepRequired(user, request.getHeader("User-Agent"), AuthHelper.getDeviceTrustCookie(request))) {
+
+				logger.warn("login(): a second factor is required for this account, which this function cannot ask for - the application has to use the login endpoint instead.");
+
+				return false;
+			}
+
+			try {
+
+				if (AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("id"), user.getUuid(), password) == null) {
+
+					return false;
+				}
+
+			} catch (AuthenticationException aex) {
+
+				// a wrong password is an answer, not a failure of the call: this is the false the description promises
+				return false;
+			}
+
+			AuthHelper.doLogin(request, user);
 
 			return true;
 
@@ -87,13 +119,13 @@ public class LoginFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getShortDescription() {
 
-		return "Logs the given user in if the given password is correct. Returns true on successful login.";
+		return "Logs the given user in if the given password is correct. Returns true on successful login, false otherwise.";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "";
+		return "This function checks the password itself, which is what lets an application delegate authentication to an external source and log the user in afterwards. It cannot ask for a second factor, so it refuses to log in any account for which `security.twofactorauthentication.level` requires one and returns false; an application that needs two-factor authentication has to use the login endpoint, which runs the whole exchange. A wrong password returns false as well, while a locked account or a required password change still raise an error, because those carry a reason the application should see.";
 	}
 
 	@Override
