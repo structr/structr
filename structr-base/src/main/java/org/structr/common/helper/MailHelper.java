@@ -52,13 +52,18 @@ public abstract class MailHelper {
 			return "Testing";
 		}
 
+		return createAdvancedMail(amc).send();
+	}
+
+	public static HtmlEmail createAdvancedMail(final AdvancedMailContainer amc) throws EmailException {
+
 		HtmlEmail mail = new HtmlEmail();
 
 		configureAdvancedMail(mail, amc);
 
 		if (StringUtils.isNotBlank(amc.getFromName())) {
 
-			mail.setFrom(amc.getFromAddress(), amc.getFromName());
+			mail.setFrom(amc.getFromAddress(), stripLineBreaks(amc.getFromName()));
 
 		} else {
 
@@ -69,7 +74,7 @@ public abstract class MailHelper {
 
 			if (StringUtils.isNotBlank(entry.getValue())) {
 
-				mail.addTo(entry.getKey(), entry.getValue());
+				mail.addTo(entry.getKey(), stripLineBreaks(entry.getValue()));
 
 			} else {
 
@@ -81,7 +86,7 @@ public abstract class MailHelper {
 
 			if (StringUtils.isNotBlank(entry.getValue())) {
 
-				mail.addCc(entry.getKey(), entry.getValue());
+				mail.addCc(entry.getKey(), stripLineBreaks(entry.getValue()));
 
 			} else {
 
@@ -93,7 +98,7 @@ public abstract class MailHelper {
 
 			if (StringUtils.isNotBlank(entry.getValue())) {
 
-				mail.addBcc(entry.getKey(), entry.getValue());
+				mail.addBcc(entry.getKey(), stripLineBreaks(entry.getValue()));
 
 			} else {
 
@@ -105,7 +110,7 @@ public abstract class MailHelper {
 
 			if (StringUtils.isNotBlank(entry.getValue())) {
 
-				mail.addReplyTo(entry.getKey(), entry.getValue());
+				mail.addReplyTo(entry.getKey(), stripLineBreaks(entry.getValue()));
 
 			} else {
 
@@ -115,7 +120,7 @@ public abstract class MailHelper {
 
 		for (Map.Entry<String, String> entry : amc.getCustomHeaders().entrySet()) {
 
-			mail.addHeader(entry.getKey(), entry.getValue());
+			mail.addHeader(stripLineBreaks(entry.getKey()), stripLineBreaks(entry.getValue()));
 		}
 
 		if (StringUtils.isNotBlank(amc.getBounceAddress())) {
@@ -123,7 +128,7 @@ public abstract class MailHelper {
 			mail.setBounceAddress(amc.getBounceAddress());
 		}
 
-		mail.setSubject(amc.getSubject());
+		mail.setSubject(stripLineBreaks(amc.getSubject()));
 
 		if (StringUtils.isNotBlank(amc.getHtmlContent())) {
 
@@ -142,10 +147,12 @@ public abstract class MailHelper {
 
 		for (final DynamicMailAttachment attachment : amc.getAttachments()) {
 
-			mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
+			// the attachment name is script-controlled and ends up in the part headers, where a line
+			// break starts a header of its own
+			mail.attach(attachment.getDataSource(), stripLineBreaks(attachment.getName()), stripLineBreaks(attachment.getDescription()), attachment.getDisposition());
 		}
 
-		return mail.send();
+		return mail;
 	}
 
 	private static String _sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject, final String htmlContent, final String textContent, final List<DynamicMailAttachment> attachments) throws EmailException {
@@ -165,7 +172,9 @@ public abstract class MailHelper {
 
 			for (final DynamicMailAttachment attachment : attachments) {
 
-				mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
+				// the attachment name is script-controlled and ends up in the part headers, where a line
+				// break starts a header of its own
+				mail.attach(attachment.getDataSource(), stripLineBreaks(attachment.getName()), stripLineBreaks(attachment.getDescription()), attachment.getDisposition());
 			}
 		}
 
@@ -186,8 +195,8 @@ public abstract class MailHelper {
 
 		configureMail(mail);
 
-		mail.addTo(to, toName);
-		mail.setFrom(from, fromName);
+		mail.addTo(to, stripLineBreaks(toName));
+		mail.setFrom(from, stripLineBreaks(fromName));
 
 		if (StringUtils.isNotBlank(cc)) {
 
@@ -204,7 +213,26 @@ public abstract class MailHelper {
 			mail.setBounceAddress(bounce);
 		}
 
-		mail.setSubject(subject);
+		mail.setSubject(stripLineBreaks(subject));
+	}
+
+	/**
+	 * Removes CR and LF from a value that is about to become part of a mail header.
+	 *
+	 * <p>A line break in a header name ends the header and starts a new one, so a name like
+	 * "X-Custom\r\nBcc" adds a recipient that the sender never asked for. In a header value or a
+	 * personal name, Jakarta Mail folds the break into a continuation line instead, which cannot add
+	 * a header but still puts attacker-controlled text where the sender expects a name.
+	 *
+	 * <p>Addresses are deliberately left alone: Jakarta Mail rejects a control character in an
+	 * address, and stripping it here would turn a rejected address into an accepted, wrong one.
+	 *
+	 * @param value a header name, header value, personal name or subject
+	 * @return the value without CR and LF
+	 */
+	public static String stripLineBreaks(final String value) {
+
+		return StringUtils.replaceChars(value, "\r\n", "");
 	}
 
 	private static void configureMail(final Email mail) {
