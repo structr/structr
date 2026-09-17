@@ -169,7 +169,7 @@ public class TemplateImporter extends HtmlFileImporter {
 
 			} else {
 
-				final String src = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+				final String src = Files.readString(file);
 
 				final Template template;
 
