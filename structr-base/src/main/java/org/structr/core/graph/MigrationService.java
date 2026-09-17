@@ -133,7 +133,6 @@ public class MigrationService {
 		"MQTTClient.port",
 		"MQTTClient.protocol",
 		"MQTTClient.url",
-		"PaymentNode.state",
 		"Person.twitterName",
 		"Principal.currentAccessToken",
 		"Principal.customPermissionQueryAccessControl",
@@ -179,7 +178,7 @@ public class MigrationService {
 		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
 		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
 		"MinifiedCssFile", "MinifiedJavaScriptFile", "LDAPGroup",
-		"LDAPUser", "PaymentItemNode", "PaymentNode", "Person"
+		"LDAPUser", "Person"
 	);
 
 	/**
