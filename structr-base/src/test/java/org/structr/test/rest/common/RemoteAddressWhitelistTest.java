@@ -26,9 +26,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -121,6 +123,141 @@ public class RemoteAddressWhitelistTest {
 	}
 
 	// ----- private methods -----
+
+	// ----- CIDR ranges -----
+
+	private static final Set<String> BRIDGE = Set.of("127.0.0.1", "localhost", "::1", "10.0.0.0/24");
+
+	@Test
+	public void testAnAddressInsideACidrRangeIsAdmitted() {
+
+		// the case this was built for: a container health-checked from its bridge gateway, whose address
+		// changes whenever the container is recreated, so only the subnet can be configured for it
+		assertTrue("an address inside the configured range was refused",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.0.2", Map.of()), BRIDGE, "test"));
+
+		assertTrue("the first address of the range was refused",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.0.0", Map.of()), BRIDGE, "test"));
+
+		assertTrue("the last address of the range was refused",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.0.255", Map.of()), BRIDGE, "test"));
+	}
+
+	@Test
+	public void testAnAddressOutsideACidrRangeIsRefused() {
+
+		assertFalse("the address one past the end of the range was admitted",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.1.0", Map.of()), BRIDGE, "test"));
+
+		assertFalse("an address in a different private network was admitted",
+			RemoteAddressWhitelist.isWhitelisted(request("192.168.0.2", Map.of()), BRIDGE, "test"));
+	}
+
+	@Test
+	public void testThePrefixIsComparedBitwiseAndNotBytewise() {
+
+		// /23 covers 10.0.0.0 to 10.0.1.255: the boundary falls inside a byte, which a bytewise
+		// comparison would get wrong in one direction or the other
+		final Set<String> whitelist = Set.of("10.0.0.0/23");
+
+		assertTrue("an address in the second half of a /23 was refused",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.1.7", Map.of()), whitelist, "test"));
+
+		assertFalse("an address past the end of a /23 was admitted",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.2.7", Map.of()), whitelist, "test"));
+	}
+
+	@Test
+	public void testARangeOfOneFamilyNeverCoversTheOther() {
+
+		assertFalse("an IPv4 range admitted an IPv6 address",
+			RemoteAddressWhitelist.isWhitelisted(request("::1", Map.of()), Set.of("0.0.0.0/0"), "test"));
+
+		assertFalse("an IPv6 range admitted an IPv4 address",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.0.2", Map.of()), Set.of("::/0"), "test"));
+	}
+
+	@Test
+	public void testAnIpv6RangeWorksTheSameWay() {
+
+		final Set<String> whitelist = Set.of("fd00::/8");
+
+		assertTrue("an address inside the IPv6 range was refused",
+			RemoteAddressWhitelist.isWhitelisted(request("fd00::1", Map.of()), whitelist, "test"));
+
+		assertFalse("an address outside the IPv6 range was admitted",
+			RemoteAddressWhitelist.isWhitelisted(request("fe80::1", Map.of()), whitelist, "test"));
+	}
+
+	@Test
+	public void testAnUnusableRangeCoversNothing() {
+
+		// the failure this feature exists to prevent is a configuration that READS like a fix. An entry
+		// that cannot be parsed must not fall back to admitting anything, and it is reported rather than ignored
+		for (final String unusable : List.of("10.0.0.0/99", "10.0.0.0/-1", "10.0.0.0/eight", "not-an-address/24")) {
+
+			assertFalse("the unusable entry '" + unusable + "' admitted an address",
+				RemoteAddressWhitelist.isWhitelisted(request("10.0.0.2", Map.of()), Set.of(unusable), "test"));
+		}
+	}
+
+	@Test
+	public void testAnExactEntryStillWorksBesideARange() {
+
+		// every existing configuration is a list of exact entries, and a hostname is not an address at all
+		assertTrue("an exact address was refused once ranges were understood",
+			RemoteAddressWhitelist.isWhitelisted(request("127.0.0.1", Map.of()), BRIDGE, "test"));
+
+		assertTrue("a single address written as a /32 range was refused",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.0.2", Map.of()), Set.of("10.0.0.2/32"), "test"));
+
+		assertFalse("a hostname entry admitted an unrelated address",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.0.2", Map.of()), Set.of("localhost"), "test"));
+	}
+
+	// ----- reading the setting -----
+
+	@Test
+	public void testParseKeepsWhatItCanApplyAndDropsWhatItCannot() {
+
+		final Set<String> parsed = RemoteAddressWhitelist.parse(
+			"127.0.0.1, localhost , ::1, 10.0.0.0/24, fd00::/8, 10.0.0.0/99, not-an-address/24, , 10.0.0.0/eight",
+			"test.whitelist");
+
+		assertEquals("parse kept the wrong number of entries: " + parsed, 5, parsed.size());
+
+		// exact entries survive untouched, including a host name, which cannot be told from a typo
+		assertTrue("an exact address was dropped",  parsed.contains("127.0.0.1"));
+		assertTrue("a host name was dropped",       parsed.contains("localhost"));
+		assertTrue("an IPv6 address was dropped",   parsed.contains("::1"));
+		assertTrue("a valid IPv4 range was dropped", parsed.contains("10.0.0.0/24"));
+		assertTrue("a valid IPv6 range was dropped", parsed.contains("fd00::/8"));
+
+		// a range the code cannot apply is dropped rather than kept as a string that matches nothing
+		assertFalse("a prefix wider than the address family was kept", parsed.contains("10.0.0.0/99"));
+		assertFalse("a range with no network address was kept",        parsed.contains("not-an-address/24"));
+		assertFalse("a range with a non-numeric prefix was kept",      parsed.contains("10.0.0.0/eight"));
+	}
+
+	@Test
+	public void testAnUnusableEntryNeitherAdmitsNorBlocksTheRestOfTheList() {
+
+		// the decision: a mistyped entry is ignored, never fatal. The usable entries beside it keep working
+		final Set<String> parsed = RemoteAddressWhitelist.parse("10.0.0.0/99, 10.0.0.0/24", "test.whitelist");
+
+		assertTrue("a usable range stopped working because another entry was mistyped",
+			RemoteAddressWhitelist.isWhitelisted(request("10.0.0.2", Map.of()), parsed, "test"));
+
+		assertFalse("a mistyped entry admitted an address outside every usable range",
+			RemoteAddressWhitelist.isWhitelisted(request("192.168.0.2", Map.of()), parsed, "test"));
+	}
+
+	@Test
+	public void testParseAnswersForAnEmptyOrAbsentSetting() {
+
+		assertTrue("a null setting produced entries", RemoteAddressWhitelist.parse(null, "test.whitelist").isEmpty());
+		assertTrue("a blank setting produced entries", RemoteAddressWhitelist.parse("  , ,", "test.whitelist").isEmpty());
+	}
 
 	/**
 	 * A request that answers the two questions the check asks and nothing else. Anything the check does

@@ -600,7 +600,7 @@ public class Settings {
 	public static final Setting<String> HealthCheckResourceProvider  = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> HealthCheckDefaultView       = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.defaultview",           "public");
 	public static final Setting<Integer> HealthCheckOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "healthcheckservlet.outputdepth",           1);
-	public static final Setting<String> HealthCheckWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
+	public static final Setting<String> HealthCheckWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health. An entry can be a single address or a CIDR range such as 10.0.0.0/24, which is what a containerised instance health-checked from its bridge gateway needs.");
 
 	public static final Setting<String> HistogramServletPath       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.path",                "/structr/histogram");
 	public static final Setting<String> HistogramServletClass      = new StringSetting(servletsGroup,  "hidden", "histogramservlet.class",               "org.structr.web.servlet.HistogramServlet");
@@ -608,7 +608,7 @@ public class Settings {
 	public static final Setting<String> HistogramResourceProvider  = new StringSetting(servletsGroup,  "hidden", "histogramservlet.resourceprovider",    "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> HistogramDefaultView       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.defaultview",         "public");
 	public static final Setting<Integer> HistogramOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "histogramservlet.outputdepth",         1);
-	public static final Setting<String> HistogramWhitelist         = new StringSetting(servletsGroup,  "HistogramServlet", "histogramservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the query histogram endpoint at /structr/histogram.");
+	public static final Setting<String> HistogramWhitelist         = new StringSetting(servletsGroup,  "HistogramServlet", "histogramservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the query histogram endpoint at /structr/histogram. An entry can be a single address or a CIDR range such as 10.0.0.0/24.");
 
 	public static final Setting<String> OpenAPIServletPath       = new StringSetting(servletsGroup,  "OpenAPIServlet", "openapiservlet.path",                          "/structr/openapi/*");
 	public static final Setting<String> OpenAPIServletClass      = new StringSetting(servletsGroup,  "hidden", "openapiservlet.class",                         "org.structr.rest.servlet.OpenAPIServlet");
@@ -625,7 +625,7 @@ public class Settings {
 	public static final Setting<String> MetricsServletAuthenticator     = new StringSetting(servletsGroup,  "hidden", "metricsservlet.authenticator",     "org.structr.web.auth.UiAuthenticator");
 	public static final Setting<String> MetricsServletResourceProvider  = new StringSetting(servletsGroup,  "hidden", "metricsservlet.resourceprovider",  "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> MetricsServletDefaultView       = new StringSetting(servletsGroup,  "hidden", "metricsservlet.defaultview",       "public");
-	public static final Setting<String> MetricsServletWhitelist         = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.whitelist", "127.0.0.1, localhost, ::1", "Comma-separated list of IP addresses that are allowed to access the health check endpoint at /structr/metrics.");
+	public static final Setting<String> MetricsServletWhitelist         = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.whitelist", "127.0.0.1, localhost, ::1", "Comma-separated list of IP addresses that are allowed to access the metrics endpoint at /structr/metrics. An entry can be a single address or a CIDR range such as 10.0.0.0/24.");
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List of cron task configurations or method names separated by space. This only configures the list of tasks. For each task, there needs to be another configuration entry named '<taskname>.cronExpression' with the appropriate cron schedule configuration. Restart of CronService required.");
