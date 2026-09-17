@@ -32,6 +32,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -90,21 +91,12 @@ public class PageImporter extends HtmlFileImporter {
 	}
 
 	// ----- private methods -----
-	private Page getExistingPage(final String name) throws FrameworkException {
+	private void deletePage(final App app, final String uuid) throws FrameworkException {
 
-		final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).name(name).getFirst();
+		final NodeInterface node = app.getNodeById(StructrTraits.PAGE, uuid);
 		if (node != null) {
 
-			return node.as(Page.class);
-		}
-
-		return null;
-	}
-
-	private void deletePage(final App app, final String name) throws FrameworkException {
-
-		final Page page = getExistingPage(name);
-		if (page != null) {
+			final Page page = node.as(Page.class);
 
 			for (final DOMNode child : page.getElements()) {
 
@@ -115,9 +107,9 @@ public class PageImporter extends HtmlFileImporter {
 		}
 	}
 
-	private PropertyMap getPropertiesForPage(final String name) {
+	private PropertyMap getPropertiesForPage(final String keyInProperties) {
 
-		final Object data = pagesConfiguration.get(name);
+		final Object data = pagesConfiguration.get(keyInProperties);
 		if (data != null && data instanceof Map) {
 
 			try {
@@ -168,31 +160,30 @@ public class PageImporter extends HtmlFileImporter {
 
 		// NFC: the file name comes from the filesystem, while the pages.json key and the page name
 		// in the database come from Structr, and macOS/git disagree on how to spell an umlaut
-		final String name = DeploymentPaths.normalize(StringUtils.substringBeforeLast(fileName, ".html"));
+		final String pageExportName = DeploymentPaths.normalize(StringUtils.substringBeforeLast(fileName, ".html"));
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			tx.disableChangelog();
 
-			final PropertyMap properties = getPropertiesForPage(name);
+			final PropertyMap properties = getPropertiesForPage(pageExportName);
 			if (properties == null) {
 
 				logger.info("Ignoring {} (not in pages.json)", fileName);
 
 			} else {
 
-				final Page existingPage = getExistingPage(name);
-				if (existingPage != null) {
+				final Traits traits     = Traits.of(StructrTraits.PAGE);
+				final String pageUuid   = properties.get(traits.key(GraphObjectTraitDefinition.ID_PROPERTY));
 
-					deletePage(app, name);
-				}
+				deletePage(app, pageUuid);
 
-				final String src         = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
-				final Traits traits      = Traits.of(StructrTraits.PAGE);
-				final String contentType = get(properties, traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY),                 "text/html");
-				boolean visibleToPublic  = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
-				boolean visibleToAuth    = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
-				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false, relativeVisibility);
+				final String filenameFromProperties = get(properties, traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageExportName);	// fall back to filename for old exports (which did not contain the name attribute)
+				final String src                    = Files.readString(file);
+				final String contentType            = get(properties, traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY),                 "text/html");
+				boolean visibleToPublic             = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
+				boolean visibleToAuth               = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
+				final Importer importer             = new Importer(securityContext, src, null, filenameFromProperties, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);
@@ -208,7 +199,7 @@ public class PageImporter extends HtmlFileImporter {
 					final boolean parseOk = importer.parse();
 					if (parseOk) {
 
-						logger.info("Importing page {} from {}..", name, fileName);
+						logger.info("Importing page {} from {}..", filenameFromProperties, fileName);
 
 						// set comment handler that can parse and apply special Structr comments in HTML source files
 						importer.setCommentHandler(new DeploymentCommentHandler());
@@ -231,13 +222,13 @@ public class PageImporter extends HtmlFileImporter {
 					final boolean parseOk = importer.parse(true);
 					if (parseOk) {
 
-						logger.info("Importing page {} from {}..", name, fileName);
+						logger.info("Importing page {} from {}..", filenameFromProperties, fileName);
 
 						// set comment handler that can parse and apply special Structr comments in HTML source files
 						importer.setCommentHandler(new DeploymentCommentHandler());
 
 						// parse page
-						final Page newPage = app.create(StructrTraits.PAGE, name).as(Page.class);
+						final Page newPage = app.create(StructrTraits.PAGE, filenameFromProperties).as(Page.class);
 
 						// store properties from pages.json
 						newPage.setProperties(securityContext, properties);

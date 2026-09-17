@@ -181,19 +181,21 @@ let _Helpers = {
 
 		for (let value of values) {
 
+			let escapedValue = _Helpers.escapeForHtmlAttributes(value);
+
 			if (isMultiline) {
 
-				html += `<div class="array-attr"><textarea class="${classes.join(' ')}" rows="4" name="${key}" ${readonlyHTML} autocomplete="one-time-code">${value}</textarea>${removeIconHTML}</div>`;
+				html += `<div class="array-attr"><textarea class="${classes.join(' ')}" rows="4" name="${key}" ${readonlyHTML} autocomplete="one-time-code">${escapedValue}</textarea>${removeIconHTML}</div>`;
 
 			} else {
 
 				if (isDate) {
 
-					html += `<div class="array-attr relative"><input name="${key}" class="${classes.join(' ')}" type="text" size="26" value="${value}" autocomplete="one-time-code">${_Crud.helpers.getDateTimeIconHTML()}${removeIconHTML}</div>`;
+					html += `<div class="array-attr relative"><input name="${key}" class="${classes.join(' ')}" type="text" size="26" value="${escapedValue}" autocomplete="one-time-code">${_Crud.helpers.getDateTimeIconHTML()}${removeIconHTML}</div>`;
 
 				} else {
 
-					let valueHTML = (isBoolean) ? ((value === true || value === 'true') ? ' checked' : '') : `value="${value}"`;
+					let valueHTML = (isBoolean) ? ((value === true || value === 'true') ? ' checked' : '') : `value="${escapedValue}"`;
 
 					html += `<div class="array-attr"><input type="${inputTypeHTML}" name="${key}" ${valueHTML} ${readonlyHTML} autocomplete="one-time-code">${removeIconHTML}</div>`;
 				}
@@ -222,25 +224,25 @@ let _Helpers = {
 
 		return html;
 	},
-	formatRegularValueField: (key, value, isMultiline, isReadOnly, isPassword) => {
+	formatRegularValueField: (key, escapedValue, isMultiline, isReadOnly, isPassword) => {
 
 		if (isMultiline) {
 
-			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="one-time-code">${value}</textarea>`;
+			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="one-time-code">${escapedValue}</textarea>`;
 
 		} else {
 
-			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="one-time-code">`;
+			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${escapedValue}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="one-time-code">`;
 		}
 	},
-	getHTMLTreeElementDisplayName: (entity) => {
+	getHTMLTreeEscapedElementDisplayName: (entity) => {
 		if (entity) {
 			// show shared components
 			if (entity?.sharedComponent?.name) {
 				if (entity.name && entity.name !== entity.sharedComponent.name) {
-					return entity.name;
+					return _Helpers.escapeForHtmlAttributes(entity.name);
 				} else {
-					return entity.sharedComponent.name;
+					return _Helpers.escapeForHtmlAttributes(entity.sharedComponent.name);
 				}
 			}
 			if (!entity.name) {
@@ -252,7 +254,7 @@ let _Helpers = {
 			if ((entity?.name ?? '').trim() === '') {
 				return '(blank name)';
 			}
-			return entity.name;
+			return _Helpers.escapeForHtmlAttributes(entity.name);
 		}
 	},
 	getDateTimePickerFormat: (rawFormat) => {

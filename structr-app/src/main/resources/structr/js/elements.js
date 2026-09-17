@@ -265,17 +265,16 @@ let _Elements = {
 
 		_Entities.ensureExpanded(parent);
 
-		let id          = entity.id;
-		let displayName = _Helpers.getHTMLTreeElementDisplayName(entity);
+		let escapedDisplayName = _Helpers.getHTMLTreeEscapedElementDisplayName(entity);
 
 		let html = `
-			<div id="id_${id}" class="${elementClasses.join(' ')}" draggable="true">
+			<div id="id_${entity.id}" class="${elementClasses.join(' ')}" draggable="true">
 
 				${isRootSharedComponent || isRootTrashElement ? '' : '<div class="before-node"></div>'}
 
 				<div class="node-container flex items-center">
 					${_Icons.getSvgIconForElementNode(entity, [], entity.getActiveNodeInfoAsString())}
-					<span class="abbr-ellipsis abbr-pages-tree"><b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity)}</span>
+					<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapedDisplayName}" class="tag_ name_">${escapedDisplayName}</b>${_Elements.classIdString(entity)}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
 
@@ -294,7 +293,7 @@ let _Elements = {
 			}
 		}
 
-		let div            = Structr.node(id);
+		let div            = Structr.node(entity.id);
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
@@ -376,8 +375,7 @@ let _Elements = {
 		let htmlClassString = (classString ? '.' + classString.replace(/\${[^}]*}/g, '${…}').replace(/ +/g, '.') : '');
 
 		// only display tagname if node has a displayname other than its tagname (otherwise the tagname itself is already displayed in the name field)
-		let displayName = _Helpers.getHTMLTreeElementDisplayName(entity);
-		let tagName     = displayName !== entity.type.toLowerCase() ? '&nbsp;&nbsp;' + entity.type.toLowerCase() : '';
+		let tagName = (_Helpers.getHTMLTreeEscapedElementDisplayName(entity) !== entity.type.toLowerCase()) ? '&nbsp;&nbsp;' + entity.type.toLowerCase() : '';
 
 		return `<span class="class-id-attrs">${tagName}${htmlIdString}${htmlClassString}</span>`;
 	},
@@ -897,8 +895,8 @@ let _Elements = {
 		let isActiveNode          = entity.isActiveNode();
 		let isTemplate   = (entity.type === 'Template');
 		let name                  = entity.name;
-		let displayName           = _Helpers.getHTMLTreeElementDisplayName(entity);
-		let nameText              = (name ? `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${_Helpers.escapeTags(entity.content) || '&nbsp;'}</span>`);
+		let escapedDisplayName    = _Helpers.getHTMLTreeEscapedElementDisplayName(entity);
+		let nameText              = (name ? `<b title="${escapedDisplayName}" class="tag_ name_">${escapedDisplayName}</b>` : `<span class="content_">${_Helpers.escapeTags(entity.content) || '&nbsp;'}</span>`);
 		let isRootSharedComponent = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
 		let isRootTrashElement = (entity.parent === null && entity.pageId === null);
         let sharedComponentString = ((entity?.sharedComponent?.name && entity.name !== entity.sharedComponent.name) ? `<span class="shared-component-name">${entity.sharedComponent.name}</span>` : '');

@@ -604,6 +604,61 @@ public class RepeaterTest extends StructrUiTest {
 		Settings.HtmlIndentation.setValue(indent);
 	}
 
+	@Test
+	public void testRepeaterDataKeyShadowsBuiltInFunction() {
+
+		final boolean indent = Settings.HtmlIndentation.getValue();
+		Settings.HtmlIndentation.setValue(false);
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page1      = Page.createSimplePage(securityContext, "page1");
+			final DOMNode body    = page1.getElementsByTagName("body").get(0);
+			final DOMNode div     = page1.getElementsByTagName("div").get(0);
+			final Content content = div.getFirstChild().as(Content.class);
+
+			div.removeChild(content);
+
+			// the repeater binds the name of a built-in function, abbr(), as its data key
+			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "me");
+			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "abbr");
+
+			// inside the repeater, both languages must see the data object
+			createElement(page1, div, "span", "${abbr.name}");
+			createElement(page1, div, "span", "${{ $.print($.abbr.name); }}");
+
+			// outside it, the name belongs to the function again
+			createElement(page1, body, "p", "${{ $.print($.abbr('Structr rocks hard', 12, '...')); }}");
+
+			createAdminUser();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+				.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("html.head.title",                          Matchers.equalTo("Page1"))
+				.body("html.body.h1",                             Matchers.equalTo("Page1"))
+				.body("html.body.div.span[0]",                    Matchers.equalTo("admin"))
+				.body("html.body.div.span[1]",                    Matchers.equalTo("admin"))
+				.body("html.body.p",                              Matchers.equalTo("Structr..."))
+				.when()
+				.get("/html/page1");
+
+		Settings.HtmlIndentation.setValue(indent);
+	}
+
 	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
 		final DOMElement child = page.createElement(tag);

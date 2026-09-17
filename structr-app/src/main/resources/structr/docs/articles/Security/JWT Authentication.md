@@ -279,10 +279,13 @@ To enable external token validation, configure the JWKS provider settings:
 |---------|-------------|
 | `security.jwt.secrettype` | Set to `jwks` for external JWKS validation |
 | `security.jwks.provider` | The JWKS endpoint URL of the external service |
+| `security.jwks.audience` | **Required.** Comma-separated list of accepted `aud` values, usually the client id this application is registered under at the provider |
 | `security.jwt.jwtissuer` | The expected issuer claim in the JWT |
 | `security.jwks.admin.claim.key` | Token claim to check for admin privileges (optional) |
 | `security.jwks.admin.claim.value` | Value that grants admin privileges (optional) |
 | `security.jwks.group.claim.key` | Token claim containing group memberships (optional) |
+
+> **Note:** `security.jwks.audience` is not optional, and tokens are refused while it is empty. Signature and issuer together say only that the provider issued the token, not that it was issued for this installation - the same provider issues tokens to every other application in the tenant, and to anybody who can sign up there. The `aud` claim is what distinguishes them.
 
 ### Microsoft Entra ID
 
@@ -291,13 +294,14 @@ To validate tokens issued by Microsoft Entra ID (formerly Azure Active Directory
 ```
 security.jwt.secrettype = jwks
 security.jwks.provider = https://login.microsoftonline.com/<tenant-id>/discovery/v2.0/keys
+security.jwks.audience = <application-client-id>
 security.jwt.jwtissuer = https://login.microsoftonline.com/<tenant-id>/v2.0
 security.jwks.admin.claim.key = roles
 security.jwks.admin.claim.value = <your-admin-role-name>
 security.jwks.group.claim.key = roles
 ```
 
-Replace `<tenant-id>` with your Azure tenant ID and `<your-admin-role-name>` with the role value that should grant admin privileges in Structr.
+Replace `<tenant-id>` with your Azure tenant ID, `<application-client-id>` with the application (client) ID of the app registration the tokens are issued for - whatever the tokens carry in `aud`, which may also be an App ID URI - and `<your-admin-role-name>` with the role value that should grant admin privileges in Structr.
 
 In Azure Portal, configure your App Registration to include role claims in the token under "Token configuration".
 

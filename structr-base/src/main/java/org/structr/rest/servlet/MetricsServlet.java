@@ -24,6 +24,7 @@ import io.prometheus.client.hotspot.DefaultExports;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.structr.rest.common.RemoteAddressWhitelist;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,19 +57,12 @@ public class MetricsServlet extends AbstractDataServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		final String remoteAddress = request.getRemoteAddr();
-		if (remoteAddress != null) {
+		if (RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the metrics endpoint")) {
 
-			final Set<String> wl = getWhitelistAddresses();
-			if (wl.contains(remoteAddress)) {
+			servlet.service(request, response);
 
-				servlet.service(request, response);
-
-				return;
-			}
+			return;
 		}
-
-		logger.warn("Access to metrics endpoint denied for remote address {}: not in whitelist. If you want to allow access, edit structr.conf and include {} in metricsservlet.whitelist.", remoteAddress, remoteAddress);
 
 		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 	}

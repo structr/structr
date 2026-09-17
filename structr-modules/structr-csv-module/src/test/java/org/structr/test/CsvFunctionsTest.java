@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -402,6 +403,70 @@ public class CsvFunctionsTest extends StructrUiTest {
 					"Invalid result of to_csv() call with only name,index,intArrayProperty (JavaScript)",
 					expectedCsvForIndexAndNameAndIntArray,
 					Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.print($.to_csv($.find('CsvTestOne', $.predicate.sort('name')), ['name', 'index', 'intArrayProperty'])) }}")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail(fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testCsvFormulaNeutralization() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits = Traits.of("CsvTestOne");
+
+			createTestNode("CsvTestOne",
+				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "=1+1"),
+				new NodeAttribute<>(traits.key("stringProperty"), "-42"),
+				new NodeAttribute<>(traits.key("integerProperty"), -42)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail(fex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			ctx.setLocale(Locale.ENGLISH);
+
+			// every leading formula character is disarmed with an apostrophe, the payload itself is kept
+			final String expectedNeutralizedFormulas = "\"v\"\n"
+					+ "\"'=1+1\"\n"
+					+ "\"'+1+1\"\n"
+					+ "\"'-1+1\"\n"
+					+ "\"'@SUM(A1)\"\n"
+					+ "\"'\tcmd|'/c calc'!A0\"\n"
+					+ "\"harmless=1+1\"\n";
+
+			assertEquals(
+					"to_csv() must neutralize values a spreadsheet would evaluate as a formula (JavaScript)",
+					expectedNeutralizedFormulas,
+					Scripting.replaceVariables(ctx, null, "${{ $.print($.to_csv([{v:'=1+1'}, {v:'+1+1'}, {v:'-1+1'}, {v:'@SUM(A1)'}, {v:'\\tcmd|\\'/c calc\\'!A0'}, {v:'harmless=1+1'}], ['v'])) }}")
+			);
+
+			// a name that starts with = is neutralized, a string that looks like a negative number is
+			// neutralized as well (it cannot be told apart from a formula), but a numeric property is
+			// left alone so that it still arrives as a number
+			final String expectedNodeCsv = "\"name\";\"stringProperty\";\"integerProperty\"\n"
+					+ "\"'=1+1\";\"'-42\";\"-42\"\n";
+
+			assertEquals(
+					"to_csv() must neutralize string properties without touching numeric ones (StructrScript)",
+					expectedNodeCsv,
+					Scripting.replaceVariables(ctx, null, "${to_csv(find('CsvTestOne'), merge('name', 'stringProperty', 'integerProperty'))}")
 			);
 
 			tx.success();

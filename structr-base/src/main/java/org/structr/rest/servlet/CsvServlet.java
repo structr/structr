@@ -88,6 +88,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	public static final char DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS = ',';
 	public static final char DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS = '"';
 
+	// characters that make a spreadsheet application evaluate a cell instead of showing it
+	private static final String[] FORMULA_CHARACTERS = { "=", "+", "-", "@", "\t", "\r" };
+
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 	private static final String WRITE_BOM = "bom";
 
@@ -600,9 +603,36 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		} else {
 
 			result = StringUtils.replace(value.toString(), ""+quoteChar, "\\" + quoteChar);
+
+			// numbers and booleans cannot carry a formula, and prefixing them would turn every
+			// negative number into text in the receiving spreadsheet - everything else is text
+			// and is disarmed (dates and collections are handled in the branches above)
+			if (!(value instanceof Number) && !(value instanceof Boolean)) {
+
+				result = neutralizeFormula(result);
+			}
 		}
 
 		return result;
+	}
+
+	/**
+	 * Prefixes a value that a spreadsheet application would evaluate as a formula with an
+	 * apostrophe, which marks the cell as text. Without it, a value that someone else wrote
+	 * into an exported field (for example =HYPERLINK(...) or a DDE call) is executed when the
+	 * recipient opens the export.
+	 *
+	 * @param value the escaped column value
+	 * @return the value, prefixed with an apostrophe if it starts with a formula character
+	 */
+	private static String neutralizeFormula(final String value) {
+
+		if (StringUtils.startsWithAny(value, FORMULA_CHARACTERS)) {
+
+			return "'".concat(value);
+		}
+
+		return value;
 	}
 
 	private void writeUtf8Bom(Writer out) {

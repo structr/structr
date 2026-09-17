@@ -1573,7 +1573,7 @@ let _Crud = {
 
 			let nodeHandler = (node) => {
 
-				let newElement = _Helpers.createSingleDOMElementFromHTML(_Entities.getRelatedNodeHTML(node, null));
+				let newElement = _Helpers.createSingleDOMElementFromHTML(_Entities.getRelatedNodeHTML(node));
 				let nodeEl = $(newElement);
 				cell.append(nodeEl);
 
@@ -2718,14 +2718,12 @@ let _Crud = {
 		},
 	},
 	helpers: {
-		getDisplayName: (node) => {
-			let displayName;
+		getEscapedDisplayName: (node) => {
 			if (node.isContent && node.content && !node.name) {
-				displayName = _Helpers.escapeTags(node.content.substring(0, 100));
+				return _Helpers.escapeTags(node.content.substring(0, 100));
 			} else {
-				displayName = node.name || node.id || node;
+				return _Helpers.escapeForHtmlAttributes(node.name || node.id || node);
 			}
-			return displayName;
 		},
 		getCSSSelectorForKey: (key) => `[data-key="${key}"]`,
 		// TODO: _Schema.caches.getTypeInfo is pretty similar... merge and make global so that schema information is always present and loaded at the beginning (and only ever re-requested if the schema changes)
@@ -3134,7 +3132,7 @@ let _Crud = {
 						errorText += ` ${error.detail}`;
 					}
 
-					_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
+					_Dialogs.custom.showAndHideInfoBoxMessage(_Helpers.escapeForHtmlAttributes(errorText), 'error', 4000, 1000);
 
 					if (cellsForKeyWithError.length > 0) {
 						cellsForKeyWithError[0].focus();

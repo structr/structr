@@ -18,18 +18,22 @@
  */
 package org.structr.test.web.advanced;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.Site;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.SiteTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.nio.file.Path;
+import java.util.List;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class Deployment7Test extends DeploymentTestBase {
 
@@ -85,6 +89,103 @@ public class Deployment7Test extends DeploymentTestBase {
 					deleteExportAt(exportPath);
 				} catch (Exception ignore) {}
 			}
+		}
+	}
+
+	@Test
+	public void test71PagesWithIdenticalNames() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page1 = Page.createSimplePage(securityContext, "test01");
+			final Page page2 = Page.createSimplePage(securityContext, "test01");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals(2, app.nodeQuery(StructrTraits.PAGE).name("test01").getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test72PageWithNullName() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page1 = Page.createSimplePage(securityContext, "test01");
+
+			page1.setName(null);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals(1, app.nodeQuery(StructrTraits.PAGE).name(null).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test73PagesWithIdenticalNamesLinkedToSites() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page1 = Page.createSimplePage(securityContext, "test01");
+			final Page page2 = Page.createSimplePage(securityContext, "test01");
+
+			final Site site = app.create(StructrTraits.SITE, "mysite").as(Site.class);
+			site.setProperty(site.getTraits().key(SiteTraitDefinition.PAGES_PROPERTY), List.of(page1, page2));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals(2, Iterables.count(app.nodeQuery(StructrTraits.SITE).name("mysite").getFirst().as(Site.class).getPages()));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
 		}
 	}
 }

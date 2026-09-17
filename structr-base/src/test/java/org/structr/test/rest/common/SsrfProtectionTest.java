@@ -138,8 +138,9 @@ public class SsrfProtectionTest {
 	}
 
 	/**
-	 * Non-http schemes never reach the address check at all - file: and gopher: are the classic ways of
-	 * turning a fetcher into a local file reader.
+	 * Non-http schemes never reach the address check at all. file: turns a fetcher into a local file
+	 * reader; gopher: is the classic way of smuggling a payload of one's own into a plain-text service,
+	 * which is what the memcached port below stands for.
 	 */
 	@Test
 	public void testOnlyHttpSchemesAreAccepted() {
@@ -153,6 +154,78 @@ public class SsrfProtectionTest {
 				fail("validateUrl accepted a non-http scheme: " + address);
 
 			} catch (final FrameworkException expected) {
+			}
+		}
+	}
+
+	/**
+	 * The proxy is a second address the request goes to, and the one it actually connects to: whatever
+	 * URL was asked for, the TCP connection is opened to the proxy's host and port. A caller-supplied
+	 * proxy pointing inside is therefore the same attack by another route, and it had no test at all.
+	 *
+	 * <p>The refusal is asserted by its message, not just by an exception: validateProxyUrl refuses a
+	 * malformed proxy URL as well, so a test that only asks for a FrameworkException would still pass
+	 * with the address filter taken out.
+	 */
+	@Test
+	public void testInternalProxyAddressesAreRefused() {
+
+		for (final String proxyUrl : new String[] { "http://169.254.169.254:3128", "http://127.0.0.1:3128", "127.0.0.1:3128", "http://10.0.0.1:3128", "http://[fd00::1]:3128", "http://100.64.0.1:3128" }) {
+
+			try {
+
+				HttpHelper.validateProxyUrl(proxyUrl);
+
+				fail("validateProxyUrl accepted an internal proxy address: " + proxyUrl);
+
+			} catch (final FrameworkException expected) {
+
+				assertTrue("refused " + proxyUrl + " for the wrong reason: " + expected.getMessage(), String.valueOf(expected.getMessage()).contains("internal network"));
+			}
+		}
+	}
+
+	/**
+	 * The counterpart, so the rule above cannot pass by refusing everything: an ordinary outbound proxy
+	 * stays usable, and no proxy at all is not an error.
+	 */
+	@Test
+	public void testPublicProxyAddressesArePermitted() {
+
+		for (final String proxyUrl : new String[] { "http://93.184.216.34:3128", "93.184.216.34:3128", "", null }) {
+
+			try {
+
+				HttpHelper.validateProxyUrl(proxyUrl);
+
+			} catch (final FrameworkException fex) {
+
+				fail("validateProxyUrl refused a usable proxy address " + proxyUrl + ": " + fex.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * A proxy address the client cannot connect to is refused before anything is attempted. Worth
+	 * pinning because of the first entry: HttpHost.create, which parses exactly what the client will
+	 * parse, does not accept a trailing slash - so a proxy configured as "http://proxy:3128/" is refused
+	 * as malformed rather than used. That is existing behaviour and this test states it rather than
+	 * leaving the next reader to find out.
+	 */
+	@Test
+	public void testUnusableProxyAddressesAreRefused() {
+
+		for (final String proxyUrl : new String[] { "http://93.184.216.34:3128/", "http:///", "://nonsense" }) {
+
+			try {
+
+				HttpHelper.validateProxyUrl(proxyUrl);
+
+				fail("validateProxyUrl accepted an address it cannot connect to: " + proxyUrl);
+
+			} catch (final FrameworkException expected) {
+
+				// refused, which is the point
 			}
 		}
 	}

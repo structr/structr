@@ -105,6 +105,14 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 				assertNull("The token must be gone once the attempts are used up, otherwise the window can simply be guessed out",
 					user.getProperty(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY)));
 
+				/* Feeding the counter is only half of it: the lockout it stands for has to actually hold.
+				   Since ticket 1598 that lockout expires from the moment of the last failure, so a code
+				   step that raises the counter without recording that moment would leave a block that
+				   reads as one which had already run out - the counter over the limit and the account
+				   open. Asserting the counter alone would not notice. */
+				assertNotNull("Wrong codes must record when they were entered, or the lockout they add up to expires before it begins",
+					user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.LAST_FAILED_LOGIN_DATE_PROPERTY)));
+
 				tx.success();
 
 			} catch (FrameworkException fex) {

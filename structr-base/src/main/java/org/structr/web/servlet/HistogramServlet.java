@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.QueryHistogram;
 import org.structr.docs.Documentation;
+import org.structr.rest.common.RemoteAddressWhitelist;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -45,18 +46,11 @@ public class HistogramServlet extends HealthCheckServlet {
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("application/json; charset=utf-8");
 
-		final String remoteAddress = request.getRemoteAddr();
-		if (remoteAddress != null) {
+		if (!RemoteAddressWhitelist.isWhitelisted(request, getWhitelistAddresses(), "the histogram endpoint")) {
 
-			final Set<String> wl = getWhitelistAddresses();
-			if (!wl.contains(remoteAddress)) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 
-				logger.warn("Access to histogram endpoint denied for remote address {}: not in whitelist. If you want to allow access, edit structr.conf and includ {} in histogramservlet.whitelist.", remoteAddress, remoteAddress);
-
-				response.sendError(HttpServletResponse.SC_FORBIDDEN);
-
-				return;
-			}
+			return;
 		}
 
 		try (final Writer writer = response.getWriter()) {
@@ -73,12 +67,11 @@ public class HistogramServlet extends HealthCheckServlet {
 			writer.flush();
 		}
 
-		if (request.getParameter("reset") != null) {
-
-			logger.info("Clearing query histogram data..");
-
-			QueryHistogram.clear();
-		}
+		/* Ticket 1599: ?reset used to clear the collected statistics from here. An endpoint that is
+		   reachable without authentication has no business changing anything, and this one was guarded by
+		   an address check that a reverse proxy quietly defeats - so whoever could read the histogram
+		   could also wipe it, and with it the evidence of what had been queried. Reading is what this
+		   endpoint is for; clearing happens on restart. */
 	}
 
 	// ----- private methods -----

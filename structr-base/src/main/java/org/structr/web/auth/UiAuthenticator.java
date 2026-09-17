@@ -48,7 +48,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -68,14 +67,10 @@ import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -91,10 +86,6 @@ public class UiAuthenticator implements Authenticator {
 	   when the caller varies the signature to get around the per-key count. */
 	private static final LogThrottle deniedAccessLog = new LogThrottle("Denied resource access", 1);
 
-	private static final Cache<String, Map<String,String[]>> stateParameters = CacheBuilder.newBuilder()
-		.maximumSize(1000)
-		.expireAfterWrite(10, TimeUnit.MINUTES)
-		.build();
 	private static final Map<String, Method> methods = new HashMap<>();
 
 	protected boolean examined = false;
@@ -546,8 +537,18 @@ public class UiAuthenticator implements Authenticator {
 
 		if  (user != null) {
 
+			/* Ticket 1598: a confirmation key blocks the login of an account that has never been used -
+			   an unconfirmed registration - and of nothing else. The key is also what a password reset
+			   writes, onto an account that is already in use, so refusing every account that carries one
+			   made POST /reset-password with a stranger's e-mail address a way to lock them out until
+			   they click a mail they never asked for. Having logged in once is what tells the two apart,
+			   which is a good signal rather than a perfect one: an account that registered, never logged
+			   in and then asked for a reset still counts as new and stays blocked until it is confirmed.
+			   That case is a user who has never used the account, which is what the key is for. */
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
-			if (user.is(StructrTraits.USER) && user.as(User.class).getConfirmationKey() != null && !allowLoginBeforeConfirmation) {
+			final boolean neverLoggedIn                = (user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY)) == null);
+
+			if (user.is(StructrTraits.USER) && user.as(User.class).getConfirmationKey() != null && neverLoggedIn && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as '{}' ({}) not allowed before confirmation.", userProvidedValueForAuthenticationKey, user.getUuid());
 
@@ -684,9 +685,9 @@ public class UiAuthenticator implements Authenticator {
 
 			try {
 
-				final String state = NodeServiceCommand.getNextUuid();
-				stateParameters.put(state, request.getParameterMap());
-				response.sendRedirect(oAuth2Client.getAuthorizationURL(state));
+				final OAuth2Flow flow = OAuth2Flow.start(request, response, name);
+
+				response.sendRedirect(oAuth2Client.getAuthorizationURL(flow));
 
 				return null;
 
@@ -714,10 +715,25 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if ("auth".equals(action)) {
 
+			/* Ticket 1593. Before anything else, and before the authorization code is redeemed: the
+			   callback has to be the answer to a flow this browser started. An unknown state used to
+			   leave originalRequestParameters null and carry on all the way to doLogin(), which meant a
+			   link to /oauth/<provider>/auth?code=... logged the recipient into the account the code
+			   belonged to - somebody else's. */
+			final OAuth2Flow flow = OAuth2Flow.consume(request, response, name);
+			if (flow == null) {
+
+				RuntimeEventLog.login("OAuth callback refused", Map.of("provider", name));
+
+				redirectToErrorURI(response, oAuth2Client);
+
+				return null;
+			}
+
 			final String[] codes = request.getParameterMap().get("code");
 			final String code = codes != null && codes.length == 1 ? codes[0] : null;
 			final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-			final OAuth2AccessToken accessToken = oAuth2Client.getAccessToken(code);
+			final OAuth2AccessToken accessToken = oAuth2Client.getAccessToken(code, flow);
 
 			if (accessToken != null) {
 
@@ -771,11 +787,8 @@ public class UiAuthenticator implements Authenticator {
 
 						try {
 
-							// get the original request state and add the parameters to the redirect page
-							final String originalRequestState = request.getParameter("state");
-							Map<String, String[]> originalRequestParameters = stateParameters.getIfPresent(originalRequestState);
-
-							stateParameters.invalidate(originalRequestState);
+							// the parameters the login request was started with, carried through the round trip
+							final Map<String, String[]> originalRequestParameters = flow.getParameters();
 
 							/* Settled before anything is handed out, because both ways out of this block are a
 							   finished login: a session from doLogin(), or a JWT pair from
@@ -802,8 +815,9 @@ public class UiAuthenticator implements Authenticator {
 								return null;
 							}
 
-							Boolean isTokenLogin = false;
+							Boolean isTokenLogin  = false;
 							URIBuilder uriBuilder = new URIBuilder();
+							String tokenFragment  = null;
 
 							if (originalRequestParameters != null) {
 
@@ -818,8 +832,7 @@ public class UiAuthenticator implements Authenticator {
 
 											final Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
 
-											uriBuilder.addParameter("access_token", tokenMap.get("access_token"));
-											uriBuilder.addParameter("refresh_token", tokenMap.get("refresh_token"));
+											tokenFragment = tokenParameters(tokenMap);
 
 										} else if (!BACKEND_SSO_LOGIN_INDICATOR.equals(entry.getKey())) {
 
@@ -864,6 +877,18 @@ public class UiAuthenticator implements Authenticator {
 								uriBuilder.setPath("/structr/");
 							}
 
+							/* Ticket 1593. The tokens go into the fragment, not the query string. A query string is
+							   written to the browser history, logged verbatim by every proxy and access log on the
+							   way, and sent on as the Referer of the landing page's own same-origin requests - and
+							   what is in it here is a pair of live credentials. A fragment is never sent to a
+							   server at all. Clients that read the tokens with JavaScript find them in
+							   location.hash instead of location.search; clients that read them server-side no
+							   longer can, which is the point. */
+							if (tokenFragment != null) {
+
+								uriBuilder.setFragment(tokenFragment);
+							}
+
 							response.resetBuffer();
 							response.setHeader(StructrTraits.LOCATION, uriBuilder.build().toString());
 							response.setStatus(HttpServletResponse.SC_FOUND);
@@ -884,6 +909,39 @@ public class UiAuthenticator implements Authenticator {
 			}
 		}
 
+		redirectToErrorURI(response, oAuth2Client);
+
+		return null;
+	}
+
+	/**
+	 * Formats the tokens of a token login as the query-string-shaped body of a URL fragment. The two keys
+	 * are named rather than iterated because createTokensForUser also returns expiration_date, which has
+	 * no business in a redirect; a key the map does not carry is skipped.
+	 */
+	private String tokenParameters(final Map<String, String> tokenMap) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (final String key : List.of("access_token", "refresh_token")) {
+
+			final String value = tokenMap.get(key);
+			if (StringUtils.isNotBlank(value)) {
+
+				if (buf.length() > 0) {
+
+					buf.append("&");
+				}
+
+				buf.append(key).append("=").append(value);
+			}
+		}
+
+		return buf.length() > 0 ? buf.toString() : null;
+	}
+
+	private void redirectToErrorURI(final HttpServletResponse response, final OAuth2Client oAuth2Client) {
+
 		try {
 
 			response.sendRedirect(oAuth2Client.getErrorURI());
@@ -892,8 +950,6 @@ public class UiAuthenticator implements Authenticator {
 
 			logger.error("Could not redirect to {}: {}", oAuth2Client.getErrorURI(), ex);
 		}
-
-		return null;
 	}
 
 	public static void writeUnauthorized(final HttpServletResponse response) throws IOException {

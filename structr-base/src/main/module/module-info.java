@@ -114,6 +114,7 @@ module structr.base {
 	requires transitive simpleclient;
 	requires transitive structr.db.driver.api;
 	requires transitive urlrewritefilter;
+	requires flexmark.util.html;
 
 	exports org.structr;
 	exports org.structr.agent;

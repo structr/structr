@@ -125,16 +125,42 @@ let _JobQueue = {
 
 	},
 	createRowForJob: (job) => {
-		return $(`<tr><td>${job.jobId}</td><td>${job.jobtype}</td><td>${job.username}</td>${_JobQueue.createJobInfoHTML(job)}<td>${job.status}</td><td>${_JobQueue.createActionButtons(job)}</td></tr>`);
+
+		let row = $(`
+			<tr>
+				<td data-property="jobId"></td>
+				<td data-property="jobtype"></td>
+				<td data-property="username"></td>
+				${_JobQueue.createJobInfoHTML(job)}
+				<td data-property="status"></td>
+				<td>${_JobQueue.createActionButtons(job)}</td>
+			</tr>`);
+
+		let fields = row[0].querySelectorAll('[data-property]');
+
+		for (let field of fields) {
+			let key = field.dataset.property;
+			let el = row[0].querySelector(`[data-property="${key}"]`);
+			if (el) {
+				el.textContent = job[key];
+			}
+		}
+
+		return row;
 	},
 	createJobInfoHTML: (job) => {
 		switch (job.jobtype) {
 			case 'XML':
 			case 'CSV':
-				return `<td>${job.fileUuid}</td><td>${job.filepath}</td><td>${job.filesize}</td><td>${job.processedChunks}</td>`;
+				return `
+					<td data-property="fileUuid"></td>
+					<td data-property="filepath"></td>
+					<td data-property="filesize"></td>
+					<td data-property="processedChunks"></td>
+			`;
 
 			case 'SCRIPT':
-				return `<td colspan=4 class="${job.jobName.length === 0 ? 'placeholderText' : ''}">${job.jobName}</td>`;
+				return `<td data-property="jobName" colspan=4 class="${job.jobName.length === 0 ? 'placeholderText' : ''}"></td>`;
 
 			default:
 				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';

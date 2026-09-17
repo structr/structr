@@ -2548,11 +2548,12 @@ public class PropertyTest extends StructrTest {
 		}
 
 		Settings.GlobalSecret.setValue(null);
-		CryptFunction.setEncryptionKey(null);
 		new java.io.File(Settings.ConfigFileName).delete();
 
-		// set encryption key
-		CryptFunction.setEncryptionKey("structr");
+		/* The configured secret is the only key an EncryptedString property has since ticket 1601 - there
+		   is no process-wide key to set any more, because setting one changed what every concurrent
+		   request was encrypting with. */
+		Settings.GlobalSecret.setValue("structr");
 
 		// test success
 		try (final Tx tx = app.tx()) {
@@ -2586,7 +2587,7 @@ public class PropertyTest extends StructrTest {
 		}
 
 		// set wrong encryption key
-		CryptFunction.setEncryptionKey("wrong");
+		Settings.GlobalSecret.setValue("wrong");
 
 		// test encryption
 		try (final Tx tx = app.tx()) {
@@ -2604,7 +2605,7 @@ public class PropertyTest extends StructrTest {
 		}
 
 		// reset encryption key
-		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
 
 		// compare result (decrypt does not throw an exception, it only returns null)
 		try (final Tx tx = app.tx()) {

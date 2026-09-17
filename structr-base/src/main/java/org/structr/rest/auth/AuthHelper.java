@@ -54,6 +54,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -533,6 +534,13 @@ public class AuthHelper {
 						}
 
 						freshPrincipal.setPasswordAttempts(failedAttempts + 1);
+
+						/* The moment the lockout is measured from. Without it the counter only ever grows
+						   and the block never lifts, so a handful of requests from anybody who knows a user
+						   name take that account out (ticket 1598). What clears the counter otherwise is a
+						   successful login - the thing being blocked - or a password reset, and that one
+						   only where jsonrestservlet.user.autologin is on, which it is not by default. */
+						freshPrincipal.setProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.LAST_FAILED_LOGIN_DATE_PROPERTY), new Date());
 					}
 
 					tx.success();
@@ -569,15 +577,64 @@ public class AuthHelper {
 
 			if (failedAttempts > maximumAllowedFailedAttempts) {
 
-				RuntimeEventLog.failedLogin("Too many login attempts", Map.of(
-					"id", principal.getUuid(),
-					"name", principal.getName(),
-					"failedAttempts", failedAttempts,
-					"maxAttempts", maximumAllowedFailedAttempts
-				));
+				final long lockedForMinutes = lockoutMinutesFor(failedAttempts - maximumAllowedFailedAttempts);
+				final Date lastFailure      = principal.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.LAST_FAILED_LOGIN_DATE_PROPERTY));
 
-				throw new TooManyFailedLoginAttemptsException();
+				/* No timestamp means the counter was run up before this instance recorded one, i.e. under
+				   the scheme where the block never expired. Releasing those is the point of ticket 1598,
+				   so the absence of a date is read as "long ago" rather than as "locked forever". */
+				if (lastFailure != null && System.currentTimeMillis() - lastFailure.getTime() < TimeUnit.MINUTES.toMillis(lockedForMinutes)) {
+
+					RuntimeEventLog.failedLogin("Too many login attempts", Map.of(
+						"id", principal.getUuid(),
+						"name", principal.getName(),
+						"failedAttempts", failedAttempts,
+						"maxAttempts", maximumAllowedFailedAttempts,
+						"lockedForMinutes", lockedForMinutes
+					));
+
+					throw new TooManyFailedLoginAttemptsException();
+				}
+
+				/* The window has passed. Nothing is written here: the only caller reaches this after a
+				   correct password and resets the counter itself a line later. */
 			}
+		}
+	}
+
+	/**
+	 * How long an account stays locked, by how far it is past the allowed number of failed attempts.
+	 *
+	 * <p>Rising rather than flat, and expiring rather than permanent: a block that never lifts is a
+	 * denial of service anybody can trigger with a user name and a handful of requests, while a flat
+	 * short one is barely an obstacle to guessing. Five minutes covers a mistyped password, and an hour
+	 * at the top is where the references sit - Keycloak's defaults rise to a fifteen-minute maximum, and
+	 * the OWASP authentication guidance warns that a long lockout is itself the denial of service this
+	 * exists to prevent, so the cap is deliberately short rather than punitive.
+	 *
+	 * <p>Deliberately not configurable: the threshold already is
+	 * (security.passwordpolicy.maxfailedattempts), and a second dial here would mostly be a way to set it
+	 * back to useless.
+	 */
+	private static long lockoutMinutesFor(final int attemptsOverLimit) {
+
+		switch (attemptsOverLimit) {
+
+			case 1:
+
+				return 5;
+
+			case 2:
+
+				return 15;
+
+			case 3:
+
+				return 30;
+
+			default:
+
+				return 60;
 		}
 	}
 
@@ -619,6 +676,12 @@ public class AuthHelper {
 						failedAttempts++;
 
 						freshPrincipal.setPasswordAttempts(failedAttempts);
+
+						/* The same timestamp the password step records, because the two share this counter
+						   (ticket 1583) and the lockout it produces expires from that moment (ticket 1598).
+						   Left unwritten, a limit reached by guessing codes would carry no moment to measure
+						   from and the block would read as one that had already run out. */
+						freshPrincipal.setProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.LAST_FAILED_LOGIN_DATE_PROPERTY), new Date());
 
 						final int maximumAllowedFailedAttempts = Settings.PasswordAttempts.getValue();
 						if (maximumAllowedFailedAttempts > 0 && failedAttempts > maximumAllowedFailedAttempts) {

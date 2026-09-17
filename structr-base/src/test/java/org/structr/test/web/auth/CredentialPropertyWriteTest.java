@@ -55,7 +55,8 @@ import static org.testng.AssertJUnit.fail;
  * <ul>
  * <li>sessionIds is matched against the session cookie (AuthHelper.getPrincipalForSessionId), so
  * writing one's own session id onto another account is that account.</li>
- * <li>twoFactorToken is matched the same way (AuthHelper:724), and isTwoFactorTokenValid() still
+ * <li>twoFactorToken is matched the same way (AuthHelper.getUserForTwoFactorToken), and
+ * isTwoFactorTokenValid() still
  * accepts the unsigned legacy format "anything!&lt;timestamp&gt;", so a written one needs no
  * signature.</li>
  * <li>confirmationKey logs its holder in through /confirm_registration when

@@ -30,8 +30,10 @@ import org.structr.api.config.Settings;
 import org.structr.web.auth.AbstractOAuth2Client;
 import org.structr.web.auth.OAuth2ProviderRegistry;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class GithubOAuthClient extends AbstractOAuth2Client {
 
@@ -77,9 +79,24 @@ public class GithubOAuthClient extends AbstractOAuth2Client {
 				emailResponseBody = response.getBody();
 			}
 
-			final String defaultEmailAddress = getDefaultUserEmailAddress(emailResponseBody);
+			final Set<String> verifiedAddresses = getVerifiedEmailAddresses(emailResponseBody);
+			final String defaultEmailAddress    = getDefaultUserEmailAddress(emailResponseBody);
+			final String credential             = parseUserCredentials(userResponseBody, accessToken, defaultEmailAddress);
 
-			return parseUserCredentials(userResponseBody, accessToken, defaultEmailAddress);
+			/* Ticket 1593, the GitHub shape of it: the base class refuses an address the provider reports
+			   as unverified, but it looks for the OIDC claim email_verified, and GitHub does not send one -
+			   it reports verification per address on /user/emails, which this client fetches anyway. Both
+			   ways an address gets here are covered: the public profile address from /user, and the primary
+			   address picked out of that same list. An address GitHub does not vouch for is an address
+			   anybody with a GitHub account can put in their profile. */
+			if (!isVerifiedAddress(credential, verifiedAddresses)) {
+
+				logger.warn("Refusing OAuth login for provider {}: the {} it returned is not among the addresses GitHub lists as verified for that account.", provider, getCredentialKey());
+
+				return null;
+			}
+
+			return credential;
 
 		} catch (Exception e) {
 
@@ -139,6 +156,70 @@ public class GithubOAuthClient extends AbstractOAuth2Client {
 			}
 
 			logger.debug("Credential parsing error details", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Whether the address that came out of the two responses is one GitHub vouches for.
+	 *
+	 * <p>True for a credential of null - there is nothing to accept or refuse then, and the caller
+	 * answers null either way - and true when the verified set is null, which is the "no information"
+	 * case described at {@link #getVerifiedEmailAddresses}.
+	 */
+	protected boolean isVerifiedAddress(final String credential, final Set<String> verifiedAddresses) {
+
+		if (credential == null || verifiedAddresses == null) {
+
+			return true;
+		}
+
+		return verifiedAddresses.contains(credential.toLowerCase());
+	}
+
+	/**
+	 * The addresses GitHub lists as verified for this account, lower-cased, or null when the
+	 * {@code /user/emails} response could not be read as a list at all.
+	 *
+	 * <p>Null rather than an empty set, and the difference matters: a token whose scope does not include
+	 * {@code user:email} gets an error object from that endpoint, and that is the absence of information
+	 * rather than a statement that nothing is verified. Refusing there would lock out an installation
+	 * that has been running on a narrower scope. Same rule as
+	 * {@link org.structr.web.auth.AbstractOAuth2Client#isCredentialVerified}: only an explicit no is
+	 * refused. An empty set, on the other hand, is an answer - the account has no verified address.
+	 */
+	protected Set<String> getVerifiedEmailAddresses(final String emailResponse) {
+
+		try {
+
+			final List<Map<String, Object>> entries = new Gson().fromJson(emailResponse, List.class);
+			if (entries == null) {
+
+				return null;
+			}
+
+			final Set<String> verified = new LinkedHashSet<>();
+
+			for (final Map<String, Object> entry : entries) {
+
+				final Object address = entry.get(getCredentialKey());
+				if (address != null && Boolean.TRUE.equals(entry.get("verified"))) {
+
+					verified.add(address.toString().toLowerCase());
+				}
+			}
+
+			return verified;
+
+		} catch (Exception e) {
+
+			if (Settings.OAuthVerboseLogging.getValue(false)) {
+
+				logger.error("Failed to read verified addresses from {}: {}", provider, e.getMessage());
+			}
+
+			logger.debug("Verified address parsing error details", e);
 		}
 
 		return null;

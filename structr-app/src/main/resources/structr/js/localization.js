@@ -157,7 +157,7 @@ let _Localization = {
 			name: 'Delete Localization',
 			clickHandler: async () => {
 
-				let confirm = await _Dialogs.confirmation.showPromise(`Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?`);
+				let confirm = await _Dialogs.confirmation.showPromise(`Do you really want to delete the complete localizations for "<b>${_Helpers.escapeForHtmlAttributes(keyAndDomainObject.name)}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${_Helpers.escapeForHtmlAttributes(keyAndDomainObject.domain)}</b>"` : ' with empty domain')} ?`);
 				if (confirm === true) {
 					await _Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
 
@@ -270,11 +270,11 @@ let _Localization = {
 
 		_Localization.showMain();
 
-		let combinedTypeForId     = _Localization.getCombinedTypeForId(keyAndDomainObject);
-		keyAndDomainObject.htmlId = combinedTypeForId;
+		let row = _Helpers.createSingleDOMElementFromHTML(_Localization.templates.typeRow());
+		row.id = _Localization.getCombinedTypeForId(keyAndDomainObject);
+		row.querySelector('[data-property="key"]').textContent = keyAndDomainObject.name;
+		row.querySelector('[data-property="domain"]').textContent = keyAndDomainObject.domain ?? '';
 
-		let html = _Localization.templates.typeRow({ localization: keyAndDomainObject });
-		let row  = _Helpers.createSingleDOMElementFromHTML(html);
 		_Localization.uiElements.getLocalizationListTableBody().appendChild(row);
 
 		row.addEventListener('click', () => {
@@ -292,7 +292,7 @@ let _Localization = {
 	},
 	getCombinedTypeForId: (keyAndDomainObject) => {
 
-		let key    = (keyAndDomainObject.name   ? keyAndDomainObject.name   : null);
+		let key = (keyAndDomainObject.name ? keyAndDomainObject.name : null);
 		let domain = (keyAndDomainObject.domain ? keyAndDomainObject.domain : null);
 
 		return `localization-${key ?? 'nullKey'}___${domain ?? 'nullDomain'}`;
@@ -467,9 +467,9 @@ let _Localization = {
 		tr.querySelector('.remove-localization').addEventListener('click', async (e) => {
 			e.preventDefault();
 
-			let key     = _Localization.uiElements.getLocalizationDetailKey().value;
-			let domain  = _Localization.uiElements.getLocalizationDetailDomain().value;
-			let confirm = await _Dialogs.confirmation.showPromise(`Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?`);
+			let key     = _Helpers.escapeForHtmlAttributes(_Localization.uiElements.getLocalizationDetailKey().value);
+			let domain  = _Helpers.escapeForHtmlAttributes(_Localization.uiElements.getLocalizationDetailDomain().value);
+			let confirm = await _Dialogs.confirmation.showPromise(`Really delete localization "<b>${_Helpers.escapeForHtmlAttributes(localization.localizedName || '')}</b>" for key "<b>${key}</b>"${(domain ? ` in domain "<b>${domain}</b>"` : ' with empty domain')}?`);
 
 			if (confirm === true) {
 
@@ -746,9 +746,9 @@ let _Localization = {
 			<div id="localization-pager"></div>
 		`,
 		typeRow: config => `
-			<tr class="localization-row key-domain-pair" id="${config.localization.htmlId}">
-				<td class="property allow-break" data-property="key">${config.localization.name}</td>
-				<td class="property" data-property="domain">${config.localization.domain || ''}</td>
+			<tr class="localization-row key-domain-pair">
+				<td class="property allow-break" data-property="key"></td>
+				<td class="property" data-property="domain"></td>
 				<td class="actions">
 					<div class="icons-container flex items-center justify-end"></div>
 				</td>

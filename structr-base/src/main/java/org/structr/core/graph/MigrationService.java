@@ -133,7 +133,6 @@ public class MigrationService {
 		"MQTTClient.port",
 		"MQTTClient.protocol",
 		"MQTTClient.url",
-		"PaymentNode.state",
 		"Person.twitterName",
 		"Principal.currentAccessToken",
 		"Principal.customPermissionQueryAccessControl",
@@ -179,7 +178,7 @@ public class MigrationService {
 		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
 		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
 		"MinifiedCssFile", "MinifiedJavaScriptFile", "LDAPGroup",
-		"LDAPUser", "PaymentItemNode", "PaymentNode", "Person"
+		"LDAPUser", "Person"
 	);
 
 	/**
@@ -229,6 +228,7 @@ public class MigrationService {
 		new MigrationStep("updateSharedComponentFlag",                  Kind.WRITING, false, apply -> updateSharedComponentFlag()),
 		new MigrationStep("repairDetachedDOMNodes",                     Kind.WRITING, false, apply -> repairDetachedDOMNodes()),
 		new MigrationStep("reportOutboundHttpCalls",                    Kind.REPORTING, false, OutboundHttpCallMigrationHandler::execute),
+		new MigrationStep("reportCryptFunctionCalls",                   Kind.REPORTING, false, apply -> CryptFunctionMigrationHandler.execute()),
 		new MigrationStep("migrateRestQueryRepeaters",                  Kind.WRITING, true, apply -> migrateRestQueryRepeaters()),
 		new MigrationStep("migrateActionMappingControlsToProcess",      Kind.WRITING, true, apply -> migrateActionMappingControlsToProcess()),
 		new MigrationStep("migrateVisibilityMappingForToProcess",       Kind.WRITING, true, apply -> migrateVisibilityMappingForToProcess()),
