@@ -746,7 +746,7 @@ let _Files = {
 
 		_Helpers.fastRemoveAllChildren(_Files.getFolderContentsElement());
 		_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
-			<div class="flex items-center justify-between" id="folder-contents-header">
+			<div class="flex items-center gap-8 justify-between" id="folder-contents-header">
 				<div data-pager></div>
 			</div>
 		`);
@@ -777,10 +777,11 @@ let _Files = {
 			}
 		};
 
+		_Files.insertBreadCrumbNavigation(parents, nodePath, id);
+
 		if (_Files.helpers.isDisplayingFavorites() === true) {
 
 			_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
-				<div class="folder-path truncate">${_Icons.getSvgIcon(_Icons.iconAddToFavorites)} Favorite Files</div>
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton({}) : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
@@ -829,8 +830,6 @@ let _Files = {
 			filesPager.setIsPaused(false);
 			filesPager.refresh();
 
-			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
-
 			if (listModeActive) {
 
 				_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', _Files.templates.folderContentsTableSkeleton({ isRootFolder, parentId }));
@@ -874,7 +873,13 @@ let _Files = {
 	},
 	insertBreadCrumbNavigation: (parents, nodePath, id) => {
 
-		if (parents) {
+		if (_Files.helpers.isDisplayingFavorites()) {
+
+			_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
+				<div class="folder-path truncate">${_Icons.getSvgIcon(_Icons.iconAddToFavorites)} Favorite Files</div>
+			`);
+
+		} else {
 
 			let modelObj = StructrModel.obj(id);
 			if (modelObj && modelObj.path) {
@@ -886,9 +891,16 @@ let _Files = {
 			let pathNames = ((nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'))).map(pathEl => _Helpers.escapeForHtmlAttributes(pathEl));
 
 			_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
-				<div class="folder-path">
-					${parents.map((parent, idx) => `<a class="breadcrumb-entry" data-folder-id="${parent}">${pathNames[idx]}/</a>`).join('')}<span id="current-folder-name">${pathNames.pop()}</span>
-					<span class="context-menu-container"></span>
+				<div class="flex gap-8 justify-between">
+					<div class="folder-path">
+						${parents.map((parent, idx) => `<a class="breadcrumb-entry" data-folder-id="${parent}">${pathNames[idx]}/</a>`).join('')}<span id="current-folder-name">${pathNames.pop()}</span>
+						<span class="context-menu-container"></span>
+					</div>
+
+					<div class="italic leading-4 my-6 text-gray text-right text-xs">
+						Drop files here to<br>
+						upload to this folder
+					</div>
 				</div>
 			`);
 
