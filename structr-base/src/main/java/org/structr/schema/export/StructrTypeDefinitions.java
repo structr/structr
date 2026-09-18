@@ -19,6 +19,8 @@
 package org.structr.schema.export;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -52,6 +54,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
  *
  */
 public class StructrTypeDefinitions implements StructrDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinitions.class);
 
 	private final Set<StructrRelationshipTypeDefinition> relationships = new TreeSet<>();
 	private final Set<StructrTypeDefinition> typeDefinitions           = new TreeSet<>();
@@ -455,8 +459,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 				} catch (Throwable t) {
 
-					System.out.println(schemaNode.getName());
-					t.printStackTrace();
+					logger.warn("Unable to add type definition for schema node {}", schemaNode.getName(), t);
 				}
 			}
 		}

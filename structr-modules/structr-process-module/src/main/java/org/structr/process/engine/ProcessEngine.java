@@ -550,7 +550,7 @@ public class ProcessEngine {
 	// Because all sibling fork tokens are created (and enqueued) before any is
 	// stepped, a branch that reaches an end event sees its siblings still active,
 	// and an inclusive join is only reached once every sibling has arrived.
-	private final java.util.Deque<NodeInterface> tokenWorkStack = new java.util.ArrayDeque<>();
+	private final Deque<NodeInterface> tokenWorkStack = new ArrayDeque<>();
 	private boolean advancing = false;
 
 	private void advanceToken(final NodeInterface instance, final NodeInterface token) throws FrameworkException {
@@ -1139,7 +1139,7 @@ public class ProcessEngine {
 			installProcessContext(ctx, instance, element, localScope);
 
 			final String inner            = s.substring(2, s.length() - 1).trim();
-			final java.util.Set<String> names = new java.util.HashSet<>(loadProcessVariables(instance).keySet());
+			final Set<String> names = new HashSet<>(loadProcessVariables(instance).keySet());
 
 			if (localScope != null) {
 

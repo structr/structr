@@ -95,20 +95,13 @@ public class NonAdminWebsocketAccessTest extends StructrWebsocketBaseTest {
 
 		login(websocket, "tester", "tester", SESSION_ID);
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command",   "GET",
-			"sessionId", SESSION_ID,
-			"id",        adminId,
-			"data",      Map.of("properties", "id,name,sessionIds,twoFactorToken")
-		)));
+		websocket.onWebSocketText(toJson(Map.of("command",   "GET", "sessionId", SESSION_ID, "id",        adminId, "data",      Map.of("properties", "id,name,sessionIds,twoFactorToken"))));
 
 		final String response = mock.getLastWebsocketResponse().toString();
 
-		assertFalse("the websocket handed out the administrator's session ids: " + response,
-			response.contains(ADMIN_SESSION));
+		assertFalse("the websocket handed out the administrator's session ids: " + response, response.contains(ADMIN_SESSION));
 
-		assertFalse("the websocket handed out the administrator's two-factor token: " + response,
-			response.contains(TWO_FACTOR));
+		assertFalse("the websocket handed out the administrator's two-factor token: " + response, response.contains(TWO_FACTOR));
 	}
 
 	// ----- private methods -----

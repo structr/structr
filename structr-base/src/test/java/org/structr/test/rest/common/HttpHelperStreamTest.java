@@ -129,8 +129,7 @@ public class HttpHelperStreamTest {
 		} catch (final FrameworkException expected) {
 
 			assertEquals(422, expected.getStatus());
-			assertTrue("The failure must name the address it could not reach, got: " + expected.getMessage(),
-				expected.getMessage() != null && expected.getMessage().contains(address));
+			assertTrue("The failure must name the address it could not reach, got: " + expected.getMessage(), expected.getMessage() != null && expected.getMessage().contains(address));
 		}
 	}
 
@@ -149,8 +148,7 @@ public class HttpHelperStreamTest {
 		} catch (final FrameworkException expected) {
 
 			assertEquals(422, expected.getStatus());
-			assertTrue("The failure must name the address, got: " + expected.getMessage(),
-				expected.getMessage() != null && expected.getMessage().contains(address));
+			assertTrue("The failure must name the address, got: " + expected.getMessage(), expected.getMessage() != null && expected.getMessage().contains(address));
 
 			// The status and the address alone do not discriminate: getBinary always caught the NPE that a
 			// null result caused and re-wrapped it, so it reported a 422 naming the address either way, with
@@ -281,9 +279,7 @@ public class HttpHelperStreamTest {
 			head.write(b);
 
 			final byte[] seen = head.toByteArray();
-			if (seen.length >= 4
-				&& seen[seen.length - 4] == '\r' && seen[seen.length - 3] == '\n'
-				&& seen[seen.length - 2] == '\r' && seen[seen.length - 1] == '\n') {
+			if (seen.length >= 4 && seen[seen.length - 4] == '\r' && seen[seen.length - 3] == '\n' && seen[seen.length - 2] == '\r' && seen[seen.length - 1] == '\n') {
 
 				return;
 			}

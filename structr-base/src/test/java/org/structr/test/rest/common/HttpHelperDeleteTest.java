@@ -54,6 +54,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 200, got " + statusCode, "200", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -73,6 +74,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 404, got " + statusCode, "404", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -92,6 +94,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 500, got " + statusCode, "500", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -113,6 +116,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected BOM to be stripped from body", "TESTING CONTEXT", body.toString());
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -132,6 +136,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertNull("Expected no request body to have been sent", capturedBody);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -150,6 +155,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertNull("Expected a blank string body to be treated as no body", capturedBody);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -168,6 +174,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertNull("Expected an empty byte[] body to be treated as no body", capturedBody);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -187,6 +194,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected the request body to have been sent as-is", "{\"reason\":\"cleanup\"}", new String(capturedBody, StandardCharsets.UTF_8));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -206,6 +214,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected the byte[] body to have been sent as-is", "raw bytes", new String(capturedBody, StandardCharsets.UTF_8));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -225,6 +234,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected DELETE method to be used", "DELETE", capturedMethod);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -245,6 +255,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertTrue("Expected Content-Type to reflect the requested type, got: " + contentType, contentType.get(0).startsWith("application/json"));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -263,6 +274,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertNull("Expected no Content-Type header when no body/entity was sent", capturedHeaders.get("Content-Type"));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -274,6 +286,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 
 		final String loopbackUrl = urlForPath("/internal");
 		final Map<String, String> requestHeaders = new HashMap<>();
+
 		requestHeaders.put("X-test-header", "TEST VALUE");
 
 		try {
@@ -286,6 +299,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected custom header to be sent", "TEST VALUE", received.get(0));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -306,6 +320,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected custom cookie to be sent", "test_session=12345", received.get(0));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -329,6 +344,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected DELETE to not follow redirects by default", "301", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -343,8 +359,8 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 		registerContext("/redirect", 301, new byte[0], redirectHeaders);
 
 		final String loopbackUrl = urlForPath("/redirect");
-
 		final Map<String, Object> config = new HashMap<>();
+
 		config.put("redirects", true);
 
 		try {
@@ -357,6 +373,7 @@ public class HttpHelperDeleteTest extends HttpHelperTestBase {
 			assertEquals("Expected body from the redirect target", "TARGET REACHED", body.toString());
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}

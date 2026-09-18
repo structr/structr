@@ -841,6 +841,16 @@ public class AuthHelper {
 		return (maxTokenValidity >= System.currentTimeMillis());
 	}
 
+	public static boolean isTwoFactorRequiredForUser(final Principal principal) {
+
+		final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
+
+		final boolean twoFactorForced   = (twoFactorLevel == 2);
+		final boolean twoFactorOptional = (twoFactorLevel == 1);
+
+		return (twoFactorForced || (twoFactorOptional && principal.isTwoFactorUser()));
+	}
+
 	public enum TwoFactorAuthenticationResult {
 
 		DISABLED, NOT_REQUIRED_FOR_USER, SUCCESS, TRUSTED, FAILURE

@@ -18,6 +18,8 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.profile.pegdown.Extensions;
@@ -42,6 +44,8 @@ import java.util.List;
  * An identifier that is augmented with a type so we know what it is.
  */
 public class MarkdownFolderToken extends NamedConceptToken {
+
+	private static final Logger logger = LoggerFactory.getLogger(MarkdownFolderToken.class);
 
 	public MarkdownFolderToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
@@ -103,7 +107,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 		} else {
 
-			System.out.println("Folder " + cleanedName + " not created, probably blacklisted..");
+			logger.debug("Folder {} not created, probably blacklisted.", cleanedName);
 		}
 
 		return null;

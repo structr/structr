@@ -88,8 +88,7 @@ public class DefaultCredentialsCheckTest extends StructrTest {
 		// the recheck is deferred past the commit, so the change has to actually commit
 		setPassword("weak-admin", "a-password-nobody-can-look-up");
 
-		assertFalse("changing the password must clear the warning without a restart",
-			DefaultCredentialsCheck.isDefaultCredentialsInUse());
+		assertFalse("changing the password must clear the warning without a restart", DefaultCredentialsCheck.isDefaultCredentialsInUse());
 	}
 
 	@Test
@@ -104,8 +103,7 @@ public class DefaultCredentialsCheckTest extends StructrTest {
 
 		// the flag is about the instance, not about the account that changed: clearing it here would hide
 		// an administrator who is still reachable with the documented password
-		assertTrue("the warning must stand while another admin is still on the default",
-			DefaultCredentialsCheck.isDefaultCredentialsInUse());
+		assertTrue("the warning must stand while another admin is still on the default", DefaultCredentialsCheck.isDefaultCredentialsInUse());
 	}
 
 	@Test
@@ -138,8 +136,7 @@ public class DefaultCredentialsCheckTest extends StructrTest {
 			fail("Unable to change the password: " + fex.getMessage());
 		}
 
-		assertFalse("a password changed through a property map must clear the warning too",
-			DefaultCredentialsCheck.isDefaultCredentialsInUse());
+		assertFalse("a password changed through a property map must clear the warning too", DefaultCredentialsCheck.isDefaultCredentialsInUse());
 	}
 
 	// ----- private methods -----

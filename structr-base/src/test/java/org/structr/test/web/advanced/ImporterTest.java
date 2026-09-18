@@ -592,7 +592,6 @@ public class ImporterTest extends StructrUiTest {
 			   one. getOwnerDocument() answers null for it, and that null used to reach the importer. */
 			target.setOwnerDocument(null);
 
-
 			final Importer importer = new Importer(securityContext, source, null, null, false, false, false, false);
 
 			importer.parse(true);

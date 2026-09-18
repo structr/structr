@@ -155,7 +155,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				final String itemType = getItemType(slotNode);
 				if (itemType != null) {
 
-					System.out.println("Storing slot data for itemType " + itemType + " in " + nameOrTag(slotNode) + " (uuid: " + slotNode.getUuid() + ")");
+					logger.debug("Storing slot data for itemType {} in {} (uuid: {})", itemType, nameOrTag(slotNode), slotNode.getUuid());
 
 					idsOfOldNodesWithItemType.add(slotNode.getUuid());
 
@@ -277,16 +277,6 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		}
 
 		return nodes;
-	}
-
-	public static void print(final DOMNode node, int depth) {
-
-		System.out.println(StringUtils.repeat(" ", depth * 4) +  nameOrTag(node) + " (" + node.getUuid() + ")");
-
-		for (final DOMNode child2 : node.getChildren()) {
-
-			print(child2, depth + 1);
-		}
 	}
 
 	private static String format(final DOMNode node) {

@@ -71,18 +71,14 @@ public class OutboundHttpCallMigrationApplyTest extends StructrTest {
 
 		final String migrated = textOf(id);
 
-		assertTrue("the octet-stream call must gain binaryResponse: " + migrated,
-			migrated.contains("$.GET(url, 'application/octet-stream', { binaryResponse: true })"));
+		assertTrue("the octet-stream call must gain binaryResponse: " + migrated, migrated.contains("$.GET(url, 'application/octet-stream', { binaryResponse: true })"));
 
-		assertTrue("the text/html call must gain a selector: " + migrated,
-			migrated.contains("$.GET(downloadUrl, 'text/html', { selector: 'title' })"));
+		assertTrue("the text/html call must gain a selector: " + migrated, migrated.contains("$.GET(downloadUrl, 'text/html', { selector: 'title' })"));
 
-		assertTrue("the charset must be folded into the content type: " + migrated,
-			migrated.contains("$.POST(url, body, 'application/json; charset=UTF-8')"));
+		assertTrue("the charset must be folded into the content type: " + migrated, migrated.contains("$.POST(url, body, 'application/json; charset=UTF-8')"));
 
 		// the call whose charset is an expression was reported MANUAL, so it must be left as it was
-		assertTrue("a MANUAL finding must not be rewritten: " + migrated,
-			migrated.contains("$.POST(url, body, 'application/json', charset)"));
+		assertTrue("a MANUAL finding must not be rewritten: " + migrated, migrated.contains("$.POST(url, body, 'application/json', charset)"));
 	}
 
 	@Test
@@ -96,8 +92,7 @@ public class OutboundHttpCallMigrationApplyTest extends StructrTest {
 
 		migrate(true);
 
-		assertEquals("running apply again must change nothing: the rewritten calls are up to date now",
-			once, textOf(id));
+		assertEquals("running apply again must change nothing: the rewritten calls are up to date now", once, textOf(id));
 	}
 
 	@Test
@@ -115,6 +110,7 @@ public class OutboundHttpCallMigrationApplyTest extends StructrTest {
 	private void migrate(final boolean apply) {
 
 		try {
+
 			OutboundHttpCallMigrationHandler.execute(apply);
 
 		} catch (FrameworkException fex) {
@@ -129,7 +125,6 @@ public class OutboundHttpCallMigrationApplyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Traits traits = Traits.of(StructrTraits.MAIL_TEMPLATE);
-
 			final NodeInterface node = app.create(StructrTraits.MAIL_TEMPLATE,
 				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "migration-test"),
 				new NodeAttribute<>(traits.key(MailTemplateTraitDefinition.TEXT_PROPERTY), text)

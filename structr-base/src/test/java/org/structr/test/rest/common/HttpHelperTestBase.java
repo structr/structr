@@ -36,7 +36,6 @@ public abstract class HttpHelperTestBase {
 	protected volatile byte[] capturedBody;
 	protected volatile String capturedMethod;
 
-
 	@BeforeMethod
 	public void setUp() throws IOException {
 
@@ -51,11 +50,13 @@ public abstract class HttpHelperTestBase {
 	public void tearDown() {
 
 		if (loopbackServer != null) {
+
 			loopbackServer.stop(0);
 		}
 	}
 
 	protected String urlForPath(final String path) {
+
 		return "http://127.0.0.1:" + loopbackPort + path;
 	}
 
@@ -64,6 +65,7 @@ public abstract class HttpHelperTestBase {
 		loopbackServer.createContext(path, exchange -> {
 
 			if (responseHeaders != null) {
+
 				responseHeaders.forEach((k, v) -> exchange.getResponseHeaders().add(k, v));
 			}
 
@@ -72,7 +74,6 @@ public abstract class HttpHelperTestBase {
 			exchange.close();
 		});
 	}
-
 
 	protected void registerCapturingContext(final String path, final int status, final byte[] body) {
 
@@ -105,8 +106,11 @@ public abstract class HttpHelperTestBase {
 		loopbackServer.createContext(path, exchange -> {
 
 			try {
+
 				Thread.sleep(delayMillis);
+
 			} catch (InterruptedException e) {
+
 				Thread.currentThread().interrupt();
 			}
 
@@ -131,7 +135,5 @@ public abstract class HttpHelperTestBase {
 			exchange.close();
 		});
 	}
-
-
 
 }

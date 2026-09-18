@@ -163,8 +163,8 @@ public class Deployment7Test extends DeploymentTestBase {
 
 			final Page page1 = Page.createSimplePage(securityContext, "test01");
 			final Page page2 = Page.createSimplePage(securityContext, "test01");
-
 			final Site site = app.create(StructrTraits.SITE, "mysite").as(Site.class);
+
 			site.setProperty(site.getTraits().key(SiteTraitDefinition.PAGES_PROPERTY), List.of(page1, page2));
 
 			tx.success();

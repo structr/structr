@@ -345,8 +345,7 @@ public class SchemaTest extends StructrTest {
 			} catch (FrameworkException fex) {
 
 				assertEquals("An interface type should be refused with 422", 422, fex.getStatus());
-				assertTrue("The message should name the interface, not call it abstract, but was: " + fex.getMessage(),
-					fex.getMessage().contains("is an interface"));
+				assertTrue("The message should name the interface, not call it abstract, but was: " + fex.getMessage(), fex.getMessage().contains("is an interface"));
 			}
 		}
 

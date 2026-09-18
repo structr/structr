@@ -75,7 +75,6 @@ public class EventActionMappingTest extends StructrUiTest {
 			if (field.getName().startsWith("EVENT_ACTION_MAPPING_PARAMETER_") && String.class.equals(field.getType())) {
 
 				final String key = (String) field.get(null);
-
 				if (!DOMElement.EVENT_ACTION_MAPPING_INTERNAL_KEYS.contains(key)) {
 
 					missing.add(field.getName() + " = \"" + key + "\"");
@@ -139,7 +138,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		final Document doc = Jsoup.parse(fetchPageHtml("/html/page1"));
-
 		final Map<String, String> inline = getAttributes(doc.getElementById("inline"));
 
 		assertEquals("The notification text keeps its literal parts and has ${...} replaced", "Gespeichert & \"fertig\", admin ({status})", inline.get("data-structr-success-notifications-text"));

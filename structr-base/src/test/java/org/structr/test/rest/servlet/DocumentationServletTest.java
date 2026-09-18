@@ -38,10 +38,12 @@ public class DocumentationServletTest {
 	private static final class ExposedDocumentationServlet extends DocumentationServlet {
 
 		void put() throws ServletException, IOException {
+
 			doPut(null, null);
 		}
 
 		void post() throws ServletException, IOException {
+
 			doPost(null, null);
 		}
 	}
@@ -56,8 +58,7 @@ public class DocumentationServletTest {
 
 		} catch (ServletException expected) {
 
-			assertTrue("exception should mention PUT: " + expected.getMessage(),
-				expected.getMessage() != null && expected.getMessage().contains("PUT"));
+			assertTrue("exception should mention PUT: " + expected.getMessage(), expected.getMessage() != null && expected.getMessage().contains("PUT"));
 		}
 	}
 
@@ -71,8 +72,7 @@ public class DocumentationServletTest {
 
 		} catch (ServletException expected) {
 
-			assertTrue("exception should mention POST: " + expected.getMessage(),
-				expected.getMessage() != null && expected.getMessage().contains("POST"));
+			assertTrue("exception should mention POST: " + expected.getMessage(), expected.getMessage() != null && expected.getMessage().contains("POST"));
 		}
 	}
 }

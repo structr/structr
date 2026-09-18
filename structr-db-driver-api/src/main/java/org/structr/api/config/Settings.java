@@ -66,8 +66,34 @@ public class Settings {
 	   in silence: the key is unknown, becomes a dynamic setting in the misc group, and nothing ever
 	   acts on it. For a key that used to switch a security check off, silence is the worst outcome,
 	   because the administrator goes on believing it applies. */
-	private static final Map<String, String> REMOVED_SETTINGS = Map.of(
-		"security.twofactorauthentication.whitelistedips", "The two-factor IP allowlist was removed: the address it matched was taken from the X-Forwarded-For header, which a client can set itself, so knowing an allowlisted address and a password was enough to skip the second factor. Clients from those addresses are now asked for a code; use device trust (security.twofactorauthentication.devicetrust.enabled) to spare a known browser instead."
+	private static final Map<String, String> REMOVED_SETTINGS = Map.ofEntries(
+		Map.entry("security.twofactorauthentication.whitelistedips", "The two-factor IP allowlist was removed: the address it matched was taken from the X-Forwarded-For header, which a client can set itself, so knowing an allowlisted address and a password was enough to skip the second factor. Clients from those addresses are now asked for a code; use device trust (security.twofactorauthentication.devicetrust.enabled) to spare a known browser instead."),
+
+		Map.entry("application.schema.automigration", "Replaced by application.migration.mode, which is a choice of dry-run, apply or off rather than a boolean, and defaults to apply. Note the change of default: this key was false unless set, so an instance that never enabled automatic migration now migrates at startup. Set application.migration.mode = off to keep the database untouched, or dry-run to see what the migrations would do first."),
+
+		Map.entry("httpservice.dosfilter.ratelimiting",     "Jetty's DoSFilter was replaced by Structr's own rate limiting. Set httpservice.ratelimiting.enabled instead - it is false unless set, so rate limiting is OFF until you switch it on."),
+		Map.entry("httpservice.dosfilter.maxrequestspersec", "Jetty's DoSFilter was replaced by Structr's own rate limiting: see httpservice.ratelimiting.maxrequestspersecond (and httpservice.ratelimiting.bucketsize for the burst allowance). Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.delay",            "Jetty's DoSFilter was replaced by Structr's own rate limiting: a rejected request is answered with httpservice.ratelimiting.rejectstatus after httpservice.ratelimiting.rejectdelay instead of being delayed silently. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.throttledrequests", "Jetty's DoSFilter was replaced by Structr's own rate limiting: see httpservice.ratelimiting.rejectqueuesize. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.throttlems",       "Jetty's DoSFilter was replaced by Structr's own rate limiting: see httpservice.ratelimiting.rejectdelay. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.maxwaitms",        "Jetty's DoSFilter was replaced by Structr's own rate limiting, which rejects rather than makes a request wait: see httpservice.ratelimiting.rejectstatus and httpservice.ratelimiting.rejectdelay. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.maxrequestms",     "Jetty's DoSFilter was replaced by Structr's own rate limiting, which does not cap the duration of a single request. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.maxidletrackerms", "Jetty's DoSFilter was replaced by Structr's own rate limiting: see httpservice.ratelimiting.idletimeout and httpservice.ratelimiting.maxtrackers. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.ipwhitelist",      "Jetty's DoSFilter was replaced by Structr's own rate limiting: see httpservice.ratelimiting.excludeaddresses (and httpservice.ratelimiting.excludepaths). Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.remoteport",       "Jetty's DoSFilter was replaced by Structr's own rate limiting, which always tracks a client by address and never by address and port. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.insertheaders",    "Jetty's DoSFilter was replaced by Structr's own rate limiting, which does not add headers to a throttled response. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.managedattr",      "Jetty's DoSFilter was replaced by Structr's own rate limiting, which is not exposed as a Jetty managed attribute. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+		Map.entry("httpservice.dosfilter.toomanycode",      "Jetty's DoSFilter was replaced by Structr's own rate limiting: see httpservice.ratelimiting.rejectstatus. Rate limiting stays off until httpservice.ratelimiting.enabled is set."),
+
+		Map.entry("httpservice.uricompliance", "Replaced by httpservice.uricompliance.allowedviolations, which names the individual violations to accept instead of picking one of Jetty's compliance modes."),
+
+		Map.entry("log.functions.stacktrace", "Replaced by log.functions.shortenstacktrace, with the sense inverted: the stack trace of an exception in a system function is logged either way, and this key decides whether it is shortened to the frames that say something."),
+
+		Map.entry("json.output.dateformat",                 "Removed. A date is written in the format of its own property, falling back to dateproperty.defaultformat, so there is no separate output format for JSON any more."),
+		Map.entry("zoneddatetimeproperty.defaultformat",    "Replaced by zoneddatetimeproperty.format.override, which is empty by default: a ZonedDateTime is written as DateTimeFormatter.ISO_ZONED_DATE_TIME unless a pattern is given here or on the schema property."),
+
+		Map.entry("jsonrestservlet.user.class", "Removed. The type a self-registering user is created as is decided by the schema, not by a class name in the configuration."),
+		Map.entry("websocketservlet.class",     "Removed. The websocket servlet is no longer chosen by class name in the configuration.")
 	);
 
 	public static final String CRON_EXPRESSION_INFO_HTML      = "A cron expression is defined as <pre>&lt;s&gt; &lt;m&gt; &lt;h&gt; &lt;dom&gt; &lt;m&gt; &lt;dow&gt;</pre> It is similar to a normal cron expression with an additional \"seconds\" field at the beginning. Search for \"cron\" or \"periodic task scheduler\" in the documentation to find more info and examples.";
@@ -689,8 +715,6 @@ public class Settings {
 																						
 																						The new value will be checked to be a valid cookie name. If the check fails, the previous value will be restored.
 																						""");
-
-
 
 	public static final Setting<String> JWTSecretType                     = new ChoiceSetting(securityGroup, "JWT Auth",  "security.jwt.secrettype", "secret", Settings.getStringsAsSet("secret", "keypair", "jwks"), "Selects the secret type that will be used to sign or verify a given access or refresh token");
 	public static final Setting<String> JWTSecret                         = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.secret", "", "Used if 'security.jwt.secrettype'=secret. The secret that will be used to sign and verify all tokens issued and sent to Structr. Must have a min. length of 32 characters.").setIsProtected();

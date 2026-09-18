@@ -78,6 +78,7 @@ public class DetachedNodesTest extends StructrUiTest {
 		for (final DetachedNodes.Finding finding : scan()) {
 
 			if (finding.uuid().equals(uuid)) {
+
 				return finding;
 			}
 		}
@@ -129,6 +130,7 @@ public class DetachedNodesTest extends StructrUiTest {
 	public void aHealthyInstanceHasNothingToRepair() throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
+
 			Page.createSimplePage(securityContext, "home");
 			tx.success();
 		}
@@ -193,6 +195,7 @@ public class DetachedNodesTest extends StructrUiTest {
 		assertEquals(3, repair());
 
 		for (final String uuid : List.of(outerId, innerId, textId)) {
+
 			assertEquals("every node in the subtree belongs to the page again: " + uuid, "home", documentNameOf(uuid));
 		}
 	}
@@ -232,10 +235,8 @@ public class DetachedNodesTest extends StructrUiTest {
 			tx.success();
 		}
 
-		assertEquals("the page's own child is adoptable, not deleted content",
-			DetachedNodes.Kind.ADOPTABLE, findingFor(outerId).kind());
-		assertEquals("and so is the one below it",
-			DetachedNodes.Kind.ADOPTABLE, findingFor(innerId).kind());
+		assertEquals("the page's own child is adoptable, not deleted content", DetachedNodes.Kind.ADOPTABLE, findingFor(outerId).kind());
+		assertEquals("and so is the one below it", DetachedNodes.Kind.ADOPTABLE, findingFor(innerId).kind());
 
 		assertEquals(2, repair());
 
@@ -273,7 +274,6 @@ public class DetachedNodesTest extends StructrUiTest {
 
 		assertEquals(DetachedNodes.Kind.ORPHANED_MASTER, findingFor(masterId).kind());
 		assertTrue("the master is repaired", repair() > 0);
-
 
 		assertTrue("the master must belong to the ShadowDocument again", belongsToTheShadowDocument(masterId));
 	}

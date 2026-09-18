@@ -90,8 +90,7 @@ public class UploadedTemplateExecutionTest extends StructrUiTest {
 
 			final NodeInterface admin = app.nodeQuery(StructrTraits.USER).name(ADMIN_USERNAME).getFirst();
 
-			assertNull("an uploaded file was evaluated as a server-side script",
-				admin.getProperty(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY)));
+			assertNull("an uploaded file was evaluated as a server-side script", admin.getProperty(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY)));
 
 			tx.success();
 

@@ -121,17 +121,13 @@ public class EventActionMappingDeploymentTest extends DeploymentTestBase {
 
 			assertNotNull("The action mapping did not survive the roundtrip", imported);
 
-			assertEquals("Success notification text was lost in the deployment roundtrip",
-				"Gespeichert ({status})", imported.getSuccessNotificationsText());
+			assertEquals("Success notification text was lost in the deployment roundtrip", "Gespeichert ({status})", imported.getSuccessNotificationsText());
 
-			assertEquals("Success notification CSS class was lost in the deployment roundtrip",
-				"toast toast-success", imported.getSuccessNotificationsCssClass());
+			assertEquals("Success notification CSS class was lost in the deployment roundtrip", "toast toast-success", imported.getSuccessNotificationsCssClass());
 
-			assertEquals("Failure notification text was lost in the deployment roundtrip",
-				"Fehler: {message}", imported.getFailureNotificationsText());
+			assertEquals("Failure notification text was lost in the deployment roundtrip", "Fehler: {message}", imported.getFailureNotificationsText());
 
-			assertEquals("Failure notification CSS class was lost in the deployment roundtrip",
-				"toast toast-error", imported.getFailureNotificationsCssClass());
+			assertEquals("Failure notification CSS class was lost in the deployment roundtrip", "toast toast-error", imported.getFailureNotificationsCssClass());
 
 			// the settings that were already exported have to keep working
 			assertEquals("Success notification mode was lost", "inline-text-message", imported.getSuccessNotifications());
@@ -180,6 +176,7 @@ public class EventActionMappingDeploymentTest extends DeploymentTestBase {
 		for (final PropertyKey key : configurationProperties()) {
 
 			if (!exported.contains(key.jsonName())) {
+
 				missing.add(key.jsonName());
 			}
 		}
@@ -200,10 +197,7 @@ public class EventActionMappingDeploymentTest extends DeploymentTestBase {
 		withMethod.put(ActionMappingTraitDefinition.ACTION_PROPERTY, "method");
 		withMethod.remove(ActionMappingTraitDefinition.FLOW_PROPERTY);
 
-		final Map<String, Object> withFlow = Map.of(
-			ActionMappingTraitDefinition.ACTION_PROPERTY, "flow",
-			ActionMappingTraitDefinition.FLOW_PROPERTY,   "value-for-flow"
-		);
+		final Map<String, Object> withFlow = Map.of(ActionMappingTraitDefinition.ACTION_PROPERTY, "flow", ActionMappingTraitDefinition.FLOW_PROPERTY,   "value-for-flow");
 
 		try (final Tx tx = app.tx()) {
 
@@ -272,7 +266,6 @@ public class EventActionMappingDeploymentTest extends DeploymentTestBase {
 		for (final Map.Entry<String, Object> entry : expected.entrySet()) {
 
 			final Object actual = imported.getProperty(traits.key(entry.getKey()));
-
 			if (!Objects.equals(entry.getValue(), actual)) {
 
 				wrong.put(name + "." + entry.getKey(), "expected " + entry.getValue() + ", got " + actual);
@@ -292,6 +285,7 @@ public class EventActionMappingDeploymentTest extends DeploymentTestBase {
 		for (final PropertyKey key : Traits.getTrait(StructrTraits.ACTION_MAPPING).getPropertyKeys().values()) {
 
 			if (key instanceof RelationProperty) {
+
 				continue;
 			}
 
@@ -315,7 +309,6 @@ public class EventActionMappingDeploymentTest extends DeploymentTestBase {
 		for (final PropertyKey key : configurationProperties()) {
 
 			final Class valueType = key.valueType();
-
 			if (String.class.equals(valueType)) {
 
 				values.put(key.jsonName(), "value-for-" + key.jsonName());

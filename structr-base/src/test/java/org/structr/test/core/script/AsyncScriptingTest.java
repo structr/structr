@@ -50,8 +50,7 @@ public class AsyncScriptingTest extends StructrTest {
 
 	private Object evaluate(final String source, final boolean wrapJsInMain) throws FrameworkException {
 
-		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncTest", null,
-			ScriptConfig.builder().wrapJsInMain(wrapJsInMain).build());
+		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncTest", null, ScriptConfig.builder().wrapJsInMain(wrapJsInMain).build());
 	}
 
 	/** Wrapped in the async arrow, as a SchemaMethod is by default. */
@@ -70,8 +69,7 @@ public class AsyncScriptingTest extends StructrTest {
 	 * Runs a snippet that must fail in the given shape, and asserts the status and message it reports.
 	 * The shape label is in every message, because the point of these assertions is which shape differs.
 	 */
-	private void assertReportsStatus(final String shape, final boolean wrapJsInMain, final int expectedStatus,
-		final String expectedInMessage, final String source) {
+	private void assertReportsStatus(final String shape, final boolean wrapJsInMain, final int expectedStatus, final String expectedInMessage, final String source) {
 
 		try {
 
@@ -80,11 +78,9 @@ public class AsyncScriptingTest extends StructrTest {
 
 		} catch (final FrameworkException expected) {
 
-			assertEquals(shape + ": the status code must not depend on the snippet shape",
-				expectedStatus, expected.getStatus());
+			assertEquals(shape + ": the status code must not depend on the snippet shape", expectedStatus, expected.getStatus());
 
-			assertTrue(shape + ": the message must survive; got: " + expected.getMessage(),
-				expected.getMessage() != null && expected.getMessage().contains(expectedInMessage));
+			assertTrue(shape + ": the message must survive; got: " + expected.getMessage(), expected.getMessage() != null && expected.getMessage().contains(expectedInMessage));
 		}
 	}
 
@@ -115,14 +111,11 @@ public class AsyncScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("await on a resolved promise must answer its value",
-				"resolved", wrapped("return await Promise.resolve('resolved');"));
+			assertEquals("await on a resolved promise must answer its value", "resolved", wrapped("return await Promise.resolve('resolved');"));
 
-			assertEquals("await on a plain value must answer that value",
-				Integer.valueOf(42), wrapped("return await 42;"));
+			assertEquals("await on a plain value must answer that value", Integer.valueOf(42), wrapped("return await 42;"));
 
-			assertEquals("an awaited async function must answer its return value",
-				"inner", wrapped("const inner = async () => 'inner'; return await inner();"));
+			assertEquals("an awaited async function must answer its return value", "inner", wrapped("const inner = async () => 'inner'; return await inner();"));
 
 			tx.success();
 
@@ -138,17 +131,13 @@ public class AsyncScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("sequential awaits must both resolve",
-				Integer.valueOf(3), wrapped("const a = await Promise.resolve(1); const b = await Promise.resolve(2); return a + b;"));
+			assertEquals("sequential awaits must both resolve", Integer.valueOf(3), wrapped("const a = await Promise.resolve(1); const b = await Promise.resolve(2); return a + b;"));
 
-			assertEquals("Promise.all must resolve every element",
-				"1-2-3", wrapped("const r = await Promise.all([Promise.resolve(1), Promise.resolve(2), 3]); return r.join('-');"));
+			assertEquals("Promise.all must resolve every element", "1-2-3", wrapped("const r = await Promise.all([Promise.resolve(1), Promise.resolve(2), 3]); return r.join('-');"));
 
-			assertEquals("a nested async function must resolve",
-				"out:in", wrapped("const inner = async () => await Promise.resolve('in'); return 'out:' + await inner();"));
+			assertEquals("a nested async function must resolve", "out:in", wrapped("const inner = async () => await Promise.resolve('in'); return 'out:' + await inner();"));
 
-			assertEquals("a then() chain must resolve",
-				Integer.valueOf(20), wrapped("return await Promise.resolve(1).then(v => v + 1).then(v => v * 10);"));
+			assertEquals("a then() chain must resolve", Integer.valueOf(20), wrapped("return await Promise.resolve(1).then(v => v + 1).then(v => v * 10);"));
 
 			assertEquals("an await that depends on a previous one must resolve",
 				"a>b", wrapped("const a = await Promise.resolve('a'); const b = await Promise.resolve(a + '>b'); return b;"));
@@ -167,8 +156,7 @@ public class AsyncScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("a built-in called through await must answer normally",
-				"VGVzdA==", wrapped("return await $.base64encode('Test');"));
+			assertEquals("a built-in called through await must answer normally", "VGVzdA==", wrapped("return await $.base64encode('Test');"));
 
 			tx.success();
 
@@ -231,8 +219,7 @@ public class AsyncScriptingTest extends StructrTest {
 			} catch (final FrameworkException expected) {
 
 				assertEquals("The assert's own status code must survive the async round trip", 418, expected.getStatus());
-				assertTrue("The assert's message must survive the async round trip",
-					expected.getMessage() != null && expected.getMessage().contains("assert from an async body"));
+				assertTrue("The assert's message must survive the async round trip", expected.getMessage() != null && expected.getMessage().contains("assert from an async body"));
 			}
 
 			// and the passing case still passes
@@ -257,17 +244,14 @@ public class AsyncScriptingTest extends StructrTest {
 			// reported 418. The fourth -- unwrapped, with the assert inside an async function -- reported a
 			// generic 422 with the exception stringified into the message, because there the reason reaching
 			// unwrapThenable is an AssertException, which carries a status but is not a FrameworkException.
-			assertReportsStatus("wrapped, plain assert", true, 418, "assert msg",
-				"$.assert(false, 418, 'assert msg'); return 'not reached';");
+			assertReportsStatus("wrapped, plain assert", true, 418, "assert msg", "$.assert(false, 418, 'assert msg'); return 'not reached';");
 
-			assertReportsStatus("unwrapped, plain assert", false, 418, "assert msg",
-				"$.assert(false, 418, 'assert msg');");
+			assertReportsStatus("unwrapped, plain assert", false, 418, "assert msg", "$.assert(false, 418, 'assert msg');");
 
 			assertReportsStatus("wrapped, assert inside an async function", true, 418, "assert msg",
 				"await (async () => { $.assert(false, 418, 'assert msg'); })(); return 'not reached';");
 
-			assertReportsStatus("unwrapped, assert inside an async function", false, 418, "assert msg",
-				"(async () => { $.assert(false, 418, 'assert msg'); })();");
+			assertReportsStatus("unwrapped, assert inside an async function", false, 418, "assert msg", "(async () => { $.assert(false, 418, 'assert msg'); })();");
 
 			tx.success();
 
@@ -287,11 +271,9 @@ public class AsyncScriptingTest extends StructrTest {
 			// rather than FrameworkException must leave a FrameworkException doing exactly what it did.
 			// $.create() with an even parameter count raises a 400 from the built-in itself, so its own
 			// status is distinguishable from the generic 422 the fall-through would report.
-			assertReportsStatus("wrapped", true, 400, "Invalid number of parameters",
-				"await (async () => { $.create('User', 'name'); })(); return 'not reached';");
+			assertReportsStatus("wrapped", true, 400, "Invalid number of parameters", "await (async () => { $.create('User', 'name'); })(); return 'not reached';");
 
-			assertReportsStatus("unwrapped", false, 400, "Invalid number of parameters",
-				"(async () => { $.create('User', 'name'); })();");
+			assertReportsStatus("unwrapped", false, 400, "Invalid number of parameters", "(async () => { $.create('User', 'name'); })();");
 
 			tx.success();
 
@@ -335,11 +317,9 @@ public class AsyncScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("An unwrapped script must still answer its last expression",
-				Integer.valueOf(42), unwrapped("40 + 2;"));
+			assertEquals("An unwrapped script must still answer its last expression", Integer.valueOf(42), unwrapped("40 + 2;"));
 
-			assertEquals("An unwrapped script must still reach Structr functions",
-				"VGVzdA==", unwrapped("$.base64encode('Test');"));
+			assertEquals("An unwrapped script must still reach Structr functions", "VGVzdA==", unwrapped("$.base64encode('Test');"));
 
 			tx.success();
 
@@ -357,8 +337,7 @@ public class AsyncScriptingTest extends StructrTest {
 
 			// Not wrapped, so nothing awaits this for the script: the completion value is itself the
 			// promise, and the host has to settle it while the context is still open.
-			assertEquals("A promise as the completion value must resolve to its value",
-				Integer.valueOf(7), unwrapped("(async () => 7)();"));
+			assertEquals("A promise as the completion value must resolve to its value", Integer.valueOf(7), unwrapped("(async () => 7)();"));
 
 			try {
 
@@ -395,11 +374,9 @@ public class AsyncScriptingTest extends StructrTest {
 		// its wrapping from, which makes it reachable without building a schema method.
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("a nested unwrapped evaluation must answer its completion value",
-				"seven", wrapped("return $.evaluateScript($.me, \"{ 'seven' }\");"));
+			assertEquals("a nested unwrapped evaluation must answer its completion value", "seven", wrapped("return $.evaluateScript($.me, \"{ 'seven' }\");"));
 
-			assertEquals("and an unwrapped outer script must get it too",
-				"seven", unwrapped("$.evaluateScript($.me, \"{ 'seven' }\")"));
+			assertEquals("and an unwrapped outer script must get it too", "seven", unwrapped("$.evaluateScript($.me, \"{ 'seven' }\")"));
 
 			final boolean wrapWasOn = Settings.WrapJSInMainFunction.getValue(false);
 
@@ -407,8 +384,7 @@ public class AsyncScriptingTest extends StructrTest {
 
 			try {
 
-				assertEquals("a nested wrapped evaluation must answer a value and not a promise",
-					"seven", wrapped("return $.evaluateScript($.me, \"{ return 'seven'; }\");"));
+				assertEquals("a nested wrapped evaluation must answer a value and not a promise", "seven", wrapped("return $.evaluateScript($.me, \"{ return 'seven'; }\");"));
 
 			} finally {
 

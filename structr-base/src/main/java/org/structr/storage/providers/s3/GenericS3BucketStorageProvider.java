@@ -667,15 +667,31 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 				throw new IOException("Channel is closed");
 			}
 
-			if (!writable) {
+			/* A writable channel collects what is written in an append-only buffer and uploads it in one
+			   putObject on close, so the only position it can actually be at is the end of what has been
+			   written so far. It used to accept ANY position, record it in the position field and then
+			   write the next bytes at the end anyway - which is right for a caller writing in order (the
+			   chunked upload in FileUploadHandler seeks to sequenceNumber * chunkSize before every chunk,
+			   and that is exactly the end) and silently wrong for anyone else. So the seek that matches is
+			   a no-op as before, and the one that does not is an error instead of misplaced data. */
+			if (writable) {
 
-				if (newPosition < 0 || newPosition > readBuffer.capacity()) {
+				if (newPosition != writeBuffer.size()) {
 
-					throw new IllegalArgumentException("Invalid position: " + newPosition);
+					throw new IOException("Cannot seek to " + newPosition + " while writing to S3 object " + key + ": this channel only appends, and it is at " + writeBuffer.size());
 				}
 
-				readBuffer.position((int) newPosition);
+				position = newPosition;
+
+				return this;
 			}
+
+			if (newPosition < 0 || newPosition > readBuffer.limit()) {
+
+				throw new IllegalArgumentException("Invalid position: " + newPosition);
+			}
+
+			readBuffer.position((int) newPosition);
 
 			position = newPosition;
 
@@ -696,7 +712,9 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 			} else {
 
-				return readBuffer.capacity();
+				// limit(), not capacity(): the readable size is how much of the buffer holds object data
+
+				return readBuffer.limit();
 			}
 		}
 

@@ -18,6 +18,8 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.ast.IndentedCodeBlock;
 import com.vladsch.flexmark.ast.Paragraph;
@@ -52,6 +54,8 @@ import java.util.regex.Pattern;
  * An identifier that is augmented with a type so we know what it is.
  */
 public class MarkdownFileToken extends NamedConceptToken {
+
+	private static final Logger logger = LoggerFactory.getLogger(MarkdownFileToken.class);
 
 	public MarkdownFileToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
@@ -298,7 +302,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 		} else {
 
-			System.out.println(node.getNodeName() + ": " + node.getClass().getSimpleName());
+			logger.debug("{}: {}", node.getNodeName(), node.getClass().getSimpleName());
 		}
 
 		// no change in hierarchy => return same parent

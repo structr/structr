@@ -102,6 +102,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
 	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
 	protected static final Set<String> missingSchemaFile            = new HashSet<>();
+
+	/** What each pre/post-deploy script did, so a caller learns that the documented remedy itself failed. */
+	protected static final List<Map<String, Object>> configScripts  = new LinkedList<>();
 	protected static final Set<String> deferredLogTexts             = new HashSet<>();
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
@@ -300,6 +303,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			missingPrincipals.clear();
 			ambiguousPrincipals.clear();
 			missingSchemaFile.clear();
+			configScripts.clear();
 			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
@@ -513,6 +517,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
+
+			final Map<String, Object> report = importReport("app");
+
+			report.put("duration", duration);
+
+			setCustomCommandResult(report);
 
 		} catch (ImportPreconditionFailedException ipfe) {
 
@@ -1169,7 +1179,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						final Map<String, Object> properties = new TreeMap<>();
 						final String uuid                    = page.getUuid();
-
 						String exportFilename = page.getName();
 
 						if (exportFilename != null) {
@@ -2410,11 +2419,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				tx.success();
 
+				recordConfigScript(confFile, true, null);
+
 			} catch (Throwable t) {
 
 				final String msg = "Exception caught while importing '" + confFile + "'";
 				logger.warn(msg, t);
 				publishWarningMessage(msg, t.toString());
+
+				// the whole file rolled back with the transaction, so "applied" is false for all of it
+				recordConfigScript(confFile, false, t.toString());
 			}
 		}
 	}
@@ -3676,6 +3690,37 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public void setCustomCommandResult(final Object result) {
 
 		customResult = result;
+	}
+
+	protected static void recordConfigScript(final Path confFile, final boolean applied, final String error) {
+
+		final Map<String, Object> entry = new LinkedHashMap<>();
+
+		entry.put("file", confFile.getFileName().toString());
+		entry.put("applied", applied);
+		entry.put("error", error);
+
+		configScripts.add(entry);
+	}
+
+	/**
+	 * What the import did and what it had to drop, for the caller rather than for the log.
+	 *
+	 * Everything here was already computed and then published only to the websocket channel and the
+	 * server's own log, neither of which a REST caller can read.
+	 */
+	protected Map<String, Object> importReport(final String mode) {
+
+		final Map<String, Object> report = new LinkedHashMap<>();
+
+		report.put("ok", true);
+		report.put("mode", mode);
+		report.put("missingPrincipals", new LinkedHashMap<>(missingPrincipals));
+		report.put("ambiguousPrincipals", new LinkedHashMap<>(ambiguousPrincipals));
+		report.put("missingSchemaFiles", missingSchemaFile.stream().sorted().toList());
+		report.put("configScripts", new LinkedList<>(configScripts));
+
+		return report;
 	}
 
 	protected String transformCountedMapToHumanReadableList(final Map<String, Integer> map, final String separator) {

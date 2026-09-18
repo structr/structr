@@ -96,7 +96,6 @@ public class SessionFixationTest extends StructrUiTest {
 		grant("_login", UiAuthenticator.NON_AUTH_USER_POST, true);
 
 		final String plantedSessionId = anonymousSessionId();
-
 		final String afterLogin = RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
@@ -159,8 +158,7 @@ public class SessionFixationTest extends StructrUiTest {
 	@Test
 	public void testSessionCookieIsSecureByDefault() {
 
-		assertTrue("the session cookie must carry the Secure flag unless an installation opts out",
-			Settings.CookieSecure.getDefaultValue());
+		assertTrue("the session cookie must carry the Secure flag unless an installation opts out", Settings.CookieSecure.getDefaultValue());
 	}
 
 	/**
@@ -254,7 +252,6 @@ public class SessionFixationTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.nodeQuery(StructrTraits.USER).name(name).getFirst();
-
 			if (node == null) {
 
 				fail("user " + name + " was not created");

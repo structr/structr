@@ -78,8 +78,7 @@ public class DeletePermissionTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("A node the caller may only read must survive a DELETE on the collection",
-				app.getNodeById(StructrTraits.FOLDER, folderId));
+			assertNotNull("A node the caller may only read must survive a DELETE on the collection", app.getNodeById(StructrTraits.FOLDER, folderId));
 
 			tx.success();
 
@@ -89,7 +88,6 @@ public class DeletePermissionTest extends StructrUiTest {
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
-
 
 	/**
 	 * "DELETE /<relUuid> entfernt fremde Security-Grants oder Gruppenmitgliedschaften" from the ticket.
@@ -114,8 +112,7 @@ public class DeletePermissionTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("A group membership must survive a DELETE by someone who may not write either end node",
-				findRelationshipById(membershipId));
+			assertNotNull("A group membership must survive a DELETE by someone who may not write either end node", findRelationshipById(membershipId));
 
 			tx.success();
 
@@ -125,7 +122,6 @@ public class DeletePermissionTest extends StructrUiTest {
 			fail("Unexpected exception: " + fex.getMessage());
 		}
 	}
-
 
 	/**
 	 * "InstanceRelationshipsResource liefert alle Security/OWNS/CONTAINS-Relationships eines lesbaren
@@ -164,9 +160,7 @@ public class DeletePermissionTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface group = app.create(StructrTraits.GROUP,
-				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), groupName)
-			);
+			final NodeInterface group = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), groupName));
 
 			// the member is readable, the group is not - so the membership must not show up
 			final NodeInterface member = app.create(StructrTraits.USER,
@@ -196,10 +190,7 @@ public class DeletePermissionTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface group = app.create(StructrTraits.GROUP,
-				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), groupName)
-			);
-
+			final NodeInterface group = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), groupName));
 			final NodeInterface member = app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), memberName),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), PASSWORD)

@@ -21,6 +21,7 @@ package org.structr.web.servlet;
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
+import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
@@ -536,6 +537,13 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			if (deployCommand.getCommandStatusCode() == 422) {
 
 				response.getOutputStream().write(RestMethodResult.jsonError(422, deployCommand.getCommandResult().toString()).getBytes(StandardCharsets.UTF_8));
+
+			} else {
+
+				// what the import dropped reaches a REST caller here or nowhere: the rest of it goes to the
+				// server's own log and to the websocket progress channel, and this caller has neither
+				response.setContentType("application/json; charset=utf-8");
+				response.getOutputStream().write(new Gson().toJson(deployCommand.getCommandResult()).getBytes(StandardCharsets.UTF_8));
 			}
 
 		} finally {

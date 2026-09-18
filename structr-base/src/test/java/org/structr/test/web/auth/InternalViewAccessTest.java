@@ -133,7 +133,6 @@ public class InternalViewAccessTest extends StructrUiTest {
 				.get("/User/public");
 	}
 
-
 	/**
 	 * The back end is the reason these views exist, and it reaches them over plain REST: dashboard.js
 	 * asks for me/ui, files.js for File/ui, schema.js for SchemaNode/ui, entities.js and crud.js for
@@ -150,6 +149,7 @@ public class InternalViewAccessTest extends StructrUiTest {
 		grant(StructrTraits.USER, UiAuthenticator.AUTH_USER_GET, true);
 
 		for (final String path : new String[] {
+
 			"/me/ui",                       // dashboard.js
 			"/User/ui",                     // files.js, schema.js, processes.js pattern: <Type>/ui
 			"/User/" + userId + "/ui",      // processes.js pattern: <Type>/<id>/ui

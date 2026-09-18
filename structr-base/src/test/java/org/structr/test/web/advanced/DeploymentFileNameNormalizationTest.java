@@ -183,10 +183,7 @@ public class DeploymentFileNameNormalizationTest extends StructrUiTest {
 
 		final FileImportVisitor.FileImportProblems problems = visitor.getFileImportProblems();
 
-		assertTrue(
-			"the file was reported as a problem although only its Unicode normal form differs:\n" + problems.getProblemsText(),
-			!problems.hasAnyProblems()
-		);
+		assertTrue("the file was reported as a problem although only its Unicode normal form differs:\n" + problems.getProblemsText(), !problems.hasAnyProblems());
 
 		try (final Tx tx = app.tx()) {
 
@@ -241,6 +238,7 @@ public class DeploymentFileNameNormalizationTest extends StructrUiTest {
 	private void deleteQuietly(final Path path) {
 
 		if (path == null || !Files.exists(path)) {
+
 			return;
 		}
 

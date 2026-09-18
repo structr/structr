@@ -45,8 +45,8 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Set<String> functionNamesWithUnderscore = Functions.getNames().stream().filter(name -> name.contains("_")).collect(Collectors.toSet());
-
 			if (!functionNamesWithUnderscore.isEmpty()) {
+
 				Assert.fail("Function names can not contain underscores anymore: " + functionNamesWithUnderscore);
 			}
 
@@ -65,8 +65,8 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final Set<String> functionNamesWithoutCategory = Functions.getFunctions().stream().filter(func -> func.getCategory() == null).map(Documentable::getName).collect(Collectors.toSet());
-
 			if (!functionNamesWithoutCategory.isEmpty()) {
+
 				Assert.fail("Functions must have usage string: " + functionNamesWithoutCategory);
 			}
 

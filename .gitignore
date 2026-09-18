@@ -15,7 +15,6 @@ structr-app/scripts
 structr-app/logs
 structr-app/layouts
 structr-app/webapp-data
-structr-app/structr.conf
 structr-app/structr_hostkey
 structr-app/modules
 structr-app/jsp
@@ -31,6 +30,7 @@ structr-app/src/test/playwright-ui-tests/*.env
 structr-app/src/test/playwright-ui-tests/screenshots
 structr-base/db*
 db
+**/structr.conf
 **/logs
 *.diff
 **nb-configuration.xml

@@ -1404,7 +1404,6 @@ public class AccessControlTest extends StructrTest {
 			final Traits nodeTraits      = Traits.of(StructrTraits.NODE_INTERFACE);
 			final Traits principalTraits = Traits.of(StructrTraits.PRINCIPAL);
 			final Traits groupTraits     = Traits.of(StructrTraits.GROUP);
-
 			final PropertyKey<Boolean> visibleToAuthKey              = nodeTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 			final PropertyKey<NodeInterface> ownerKey                = nodeTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY);
 			final PropertyKey<Iterable<NodeInterface>> ownedNodesKey = principalTraits.key(PrincipalTraitDefinition.OWNED_NODES_PROPERTY);
@@ -1412,7 +1411,6 @@ public class AccessControlTest extends StructrTest {
 
 			// set up as super user: a readable foreign node and a readable admin group
 			final NodeInterface targetNode = createTestNode("TestOne", new NodeAttribute<>(visibleToAuthKey, true));
-
 			final NodeInterface adminGroup = createTestNode(StructrTraits.GROUP,
 				new NodeAttribute<>(groupTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "adminGroup"),
 				new NodeAttribute<>(groupTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true),
@@ -1420,8 +1418,8 @@ public class AccessControlTest extends StructrTest {
 			);
 
 			final User nonAdmin = createTestNode(StructrTraits.USER, "tester").as(User.class);
-
 			final SecurityContext userContext = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
+
 			nonAdmin.setSecurityContext(userContext);
 
 			final App userApp = StructrApp.getInstance(userContext);
@@ -1490,10 +1488,8 @@ public class AccessControlTest extends StructrTest {
 		try {
 
 			final PropertyKey<String> idKey = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
-
 			final NodeInterface victim = createTestNode(StructrTraits.USER, "victim");
 			final User nonAdmin        = createTestNode(StructrTraits.USER, "attacker").as(User.class);
-
 			String victimUuid   = null;
 			String attackerUuid = null;
 
