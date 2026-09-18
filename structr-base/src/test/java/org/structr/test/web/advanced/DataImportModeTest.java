@@ -37,10 +37,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -270,6 +272,46 @@ public class DataImportModeTest extends StructrUiTest {
 			Settings.InstanceStage.setValue(previousStage);
 
 			cleanUp(archive);
+		}
+	}
+
+	@Test
+	public void testTheCommandNamesTheTypesThatHoldRecords() {
+
+		try {
+
+			createModeSchema();
+
+			createItem("one");
+			createItem("two");
+
+			final DeployDataCommand cmd      = app.command(DeployDataCommand.class);
+			final Map<String, Object> params = new HashMap<>();
+
+			params.put("mode", "types");
+
+			cmd.execute(params);
+
+			final List<Map<String, Object>> types = (List<Map<String, Object>>) cmd.getCommandResult();
+
+			assertNotNull("the command should answer with the types it found", types);
+
+			final Map<String, Object> mine = types.stream()
+				.filter(t -> TYPE.equals(t.get("type")))
+				.findFirst()
+				.orElse(null);
+
+			assertNotNull("a type that holds records has to be named: " + types, mine);
+			assertEquals("with the number of records it holds", 2L, ((Number) mine.get("count")).longValue());
+
+			// a type nobody created anything of is not worth exporting and is left out
+			assertTrue("a type without records should not be listed: " + types,
+				types.stream().allMatch(t -> ((Number) t.get("count")).longValue() > 0));
+
+		} catch (final Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception: " + t.getMessage());
 		}
 	}
 

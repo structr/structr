@@ -183,6 +183,75 @@ public class DeployDataCommand extends DeployCommand {
 	// is being handled via export of "grantees" and "owner" attributes
 	private final static Set<String> blacklistedRelationshipTypes = Set.of(StructrTraits.PRINCIPAL_OWNS_NODE, StructrTraits.SECURITY);
 
+	/**
+	 * Answers which types actually hold records, so a caller does not have to work the list out itself.
+	 *
+	 * <p>A data export refuses without an explicit type list, which is right: exporting everything by
+	 * default would be a trap. But every automation client then has to derive the list, and deriving it
+	 * means knowing which of the hundreds of registered types have any records at all. That is a question
+	 * about this instance, so this instance should answer it.</p>
+	 *
+	 * <p>Abstract types, service classes and relationship types are left out because they cannot be
+	 * exported; everything else that has at least one record is named with its count.</p>
+	 */
+	private List<Map<String, Object>> typesWithRecords() throws FrameworkException {
+
+		final SecurityContext context      = getRecommendedSecurityContext();
+		final App app                      = StructrApp.getInstance(context);
+		final List<Map<String, Object>> result = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final String typeName : new TreeSet<>(Traits.getAllTypes())) {
+
+				final Traits traits = Traits.of(typeName);
+
+				if (traits == null || !traits.isNodeType() || traits.isAbstract() || traits.isServiceClass() || traits.isInterface()) {
+
+					continue;
+				}
+
+				// the type's own records, not those of the types that inherit it
+				long count = 0;
+
+				for (final NodeInterface node : app.nodeQuery(typeName).getResultStream()) {
+
+					if (typeName.equals(node.getType())) {
+
+						count++;
+					}
+				}
+
+				if (count > 0) {
+
+					final Map<String, Object> entry = new LinkedHashMap<>();
+
+					entry.put("type", typeName);
+					entry.put("count", count);
+
+					result.add(entry);
+				}
+			}
+
+			tx.success();
+		}
+
+		return result;
+	}
+
+	@Override
+	public void execute(final Map<String, Object> parameters) throws FrameworkException {
+
+		if ("types".equals(parameters.get("mode"))) {
+
+			setCustomCommandResult(typesWithRecords());
+
+			return;
+		}
+
+		super.execute(parameters);
+	}
+
 	@Override
 	public void doExport(final Map<String, Object> parameters) throws FrameworkException {
 
