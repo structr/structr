@@ -57,6 +57,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -77,6 +78,14 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	private static final String NAME_PARAMETER                = "name";
 	private static final String MODE_PARAMETER                = "mode";
 	private static final String TYPES_PARAMETER               = "types";
+
+	/** Passed straight through to the command: without these the modes it understands have no caller. */
+	private static final String[] FORWARDED_PARAMETERS        = {
+		DeployDataCommand.IMPORT_MODE_PARAMETER_NAME,
+		DeployDataCommand.DO_CASCADING_DELETE_PARAMETER_NAME,
+		DeployDataCommand.DO_INNER_CALLBACKS_PARAMETER_NAME,
+		DeployDataCommand.DO_OUTER_CALLBACKS_PARAMETER_NAME
+	};
 	private static final int MEGABYTE                         = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD                 = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
@@ -298,6 +307,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			String downloadUrl           = null;
 			String mode                  = null;
 			String zipContentPath        = null;
+			final Map<String, Object> forwarded = new LinkedHashMap<>();
 
 			for (final Part p : request.getParts()) {
 
@@ -319,6 +329,10 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				} else if (MODE_PARAMETER.equals(fieldName)) {
 
 					mode = fieldValue;
+
+				} else if (isForwarded(fieldName)) {
+
+					forwarded.put(fieldName, fieldValue);
 
 				} else if (FILE_PARAMETER.equals(fieldName)) {
 
@@ -360,11 +374,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if ("app".equals(mode)) {
 
-						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployCommand.class));
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, forwarded, StructrApp.getInstance(securityContext).command(DeployCommand.class));
 
 					} else if ("data".equals(mode)) {
 
-						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployDataCommand.class));
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, forwarded, StructrApp.getInstance(securityContext).command(DeployDataCommand.class));
 
 					} else {
 
@@ -483,7 +497,20 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		}
 	}
 
-	private void deployFileUsingCommand(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final DeployCommand deployCommand) throws FrameworkException, IOException {
+	private static boolean isForwarded(final String fieldName) {
+
+		for (final String forwarded : FORWARDED_PARAMETERS) {
+
+			if (forwarded.equals(fieldName)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void deployFileUsingCommand(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final Map<String, Object> forwarded, final DeployCommand deployCommand) throws FrameworkException, IOException {
 
 		try {
 
@@ -529,7 +556,13 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				}
 			}
 
-			deployCommand.execute(Map.of("mode", "import", "source", deploymentFolderSourcePath, "quiet", "true"));
+			final Map<String, Object> parameters = new LinkedHashMap<>(forwarded);
+
+			parameters.put("mode", "import");
+			parameters.put("source", deploymentFolderSourcePath);
+			parameters.put("quiet", "true");
+
+			deployCommand.execute(parameters);
 
 			response.setStatus(deployCommand.getCommandStatusCode());
 
