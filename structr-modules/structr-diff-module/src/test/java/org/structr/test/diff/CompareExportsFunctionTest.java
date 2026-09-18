@@ -353,11 +353,75 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testAChangedRecordCarriesTheOldAndTheNewValue() {
+
+		final String leftId;
+		final String rightId;
+		final String longValue = "x".repeat(900);
+
+		try (final Tx tx = app.tx()) {
+
+			leftId = createExport("left.zip", Map.of("nodes/Project.json", records(
+				"{\"id\":\"c0000000000000000000000000000001\",\"name\":\"Apollo\",\"status\":\"open\",\"notes\":\"short\"}")));
+
+			rightId = createExport("right.zip", Map.of("nodes/Project.json", records(
+				"{\"id\":\"c0000000000000000000000000000001\",\"name\":\"Apollo\",\"status\":\"closed\",\"notes\":\"" + longValue + "\"}")));
+
+			tx.success();
+
+		} catch (final Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception while creating the exports: " + ex.getMessage());
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Map<String, Object> report       = (Map<String, Object>) apply(leftId, rightId);
+			final List<Map<String, Object>> deltas = (List<Map<String, Object>>) report.get("deltas");
+			final Map<String, Object> delta        = deltaFor(deltas, "c0000000000000000000000000000001");
+
+			assertNotNull("the changed record has to be reported: " + deltas, delta);
+
+			final List<Map<String, Object>> changes = (List<Map<String, Object>>) delta.get("changes");
+
+			assertNotNull("a delta that names an attribute has to say what it became: " + delta, changes);
+
+			final Map<String, Object> status = changeFor(changes, "status");
+
+			assertNotNull("the changed attribute is accounted for: " + changes, status);
+			assertTrue("the old value travels with the delta: " + status, status.get("from").toString().contains("open"));
+			assertTrue("the new value travels with the delta: " + status, status.get("to").toString().contains("closed"));
+			assertEquals("a short value is not marked as cut", null, status.get("truncated"));
+
+			final Map<String, Object> notes = changeFor(changes, "notes");
+
+			assertNotNull("the long attribute is accounted for too: " + changes, notes);
+			assertEquals("a cut value says that it was cut", Boolean.TRUE, notes.get("truncated"));
+			assertTrue("the real length survives the cut", ((Number) notes.get("toLength")).intValue() > 900);
+			assertTrue("the value itself is bounded", notes.get("to").toString().length() <= 400);
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
 	private Map<String, Object> deltaFor(final List<Map<String, Object>> deltas, final String key) {
 
 		return deltas.stream().filter(d -> key.equals(d.get("key"))).findFirst().orElse(null);
 	}
 
+	private Map<String, Object> changeFor(final List<Map<String, Object>> changes, final String attribute) {
+
+		return changes.stream().filter(c -> attribute.equals(c.get("attribute"))).findFirst().orElse(null);
+	}
 
 	private String records(final String... entries) {
 

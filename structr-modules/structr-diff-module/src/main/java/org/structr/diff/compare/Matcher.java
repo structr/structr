@@ -220,11 +220,13 @@ public class Matcher {
 				a.getOrigin(), matchedBy));
 		}
 
-		final List<String> changedAttributes = changedAttributes(a, b);
-		if (!changedAttributes.isEmpty()) {
+		final List<Delta.Change> changes = changedAttributes(a, b);
+		if (!changes.isEmpty()) {
+
+			final List<String> changedAttributes = changes.stream().map(Delta.Change::attribute).toList();
 
 			deltas.add(new Delta(a.getKind(), a.getKey(), Delta.Operation.CHANGED, a.getName(),
-				Delta.Detail.ATTRIBUTES, "attributes: " + String.join(", ", changedAttributes), a.getOrigin(), matchedBy));
+				Delta.Detail.ATTRIBUTES, "attributes: " + String.join(", ", changedAttributes), a.getOrigin(), matchedBy, changes));
 		}
 
 		if (!Objects.equals(a.getContent(), b.getContent())) {
@@ -237,7 +239,8 @@ public class Matcher {
 
 			deltas.add(new Delta(a.getKind(), a.getKey(), Delta.Operation.CHANGED, a.getName(),
 				whitespaceOnly ? Delta.Detail.CONTENT_WHITESPACE_ONLY : Delta.Detail.CONTENT,
-				whitespaceOnly ? "content, whitespace only" : "content", a.getOrigin(), matchedBy));
+				whitespaceOnly ? "content, whitespace only" : "content", a.getOrigin(), matchedBy,
+				List.of(change("content", a.getContent(), b.getContent()))));
 		}
 	}
 
@@ -246,22 +249,54 @@ public class Matcher {
 		return s != null ? s.strip() : "";
 	}
 
-	private static List<String> changedAttributes(final Entity a, final Entity b) {
+	/** How much of a value travels with a delta before it is cut; a cut always says that it was one. */
+	private static final int MAX_VALUE_LENGTH = 400;
 
-		final Set<String> names   = new TreeSet<>(a.getAttributes().keySet());
-		final List<String> result = new ArrayList<>();
+	private static List<Delta.Change> changedAttributes(final Entity a, final Entity b) {
+
+		final Set<String> names         = new TreeSet<>(a.getAttributes().keySet());
+		final List<Delta.Change> result = new ArrayList<>();
 
 		names.addAll(b.getAttributes().keySet());
 
 		for (final String name : names) {
 
-			if (!Objects.equals(a.getAttributes().get(name), b.getAttributes().get(name))) {
+			final Object from = a.getAttributes().get(name);
+			final Object to   = b.getAttributes().get(name);
 
-				result.add(name);
+			if (!Objects.equals(from, to)) {
+
+				result.add(change(name, from != null ? from.toString() : null, to != null ? to.toString() : null));
 			}
 		}
 
 		return result;
+	}
+
+	/**
+	 * One attribute with both of its values, cut to a readable length.
+	 *
+	 * Naming the attribute answers how much changed and never what, and both values are in hand right
+	 * here. A cut value is marked as cut and reports its real length, so a reader is never left thinking
+	 * a truncation is the content.
+	 */
+	private static Delta.Change change(final String attribute, final String from, final String to) {
+
+		final int fromLength    = from != null ? from.length() : 0;
+		final int toLength      = to   != null ? to.length()   : 0;
+		final boolean truncated = fromLength > MAX_VALUE_LENGTH || toLength > MAX_VALUE_LENGTH;
+
+		return new Delta.Change(attribute, cut(from), cut(to), truncated, fromLength, toLength);
+	}
+
+	private static String cut(final String value) {
+
+		if (value == null || value.length() <= MAX_VALUE_LENGTH) {
+
+			return value;
+		}
+
+		return value.substring(0, MAX_VALUE_LENGTH);
 	}
 
 	/**

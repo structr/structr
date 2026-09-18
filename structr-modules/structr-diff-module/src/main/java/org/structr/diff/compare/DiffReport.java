@@ -22,6 +22,7 @@ import org.structr.diff.model.Entity;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -106,6 +107,32 @@ public class DiffReport {
 			entry.put("key", delta.getKey());
 			entry.put("name", delta.getName());
 			entry.put("signal", delta.getSignal().name());
+
+			if (!delta.getChanges().isEmpty()) {
+
+				final List<Map<String, Object>> changes = new LinkedList<>();
+
+				for (final Delta.Change change : delta.getChanges()) {
+
+					final Map<String, Object> c = new LinkedHashMap<>();
+
+					c.put("attribute", change.attribute());
+					c.put("from", change.from());
+					c.put("to", change.to());
+
+					if (change.truncated()) {
+
+						// stated rather than implied: a reader must not mistake a cut for the real value
+						c.put("truncated", true);
+						c.put("fromLength", change.fromLength());
+						c.put("toLength", change.toLength());
+					}
+
+					changes.add(c);
+				}
+
+				entry.put("changes", changes);
+			}
 			entry.put("signalReason", delta.getSignalReason());
 			entry.put("detailCode", delta.getDetailCode() != null ? delta.getDetailCode().name() : null);
 			entry.put("detail", delta.getDetail());
