@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.SourceSection;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
@@ -2388,6 +2390,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final App app = StructrApp.getInstance(ctx);
 
+			boolean wrapped = false;
+
 			try (final Tx tx = app.tx()) {
 
 				tx.disableChangelog();
@@ -2404,6 +2408,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					} else {
 
 						confSource = "${" + confSource + "}";
+						wrapped    = true;
 					}
 
 					final String message = "Applying configuration from '" + confFile + "'";
@@ -2419,7 +2424,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				tx.success();
 
-				recordConfigScript(confFile, true, null);
+				recordConfigScript(confFile, true, null, null);
 
 			} catch (Throwable t) {
 
@@ -2428,7 +2433,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				publishWarningMessage(msg, t.toString());
 
 				// the whole file rolled back with the transaction, so "applied" is false for all of it
-				recordConfigScript(confFile, false, t.toString());
+				recordConfigScript(confFile, false, t.toString(), sourceLocationOf(t, wrapped));
 			}
 		}
 	}
@@ -3692,15 +3697,68 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		customResult = result;
 	}
 
-	protected static void recordConfigScript(final Path confFile, final boolean applied, final String error) {
+	protected static void recordConfigScript(final Path confFile, final boolean applied, final String error, final Map<String, Object> at) {
 
 		final Map<String, Object> entry = new LinkedHashMap<>();
 
 		entry.put("file", confFile.getFileName().toString());
 		entry.put("applied", applied);
 		entry.put("error", error);
+		entry.put("at", at);
 
 		configScripts.add(entry);
+	}
+
+	/**
+	 * Where in the script the failure happened, when the cause knows.
+	 *
+	 * The whole file is one transaction and rolls back as one, so the line is all that distinguishes
+	 * "the script failed" from "the script failed HERE" and is the difference between rewriting a conf
+	 * and fixing it.
+	 */
+	private static Map<String, Object> sourceLocationOf(final Throwable t, final boolean wrapped) {
+
+		for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+
+			if (cause instanceof PolyglotException polyglot) {
+
+				// a thrown Error carries no location of its own, so the innermost guest frame is where it happened
+				SourceSection location = polyglot.getSourceLocation();
+
+				if (location == null) {
+
+					for (final PolyglotException.StackFrame frame : polyglot.getPolyglotStackTrace()) {
+
+						if (frame.isGuestFrame() && frame.getSourceLocation() != null) {
+
+							location = frame.getSourceLocation();
+							break;
+						}
+					}
+				}
+
+				if (location != null && location.hasLines()) {
+
+					final Map<String, Object> at = new LinkedHashMap<>();
+					final int line               = location.getStartLine();
+
+					at.put("line", line);
+
+					// the auto-script wrapper adds "${" to the first line, so a column there reads two too high
+					at.put("column", (wrapped && line == 1) ? Math.max(1, location.getStartColumn() - 2) : location.getStartColumn());
+
+					return at;
+				}
+
+				return null;
+			}
+
+			if (cause == cause.getCause()) {
+				break;
+			}
+		}
+
+		return null;
 	}
 
 	/**
