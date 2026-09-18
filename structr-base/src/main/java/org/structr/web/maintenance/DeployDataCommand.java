@@ -80,10 +80,77 @@ public class DeployDataCommand extends DeployCommand {
 	public final static String DO_INNER_CALLBACKS_PARAMETER_NAME  = "doInnerCallbacks";
 	public final static String DO_OUTER_CALLBACKS_PARAMETER_NAME  = "doOuterCallbacks";
 	public final static String DO_CASCADING_DELETE_PARAMETER_NAME = "doCascadingDelete";
+	public final static String IMPORT_MODE_PARAMETER_NAME         = "importMode";
+
+	/**
+	 * What an import does with a record the target already has under the same uuid.
+	 *
+	 * <p>The command was written as a seeder: delete by uuid and create again, which makes an import
+	 * idempotent with no merge logic. That is still right for filling an empty instance and is still the
+	 * default, but it is wrong for every case where the target holds data worth keeping, because the
+	 * recreated node keeps only the relationships that are in the archive as well.</p>
+	 */
+	public enum ImportMode {
+
+		/** Delete the record and create it again. Idempotent, and the target keeps nothing of its own. */
+		seed,
+
+		/** Create what is missing and leave everything that is already there untouched. */
+		append,
+
+		/** Write the archive's values onto the record that is already there, so its relationships survive. */
+		update
+	}
 
 	private boolean doInnerCallbacks  = false;
 	private boolean doOuterCallbacks  = false;
 	private boolean doCascadingDelete = false;
+	private ImportMode importMode     = ImportMode.seed;
+	private int updatedNodes          = 0;
+	private int appendedSkipped       = 0;
+
+	/**
+	 * Writes the archive's values onto a record that is already there.
+	 *
+	 * The same writes the create path makes, without the delete: the node keeps its identity and therefore
+	 * every relationship it has, including the ones to types the export set never mentioned.
+	 */
+	private void updateExistingNode(final SecurityContext context, final NodeInterface node, final Map<String, Object> entry, final String typeName) throws FrameworkException {
+
+		final Map<String, Object> ownership = new HashMap();
+
+		ownership.put("owner", entry.get("owner"));
+		ownership.put("grantees", entry.get("grantees"));
+
+		entry.remove("owner");
+		entry.remove("grantees");
+
+		node.setProperties(context, PropertyMap.inputTypeToJavaType(context, typeName, ownership));
+
+		correctNumberFormats(context, entry, typeName);
+
+		node.getPropertyContainer().setProperties(entry);
+		node.addToIndex();
+	}
+
+	/** An unknown mode is refused rather than silently treated as the destructive default. */
+	private ImportMode importModeFrom(final Object value) throws FrameworkException {
+
+		if (value == null) {
+
+			return ImportMode.seed;
+		}
+
+		try {
+
+			return ImportMode.valueOf(value.toString().trim());
+
+		} catch (final IllegalArgumentException unknown) {
+
+			throw new ImportPreconditionFailedException("Data Deployment Import not started",
+				"Unknown " + IMPORT_MODE_PARAMETER_NAME + " '" + value + "'. Use one of: seed, append, update.");
+		}
+	}
 
 	public static final String TYPE_NAME       = "typeName";
 	public static final String MESSAGE_ID      = "messageId";
@@ -318,6 +385,7 @@ public class DeployDataCommand extends DeployCommand {
 			doInnerCallbacks  = parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME).toString());
 			doOuterCallbacks  = parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME).toString());
 			doCascadingDelete = parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME).toString());
+			importMode        = importModeFrom(parameters.get(IMPORT_MODE_PARAMETER_NAME));
 
 			doImportFromDirectory(source);
 
@@ -351,6 +419,8 @@ public class DeployDataCommand extends DeployCommand {
 	public void doImportFromDirectory(final Path source) {
 
 		missingTypesForImport     = new HashSet();
+		updatedNodes              = 0;
+		appendedSkipped           = 0;
 		failedRelationshipImports = new TreeMap();
 
 		final long startTime = System.currentTimeMillis();
@@ -542,7 +612,7 @@ public class DeployDataCommand extends DeployCommand {
 		customHeaders.put("end", new Date(endTime).toString());
 		customHeaders.put("duration", duration);
 
-		logger.info("Import from {} done. (Took {})", source, duration);
+		logger.info("Import from {} done in mode {}: {} record(s) updated in place, {} left untouched. (Took {})", source, importMode, updatedNodes, appendedSkipped, duration);
 
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
@@ -1164,20 +1234,36 @@ public class DeployDataCommand extends DeployCommand {
 
 					for (final Map<String, Object> entry : sublist) {
 
-						final String id = (String)entry.get("id");
-						if (id != null) {
+						final String id                  = (String)entry.get("id");
+						final NodeInterface existingNode = (id != null) ? app.getNodeById(id) : null;
 
-							final NodeInterface existingNode = app.getNodeById(id);
-							if (existingNode != null) {
+						if (existingNode != null && ImportMode.append.equals(importMode)) {
 
-								app.delete(existingNode);
-							}
+							// what the target already has is what append exists to protect
+							appendedSkipped++;
+
+							continue;
 						}
 
 						checkOwnerAndSecurity(entry);
 
 						final String typeName = (String) entry.get("type");
 						final Traits type     = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : Traits.of(typeName));
+
+						if (existingNode != null && ImportMode.update.equals(importMode) && type != null) {
+
+							// no delete, so the relationships to types outside the export set survive
+							updateExistingNode(context, existingNode, entry, typeName);
+
+							updatedNodes++;
+
+							continue;
+						}
+
+						if (existingNode != null) {
+
+							app.delete(existingNode);
+						}
 
 						if (type == null) {
 
