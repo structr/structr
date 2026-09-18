@@ -100,7 +100,10 @@ public class DeployDataCommand extends DeployCommand {
 		append,
 
 		/** Write the archive's values onto the record that is already there, so its relationships survive. */
-		update
+		update,
+
+		/** update, and remove the records of an exported type that the archive does not carry. */
+		mirror
 	}
 
 	private boolean doInnerCallbacks  = false;
@@ -109,6 +112,62 @@ public class DeployDataCommand extends DeployCommand {
 	private ImportMode importMode     = ImportMode.seed;
 	private int updatedNodes          = 0;
 	private int appendedSkipped       = 0;
+	private int mirroredDeletions     = 0;
+
+	/**
+	 * Removes the records of one exported type that the archive does not carry.
+	 *
+	 * <p>Only mirror does this, and only for the type whose file was just imported: a type with no file in
+	 * the archive was never exported and is none of this import's business.</p>
+	 *
+	 * <p>Principal types are excluded. A principal is almost never in an archive, so its absence is not a
+	 * decision to delete it; deleting one takes every ownership and permission that names it, and the
+	 * account running the import is itself a principal. The production guard cannot cover this, because it
+	 * only protects an instance that named itself.</p>
+	 */
+	private void removeRecordsNotInArchive(final SecurityContext context, final String typeName, final Set<String> inArchive) throws FrameworkException {
+
+		final Traits traits = Traits.exists(typeName) ? Traits.of(typeName) : null;
+
+		if (traits == null || traits.contains(StructrTraits.PRINCIPAL)) {
+
+			return;
+		}
+
+		final App app             = StructrApp.getInstance(context);
+		final List<String> doomed = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			// a type query also yields the types that inherit it, and those have files of their own
+			for (final NodeInterface node : app.nodeQuery(typeName).getResultStream()) {
+
+				if (typeName.equals(node.getType()) && !inArchive.contains(node.getUuid())) {
+
+					doomed.add(node.getUuid());
+				}
+			}
+
+			tx.success();
+		}
+
+		for (final String id : doomed) {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = app.getNodeById(id);
+
+				if (node != null) {
+
+					app.delete(node);
+
+					mirroredDeletions++;
+				}
+
+				tx.success();
+			}
+		}
+	}
 
 	/**
 	 * Writes the archive's values onto a record that is already there.
@@ -512,6 +571,7 @@ public class DeployDataCommand extends DeployCommand {
 		missingTypesForImport     = new HashSet();
 		updatedNodes              = 0;
 		appendedSkipped           = 0;
+		mirroredDeletions         = 0;
 		failedRelationshipImports = new TreeMap();
 
 		final long startTime = System.currentTimeMillis();
@@ -703,7 +763,7 @@ public class DeployDataCommand extends DeployCommand {
 		customHeaders.put("end", new Date(endTime).toString());
 		customHeaders.put("duration", duration);
 
-		logger.info("Import from {} done in mode {}: {} record(s) updated in place, {} left untouched. (Took {})", source, importMode, updatedNodes, appendedSkipped, duration);
+		logger.info("Import from {} done in mode {}: {} record(s) updated in place, {} left untouched, {} removed as absent from the archive. (Took {})", source, importMode, updatedNodes, appendedSkipped, mirroredDeletions, duration);
 
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
@@ -1294,6 +1354,19 @@ public class DeployDataCommand extends DeployCommand {
 
 		} else {
 
+			// read before the loop: importing an entry consumes keys from it, the uuid among them
+			final Set<String> inArchive = new HashSet<>();
+
+			for (final Map<String, Object> entry : data) {
+
+				final String archivedId = (String) entry.get("id");
+
+				if (archivedId != null) {
+
+					inArchive.add(archivedId);
+				}
+			}
+
 			final App app       = StructrApp.getInstance(context);
 			final int chunkSize = Settings.DeploymentNodeImportBatchSize.getValue();
 			int chunkCount      = 0;
@@ -1341,7 +1414,7 @@ public class DeployDataCommand extends DeployCommand {
 						final String typeName = (String) entry.get("type");
 						final Traits type     = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : Traits.of(typeName));
 
-						if (existingNode != null && ImportMode.update.equals(importMode) && type != null) {
+						if (existingNode != null && (ImportMode.update.equals(importMode) || ImportMode.mirror.equals(importMode)) && type != null) {
 
 							// no delete, so the relationships to types outside the export set survive
 							updateExistingNode(context, existingNode, entry, typeName);
@@ -1402,6 +1475,19 @@ public class DeployDataCommand extends DeployCommand {
 				publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage, Map.of(MESSAGE_ID, defaultTypeName, TYPE_NAME, defaultTypeName, PROGRESS, "(" + nodeCount + " / " + maxSize + ")", CUR_CHUNK_TIME, duration, MEAN_CHUNK_TIME, meanChunkTime));
 				logger.info("{}{} ({} / {}) (chunk: {}s, mean:{}s)", baseMessage, defaultTypeName, nodeCount, maxSize, duration/1000.0, meanChunkTime/1000.0);
 
+			}
+
+			if (ImportMode.mirror.equals(importMode)) {
+
+				try {
+
+					removeRecordsNotInArchive(context, defaultTypeName, inArchive);
+
+				} catch (final FrameworkException fex) {
+
+					logger.error("Unable to remove records of type {} that the archive does not carry. Cause: {}", defaultTypeName, fex.toString());
+					publishWarningMessage("Unable to remove records of type " + defaultTypeName, fex.toString());
+				}
 			}
 		}
 	}
