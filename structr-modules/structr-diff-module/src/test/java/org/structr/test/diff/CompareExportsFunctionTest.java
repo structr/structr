@@ -39,6 +39,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -285,6 +286,82 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception: " + fex.getMessage());
 		}
+	}
+
+	@Test
+	public void testADataExportIsReadRatherThanSilentlyAgreedWith() {
+
+		final String leftId;
+		final String rightId;
+
+		try (final Tx tx = app.tx()) {
+
+			// one record changed, one only on the left, and a link between two records
+			leftId = createExport("left.zip", Map.of(
+				"nodes/Project.json", records(
+					"{\"id\":\"c0000000000000000000000000000001\",\"name\":\"Apollo\",\"status\":\"open\"}",
+					"{\"id\":\"c0000000000000000000000000000002\",\"name\":\"Gemini\",\"status\":\"open\"}"),
+				"relationships/OWNS.json", records(
+					"{\"id\":\"e0000000000000000000000000000001\",\"sourceId\":\"c0000000000000000000000000000001\",\"targetId\":\"c0000000000000000000000000000002\",\"relType\":\"OWNS\"}")));
+
+			rightId = createExport("right.zip", Map.of(
+				"nodes/Project.json", records(
+					"{\"id\":\"c0000000000000000000000000000001\",\"name\":\"Apollo\",\"status\":\"closed\"}"),
+				// the same link, with a uuid of its own that an import would have minted fresh
+				"relationships/OWNS.json", records(
+					"{\"id\":\"e9999999999999999999999999999999\",\"sourceId\":\"c0000000000000000000000000000001\",\"targetId\":\"c0000000000000000000000000000002\",\"relType\":\"OWNS\"}")));
+
+			tx.success();
+
+		} catch (final Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception while creating the exports: " + ex.getMessage());
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Map<String, Object> report      = (Map<String, Object>) apply(leftId, rightId);
+			final List<Map<String, Object>> deltas = (List<Map<String, Object>>) report.get("deltas");
+
+			final Map<String, Object> changed = deltaFor(deltas, "c0000000000000000000000000000001");
+			final Map<String, Object> removed = deltaFor(deltas, "c0000000000000000000000000000002");
+
+			assertNotNull("a record whose attributes differ has to be reported: " + deltas, changed);
+			assertEquals("Record", changed.get("kind"));
+			assertEquals("CHANGED", changed.get("operation"));
+
+			assertNotNull("a record only the left side has, has to be reported: " + deltas, removed);
+			assertEquals("REMOVED", removed.get("operation"));
+
+			// the link is the same link on both sides, so its own uuid changing must not make it a difference
+			for (final Map<String, Object> delta : deltas) {
+
+				assertFalse("the link was matched by its uuid rather than by what it connects, so a deployment"
+					+ " that recreates every edge would report every link as a change: " + delta,
+					"RecordLink".equals(delta.get("kind")));
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	private Map<String, Object> deltaFor(final List<Map<String, Object>> deltas, final String key) {
+
+		return deltas.stream().filter(d -> key.equals(d.get("key"))).findFirst().orElse(null);
+	}
+
+
+	private String records(final String... entries) {
+
+		return "[" + String.join(",", entries) + "]";
 	}
 
 	private Object apply(final String leftId, final String rightId) throws FrameworkException {
