@@ -85,6 +85,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
@@ -102,6 +103,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
 	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
 	protected static final Set<String> missingSchemaFile            = new HashSet<>();
+
+	/** User types found in an app archive's data folder, which the import replaces by uuid. */
+	public static final Set<String> embeddedUserTypes               = new LinkedHashSet<>();
 	protected static final Set<String> deferredLogTexts             = new HashSet<>();
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
@@ -300,6 +304,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			missingPrincipals.clear();
 			ambiguousPrincipals.clear();
 			missingSchemaFile.clear();
+			embeddedUserTypes.clear();
 			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
@@ -3182,6 +3187,57 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	/**
+	 * Says so when an app archive carries user records in its data folder.
+	 *
+	 * A data export warns about this loudly at export time, and this path warned about nothing: the data
+	 * inside an app archive is imported by uuid over any type, Users among them, which can replace the
+	 * account performing the import while it is running.
+	 */
+	private void warnAboutEmbeddedUserTypes(final Path dataDir) {
+
+		final Path nodesDir = dataDir.resolve("nodes");
+
+		if (!Files.isDirectory(nodesDir)) {
+
+			return;
+		}
+
+		try (final Stream<Path> files = Files.list(nodesDir)) {
+
+			for (final Path file : files.toList()) {
+
+				final String fileName = file.getFileName().toString();
+
+				if (!fileName.endsWith(".json")) {
+
+					continue;
+				}
+
+				final String typeName = fileName.substring(0, fileName.length() - ".json".length());
+				final Traits traits   = Traits.exists(typeName) ? Traits.of(typeName) : null;
+
+				if (traits != null && traits.contains(StructrTraits.USER)) {
+
+					final String title = "User type in embedded application data";
+					final String text  = "The data folder of this archive holds records of type '" + typeName + "', which is a User type.<br>"
+						+ "These records are imported by uuid over the existing ones, so the account running this import can be replaced while it runs.";
+
+					logger.warn("User type in embedded application data! Type '{}' is a User type. These records are imported by uuid over the existing ones, "
+						+ "so the account running this import can be replaced while it runs.", typeName);
+
+					publishWarningMessage(title, text);
+
+					embeddedUserTypes.add(typeName);
+				}
+			}
+
+		} catch (final IOException ioex) {
+
+			logger.warn("Unable to inspect the embedded data folder {}", nodesDir, ioex);
+		}
+	}
+
 	private void importEmbeddedApplicationData(final Path source) {
 
 		final Path dataDir = source.resolve("data");
@@ -3190,8 +3246,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Importing application data");
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application data");
 
+			warnAboutEmbeddedUserTypes(dataDir);
+
 			final DeployDataCommand cmd = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
 
+			// note this goes straight to the directory import, so it always runs as seed: records are
+			// deleted and created again by uuid, and the import modes never reach it
 			cmd.doImportFromDirectory(dataDir);
 		}
 	}

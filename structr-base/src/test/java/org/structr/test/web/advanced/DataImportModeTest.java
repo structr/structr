@@ -29,6 +29,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.maintenance.DeployDataCommand;
 import org.testng.annotations.Test;
 
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -312,6 +314,52 @@ public class DataImportModeTest extends StructrUiTest {
 
 			t.printStackTrace();
 			fail("Unexpected exception: " + t.getMessage());
+		}
+	}
+
+	@Test
+	public void testAnAppArchiveCarryingUserRecordsSaysSo() {
+
+		final Path archive = Paths.get("/tmp/structr-embedded-data-test" + System.currentTimeMillis() + System.nanoTime());
+
+		try {
+
+			// an app archive whose data folder holds User records: imported by uuid over the existing ones,
+			// which can replace the account running the import while it runs
+			final Path nodes = archive.resolve("data").resolve("nodes");
+
+			Files.createDirectories(nodes);
+			Files.writeString(archive.resolve("deployment.conf"), "structr-version = 7.0-SNAPSHOT\n");
+			Files.writeString(nodes.resolve("User.json"), "[]");
+			Files.writeString(nodes.resolve(TYPE + ".json"), "[]");
+
+			createModeSchema();
+
+			final DeployCommand cmd          = app.command(DeployCommand.class);
+			final Map<String, Object> params = new HashMap<>();
+
+			params.put("mode", "import");
+			params.put("source", archive.toString());
+
+			cmd.execute(params);
+
+			// the import completes; what was missing was any statement that it touched user records at all
+			assertEquals("the import itself should still succeed", 200, cmd.getCommandStatusCode());
+
+			assertTrue("the archive carries User records, and the import has to say so: " + DeployCommand.embeddedUserTypes,
+				DeployCommand.embeddedUserTypes.contains("User"));
+
+			assertFalse("a type that is not a user type must not be reported as one",
+				DeployCommand.embeddedUserTypes.contains(TYPE));
+
+		} catch (final Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception: " + t.getMessage());
+
+		} finally {
+
+			cleanUp(archive);
 		}
 	}
 
