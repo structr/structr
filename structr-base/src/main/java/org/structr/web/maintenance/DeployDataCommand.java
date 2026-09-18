@@ -547,6 +547,14 @@ public class DeployDataCommand extends DeployCommand {
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
 		publishEndMessage(DEPLOYMENT_DATA_IMPORT_STATUS, broadcastData);
+
+		final Map<String, Object> report = importReport("data");
+
+		report.put("duration", duration);
+		report.put("missingTypes", missingTypesForImport.stream().sorted().toList());
+		report.put("failedRelationships", new TreeMap<>(failedRelationshipImports));
+
+		setCustomCommandResult(report);
 	}
 
 	protected SecurityContext getRecommendedSecurityContext() {
