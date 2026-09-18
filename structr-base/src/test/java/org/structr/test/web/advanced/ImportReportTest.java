@@ -70,7 +70,7 @@ public class ImportReportTest extends DeploymentTestBase {
 
 			// a script that throws on its last line: everything it did is rolled back with the transaction
 			Files.writeString(tmp.resolve("pre-deploy.conf"),
-				"{ $.log('pre-deploy ran'); throw new Error('deliberate failure'); }", StandardCharsets.UTF_8);
+				"{\n    $.log('pre-deploy ran');\n    throw new Error('deliberate failure');\n}", StandardCharsets.UTF_8);
 
 			final DeployCommand command = app.command(DeployCommand.class);
 			final Map<String, Object> params = new HashMap<>();
@@ -113,6 +113,14 @@ public class ImportReportTest extends DeploymentTestBase {
 
 			assertTrue("the error should name the failure rather than merely say that one happened: " + script.get("error"),
 				script.get("error").toString().contains("deliberate failure"));
+
+			// the file rolls back as a whole, so the line is what turns "it failed" into "fix this line"
+			final Map<String, Object> at = (Map<String, Object>) script.get("at");
+
+			assertNotNull("the report should say where the script failed: " + script, at);
+
+			assertEquals("the throw is on the third line of the conf file", 3, ((Number) at.get("line")).intValue());
+			assertNotNull("a column travels with the line", at.get("column"));
 
 		} catch (final Throwable t) {
 
