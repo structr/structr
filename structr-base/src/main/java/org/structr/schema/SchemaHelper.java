@@ -43,8 +43,7 @@ import java.util.stream.Collectors;
 
 public class SchemaHelper {
 
-	private static final Map<String, String> normalizedEntityNameCache = new HashMap<>();
-	private static final String WORD_SEPARATOR                         = "_";
+	private static final String WORD_SEPARATOR = "_";
 
 	public static final Map<Type, PropertyGeneratorFactory> generatorMap = new TreeMap<>(new ReverseTypeComparator());
 	public static final Map<Type, Integer> sortIndexMap                  = new LinkedHashMap<>();
@@ -158,37 +157,21 @@ public class SchemaHelper {
 
 			final String[] names = StringUtils.split(possibleEntityString, "/");
 
-			for (String possibleEntityName : names) {
+			for (final String possibleEntityName : names) {
 
-				// CAUTION: this cache might grow to a very large size, as it
-				// contains all normalized mappings for every possible
-				// property key / entity name that is ever called.
-				String normalizedType = normalizedEntityNameCache.get(possibleEntityName);
-				if (normalizedType == null) {
-
-					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityName)));
-
-				}
-
-				result.append(normalizedType).append("/");
-
+				result.append(StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityName)))).append("/");
 			}
 
 			return StringUtils.removeEnd(result.toString(), "/");
 
 		} else {
 
-//                      CAUTION: this cache might grow to a very large size, as it
-			// contains all normalized mappings for every possible
-			// property key / entity name that is ever called.
-			String normalizedType = normalizedEntityNameCache.get(possibleEntityString);
-			if (normalizedType == null) {
+			/* There used to be a normalizedEntityNameCache read here and in the loop above, with a comment
+			   warning that it might grow very large. Nothing ever put anything into it, so both lookups
+			   always missed and the value was always computed - which is what happens now, without the map
+			   and without the warning about a size it never reached. */
 
-				normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityString)));
-
-			}
-
-			return normalizedType;
+			return StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityString)));
 		}
 	}
 

@@ -102,8 +102,8 @@ public class DeploymentWrapJsInMainTest extends DeploymentTestBase {
 
 			final Traits methodTraits          = Traits.of(StructrTraits.SCHEMA_METHOD);
 			final PropertyKey<Boolean> wrapKey = methodTraits.key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY);
-
 			final NodeInterface globalMethod = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(GLOBAL_METHOD_NAME).getFirst();
+
 			assertNotNull("global method " + GLOBAL_METHOD_NAME + " not found " + when, globalMethod);
 			assertEquals("wrapJsInMain of the global method is wrong " + when, expectedGlobal, globalMethod.getProperty(wrapKey));
 

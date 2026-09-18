@@ -53,8 +53,7 @@ public class PolyglotFilesystemAccessTest extends StructrUiTest {
 
 		createFile("unreadable.js", false);
 
-		assertEquals("import() handed a file the caller has no read permission on to the script",
-			"denied", importSecretAsTester("/unreadable.js"));
+		assertEquals("import() handed a file the caller has no read permission on to the script", "denied", importSecretAsTester("/unreadable.js"));
 	}
 
 	/**
@@ -108,7 +107,6 @@ public class PolyglotFilesystemAccessTest extends StructrUiTest {
 
 			final Principal tester        = app.create(StructrTraits.USER, "tester").as(Principal.class);
 			final SecurityContext context = SecurityContext.getInstance(tester, AccessMode.Frontend);
-
 			final Object result = Actions.execute(context, null, "${{ return (await import('" + path + "')).secret; }}",
 				Collections.EMPTY_MAP, "test", null, ScriptConfig.builder().wrapJsInMain(true).build());
 

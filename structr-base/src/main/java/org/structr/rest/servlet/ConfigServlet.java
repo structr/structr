@@ -50,6 +50,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,7 +60,10 @@ import java.util.concurrent.TimeUnit;
 public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);
-	private static final Set<String> sessions         = new HashSet<>();
+	/* Concurrent, like the loginAttempts cache below: authenticateSession() and invalidateSession() write
+	   this from request threads while isAuthenticated() reads it, and what it holds is the set of sessions
+	   that may edit the configuration. A lost add or a torn read here is an authentication answer. */
+	private static final Set<String> sessions         = ConcurrentHashMap.newKeySet();
 	private static final String TITLE                 = "Structr Configuration Editor";
 
 	// Brute-force protection for ConfigServlet login. Keyed by remote IP so

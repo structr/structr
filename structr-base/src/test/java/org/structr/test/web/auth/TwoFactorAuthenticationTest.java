@@ -30,6 +30,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
@@ -37,9 +38,12 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.servlet.HtmlServlet;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -47,10 +51,15 @@ import static org.testng.AssertJUnit.*;
  *
  * <p>Ticket 1583: two-factor authentication could be skipped or worn down in four ways. The IP
  * allowlist is gone entirely and has nothing left to test; the other three are covered here.
+ *
+ * <p>Ticket 1610 adds the fifth way, found while working on 1583: the scripting function login(),
+ * which an application uses to delegate authentication to an external source and which cannot ask
+ * for a code at all.
  */
 public class TwoFactorAuthenticationTest extends StructrUiTest {
 
 	private static final String USER_AGENT = "TwoFactorAuthenticationTest";
+	private static final String PASSWORD   = "correct horse battery staple";
 
 	/**
 	 * A wrong code used to cost nothing at all: no counter, and the token stayed usable for the whole
@@ -276,7 +285,204 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 		}
 	}
 
+	/**
+	 * Ticket 1610: the scripting function login() checks the password and calls doLogin() right after,
+	 * with no step in between that could ask for a code. An application with its own login form built
+	 * on ${login(user, password)} therefore opens a session on the password alone, while
+	 * /structr/rest/login, the websocket LOGIN and the token endpoint all demand the second factor.
+	 * Whether the configured level means anything then depends on which login an application happens
+	 * to use, and nothing about that is visible from the configuration.
+	 *
+	 * <p>The function is called through a global schema method, because doLogin() needs the request
+	 * and the session that only a real one brings.
+	 */
+	@Test
+	public void testTheLoginFunctionDoesNotSkipTheSecondFactor() {
+
+		final Integer previousLevel = Settings.TwoFactorLevel.getValue();
+
+		// level 1, so only the account flagged as a two-factor user needs a code and the admin this
+		// test authenticates with does not
+		Settings.TwoFactorLevel.setValue(1);
+
+		try {
+
+			createAdminUserForRestCalls();
+			createTwoFactorUser("scripted", true);
+			createLoginMethod();
+
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.body("{ 'name': 'scripted', 'password': '" + PASSWORD + "' }")
+				.expect()
+					.statusCode(200)
+					.body("result", equalTo(false))
+				.when()
+					.post("/doScriptedLogin");
+
+			assertTrue("login() opened a session for an account that the configuration says needs a second factor", sessionIdsOf("scripted").isEmpty());
+
+		} finally {
+
+			Settings.TwoFactorLevel.setValue(previousLevel);
+		}
+	}
+
+	/**
+	 * The other direction of the same rule, because refusing too much would be just as wrong: at level 1
+	 * an account that is not flagged as a two-factor user is never asked for a code on any login path, so
+	 * login() has to let it through and open its session as before.
+	 */
+	@Test
+	public void testTheLoginFunctionStillLogsInAnAccountThatNeedsNoSecondFactor() {
+
+		final Integer previousLevel = Settings.TwoFactorLevel.getValue();
+
+		Settings.TwoFactorLevel.setValue(1);
+
+		try {
+
+			createAdminUserForRestCalls();
+			createUser("ordinary");
+			createLoginMethod();
+
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.body("{ 'name': 'ordinary', 'password': '" + PASSWORD + "' }")
+				.expect()
+					.statusCode(200)
+					.body("result", equalTo(true))
+				.when()
+					.post("/doScriptedLogin");
+
+			assertFalse("login() did not open a session for an account that needs no second factor", sessionIdsOf("ordinary").isEmpty());
+
+		} finally {
+
+			Settings.TwoFactorLevel.setValue(previousLevel);
+		}
+	}
+
+	/**
+	 * The same function's return value, which its own description promises: "Returns true on successful
+	 * login". A wrong password never produces false - getPrincipalForPassword() throws, the exception
+	 * runs out of apply() and reaches the caller as a 401, so an application cannot tell a wrong
+	 * password from any other failure and can never render its own error.
+	 */
+	@Test
+	public void testTheLoginFunctionReportsAWrongPassword() {
+
+		final Integer previousLevel = Settings.TwoFactorLevel.getValue();
+
+		Settings.TwoFactorLevel.setValue(0);
+
+		try {
+
+			createAdminUserForRestCalls();
+			createTwoFactorUser("wrongpassword", true);
+			createLoginMethod();
+
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.body("{ 'name': 'wrongpassword', 'password': 'not the password' }")
+				.expect()
+					.statusCode(200)
+					.body("result", equalTo(false))
+				.when()
+					.post("/doScriptedLogin");
+
+			assertTrue("a refused login must not open a session", sessionIdsOf("wrongpassword").isEmpty());
+
+		} finally {
+
+			Settings.TwoFactorLevel.setValue(previousLevel);
+		}
+	}
+
 	// ----- private methods -----
+	/**
+	 * A global schema method that does what an application's own login form does: look the account up
+	 * and hand it to login().
+	 */
+	private void createLoginMethod() {
+
+		final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),  "doScriptedLogin"),
+				new NodeAttribute<>(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ const params = $.methodParameters; const user = $.find('User', { name: params.name })[0]; return $.login(user, params.password); }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception creating the login method: " + fex.getMessage());
+		}
+	}
+
+	private void createUser(final String name) {
+
+		final Traits traits = Traits.of(StructrTraits.USER);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     name),
+				new NodeAttribute<>(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY),     PASSWORD)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception creating the user: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * The account the REST calls authenticate with. createAdminUser() reports a failure by returning
+	 * null, and without this check that failure would show up much later as a 401 on the call itself.
+	 */
+	private void createAdminUserForRestCalls() {
+
+		assertNotNull("could not create the admin user the test authenticates with", createAdminUser());
+	}
+
+	private List<String> sessionIdsOf(final String name) {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery(StructrTraits.USER).name(name).getFirst();
+			if (node == null) {
+
+				fail("user " + name + " was not created");
+			}
+
+			final String[] sessionIds = node.as(Principal.class).getSessionIds();
+
+			tx.success();
+
+			return sessionIds != null ? Arrays.asList(sessionIds) : List.of();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception reading the sessions of " + name + ": " + fex.getMessage());
+
+			return List.of();
+		}
+	}
+
 	private String createTwoFactorUser(final String name, final boolean confirmed) {
 
 		final Traits traits = Traits.of(StructrTraits.USER);
@@ -286,7 +492,7 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 
 			final NodeInterface user = app.create(StructrTraits.USER,
 				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
-				new NodeAttribute<>(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "correct horse battery staple")
+				new NodeAttribute<>(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), PASSWORD)
 			);
 
 			id = user.getUuid();
@@ -329,7 +535,7 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 			final NodeInterface user = app.create(StructrTraits.USER,
 				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
 				new NodeAttribute<>(traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY), name + "@structr.com"),
-				new NodeAttribute<>(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "correct horse battery staple"),
+				new NodeAttribute<>(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), PASSWORD),
 				new NodeAttribute<>(traits.key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY), AuthHelper.getConfirmationKey())
 			);
 

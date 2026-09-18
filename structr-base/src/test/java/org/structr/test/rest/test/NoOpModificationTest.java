@@ -99,7 +99,6 @@ public class NoOpModificationTest extends StructrRestTestBase {
 
 		final String departmentId = createEntity("/Department", "{ \"code\": \"ENG\" }");
 		final String employeeId   = createEntity("/Employee",   "{ \"name\": \"Alice\", \"department\": { \"code\": \"ENG\" } }");
-
 		final int baseline = auditCount();
 
 		// re-assert the relationship that already exists, by reference

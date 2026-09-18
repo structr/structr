@@ -41,8 +41,7 @@ public class InitializationCallbackRerunTest {
 		// a callback written the ordinary way, as all current registrants are
 		final InitializationCallback ordinary = () -> {};
 
-		assertFalse("re-running must be opt-in: every existing callback assumes it runs exactly once",
-			ordinary.rerunAfterDatabaseChange());
+		assertFalse("re-running must be opt-in: every existing callback assumes it runs exactly once", ordinary.rerunAfterDatabaseChange());
 	}
 
 	@Test

@@ -543,6 +543,7 @@ public class UiScriptingTest extends StructrUiTest {
 			page.setProperty(visibleToPublic, true);
 
 			for (final NodeInterface node : page.getAllChildNodes()) {
+
 				node.setProperty(visibleToPublic, true);
 			}
 

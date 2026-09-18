@@ -52,7 +52,6 @@ public class InitializationCallbackRerunDeadlockTest extends StructrTest {
 
 		final AtomicReference<String> failure = new AtomicReference<>(null);
 		final AtomicBoolean opened            = new AtomicBoolean(false);
-
 		final Services services = Services.getInstance();
 
 		services.registerInitializationCallback(new InitializationCallback() {

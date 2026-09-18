@@ -52,8 +52,7 @@ public class DoublePropertyRestTest extends StructrRestTestBase {
 		// numbers through Groovy, which narrows them to float, so the value read via jsonPath() is not
 		// the value the server sent.
 
-		assertTrue("Response must contain the full double precision, was: " + response.getBody().asString(),
-			response.getBody().asString().contains("3.141592653589793"));
+		assertTrue("Response must contain the full double precision, was: " + response.getBody().asString(), response.getBody().asString().contains("3.141592653589793"));
 
 		// the same value as seen through RestAssured, i.e. narrowed to float
 		assertEquals(3.1415927, response.getBody().jsonPath().getDouble("result[0].doubleProperty"), 0.0);

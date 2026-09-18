@@ -23,7 +23,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.core.graph.NodeInterface;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,9 +32,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AccessPathCache {
 
+	/* All three concurrent. The map always was; the two sets were plain HashSets although put() and
+	   update() add to them from request threads and invalidateForId() / invalidateForRelType() read and
+	   remove. A lost add to allUuids makes invalidateForId() return without looking at the map, so a
+	   stale permission mask stays served - the cache would go on answering with a permission that has
+	   since been revoked. */
 	private static final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
-	private static final Set<String> allRelTypes       = new HashSet<>();
-	private static final Set<String> allUuids          = new HashSet<>();
+	private static final Set<String> allRelTypes       = ConcurrentHashMap.newKeySet();
+	private static final Set<String> allUuids          = ConcurrentHashMap.newKeySet();
 
 	public static PermissionResolutionMask get(final NodeInterface startNode, final NodeInterface endNode) {
 
@@ -53,10 +57,21 @@ public class AccessPathCache {
 	public static void put(final NodeInterface startNode, final NodeInterface endNode, final PermissionResolutionMask mask) {
 
 		final CacheEntry entry = getOrCreateCacheEntry(startNode, endNode);
+		final String startUuid = startNode.getUuid();
+		final String endUuid   = endNode.getUuid();
 
-		// remember UUIDs
-		allUuids.add(startNode.getUuid());
-		allUuids.add(endNode.getUuid());
+		/* Null-checked since allUuids became a ConcurrentHashMap key set, which rejects null where the
+		   plain HashSet before it just stored one. Nothing is lost by dropping it: invalidateForId() is
+		   only ever called with a non-null id, so a null in here could never have matched anything. */
+		if (startUuid != null) {
+
+			allUuids.add(startUuid);
+		}
+
+		if (endUuid != null) {
+
+			allUuids.add(endUuid);
+		}
 
 		entry.mask = mask;
 	}
@@ -165,9 +180,10 @@ public class AccessPathCache {
 	// ----- nested classes -----
 	private static class CacheEntry {
 
-		protected Set<String> uuids             = new HashSet<>();
-		protected Set<String> relTypes          = new HashSet<>();
-		protected PermissionResolutionMask mask = null;
-		protected String key                    = null;
+		// concurrent for the same reason as the class-level sets: update() adds here while invalidate* reads
+		protected Set<String> uuids                      = ConcurrentHashMap.newKeySet();
+		protected Set<String> relTypes                   = ConcurrentHashMap.newKeySet();
+		protected volatile PermissionResolutionMask mask = null;
+		protected String key                             = null;
 	}
 }

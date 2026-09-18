@@ -1683,7 +1683,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		final String pageName = "originalPageName001";
 		Page testPage = null;
 		String testPageUuid = null;
-
 		final String notFoundPageContent = "404 NOT FOUND";
 
 		try (final Tx tx = app.tx()) {
@@ -1866,7 +1865,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		final String pageName = "originalPageName001";
 		Page testPage = null;
 		String testPageUuid = null;
-
 		final String notFoundPageContent = "404 NOT FOUND";
 
 		try (final Tx tx = app.tx()) {
@@ -2114,7 +2112,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		assertEquals("Invalid path resolution result", "subdir",              getContent(200, "/structr/html/rootdir/subdir"));
 		assertEquals("Invalid path resolution result", "subsubdir",           getContent(200, "/structr/html/rootdir/subdir/subsubdir"));
 	}
-
 
 	// ----- private methods -----
 	private String getBody(final int statusCode, final String url) {

@@ -155,13 +155,17 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		final int expectedMajorVersion = 25;
 		final int expectedMinorVersion = 0;
-		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
-		final Version foundVersion     = org.graalvm.home.Version.getCurrent();
-		boolean allowedVersion         = foundVersion.toString().startsWith(expectedVersion.toString());
+		final Version foundVersion     = Version.getCurrent();
 
+		/* Major and minor compared as numbers, so every patch release of the intended runtime passes.
+		   Version.create(25, 0).toString() is "25.0.0", not "25.0", so comparing the found version
+		   against that string with startsWith() accepted GraalVM 25.0.0 and nothing else - not 25.0.3,
+		   which is where <graal.version> in the build points. With application.runtime.enforce.recommended
+		   set, that turned a patch update of the recommended runtime into a refusal to start. */
+		final boolean allowedVersion = foundVersion.getComponent(0) == expectedMajorVersion && foundVersion.getComponent(1) == expectedMinorVersion;
 		if (!allowedVersion) {
 
-			logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}", expectedVersion, foundVersion);
+			logger.warn("Java Runtime Version mismatch; expected GraalVM version {}.{}.x, found {}", expectedMajorVersion, expectedMinorVersion, foundVersion);
 
 			boolean enforceRuntime = Settings.EnforceRuntime.getValue();
 			if (enforceRuntime) {
@@ -1180,8 +1184,16 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 					try {
 
-						// try to load class and find source code origin
-						final Class candidate = Class.forName(value);
+						/* try to load class and find source code origin
+
+						   initialize = false: this loop feeds every whitespace-separated token of every value in
+						   structr.conf to Class.forName(), so any configuration entry that happens to name a
+						   loadable class used to have its static initializer run at startup - to answer a
+						   question that only needs getName() and getProtectionDomain(), neither of which
+						   requires an initialized class. Same defect as in JarConfigurationProvider, see ticket 994.
+						   The loader stays the one the one-argument call used, so which classes resolve does
+						   not change - only whether they are initialized. */
+						final Class candidate = Class.forName(value, false, Services.class.getClassLoader());
 						if (!candidate.getName().startsWith("org.structr")) {
 
 							final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();

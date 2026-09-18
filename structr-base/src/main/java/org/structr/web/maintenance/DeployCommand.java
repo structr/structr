@@ -1169,7 +1169,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						final Map<String, Object> properties = new TreeMap<>();
 						final String uuid                    = page.getUuid();
-
 						String exportFilename = page.getName();
 
 						if (exportFilename != null) {

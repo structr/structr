@@ -186,16 +186,6 @@ public class WrapInWidgetCommand extends AbstractCommand {
 		return nodes;
 	}
 
-	public static void print(final DOMNode node, int depth) {
-
-		System.out.println(StringUtils.repeat(" ", depth * 4) +  nameOrTag(node) + " (" + node.getUuid() + ")");
-
-		for (final DOMNode child2 : node.getChildren()) {
-
-			print(child2, depth + 1);
-		}
-	}
-
 	public static String nameOrTag(final DOMNode node) {
 
 		if (node.getName() != null) {

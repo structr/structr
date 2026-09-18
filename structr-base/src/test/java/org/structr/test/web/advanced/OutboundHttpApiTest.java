@@ -197,8 +197,7 @@ public class OutboundHttpApiTest extends StructrTest {
 			assertEquals("FETCH must find options that sit in the content type slot", "fetch", lastHeaders.get("x-marker"));
 
 			// and the misplaced map must not also be sent as the content type
-			assertFalse("the options object must not become the content type",
-				String.valueOf(lastHeaders.get("content-type")).contains("X-Marker"));
+			assertFalse("the options object must not become the content type", String.valueOf(lastHeaders.get("content-type")).contains("X-Marker"));
 		});
 	}
 
@@ -257,8 +256,7 @@ public class OutboundHttpApiTest extends StructrTest {
 			final GraphObjectMap response = (GraphObjectMap) evaluate(ctx, "${GET('http://localhost:" + port + "/missing')}");
 
 			assertNotNull("an error status must come back as a response, not as an exception", response);
-			assertEquals("the server's status must be preserved", Integer.valueOf(404),
-				response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
+			assertEquals("the server's status must be preserved", Integer.valueOf(404), response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
 		});
 	}
 
@@ -272,8 +270,7 @@ public class OutboundHttpApiTest extends StructrTest {
 		final GraphObjectMap response = (GraphObjectMap) evaluate(ctx, "${GET('http://localhost:1/')}");
 
 		assertNotNull("an unreachable host must return a response, not throw", response);
-		assertEquals("no response means status 0", Integer.valueOf(0),
-			response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
+		assertEquals("no response means status 0", Integer.valueOf(0), response.getProperty(new IntProperty(HttpHelper.FIELD_STATUS)));
 	}
 
 	@Test
@@ -329,8 +326,7 @@ public class OutboundHttpApiTest extends StructrTest {
 			final String contentType = lastHeaders.get("content-type");
 
 			assertEquals("the mime type must survive the charset", "application/json", mimeOf(contentType));
-			assertTrue("the charset from the content type must be sent, got '" + contentType + "'",
-				contentType != null && contentType.toLowerCase().contains("iso-8859-1"));
+			assertTrue("the charset from the content type must be sent, got '" + contentType + "'", contentType != null && contentType.toLowerCase().contains("iso-8859-1"));
 		});
 	}
 
@@ -407,8 +403,8 @@ public class OutboundHttpApiTest extends StructrTest {
 		withServer(port -> {
 
 			final ActionContext ctx = new ActionContext(securityContext);
-
 			final GraphObjectMap raw = (GraphObjectMap) evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/json')}");
+
 			assertTrue("the response body must be a string by default", raw.toMap().get("body") instanceof String);
 
 			final GraphObjectMap parsed = (GraphObjectMap) evaluate(ctx, "${POST('http://localhost:" + port + "/', 'body', 'application/json', { parseResponse: true })}");
@@ -427,6 +423,7 @@ public class OutboundHttpApiTest extends StructrTest {
 			final ActionContext ctx = new ActionContext(securityContext);
 
 			for (final String script : new String[] {
+
 				"${GET('http://localhost:" + port + "/', 'text/plain', { timeout: 1 })}",
 				"${HEAD('http://localhost:" + port + "/', { timeout: 1 })}",
 				"${DELETE('http://localhost:" + port + "/', { timeout: 1 })}",
@@ -439,9 +436,11 @@ public class OutboundHttpApiTest extends StructrTest {
 				final long start = System.currentTimeMillis();
 
 				try {
+
 					Scripting.evaluate(ctx, null, script, "test");
 
 				} catch (FrameworkException expected) {
+
 					// a timeout may surface as an exception, which is fine
 				}
 
@@ -502,6 +501,7 @@ public class OutboundHttpApiTest extends StructrTest {
 			// HEAD used to hand back HttpHelper's raw map, where the status is a String, so a script
 			// comparing r.status to a number was right after POST and wrong after HEAD
 			for (final String script : new String[] {
+
 				"${GET('http://localhost:" + port + "/', 'text/plain')}",
 				"${HEAD('http://localhost:" + port + "/')}",
 				"${DELETE('http://localhost:" + port + "/')}",
@@ -517,8 +517,7 @@ public class OutboundHttpApiTest extends StructrTest {
 
 				final Object status = ((GraphObjectMap) result).toMap().get("status");
 
-				assertTrue(script + " must return an int status, got " + (status == null ? "null" : status.getClass().getSimpleName()),
-					status instanceof Integer);
+				assertTrue(script + " must return an int status, got " + (status == null ? "null" : status.getClass().getSimpleName()), status instanceof Integer);
 				assertEquals(script + " wrong status", 200, status);
 			}
 		});
@@ -560,6 +559,7 @@ public class OutboundHttpApiTest extends StructrTest {
 	private Object evaluate(final ActionContext ctx, final String script) {
 
 		try {
+
 			return Scripting.evaluate(ctx, null, script, "test");
 
 		} catch (FrameworkException fex) {
@@ -605,6 +605,7 @@ public class OutboundHttpApiTest extends StructrTest {
 		} finally {
 
 			if (server != null) {
+
 				server.stop(0);
 			}
 		}
@@ -624,6 +625,7 @@ public class OutboundHttpApiTest extends StructrTest {
 				lastMethod = exchange.getRequestMethod();
 
 				for (final String name : exchange.getRequestHeaders().keySet()) {
+
 					lastHeaders.put(name.toLowerCase(), exchange.getRequestHeaders().getFirst(name));
 				}
 
@@ -656,6 +658,7 @@ public class OutboundHttpApiTest extends StructrTest {
 				exchange.sendResponseHeaders(200, response.length);
 
 				try (final OutputStream out = exchange.getResponseBody()) {
+
 					out.write(response);
 				}
 			});
@@ -676,6 +679,7 @@ public class OutboundHttpApiTest extends StructrTest {
 		} finally {
 
 			if (server != null) {
+
 				server.stop(0);
 			}
 		}
@@ -683,6 +687,7 @@ public class OutboundHttpApiTest extends StructrTest {
 
 	@FunctionalInterface
 	private interface PortConsumer {
+
 		void accept(final int port) throws Exception;
 	}
 }

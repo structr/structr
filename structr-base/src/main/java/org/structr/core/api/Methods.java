@@ -30,13 +30,19 @@ import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  */
 public class Methods {
 
-	private static final Map<String, CacheEntry> methodCache = new LinkedHashMap<>();
+	/* Concurrent, and filled before it is published. resolveMethod() runs on every request thread, and
+	   clearMethodCache() runs from Actions.clearCache() after a schema compile, so a plain LinkedHashMap
+	   here had two threads writing and one clearing the same linked list. The old shape also put the empty
+	   CacheEntry into the map BEFORE the query filled it, so a second thread resolving the same name in
+	   that window was told the method does not exist. */
+	private static final Map<String, CacheEntry> methodCache = new ConcurrentHashMap<>();
 
 	public static Map<String, AbstractMethod> getAllMethods(final Traits traits) {
 
@@ -83,28 +89,21 @@ public class Methods {
 			CacheEntry cacheEntry = methodCache.get(methodName);
 			if (cacheEntry == null) {
 
-				cacheEntry = new CacheEntry();
-				methodCache.put(methodName, cacheEntry);
+				/* Resolved outside the map, then published. Not computeIfAbsent(): the lookup opens a
+				   transaction and a global method may resolve another one, and a mapping function that
+				   comes back to the same map is a recursive update ConcurrentHashMap refuses. Two threads
+				   racing here both run the query and one of the two equal entries wins, which costs a
+				   query and decides nothing. */
+				cacheEntry = resolveGlobalMethod(methodName);
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				final CacheEntry existing = methodCache.putIfAbsent(methodName, cacheEntry);
+				if (existing != null) {
 
-					final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
-					final NodeInterface method = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).key(schemaNodeKey, null).getFirst();
-
-					if (method != null) {
-
-						cacheEntry.method = new ScriptMethod(method.as(SchemaMethod.class));
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-
-					throw new RuntimeException(fex);
+					cacheEntry = existing;
 				}
 			}
 
-			return cacheEntry.method;
+			return cacheEntry.method();
 
 		} else {
 
@@ -120,8 +119,28 @@ public class Methods {
 	}
 
 	// ----- private static methods -----
-	private static class CacheEntry {
 
-		public AbstractMethod method = null;
+	/** Look up a global schema method by name. Returns an entry with a null method when there is none, because
+	    the absence is worth caching too - that is what the cache did before and what keeps a script that calls
+	    an undefined function from querying for it on every call. */
+	private static CacheEntry resolveGlobalMethod(final String methodName) {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
+			final NodeInterface method                     = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).key(schemaNodeKey, null).getFirst();
+			final CacheEntry entry                         = new CacheEntry(method != null ? new ScriptMethod(method.as(SchemaMethod.class)) : null);
+
+			tx.success();
+
+			return entry;
+
+		} catch (FrameworkException fex) {
+
+			throw new RuntimeException(fex);
+		}
 	}
+
+	/** final field, so an entry is safely published through the map without a volatile read on every hit. */
+	private record CacheEntry(AbstractMethod method) {}
 }

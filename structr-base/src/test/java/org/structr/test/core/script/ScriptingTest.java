@@ -9046,7 +9046,6 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			final String getLabelsCode = "${getLabels(me)}";
-
 			List labels = (List)Scripting.evaluate(actionContext, null, getLabelsCode, "getLabels");
 			final int baselineLabelCount = labels.size();
 
