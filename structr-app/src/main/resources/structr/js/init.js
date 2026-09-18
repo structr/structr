@@ -827,20 +827,13 @@ let Structr = {
 			// person arrives at login. Mirrors the in-memory database warning above.
 			if (envInfo.defaultCredentialsInUse === true && isLogin) {
 
-				let suppressDefaultCredentialsWarningKey = 'structrSuppressDefaultCredentialsWarning_' + location.port;
+				let defaultCredentialsWarningText = `
+					An administrator account on this instance still uses the default password.<br>
+					Anyone who can reach this instance can log in as an administrator.<br><br>
+					Please change the password now, and set '<b>initialuser.password</b>' before provisioning further instances.
+				`;
 
-				if (LSWrapper.getItem(suppressDefaultCredentialsWarningKey, false) === false) {
-
-					let defaultCredentialsWarningText = `
-						An administrator account on this instance still uses the default password.<br>
-						Anyone who can reach this instance can log in as an administrator.<br><br>
-						Please change the password now, and set '<b>initialuser.password</b>' before provisioning further instances.
-					`;
-
-					new WarningMessage().text(defaultCredentialsWarningText).requiresConfirmation().specialInteractionButton('I understand - do not remind me', () => {
-						LSWrapper.setItem(suppressDefaultCredentialsWarningKey, true);
-					}).show();
-				}
+				new WarningMessage().text(defaultCredentialsWarningText).requiresConfirmation().show();
 			}
 
 			let deploymentActive = (envInfo.isDeploymentActive ?? false);
