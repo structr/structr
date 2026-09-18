@@ -94,6 +94,8 @@ public class ExportParser {
 		// and keying it on a missing id would silently drop every agent from the comparison.
 		array("modules/ai/llm-agents.json",   Kind.LLM_AGENT,       byIdOrElse("name"), byMember("name"));
 
+		dataRecords();
+
 		bpmnNodes();
 		schema();
 		schemaSources();
@@ -182,6 +184,59 @@ public class ExportParser {
 
 			entities.add(new Entity(kind, primary, alternateKey != null ? alternateKey.apply(value) : null, null, string(value, "name"), attributes(value, "id"), null, null, path));
 		}
+	}
+
+	/**
+	 * A DATA export: nodes/<Type>.json and relationships/<RelType>.json.
+	 *
+	 * <p>A different tree from an app export, and without this the parser reads nothing out of one and the
+	 * comparison answers full agreement over a deployment that would rewrite every record. The same tree
+	 * appears one level down as data/ inside an app archive, which is why the prefix is optional.</p>
+	 */
+	private void dataRecords() throws IOException {
+
+		for (final String path : source.paths()) {
+
+			if (!path.endsWith(".json")) {
+
+				continue;
+			}
+
+			// anchored at the root of the archive, so a type called "nodes" somewhere else is not mistaken for it
+			final String relative = path.startsWith("data/") ? path.substring("data/".length()) : path;
+
+			if (relative.startsWith("nodes/")) {
+
+				array(path, Kind.RECORD, byId(), null);
+
+			} else if (relative.startsWith("relationships/")) {
+
+				array(path, Kind.RECORD_LINK, byEndpoints(), byId());
+			}
+		}
+	}
+
+	/**
+	 * A link is identified by what it connects, not by its own uuid.
+	 *
+	 * A relationship uuid does not survive a deployment: the import recreates every edge with
+	 * app.create(source, target, type), so keying on it would report every link as removed and added again.
+	 * The node uuids on either end do survive, so the pair plus the type is the identity that holds.
+	 */
+	private static Function<JsonObject, String> byEndpoints() {
+
+		return o -> {
+
+			final String sourceId = string(o, "sourceId");
+			final String targetId = string(o, "targetId");
+
+			if (sourceId == null || targetId == null) {
+
+				return string(o, "id");
+			}
+
+			return sourceId + "|" + string(o, "relType") + "|" + targetId;
+		};
 	}
 
 	private void markup(final String folder) throws IOException {

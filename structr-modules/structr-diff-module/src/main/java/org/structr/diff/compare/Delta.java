@@ -20,6 +20,8 @@ package org.structr.diff.compare;
 
 import org.structr.diff.model.Entity;
 
+import java.util.List;
+
 /**
  * One difference between two exports.
  *
@@ -61,10 +63,28 @@ public class Delta {
 	private final String origin;
 	private final MatchedBy matchedBy;
 	private final Detail detailCode;
+	private final List<Change> changes;
+
+	/**
+	 * One attribute and what it became.
+	 *
+	 * A count of differences answers how much changed and never what, and the values are known at the
+	 * moment the comparison finds them. Long values are cut rather than dropped, and say so, because a
+	 * reader who cannot tell a cut from the real content learns the wrong thing.
+	 */
+	public record Change(String attribute, String from, String to, boolean truncated, int fromLength, int toLength) {}
+
 	private Signal signal = Signal.NORMAL;
 	private String signalReason;
 
 	public Delta(final String kind, final String key, final Operation operation, final String name, final Detail detailCode, final String detail, final String origin, final MatchedBy matchedBy) {
+
+		this(kind, key, operation, name, detailCode, detail, origin, matchedBy, List.of());
+	}
+
+	public Delta(final String kind, final String key, final Operation operation, final String name, final Detail detailCode, final String detail, final String origin, final MatchedBy matchedBy, final List<Change> changes) {
+
+		this.changes = changes;
 
 		this.kind       = kind;
 		this.key        = key;
@@ -74,6 +94,11 @@ public class Delta {
 		this.detail     = detail;
 		this.origin     = origin;
 		this.matchedBy  = matchedBy;
+	}
+
+	public List<Change> getChanges() {
+
+		return changes;
 	}
 
 	public static Delta added(final Entity e) {

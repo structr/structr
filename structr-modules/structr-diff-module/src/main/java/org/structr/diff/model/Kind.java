@@ -52,5 +52,9 @@ public final class Kind {
 	public static final String BPMN_NODE         = "BpmnNode";
 	public static final String CONFIG_FILE       = "ConfigFile";
 
+	/** A data export: one record of an application type, and one link between two of them. */
+	public static final String RECORD            = "Record";
+	public static final String RECORD_LINK       = "RecordLink";
+
 	private Kind() {}
 }
