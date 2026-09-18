@@ -81,6 +81,7 @@ public class DeployDataCommand extends DeployCommand {
 	public final static String DO_OUTER_CALLBACKS_PARAMETER_NAME  = "doOuterCallbacks";
 	public final static String DO_CASCADING_DELETE_PARAMETER_NAME = "doCascadingDelete";
 	public final static String IMPORT_MODE_PARAMETER_NAME         = "importMode";
+	public final static String FORCE_PARAMETER_NAME               = "force";
 
 	/**
 	 * What an import does with a record the target already has under the same uuid.
@@ -131,6 +132,25 @@ public class DeployDataCommand extends DeployCommand {
 
 		node.getPropertyContainer().setProperties(entry);
 		node.addToIndex();
+	}
+
+	/**
+	 * Refuses a data import on an instance that calls itself production.
+	 *
+	 * <p>The platform cannot tell a production instance from any other: this reads the name the instance
+	 * was given, so it protects only an instance that opted in by naming itself, and it is deliberately
+	 * overridable. That is the whole of what a configuration value can honestly do here, and it is still
+	 * worth doing, because the case it catches is a dev export reaching a live system, where the damage is
+	 * done by the time anyone reads a log line.</p>
+	 */
+	private void refuseOnProductionUnlessForced(final Object force) throws FrameworkException {
+
+		if ("production".equals(Settings.InstanceStage.getValue("")) && !"true".equals(String.valueOf(force))) {
+
+			throw new ImportPreconditionFailedException("Data Deployment Import not started",
+				"This instance is configured as '" + Settings.InstanceStage.getKey() + " = production'. A data import "
+				+ "replaces records by uuid and is not meant for a live system. Pass " + FORCE_PARAMETER_NAME + "=true to proceed anyway.");
+		}
 	}
 
 	/** An unknown mode is refused rather than silently treated as the destructive default. */
@@ -386,6 +406,8 @@ public class DeployDataCommand extends DeployCommand {
 			doOuterCallbacks  = parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME).toString());
 			doCascadingDelete = parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME).toString());
 			importMode        = importModeFrom(parameters.get(IMPORT_MODE_PARAMETER_NAME));
+
+			refuseOnProductionUnlessForced(parameters.get(FORCE_PARAMETER_NAME));
 
 			doImportFromDirectory(source);
 
