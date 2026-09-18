@@ -1184,8 +1184,16 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 					try {
 
-						// try to load class and find source code origin
-						final Class candidate = Class.forName(value);
+						/* try to load class and find source code origin
+
+						   initialize = false: this loop feeds every whitespace-separated token of every value in
+						   structr.conf to Class.forName(), so any configuration entry that happens to name a
+						   loadable class used to have its static initializer run at startup - to answer a
+						   question that only needs getName() and getProtectionDomain(), neither of which
+						   requires an initialized class. Same defect as in JarConfigurationProvider, see ticket 994.
+						   The loader stays the one the one-argument call used, so which classes resolve does
+						   not change - only whether they are initialized. */
+						final Class candidate = Class.forName(value, false, Services.class.getClassLoader());
 						if (!candidate.getName().startsWith("org.structr")) {
 
 							final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();
