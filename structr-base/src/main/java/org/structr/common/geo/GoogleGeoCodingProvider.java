@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.geo.GeoCodingResult.Type;
@@ -94,22 +93,19 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 				urlBuffer.append("&key=").append(apiKey);
 			}
 
-			URL mapsUrl                  = new URL(urlBuffer.toString());
-			HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
+			final URL mapsUrl                  = new URL(urlBuffer.toString());
+			final HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
 
 			connection.connect();
 
-			SAXReader reader  = new SAXReader();
+			try (final BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 
-			// Protect against external entity expansion
-			reader.setIncludeExternalDTDDeclarations(false);
+				xmlDoc = newSecureSAXReader().read(rd);
 
-			BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			} finally {
 
-			xmlDoc = reader.read(rd);
-
-			connection.disconnect();
-			rd.close();
+				connection.disconnect();
+			}
 
 		} catch (final IOException ioe) {
 

@@ -322,8 +322,7 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 				.when()
 					.post("/doScriptedLogin");
 
-			assertTrue("login() opened a session for an account that the configuration says needs a second factor",
-				sessionIdsOf("scripted").isEmpty());
+			assertTrue("login() opened a session for an account that the configuration says needs a second factor", sessionIdsOf("scripted").isEmpty());
 
 		} finally {
 
@@ -360,8 +359,7 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 				.when()
 					.post("/doScriptedLogin");
 
-			assertFalse("login() did not open a session for an account that needs no second factor",
-				sessionIdsOf("ordinary").isEmpty());
+			assertFalse("login() did not open a session for an account that needs no second factor", sessionIdsOf("ordinary").isEmpty());
 
 		} finally {
 
@@ -466,7 +464,6 @@ public class TwoFactorAuthenticationTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.nodeQuery(StructrTraits.USER).name(name).getFirst();
-
 			if (node == null) {
 
 				fail("user " + name + " was not created");

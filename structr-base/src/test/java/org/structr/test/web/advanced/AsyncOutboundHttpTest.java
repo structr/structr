@@ -76,15 +76,13 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 	private Object wrapped(final String source) throws FrameworkException {
 
-		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncHttpTest", null,
-			ScriptConfig.builder().wrapJsInMain(true).build());
+		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncHttpTest", null, ScriptConfig.builder().wrapJsInMain(true).build());
 	}
 
 	/** Evaluated as a module answering its completion value, as an inline ${{ }} does. */
 	private Object unwrapped(final String source) throws FrameworkException {
 
-		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncHttpTest", null,
-			ScriptConfig.builder().wrapJsInMain(false).build());
+		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncHttpTest", null, ScriptConfig.builder().wrapJsInMain(false).build());
 	}
 
 	/**
@@ -137,6 +135,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				final Map<String, String> headers = new ConcurrentHashMap<>();
 
 				for (final String name : exchange.getRequestHeaders().keySet()) {
+
 					headers.put(name.toLowerCase(), exchange.getRequestHeaders().getFirst(name));
 				}
 
@@ -165,6 +164,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				exchange.sendResponseHeaders(allArrived ? 200 : 500, response.length);
 
 				try (final OutputStream out = exchange.getResponseBody()) {
+
 					out.write(response);
 				}
 			});
@@ -182,11 +182,13 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		} finally {
 
 			if (server != null) {
+
 				server.stop(0);
 			}
 
 			// server.stop() does not touch an executor it was given
 			if (dispatcher != null) {
+
 				dispatcher.shutdownNow();
 			}
 		}
@@ -215,7 +217,6 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			server.createContext("/", exchange -> {
 
 				final String path = exchange.getRequestURI().getPath();
-
 				if (path.startsWith("/slow")) {
 
 					try {
@@ -234,6 +235,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				exchange.sendResponseHeaders(200, response.length);
 
 				try (final OutputStream out = exchange.getResponseBody()) {
+
 					out.write(response);
 				}
 			});
@@ -250,10 +252,12 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		} finally {
 
 			if (server != null) {
+
 				server.stop(0);
 			}
 
 			if (dispatcher != null) {
+
 				dispatcher.shutdownNow();
 			}
 		}
@@ -261,6 +265,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 	@FunctionalInterface
 	private interface PortConsumer {
+
 		void accept(final int port) throws Exception;
 	}
 
@@ -275,8 +280,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			// all three started before anything is awaited: that is where the concurrency comes from, not
 			// from the await, which only joins them
-			final Object result = wrapped(
-				  "const a = $.GET(" + url + ", { async: true });"
+			final Object result = wrapped("const a = $.GET(" + url + ", { async: true });"
 				+ "const b = $.GET(" + url + ", { async: true });"
 				+ "const c = $.GET(" + url + ", { async: true });"
 				+ "const r = await Promise.all([a, b, c]);"
@@ -294,9 +298,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withRendezvousServer(2, 3, port -> {
 
 			final String url = "'http://localhost:" + port + "/'";
-
-			final Object result = wrapped(
-				  "const a = $.GET(" + url + ");"
+			final Object result = wrapped("const a = $.GET(" + url + ");"
 				+ "const b = $.GET(" + url + ");"
 				+ "return a.status + ',' + b.status;");
 
@@ -311,9 +313,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			final String slow    = "'http://localhost:" + port + "/slow'";
 			final String release = "'http://localhost:" + port + "/release'";
-
-			final Object result = wrapped(
-				  "$.addHeader('X-Early', 'yes');"
+			final Object result = wrapped("$.addHeader('X-Early', 'yes');"
 				+ "const p = $.GET(" + slow + ", { async: true });"
 				+ "$.addHeader('X-Late', 'yes');"          // after the call was started: must not reach it
 				+ "const r2 = $.GET(" + release + ");"      // lets the rendezvous complete
@@ -339,9 +339,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withRendezvousServer(3, 20, port -> {
 
 			final String base = "'http://localhost:" + port;
-
-			final Object result = wrapped(
-				  "const a = $.GET(" + base + "/a', { async: true });"
+			final Object result = wrapped("const a = $.GET(" + base + "/a', { async: true });"
 				+ "const b = $.GET(" + base + "/b', { async: true });"
 				+ "const c = $.GET(" + base + "/c', { async: true });"
 				+ "const r = await Promise.all([c, a, b]);"
@@ -358,8 +356,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			// port 1 is not listening, so both forms fail in the same place for the same reason; what is
 			// asserted is that they are indistinguishable, not what either of them says
-			final Object result = wrapped(
-				  "const dead = 'http://localhost:1/';"
+			final Object result = wrapped("const dead = 'http://localhost:1/';"
 				+ "let s, a;"
 				+ "try { const r = $.GET(dead); s = 'ok:' + (r === null ? 'null' : r.status); } catch (e) { s = 'err:' + e; }"
 				+ "try { const r = await $.GET(dead, { async: true }); a = 'ok:' + (r === null ? 'null' : r.status); } catch (e) { a = 'err:' + e; }"
@@ -388,8 +385,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// returning one without awaiting it is answered, not rejected.
 			final Object result = unwrapped("$.GET('http://localhost:" + port + "/x', { async: true })");
 
-			assertEquals("a pending call returned without await must still be resolved", "/x",
-				((org.structr.core.GraphObjectMap) result).toMap().get("body"));
+			assertEquals("a pending call returned without await must still be resolved", "/x", ((org.structr.core.GraphObjectMap) result).toMap().get("body"));
 		});
 	}
 
@@ -428,8 +424,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			final Object result = unwrapped("$.GET('http://localhost:1/', { async: true })");
 
 			assertNotNull("an unreachable host must resolve, not answer null", result);
-			assertEquals("no response means status 0", "0",
-				((org.structr.core.GraphObjectMap) result).toMap().get("status").toString());
+			assertEquals("no response means status 0", "0", ((org.structr.core.GraphObjectMap) result).toMap().get("status").toString());
 
 		} catch (final FrameworkException fex) {
 
@@ -447,14 +442,11 @@ public class AsyncOutboundHttpTest extends StructrTest {
 
 			// The pending result is a thenable, not a Promise, so chaining directly off it is unavailable.
 			// If it ever becomes a real promise, these assertions are what report the change.
-			assertEquals("chaining directly off the pending result is not available", "undefined",
-				wrapped("return typeof $.GET(" + url + ", { async: true }).catch;"));
+			assertEquals("chaining directly off the pending result is not available", "undefined", wrapped("return typeof $.GET(" + url + ", { async: true }).catch;"));
 
-			assertEquals("the documented chaining form works", "function",
-				wrapped("return typeof Promise.resolve($.GET(" + url + ", { async: true })).catch;"));
+			assertEquals("the documented chaining form works", "function", wrapped("return typeof Promise.resolve($.GET(" + url + ", { async: true })).catch;"));
 
-			assertEquals("await is unaffected", 200,
-				wrapped("const r = await $.GET(" + url + ", { async: true }); return r.status;"));
+			assertEquals("await is unaffected", 200, wrapped("const r = await $.GET(" + url + ", { async: true }); return r.status;"));
 		});
 	}
 
@@ -466,8 +458,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		// because the first element is fully settled before the second one's reaction is registered.
 		withPacedServer(600, port -> {
 
-			final Object result = wrapped(
-				  "const slow = $.GET('http://localhost:" + port + "/slow', { async: true });"
+			final Object result = wrapped("const slow = $.GET('http://localhost:" + port + "/slow', { async: true });"
 				+ "const fast = $.GET('http://localhost:" + port + "/fast', { async: true });"
 				+ "const r = await Promise.race([slow, fast]);"
 				+ "return r.body;");
@@ -484,8 +475,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		// that reordered all() would still satisfy that one.
 		withPacedServer(600, port -> {
 
-			final Object result = wrapped(
-				  "const slow = $.GET('http://localhost:" + port + "/slow', { async: true });"
+			final Object result = wrapped("const slow = $.GET('http://localhost:" + port + "/slow', { async: true });"
 				+ "const fast = $.GET('http://localhost:" + port + "/fast', { async: true });"
 				+ "const rs = await Promise.all([slow, fast]);"
 				+ "return rs.map(r => r.body).join(',');");
@@ -505,11 +495,9 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			// different machinery underneath -- worth its own test.
 			final Object result = wrapped("return $.GET('http://localhost:" + port + "/w', { async: true });");
 
-			assertEquals("what the caller gets must be the response, not the pending call",
-				"/w", ((org.structr.core.GraphObjectMap) result).toMap().get("body"));
+			assertEquals("what the caller gets must be the response, not the pending call", "/w", ((org.structr.core.GraphObjectMap) result).toMap().get("body"));
 
-			assertEquals("its status must be readable as usual", 200,
-				((org.structr.core.GraphObjectMap) result).toMap().get("status"));
+			assertEquals("its status must be readable as usual", 200, ((org.structr.core.GraphObjectMap) result).toMap().get("status"));
 		});
 	}
 
@@ -524,7 +512,6 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withRendezvousServer(1, 20, port -> {
 
 			final String a = "'http://localhost:" + port + "/a'";
-
 			final String fromUnwrapped = unwrapped("$.GET(" + a + ", { async: true })").toString();
 
 			assertTrue("the comparison is only meaningful if the call actually succeeded", fromUnwrapped.contains("status=200"));
@@ -542,7 +529,6 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		withRendezvousServer(2, 20, port -> {
 
 			final String pair = "Promise.all([$.GET('http://localhost:" + port + "/a', { async: true }), $.GET('http://localhost:" + port + "/b', { async: true })])";
-
 			final String fromUnwrapped = unwrapped(pair).toString();
 
 			assertTrue("the comparison is only meaningful if both calls actually succeeded",
@@ -576,8 +562,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 		// a barrier of two, because this makes two and they must overlap
 		withRendezvousServer(2, 20, port -> {
 
-			assertEquals("and to await several of them concurrently", "/a,/b",
-				unwrapped("(async () => { const r = await Promise.all(["
+			assertEquals("and to await several of them concurrently", "/a,/b", unwrapped("(async () => { const r = await Promise.all(["
 					+ "$.GET('http://localhost:" + port + "/a', { async: true }), "
 					+ "$.GET('http://localhost:" + port + "/b', { async: true })"
 					+ "]); return r.map(x => x.body).join(','); })()"));
@@ -615,16 +600,14 @@ public class AsyncOutboundHttpTest extends StructrTest {
 			final long tookWrapped    = System.currentTimeMillis() - startedWrapped;
 
 			assertEquals("the race must still answer the call that finished first", "/fast", fromWrapped);
-			assertTrue("a wrapped race must not wait for the call it beat, but took " + tookWrapped + "ms",
-				tookWrapped < BEAT_CALL_BUDGET_MILLIS);
+			assertTrue("a wrapped race must not wait for the call it beat, but took " + tookWrapped + "ms", tookWrapped < BEAT_CALL_BUDGET_MILLIS);
 
 			final long startedUnwrapped = System.currentTimeMillis();
 			final Object fromUnwrapped  = unwrapped("(async () => {" + body + " return r.body; })()");
 			final long tookUnwrapped    = System.currentTimeMillis() - startedUnwrapped;
 
 			assertEquals("an unwrapped race must answer the same", "/fast", fromUnwrapped);
-			assertTrue("an unwrapped race must not wait for the call it beat, but took " + tookUnwrapped + "ms",
-				tookUnwrapped < BEAT_CALL_BUDGET_MILLIS);
+			assertTrue("an unwrapped race must not wait for the call it beat, but took " + tookUnwrapped + "ms", tookUnwrapped < BEAT_CALL_BUDGET_MILLIS);
 		});
 	}
 
@@ -645,8 +628,7 @@ public class AsyncOutboundHttpTest extends StructrTest {
 				wrapped("$.print('before|'); const r = await $.GET('http://localhost:" + port + "/a', { async: true });"
 					+ " $.print('after|'); return r.status;"));
 
-			assertEquals("and in an unwrapped one", "before|after|",
-				unwrapped("(async () => { $.print('before|');"
+			assertEquals("and in an unwrapped one", "before|after|", unwrapped("(async () => { $.print('before|');"
 					+ " const r = await $.GET('http://localhost:" + port + "/a', { async: true });"
 					+ " $.print('after|'); return r.status; })()"));
 		});

@@ -54,8 +54,7 @@ public class AsyncFunctionTest extends StructrTest {
 
 	private Object wrapped(final String source) throws FrameworkException {
 
-		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncFunctionTest", null,
-			ScriptConfig.builder().wrapJsInMain(true).build());
+		return Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "asyncFunctionTest", null, ScriptConfig.builder().wrapJsInMain(true).build());
 	}
 
 	// ----- the opt-in itself -----
@@ -75,8 +74,7 @@ public class AsyncFunctionTest extends StructrTest {
 			assertTrue(name + "() must be async-capable", func.isAsyncCapable());
 		}
 
-		assertFalse("POSTMultiPart() must NOT inherit async-capability from POST(): it reads File nodes and their storage providers",
-			Functions.get("POSTMultiPart").isAsyncCapable());
+		assertFalse("POSTMultiPart() must NOT inherit async-capability from POST(): it reads File nodes and their storage providers", Functions.get("POSTMultiPart").isAsyncCapable());
 
 		for (final String name : Functions.getNames()) {
 
@@ -98,8 +96,7 @@ public class AsyncFunctionTest extends StructrTest {
 			// the function object itself. GraalJS asks isMemberReadable before it reads, so a hasMember that
 			// answered true here would make $.GET.async readable and then null.
 			assertEquals("$.GET.async must not exist", "undefined", wrapped("return typeof $.GET.async;"));
-			assertEquals("async must not be enumerable on a function either", false,
-				wrapped("return Object.keys($.GET).includes('async');"));
+			assertEquals("async must not be enumerable on a function either", false, wrapped("return Object.keys($.GET).includes('async');"));
 
 			// the real namespaced members still resolve
 			assertEquals("namespaced members must be unaffected", "function", wrapped("return typeof $.log.warn;"));
@@ -126,11 +123,9 @@ public class AsyncFunctionTest extends StructrTest {
 			//
 			// An unreachable host is what distinguishes refusing from running: a call that ran would answer a
 			// response with status 0, and only a refused one answers null.
-			assertNull("StructrScript must refuse the async option",
-				Scripting.evaluate(ctx, null, "${GET('http://localhost:1/', {async: true})}", "test"));
+			assertNull("StructrScript must refuse the async option", Scripting.evaluate(ctx, null, "${GET('http://localhost:1/', {async: true})}", "test"));
 
-			assertNotNull("the same call without the option must still be made",
-				Scripting.evaluate(ctx, null, "${GET('http://localhost:1/')}", "test"));
+			assertNotNull("the same call without the option must still be made", Scripting.evaluate(ctx, null, "${GET('http://localhost:1/')}", "test"));
 
 			tx.success();
 
@@ -149,8 +144,7 @@ public class AsyncFunctionTest extends StructrTest {
 			// POSTMultiPart does not list async among the options it accepts, so it reports it as an unknown
 			// one. That is the whole mechanism for a function whose apply() may not leave the calling thread:
 			// nothing has to be undone beyond the isAsyncCapable() override it already carries.
-			assertNull("a function that is not async-capable must refuse the async option",
-				wrapped("return $.POSTMultiPart('http://localhost:1/', { part: 'x' }, { async: true });"));
+			assertNull("a function that is not async-capable must refuse the async option", wrapped("return $.POSTMultiPart('http://localhost:1/', { part: 'x' }, { async: true });"));
 
 			tx.success();
 
@@ -237,8 +231,7 @@ public class AsyncFunctionTest extends StructrTest {
 
 		try {
 
-			Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "rejectionTest", null,
-				ScriptConfig.builder().wrapJsInMain(false).build());
+			Actions.execute(securityContext, null, "${{" + source + "}}", Collections.EMPTY_MAP, "rejectionTest", null, ScriptConfig.builder().wrapJsInMain(false).build());
 
 			return "DID NOT THROW";
 

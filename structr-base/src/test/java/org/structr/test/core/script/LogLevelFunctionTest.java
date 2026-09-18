@@ -63,12 +63,12 @@ public class LogLevelFunctionTest extends StructrTest {
 		final ActionContext ctx = new ActionContext(securityContext);
 
 		for (final String script : new String[] {
-			"${log.warn('warned')}", "${log.warning('warned via the alias')}",
-			"${log.error('failed')}", "${log.info('noted')}", "${log.debug('detail')}",
-			"${log('plain log still works')}"
+
+			"${log.warn('warned')}", "${log.warning('warned via the alias')}", "${log.error('failed')}", "${log.info('noted')}", "${log.debug('detail')}", "${log('plain log still works')}"
 		}) {
 
 			try {
+
 				Scripting.evaluate(ctx, null, script, "test");
 
 			} catch (FrameworkException fex) {
@@ -85,12 +85,14 @@ public class LogLevelFunctionTest extends StructrTest {
 
 		// $.log is executable AND carries the levels as members
 		for (final String script : new String[] {
+
 			"${{ $.log.warn('warned'); }}", "${{ $.log.warning('warned via the alias'); }}",
 			"${{ $.log.error('failed'); }}", "${{ $.log.info('noted'); }}", "${{ $.log.debug('detail'); }}",
 			"${{ $.log('plain log still works'); }}"
 		}) {
 
 			try {
+
 				Scripting.evaluate(ctx, null, script, "test");
 
 			} catch (FrameworkException fex) {

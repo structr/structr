@@ -18,6 +18,8 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -40,6 +42,8 @@ import java.util.*;
  *
  */
 public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper implements AbstractSchemaNode {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractSchemaNodeTraitWrapper.class);
 
 	public AbstractSchemaNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 
@@ -348,7 +352,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 
 				} else {
 
-					System.out.println("ignoring property " + propertyName + " because types are identical: " + propertyType1);
+					logger.debug("Ignoring property {} because the types are identical: {}", propertyName, propertyType1);
 				}
 			}
 		}

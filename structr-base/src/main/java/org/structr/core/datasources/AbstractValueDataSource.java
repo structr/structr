@@ -18,6 +18,8 @@
  */
 package org.structr.core.datasources;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.ChannelInput;
@@ -37,6 +39,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public abstract class AbstractValueDataSource<T extends GraphObject> implements Channel<T> {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractValueDataSource.class);
 
 	protected final String name;
 	protected ComponentConfiguration configuration;
@@ -153,7 +157,7 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 
 		} else {
 
-			System.out.println("DataSource " + name + " has no dataType.");
+			logger.warn("DataSource {} has no dataType.", name);
 		}
 
 		return output;

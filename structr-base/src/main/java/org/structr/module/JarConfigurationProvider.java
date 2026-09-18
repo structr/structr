@@ -213,7 +213,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			try {
 
-				final Class clazz = Class.forName(className);
+				/* initialize = false: everything below reads annotations, and an annotation is available once
+				   the class is loaded - running its static initializer first is work nobody asked for, on every
+				   class the index names, at every startup. A static initializer can open files, start
+				   threads or throw, and the catch below would turn that into "Unable to load documented class"
+				   and silently drop the class from the documentation. See ticket 994.
+
+				   The loader is deliberately the one the one-argument Class.forName() used, so this changes
+				   whether a class is initialized and nothing about which classes resolve. Note that it is NOT the
+				   loader DOCUMENTED_CLASSES_INDEX is read with, because classLoader() prefers the context loader.
+				   Lining the two up would be the more consistent thing to do, and it becomes reachable once a
+				   drop-in from plugins/ brings its own index, but it changes resolution behaviour and the test
+				   suite cannot show that: the tests run on the class path, where the two loaders agree, and the
+				   difference only appears on the module path. */
+				final Class clazz = Class.forName(className, false, JarConfigurationProvider.class.getClassLoader());
 
 				classNames.add(className);
 

@@ -22,14 +22,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.geo.GeoCodingResult.Type;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.LinkedHashMap;
@@ -50,7 +49,9 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		if (apiKey != null && !apiKey.isEmpty()) {
 
-			StringBuilder urlBuffer = new StringBuilder("http://dev.virtualearth.net/REST/v1/Locations");
+			/* https, not http: the api key is a query parameter, so over cleartext it is readable by anyone on
+			   the path, who can also rewrite the XML response that is parsed below. */
+			StringBuilder urlBuffer = new StringBuilder("https://dev.virtualearth.net/REST/v1/Locations");
 
 			// api key
 			urlBuffer.append("?key=").append(apiKey);
@@ -102,29 +103,36 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 			try {
 
-				logger.info("Using url {}", url);
+				// the api key is a query parameter of this url, so the url itself never goes into the log
+				logger.debug("Geocoding via Bing: {} {}, {} {}", street, house, postalCode, city);
 
-				URL mapsUrl                  = new URL(urlBuffer.toString());
-				HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
+				final URL mapsUrl                  = new URL(url);
+				final HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
+
+				final Document xmlDoc;
 
 				connection.connect();
 
-				Reader reader        = new InputStreamReader(connection.getInputStream());
-				SAXReader saxReader  = new SAXReader();
+				/* BufferedReader, because the BOM check below reads one character and puts it back. The
+				   InputStreamReader this used to be does not support mark/reset, so reset() threw
+				   "reset() not supported" for every response that did NOT start with a BOM -- which is
+				   every ordinary one, and this provider never returned a result. */
+				try (final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 
-				// skip leading 0xFEFF character if present
-				if (reader.read() != 65279) {
+					// skip leading 0xFEFF character if present
+					reader.mark(1);
 
-					reader.reset();
+					if (reader.read() != 65279) {
+
+						reader.reset();
+					}
+
+					xmlDoc = newSecureSAXReader().read(reader);
+
+				} finally {
+
+					connection.disconnect();
 				}
-
-				// Protect against external entity expansion
-				saxReader.setIncludeExternalDTDDeclarations(false);
-
-				Document xmlDoc = saxReader.read(reader);
-
-				connection.disconnect();
-				reader.close();
 
 				if (xmlDoc != null) {
 

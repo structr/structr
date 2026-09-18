@@ -144,7 +144,6 @@ public class StructrTest {
 		app = StructrApp.getInstance(securityContext);
 	}
 
-
 	@AfterClass(alwaysRun = true)
 	public void teardown() {
 
