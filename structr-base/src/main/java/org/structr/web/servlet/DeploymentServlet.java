@@ -85,7 +85,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		DeployDataCommand.IMPORT_MODE_PARAMETER_NAME,
 		DeployDataCommand.DO_CASCADING_DELETE_PARAMETER_NAME,
 		DeployDataCommand.DO_INNER_CALLBACKS_PARAMETER_NAME,
-		DeployDataCommand.DO_OUTER_CALLBACKS_PARAMETER_NAME
+		DeployDataCommand.DO_OUTER_CALLBACKS_PARAMETER_NAME,
+		DeployDataCommand.FORCE_PARAMETER_NAME
 	};
 	private static final int MEGABYTE                         = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD                 = 10 * MEGABYTE;  // above 10 MB, files are stored on disk

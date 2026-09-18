@@ -125,7 +125,7 @@ public class Settings {
 	// general settings
 	public static final Setting<String> ApplicationTitle            = new StringSetting(generalGroup,          "Application", "application.title",                            "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
 	public static final Setting<String> InstanceName                = new StringSetting(generalGroup,          "Application", "application.instance.name",                    "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
-	public static final Setting<String> InstanceStage               = new StringSetting(generalGroup,          "Application", "application.instance.stage",                   "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
+	public static final Setting<String> InstanceStage               = new ChoiceSetting(generalGroup,          "Application", "application.instance.stage",                   "", Settings.getInstanceStageOptions(), "The stage of the Structr instance (displayed in the top right corner of structr-ui). Naming the stage lets an operation that is dangerous on a live system, a data deployment for example, recognise where it is running.");
 	public static final Setting<Integer> CypherConsoleMaxResults    = new IntegerSetting(generalGroup,         "Application", "application.console.cypher.maxresults",        10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
 	public static final Setting<Boolean> EnforceRuntime             = new BooleanSetting(generalGroup,         "Application", "application.runtime.enforce.recommended",      false, "Enforces version check for Java runtime.");
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
@@ -1395,6 +1395,27 @@ public class Settings {
 		options.put(POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes");
 		options.put(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes");
 		options.put(POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)");
+
+		return options;
+	}
+
+	/**
+	 * The stages an instance can name itself.
+	 *
+	 * A choice rather than free text so the value can be read by something other than a human: a label
+	 * nobody agrees on tells an operation nothing about where it is about to run. The empty entry is the
+	 * default and means the instance has not said, which every reader has to treat as unknown rather than
+	 * as safe.
+	 */
+	public static Map<String, String> getInstanceStageOptions() {
+
+		final Map<String, String> options = new LinkedHashMap();
+
+		options.put("", "");
+		options.put("dev", "Development");
+		options.put("test", "Test");
+		options.put("staging", "Staging");
+		options.put("production", "Production");
 
 		return options;
 	}

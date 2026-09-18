@@ -19,6 +19,7 @@
 package org.structr.test.web.advanced;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
@@ -173,6 +174,100 @@ public class DataImportModeTest extends StructrUiTest {
 			fail("Unexpected exception: " + t.getMessage());
 
 		} finally {
+
+			cleanUp(archive);
+		}
+	}
+
+	@Test
+	public void testAnInstanceThatCallsItselfProductionRefusesADataImport() {
+
+		Path archive             = null;
+		final String previousStage = Settings.InstanceStage.getValue("");
+
+		try {
+
+			createModeSchema();
+
+			final String id = createItem("from-archive");
+
+			archive = export();
+
+			rename(id, "live-data");
+
+			Settings.InstanceStage.setValue("production");
+
+			final DeployDataCommand cmd      = app.command(DeployDataCommand.class);
+			final Map<String, Object> params = new HashMap<>();
+
+			params.put("mode", "import");
+			params.put("source", archive.toString());
+
+			cmd.execute(params);
+
+			assertEquals("a data import into a production instance should be refused", 422, cmd.getCommandStatusCode());
+			assertEquals("the refused import must not have touched the data", "live-data", nameOf(id));
+
+			// the guard is a warning, not a wall: it is overridable, because the platform cannot actually know
+			final DeployDataCommand forced    = app.command(DeployDataCommand.class);
+			final Map<String, Object> forcedParams = new HashMap<>();
+
+			forcedParams.put("mode", "import");
+			forcedParams.put("source", archive.toString());
+			forcedParams.put("force", "true");
+
+			forced.execute(forcedParams);
+
+			assertEquals("a forced import proceeds", "from-archive", nameOf(id));
+
+		} catch (final Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception: " + t.getMessage());
+
+		} finally {
+
+			Settings.InstanceStage.setValue(previousStage);
+
+			cleanUp(archive);
+		}
+	}
+
+	@Test
+	public void testAnyOtherStageImportsNormally() {
+
+		Path archive               = null;
+		final String previousStage = Settings.InstanceStage.getValue("");
+
+		try {
+
+			createModeSchema();
+
+			final String id = createItem("from-archive");
+
+			archive = export();
+
+			rename(id, "changed");
+
+			// only "production" refuses; an unnamed or differently named instance is not second-guessed
+			for (final String stage : new String[] { "", "dev", "staging" }) {
+
+				Settings.InstanceStage.setValue(stage);
+				rename(id, "changed");
+
+				importWith(archive, "seed");
+
+				assertEquals("stage '" + stage + "' should not block an import", "from-archive", nameOf(id));
+			}
+
+		} catch (final Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception: " + t.getMessage());
+
+		} finally {
+
+			Settings.InstanceStage.setValue(previousStage);
 
 			cleanUp(archive);
 		}
