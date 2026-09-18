@@ -25,6 +25,7 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
@@ -351,6 +352,86 @@ public class DataImportModeTest extends StructrUiTest {
 
 			assertFalse("a type that is not a user type must not be reported as one",
 				DeployCommand.embeddedUserTypes.contains(TYPE));
+
+		} catch (final Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception: " + t.getMessage());
+
+		} finally {
+
+			cleanUp(archive);
+		}
+	}
+
+	@Test
+	public void testMirrorRemovesWhatTheArchiveDoesNotCarry() {
+
+		Path archive = null;
+
+		try {
+
+			createModeSchema();
+
+			final String inArchive = createItem("in-archive");
+
+			archive = export();
+
+			// a record the archive knows nothing about: update leaves it, mirror removes it
+			final String onlyOnTarget = createItem("only-on-target");
+
+			importWith(archive, "update");
+
+			assertNotNull("update must leave a record the archive does not carry", nameOf(onlyOnTarget));
+
+			importWith(archive, "mirror");
+
+			assertEquals("mirror must keep the record the archive carries", "in-archive", nameOf(inArchive));
+			assertEquals("mirror must remove the record the archive does not carry", null, nameOf(onlyOnTarget));
+
+		} catch (final Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception: " + t.getMessage());
+
+		} finally {
+
+			cleanUp(archive);
+		}
+	}
+
+	@Test
+	public void testMirrorNeverRemovesAPrincipal() {
+
+		Path archive = null;
+
+		try {
+
+			createModeSchema();
+
+			createItem("in-archive");
+
+			archive = export();
+
+			// a principal is almost never in an archive, so its absence is not a decision to delete it, and
+			// deleting one takes every ownership and permission naming it, the importing account included
+			final String groupId;
+
+			try (final Tx tx = app.tx()) {
+
+				groupId = app.create(StructrTraits.GROUP, "must-survive").getUuid();
+
+				tx.success();
+			}
+
+			importWith(archive, "mirror");
+
+			try (final Tx tx = app.tx()) {
+
+				assertNotNull("mirror must never remove a principal", app.getNodeById(groupId));
+
+				tx.success();
+			}
 
 		} catch (final Throwable t) {
 
