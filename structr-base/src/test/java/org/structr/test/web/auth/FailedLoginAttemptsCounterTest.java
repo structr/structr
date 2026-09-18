@@ -156,6 +156,7 @@ public class FailedLoginAttemptsCounterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception while reading passwordAttempts for " + name + ": " + fex.getMessage());
+
 			return null;
 		}
 	}

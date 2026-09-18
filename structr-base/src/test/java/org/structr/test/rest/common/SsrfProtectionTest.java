@@ -66,6 +66,7 @@ public class SsrfProtectionTest {
 	public void testInternalAddressesAreRefused() {
 
 		for (final String address : new String[] {
+
 			"http://169.254.169.254/latest/meta-data/",
 			"http://127.0.0.1:7687/",
 			"http://[::1]/",
@@ -113,11 +114,9 @@ public class SsrfProtectionTest {
 		assertTrue("a redirect from a public host to the metadata service must be blocked",
 			HttpHelper.isBlockedRedirect("93.184.216.34", URI.create("http://169.254.169.254/latest/meta-data/")));
 
-		assertTrue("a redirect from a public host to loopback must be blocked",
-			HttpHelper.isBlockedRedirect("93.184.216.34", URI.create("http://127.0.0.1:8082/structr/rest/User")));
+		assertTrue("a redirect from a public host to loopback must be blocked", HttpHelper.isBlockedRedirect("93.184.216.34", URI.create("http://127.0.0.1:8082/structr/rest/User")));
 
-		assertTrue("a redirect from a public host to a unique local address must be blocked",
-			HttpHelper.isBlockedRedirect("93.184.216.34", URI.create("http://[fd00::1]/")));
+		assertTrue("a redirect from a public host to a unique local address must be blocked", HttpHelper.isBlockedRedirect("93.184.216.34", URI.create("http://[fd00::1]/")));
 	}
 
 	/**
@@ -127,14 +126,11 @@ public class SsrfProtectionTest {
 	@Test
 	public void testRedirectsThatDoNotCrossIntoTheInternalNetworkArePermitted() {
 
-		assertFalse("a redirect between internal hosts must stay allowed",
-			HttpHelper.isBlockedRedirect("127.0.0.1", URI.create("http://127.0.0.1:8082/target")));
+		assertFalse("a redirect between internal hosts must stay allowed", HttpHelper.isBlockedRedirect("127.0.0.1", URI.create("http://127.0.0.1:8082/target")));
 
-		assertFalse("a redirect from an internal host outwards must stay allowed",
-			HttpHelper.isBlockedRedirect("127.0.0.1", URI.create("http://93.184.216.34/")));
+		assertFalse("a redirect from an internal host outwards must stay allowed", HttpHelper.isBlockedRedirect("127.0.0.1", URI.create("http://93.184.216.34/")));
 
-		assertFalse("a redirect between public hosts must stay allowed",
-			HttpHelper.isBlockedRedirect("93.184.216.34", URI.create("http://93.184.216.35/")));
+		assertFalse("a redirect between public hosts must stay allowed", HttpHelper.isBlockedRedirect("93.184.216.34", URI.create("http://93.184.216.35/")));
 	}
 
 	/**

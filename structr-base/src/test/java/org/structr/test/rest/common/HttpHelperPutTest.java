@@ -54,6 +54,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 200, got " + statusCode, "200", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -75,6 +76,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 200, got " + statusCode, "200", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -99,6 +101,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 200, got " + statusCode, "200", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -119,6 +122,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected no bytes to have been captured", 0, capturedBody.length);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -140,6 +144,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 200, got " + statusCode, "200", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -158,6 +163,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertArrayEquals("Expected the request body to be written to the wire using the specified charset", "café".getBytes(StandardCharsets.ISO_8859_1), capturedBody);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -182,6 +188,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 200, got " + statusCode, "200", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -205,6 +212,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 200, got " + statusCode, "200", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -226,6 +234,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 404, got " + statusCode, "404", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -247,6 +256,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected status code 500, got " + statusCode, "500", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -258,6 +268,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 
 		final String loopbackUrl = urlForPath("/internal");
 		final Map<String, String> requestHeaders = new HashMap<>();
+
 		requestHeaders.put("X-test-header", "TEST VALUE");
 
 		try {
@@ -270,6 +281,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected custom header to be sent", "TEST VALUE", received.get(0));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -290,6 +302,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected custom cookie to be sent", "test_session=12345", received.get(0));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -315,6 +328,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertEquals("Expected the custom response header to be returned", "response-value", headers.get("X-custom-response-header"));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -337,6 +351,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertTrue("Expected the configured charset to be present, got: " + contentType, contentType.get(0).contains("UTF-8"));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -358,6 +373,7 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 			assertTrue("Expected the explicit content type to be sent, got: " + contentType, contentType.get(0).startsWith("application/json"));
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -376,25 +392,26 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 		registerContext("/redirect", 301, new byte[0], redirectHeaders);
 
 		final String loopbackUrl = urlForPath("/redirect");
-
 		final Map<String, Object> config = new HashMap<>();
+
 		config.put("redirects", true);
 
 		try {
 
 			final Map<String, Object> returnData = HttpHelper.put(loopbackUrl, "body", null, null, null, null, null, null, new HashMap<>(), "UTF-8", true, null, config);
-
 			final Object statusCode = returnData.get(HttpHelper.FIELD_STATUS);
 
 			assertEquals("Expected status code 301: PUT does not follow redirects, even with redirects=true in config", "301", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
 
 	@Test
 	public void putDoesNotFollowRedirectsWhenConfiguredFalse() {
+
 		registerContext("/target", 200, null, null);
 
 		final Map<String, String> redirectHeaders = new HashMap<>();
@@ -402,19 +419,19 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 		registerContext("/no-redirect", 301, new byte[0], redirectHeaders);
 
 		final String loopbackUrl = urlForPath("/no-redirect");
-
 		final Map<String, Object> config = new HashMap<>();
+
 		config.put("redirects", false);
 
 		try {
 
 			final Map<String, Object> returnData = HttpHelper.put(loopbackUrl, "body", null, null, null, null, null, null, new HashMap<>(), "UTF-8", true, null, config);
-
 			final Object statusCode = returnData.get(HttpHelper.FIELD_STATUS);
 
 			assertEquals("Expected status code 301 because redirects were explicitly disabled", "301", statusCode);
 
 		} catch (FrameworkException fex) {
+
 			fail("Caught a Framework Exception. Got status " + fex.getStatus() + ": " + fex.getMessage());
 		}
 	}
@@ -446,8 +463,8 @@ public class HttpHelperPutTest extends HttpHelperTestBase {
 		registerDelayedContext("/slow", 200, "TOO LATE".getBytes(StandardCharsets.UTF_8), 1000);
 
 		final String loopbackUrl = urlForPath("/slow");
-
 		final Map<String, Object> config = new HashMap<>();
+
 		config.put("timeout", 100);
 
 		try {

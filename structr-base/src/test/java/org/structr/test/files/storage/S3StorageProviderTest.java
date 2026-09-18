@@ -32,6 +32,7 @@ import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.storage.providers.s3.GenericS3BucketStorageProvider;
 import org.structr.storage.providers.s3.S3ClientCache;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
@@ -42,11 +43,15 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
 
@@ -533,10 +538,202 @@ public class S3StorageProviderTest extends StructrUiTest {
 		assertNull("Incomplete settings must not create a client", S3ClientCache.getOrCreate(endpoint, null, RustFsTestSupport.ACCESS_KEY, RustFsTestSupport.SECRET_KEY));
 	}
 
+	/**
+	 * The upload path the UI actually uses. {@code FileUploadHandler.handleChunk()} seeks to
+	 * {@code sequenceNumber * chunkSize} before writing every chunk - chunk 0 included, so even a
+	 * single-chunk upload seeks - and keeps one channel open for the whole upload. Nothing in the suite
+	 * covered that, which is how a change to position() that reads correctly on its own can break every
+	 * upload to an S3 mount and still leave all S3 tests green. This pins the sequence.
+	 */
+	@Test
+	public void testChunkedWriteThroughSeekingChannelKeepsChunkOrder() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		final String[] chunks = { "chunk-00", "chunk-01", "chunk-02" };
+		final int chunkSize   = chunks[0].length();
+		final String expected = String.join("", chunks);
+		final String fileUuid = createS3File("s3chunked", "chunked.txt", bucket);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file       = app.getNodeById(StructrTraits.FILE, fileUuid);
+			final StorageProvider provider = StorageProviderFactory.getStorageProvider(file.as(AbstractFile.class));
+
+			try (final SeekableByteChannel channel = provider.getSeekableByteChannel()) {
+
+				for (int sequenceNumber = 0; sequenceNumber < chunks.length; sequenceNumber++) {
+
+					channel.position((long) sequenceNumber * chunkSize);
+					channel.write(ByteBuffer.wrap(chunks[sequenceNumber].getBytes(StandardCharsets.UTF_8)));
+
+					assertEquals("Channel size must follow the chunks written so far", (long) (sequenceNumber + 1) * chunkSize, channel.size());
+				}
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("A chunked upload through a seeking channel must not fail.");
+		}
+
+		assertEquals("Chunks must arrive in order and without gaps", expected, new String(RustFsTestSupport.getObject(bucket, fileUuid), StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * A writable S3 channel appends into a buffer and uploads it in one putObject on close, so the only
+	 * position it can honestly be at is the end of what has been written. It used to accept ANY position,
+	 * remember it, and then write the next bytes at the end regardless - so a caller seeking backwards to
+	 * overwrite got its data appended instead, and nothing said so. Refusing the impossible seek is what
+	 * turns that into an error the caller sees.
+	 */
+	@Test
+	public void testSeekAwayFromTheAppendPointIsRejectedWhileWriting() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		final String content  = "HELLO WORLD";
+		final String fileUuid = createS3File("s3seekwrite", "seek-write.txt", bucket);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file       = app.getNodeById(StructrTraits.FILE, fileUuid);
+			final StorageProvider provider = StorageProviderFactory.getStorageProvider(file.as(AbstractFile.class));
+
+			try (final SeekableByteChannel channel = provider.getSeekableByteChannel()) {
+
+				channel.write(ByteBuffer.wrap(content.getBytes(StandardCharsets.UTF_8)));
+
+				try {
+
+					channel.position(0);
+
+					fail("Seeking back to 0 after writing must be refused, not silently ignored.");
+
+				} catch (IOException expected) {
+
+					// this is the point of the test: the channel says no instead of misplacing the data
+				}
+
+				// the append point itself stays acceptable - that is what the chunked upload relies on
+				channel.position(content.length());
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		assertEquals("A refused seek must leave the object exactly as it was written", content, new String(RustFsTestSupport.getObject(bucket, fileUuid), StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * The read side of the same channel, which was untested as well: a readable channel holds the whole
+	 * object, so a seek has to move the read position and size() has to report the object's length.
+	 */
+	@Test
+	public void testSeekWhileReadingReturnsDataFromThatOffset() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		final String content  = "HELLO WORLD";
+		final String fileUuid = createS3File("s3seekread", "seek-read.txt", bucket);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file       = app.getNodeById(StructrTraits.FILE, fileUuid);
+			final StorageProvider provider = StorageProviderFactory.getStorageProvider(file.as(AbstractFile.class));
+
+			try (final SeekableByteChannel channel = provider.getSeekableByteChannel()) {
+
+				channel.write(ByteBuffer.wrap(content.getBytes(StandardCharsets.UTF_8)));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file       = app.getNodeById(StructrTraits.FILE, fileUuid);
+			final StorageProvider provider = StorageProviderFactory.getStorageProvider(file.as(AbstractFile.class));
+
+			try (final SeekableByteChannel channel = provider.getSeekableByteChannel(Set.of(StandardOpenOption.READ))) {
+
+				assertEquals("A readable channel must report the object's length", (long) content.length(), channel.size());
+
+				final ByteBuffer target = ByteBuffer.allocate(5);
+
+				channel.position(6);
+
+				assertEquals("Reading after a seek must return the bytes at that offset", 5, channel.read(target));
+				assertEquals("Reading after a seek must return the bytes at that offset", "WORLD", new String(target.array(), StandardCharsets.UTF_8));
+
+				try {
+
+					channel.position(content.length() + 1);
+
+					fail("Seeking past the end of the object must be refused.");
+
+				} catch (IllegalArgumentException expected) {
+
+					// a position beyond the object is not a position
+				}
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 	// ----- private methods -----
 	private String uniqueBucket() {
 
 		return "test-" + System.nanoTime();
+	}
+
+	private String createS3File(final String folderName, final String fileName, final String bucket) {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = createS3Folder(folderName, bucket);
+			final NodeInterface file   = app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
+			);
+
+			final String uuid = file.getUuid();
+
+			tx.success();
+
+			return uuid;
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unable to create an S3-backed file.");
+
+			return null;
+		}
 	}
 
 	private NodeInterface createS3Folder(final String name, final String bucket) throws FrameworkException {

@@ -348,15 +348,15 @@ public class SiteTest extends StructrUiTest {
 	private NodeInterface createSite(final String name, final String hostname, final Integer port) throws FrameworkException {
 
 		final Traits traits      = Traits.of(StructrTraits.SITE);
-		final NodeInterface site = createTestNode(StructrTraits.SITE,
-			new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name)
-		);
+		final NodeInterface site = createTestNode(StructrTraits.SITE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 
 		if (hostname != null) {
+
 			site.setProperty(traits.key(SiteTraitDefinition.HOSTNAME_PROPERTY), hostname);
 		}
 
 		if (port != null) {
+
 			site.setProperty(traits.key(SiteTraitDefinition.PORT_PROPERTY), port);
 		}
 
@@ -375,6 +375,7 @@ public class SiteTest extends StructrUiTest {
 		page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
 
 		if (site != null) {
+
 			page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site));
 		}
 

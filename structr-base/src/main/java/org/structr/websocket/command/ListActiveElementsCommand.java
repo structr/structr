@@ -379,7 +379,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			return null;
 		}
 
-		System.out.println(depth1 + ", " + depth2 + ": " + ancestors1.size());
+		logger.debug("{}, {}: {}", depth1, depth2, ancestors1.size());
 
 		// return last element
 

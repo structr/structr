@@ -50,12 +50,18 @@ import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.core.traits.wrappers.AccessControllableTraitWrapper;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public final class AccessControllableTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AccessControllableTraitDefinition.class);
-	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
+	/* Concurrent, like the isGrantedResultCache below it. isGranted() is the product-wide access check and
+	   runs on every request thread, so storePermissionResolutionResult() writes this map while
+	   getPermissionResolutionResult() reads it and clearCaches(), called from the lifecycle hooks, clears it.
+	   A plain HashMap loses entries when two threads resize it, and a lost entry in a PERMISSION cache is a
+	   wrong answer, not a slow one. */
+	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new ConcurrentHashMap<>();
 	private static final FixedSizeCache<String, Boolean> isGrantedResultCache                                 = new FixedSizeCache<>("Grant result cache", 100000);
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 
@@ -784,14 +790,25 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 	private static Boolean getPermissionResolutionResult(final NodeInterface node, final String principalId, final Permission permission) {
 
-		Map<String, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.get(node.getUuid());
-		if (permissionResolutionCache == null) {
+		/* Null-checked because the cache is a ConcurrentHashMap now, and that one throws on a null key
+		   where the HashMap before it answered with null. isGranted() also runs during node creation,
+		   where a node need not have its id yet, and a permission check must not turn into an NPE just
+		   because there is nothing to look up. */
+		final String uuid = node.getUuid();
+		if (uuid == null || principalId == null) {
 
-			permissionResolutionCache = new HashMap<>();
-			globalPermissionResolutionCache.put(node.getUuid(), permissionResolutionCache);
+			return null;
 		}
 
-		PermissionResolutionResult result = permissionResolutionCache.get(principalId);
+		// a read does not create the inner map any more: the old shape grew the cache by one entry per node
+		// that was ever ASKED about, whether or not an answer was ever stored for it
+		final Map<String, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.get(uuid);
+		if (permissionResolutionCache == null) {
+
+			return null;
+		}
+
+		final PermissionResolutionResult result = permissionResolutionCache.get(principalId);
 		if (result != null) {
 
 			if (permission.equals(Permission.read)) {
@@ -820,19 +837,16 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 	private static void storePermissionResolutionResult(final NodeInterface node, final String principalId, final Permission permission, final boolean value) {
 
-		Map<String, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.get(node.getUuid());
-		if (permissionResolutionCache == null) {
+		// same null keys as in getPermissionResolutionResult(): nothing to store under one, and storing it
+		// would only be readable by another null, which the lookup above declines anyway
+		final String uuid = node.getUuid();
+		if (uuid == null || principalId == null) {
 
-			permissionResolutionCache = new HashMap<>();
-			globalPermissionResolutionCache.put(node.getUuid(), permissionResolutionCache);
+			return;
 		}
 
-		PermissionResolutionResult result = permissionResolutionCache.get(principalId);
-		if (result == null) {
-
-			result = new PermissionResolutionResult();
-			permissionResolutionCache.put(principalId, result);
-		}
+		final Map<String, PermissionResolutionResult> permissionResolutionCache = globalPermissionResolutionCache.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
+		final PermissionResolutionResult result                                 = permissionResolutionCache.computeIfAbsent(principalId, k -> new PermissionResolutionResult());
 
 		if (permission.equals(Permission.read) && (result.read == null || result.read == false)) {
 
@@ -1241,11 +1255,14 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		}
 	}
 
+	/* volatile because the thread that stores a result is not the one that reads it back: the entry is
+	   published through the concurrent cache above, and without volatile there is no happens-before for
+	   the fields themselves, so a reader could see the entry but not the value in it. */
 	private static class PermissionResolutionResult {
 
-		Boolean read          = null;
-		Boolean write         = null;
-		Boolean delete        = null;
-		Boolean accessControl = null;
+		volatile Boolean read          = null;
+		volatile Boolean write         = null;
+		volatile Boolean delete        = null;
+		volatile Boolean accessControl = null;
 	}
 }

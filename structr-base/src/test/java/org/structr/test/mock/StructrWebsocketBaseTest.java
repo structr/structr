@@ -125,7 +125,6 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String> key = Traits.of(StructrTraits.SESSION_DATA_NODE).key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY);
-
 			if (app.nodeQuery(StructrTraits.SESSION_DATA_NODE).key(key, sessionId).getFirst() == null) {
 
 				createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");

@@ -192,7 +192,6 @@ public class XMPPTest extends StructrUiTest {
 				final InputStream in   = connection.getInputStream();
 				final OutputStream out = connection.getOutputStream();
 				final byte[] buffer    = new byte[8192];
-
 				int read = in.read(buffer);
 
 				record(buffer, read);

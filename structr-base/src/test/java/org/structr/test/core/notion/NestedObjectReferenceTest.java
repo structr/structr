@@ -128,12 +128,8 @@ public class NestedObjectReferenceTest extends StructrTest {
 		final Date afterNoOp = lastModified(departmentId);
 
 		// documents the current behaviour: this is the write that has no equality guard
-		assertEquals(
-			"setProperty with an identical value no longer marks the node modified - if this fails, "
-			+ "a no-op guard was added and GraphObjectModificationState.modify should be reviewed",
-			afterRealChange,
-			afterNoOp
-		);
+		assertEquals("setProperty with an identical value no longer marks the node modified - if this fails, "
+			+ "a no-op guard was added and GraphObjectModificationState.modify should be reviewed", afterRealChange, afterNoOp);
 	}
 
 	@Test
@@ -155,11 +151,8 @@ public class NestedObjectReferenceTest extends StructrTest {
 
 		final Date afterRealChange = lastModified(departmentId);
 
-		assertTrue(
-			"writing different array content did not modify the node, so lastModifiedDate is not a "
-			+ "usable signal here and the assertion below would prove nothing",
-			!afterFirstWrite.equals(afterRealChange)
-		);
+		assertTrue("writing different array content did not modify the node, so lastModifiedDate is not a "
+			+ "usable signal here and the assertion below would prove nothing", !afterFirstWrite.equals(afterRealChange));
 
 		// and now the same content again
 		pause();
@@ -182,14 +175,10 @@ public class NestedObjectReferenceTest extends StructrTest {
 		// has not been established with the author.
 		// compared as milliseconds on purpose: Date.toString() prints to the second, so a failure message
 		// built from the Dates themselves shows two identical-looking timestamps and reads as nonsense
-		assertEquals(
-			"writing the SAME array content through setProperty modified the node (lastModifiedDate moved). "
+		assertEquals("writing the SAME array content through setProperty modified the node (lastModifiedDate moved). "
 			+ "SetProperty compares with oldValue.equals(value), and equals on an array is identity, so equal "
 			+ "content is treated as a change. SetProperties, which a REST request uses, compares with "
-			+ "Objects.deepEquals and gets this right.",
-			afterRealChange.getTime(),
-			afterEqualWrite.getTime()
-		);
+			+ "Objects.deepEquals and gets this right.", afterRealChange.getTime(), afterEqualWrite.getTime());
 	}
 
 	// ----- private methods -----
@@ -199,14 +188,8 @@ public class NestedObjectReferenceTest extends StructrTest {
 
 			final Traits schemaNode = Traits.of(StructrTraits.SCHEMA_NODE);
 			final Traits schemaProp = Traits.of(StructrTraits.SCHEMA_PROPERTY);
-
-			final NodeInterface department = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(schemaNode.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), DEPARTMENT)
-			);
-
-			final NodeInterface employee = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(schemaNode.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), EMPLOYEE)
-			);
+			final NodeInterface department = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(schemaNode.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), DEPARTMENT));
+			final NodeInterface employee = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(schemaNode.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), EMPLOYEE));
 
 			// the key a reference resolves on. It has to be UNIQUE: IdDeserializationStrategy only
 			// queries for keys that are unique or compound, or identifying, and identifying means
@@ -256,9 +239,7 @@ public class NestedObjectReferenceTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create(DEPARTMENT,
-				new NodeAttribute<>(Traits.of(DEPARTMENT).key("code"), code)
-			);
+			final NodeInterface node = app.create(DEPARTMENT, new NodeAttribute<>(Traits.of(DEPARTMENT).key("code"), code));
 
 			tx.success();
 
@@ -401,9 +382,11 @@ public class NestedObjectReferenceTest extends StructrTest {
 	private void pause() {
 
 		try {
+
 			Thread.sleep(20);
 
 		} catch (InterruptedException iex) {
+
 			Thread.currentThread().interrupt();
 		}
 	}

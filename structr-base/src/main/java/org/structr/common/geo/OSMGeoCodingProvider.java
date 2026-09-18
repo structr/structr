@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
@@ -73,15 +72,15 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 			final String protocol              = "xml";
 			final URL mapsUrl                  = new URL("https://nominatim.openstreetmap.org/search?q=" + encodedAddress + "&format=" + protocol + "&accept-language=" + language + "&addressdetails=1&limit=1");
 			final HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
-			final SAXReader reader             = new SAXReader();
 
-			// Protect against external entity expansion
-			reader.setIncludeExternalDTDDeclarations(false);
-			final BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			xmlDoc = reader.read(rd);
+			try (final BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 
-			connection.disconnect();
-			rd.close();
+				xmlDoc = newSecureSAXReader().read(rd);
+
+			} finally {
+
+				connection.disconnect();
+			}
 
 			if (xmlDoc != null) {
 

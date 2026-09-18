@@ -45,6 +45,7 @@ public class MarkdownLinkTargetBlankAttributeProvider implements AttributeProvid
 
 		@Override
 		public AttributeProvider apply(final LinkResolverContext context) {
+
 			return new MarkdownLinkTargetBlankAttributeProvider();
 		}
 	}

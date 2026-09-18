@@ -57,6 +57,7 @@ public class PrintlnFunctionTest extends StructrTest {
 		try {
 
 			// print()/println() write into the output buffer, which replaceVariables returns
+
 			return Scripting.replaceVariables(ctx, null, script);
 
 		} catch (FrameworkException fex) {

@@ -115,8 +115,7 @@ public class CredentialPropertyWriteTest extends StructrUiTest {
 
 			final Principal identified = AuthHelper.getUserForTwoFactorToken(FORGED_TOKEN);
 
-			assertNull("a token the attacker chose identifies the victim, and the unsigned legacy format is still accepted",
-				identified);
+			assertNull("a token the attacker chose identifies the victim, and the unsigned legacy format is still accepted", identified);
 
 			tx.success();
 
@@ -174,8 +173,7 @@ public class CredentialPropertyWriteTest extends StructrUiTest {
 			final Object written       = victim.getProperty(Traits.of(StructrTraits.USER).key(propertyName));
 			final String asText        = String.valueOf(written instanceof Object[] array ? java.util.Arrays.toString(array) : written);
 
-			assertFalse(propertyName + " was written onto another user's account by a non-admin, value is now: " + asText,
-				asText.contains(needle));
+			assertFalse(propertyName + " was written onto another user's account by a non-admin, value is now: " + asText, asText.contains(needle));
 
 			tx.success();
 

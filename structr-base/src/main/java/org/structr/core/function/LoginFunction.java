@@ -89,6 +89,7 @@ public class LoginFunction extends AdvancedScriptingFunction {
 			} catch (AuthenticationException aex) {
 
 				// a wrong password is an answer, not a failure of the call: this is the false the description promises
+
 				return false;
 			}
 

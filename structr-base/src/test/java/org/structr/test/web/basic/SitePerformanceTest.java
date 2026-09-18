@@ -80,12 +80,10 @@ public class SitePerformanceTest extends StructrUiTest {
 		addSites(MANY_SITES);
 
 		final double scanAtMany = medianScanCostMillis();
-
 		final double perSiteMicros = ((scanAtMany - scanAtOne) * 1000.0) / (MANY_SITES - 1);
 
 		logger.info("Site lookup, median over {} pairs of requests after {} warmup requests:", SAMPLES, WARMUP);
-		logger.info("  the scan costs {} ms at 1 site and {} ms at {} sites",
-			String.format("%.3f", scanAtOne), String.format("%.3f", scanAtMany), MANY_SITES);
+		logger.info("  the scan costs {} ms at 1 site and {} ms at {} sites", String.format("%.3f", scanAtOne), String.format("%.3f", scanAtMany), MANY_SITES);
 		logger.info("  that is {} microseconds per site, budget {}", String.format("%.2f", perSiteMicros), BUDGET_MICROS_PER_SITE);
 
 		// a measurement that cannot see the scan at all would pass every upper bound, so it has to fail instead
@@ -117,13 +115,12 @@ public class SitePerformanceTest extends StructrUiTest {
 
 				// the two are swapped every other pair, so being measured first is worth the same to each of them
 				final boolean scanFirst = (i % 2 == 0);
-
 				final long start   = System.nanoTime();
+
 				expectOk(client, scanFirst ? "/nosite" : "/withsite", scanFirst ? "unclaimed.example.com" : "claimed0.example.com");
 				final long between = System.nanoTime();
 				expectOk(client, scanFirst ? "/withsite" : "/nosite", scanFirst ? "claimed0.example.com" : "unclaimed.example.com");
 				final long end     = System.nanoTime();
-
 				final double first  = (between - start) / 1_000_000.0;
 				final double second = (end - between) / 1_000_000.0;
 
@@ -144,8 +141,8 @@ public class SitePerformanceTest extends StructrUiTest {
 	private void expectOk(final KeepAliveClient client, final String path, final String hostHeader) throws IOException {
 
 		final int status = client.get(path, hostHeader);
-
 		if (status != 200) {
+
 			fail("Expected " + path + " on host " + hostHeader + " to be served, but the status was " + status);
 		}
 	}
@@ -175,6 +172,7 @@ public class SitePerformanceTest extends StructrUiTest {
 
 			// site 0 already exists and carries the page, so only the fillers are added here
 			for (int i = 1; i < total; i++) {
+
 				createSite(i);
 			}
 
@@ -219,6 +217,7 @@ public class SitePerformanceTest extends StructrUiTest {
 		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 		for (final DOMNode child : node.getChildren()) {
+
 			makePublicRecursively(child);
 		}
 	}
@@ -255,14 +254,14 @@ public class SitePerformanceTest extends StructrUiTest {
 		private int readResponse() throws IOException {
 
 			final String statusLine = readLine();
-
 			if (statusLine == null) {
+
 				throw new IOException("server closed the connection");
 			}
 
 			final String[] parts = statusLine.split(" ");
-
 			if (parts.length < 2) {
+
 				throw new IOException("unreadable status line: " + statusLine);
 			}
 
@@ -273,13 +272,12 @@ public class SitePerformanceTest extends StructrUiTest {
 			while (true) {
 
 				final String header = readLine();
-
 				if (header == null || header.isEmpty()) {
+
 					break;
 				}
 
 				final String lower = header.toLowerCase();
-
 				if (lower.startsWith("content-length:")) {
 
 					contentLength = Integer.parseInt(header.substring(header.indexOf(':') + 1).trim());
@@ -298,6 +296,7 @@ public class SitePerformanceTest extends StructrUiTest {
 					final int size        = Integer.parseInt(sizeLine.trim().split(";")[0], 16);
 
 					if (size == 0) {
+
 						readLine();
 						break;
 					}
@@ -326,16 +325,19 @@ public class SitePerformanceTest extends StructrUiTest {
 			while (true) {
 
 				final int c = in.read();
-
 				if (c == -1) {
+
 					return line.length() == 0 ? null : line.toString();
 				}
 
 				if (c == '\n') {
+
 					final int length = line.length();
 					if (length > 0 && line.charAt(length - 1) == '\r') {
+
 						line.setLength(length - 1);
 					}
+
 					return line.toString();
 				}
 
@@ -350,8 +352,8 @@ public class SitePerformanceTest extends StructrUiTest {
 			while (remaining > 0) {
 
 				final int read = in.read(scratch, 0, Math.min(remaining, scratch.length));
-
 				if (read == -1) {
+
 					throw new IOException("server closed the connection with " + remaining + " bytes outstanding");
 				}
 
@@ -361,6 +363,7 @@ public class SitePerformanceTest extends StructrUiTest {
 
 		@Override
 		public void close() throws IOException {
+
 			socket.close();
 		}
 	}

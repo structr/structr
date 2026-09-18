@@ -18,6 +18,8 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.*;
 
@@ -25,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class FactToken extends AbstractToken implements TokenCollection {
+
+	private static final Logger logger = LoggerFactory.getLogger(FactToken.class);
 
 	private final NamedConceptToken subjectToken;
 	private final VerbToken predicateToken;
@@ -91,14 +95,14 @@ public class FactToken extends AbstractToken implements TokenCollection {
 
 		if (annotatedSubject == null) {
 
-			System.out.println(subjectToken + ": subject is null!");
+			logger.warn("{}: subject is null!", subjectToken);
 
 			return null;
 		}
 
 		if (annotatedObject == null) {
 
-			System.out.println(objectToken + ": object is null!");
+			logger.warn("{}: object is null!", objectToken);
 
 			return null;
 		}
@@ -112,14 +116,14 @@ public class FactToken extends AbstractToken implements TokenCollection {
 
 		if (subject == null) {
 
-			System.out.println(subjectToken + ": subject is null!");
+			logger.warn("{}: subject is null!", subjectToken);
 
 			return null;
 		}
 
 		if (object == null) {
 
-			System.out.println(objectToken + ": object is null!");
+			logger.warn("{}: object is null!", objectToken);
 
 			return null;
 		}
