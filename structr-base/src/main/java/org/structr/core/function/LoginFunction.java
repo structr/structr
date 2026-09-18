@@ -72,7 +72,7 @@ public class LoginFunction extends AdvancedScriptingFunction {
 			   this account, there is no step here that could ask for a code - so a session opened here
 			   would be one that the configured level says must not exist, and which login does the asking
 			   would decide whether the setting means anything. */
-			if (AuthHelper.isTwoFactorStepRequired(user, request.getHeader("User-Agent"), AuthHelper.getDeviceTrustCookie(request))) {
+			if (AuthHelper.isTwoFactorRequiredForUser(user)) {
 
 				logger.warn("login(): a second factor is required for this account, which this function cannot ask for - the application has to use the login endpoint instead.");
 
