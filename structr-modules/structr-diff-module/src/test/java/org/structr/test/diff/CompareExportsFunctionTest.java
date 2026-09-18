@@ -234,6 +234,59 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testAPageIsNamedByItsNameNotByItsExportFileName() {
+
+		final String leftId;
+		final String rightId;
+
+		try (final Tx tx = app.tx()) {
+
+			// one page called "orders"
+			final Map<String, String[]> left = new LinkedHashMap<>();
+
+			left.put("orders", new String[] { "orders", "b0000000000000000000000000000001" });
+
+			// the same page, plus a second one that also calls itself "orders": the export has to put the
+			// second one in a file of its own, so its manifest key carries the uuid while its name does not
+			final Map<String, String[]> right = new LinkedHashMap<>();
+
+			right.put("orders", new String[] { "orders", "b0000000000000000000000000000001" });
+			right.put("orders-b0000000000000000000000000000002", new String[] { "orders", "b0000000000000000000000000000002" });
+
+			leftId  = createExport("left.zip",  Map.of("pages.json", pagesManifest(left)));
+			rightId = createExport("right.zip", Map.of("pages.json", pagesManifest(right)));
+
+			tx.success();
+
+		} catch (final Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception while creating the exports: " + ex.getMessage());
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Map<String, Object> report     = (Map<String, Object>) apply(leftId, rightId);
+			final Map<String, Object> congruence = (Map<String, Object>) report.get("congruence");
+			final Map<String, Object> signals    = (Map<String, Object>) congruence.get("signals");
+
+			// both sides call every page they have "orders", so the page names agree completely. Reading the
+			// manifest key instead would see "orders-<uuid>" as a page nobody else has and score this 0.5
+			assertEquals("A page is named by its name, not by the file the export happened to write it to",
+				1.0, ((Number) signals.get("pageNames")).doubleValue(), 0.0001);
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
 	private Object apply(final String leftId, final String rightId) throws FrameworkException {
 
 		// exactly what a server-side caller writes: no import from this module, no reflection
@@ -257,16 +310,30 @@ public class CompareExportsFunctionTest extends StructrUiTest {
 		return json.append("]").toString();
 	}
 
-	/** pages.json is a manifest: a name to an object carrying the page's uuid. */
+	/** pages.json is a manifest keyed by the export FILE name, with the page's real name and uuid inside. */
 	private String pages(final Map<String, String> idsByName) {
+
+		final Map<String, String[]> entries = new LinkedHashMap<>();
+
+		for (final Map.Entry<String, String> entry : idsByName.entrySet()) {
+
+			entries.put(entry.getKey(), new String[] { entry.getKey(), entry.getValue() });
+		}
+
+		return pagesManifest(entries);
+	}
+
+	/** The same manifest, but with the export file name stated separately from the page name. */
+	private String pagesManifest(final Map<String, String[]> nameAndIdByFileName) {
 
 		final StringBuilder json = new StringBuilder("{");
 		boolean first            = true;
 
-		for (final Map.Entry<String, String> entry : idsByName.entrySet()) {
+		for (final Map.Entry<String, String[]> entry : nameAndIdByFileName.entrySet()) {
 
 			json.append(first ? "" : ",")
-				.append("\"").append(entry.getKey()).append("\":{\"id\":\"").append(entry.getValue()).append("\",\"visibleToPublicUsers\":true}");
+				.append("\"").append(entry.getKey()).append("\":{\"id\":\"").append(entry.getValue()[1])
+				.append("\",\"name\":\"").append(entry.getValue()[0]).append("\",\"visibleToPublicUsers\":true}");
 
 			first = false;
 		}

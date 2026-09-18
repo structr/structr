@@ -148,8 +148,12 @@ public class ExportParser {
 
 			final JsonObject value = entry.getValue().getAsJsonObject();
 			final String id        = string(value, "id");
+			final String name      = string(value, "name");
 
-			entities.add(new Entity(kind, id != null ? id : "name:" + entry.getKey(), null, null, entry.getKey(), attributes(value, "id"), null, null, path));
+			// the key is the export FILE name, which carries a uuid when two pages share a name or one has none
+			final String entityName = name != null ? name : entry.getKey();
+
+			entities.add(new Entity(kind, id != null ? id : "name:" + entry.getKey(), null, null, entityName, attributes(value, "id"), null, null, path));
 		}
 	}
 
