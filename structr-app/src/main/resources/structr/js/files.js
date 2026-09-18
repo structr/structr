@@ -746,7 +746,9 @@ let _Files = {
 
 		_Helpers.fastRemoveAllChildren(_Files.getFolderContentsElement());
 		_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
-			<div class="flex items-center justify-between" id="folder-contents-header"></div>
+			<div class="flex items-center justify-between" id="folder-contents-header">
+				<div data-pager></div>
+			</div>
 		`);
 
 		LSWrapper.setItem(_Files.filesLastOpenFolderKey, id);
@@ -808,7 +810,7 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsHeaderElement(), false, 'File', 'public', handleFileChildren, null, _Files.defaultFileAttributes, true, true);
+			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsHeaderElement().querySelector('[data-pager]'), false, 'File', 'public', handleFileChildren, null, _Files.defaultFileAttributes, true, true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = _Files.getFolderContentsElement().querySelectorAll('.node.file');
