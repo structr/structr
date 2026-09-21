@@ -67,8 +67,9 @@ test('default-credentials-warning', async ({page}, testInfo) => {
 
 	await page.locator('#users').getByText('admin', {exact: true}).first().click({button: 'right'});
 	await page.getByText('General').first().click();
-	await page.locator('input#password-input').dblclick();
-	await page.keyboard.type(ADMIN_PASSWORD);
+	// fill(), not dblclick + type: the General tab's handler focuses the name input after rendering, and a
+	// typed password raced into that field instead, renaming the admin
+	await page.locator('input#password-input').fill(ADMIN_PASSWORD);
 
 	// by id, not by text: the General tab of the user dialog gained more buttons, and a text locator on a
 	// dialog that grows is one relabelling away from clicking the wrong thing

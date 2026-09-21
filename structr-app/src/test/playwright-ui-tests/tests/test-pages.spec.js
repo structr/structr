@@ -235,6 +235,10 @@ test('pages', async ({page}, testInfo) => {
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/pages_repeater.png'});
 
+	// clipped to the repeater subtree: the Dynamic Content article embeds it as a small inline image
+	await page.locator('#pagesTree div.node:has(> div > span > b[title="tbody"]) div.node:has(> div > span > b[title="tr"])').first()
+		.screenshot({path: 'screenshots/pages_single-repeater-element.png'});
+
 	await page.getByRole('link', {name: 'General'}).click();
 
 	await page.waitForTimeout(1000);
