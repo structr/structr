@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>7.0.0</version>
+		<version>7.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-pdf-module</artifactId>
 	<packaging>jar</packaging>
