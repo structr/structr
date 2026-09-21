@@ -1272,12 +1272,13 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testGlobalSearch() {
 
-		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage)) {
+		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.GlobalSearch)) {
 
 			return;
 		}
 
-		final List<String> expectedSearchHits = new ArrayList<>();
+		final List<String> expectedDOMSearchHits        = new ArrayList<>();
+		final List<String> expectedCaseIgnoreSearchHits = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -1299,10 +1300,12 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				body.appendChild(div);
 				title.appendChild(page.createTextNode("${capitalize(page.name)}"));
 				h1.appendChild(page.createTextNode("${capitalize(page.name)}"));
-				div.appendChild(page.createTextNode("Initial body text"));
+				div.appendChild(page.createTextNode("InItIal bOdY TeXt"));
 
-				expectedSearchHits.add(title.getFirstChild().getUuid());
-				expectedSearchHits.add(h1.getFirstChild().getUuid());
+				expectedDOMSearchHits.add(title.getFirstChild().getUuid());
+				expectedDOMSearchHits.add(h1.getFirstChild().getUuid());
+
+				expectedCaseIgnoreSearchHits.add(div.getFirstChild().getUuid());
 			}
 
 			tx.success();
@@ -1317,18 +1320,40 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final String expectedKeysForDOMResults = "id,isDOMElement,keys,labels,name,type,values";
-			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM));
+			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), true);
 
 			assertEquals(2, results.size());
 
-			for  (final GraphObject graphObject : results) {
+			for (final GraphObject graphObject : results) {
 
 				final String searchResultId = graphObject.getProperty(new StringProperty("id"));
 				final String keys           = graphObject.getPropertyKeys("all").stream().sorted().map(Object::toString).collect(Collectors.joining(","));
 
-				assertTrue("Expected search results does not contain encountered search result", expectedSearchHits.contains(searchResultId));
+				assertTrue("Expected search results does not contain encountered search result", expectedDOMSearchHits.contains(searchResultId));
 				assertEquals("Unexpected keys for DOM search results", expectedKeysForDOMResults, keys);
 			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// search DOM only with and without "ignore case"
+		// WARNING: this test will break if tests are expanded to older neo4j versions where TypePredicates and thereby case-insensitive search is not supported
+		try (final Tx tx = app.tx()) {
+
+			List<GraphObject> results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), false);
+
+			assertEquals("When searching case-sensitive (ignoreCase = false), we expect 0 results", 0, results.size());
+
+
+			results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), true);
+
+			assertEquals("When searching case-insensitive (ignoreCase = true), we expect 1 result",1, results.size());
+			assertEquals(expectedCaseIgnoreSearchHits.getFirst(), results.getFirst().getUuid());
 
 			tx.success();
 
@@ -1344,7 +1369,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			final String identifier = Settings.TenantIdentifier.getValue();
 			Settings.TenantIdentifier.setValue("TEST");
 
-			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM));
+			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), true);
 
 			assertEquals("Global search (with a tenant identifier that did not have any nodes created) should yield no results",0, resultsWithTenantIdentifier.size());
 

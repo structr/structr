@@ -139,7 +139,7 @@ public interface DatabaseService<IDType> {
 	String GLOBAL_SEARCH_CONTEXT_FILES          = "files";
 	String GLOBAL_SEARCH_CONTEXT_LOCALIZATIONS  = "localizations";
 	String GLOBAL_SEARCH_CONTEXT_MAIL_TEMPLATES = "mail-templates";
-	List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString);
+	List<Map<String, Object>> globalSearch(final Set<String> searchContexts, final String searchString, final boolean searchIgnoreCase);
 
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);
