@@ -21,6 +21,7 @@ package org.structr.web.resource;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.structr.api.config.Settings;
+import org.structr.rest.common.RemoteAddressWhitelist;
 
 import java.util.concurrent.TimeUnit;
 
@@ -52,17 +53,12 @@ final class EmailRateLimiter {
 	 */
 	static boolean allow(final String bucket, final String remoteIp, final int maxPerIpPerHour, final String email,    final int maxPerEmailPerHour) {
 
-		// whitelisted source IPs (development) bypass both counters
-		final String whitelist = Settings.EmailRateLimitWhitelist.getValue("");
-		if (whitelist != null && !whitelist.isBlank() && remoteIp != null) {
+		// whitelisted source IPs (development) bypass both counters. The entries are read the same way the
+		// health, metrics and histogram endpoints read theirs, so an address or a CIDR range means the same
+		// thing everywhere. Not isWhitelisted(): that warns on every refusal, and here refusal is the norm.
+		if (remoteIp != null && RemoteAddressWhitelist.matches(remoteIp, RemoteAddressWhitelist.parsed(Settings.EmailRateLimitWhitelist))) {
 
-			for (final String ip : whitelist.split(",")) {
-
-				if (remoteIp.equals(ip.trim())) {
-
-					return true;
-				}
-			}
+			return true;
 		}
 
 		if (!tryIncrement(bucket + ":ip:" + remoteIp, maxPerIpPerHour)) {

@@ -28,6 +28,9 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -46,6 +49,41 @@ public class GetOrCreateFunction extends CoreFunction {
 	public String getName() {
 
 		return "getOrCreate";
+	}
+
+	/**
+	 * Refuses to create a second principal under a name another principal already has.
+	 *
+	 * <p>The query above looks in the named type only, so getOrCreate("Group", "name", "x") on an instance
+	 * that has a USER called x finds nothing and creates a group beside it. Nothing complains at the time.
+	 * What breaks is later and elsewhere: a deployment resolves an owner or a permission by name through
+	 * nodeQuery(Principal), gets two candidates, and drops the permission as ambiguous. The recipe the
+	 * documentation gives for pre-deploy.conf is built on this function, so the remedy for missing
+	 * principals is also the way to manufacture the next failure.</p>
+	 */
+	private void refuseAmbiguousPrincipal(final App app, final Traits type, final PropertyMap properties) throws FrameworkException {
+
+		if (!type.contains(StructrTraits.PRINCIPAL)) {
+
+			return;
+		}
+
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final String name                 = properties.get(nameKey);
+
+		if (name == null) {
+
+			return;
+		}
+
+		final NodeInterface existing = app.nodeQuery(StructrTraits.PRINCIPAL).name(name).getFirst();
+
+		if (existing != null) {
+
+			throw new FrameworkException(422, "getOrCreate(): a " + existing.getType() + " named '" + name + "' already exists, so creating a "
+				+ type.getName() + " of that name would leave two principals sharing it. Every ownership and permission that names '" + name
+				+ "' would then be dropped as ambiguous. Use the existing principal, or give this one a different name.");
+		}
 	}
 
 	@Override
@@ -140,6 +178,8 @@ public class GetOrCreateFunction extends CoreFunction {
 
 				return obj;
 			}
+
+			refuseAmbiguousPrincipal(app, type, properties);
 
 			// create new object
 

@@ -80,10 +80,156 @@ public class DeployDataCommand extends DeployCommand {
 	public final static String DO_INNER_CALLBACKS_PARAMETER_NAME  = "doInnerCallbacks";
 	public final static String DO_OUTER_CALLBACKS_PARAMETER_NAME  = "doOuterCallbacks";
 	public final static String DO_CASCADING_DELETE_PARAMETER_NAME = "doCascadingDelete";
+	public final static String IMPORT_MODE_PARAMETER_NAME         = "importMode";
+	public final static String FORCE_PARAMETER_NAME               = "force";
+
+	/**
+	 * What an import does with a record the target already has under the same uuid.
+	 *
+	 * <p>The command was written as a seeder: delete by uuid and create again, which makes an import
+	 * idempotent with no merge logic. That is still right for filling an empty instance and is still the
+	 * default, but it is wrong for every case where the target holds data worth keeping, because the
+	 * recreated node keeps only the relationships that are in the archive as well.</p>
+	 */
+	public enum ImportMode {
+
+		/** Delete the record and create it again. Idempotent, and the target keeps nothing of its own. */
+		seed,
+
+		/** Create what is missing and leave everything that is already there untouched. */
+		append,
+
+		/** Write the archive's values onto the record that is already there, so its relationships survive. */
+		update,
+
+		/** update, and remove the records of an exported type that the archive does not carry. */
+		mirror
+	}
 
 	private boolean doInnerCallbacks  = false;
 	private boolean doOuterCallbacks  = false;
 	private boolean doCascadingDelete = false;
+	private ImportMode importMode     = ImportMode.seed;
+	private int updatedNodes          = 0;
+	private int appendedSkipped       = 0;
+	private int mirroredDeletions     = 0;
+
+	/**
+	 * Removes the records of one exported type that the archive does not carry.
+	 *
+	 * <p>Only mirror does this, and only for the type whose file was just imported: a type with no file in
+	 * the archive was never exported and is none of this import's business.</p>
+	 *
+	 * <p>Principal types are excluded. A principal is almost never in an archive, so its absence is not a
+	 * decision to delete it; deleting one takes every ownership and permission that names it, and the
+	 * account running the import is itself a principal. The production guard cannot cover this, because it
+	 * only protects an instance that named itself.</p>
+	 */
+	private void removeRecordsNotInArchive(final SecurityContext context, final String typeName, final Set<String> inArchive) throws FrameworkException {
+
+		final Traits traits = Traits.exists(typeName) ? Traits.of(typeName) : null;
+
+		if (traits == null || traits.contains(StructrTraits.PRINCIPAL)) {
+
+			return;
+		}
+
+		final App app             = StructrApp.getInstance(context);
+		final List<String> doomed = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			// a type query also yields the types that inherit it, and those have files of their own
+			for (final NodeInterface node : app.nodeQuery(typeName).getResultStream()) {
+
+				if (typeName.equals(node.getType()) && !inArchive.contains(node.getUuid())) {
+
+					doomed.add(node.getUuid());
+				}
+			}
+
+			tx.success();
+		}
+
+		for (final String id : doomed) {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = app.getNodeById(id);
+
+				if (node != null) {
+
+					app.delete(node);
+
+					mirroredDeletions++;
+				}
+
+				tx.success();
+			}
+		}
+	}
+
+	/**
+	 * Writes the archive's values onto a record that is already there.
+	 *
+	 * The same writes the create path makes, without the delete: the node keeps its identity and therefore
+	 * every relationship it has, including the ones to types the export set never mentioned.
+	 */
+	private void updateExistingNode(final SecurityContext context, final NodeInterface node, final Map<String, Object> entry, final String typeName) throws FrameworkException {
+
+		final Map<String, Object> ownership = new HashMap();
+
+		ownership.put("owner", entry.get("owner"));
+		ownership.put("grantees", entry.get("grantees"));
+
+		entry.remove("owner");
+		entry.remove("grantees");
+
+		node.setProperties(context, PropertyMap.inputTypeToJavaType(context, typeName, ownership));
+
+		correctNumberFormats(context, entry, typeName);
+
+		node.getPropertyContainer().setProperties(entry);
+		node.addToIndex();
+	}
+
+	/**
+	 * Refuses a data import on an instance that calls itself production.
+	 *
+	 * <p>The platform cannot tell a production instance from any other: this reads the name the instance
+	 * was given, so it protects only an instance that opted in by naming itself, and it is deliberately
+	 * overridable. That is the whole of what a configuration value can honestly do here, and it is still
+	 * worth doing, because the case it catches is a dev export reaching a live system, where the damage is
+	 * done by the time anyone reads a log line.</p>
+	 */
+	private void refuseOnProductionUnlessForced(final Object force) throws FrameworkException {
+
+		if ("production".equals(Settings.InstanceStage.getValue("")) && !"true".equals(String.valueOf(force))) {
+
+			throw new ImportPreconditionFailedException("Data Deployment Import not started",
+				"This instance is configured as '" + Settings.InstanceStage.getKey() + " = production'. A data import "
+				+ "replaces records by uuid and is not meant for a live system. Pass " + FORCE_PARAMETER_NAME + "=true to proceed anyway.");
+		}
+	}
+
+	/** An unknown mode is refused rather than silently treated as the destructive default. */
+	private ImportMode importModeFrom(final Object value) throws FrameworkException {
+
+		if (value == null) {
+
+			return ImportMode.seed;
+		}
+
+		try {
+
+			return ImportMode.valueOf(value.toString().trim());
+
+		} catch (final IllegalArgumentException unknown) {
+
+			throw new ImportPreconditionFailedException("Data Deployment Import not started",
+				"Unknown " + IMPORT_MODE_PARAMETER_NAME + " '" + value + "'. Use one of: seed, append, update.");
+		}
+	}
 
 	public static final String TYPE_NAME       = "typeName";
 	public static final String MESSAGE_ID      = "messageId";
@@ -95,6 +241,75 @@ public class DeployDataCommand extends DeployCommand {
 
 	// is being handled via export of "grantees" and "owner" attributes
 	private final static Set<String> blacklistedRelationshipTypes = Set.of(StructrTraits.PRINCIPAL_OWNS_NODE, StructrTraits.SECURITY);
+
+	/**
+	 * Answers which types actually hold records, so a caller does not have to work the list out itself.
+	 *
+	 * <p>A data export refuses without an explicit type list, which is right: exporting everything by
+	 * default would be a trap. But every automation client then has to derive the list, and deriving it
+	 * means knowing which of the hundreds of registered types have any records at all. That is a question
+	 * about this instance, so this instance should answer it.</p>
+	 *
+	 * <p>Abstract types, service classes and relationship types are left out because they cannot be
+	 * exported; everything else that has at least one record is named with its count.</p>
+	 */
+	private List<Map<String, Object>> typesWithRecords() throws FrameworkException {
+
+		final SecurityContext context      = getRecommendedSecurityContext();
+		final App app                      = StructrApp.getInstance(context);
+		final List<Map<String, Object>> result = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final String typeName : new TreeSet<>(Traits.getAllTypes())) {
+
+				final Traits traits = Traits.of(typeName);
+
+				if (traits == null || !traits.isNodeType() || traits.isAbstract() || traits.isServiceClass() || traits.isInterface()) {
+
+					continue;
+				}
+
+				// the type's own records, not those of the types that inherit it
+				long count = 0;
+
+				for (final NodeInterface node : app.nodeQuery(typeName).getResultStream()) {
+
+					if (typeName.equals(node.getType())) {
+
+						count++;
+					}
+				}
+
+				if (count > 0) {
+
+					final Map<String, Object> entry = new LinkedHashMap<>();
+
+					entry.put("type", typeName);
+					entry.put("count", count);
+
+					result.add(entry);
+				}
+			}
+
+			tx.success();
+		}
+
+		return result;
+	}
+
+	@Override
+	public void execute(final Map<String, Object> parameters) throws FrameworkException {
+
+		if ("types".equals(parameters.get("mode"))) {
+
+			setCustomCommandResult(typesWithRecords());
+
+			return;
+		}
+
+		super.execute(parameters);
+	}
 
 	@Override
 	public void doExport(final Map<String, Object> parameters) throws FrameworkException {
@@ -318,6 +533,9 @@ public class DeployDataCommand extends DeployCommand {
 			doInnerCallbacks  = parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME).toString());
 			doOuterCallbacks  = parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME).toString());
 			doCascadingDelete = parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME).toString());
+			importMode        = importModeFrom(parameters.get(IMPORT_MODE_PARAMETER_NAME));
+
+			refuseOnProductionUnlessForced(parameters.get(FORCE_PARAMETER_NAME));
 
 			doImportFromDirectory(source);
 
@@ -351,6 +569,9 @@ public class DeployDataCommand extends DeployCommand {
 	public void doImportFromDirectory(final Path source) {
 
 		missingTypesForImport     = new HashSet();
+		updatedNodes              = 0;
+		appendedSkipped           = 0;
+		mirroredDeletions         = 0;
 		failedRelationshipImports = new TreeMap();
 
 		final long startTime = System.currentTimeMillis();
@@ -542,11 +763,19 @@ public class DeployDataCommand extends DeployCommand {
 		customHeaders.put("end", new Date(endTime).toString());
 		customHeaders.put("duration", duration);
 
-		logger.info("Import from {} done. (Took {})", source, duration);
+		logger.info("Import from {} done in mode {}: {} record(s) updated in place, {} left untouched, {} removed as absent from the archive. (Took {})", source, importMode, updatedNodes, appendedSkipped, mirroredDeletions, duration);
 
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
 		publishEndMessage(DEPLOYMENT_DATA_IMPORT_STATUS, broadcastData);
+
+		final Map<String, Object> report = importReport("data");
+
+		report.put("duration", duration);
+		report.put("missingTypes", missingTypesForImport.stream().sorted().toList());
+		report.put("failedRelationships", new TreeMap<>(failedRelationshipImports));
+
+		setCustomCommandResult(report);
 	}
 
 	protected SecurityContext getRecommendedSecurityContext() {
@@ -1133,6 +1362,19 @@ public class DeployDataCommand extends DeployCommand {
 
 		} else {
 
+			// read before the loop: importing an entry consumes keys from it, the uuid among them
+			final Set<String> inArchive = new HashSet<>();
+
+			for (final Map<String, Object> entry : data) {
+
+				final String archivedId = (String) entry.get("id");
+
+				if (archivedId != null) {
+
+					inArchive.add(archivedId);
+				}
+			}
+
 			final App app       = StructrApp.getInstance(context);
 			final int chunkSize = Settings.DeploymentNodeImportBatchSize.getValue();
 			int chunkCount      = 0;
@@ -1164,20 +1406,36 @@ public class DeployDataCommand extends DeployCommand {
 
 					for (final Map<String, Object> entry : sublist) {
 
-						final String id = (String)entry.get("id");
-						if (id != null) {
+						final String id                  = (String)entry.get("id");
+						final NodeInterface existingNode = (id != null) ? app.getNodeById(id) : null;
 
-							final NodeInterface existingNode = app.getNodeById(id);
-							if (existingNode != null) {
+						if (existingNode != null && ImportMode.append.equals(importMode)) {
 
-								app.delete(existingNode);
-							}
+							// what the target already has is what append exists to protect
+							appendedSkipped++;
+
+							continue;
 						}
 
 						checkOwnerAndSecurity(entry);
 
 						final String typeName = (String) entry.get("type");
 						final Traits type     = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : Traits.of(typeName));
+
+						if (existingNode != null && (ImportMode.update.equals(importMode) || ImportMode.mirror.equals(importMode)) && type != null) {
+
+							// no delete, so the relationships to types outside the export set survive
+							updateExistingNode(context, existingNode, entry, typeName);
+
+							updatedNodes++;
+
+							continue;
+						}
+
+						if (existingNode != null) {
+
+							app.delete(existingNode);
+						}
 
 						if (type == null) {
 
@@ -1225,6 +1483,19 @@ public class DeployDataCommand extends DeployCommand {
 				publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, baseMessage, Map.of(MESSAGE_ID, defaultTypeName, TYPE_NAME, defaultTypeName, PROGRESS, "(" + nodeCount + " / " + maxSize + ")", CUR_CHUNK_TIME, duration, MEAN_CHUNK_TIME, meanChunkTime));
 				logger.info("{}{} ({} / {}) (chunk: {}s, mean:{}s)", baseMessage, defaultTypeName, nodeCount, maxSize, duration/1000.0, meanChunkTime/1000.0);
 
+			}
+
+			if (ImportMode.mirror.equals(importMode)) {
+
+				try {
+
+					removeRecordsNotInArchive(context, defaultTypeName, inArchive);
+
+				} catch (final FrameworkException fex) {
+
+					logger.error("Unable to remove records of type {} that the archive does not carry. Cause: {}", defaultTypeName, fex.toString());
+					publishWarningMessage("Unable to remove records of type " + defaultTypeName, fex.toString());
+				}
 			}
 		}
 	}

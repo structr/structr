@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.SourceSection;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
@@ -85,6 +87,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
@@ -103,6 +106,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
 	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
 	protected static final Set<String> missingSchemaFile            = new HashSet<>();
+
+	/** What each pre/post-deploy script did, so a caller learns that the documented remedy itself failed. */
+	protected static final List<Map<String, Object>> configScripts  = new LinkedList<>();
+
+	/** User types found in an app archive's data folder, which the import replaces by uuid. */
+	public static final Set<String> embeddedUserTypes               = new LinkedHashSet<>();
 	protected static final Set<String> deferredLogTexts             = new HashSet<>();
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
@@ -308,6 +317,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			missingPrincipals.clear();
 			ambiguousPrincipals.clear();
 			missingSchemaFile.clear();
+			configScripts.clear();
+			embeddedUserTypes.clear();
 			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
@@ -523,6 +534,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
+
+			final Map<String, Object> report = importReport("app");
+
+			report.put("duration", duration);
+
+			setCustomCommandResult(report);
 
 		} catch (ImportPreconditionFailedException ipfe) {
 
@@ -2388,6 +2405,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final App app = StructrApp.getInstance(ctx);
 
+			boolean wrapped = false;
+
 			try (final Tx tx = app.tx()) {
 
 				tx.disableChangelog();
@@ -2404,6 +2423,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					} else {
 
 						confSource = "${" + confSource + "}";
+						wrapped    = true;
 					}
 
 					final String message = "Applying configuration from '" + confFile + "'";
@@ -2419,11 +2439,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				tx.success();
 
+				recordConfigScript(confFile, true, null, null);
+
 			} catch (Throwable t) {
 
 				final String msg = "Exception caught while importing '" + confFile + "'";
 				logger.warn(msg, t);
 				publishWarningMessage(msg, t.toString());
+
+				// the whole file rolled back with the transaction, so "applied" is false for all of it
+				recordConfigScript(confFile, false, t.toString(), sourceLocationOf(t, wrapped));
 			}
 		}
 	}
@@ -3192,6 +3217,57 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	/**
+	 * Says so when an app archive carries user records in its data folder.
+	 *
+	 * A data export warns about this loudly at export time, and this path warned about nothing: the data
+	 * inside an app archive is imported by uuid over any type, Users among them, which can replace the
+	 * account performing the import while it is running.
+	 */
+	private void warnAboutEmbeddedUserTypes(final Path dataDir) {
+
+		final Path nodesDir = dataDir.resolve("nodes");
+
+		if (!Files.isDirectory(nodesDir)) {
+
+			return;
+		}
+
+		try (final Stream<Path> files = Files.list(nodesDir)) {
+
+			for (final Path file : files.toList()) {
+
+				final String fileName = file.getFileName().toString();
+
+				if (!fileName.endsWith(".json")) {
+
+					continue;
+				}
+
+				final String typeName = fileName.substring(0, fileName.length() - ".json".length());
+				final Traits traits   = Traits.exists(typeName) ? Traits.of(typeName) : null;
+
+				if (traits != null && traits.contains(StructrTraits.USER)) {
+
+					final String title = "User type in embedded application data";
+					final String text  = "The data folder of this archive holds records of type '" + typeName + "', which is a User type.<br>"
+						+ "These records are imported by uuid over the existing ones, so the account running this import can be replaced while it runs.";
+
+					logger.warn("User type in embedded application data! Type '{}' is a User type. These records are imported by uuid over the existing ones, "
+						+ "so the account running this import can be replaced while it runs.", typeName);
+
+					publishWarningMessage(title, text);
+
+					embeddedUserTypes.add(typeName);
+				}
+			}
+
+		} catch (final IOException ioex) {
+
+			logger.warn("Unable to inspect the embedded data folder {}", nodesDir, ioex);
+		}
+	}
+
 	private void importEmbeddedApplicationData(final Path source) {
 
 		final Path dataDir = source.resolve("data");
@@ -3200,8 +3276,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Importing application data");
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application data");
 
+			warnAboutEmbeddedUserTypes(dataDir);
+
 			final DeployDataCommand cmd = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
 
+			// note this goes straight to the directory import, so it always runs as seed: records are
+			// deleted and created again by uuid, and the import modes never reach it
 			cmd.doImportFromDirectory(dataDir);
 		}
 	}
@@ -3685,6 +3765,91 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public void setCustomCommandResult(final Object result) {
 
 		customResult = result;
+	}
+
+	protected static void recordConfigScript(final Path confFile, final boolean applied, final String error, final Map<String, Object> at) {
+
+		final Map<String, Object> entry = new LinkedHashMap<>();
+
+		entry.put("file", confFile.getFileName().toString());
+		entry.put("applied", applied);
+		entry.put("error", error);
+		entry.put("at", at);
+
+		configScripts.add(entry);
+	}
+
+	/**
+	 * Where in the script the failure happened, when the cause knows.
+	 *
+	 * The whole file is one transaction and rolls back as one, so the line is all that distinguishes
+	 * "the script failed" from "the script failed HERE" and is the difference between rewriting a conf
+	 * and fixing it.
+	 */
+	private static Map<String, Object> sourceLocationOf(final Throwable t, final boolean wrapped) {
+
+		for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+
+			if (cause instanceof PolyglotException polyglot) {
+
+				// a thrown Error carries no location of its own, so the innermost guest frame is where it happened
+				SourceSection location = polyglot.getSourceLocation();
+
+				if (location == null) {
+
+					for (final PolyglotException.StackFrame frame : polyglot.getPolyglotStackTrace()) {
+
+						if (frame.isGuestFrame() && frame.getSourceLocation() != null) {
+
+							location = frame.getSourceLocation();
+							break;
+						}
+					}
+				}
+
+				if (location != null && location.hasLines()) {
+
+					final Map<String, Object> at = new LinkedHashMap<>();
+					final int line               = location.getStartLine();
+
+					at.put("line", line);
+
+					// the auto-script wrapper adds "${" to the first line, so a column there reads two too high
+					at.put("column", (wrapped && line == 1) ? Math.max(1, location.getStartColumn() - 2) : location.getStartColumn());
+
+					return at;
+				}
+
+				return null;
+			}
+
+			if (cause == cause.getCause()) {
+				break;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * What the import did and what it had to drop, for the caller rather than for the log.
+	 *
+	 * Everything here was already computed and then published only to the websocket channel and the
+	 * server's own log, neither of which a REST caller can read.
+	 */
+	protected Map<String, Object> importReport(final String mode) {
+
+		final Map<String, Object> report = new LinkedHashMap<>();
+
+		report.put("ok", true);
+		report.put("mode", mode);
+		report.put("missingPrincipals", new LinkedHashMap<>(missingPrincipals));
+		report.put("ambiguousPrincipals", new LinkedHashMap<>(ambiguousPrincipals));
+		report.put("missingSchemaFiles", missingSchemaFile.stream().sorted().toList());
+		report.put("configScripts", new LinkedList<>(configScripts));
+		report.put("embeddedUserTypes", embeddedUserTypes.stream().sorted().toList());
+
+		return report;
 	}
 
 	protected String transformCountedMapToHumanReadableList(final Map<String, Integer> map, final String separator) {
