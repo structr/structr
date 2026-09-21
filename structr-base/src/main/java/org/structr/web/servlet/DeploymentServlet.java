@@ -360,11 +360,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if ("app".equals(mode)) {
 
-						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployCommand.class));
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployCommand.class), false);
 
 					} else if ("data".equals(mode)) {
 
-						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployDataCommand.class));
+						deployFileUsingCommand(response, file, directoryPath, zipContentPath, StructrApp.getInstance(securityContext).command(DeployDataCommand.class), false);
 
 					} else {
 
@@ -483,7 +483,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		}
 	}
 
-	private void deployFileUsingCommand(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final DeployCommand deployCommand) throws FrameworkException, IOException {
+	private void deployFileUsingCommand(final HttpServletResponse response, final File file, final String directoryPath, final String zipContentPath, final DeployCommand deployCommand, final boolean doMigration) throws FrameworkException, IOException {
 
 		try {
 
@@ -529,7 +529,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				}
 			}
 
-			deployCommand.execute(Map.of("mode", "import", "source", deploymentFolderSourcePath, "quiet", "true"));
+			deployCommand.execute(Map.of("mode", "import", "source", deploymentFolderSourcePath, "quiet", true, "migrate", doMigration));
 
 			response.setStatus(deployCommand.getCommandStatusCode());
 

@@ -94,6 +94,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private int statusCode      = HttpServletResponse.SC_OK;
 	private Object customResult = null;
+	private boolean doMigration = true;
 	private boolean isQuiet     = false;
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
@@ -163,10 +164,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Boolean.FALSE.equals(isDeploymentActive())) {
 
 			// allow users to prevent notifications (for widget import etc.)
-			final String quiet = (String) parameters.get("quiet");
-			if ("true".equalsIgnoreCase(quiet)) {
+			final Object quiet = parameters.get("quiet");
+			if (quiet != null && "true".equalsIgnoreCase(quiet.toString())) {
 
 				this.isQuiet = true;
+			}
+
+			// allow users to prevent running of migration handlers
+			final Object migrate = parameters.get("migrate");
+			if (migrate != null && "false".equalsIgnoreCase(migrate.toString())) {
+
+				this.doMigration = false;
 			}
 
 			try {
@@ -434,7 +442,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
 			// migrate imported app
-			MigrationService.execute();
+			if (doMigration) {
+				MigrationService.execute();
+			}
 
 			if (!missingPrincipals.isEmpty()) {
 
