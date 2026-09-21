@@ -716,7 +716,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	// ----- private methods -----
 	private String getNeo4jVersion() {
 
-		return "2026.04.0";
+		return "2026.08.1";
 	}
 
 	private Long getCount(final String query, final String resultKey) {

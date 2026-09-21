@@ -562,7 +562,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			parameters.put("mode", "import");
 			parameters.put("source", deploymentFolderSourcePath);
-			parameters.put("quiet", true, "migrate", doMigration);
+			parameters.put("quiet", true);
+			parameters.put("migrate", doMigration);
 
 			deployCommand.execute(parameters);
 
