@@ -252,7 +252,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	}
 
 	@Override
-	public List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString) {
+	public List<Map<String, Object>> globalSearch(final Set<String> searchContexts, final String searchString, final boolean searchIgnoreCase) {
 
 		throw new UnsupportedOperationException("In-memory database does not support global search");
 	}
@@ -314,6 +314,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 				return false;
 
 			case AuthenticationRequired:
+
+				return false;
+
+			case GlobalSearch:
+
+				return false;
+
+			case TypePredicateExpressions:
 
 				return false;
 		}

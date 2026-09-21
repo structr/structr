@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	StructrWS.init();
-	Structr.globalSearch.init();
+	Structr.performActionAfterEnvResourceLoaded(Structr.globalSearch.init);
 
 	document.body.addEventListener('keyup', async (event) => {
 
@@ -197,6 +197,7 @@ let Structr = {
 		visibleToAuthenticatedUsers: "Auth. Users"
 	},
 	dialogTimeoutId: undefined,
+	rawEnvInfo: null,
 	instanceName: '',
 	instanceStage: '',
 	getDiffMatchPatch: () => {
@@ -806,6 +807,8 @@ let Structr = {
 			if (Array.isArray(envInfo)) {
 				envInfo = envInfo[0];
 			}
+
+			Structr.rawEnvInfo = envInfo;
 
 			let dbInfoEl = $('#header .structr-instance-db');
 
@@ -1971,7 +1974,18 @@ let Structr = {
 	globalSearch: {
 		init: () => {
 
-			let form        = document.querySelector('#global-search-node-form');
+			let supportsGlobalSearch    = (Structr.rawEnvInfo?.globalSearchSupport === true);
+			let supportsCaseInsensitive = (Structr.rawEnvInfo?.globalSearchCaseInsensitiveSupport === true);
+
+			if (!supportsGlobalSearch) {
+				return false;
+			}
+
+			let outerUi = document.querySelector('#global-search-ui');
+			outerUi.classList.remove('hidden');
+			outerUi.querySelector('[name="searchIgnoreCase"]').closest('label').classList.toggle('hidden', !supportsCaseInsensitive);
+
+			let form        = outerUi.querySelector('#global-search-node-form');
 			let searchField = form.querySelector('[name="searchString"]');
 
 			let debouncedSearchFunction = _Helpers.debounce(Structr.globalSearch.doSearch, 300);
@@ -2071,9 +2085,14 @@ let Structr = {
 			for (let el of form.elements) {
 				switch(el.type) {
 					case 'checkbox':
-						if (el.checked) {
-							data.searchContexts.push(el.name);
+						if (el.dataset.isSearchContext === "true") {
+							if (el.checked) {
+								data.searchContexts.push(el.name);
+							}
+						} else {
+							data[el.name] = el.checked;
 						}
+
 						break;
 					default:
 						data[el.name] = el.value;
@@ -2135,15 +2154,16 @@ let Structr = {
 						<div class="overflow-y-auto max-h-full h-full">
 							<div class="mx-4 my-4">
 								<form id="global-search-node-form" class="flex flex-col gap-2">
-									<div class="flex gap-2">
+									<div class="flex gap-4">
 										<input class="global-search-input" type="search" name="searchString" required placeholder="Search across selected areas..." autocomplete="off" autofocus>
+										<label class="flex items-center whitespace-nowrap"><input type="checkbox" checked name="searchIgnoreCase">Ignore Case</label>
 									</div>
 									<div class="flex flex-wrap gap-x-8 gap-y-2">
-										<label class="flex items-center"><input type="checkbox" checked name="dom">Page Elements</label>
-										<label class="flex items-center"><input type="checkbox" checked name="schema">Schema/Code</label>
-										<label class="flex items-center"><input type="checkbox" checked name="files">Files/Folders</label>
-										<label class="flex items-center"><input type="checkbox" checked name="localizations">Localizations</label>
-										<label class="flex items-center"><input type="checkbox" checked name="mail-templates">Mail Templates</label>
+										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="dom">Page Elements</label>
+										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="schema">Schema/Code</label>
+										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="files">Files/Folders</label>
+										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="localizations">Localizations</label>
+										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="mail-templates">Mail Templates</label>
 										<!--	<label class="flex items-center"><input type="checkbox" checked name="flows">Flow Nodes</label>-->
 									</div>
 								</form>
@@ -2242,7 +2262,7 @@ let Structr = {
 
 				<div class="flex gap-4 items-center mr-6">
 
-					<div style="target-name: --global-search;">
+					<div id="global-search-ui" class="hidden" style="target-name: --global-search;">
 					
 						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;">
 							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}

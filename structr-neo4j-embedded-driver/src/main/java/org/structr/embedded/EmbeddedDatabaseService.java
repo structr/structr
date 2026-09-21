@@ -528,7 +528,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	}
 
 	@Override
-	public List<Map<String, Object>> globalSearch(final Set<String> searchContexts, final String searchString) {
+	public List<Map<String, Object>> globalSearch(final Set<String> searchContexts, final String searchString, final boolean searchIgnoreCase) {
 
 		final Set<String> types  = new LinkedHashSet<>();
 
@@ -540,7 +540,8 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		if (searchContexts.contains(GLOBAL_SEARCH_CONTEXT_MAIL_TEMPLATES)) { types.add("(n:MailTemplate)"); }
 
 		final boolean supportsTypePredicateExpressions = supportsFeature(DatabaseFeature.TypePredicateExpressions);
-		final Map<String, Object> parameters           = Map.of("searchString", supportsTypePredicateExpressions ? searchString.toLowerCase() : searchString);
+		final boolean ignoreCase                       = searchIgnoreCase && supportsTypePredicateExpressions;
+		final Map<String, Object> parameters           = Map.of("searchString", searchString);
 
 		if (!types.isEmpty()) {
 
@@ -552,7 +553,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 				MATCH (n)
 					WHERE (%s)
 				WITH
-					n, $searchString as searchString
+					n, $CI$toLower($searchString) as searchString
 				WITH
 					n,
 					searchString,
@@ -560,9 +561,9 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 						WHERE
 							CASE
 								WHEN n[prop] IS NULL THEN false
-								WHEN n[prop] IS :: STRING THEN toLower(n[prop]) CONTAINS searchString
-								WHEN n[prop] IS :: LIST<ANY> THEN ANY (v IN [x IN n[prop] | toString(x)] WHERE toLower(v) CONTAINS searchString)
-								ELSE toLower(toString(n[prop])) CONTAINS searchString
+								WHEN n[prop] IS :: STRING THEN $CI$toLower(n[prop]) CONTAINS searchString
+								WHEN n[prop] IS :: LIST<ANY> THEN ANY (v IN [x IN n[prop] | toString(x)] WHERE $CI$toLower(v) CONTAINS searchString)
+								ELSE $CI$toLower(toString(n[prop])) CONTAINS searchString
 							END
 						| prop] AS matchedKeys,
 					labels(n) as labels
@@ -576,24 +577,24 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 					values:          [key IN matchedKeys |
 					   CASE
 						 WHEN n[key] IS :: LIST<ANY> THEN
-						   head([v IN [x IN n[key] | toString(x)] WHERE toLower(v) CONTAINS searchString |
+						   head([v IN [x IN n[key] | toString(x)] WHERE $CI$toLower(v) CONTAINS searchString |
 							 {
-							   before: right(substring(v, 0, size(split(toLower(v), searchString)[0])), 24),
-							   match:  substring(v, size(split(toLower(v), searchString)[0]), size(searchString)),
-							   after:  left(substring(v, size(split(toLower(v), searchString)[0]) + size(searchString)), 24)
+							   before: right(substring(v, 0, size(split($CI$toLower(v), searchString)[0])), 24),
+							   match:  substring(v, size(split($CI$toLower(v), searchString)[0]), size(searchString)),
+							   after:  left(substring(v, size(split($CI$toLower(v), searchString)[0]) + size(searchString)), 24)
 							 }
 						   ])
 						 ELSE
 						   {
-							 before: right(substring(toString(n[key]), 0, size(split(toLower(toString(n[key])), searchString)[0])), 24),
-							 match:  substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]), size(searchString)),
-							 after:  left(substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]) + size(searchString)), 24)
+							 before: right(substring(toString(n[key]), 0, size(split($CI$toLower(toString(n[key])), searchString)[0])), 24),
+							 match:  substring(toString(n[key]), size(split($CI$toLower(toString(n[key])), searchString)[0]), size(searchString)),
+							 after:  left(substring(toString(n[key]), size(split($CI$toLower(toString(n[key])), searchString)[0]) + size(searchString)), 24)
 						   }
 					   END
 				   ],
 					labels:          labels
 				} AS searchResult
-				""".formatted(labelsClause) : """
+				""".replace("$CI$toLower", (ignoreCase ? "toLower" : "")).formatted(labelsClause) : """
 					MATCH (n)
 						WHERE (%s)
 					WITH
@@ -690,6 +691,10 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 			case RangeIndexes:
 
 				return neo4jMajorVersion >= 5;
+
+			case GlobalSearch:
+
+				return true;
 		}
 
 		return false;

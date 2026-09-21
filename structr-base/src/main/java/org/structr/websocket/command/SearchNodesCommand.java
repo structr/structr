@@ -34,8 +34,9 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchNodesCommand.class.getName());
 
-	private static final String SEARCH_STRING_KEY    = "searchString";
-	private static final String SEARCH_CONTEXTS_KEY  = "searchContexts";
+	private static final String SEARCH_STRING_KEY      = "searchString";
+	private static final String SEARCH_CONTEXTS_KEY    = "searchContexts";
+	private static final String SEARCH_IGNORE_CASE_KEY = "searchIgnoreCase";
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -44,10 +45,11 @@ public class SearchNodesCommand extends AbstractCommand {
 
 		final String searchString         = webSocketData.getNodeDataStringValue(SEARCH_STRING_KEY);
 		final List<String> searchContexts = webSocketData.getNodeDataStringList(SEARCH_CONTEXTS_KEY);
+		final boolean searchIgnoreCase    = webSocketData.getNodeDataBooleanValue(SEARCH_IGNORE_CASE_KEY);
 
 		try {
 
-			final List<GraphObject> result = executeSearch(searchString, searchContexts);
+			final List<GraphObject> result = executeSearch(searchString, searchContexts, searchIgnoreCase);
 			int resultCountBeforePaging = result.size();
 
 			webSocketData.setRawResultCount(resultCountBeforePaging);
@@ -74,10 +76,10 @@ public class SearchNodesCommand extends AbstractCommand {
 		return "SEARCH_NODES";
 	}
 
-	public static List<GraphObject> executeSearch(final String searchString, final List<String> searchContexts) {
+	public static List<GraphObject> executeSearch(final String searchString, final List<String> searchContexts, final boolean searchIgnoreCase) {
 
 		final DatabaseService db                   = Services.getInstance().getDatabaseService();
-		final List<Map<String, Object>> rawResults = db.globalSearch(new HashSet<>(searchContexts), searchString);
+		final List<Map<String, Object>> rawResults = db.globalSearch(new HashSet<>(searchContexts), searchString, searchIgnoreCase);
 		final List<GraphObject> results            = new LinkedList<>();
 
 		for (final Map<String, Object> result : rawResults) {

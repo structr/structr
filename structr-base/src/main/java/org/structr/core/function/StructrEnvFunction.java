@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.structr.api.DatabaseFeature;
+import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
@@ -116,7 +118,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		info.setProperty(new StringProperty("validUUIDv4Regex"),        Settings.getValidUUIDRegexString());
 		info.setProperty(new StringProperty("legacyRequestParameters"), Settings.RequestParameterLegacyMode.getValue());
 		info.setProperty(new StringProperty("isDeploymentActive"),      DeployCommand.isDeploymentActive());
-		info.setProperty(new GenericProperty("defaultCredentialsInUse"), DefaultCredentialsCheck.isDefaultCredentialsInUse());
+		info.setProperty(new BooleanProperty("defaultCredentialsInUse"),   DefaultCredentialsCheck.isDefaultCredentialsInUse());
 
 		info.setProperty(new StringProperty("debuggerEnabled"),          Settings.ScriptingDebugger.getValue());
 
@@ -126,6 +128,10 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		}
 
 		info.setProperty(new GenericProperty("dashboardInfo"),   getStructrDashboardInfo());
+
+		final DatabaseService db = Services.getInstance().getDatabaseService();
+		info.setProperty(new BooleanProperty("globalSearchSupport"),                  db.supportsFeature(DatabaseFeature.GlobalSearch));
+		info.setProperty(new BooleanProperty("globalSearchCaseInsensitiveSupport"),   db.supportsFeature(DatabaseFeature.TypePredicateExpressions));
 
 		return info;
 	}
