@@ -37,13 +37,6 @@ public class SearchNodesCommand extends AbstractCommand {
 	private static final String SEARCH_STRING_KEY    = "searchString";
 	private static final String SEARCH_CONTEXTS_KEY  = "searchContexts";
 
-	public static final String SEARCH_CONTEXT_DOM            = "dom";
-	public static final String SEARCH_CONTEXT_FLOWS          = "flows";
-	public static final String SEARCH_CONTEXT_SCHEMA         = "schema";
-	public static final String SEARCH_CONTEXT_FILES          = "files";
-	public static final String SEARCH_CONTEXT_LOCALIZATIONS  = "localizations";
-	public static final String SEARCH_CONTEXT_MAIL_TEMPLATES = "mail-templates";
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -81,19 +74,10 @@ public class SearchNodesCommand extends AbstractCommand {
 		return "SEARCH_NODES";
 	}
 
-	public static List<GraphObject> executeSearch(final String searchString, List<String> searchContexts) {
+	public static List<GraphObject> executeSearch(final String searchString, final List<String> searchContexts) {
 
-		final DatabaseService db = Services.getInstance().getDatabaseService();
-		final Set<String> types  = new LinkedHashSet<>();
-
-		if (searchContexts.contains(SEARCH_CONTEXT_DOM))            { types.add("((n:DOMNode or n:Site or n:ActionMapping or n:ParameterMapping) AND NOT n:ShadowDocument)"); }
-		if (searchContexts.contains(SEARCH_CONTEXT_FLOWS))          { types.add("(n:FlowNode)"); }
-		if (searchContexts.contains(SEARCH_CONTEXT_SCHEMA))         { types.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
-		if (searchContexts.contains(SEARCH_CONTEXT_FILES))          { types.add("(n:AbstractFile AND NOT ((n:Image OR n:VideoFile) AND coalesce(n.isTemplate, false) = false))"); }
-		if (searchContexts.contains(SEARCH_CONTEXT_LOCALIZATIONS))  { types.add("(n:Localization)"); }
-		if (searchContexts.contains(SEARCH_CONTEXT_MAIL_TEMPLATES)) { types.add("(n:MailTemplate)"); }
-
-		final List<Map<String, Object>> rawResults = db.globalSearch(types, searchString);
+		final DatabaseService db                   = Services.getInstance().getDatabaseService();
+		final List<Map<String, Object>> rawResults = db.globalSearch(new HashSet<>(searchContexts), searchString);
 		final List<GraphObject> results            = new LinkedList<>();
 
 		for (final Map<String, Object> result : rawResults) {

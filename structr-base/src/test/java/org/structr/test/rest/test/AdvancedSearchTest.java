@@ -20,6 +20,7 @@ package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
 import org.structr.api.DatabaseFeature;
+import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -1316,7 +1317,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final String expectedKeysForDOMResults = "id,isDOMElement,keys,labels,name,type,values";
-			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", List.of(SearchNodesCommand.SEARCH_CONTEXT_DOM));
+			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM));
 
 			assertEquals(2, results.size());
 
@@ -1343,7 +1344,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			final String identifier = Settings.TenantIdentifier.getValue();
 			Settings.TenantIdentifier.setValue("TEST");
 
-			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", List.of(SearchNodesCommand.SEARCH_CONTEXT_DOM));
+			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM));
 
 			assertEquals("Global search (with a tenant identifier that did not have any nodes created) should yield no results",0, resultsWithTenantIdentifier.size());
 

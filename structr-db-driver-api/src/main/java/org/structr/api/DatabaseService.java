@@ -131,6 +131,14 @@ public interface DatabaseService<IDType> {
 
 	// utils
 	CountResult getNodeAndRelationshipCount();
+
+	// global search
+	String GLOBAL_SEARCH_CONTEXT_DOM            = "dom";
+	String GLOBAL_SEARCH_CONTEXT_FLOWS          = "flows";
+	String GLOBAL_SEARCH_CONTEXT_SCHEMA         = "schema";
+	String GLOBAL_SEARCH_CONTEXT_FILES          = "files";
+	String GLOBAL_SEARCH_CONTEXT_LOCALIZATIONS  = "localizations";
+	String GLOBAL_SEARCH_CONTEXT_MAIL_TEMPLATES = "mail-templates";
 	List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString);
 
 	// native
