@@ -34,6 +34,7 @@ public class Source extends GenericHtmlElementTraitDefinition {
 	public static final String SRC_PROPERTY   = getPrefixedHTMLAttributeName("src");
 	public static final String TYPE_PROPERTY  = getPrefixedHTMLAttributeName("type");
 	public static final String MEDIA_PROPERTY = getPrefixedHTMLAttributeName("media");
+	public static final String SRCSET_PROPERTY = getPrefixedHTMLAttributeName("srcset");
 
 	public Source() {
 
@@ -66,13 +67,14 @@ public class Source extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> srcProperty   = new StringProperty(SRC_PROPERTY);
 		final PropertyKey<String> typeProperty  = new StringProperty(TYPE_PROPERTY);
 		final PropertyKey<String> mediaProperty = new StringProperty(MEDIA_PROPERTY);
+		final PropertyKey<String> srcsetProperty = new StringProperty(SRCSET_PROPERTY);
 
-		return newSet(srcProperty, typeProperty, mediaProperty);
+		return newSet(srcProperty, typeProperty, mediaProperty, srcsetProperty);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
-		return Map.of(PropertyView.Html, newSet(SRC_PROPERTY, TYPE_PROPERTY, MEDIA_PROPERTY));
+		return Map.of(PropertyView.Html, newSet(SRC_PROPERTY, TYPE_PROPERTY, MEDIA_PROPERTY, SRCSET_PROPERTY));
 	}
 }
