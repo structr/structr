@@ -1341,26 +1341,29 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			fail("Unexpected exception");
 		}
 
-		// search DOM only with and without "ignore case"
-		// WARNING: this test will break if tests are expanded to older neo4j versions where TypePredicates and thereby case-insensitive search is not supported
-		try (final Tx tx = app.tx()) {
+		// this test will break if run on older neo4j versions where TypePredicates and thereby case-insensitive search is not supported
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.TypePredicateExpressions)) {
 
-			List<GraphObject> results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), false);
+			// search DOM only with and without "ignore case"
+			try (final Tx tx = app.tx()) {
 
-			assertEquals("When searching case-sensitive (ignoreCase = false), we expect 0 results", 0, results.size());
+				List<GraphObject> results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), false);
+
+				assertEquals("When searching case-sensitive (ignoreCase = false), we expect 0 results", 0, results.size());
 
 
-			results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), true);
+				results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), true);
 
-			assertEquals("When searching case-insensitive (ignoreCase = true), we expect 1 result",1, results.size());
-			assertEquals(expectedCaseIgnoreSearchHits.getFirst(), results.getFirst().getUuid());
+				assertEquals("When searching case-insensitive (ignoreCase = true), we expect 1 result",1, results.size());
+				assertEquals(expectedCaseIgnoreSearchHits.getFirst(), results.getFirst().getUuid());
 
-			tx.success();
+				tx.success();
 
-		} catch (Exception ex) {
+			} catch (Exception ex) {
 
-			ex.printStackTrace();
-			fail("Unexpected exception");
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
 		}
 
 		// search with a different tenant identifier (expect 0 results)
