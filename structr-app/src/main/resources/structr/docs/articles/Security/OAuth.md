@@ -341,9 +341,9 @@ Register this URL with the provider and ensure it matches your Structr configura
 
 #### Google
 
-- Enable the "Google+ API" or "People API" in the Google Cloud Console
-- Configure OAuth consent screen before creating credentials
-- Uses default endpoints – only client credentials required
+- Configure the OAuth consent screen in the Google Cloud Console, then create an OAuth client ID of type "Web application" under Credentials and register the redirect URI there
+- The default scope is `email`; no additional API needs to be enabled for it
+- Uses default endpoints, only client credentials required
 
 #### GitHub
 

@@ -21,9 +21,9 @@ This separation of metadata from storage provides flexibility:
 
 Since Structr 5.0, file content can be stored on various backends:
 
-- **Local filesystem** – The default, stores files on the server's disk
-- **Cloud storage** – Amazon S3 and compatible services
-- **Archive systems** – For long-term storage with different access patterns
+- **Local filesystem** (`LocalFSStorageProvider`) – The default, stores files on the server's disk
+- **Cloud storage** (`GenericS3BucketStorageProvider`) – Amazon S3 and compatible services
+- **In-memory storage** (`InMemoryStorageProvider`) – Keeps file content in memory only, for temporary files and tests
 
 You can configure storage backends per folder, allowing different parts of your virtual filesystem to use different physical storage. For example, frequently accessed files might live on fast local storage while archives go to cheaper cloud storage.
 
@@ -65,11 +65,14 @@ The `file` parameter contains the file data. You can include additional paramete
 |-----------|-------------|
 | `file` | The file content (required) |
 | `parent` | UUID of the target folder |
+| `uploadFolderPath` | Path of the target folder, created if it does not exist. Requires an authenticated user and is limited to paths below the default upload folder or the user's home directory. |
 | `name` | Override the filename |
 | `visibleToPublicUsers` | Set public visibility |
 | `visibleToAuthenticatedUsers` | Set authenticated visibility |
 
 You can also pass UUIDs of related objects to link the file directly to existing data during upload.
+
+Without `parent` or `uploadFolderPath`, files land in the folder named by `application.uploads.folder`, which defaults to `/._structr_uploads`. When `application.filesystem.enabled` is set, an authenticated non-admin user's uploads go to that user's home directory instead.
 
 #### Uploading to an External Service
 
@@ -98,7 +101,7 @@ byte array is sent as text, exactly as before.
 >
 > Without it the call is refused with a message saying so, rather than failing later as an empty upload.
 
-Use `$.POST_multi_part` instead when the receiving endpoint expects a form upload with several parts.
+Use `$.POSTMultiPart` instead when the receiving endpoint expects a form upload with several parts.
 
 ### Accessing
 
@@ -160,21 +163,13 @@ Images can be cropped directly in the editor. This is currently the only image e
 
 ### Video Processing
 
-Video files support:
-
-- Transcoding between formats
-- Playback from specific timestamps
-- Streaming delivery
+The media module adds the `VideoFile` type. It relies on an external `ffmpeg` binary on the server, which Structr locates with `which ffmpeg`; without it the video functions do nothing. The instance method `updateVideoInfo()` reads codec, pixel format, audio channel and duration information from the file into the corresponding properties. Converted versions of a video are linked through the `convertedVideos` property (with `originalVideo` pointing back), and a `posterImage` can hold a frame grabbed from the video. Conversion and frame grabbing call ffmpeg through converter scripts that you register in `structr.conf` as settings named `VideoFile.<scriptName>`; a conversion whose script is not registered is skipped with a warning in the server log. Structr serves video files like any other file; it does not offer timestamp-based playback or adaptive streaming.
 
 ### Text Extraction
 
 Structr integrates Apache Tika to extract text from documents. Supported formats include PDF, Microsoft Office documents (Word, Excel, PowerPoint), and many others – over a thousand file types in total.
 
 Extracted text can be indexed for full-text search, making document contents searchable alongside structured data.
-
-### Optical Character Recognition
-
-If Tesseract OCR is installed on the server, Structr can extract text from images. This enables searching scanned documents or processing image-based PDFs.
 
 ### Fulltext Indexing
 

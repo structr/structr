@@ -530,6 +530,7 @@ let _Helpers = {
 			case 'crud':           return '#docs:Admin%20User%20Interface/Data';
 			case 'graph':          return '#docs:Admin%20User%20Interface/Graph';
 			case 'flows':          return '#docs:Admin%20User%20Interface/Flows';
+			case 'processes':      return '#docs:Admin%20User%20Interface/Processes';
 			case 'schema-enum':    return '#docs:troubleshooting-guide#enum-property';
 
 			case 'mail-templates':

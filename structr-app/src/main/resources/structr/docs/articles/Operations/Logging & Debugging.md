@@ -11,7 +11,7 @@ Structr logs all server activity using the Log4J logging API with Logback as the
 The server log location depends on your installation method:
 
 - Debian package: `/var/log/structr.log`
-- ZIP installation: `logs/structr.log` in the Structr directory
+- ZIP installation: `logs/server.log` in the Structr directory
 
 ### Custom Log Configuration
 
@@ -32,7 +32,7 @@ Place this file in the same directory as `logback.xml` (typically the Structr in
 You can view the server log in several ways:
 
 - Dashboard – The Server Log tab shows the log in real-time with configurable refresh interval
-- Command line – Use `tail -f /var/log/structr.log` (Debian) or `tail -f logs/structr.log` (ZIP) to follow the log
+- Command line – Use `tail -f /var/log/structr.log` (Debian) or `tail -f logs/server.log` (ZIP) to follow the log
 - Log file – Open the file directly in a text editor
 
 ### Log Format
@@ -110,7 +110,7 @@ Configure these settings in `structr.conf` or through the Configuration Interfac
 | `log.requests` | false | Log all incoming HTTP requests |
 | `log.querytime.threshold` | 3000 | Log queries taking longer than this (milliseconds) |
 | `log.callback.threshold` | 50000 | Log transactions with more callbacks than this |
-| `log.functions.stacktrace` | false | Log full stack traces for function exceptions |
+| `log.functions.shortenstacktrace` | true | Shorten the stack trace of a script exception to the frames before the transition into GraalVM internals. Set to `false` to log the full stack trace. |
 | `log.cypher.debug` | false | Log generated Cypher queries |
 | `log.cypher.debug.ping` | false | Include WebSocket PING queries in Cypher debug log |
 | `log.scriptprocess.commandline` | 2 | Script execution logging: 0=none, 1=path only, 2=path and parameters |
@@ -126,7 +126,7 @@ $.log('Processing order', order.id);
 $.log('User logged in:', $.me.name);
 
 // Template string syntax
-$.log()`Processing batch ${page} of ${total}`);
+$.log(`Processing batch ${page} of ${total}`);
 ```
 
 **StructrScript:**
@@ -196,10 +196,20 @@ For debugging Structr itself or complex Java interop scenarios, you can attach a
 
 **Debian package:**
 
-Set the environment variable before starting Structr:
+The start script `bin/config` enables the debug agent when the environment variable `ENABLE_STRUCTR_DEBUG` has the value `yes`. The systemd unit does not read an environment file, and a variable exported in your shell does not reach the service, so set it in a systemd override:
 
 ```bash
-export ENABLE_STRUCTR_DEBUG=yes
+systemctl edit structr
+```
+
+Add the following lines, save, and restart the service:
+
+```ini
+[Service]
+Environment=ENABLE_STRUCTR_DEBUG=yes
+```
+
+```bash
 systemctl restart structr
 ```
 
@@ -207,10 +217,10 @@ This enables debugging on port 5005.
 
 **ZIP installation:**
 
-Add the following JVM parameter to the start command or configuration:
+Export `ENABLE_STRUCTR_DEBUG=yes` in the shell that runs `bin/start`, or add the following JVM parameter to the start command:
 
 ```
--Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 ```
 
 Parameters:
@@ -302,7 +312,7 @@ Use `logPermissionResolution=true` on requests to see exactly how access is gran
 
 ### JavaScript Errors
 
-Enable `log.functions.stacktrace` to get full stack traces when functions throw exceptions.
+Structr always logs the stack trace when a function throws an exception, but shortens it by default. Set `log.functions.shortenstacktrace` to `false` to get the full stack trace including the GraalVM frames. The setting replaces the former `log.functions.stacktrace`, with the sense inverted.
 
 ### Transaction Problems
 

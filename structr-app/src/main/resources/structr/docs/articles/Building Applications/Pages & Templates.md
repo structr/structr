@@ -49,12 +49,12 @@ When you click the green "Create Page" button in the upper left corner of the Pa
 ![Create Page Dialog](/structr/docs/pages_create-page.png)
 
 #### Templates
-When you select "Create Page", you will see a list of templates that are used to create the structure of the new page. Templates are based on the Tailwind CSS framework and range from simple layouts like the Empty Page to more complex structures with sidebars and navigation menus, as well as specialized templates like the Sign-In Page.
+When you select "Create Page", you will see a list of templates that are used to create the structure of the new page. Three of them are built in: Empty Page creates a page without children, Simple Page creates a page with a minimal set of HTML elements, and Custom Page creates a page from HTML source code or from a URL. All other tiles are page template widgets. The default widget set contributes the Default Page, a layout with header, sidebar and menu based on Tailwind CSS.
 
 When you create a page from a template, you import a pre-built page structure. This can include content, repeaters, permissions, and also shared components for reuse across your site. The Simple Page option, on the other hand, creates a minimal page with only the standard HTML elements `<html>`, `<head>`, and `<body>`.
 
 #### Page Templates Are Widgets
-Page templates are widgets with the `isPageTemplate` flag enabled. Structr looks at the widget server and your local widget collection and displays local and remote page templates together in the "Create Page" dialog.
+Page templates are widgets with the `isPageTemplate` flag enabled. Structr displays all page template widgets of your application in the "Create Page" dialog. If none exist yet, the dialog offers to import the default widget set from structr.com, which contains the Default Page template.
 
 ### Import Page Dialog
 The Import Page dialog lets you create pages from HTML source code or by importing from external URLs.
@@ -125,7 +125,7 @@ Enable this when your page contains dynamic data that changes frequently or pers
 #### Use binary encoding for output
 Enable this if your page generates binary data to make Structr use the correct character encoding automatically.
 
-#### Page is only reachable via its URL Routes
+#### Only reachable via URL Routes
 Enable this if your page should only be reachable via its URL Routes. A page with this flag enabled, can not be accessed via its name, UUID, and position lookup for the root '/' path. Only lookup via URL Routes and error codes (if set) still works.
 
 This is intended for situations where reaching a page via multiple way would be considered duplicate content and could hurt SEO ratings.
@@ -285,6 +285,12 @@ Additionally, you can configure follow-up actions to be performed after the main
 #### Further Information
 For detailed instructions about how to configure the individual settings of Event Action Mappings, see the [Event Action Mapping](/structr/docs/ontology/Building%20Applications/Event%20Action%20Mapping) chapter below.
 
+### The Process Tab
+The Process tab holds the settings that connect an element to a BPMN process. The Component Binding section attaches the component configuration of a process-bound component to a user task of a process, so that the component can derive its data source from the subject type of that process. Below it, the Process Visibility section lets you add visibility rules that show or hide the element depending on the state of a process instance or of one of its steps. See the [BPMN Process Control](/structr/docs/ontology/Building%20Applications/BPMN%20Process%20Control) chapter for details.
+
+### The Link Tab
+The Link tab appears for elements that can reference another resource, namely `a`, `link`, `script`, `img`, `video` and `object` elements. It shows the pages, files and images of the application and lets you pick the one the element links to.
+
 ### The Security Tab
 The Security tab contains the Access Control settings for the current element, with owner, visibility flags and individual user / group access rights.
 
@@ -357,9 +363,9 @@ The context menu provides quick access to common operations on page elements. Op
 The context menu varies depending on the element type. For page elements, it only allows inserting an `<html>` element or a template element, cloning the page, expanding or collapsing the tree, and deleting the page. For content elements, the insert options are limited to Insert Before and Insert After, since content elements cannot have children. The following sections describe the full context menu available for HTML and template elements.
 
 ### Suggested Widgets (when available)
-This menu item appears when a local Widget exists whose `selectors` property matches the current element. Selectors are standard CSS selectors, so you can match against any HTML attribute: `table` matches table elements, `div.container` matches div elements with the `container` class, and `#sidebar` matches the element with that id. In addition, Structr makes the `componentType` attribute available as `type` for selector matching. Widget libraries use this to enforce nesting rules, for example `[type='container']` makes a Widget appear inside any element whose componentType is `container`. See the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter for details on the component type system.
+This menu item appears when a local Widget exists whose `selectors` property matches the current element. Selectors are standard CSS selectors, so you can match against any HTML attribute: `table` matches table elements, `div.container` matches div elements with the `container` class, and `#sidebar` matches the element with that id. In addition, Structr makes the `componentType` attribute available as `type` for selector matching. Widget libraries use this to enforce nesting rules, for example `[type='container']` makes a Widget appear inside any element whose componentType is `container`. See the [Creating Widgets](/structr/docs/ontology/Expert%20Topics/Creating%20Widgets) chapter for details on the component type system.
 
-### Suggested Elements (when available)
+### Suggested HTML element (when available)
 This menu item appears for elements that have commonly used child elements. For example, when you open the context menu on a `<table>` element, Structr suggests `<thead>`, `<tbody>`, `<tr>`, and other table-related elements. Similarly, a `<ul>` element suggests `<li>`, a `<select>` suggests `<option>`, and so on. This speeds up page building by offering the most relevant elements for your current context.
 
 ### Insert HTML Element
@@ -381,10 +387,10 @@ This submenu lets you insert a new element as a sibling after the selected eleme
 Creates a copy of the selected element including all its children and inserts it immediately after the original.
 
 ### Wrap Element In
-This submenu lets you wrap the selected element in a new parent element. It contains Insert HTML Element, Insert Template Element, and Insert Div Element options. Content elements are not available here because they cannot have children. The selected element becomes a child of the newly created element.
+This submenu lets you wrap the selected element in a new parent element. It contains Insert HTML Element, Insert Template Element, and Insert Div Element options. Content elements are not available here because they cannot have children. The selected element becomes a child of the newly created element. When Widgets exist that fit the parent of the selected element and provide a content area for it, they appear at the top of the submenu under "Suggested Widgets". See the [Creating Widgets](/structr/docs/ontology/Expert%20Topics/Creating%20Widgets) chapter for the matching rules.
 
 ### Replace Element With
-This submenu lets you replace the selected element with a different element type while preserving its children. It contains Insert HTML Element, Insert Template Element, and Insert Div Element options. Content elements are not available here because they cannot have children.
+This submenu lets you replace the selected element with a different element type while preserving its children. It contains Insert HTML Element and Insert Div Element options. Content elements are not available here because they cannot have children. Widgets that fit the parent of the selected element appear at the top of the submenu under "Suggested Widgets". Replacing an element with a Widget transfers matching content areas and repeaters to the new Widget, as described in the Creating Widgets chapter.
 
 ### Select / Deselect Element
 Selects or deselects the element. A selected element displays a dashed border in the page tree and can be cloned or moved to a different location using the context menu.
@@ -457,7 +463,7 @@ Structr determines the current locale in the following order of priority:
 ## Widgets and Shared Components
 Widgets are reusable building blocks that you can insert into your pages from the context menu or the Widgets flyout. They range from simple HTML snippets to complete, configurable page templates. Shared Components are referenced elements that stay in sync across all pages where they are used. Widgets can define Shared Components in their source code, which forms the basis for building widget libraries with enforced nesting rules using the component type system. Some Widgets produce data-driven components that render their content from a DataSource at runtime, with configurable fields, pagination, and filtering.
 
-For details on creating, configuring, and organizing Widgets and Shared Components, including the component type system, data-driven components, and how to build a widget library, see the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter.
+For details on using Widgets, Shared Components and data-driven components, see the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter. For writing your own Widgets, including the component type system and widget libraries, see the [Creating Widgets](/structr/docs/ontology/Expert%20Topics/Creating%20Widgets) chapter.
 
 ## Additional Tools
 The Pages area includes several additional tools for managing and searching page elements.

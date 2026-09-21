@@ -4,12 +4,12 @@ Structr includes a built-in FTP server that provides file access to the virtual 
 
 ## Configuration
 
-Enable and configure the FTP server in the Configuration Interface or in `structr.conf`:
+The FTP server runs as the service `FtpService`. It is not started by default: add `FtpService` to the setting `configured.services` in the Configuration Interface (Services tab) or in `structr.conf`, then restart Structr. The port and the passive port range are configured under Server Settings:
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| `application.ftp.enabled` | Enable FTP server | `false` |
 | `application.ftp.port` | FTP port | `8021` |
+| `application.ftp.passivePortRange` | Port range for passive mode, for example `30000-30010`. Needed when Structr runs in a Docker container so that the ports can be mapped. | (empty) |
 
 ## Authentication
 
@@ -99,6 +99,6 @@ FTP access is useful for:
 
 ## Related Topics
 
-- Files & Folders - Structr's virtual filesystem
-- Users & Groups - Managing user accounts and permissions
+- [Filesystem](/structr/docs/ontology/Operations/Filesystem) - Structr's virtual filesystem
+- [User Management](/structr/docs/ontology/Security/User%20Management) - Managing user accounts and permissions
 - Security - Access control and permissions

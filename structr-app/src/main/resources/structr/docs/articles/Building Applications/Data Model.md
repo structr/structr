@@ -90,6 +90,7 @@ The type controls what values are accepted as input. For example, an integer att
 | `Boolean` | True/false values. Returns false instead of null when empty. |
 | `Boolean[]` | Array of boolean values. |
 | `Byte[]` | Binary data stored directly on the node. |
+| `Count` | Read-only integer that returns the number of elements in the collection property named in the Format field. |
 | `Cypher` | Read-only computed property that executes a Cypher query. |
 | `Date` | Date and time, stored as milliseconds. Accepts ISO-8601 or custom format patterns. |
 | `Date[]` | Array of date values. |
@@ -101,7 +102,9 @@ The type controls what values are accepted as input. For example, an integer att
 | `Function` | Computed property with read and write functions. Configure a type hint for proper indexing. |
 | `Integer` | 32-bit whole numbers. |
 | `Integer[]` | Array of integer values. |
+| `Join` | Read-only string that joins the values of the properties listed in the Format field into a single formatted string. |
 | `Long` | 64-bit whole numbers, for large values or identifiers. |
+| `Notion` | Exposes a property of a related node as if it were a property of this node. The Format field names the relationship property and the remote property, for example `owner, name`. |
 | `Long[]` | Array of long values. |
 | `String` | Text values. Supports fulltext indexing for advanced search. |
 | `String[]` | Array of strings. |
@@ -185,7 +188,7 @@ The Methods tab allows you to define custom methods and lifecycle methods for a 
 #### Method List
 The left section displays a table of all methods defined on the type, with columns for name, options (three-dot menu), and action buttons. The action buttons let you edit, clone, or delete methods.
 
-Below the table is a dropdown button for creating new methods. You can create either a custom method with a name of your choice, or select one of seven predefined lifecycle methods. When you select a lifecycle method, the system assigns the method name automatically.
+Below the table is a dropdown button for creating new methods. You can create either a custom method with a name of your choice, or select one of seven predefined lifecycle methods: `onNodeCreation`, `onCreate`, `afterCreate`, `onSave`, `afterSave`, `onDelete` and `afterDelete`. When you select a lifecycle method, the system assigns the method name automatically. The `onNodeCreation` method runs immediately after a node has been created, before `onCreate` and before the transaction is committed, so an error in this method still prevents the commit.
 
 The three-dot menu in the options column provides access to method configuration settings:
 
@@ -199,6 +202,9 @@ Makes the method static, allowing it to be called on the type itself rather than
 
 ##### Not Callable via HTTP
 Prevents the method from being invoked through the REST API, making it accessible only from within the application.
+
+##### HTTP Verb
+Selects the HTTP method (GET, PUT, POST, PATCH or DELETE) that calls this method via the REST API. The default is POST. This setting is only shown for custom methods that are callable via HTTP.
 
 ##### Wrap JavaScript in main()
 Controls how JavaScript code is interpreted. When enabled, the system wraps your script in a main() function, which allows you to use the return keyword to return a value. However, this prevents you from using import statements. When disabled, your script is not wrapped in a function and you can use imports. The return value is the last evaluated instruction, similar to a REPL.
@@ -326,7 +332,7 @@ This example shows a person with basic properties, a company referenced by name 
 Permission Resolution controls how access rights propagate between objects through relationships. This lets users access objects indirectly through relationships without needing direct permissions on those objects.
 
 #### Propagation Direction
-The Permission Resolution section begins with a dropdown showing the current propagation direction (initially `NONE`). This dropdown controls the flow of permissions through the relationship. You can configure permissions to propagate from source to target, from target to source, in both directions, or not at all. This determines which objects inherit access rights through the relationship.
+The Permission Resolution section begins with a dropdown showing the current propagation direction (initially `None`). This dropdown controls the flow of permissions through the relationship. You can configure permissions to propagate from source to target, from target to source, in both directions, or not at all. This determines which objects inherit access rights through the relationship.
 
 #### Permission Types
 You configure each permission type (read, write, delete, and access control) separately to control which permissions propagate in the configured direction. For example, you can keep read access while removing write and delete permissions, creating read-only access paths through your data model.
@@ -339,7 +345,7 @@ The schema editor displays relationships with permission resolution in orange in
 
 
 ## Inheritance
-Structr supports multiple inheritance through traits. When you create a type, you select one or more traits for it to inherit from, or leave the selection empty to inherit from the base trait `AbstractNode` by default. You can change the trait selection later when editing the type.
+Structr supports multiple inheritance through traits. When you create a type, you select one or more traits for it to inherit from, or leave the selection empty. Every type is composed on the base trait `NodeInterface`, which provides the default properties listed below. You can change the trait selection later when editing the type.
 
 ### Order of Inherited Traits
 The inheritance order is determined by the order in which you specify the traits. This is especially important when resolving properties or methods that exist on both traits.
@@ -348,7 +354,7 @@ The inheritance order is determined by the order in which you specify the traits
 Inherited properties are automatically visible on subtypes. All properties defined in parent traits become available on the inheriting type. You can override inherited properties by defining a property with the same name, which replaces the inherited property definition. The system detects conflicting properties and prevents their creation.
 
 #### Default Properties
-Every node in Structr has at least the following attributes that it inherits from the base trait `AbstractNode`.
+Every node in Structr has at least the following attributes that it inherits from the base trait `NodeInterface`.
 
 | Name | Description | Type |
 | --- | --- | --- |
@@ -392,7 +398,7 @@ Structr uses a two-step transaction model:
 During the transaction, the lifecycle methods `onCreate`, `onSave`, and `onDelete` are executed as objects are created, modified, or deleted. These methods are executed before validation occurs. If an object is created and then modified in the same transaction, only onCreate is executed. If an object is created, modified, and deleted in the same transaction, no lifecycle methods are executed. After all operations are completed, Structr validates all changes according to your schema constraints. If validation fails, the transaction is rolled back automatically and no changes are persisted. If validation succeeds, the transaction is committed.
 
 #### Step 2: Post-Commit Lifecycle Methods
-After the transaction is committed successfully and data is securely stored in the database, the lifecycle methods `afterCreate`, `afterModify`, and `afterDelete` are executed in a separate follow-up transaction. These methods are guaranteed to be executed only when data has been safely persisted, which makes them the best place for notifications like sending emails etc.
+After the transaction is committed successfully and data is securely stored in the database, the lifecycle methods `afterCreate`, `afterSave`, and `afterDelete` are executed in a separate follow-up transaction. These methods are guaranteed to be executed only when data has been safely persisted, which makes them the best place for notifications like sending emails etc.
 
 ### The Modifications Object
 

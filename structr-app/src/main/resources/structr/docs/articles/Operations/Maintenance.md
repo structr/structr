@@ -73,7 +73,7 @@ In StructrScript, pass parameters as alternating key-value pairs. In JavaScript,
 
 ### Available Commands
 
-For a complete list of maintenance commands and their parameters, see the Maintenance Commands reference.
+For a complete list of maintenance commands and their parameters, see the [Maintenance Commands](/structr/docs/ontology/References/Maintenance%20Commands) reference.
 
 ## Maintenance Mode
 
@@ -91,11 +91,10 @@ This means you can perform maintenance tasks through the Admin UI while users ca
 
 ### Configuration
 
-Configure maintenance mode in the Configuration Interface under Server Settings → Maintenance:
+Configure the ports and the maintenance page in the Configuration Interface under Server Settings → Maintenance:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `maintenance.enabled` | false | Enable maintenance mode. |
 | `maintenance.application.http.port` | 8182 | HTTP port for Admin UI access during maintenance. |
 | `maintenance.application.https.port` | 8183 | HTTPS port during maintenance. |
 | `maintenance.application.ssh.port` | 8122 | SSH port during maintenance. |
@@ -106,18 +105,15 @@ Configure maintenance mode in the Configuration Interface under Server Settings 
 ### Enabling Maintenance Mode
 
 1. Open the Configuration Interface
-2. Navigate to Server Settings → Maintenance
-3. Optionally customize the maintenance message or provide a custom page
-4. Set `maintenance.enabled` to `true`
-5. Save the configuration
+2. Optionally customize the maintenance message or provide a custom page under Server Settings → Maintenance and save the configuration
+3. Open the Maintenance tab and click the Enable button
 
-The maintenance page appears immediately on the main ports. Access the Admin UI through the maintenance port (default: 8182) to continue working.
+The maintenance page appears immediately on the main ports. Access the Admin UI through the maintenance port (default: 8182) to continue working. The state is stored in the hidden setting `maintenance.enabled`, which does not appear among the editable settings. You can also switch the mode from a script or the REST API with the `maintenanceMode` maintenance command and the parameter `action` set to `enable` or `disable`.
 
 ### Disabling Maintenance Mode
 
 1. Access the Configuration Interface through the maintenance port
-2. Set `maintenance.enabled` to `false`
-3. Save the configuration
+2. Open the Maintenance tab and click the Disable button
 
 The application returns to normal operation immediately.
 
@@ -172,8 +168,10 @@ would have committed by itself.
 `off` starts the instance against the database as it is. That is only useful when a migration is itself
 the problem, because the application may not work correctly against unmigrated data.
 
-Two of the steps only ever read and report, so they run in every mode: the check for notion properties
-that need attention, and the report on calls to the HTTP functions that still use the pre-7.0 signature.
+Three of the steps are reporting steps that run in `apply` and `dry-run` alike: the check for notion
+properties that need attention, the report on calls to the crypt functions, and the report on calls to the
+HTTP functions that still use the pre-7.0 signature. The last one is not purely read-only: in `apply` mode
+it rewrites the calls it can translate unambiguously and reports the rest for manual migration.
 
 ### Running a Migration Without Restarting
 
@@ -213,5 +211,5 @@ Major versions may include breaking changes to the schema, API, or scripting fun
 ## Related Topics
 
 - Application Lifecycle - Creating backups through application export
-- Backup and Recovery - Comprehensive backup strategies
-- Health Checks and Monitoring - Monitoring your Structr instance
+- [Backup & Recovery](/structr/docs/ontology/Operations/Backup%20%26%20Recovery) - Comprehensive backup strategies
+- [Monitoring](/structr/docs/ontology/Operations/Monitoring) - Monitoring your Structr instance

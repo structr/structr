@@ -610,8 +610,6 @@ let _Config = {
 
 			_Dialogs.loadingMessage.hide(_Config.databaseConnections.loadingMessageId);
 
-			let json = await response.json();
-
 			if (!name) {
 				name = 'structr-new-connection';
 			}
@@ -619,6 +617,21 @@ let _Config = {
 			if (button) {
 				button.disabled  = false;
 				button.innerHTML = button.dataset.text;
+			}
+
+			// the servlet answers a FrameworkException with JSON, but anything that escapes it (an Error
+			// thrown while the driver connects, a proxy timeout) arrives as an HTML error page. Parsing
+			// that as JSON would throw here, after the "Please wait" overlay was hidden but before the
+			// status line was filled, and leave the page without any hint of what went wrong.
+			let json = null;
+
+			try {
+
+				json = await response.json();
+
+			} catch (e) {
+
+				json = { message: `${response.status} ${response.statusText}` };
 			}
 
 			switch (response.status) {
@@ -641,12 +654,13 @@ let _Config = {
 					}
 					break;
 
-				case 503:
+				default: {
 					let status = $('div#status-' + name);
 					status.empty();
-					status.append(json.message);
+					status.append(json.message ?? `${response.status} ${response.statusText}`);
 					status.removeClass('hidden');
 					break;
+				}
 			}
 		},
 	},

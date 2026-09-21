@@ -54,7 +54,7 @@ That is the complete wiring: clicking the button now creates a new process insta
 A process usually operates on a domain object: the *subject*. For the Request Process, the subject is a `Request`. The user task `submitRequest` is the step where that object gets created and filled.
 
 1. **Create the type.** In the **Code** area (or Schema editor), create a new type `Request` with the properties your form should capture, for example `title` (String) and `description` (String).
-2. **Declare the contract on the task.** Back in the BPMN editor, select the `submitRequest` task and set its **Subject type** field to `Request`. The process now declares *what* this task works on; the page you build next merely consumes that declaration.
+2. **Declare the contract on the process.** Back in the BPMN editor, switch the side panel to the **Process** tab and set **Subject type** to `Request`, then save. The subject type belongs to the process rather than to a single task, because an instance has exactly one subject. The process now declares *what* it works on; the page you build next merely consumes that declaration. (A user task can narrow which fields of the subject it shows through its **Form view** on the Element tab, which this tutorial does not need.)
 3. **Create the instance page.** Create a page named `request-process`. The name matters: when a process instance is started, the response contains a ready-made URL of the form `/request-process/<instance-uuid>` (the slugified process name plus the new instance's UUID). A page with the matching name picks the instance up as its `current` object via the UUID path segment, which the form wiring below relies on.
 4. **Build the form** on that page: a real `form` element with one input per `Request` property you want to capture, plus a submit button:
 
@@ -85,7 +85,7 @@ Now wire the form itself:
    - **Operation:** `Complete a task and create the subject`
    - **Process:** `Request Process`
    - **Process step:** `submitRequest`
-   - **Data type:** filled automatically with `Request`, taken from the step's Subject type declaration
+   - **Data type:** filled automatically with `Request`, taken from the process's Subject type declaration
    - **ID expression:** `${current.id}` (the process instance from the page URL; the engine locates your active `submitRequest` task from it)
 2. In the **Parameter Mapping** section, declare one parameter per form field: add a parameter named `title` of type **User Input** and drag the title input element into its dropzone; repeat for `description`. This binds each input's value to a named parameter of the completion request (the same mechanism as in the Event Action Mapping chapter's form examples).
 3. Add a follow-up action: **Behaviour on success:** `Reload the current page`.
@@ -132,4 +132,5 @@ Form, EAM wiring, visibility rule: that trio is the whole recipe, repeated once 
 - **Event Action Mapping**: the general mechanism behind all the wiring in this tutorial, including parameter mappings, follow-up actions and notifications.
 - **Process operations**: beyond start and complete, tasks support `claim`, `release`, `decline`, `delegate` and administrative operations such as reassignment; whole processes can be suspended, resumed and terminated.
 - **Subject and parameter handling**: the routing rule from the callout above in full detail, including how listeners can create the subject during completion.
-- **Task and process event handlers**: run your own logic (notifications, audit, derived data) on lifecycle events such as `assigned` or `completed`, with pre-commit veto or post-commit side-effect semantics.
+- **Task and process event handlers**: run your own logic (notifications, audit, derived data) on lifecycle events such as `assigned` or `completed`, with pre-commit veto or post-commit side-effect semantics. See "Event handlers" in the BPMN Process Control chapter.
+- **Processes** (Admin User Interface): the BPMN editor in detail, page skeleton generation, and the monitoring views you used to verify each step.

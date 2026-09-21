@@ -51,6 +51,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<neo4j.version>2026.08.1</neo4j.version>
+		<netty.version>4.1.130.Final</netty.version>
 		<test.neo4j.version>neo4j:latest</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
@@ -649,6 +650,70 @@
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>netty-nio-client</artifactId>
 				<version>2.41.14</version>
+			</dependency>
+			<!-- Netty, pinned to ONE version for every artifact that more than one library shares.
+			     Three libraries bring netty: the AWS SDK's netty-nio-client and the Neo4j Bolt driver
+			     (neo4j-bolt-connection-netty, whose module descriptor "requires io.netty.codec" - a module
+			     that netty 4.2 renamed and emptied) both need the 4.1 generation, while the embedded Neo4j
+			     engine is built against 4.2. Without this pin Maven picks each artifact by nearest-wins,
+			     so the outcome depends on the depth at which every library happens to declare it: with
+			     Neo4j 2026.08.1, org.neo4j:neo4j started declaring netty-common directly, which promoted
+			     netty-common alone to 4.2.17 while netty-buffer, -transport and -handler stayed at 4.1.130.
+			     Netty does not survive that mix - the first ByteBuf allocation fails with an
+			     AbstractMethodError in ReferenceCountUpdater - and the Bolt driver could no longer connect
+			     to any database. The 4.2-only artifacts nobody else asks for (netty-codec-base,
+			     netty-codec-haproxy, netty-transport-classes-kqueue) are deliberately NOT listed here: they
+			     serve only the embedded engine's bolt server, which Structr never starts, and the module
+			     path partitioner moves them to the class-path island (see island-seed.txt). -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-common</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-buffer</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-transport</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-resolver</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-handler</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-codec</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-codec-http</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-codec-http2</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-transport-classes-epoll</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-transport-native-unix-common</artifactId>
+				<version>${netty.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.eclipse.elk</groupId>

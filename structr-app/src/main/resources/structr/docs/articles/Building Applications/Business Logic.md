@@ -121,7 +121,7 @@ You can then call this method on any Invoice object:
 
 #### Static Methods
 
-Static methods operate at the type level rather than on individual objects. Enable the "Method is Static" checkbox when creating the method. Use them for operations that work with multiple objects:
+Static methods operate at the type level rather than on individual objects. Enable the "Method is static" checkbox when creating the method. Use them for operations that work with multiple objects:
 
 ```javascript
 {
@@ -411,7 +411,7 @@ Write messages to the server log with `$.log()`:
 
 ### Debugging
 
-You can debug Structr's JavaScript using Chrome DevTools. Enable remote debugging in the Dashboard settings, then connect with Chrome to set breakpoints and step through your code.
+You can debug Structr's JavaScript using Chrome DevTools. Enable the setting `application.scripting.debugger` in `structr.conf` and restart Structr. The Dashboard then shows the debugger URL in the "About Structr" section, and the URL also appears in the server log. Open the URL in Chrome to set breakpoints and step through your code.
 
 ### Code Search
 
@@ -432,9 +432,9 @@ A significant part of business logic involves preparing data for consumers – y
 Views control which attributes appear when objects are serialized to JSON. The default `public` view contains only `id`, `type`, and `name`. You can customize it or create additional views:
 
 ```
-GET /api/projects              → public view
-GET /api/projects/summary      → summary view (custom)
-GET /api/projects/all          → all attributes
+GET /structr/rest/Project              → public view
+GET /structr/rest/Project/summary      → summary view (custom)
+GET /structr/rest/Project/all          → all attributes
 ```
 
 Views are defined in the schema – they declare which attributes to include without any code.
@@ -444,24 +444,24 @@ Views are defined in the schema – they declare which attributes to include wit
 All schema methods are automatically exposed via REST. To call an instance method:
 
 ```
-POST /api/Project/<uuid>/calculateTotal
+POST /structr/rest/Project/<uuid>/calculateTotal
 ```
 
 To call a static method:
 
 ```
-POST /api/Project/findOverdue
+POST /structr/rest/Project/findOverdue
 ```
 
 #### Configuring Methods
 
-**Visibility** – To prevent external access, enable "Not Callable Via HTTP" in the method settings.
+**Visibility** – To prevent external access, enable "Not callable via HTTP" in the method settings.
 
 **HTTP Verbs** – By default, methods respond to POST. You can configure which verbs a method accepts – use GET for read-only operations.
 
 **Access Control** – Resource Access Permissions let you control who can call specific endpoints. Configure them in the [Security](/structr/docs/ontology/Admin%20User%20Interface/Security) area.
 
-**Result Format** – By default, results are wrapped in a metadata object. Enable "Return Raw Result" to return just the data – useful for external integrations.
+**Result Format** – By default, results are wrapped in a metadata object. Enable "Return result object only" to return just the data – useful for external integrations.
 
 For details on how to pass and access parameters when calling methods via REST, see the [Method Parameters](/structr/docs/ontology/REST%20Interface/Method%20Parameters) article.
 

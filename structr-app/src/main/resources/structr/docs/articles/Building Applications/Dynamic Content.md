@@ -70,7 +70,7 @@ ${{
 }}
 ```
 
-In JavaScript, you handle missing values with standard JavaScript syntax, for example using the nullish coalescing operator:
+In JavaScript, you handle missing values with standard JavaScript syntax, for example using the logical OR operator to fall back to a default value:
 
 ```
 ${{ $.request.page || 1 }}
@@ -88,7 +88,7 @@ Template expressions have access to built-in keywords that provide context about
 - `request` – HTTP request parameters
 - `now` – the current timestamp
 
-For a complete list of available keywords, see the Keyword Reference.
+For a complete list of available keywords, see the [System Keywords](/structr/docs/ontology/References/System%20Keywords) reference.
 
 ### Functions
 
@@ -101,7 +101,7 @@ Structr provides a wide range of built-in functions for string manipulation, dat
 - `find()` – queries the database
 - `dateFormat()` – formats dates
 
-For a complete list of available functions, see the Function Reference.
+For a complete list of available functions, see the [Built-in Functions](/structr/docs/ontology/References/Built-in%20Functions) reference.
 
 ### Dynamic Attribute Values
 

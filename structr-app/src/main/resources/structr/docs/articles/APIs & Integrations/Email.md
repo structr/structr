@@ -25,14 +25,14 @@ That's it. For multiple recipients, attachments, or custom headers, see the Adva
 
 Before sending emails, configure your SMTP server in the Configuration Interface under SMTP Settings:
 
-| Setting | Description |
-|---------|-------------|
-| `smtp.host` | SMTP server hostname |
-| `smtp.port` | SMTP server port (typically 587 for TLS, 465 for SSL) |
-| `smtp.user` | SMTP username for authentication |
-| `smtp.password` | SMTP password |
-| `smtp.tls.enabled` | Enable TLS encryption |
-| `smtp.tls.required` | Require TLS (fail if not available) |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `smtp.host` | `localhost` | SMTP server hostname |
+| `smtp.port` | `25` | SMTP server port (typically 587 for STARTTLS) |
+| `smtp.user` | (empty) | SMTP username for authentication |
+| `smtp.password` | (empty) | SMTP password |
+| `smtp.tls.enabled` | `true` | Attempt STARTTLS encryption if the server supports it |
+| `smtp.tls.required` | `true` | Require STARTTLS and fail rather than send unencrypted |
 
 ### Multiple SMTP Configurations
 
@@ -155,6 +155,23 @@ if ($.mailHasError()) {
     $.log('Email sent with ID: ' + messageId);
 }
 ```
+
+**Further functions:**
+
+| Function | Description |
+|----------|-------------|
+| `mailSetFrom(address [, name])` | Overwrites the from address (and optionally name) of the current mail |
+| `mailSetBounceAddress(address)` | Sets the bounce address of the current mail |
+| `mailClearBounceAddress()` | Removes the bounce address from the current mail |
+| `mailAddMimePart(content, contentType)` | Adds a MIME part to the current mail |
+| `mailRemoveHeader(name)` | Removes a specific custom header from the current mail |
+| `mailClearTo()`, `mailClearCc()`, `mailClearBcc()` | Clear the current list of To, Cc or Bcc recipients |
+| `mailClearReplyTo()` | Removes all Reply-To configuration from the current mail |
+| `mailClearHeaders()` | Clears any configured custom headers for the current mail |
+| `mailClearAttachments()` | Removes all attachments from the current mail |
+| `mailClearMimeParts()` | Removes all custom MIME parts from the current mail |
+| `mailEncodeText(text)` | Encodes an RFC 822 text token into mail-safe form as per RFC 2047 |
+| `mailDecodeText(text)` | Decodes an RFC 822 text token from mail-safe form as per RFC 2047 |
 
 ### Using Different SMTP Configurations
 
@@ -336,6 +353,7 @@ Fetched emails are stored with these properties:
 | `subject` | Email subject |
 | `from` | Sender display string (name and address) |
 | `fromMail` | Sender email address only |
+| `replyTo` | Reply address of the message |
 | `to` | Recipients (To:) |
 | `cc` | Carbon copy recipients |
 | `bcc` | Blind carbon copy recipients |

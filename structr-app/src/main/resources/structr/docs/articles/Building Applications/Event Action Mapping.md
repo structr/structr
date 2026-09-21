@@ -14,9 +14,15 @@ In traditional web development, handling user interactions requires multiple lay
 
 Event Action Mapping takes a different approach. You configure what should happen when an event fires, and Structr handles the communication between client and server. This keeps the simplicity of server-side rendering while adding the interactivity users expect from modern web applications. Because the configuration is declarative, you can see at a glance what each element does - the behavior is defined directly on the element in the Pages area, not scattered across separate code files.
 
-### Debouncing
+### Debouncing and Event Options
 
-Event Action Mapping automatically debounces requests. When multiple events fire in quick succession, Structr waits until the events stop before sending the request. This prevents duplicate submissions when a user accidentally double-clicks a button or types quickly in an input field with a `change` or `input` event.
+Event Action Mapping does not debounce requests by default. You enable debouncing per element by adding a `data-structr-options` attribute to the element that carries the mapping. The attribute holds a JSON object (with double quotes) and the key `delay` sets the debounce delay in milliseconds. When events fire in quick succession within that delay, Structr waits until they stop before sending the request. This is useful for input fields with an `input` event, where you do not want to send a request for every keystroke.
+
+```html
+<input type="text" name="query" data-structr-options='{"delay": 300}'>
+```
+
+The same JSON object accepts two more keys. By default, Structr calls `preventDefault()` and `stopPropagation()` on every handled event, so a form does not submit natively and the event does not reach parent elements. Set `preventDefault` or `stopPropagation` to `false` in the options to keep the browser's default behavior or let the event bubble.
 
 ### The Frontend Library
 
@@ -194,7 +200,7 @@ To make the delete button work:
 3. Set the event to `click`
 4. Set the action to "Delete Object"
 5. In the "UUID of data object to delete" field, enter `${project.id}` - inside a repeater, the data key gives you access to the current object
-6. Set the success follow-up action to "Refresh Page Sections Based on CSS Selectors"
+6. Set the success follow-up action to "Refresh page section(s) defined by CSS ID(s)"
 7. Enter `#project-list` as the selector - this matches the `id` attribute of the element that contains the repeater
 
 When a user clicks the delete button, Structr deletes the project and reloads the list. The container element needs an `id` attribute so the partial reload can find and refresh it.
@@ -227,11 +233,11 @@ If the user has two-factor authentication enabled, additional configuration is r
 
 #### Sign Out
 
-Ends the current user session. This action requires no parameters. After sign out, the page is reloaded.
+Ends the current user session. This action requires no parameters. The action itself does not reload the page, so the user still sees the content that was rendered while logged in. Configure "Reload the current page" or "Navigate to a new page" as the success follow-up action to show the signed-out state.
 
 #### Sign Up
 
-Creates a new user account. You provide two parameters: either `name` or `eMail` to identify the user, and `password` for authentication.
+Creates a new user account. You map an input field to the `eMail` parameter. The e-mail address is required because Structr sends the registration confirmation to it; a sign up without an e-mail address is rejected.
 
 #### Reset Password
 
@@ -239,7 +245,7 @@ Initiates the password reset process for a user. You map an input field to the `
 
 ### Pagination
 
-Pagination actions navigate through paged data. They work together with the "Request Parameter for Page" parameter type to control which page of results is displayed.
+Pagination actions navigate through paged data. They work together with the "Request parameter for page" parameter type to control which page of results is displayed.
 
 To use pagination, you first need a repeater configured with paging. The function query uses the `page()` function with a request parameter:
 
@@ -247,7 +253,7 @@ To use pagination, you first need a repeater configured with paging. The functio
 
 This query finds all projects, displays 10 per page, and reads the current page number from the `page` request parameter. The `!1` specifies a default value of 1 if the parameter is not set.
 
-To configure a pagination action, add a parameter with type "Request Parameter for Page" and set the parameter name to match the request parameter used in your function query (e.g. `page`). Configure a follow-up action to reload the element containing the paginated data.
+To configure a pagination action, add a parameter with type "Request parameter for page" and set the parameter name to match the request parameter used in your function query (e.g. `page`). Configure a follow-up action to reload the element containing the paginated data.
 
 #### Next Page
 
@@ -257,25 +263,23 @@ Increments the page number by one.
 
 Decrements the page number by one, with a minimum of 1.
 
-#### First Page
-
-Sets the page number to 1.
-
-#### Last Page
-
-Sets the page number to a high value. Note that this does not calculate the actual last page based on the total number of records.
-
 ### Custom Logic
 
 Custom logic actions execute your own code.
 
 #### Execute Method
 
-Calls a method defined in your data model. You specify the UUID of the object on which to execute the method and the method name. Parameters you define in the mapping become available under `$.arguments` in the method body. The method's return value is available in notifications and follow-up actions. For details on defining methods, see the Business Logic chapter.
+Calls a method defined in your data model. The field "UUID or type of data object to call method on" determines where the method is looked up: a template expression that resolves to a UUID, for example `${current.id}`, calls an instance method on that object; a type name like `Project` calls a static method of that type; an empty field calls a user-defined function. You enter the method name in the method field. Parameters you define in the mapping become available under `$.arguments` in the method body. The method's return value is available in notifications and follow-up actions. For details on defining methods, see the Business Logic chapter.
 
 #### Execute Flow
 
 Executes a Structr Flow. You select the flow to execute and map parameters that become available as flow inputs. The flow's return value is available in notifications and follow-up actions. For details on creating flows, see the Flows chapter.
+
+### Process
+
+#### Control Process
+
+Starts a BPMN process instance or completes the step of an instance that is waiting for user input. You select the process and the step the element belongs to, and the mapped parameters become the data of that step. The response includes the instance UUID and a pre-built URL of the instance page, so a "Navigate to a new page" follow-up action can use `{result.url}`. The Events tab also offers process-related events, for example when a process has completed, has failed, or is awaiting someone else's action. For details, see the [BPMN Process Control](/structr/docs/ontology/Building%20Applications/BPMN%20Process%20Control) chapter.
 
 ## Parameters
 
@@ -289,20 +293,24 @@ Links to an input field on the page. When you select this type, a drop area appe
 
 When the action fires, Structr reads the current value from the input field. If the input field is inside a repeater, Structr automatically finds the correct element within the current repeater context.
 
-### Constant Value
+### Constant value
 
 A fixed value that is always sent with the action. Template expressions are not supported here, but you can use special keywords to send structured data:
 
 - `json(...)` - sends a JSON object, for example `json({"status": "active", "count": 5})`
 - `data()` - sends data from the DataTransfer object of a drag and drop event, useful when handling `drop` events where the dragged element has attached JSON data
 
-### Evaluate Expression
+### Eval. expression
 
 A template expression that is evaluated on the server when the page renders. This allows you to include data that was already known at page render time - for example, the ID of the current object or request parameters. The field supports mixed content, so you need to use the `${...}` syntax for expressions.
 
-### Request Parameter for Page
+### Request parameter for page
 
-Used for pagination actions. When you select this type, the parameter name specifies which request parameter controls the page number. This works together with the pagination actions (Next Page, Previous Page, First Page, Last Page) to navigate through paged data.
+Used for pagination actions. When you select this type, the parameter name specifies which request parameter controls the page number. This works together with the pagination actions (Next Page, Previous Page) to navigate through paged data.
+
+### Request parameter for page size
+
+The counterpart for the page size, intended for repeaters whose function query reads the number of results per page from a request parameter, for example `page(request.page!1, request.pageSize!10)`. The type is offered in the Events tab, but the server does not yet render a value for it, so a parameter of this type currently has no effect. To let users change the page size, pass the request parameter in the URL of a "Navigate to a new page" follow-up action instead.
 
 ### When Parameters Are Evaluated
 
@@ -311,11 +319,16 @@ Understanding when each parameter type is evaluated is important for choosing th
 | Parameter Type | Evaluated | Use Case |
 |----------------|-----------|----------|
 | User Input | When action fires | Form fields, user-entered data |
-| Constant Value | Never (static) | Fixed values, JSON data |
-| Evaluate Expression | When page renders | Object IDs, request parameters |
-| Request Parameter for Page | When action fires | Pagination |
+| Constant value | Never (static) | Fixed values, JSON data |
+| Eval. expression | When page renders | Object IDs, request parameters |
+| Request parameter for page | When action fires | Pagination |
+| Request parameter for page size | Not yet implemented | Pagination |
 
 This distinction explains why the object UUID uses `${current.id}` in the "UUID of object to update" field (evaluated at render time) while field values use "User Input" (evaluated at submit time).
+
+## Confirmation Dialog
+
+The Confirmation Dialog section of the Events tab lets you ask the user for confirmation before the action runs. This is useful for destructive actions like "Delete object". The "Dialog Type" select offers "No confirmation", which is the default, and "Use window.confirm", which shows the browser's built-in confirmation dialog. The fields "Dialog Title" and "Dialog Text" define the content of the dialog. Both accept static text or a template expression like `${current.name}`, which is evaluated when the page renders. Structr shows the title and the text separated by a blank line, and if the user cancels the dialog, the action is not executed.
 
 ## Notifications
 
@@ -339,7 +352,9 @@ Displays a browser alert dialog with a status message. The message includes the 
 
 ### Inline Text Message
 
-Displays the status message on the page, directly after the element that triggered the action. You can configure the display duration in milliseconds, after which the message disappears automatically.
+Displays the status message on the page, directly after the element that triggered the action. The "Display duration (ms)" field controls how long the message stays before it disappears automatically. The default is 5000 milliseconds, and a value of -1 keeps the message visible until the next action clears it.
+
+The "Message text" field replaces the wording of the message while the icon is kept. The text can contain the placeholders `{status}` and `{message}`, which are filled from the response when the message is shown, for example `Saved ({status})`. Template expressions like `${me.name}` are evaluated when the page renders. Leave the field empty to use the default text. The "CSS class" field sets a class on the message element. Setting a class removes the built-in styling completely, including the positioning, so the class has to place the message itself.
 
 For validation errors, the specific error messages are included:
 
@@ -350,7 +365,7 @@ test must not be empty
 
 Additionally, the input element for each invalid property receives a red border and a `data-error` attribute containing the error type. On success, these error indicators are cleared automatically.
 
-### Custom Dialog Element Defined by CSS Selector
+### Custom dialog element(s) defined by CSS ID(s)
 
 Shows an element selected by a CSS selector by removing its `hidden` class. The element is hidden again after 5 seconds. You need to define the `hidden` class in your CSS, for example with `display: none`.
 
@@ -358,7 +373,7 @@ You can specify multiple selectors separated by commas - each selector is proces
 
 This option does not have access to the result data - it simply shows and hides the element. Result placeholders like `{result.id}` are not available in the selector.
 
-### Custom Dialog Element Defined by Linked Element
+### Custom dialog element(s) defined by linked element(s)
 
 Same as above, but instead of entering a CSS selector, you drag and drop an element from the page tree onto the drop target that appears when this option is selected.
 
@@ -366,9 +381,9 @@ Same as above, but instead of entering a CSS selector, you drag and drop an elem
 
 Dispatches a custom DOM event that you can handle with JavaScript. You specify the event name in an input field. See the section "Custom Events" under Custom JavaScript Integration for details.
 
-### Notifications Display Fixed Messages
+### Notifications and Result Data
 
-The built-in notification types (system alert, inline text message, custom dialog) display fixed messages and cannot include data from the action result. If you need to show result data in a notification - for example, displaying the name of a newly created object - use "Raise a Custom Event" and handle the display logic in JavaScript.
+The built-in notification types have no access to the properties of the action result. The inline text message can include the HTTP status and the server's response message via the `{status}` and `{message}` placeholders, but not result properties like the name of a newly created object. The system alert and the custom dialog types display fixed content. If you need to show result data in a notification, use "Raise a custom event" and handle the display logic in JavaScript.
 
 In contrast, follow-up actions support result placeholders like `{result.id}`. See the section "Accessing Result Properties" for details.
 
@@ -385,7 +400,7 @@ No follow-up action. This is the default for both success and failure.
 
 Reloads the entire page. This is the simplest way to ensure the page reflects any changes made by the action, but it loses any client-side state and may feel slow for users.
 
-### Refresh Page Sections Based on CSS Selectors
+### Refresh page section(s) defined by CSS ID(s)
 
 Reloads specific parts of the page selected by CSS selectors. Only the matched elements are re-rendered on the server and replaced in the browser. This is useful for updating a list after creating or deleting an item without reloading the entire page.
 
@@ -393,9 +408,25 @@ You can specify multiple selectors separated by commas. Unlike notifications, al
 
 Result placeholders like `{result.id}` are not available here - the selectors are static and cannot depend on the action result.
 
-### Refresh Page Sections Based on Linked Elements
+### Refresh page section defined by linked element(s)
 
 Same as above, but instead of entering CSS selectors, you drag and drop elements from the page tree onto the drop target that appears when this option is selected.
+
+### Show/hide page section(s) defined by CSS id(s)
+
+Shows or hides parts of the page without reloading them. You enter comma-separated CSS selectors for the sections to show and for the sections to hide, by id like `#detail` or by class like `.form`. Structr removes the `hidden` class from the matching elements of the first list and adds it to the matching elements of the second list, so you need to define the `hidden` class in your CSS. A typical use is a form that disappears after a successful submit while a detail section appears in its place.
+
+The optional field "URL to load shown section(s) from" turns the shown sections into URL-bound partials: instead of only removing the `hidden` class, Structr loads the sections from the given URL. The URL uses the same syntax as "Navigate to a new page", so `${current.id}` is resolved when the page renders and `{result.id}` is resolved from the action result, for example `/project/${current.id}?processInstance={result.id}`.
+
+The checkbox "Restrict to current repeater element" limits the selectors to the repeater element that contains the triggering element. Ids cannot repeat inside a repeater, so you target repeater sections with a shared class, and this option pins the match to the current iteration. It has no effect outside a repeater.
+
+### Show/hide page section(s) defined by linked element(s)
+
+Same as above, but instead of entering CSS selectors, you drag and drop the elements to show and to hide from the page tree onto the drop targets. The optional URL field and the repeater restriction are available here as well.
+
+### Let enclosing component decide
+
+Delegates the follow-up behavior to the component that contains the element. This option is meant for elements inside reusable components, for example a form inside a shared component, where the component defines what happens after the action instead of the element itself.
 
 ### Navigate to a New Page
 
@@ -405,9 +436,11 @@ Navigates to another page. You enter a URL which can include result placeholders
 
 You access properties from the action result using simple curly braces: `{result.id}`, `{result.name}`, and so on. Nested paths are also supported. The result contains all properties included in the type's public view. For details on configuring views, see the Data Model chapter.
 
+If the action is "Execute method" and the method returns a scalar value like a string or a number instead of an object, the placeholder `{result}` inserts that value directly, for example `/search?query={result}`.
+
 This syntax differs from template expressions, which use `${...}` with a dollar sign. The distinction is intentional. Template expressions are evaluated on the server when the page renders - before the action runs and before any result exists. The curly brace placeholders are resolved on the client after the action completes.
 
-Note that this placeholder syntax is only available in "Navigate to a New Page". For "Refresh Page Sections", result properties are passed as request parameters but cannot be used in the CSS selector. For "Raise a Custom Event", the result is available in the event's `detail.result` object.
+Note that this placeholder syntax is only available in "Navigate to a New Page" and in the URL field of the show/hide follow-up actions. For "Refresh page section(s)", result properties are passed as request parameters but cannot be used in the CSS selector. For "Raise a Custom Event", the result is available in the event's `detail.result` object.
 
 ### Raise a Custom Event
 
@@ -419,9 +452,9 @@ Ends the current user session and reloads the page. This is useful as a failure 
 
 ### How Partial Reload Works
 
-When you use "Refresh Page Sections", only the selected elements are re-rendered on the server and replaced in the browser. Event listeners are automatically re-bound to the new content, and request parameters (for example from pagination) are preserved.
+When you use "Refresh page section(s)", only the selected elements are re-rendered on the server and replaced in the browser. Event listeners are automatically re-bound to the new content, and request parameters (for example from pagination) are preserved.
 
-After a partial reload, the element dispatches a `structr-reload` event. You can listen for this event to run custom JavaScript after the content updates. If an input field had focus before the reload, Structr attempts to restore focus to the same field in the new content.
+After a partial reload, the reloaded element dispatches a `structr-reload` event. The event does not bubble, so you attach the listener to the element itself. You can listen for this event to run custom JavaScript after the content updates. If an input field had focus before the reload, Structr attempts to restore focus to the same field in the new content.
 
 
 ## Validation
@@ -549,10 +582,15 @@ document.addEventListener('structr-action-finished', (event) => {
 
 Fired after a partial reload completes. The event target is the element that was reloaded. This is useful for reinitializing JavaScript components or running setup code after content has been replaced.
 
+Unlike the custom events above, this event is dispatched without bubbling, so a listener on `document` does not receive it. Attach the listener to the reloaded element itself. Since the reload replaces the element with a new node, register the listener again in the handler if you need it for subsequent reloads:
+
 ```javascript
-document.addEventListener('structr-reload', (event) => {
+function onReload(event) {
     console.log('Element reloaded:', event.target);
-});
+    event.target.addEventListener('structr-reload', onReload);
+}
+
+document.getElementById('project-list').addEventListener('structr-reload', onReload);
 ```
 
 ### CSS Class During Execution

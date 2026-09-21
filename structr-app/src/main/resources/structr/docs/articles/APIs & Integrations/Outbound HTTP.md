@@ -14,7 +14,7 @@ the URL first, then a body where the verb has one, then the content type, then a
 | `$.PATCH` | `url, body [, contentType [, options ]]` | `{ body, status, headers }` |
 | `$.DELETE` | `url [, body [, contentType [, options ]]]` | `{ body, status, headers }` |
 | `$.FETCH` | `url, method [, body [, contentType [, options ]]]` | `{ body, status, headers }` |
-| `$.POST_multi_part` | `url, partsMap [, options ]` | `{ body, status, headers }` |
+| `$.POSTMultiPart` | `url, partsMap [, options ]` | `{ body, status, headers }` |
 
 `status` is an integer. Use `$.FETCH` for a method the others do not cover.
 
@@ -36,8 +36,8 @@ These are accepted by every function:
 |--------|---------|
 | `username`, `password` | Basic authentication |
 | `preemptive` | Send the credentials with the first request instead of waiting for a `401` |
-| `headers` | Additional request headers, merged over `$.add_header()` |
-| `timeout` | Seconds to wait, for both connecting and reading |
+| `headers` | Additional request headers, merged over `$.addHeader()` |
+| `timeout` | Seconds to wait, for both connecting and reading. Without it the defaults `application.httphelper.timeouts.connect` (60 seconds to establish the connection) and `application.httphelper.timeouts.socket` (600 seconds of inactivity between two data packets) apply. |
 | `redirects` | Whether to follow redirects |
 | `validateCertificates` | Whether to verify TLS certificates |
 
@@ -78,7 +78,7 @@ file to a service that needs credentials, or the call is refused:
 $.PUT(url, file, 'application/pdf', { username: 'u', password: 'p', preemptive: true });
 ```
 
-Use `$.POST_multi_part` when the endpoint expects a form upload with several parts.
+Use `$.POSTMultiPart` when the endpoint expects a form upload with several parts.
 
 ## Guidelines
 
@@ -86,8 +86,8 @@ Use `$.POST_multi_part` when the endpoint expects a form upload with several par
   status, so a `404` is `status: 404`, and a request that never reached the server at all is `status: 0`
   with the reason in `error`. Only an unusable call throws, see below.
 - **Prefer `parseResponse` over parsing by hand.** It uses the same JSON handling as the rest of Structr.
-- **Set a `timeout` for anything a user waits on.** Without one the call waits for the configured default,
-  which is generous.
+- **Set a `timeout` for anything a user waits on.** Without one the call waits for the configured defaults,
+  60 seconds to connect and 600 seconds for data, which is generous.
 - **Keep `validateCertificates` on.** Turning it off disables the check for that call entirely, not just
   for an unknown authority.
 - **Omit an argument you do not need.** `$.POST(url, body, { timeout: 5 })` is understood: an options
@@ -129,7 +129,7 @@ network (`403`), or a URL outside `application.httphelper.urlwhitelist` (`422`).
 - **A response body is text unless you ask otherwise.** For binary data use `binaryResponse` on `$.GET` or
   `binaryResponse` on `$.POST`, which return a stream. A stream can be read once.
 - **`$.DELETE` may carry a body**, which is permitted by HTTP but rejected by some servers.
-- **`headers` are merged over `$.add_header()`**, so an option with the same name wins.
+- **`headers` are merged over `$.addHeader()`**, so an option with the same name wins.
 - **These functions are not proxied** through the settings used by the crawler; they connect directly.
 
 Signatures changed in 7.0. See the Migration chapter for the previous form and for the automatic rewrite.

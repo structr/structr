@@ -59,7 +59,7 @@ Since tasks run with full privileges, they bypass all permission checks. This is
 
 A scheduled task is simply a static schema method. Create it like any other method:
 
-1. Open the Schema area
+1. Open the Code area
 2. Select "User-defined functions" or any Type/Service class
 3. Create a new method with a descriptive name (this name goes into `CronService.tasks`)
 4. For Type/Service class methods, make sure to configure it as "static"
@@ -73,7 +73,8 @@ This example deletes sessions that have been inactive for more than 24 hours:
 
 ```javascript
 {
-    let cutoff = $.date_add($.now, 'P-1D');
+    // dateAdd(date, years, months, days, ...) - subtract one day
+    let cutoff = $.dateAdd(new Date(), 0, 0, -1);
     let expiredSessions = $.find('Session', { lastActivity: $.predicate.lt(cutoff) });
     
     $.log('Cleanup: Found ' + $.size(expiredSessions) + ' expired sessions');
@@ -92,7 +93,7 @@ This example logs a daily summary of new registrations:
 
 ```javascript
 {
-    let yesterday = $.date_add($.now, 'P-1D');
+    let yesterday = $.dateAdd(new Date(), 0, 0, -1);
     let newUsers = $.find('User', { createdDate: $.predicate.gte(yesterday) });
     
     $.log('Daily Summary: ' + $.size(newUsers) + ' new users registered in the last 24 hours');
@@ -107,7 +108,7 @@ This example logs a daily summary of new registrations:
 
 ## Testing
 
-You can test a scheduled task before configuring it in the CronService. Since scheduled tasks are regular schema methods, you can execute them manually using the Run button in the Schema area. This lets you verify that the method works correctly before scheduling it for automatic execution.
+You can test a scheduled task before configuring it in the CronService. Since scheduled tasks are regular schema methods, you can execute them manually using the Run button in the Code area. This lets you verify that the method works correctly before scheduling it for automatic execution.
 
 When testing, keep in mind that the manual execution also runs in a privileged context, so the behavior should be identical to scheduled execution.
 
@@ -165,7 +166,7 @@ If you see this warning regularly, your task is taking longer than the interval 
 If your use case requires parallel execution, enable it in `structr.conf`:
 
 ```properties
-cronservice.allowparallelexecution = true
+CronService.allowparallelexecution = true
 ```
 
 Use this setting with caution. Parallel executions of the same task can lead to race conditions or duplicate processing if your method is not designed for it. For example, a cleanup task that deletes old records might process the same records twice if two instances run simultaneously.

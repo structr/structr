@@ -1,3 +1,4 @@
+# Rate Limiting
 
 Structr can limit how many requests a single client makes per second, to protect an instance from being overwhelmed by one client sending far too much: a runaway script, a broken retry loop, a crawler that ignores every convention, or someone deliberately hammering the server from one machine.
 
@@ -39,7 +40,7 @@ Its bucket is separate too, and deliberately small (`auth.bucketsize`, 10). The 
 
 Set the rate to `0` to drop the separate limit and let the general one apply.
 
-Self-registration and password reset have their own independent rate limits, under Security settings (`security.emailratelimit.*`).
+Self-registration and password reset have their own independent rate limits, which are fixed in the code: at most 20 requests per source address and 3 requests per email address within an hour, counted separately for each of the two endpoints. The only configurable part is `security.emailratelimit.whitelist`, a comma-separated list of source addresses or CIDR ranges that are exempt from both counters, intended for development.
 
 ### Configuration
 

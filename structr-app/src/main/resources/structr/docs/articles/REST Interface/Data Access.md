@@ -204,7 +204,7 @@ The example request causes the schema method `myUpdateMethod` to be executed on 
 
     $ curl -s -HX-User:admin -HX-Password:admin http://localhost:8082/structr/rest/Project/c431c1b5020f4430808f9b330a123159/myUpdateMethod -XPOST -d '{
         "parameter1": "test",
-        "parameter2: 123
+        "parameter2": 123
     }'
 
 #### Response
@@ -611,7 +611,7 @@ The response of a successful DELETE request contains the status code 200 OK with
 
 ### Deleting All Objects Of The Same Type
 
-    $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project"
+    $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project" -XDELETE
 
 This will delete all objects in the target resource.
 
@@ -619,7 +619,7 @@ This will delete all objects in the target resource.
 
 To only delete objects of a certain type without deleting inheriting types, we can use the internal type attribute as an additional filter as shown in the next query.
 
-    $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project?type=Project"
+    $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project?type=Project" -XDELETE
 
 ## Related Topics
 

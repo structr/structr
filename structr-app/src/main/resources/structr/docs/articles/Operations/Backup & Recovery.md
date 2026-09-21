@@ -31,6 +31,25 @@ Application backups are useful for:
 
 See the Application Lifecycle chapter for details on deployment exports.
 
+## Graph Dump with the sync Command
+
+The `sync` maintenance command writes the whole graph, or a subset selected by a Cypher query, to a single ZIP file and reads such a file back in. Unlike a deployment export it contains the raw nodes and relationships including users, groups and application data, so it is a way to move or restore the complete database content without touching the Neo4j data directory. It is admin only and runs through the REST maintenance endpoint:
+
+```
+POST /structr/rest/maintenance/sync
+{ "mode": "export", "file": "/backups/structr-2026-09-21.zip" }
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `mode` | `export` writes nodes, relationships and the binary content of files into the ZIP; `exportDb` writes the graph only, without file content; `import` reads a ZIP created by either mode |
+| `file` | Path of the ZIP file on the server (required) |
+| `query` | Cypher query that selects the export set, for example `MATCH (n) RETURN n`; without it the whole graph is exported |
+| `validate` | Whether imported nodes are validated (default `true`) |
+| `batchSize` | Transaction batch size for large imports |
+
+Importing adds the objects from the file to the existing database; it does not clear the database first. Restore into an empty database or run `clearDatabase` beforehand when a clean state is required.
+
 ## Full Backup (Cold Backup)
 
 A cold backup taken with all services stopped is the most reliable way to back up a Structr installation. It guarantees consistency between the database and binary files.

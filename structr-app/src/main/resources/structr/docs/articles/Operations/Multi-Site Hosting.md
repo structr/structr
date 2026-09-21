@@ -4,7 +4,7 @@ A single Structr instance can serve multiple websites under different domains. T
 
 Structr uses Site objects to control which pages are served for which domain. You can think of this as a built-in reverse proxy: when a request arrives, Structr checks the hostname and port against your configured sites and serves only the pages assigned to the matching site.
 
-Pages not assigned to any site are served for all requests, which is the default behavior when you don't use this feature. Sites control page visibility only while files are not affected and remain accessible regardless of the requesting domain.
+Pages not assigned to any site are served on every host that no site claims. As long as you have not created any Site objects, this is every request, which is the default behavior when you don't use this feature. Once a site claims a hostname, pages without a site assignment are no longer served under that hostname. Sites control page visibility only while files are not affected and remain accessible regardless of the requesting domain.
 
 ## Creating a Site
 
@@ -17,7 +17,7 @@ Site is a built-in type in Structr. To create a site:
 | Property | Description |
 |----------|-------------|
 | `name` | A descriptive name for the site (e.g., "Production Website") |
-| `hostname` | The domain name this site responds to (e.g., `example.com`) |
+| `hostname` | The domain name this site responds to (e.g., `example.com`). The hostname is required, a site without a hostname matches no request at all. |
 | `port` | Optional port number. If omitted, the site matches any port. |
 
 ## Assigning Pages to Sites
@@ -34,9 +34,9 @@ A page can be assigned to multiple sites if it should appear on more than one do
 
 When Structr receives an HTTP request, it determines which pages to serve based on the following rules:
 
-1. If the page is not assigned to any site, it is visible for all requests
+1. If the page is not assigned to any site, it is visible for all requests whose hostname and port are not claimed by any site
 2. If the page is assigned to one or more sites, Structr checks whether the request's hostname and port match any of those sites
-3. A site matches if the hostname equals the request's hostname AND either the site has no port defined or the port matches the request's port
+3. A site matches if the hostname equals the request's hostname AND either the site has no port defined or the port matches the request's port. A site with an empty hostname never matches.
 
 This means you can create a site with only a hostname to match all ports, or specify a port for exact matching.
 
@@ -61,7 +61,7 @@ Then assign your pages accordingly:
 - Public marketing pages → Public site
 - Admin dashboard pages → Admin site
 - Test versions of pages → Staging site
-- Shared components (e.g., error pages) → No site assignment (visible everywhere)
+- Shared components (e.g., error pages) → Assign them to all three sites. A page without a site assignment is served only on hosts that no site claims, so it would be hidden on all three domains in this setup.
 
 ## Deployment
 

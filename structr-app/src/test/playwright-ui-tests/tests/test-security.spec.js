@@ -174,12 +174,23 @@ test('add-resource-access-auth-user-post', async ({page}) => {
 
 	await goToModule(page, '#security_');
 
-	// Resource Permissions: Create 'User/_id'
 	await page.locator('#resourceAccess_').click();
+
+	// Creating objects is a POST on the collection resource, so the POST flag
+	// belongs on the existing 'Project' permission (the entity resource
+	// 'Project/_id' rejects POST). Match the signature cell exactly so the
+	// 'Project/_id' row created below cannot be picked up instead.
+	const projectRow = page.locator('#resourceAccessesTable tr.resourceAccess').filter({ has: page.locator('td.title-cell b', { hasText: /^Project$/ }) });
+	await projectRow.locator('input[data-key="AUTH_USER_POST"]').click();
+
+	// Resource Permissions: Create 'Project/_id' with PUT and DELETE for updating and deleting single projects
 	await page.locator('#resource-signature').click();
 	await page.keyboard.type('Project/_id');
 	await page.locator('#resourceAccesses').getByText('Create Permission').first().click();
-	await page.locator('#resourceAccessesTable tr:has-text("Project") input[data-key="AUTH_USER_POST"]').first().click();
+
+	const projectIdRow = page.locator('#resourceAccessesTable tr.resourceAccess').filter({ has: page.locator('td.title-cell b', { hasText: /^Project\/_id$/ }) });
+	await projectIdRow.locator('input[data-key="AUTH_USER_PUT"]').click();
+	await projectIdRow.locator('input[data-key="AUTH_USER_DELETE"]').click();
 
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/security_create-resource-access-auth-user-post.png'});

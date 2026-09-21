@@ -1,6 +1,6 @@
 # Admin Console
 
-The Admin Console is a text-based interface for advanced administration tasks. It provides a REPL (read-evaluate-print loop) where you can execute JavaScript, StructrScript, Cypher queries, Admin Shell commands, and REST calls directly.
+The Admin Console is a text-based interface for advanced administration tasks. It provides a REPL (read-evaluate-print loop) where you can execute JavaScript, StructrScript, Cypher queries, and Admin Shell commands directly.
 
 ![Admin Console](/structr/docs/dashboard_admin-console.png)
 
@@ -10,7 +10,7 @@ The Admin Console is integrated into the Admin UI as a Quake-style terminal that
 
 ## Console Modes
 
-The console has five modes that you can cycle through by pressing `Shift+Tab`.
+The console has four modes (JavaScript, StructrScript, Cypher and Admin Shell) that you can cycle through by pressing `Shift+Tab`.
 
 ### JavaScript Mode
 
@@ -91,11 +91,12 @@ Imports a Structr application from a directory on the server filesystem.
 
 Imports data for specific types from a directory.
 
-`import-data <source> [doInnerCallbacks] [doCascadingDelete]`
+`import-data <source> <doInnerCallbacks> <doOuterCallbacks> <doCascadingDelete>`
 
 - **source** - Absolute path to the source directory
-- **doInnerCallbacks** - Run onCreate/onSave methods during import (default: false)
-- **doCascadingDelete** - Enable cascading delete during import (default: false)
+- **doInnerCallbacks** - Run onCreate/onSave methods during import (true or false)
+- **doOuterCallbacks** - Run afterCreate/afterSave methods during import (true or false)
+- **doCascadingDelete** - Enable cascading delete during import (true or false)
 
 #### file-import
 
@@ -129,76 +130,6 @@ Manages user accounts in the database.
 - **add \<n\> [\<e-mail\>] [isAdmin]** - Create a new user
 - **delete \<n\>** - Delete a user
 - **password \<n\> \<password\>** - Set password for a user
-
-### REST Mode
-
-Execute REST API calls directly from the console. This mode simulates external access to the Structr REST API. Requests run without authentication by default, allowing you to test Resource Access Grants and verify how your API behaves for unauthenticated users. Type `help` to see available commands.
-
-#### get
-
-Executes a GET request and returns the result as JSON.
-
-`get <URI> [return <jsonPath>]`
-
-- **URI** - REST endpoint, starting with a slash
-- **jsonPath** - Extract specific values using a JSON path
-
-#### post
-
-Executes a POST request to create new objects or call schema methods.
-
-`post <URI> <JSON>`
-
-- **URI** - REST endpoint
-- **JSON** - Request body
-
-#### put
-
-Executes a PUT request to modify existing objects.
-
-`put <URI> <JSON>`
-
-- **URI** - REST endpoint including the object ID
-- **JSON** - Properties to update
-
-#### del
-
-Executes a DELETE request to remove objects.
-
-`del <URI>`
-
-- **URI** - REST endpoint including the object ID
-
-#### auth
-
-Sets authentication credentials for all subsequent requests in the current session. Run without parameters to reset credentials and return to unauthenticated mode.
-
-`auth [<username> <password>]`
-
-- **username** - Username for authentication
-- **password** - Password for authentication
-
-#### as
-
-Executes a single command with the credentials of a specific user without changing the session authentication.
-
-`as <user:password> <command>`
-
-- **user:password** - Credentials in the format username:password
-- **command** - The REST command to execute
-
-#### Example Session
-
-```
-anonymous@Structr> auth admin admin
-admin@Structr> get /Project
-GET http://0.0.0.0:8082/structr/rest/Project
-HTTP/1.1 200 OK
-{ "result": [...], "result_count": 3 }
-
-admin@Structr> post /Project { name: "New Project" }
-HTTP/1.1 201 Created
-```
 
 ## SSH Access
 

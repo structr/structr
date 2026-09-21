@@ -127,22 +127,31 @@ After enabling, the `isConnected` property indicates whether the connection succ
 You can create multiple subscribers for different topics:
 
 ```javascript
-// Subscribe to all sensor data
+// Subscribe to temperature readings
 $.create('MessageSubscriber', {
-    topic: 'sensors/*',
+    topic: 'sensors/temperature',
     callback: `{ $.call('processSensorData', { topic: $.topic, message: $.message }); }`,
     clients: [client]
 });
 
 // Subscribe to system alerts
 $.create('MessageSubscriber', {
-    topic: 'alerts/#',
+    topic: 'alerts',
     callback: `{ $.call('handleAlert', { topic: $.topic, message: $.message }); }`,
     clients: [client]
 });
 ```
 
-Use `*` to match a single level, `#` to match multiple levels in MQTT topic hierarchies.
+Structr matches the subscriber topic against the incoming topic as a whole: a subscriber receives a message when its topic equals the message topic exactly, or when its topic is the single value `*`, which receives every message the client sees. MQTT-style wildcards such as `sensors/+` or `alerts/#` are not interpreted, so create one subscriber per topic or use `*` and branch on `$.topic` in the callback.
+
+### Managing Broker Subscriptions
+
+Every client has the methods `subscribeTopic` and `unsubscribeTopic`, which subscribe the client to a topic at the broker and remove that subscription again. Both take the topic as their only argument and only reach the broker while the client is enabled and connected:
+
+```javascript
+client.subscribeTopic('devices/lamp/status');
+client.unsubscribeTopic('devices/lamp/status');
+```
 
 ### Publishing Messages
 

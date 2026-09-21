@@ -7,7 +7,7 @@ This tutorial shows how to build a quadtree-based spatial index for efficient po
 This tutorial assumes you have:
 
 - A working Structr instance with the `geo-transformations` module
-- A `Geometry` type with a `wkt` property (see the Spatial Data article)
+- A `Geometry` type with a `wkt` property (see the [Spatial](/structr/docs/ontology/APIs%20&%20Integrations/Spatial) chapter)
 - Geometries imported into your database (e.g., from Shapefiles)
 
 ## How It Works
@@ -20,10 +20,10 @@ In the Schema area, create a `SpatialIndex` type with these properties:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `x1` | Double | Left edge of bounding box |
-| `y1` | Double | Bottom edge of bounding box |
-| `x2` | Double | Right edge of bounding box |
-| `y2` | Double | Top edge of bounding box |
+| `x1` | Double | Southern edge of bounding box (minimum latitude) |
+| `y1` | Double | Western edge of bounding box (minimum longitude) |
+| `x2` | Double | Northern edge of bounding box (maximum latitude) |
+| `y2` | Double | Eastern edge of bounding box (maximum longitude) |
 | `level` | Integer | Depth in the quadtree (0 = root) |
 | `isRoot` | Boolean | True for the root node |
 
@@ -33,7 +33,7 @@ Create these relationships:
 |--------------|-------------|-------------|-------------|
 | `parent` | SpatialIndex | Many-to-One | Parent node |
 | `children` | SpatialIndex | One-to-Many | Child quadrants |
-| `geometries` | Geometry | Many-to-Many | Geometries in this cell |
+| `geometries` | Geometry | Many-to-Many | Geometries in this cell, relationship type `GEOMETRY` |
 
 ## Schema Methods
 
@@ -222,5 +222,5 @@ Each index node is a database object. A depth-7 tree can have up to 21,845 nodes
 
 ## Related Topics
 
-- Spatial Data - Core geographic functionality
-- Scheduled Tasks - Automating index builds
+- [Spatial](/structr/docs/ontology/APIs%20&%20Integrations/Spatial) for the core geographic functionality
+- [Scheduled Tasks](/structr/docs/ontology/Building%20Applications/Scheduled%20Tasks) for automating index builds

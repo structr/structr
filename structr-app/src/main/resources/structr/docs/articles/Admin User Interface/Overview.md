@@ -8,11 +8,12 @@ The Structr Admin User Interface is a web-based console for building and managin
 |--------------|------------------------------------------------------------------------------------------------|
 | Define data types and relationships | <a href="javascript:void(0);" onclick="window.parent.location.hash='#schema'">Schema</a>       |
 | Write business logic and methods | <a href="javascript:void(0);" onclick="window.parent.location.hash='#code'">Code</a>           |
-| View and edit data in the database | <a href="javascript:void(0);" onclick="window.parent.location.hash='#data'">Data</a>           |
+| View and edit data in the database | <a href="javascript:void(0);" onclick="window.parent.location.hash='#crud'">Data</a>           |
 | Build web pages and templates | <a href="javascript:void(0);" onclick="window.parent.location.hash='#pages'">Pages</a>         |
-| Manage static files (CSS, JS, images) | <a href="javascript:void(0);" onclick="window.parent.location.hash='#sfiles'">Files</a>        |
+| Manage static files (CSS, JS, images) | <a href="javascript:void(0);" onclick="window.parent.location.hash='#files'">Files</a>        |
 | Manage users, groups, and permissions | <a href="javascript:void(0);" onclick="window.parent.location.hash='#security'">Security</a>   |
 | Export or import my application | <a href="javascript:void(0);" onclick="window.parent.location.hash='#dashboard'">Dashboard</a> |
+| Model and monitor business processes | <a href="javascript:void(0);" onclick="window.parent.location.hash='#processes'">Processes</a> |
 | Run scripts and queries interactively | Admin Console (Ctrl+Alt+C)                                                                     |
 
 
@@ -20,7 +21,7 @@ The Structr Admin User Interface is a web-based console for building and managin
 
 ![The Admin User Interface](/structr/docs/dashboard_about-structr.png)
 
-The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Data, and more. Less frequently used items are available in the burger menu, which also contains the logout link. You can configure which items appear in the main navigation through the UI Settings on the Dashboard.
+The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Data, and more. Less frequently used items are available in the burger menu, which also contains Export Diff, Documentation and the logout link. You can configure which items appear in the main navigation through the UI Settings on the Dashboard.
 
 On the right side of the header, tools are available regardless of which area you are working in:
 
@@ -30,6 +31,10 @@ The magnifying glass icon opens a global search across all your data.
 
 ### Configuration
 The wrench icon opens the Configuration Interface in a new browser tab. This separate interface provides access to all runtime settings that control Structr's behavior, from database connections to scheduled tasks. It requires authentication with the superuser password defined in `structr.conf`, adding an extra layer of security for these sensitive operations. For details, see the Configuration Interface section below.
+
+### Documentation
+
+The book icon opens the built-in documentation inside the Admin UI, the same content you are reading now.
 
 ### Admin Console
 
@@ -91,9 +96,13 @@ This is a visual workflow designer where you can create automated processes and 
 
 ![Flows](/structr/docs/flows_run-flow.png)
 
+### Processes
+
+This area holds the BPMN editor for modelling business processes and the monitoring views for running process instances, their tokens and the tasks that wait for users. It requires the process module and is hidden in the burger menu by default.
+
 ### Job Queue
 
-This area shows scheduled jobs and background tasks. Jobs created with `$.schedule()` appear here and can be monitored or cancelled. (Note: This area is currently labeled "Importer" in the UI but will be renamed in a future release.)
+This area shows scheduled jobs and background tasks. Jobs created with `$.schedule()` appear here and can be monitored or cancelled.
 
 ![Job Queue](/structr/docs/importer.png)
 
@@ -114,6 +123,20 @@ Here you can configure dynamic types that transform or aggregate data from other
 ### Mail Templates
 
 Here you can create and edit email templates used in automated notifications.
+
+## Keyboard Shortcuts
+
+A few shortcuts work in every area of the Admin UI. On macOS, Ctrl+S is Cmd+S.
+
+| Shortcut | Action |
+|----------|--------|
+| Ctrl+Alt+C | Toggle the Admin Console |
+| Ctrl+Alt+F | Show the favorites |
+| Ctrl+Alt+P | Open the properties dialog for an object by UUID |
+| Ctrl+Alt+O | Jump to a DOM element in the page tree by UUID |
+| Ctrl+Alt+M | Open the editor for a content element or file by UUID |
+| Ctrl+Alt+E | Open the Bulk Editing Helper |
+| Ctrl+S | Save the currently open dialog |
 
 ## Browser Compatibility
 

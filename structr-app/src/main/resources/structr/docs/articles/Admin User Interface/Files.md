@@ -8,11 +8,15 @@ The Files area is Structr's virtual file system – a familiar file browser inte
 
 ### Create Folder
 
-Creates a new folder in the currently selected directory. If you've created types that extend Folder, a dropdown lets you choose which type to create.
+The first Create button, together with the type select in front of it, creates a new folder in the currently selected directory. The select offers Folder and any types you have created that extend Folder.
 
 ### Create File
 
-Creates a new empty file in the current directory. Like with folders, a dropdown appears if you have custom file types.
+The second Create button creates a new empty file in the current directory. Its type select offers File and your custom file types.
+
+### Upload File(s)
+
+Opens the file chooser of your browser to upload one or more files into the current folder.
 
 ### Mount Folder
 
@@ -24,10 +28,15 @@ Mounting lets you integrate external directories or storage providers into Struc
 
 The dialog includes:
 
-- Storage Provider dropdown – Select the storage backend (currently local file system; S3 and others may be available through modules)
-- Folder name – The name for the new mounted folder in Structr
-- Mount target – The path or location to mount
-- Scan settings – Configure how Structr detects changes: either through file system events (Unix-based systems only) or periodic scanning with a configurable interval
+- Storage Provider: Select the storage backend (currently the local file system of the server)
+- Name: The name for the new mounted folder in Structr
+- Do Fulltext Indexing: Index the contents of the mounted files for the full-text search
+- Scan Interval (s): Interval for the periodic scans of the mount target
+- Mount Target Folder Type: The type used for folders found below the mount point
+- Mount Target File Type: The type used for files found below the mount point
+- Enabled Checksums: The checksums calculated on file creation (crc32, md5, sha1, sha512)
+- Watch Folder Contents: Registers the path with a watch service so that changes are picked up immediately, if the operating system supports it
+- Mount Target: The provider-specific location to mount; for the local file system, the absolute path of the directory
 
 ### Search
 
@@ -62,16 +71,16 @@ A pager on the left handles large directories, and a filter box lets you narrow 
 In list view, each row shows:
 
 - Icon – Click to download or open the file (depending on content type)
-- Name – The file name
-- Lock icon – Opens the Access Control dialog
+- Name: The file name
 - Export checkbox – Marks the file for inclusion in deployment exports (only available below the top level)
-- UUID – The file's unique identifier
+- ID: The file's unique identifier
+- Created: Creation timestamp
 - Modified – Last modification timestamp
 - Size – File size
 - Type – Both the Structr type and MIME type
 - Owner – The file's owner
 
-Hold Ctrl while clicking to select multiple files for bulk operations.
+Hold Ctrl while clicking to select multiple files for bulk operations, or hold Shift to select a range. Ctrl+A (Cmd+A on macOS) selects all files in the current folder.
 
 ### Uploading Files
 
@@ -89,16 +98,16 @@ Right-click a file or hover and click the menu icon to open the context menu.
 
 Opens the file in a built-in editor. The editor warns you before opening binary files or files that are too large. For text files, you get syntax highlighting based on the file type.
 
-If the file has the isTemplate flag enabled, a checkbox in the editor lets you preview the rendered output with template expressions evaluated.
+The editor has two checkboxes: "Replace template expressions" sets the isTemplate flag of the file, and "Show preview" (enabled only for template files) displays the rendered output with the template expressions evaluated.
 
 ### General
 
 Opens the file's property dialog with:
 
-- Name – The file name
+- Name: The file name
 - Content Type – The MIME type (affects how browsers handle the file)
-- Cache for Seconds – Controls HTTP cache headers when serving the file
-- isTemplate – When enabled, Structr evaluates template expressions in the file content before serving it, allowing you to mix static and dynamic content
+- Cache for n seconds: Controls HTTP cache headers when serving the file
+- Is template (dynamic file): When enabled, Structr evaluates template expressions in the file content before serving it, allowing you to mix static and dynamic content
 - Caching disabled – Prevents browser caching
 - Include in Frontend Export – Marks the file for deployment export
 
@@ -127,11 +136,11 @@ A submenu with:
 
 ### Delete File
 
-Removes the file. When multiple files are selected, this becomes "Delete Files" and removes all selected items.
+Removes the file. The entry is labelled "Delete File" (or "Delete <Type>" for custom file types). When multiple files are selected, it becomes "Delete selected" and removes all selected items.
 
 ## Folder Context Menu
 
-Folders have a simpler context menu with General (just name and export checkbox), Advanced, Security, and Delete Folder.
+Folders have a simpler context menu with General (just name and export checkbox), Advanced, Security, and "Delete Folder".
 
 ## Content Type Features
 

@@ -15,9 +15,9 @@ You can create users through the Admin UI or programmatically.
 **Via Admin UI:**
 
 1. Navigate to the Security area
-2. Click "Add User"
+2. Select the type (User or one of its subtypes) in the dropdown next to the "Create" button and click "Create"
 3. Structr creates a new user with a random default name
-4. Rename the user and configure properties through the Edit dialog
+4. Rename the user and configure properties through the Edit dialog, which has the tabs General, Advanced, Custom Properties (when the type defines custom properties) and Security
 
 **Via REST API (curl):**
 
@@ -78,9 +78,9 @@ Structr never stores cleartext passwords - only secure hash values. To set or ch
 
 **Via Admin UI:**
 
-1. Open the user's Edit Properties dialog
-2. Go to the Node Properties tab
-3. Enter the new password in the Password field
+1. Open the user's Edit dialog
+2. Go to the General tab
+3. Enter the new password in the password field and click "Set Password"
 
 **Via REST API (curl):**
 
@@ -126,14 +126,14 @@ To create a subtype, create a new type in the Schema and select User as its base
 
 The Group type organizes users and simplifies permission management. Instead of granting permissions to individual users, you grant them to groups and add users to those groups. When a user belongs to a group, they inherit all permissions granted to that group.
 
-Groups also serve as the integration point for external directory services like LDAP. When you connect Structr to an LDAP server, directory groups can map to Structr groups, enabling centralized user management. For details, see the LDAP chapter.
+Groups also serve as the integration point for external directory services like LDAP. When you connect Structr to an LDAP server, directory groups can map to Structr groups, enabling centralized user management.
 
 ### Creating Groups
 
 **Via Admin UI:**
 
 1. Navigate to the Security area
-2. Click "Add Group"
+2. Select the type (Group or one of its subtypes) in the dropdown next to the "Create" button and click "Create"
 3. Rename the group as appropriate
 
 **Via REST API (curl):**
@@ -201,8 +201,8 @@ To configure schema-based permissions:
 
 1. Open the Schema area
 2. Select the type you want to configure
-3. Open the Security tab
-4. Configure which groups have read, write, delete, or accessControl permissions on all instances of this type
+3. In the General tab, find the schema grants table, which lists the existing groups
+4. Check read, write, delete, or accessControl for each group that should have the permission on all instances of this type
 
 Schema-based permissions are evaluated efficiently and improve performance compared to individual object permissions, especially when you have many objects of the same type.
 
@@ -233,9 +233,9 @@ The superuser is a special account defined in `structr.conf` with the `superuser
 
 The superuser account is not stored in the database. It exists only through the configuration file setting.
 
-> **Note:** The default value for `superuser.username` is `superadmin` and can be changed at any time to suit hardening needs. When set to empty string, superuser access is prevented completely.
+> **Note:** The default value for `superuser.username` is `superadmin` and can be changed at any time to suit hardening needs. When set to empty string, superuser access is prevented completely. The same applies while `superuser.password` is empty: without a configured password, nobody can log in as the superuser.
 
-> **Important:** The configured `superuser.username` shadows any regular user account with the same name. During authentication, the superuser credentials are checked first. If the username matches the configured superuser name but the password does not match the configured `superuser.password`, authentication fails immediately with an “access denied” error, even if a regular user with that username exists and has a different password.
+> **Important:** During authentication, Structr first compares the login name and the password with the configured superuser credentials. Only when both match does it authenticate the request as the superuser. In every other case the normal user lookup continues, so a regular user account that has the same name as the superuser can still log in with its own password.
 
 ## Authentication Methods
 
@@ -383,14 +383,16 @@ await fetch('/structr/rest/logout', {
 
 ## Permission System
 
-Structr's permission system operates on multiple levels, checked in the following order:
+Structr's permission system operates on multiple levels, checked in the following order until one of them grants the permission:
 
 1. **Administrator Check** - Users with `isAdmin=true` bypass all other checks
-2. **Visibility Flags** - Simple public/private flags on objects
-3. **Ownership** - Creator/owner permissions
-4. **Permission Grants** - Explicit user/group permissions
-5. **Schema-Based Permissions** - Type-level permissions for groups
+2. **Schema-Based Permissions** - Type-level permissions granted to the user or one of their groups
+3. **Ownership** - The owner has all permissions on the object
+4. **Permission Grants** - A SECURITY relationship from the user to the object
+5. **Group Membership** - The same checks, repeated for every group the user belongs to, including nested groups
 6. **Graph-Based Resolution** - Permission propagation through relationships
+
+Visibility flags are not part of this chain. Structr evaluates `visibleToPublicUsers` and `visibleToAuthenticatedUsers` separately in the security context when it decides whether a node is readable, before it consults the checks above.
 
 ### Permission Types
 
@@ -420,7 +422,7 @@ Note that these flags are independent: `visibleToPublicUsers` does not imply vis
 
 When a non-admin user creates an object, Structr automatically grants full permissions (Read, Write, Delete, AccessControl) through an OWNS relationship.
 
-When an anonymous user creates an object (if a Resource Access Permission allows the request), the object becomes ownerless. You can configure default permissions for ownerless nodes in the Configuration Interface.
+When an anonymous user creates an object (if a Resource Access Permission allows the request), the object becomes ownerless. Such an object is accessible to non-admin users only through its visibility flags, schema-based permissions, or grants that you add afterwards.
 
 > **Note:** An object must first be visible to a user before they can modify it.
 
@@ -561,14 +563,12 @@ Permission resolution only follows active relationships. If your schema has a ch
 Configure password requirements in `structr.conf`:
 
 ```properties
-# Minimum password length
-security.passwordpolicy.minlength = 8
-
 # Maximum failed login attempts before lockout
 security.passwordpolicy.maxfailedattempts = 4
 
-# Complexity requirements
+# Complexity requirements (only checked while enforce is true)
 security.passwordpolicy.complexity.enforce = true
+security.passwordpolicy.complexity.minlength = 8
 security.passwordpolicy.complexity.requiredigits = true
 security.passwordpolicy.complexity.requirelowercase = true
 security.passwordpolicy.complexity.requireuppercase = true
@@ -578,7 +578,23 @@ security.passwordpolicy.complexity.requirenonalphanumeric = true
 security.passwordpolicy.onchange.clearsessions = true
 ```
 
-When you enable complexity enforcement, passwords must contain at least one character from each required category.
+Complexity enforcement is off by default. When you enable it, Structr rejects passwords shorter than `security.passwordpolicy.complexity.minlength` (default 8) and passwords that lack a character from a required category. Without enforcement, no length or character rule applies.
+
+The following settings complete the account security configuration:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `security.passwordpolicy.forcechange` | false | Forces users to change their password after `maxage` days |
+| `security.passwordpolicy.maxage` | 90 | Number of days after which a user has to change the password |
+| `security.passwordpolicy.remindtime` | 14 | Number of days before the forced change in which the application should warn the user; the warning has to be implemented in application code |
+| `security.passwordpolicy.resetFailedAttemptsOnPasswordReset` | true | Resets the failed login counter when the password is reset |
+| `security.passwordhash.memory` | 65536 | Memory in KB that Argon2id uses for each password verification |
+| `security.passwordhash.iterations` | 3 | Number of Argon2id passes |
+| `security.passwordhash.parallelism` | 1 | Number of parallel threads for Argon2id |
+| `security.passwordhash.hashlength` | 32 | Length of the Argon2id hash in bytes |
+| `security.passwordhash.saltlength` | 16 | Length of the salt in bytes |
+| `security.authentication.propertykeys` | empty | Space-separated list of additional property keys in the form `<Type>.<key>` that Structr accepts as login name besides `name` and `eMail` |
+| `registration.allowloginbeforeconfirmation` | false | Allows self-registered users to log in before they click the confirmation link |
 
 ### Account Lockout
 
@@ -636,7 +652,7 @@ You can allow users to sign up themselves instead of creating accounts manually.
 
 #### Prerequisites
 
-- Configure SMTP settings so Structr can send emails (see the SMTP chapter)
+- Configure SMTP settings so Structr can send emails (see [Email](/structr/docs/ontology/APIs%20&%20Integrations/Email))
 - Create a Resource Access Permission with signature `_registration` allowing POST for public users
 - Enable `jsonrestservlet.user.autocreate` in `structr.conf`
 
@@ -700,7 +716,7 @@ To allow users to regain access when they forget their password, Structr provide
 
 #### Prerequisites
 
-- Configure SMTP settings so Structr can send emails (see the SMTP chapter)
+- Configure SMTP settings so Structr can send emails (see [Email](/structr/docs/ontology/APIs%20&%20Integrations/Email))
 - Create a Resource Access Permission with signature `_resetPassword` allowing POST for public users
 - Enable `jsonrestservlet.user.autologin` in `structr.conf` to allow auto-login via the reset link
 
@@ -761,8 +777,7 @@ Structr sends an email with a link to the configured target page. When the user 
 - Two-Factor Authentication - TOTP-based second factor for login security
 - JWT Authentication - Token-based authentication with JSON Web Tokens
 - OAuth - Authentication with external providers like Google, GitHub, or Auth0
-- SMTP - Configuring email for self-registration and password reset
-- LDAP - Integrating with external directory services
-- SSH Service - Configuring SSH access to the Structr filesystem
+- [Email](/structr/docs/ontology/APIs%20&%20Integrations/Email) - Configuring email for self-registration and password reset
+- SSH Access - Configuring SSH access to the Structr filesystem
 - REST Interface/Authentication - Resource Access Permissions and endpoint security
 - Security (Admin UI) - Managing users, groups, and resource access permissions in the Admin UI

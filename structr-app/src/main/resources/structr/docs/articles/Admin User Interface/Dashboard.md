@@ -46,7 +46,11 @@ This section shows server resource information: number of processors, free memor
 
 ### Scripting Debugger
 
-This shows whether the GraalVM scripting debugger is active. The debugger allows you to set breakpoints and step through JavaScript code using Chrome DevTools. To enable it, set `application.scripting.debugger = true` in `structr.conf`. See [Debugging JavaScript Code](#placeholder-debugging) for details.
+This shows whether the GraalVM scripting debugger is active. The debugger allows you to set breakpoints and step through JavaScript code using Chrome DevTools. To enable it, set `application.scripting.debugger = true` in `structr.conf`. See [Logging & Debugging](/structr/docs/ontology/Operations/Logging%20&%20Debugging) for details.
+
+### Security Warnings
+
+This row lists security-relevant findings about the current configuration, for example a default superuser password or an insecure setting. An empty row means no warnings were found.
 
 ### Access Statistics
 
@@ -58,23 +62,29 @@ This tab provides tools for exporting and importing Structr applications and dat
 
 ![Deployment](/structr/docs/dashboard_deployment.png)
 
+### Choosing an Operation
+
+By default the tab shows the compact deployment UI. Three switches at the top narrow down what you want to do: Action (Export or Import), Type (Application or Data) and Target or Source (Server Directory or ZIP). Only the panel that matches the selected combination is shown. If you prefer to see all panels at once, disable "Use compact deployment UI" in the UI Settings; the tab then shows the classic layout with all application panels in the upper half and all data panels in the lower half.
+
 ### Application Deployment
 
-The upper section handles application deployment – exporting and importing the structure of your application (schema, pages, files, templates, security settings, configuration).
+Application deployment exports and imports the structure of your application (schema, pages, files, templates, security settings, configuration). The panels are:
 
-Four options are available:
-
-- **Export application to local directory** – Enter an absolute path on the server filesystem and click the button to export
-- **Export and download application as ZIP file** – Downloads the export directly to your browser
-- **Import application from local directory** – Enter the path to an existing export and click to import
-- **Import application from URL** – Enter a URL to a ZIP file and click to download and import
+- Export application to a server directory: enter an absolute path on the server filesystem and click the button to export
+- Export and download application as a ZIP file: set the ZIP file prefix, optionally append a timestamp, and download the export directly to your browser
+- Import application from a server directory: enter the path to an existing export and click to import
+- Import application from URL or upload a ZIP file: enter the download URL of a ZIP file or choose a local ZIP file for upload. If the webapp folder is not at the top level of the archive, enter its path in "Path to the webapp folder inside the ZIP file"
 
 ### Data Deployment
 
-The lower section handles data deployment – exporting and importing the actual objects in your database.
+Data deployment exports and imports the actual objects in your database. The panels mirror the application panels:
 
-- **Export data to local directory** – Select which types to export, enter a path, and click to export
-- **Import data from local directory** – Enter the path to an existing data export and click to import
+- Export data to a server directory: select the types to export, enter a path, and click to export
+- Export and download data as a ZIP file: select the types, set the ZIP file prefix and optionally append a timestamp
+- Import data from a server directory: enter the path to an existing data export and click to import
+- Import data from URL or upload a ZIP file: enter a download URL or choose a local ZIP file, optionally with the path to the data folder inside the archive
+
+The ZIP variants require the deployment servlet to be enabled; the corresponding inputs are disabled otherwise.
 
 You can follow the progress of any export or import operation in the Server Log tab or via the notifications in the UI.
 
@@ -94,12 +104,14 @@ This tab displays the server log in real-time. The log contains technical inform
 
 ### Controls
 
-The log refreshes every second by default. You can click inside the log area to pause auto-refresh when you need to read a specific message. The available controls are:
+The log refreshes every second by default and scrolls to the end after each refresh. Scrolling up in the log area stops the automatic scrolling so you can read a specific message; the content itself keeps refreshing until you scroll back to the end or set the interval to manual. The available controls are:
 
 - Copy to clipboard
 - Download log file
-- Refresh interval (1–10 seconds, or manual)
+- Refresh interval (10s, 5s, 2s, 1s, or manual, which shows a Refresh button)
 - Number of lines to display
+- Truncate lines at: cuts off long lines after the given number of characters
+- Filter: shows only lines containing the entered text
 - Log source selection (Structr supports multiple log files when rotation is enabled)
 
 ### Log Format
@@ -121,21 +133,25 @@ This tab shows a structured view of system events: API requests, authentication 
 
 ### Event Types
 
-The following event types are tracked:
+The type filter offers the following event types:
 
-- Authentication – Login and logout events with user information
-- Rest – API requests with method, path, and user details
-- Http – Page requests and OAuth login attempts
-- Transaction – Database transactions with performance metrics (changelog updates, callbacks, validation, indexing times)
-- Maintenance – Administrative commands
+- Authentication: login and logout events with user information
+- Cron: scheduled function runs
+- Http: page requests and OAuth login attempts
+- Maintenance: administrative commands
+- Scripting: scripting errors and warnings
+- REST: API requests with method, path, and user details
+- ResourceAccess: denied requests due to missing resource access permissions
+- Transactions: database transactions with performance metrics (changelog updates, callbacks, validation, indexing times)
+- SystemInfo: system messages
 
 ### Using the Event Log
 
-The event log does not auto-refresh. Click the refresh button to update it. You can filter by event type to focus on specific activities. The transaction events include timing breakdowns that can help you identify performance bottlenecks.
+The event log does not auto-refresh. Click the refresh button to update it. You can filter by event type and by thread name to focus on specific activities, and set the page size to control how many events are loaded. The table has the columns Timestamp, Type, Thread Name, Detail, Data, and Actions. The transaction events include timing breakdowns that can help you identify performance bottlenecks.
 
 ## Threads
 
-This tab lists all threads running in the Java Virtual Machine. Each row shows the thread name, state, and stack trace. You can use this tab to diagnose hanging requests, infinite loops, or deadlocks.
+This tab lists all threads running in the Java Virtual Machine. The table has the columns ID, Name, State, Deadlock detected, CPU Time, Stack, and Actions. You can use this tab to diagnose hanging requests, infinite loops, or deadlocks.
 
 ![Running Threads](/structr/docs/dashboard_running-threads.png)
 
@@ -164,15 +180,16 @@ You can set the main font, font size, and monospace font for the Admin UI. The m
 
 ### Behavior Settings
 
-This section contains checkboxes for various UI behaviors, grouped by area:
+This section contains the settings grouped by area. The Style group holds the font settings described above. The remaining groups are:
 
-- Global – Notification display and behavior
-- Dashboard – Compact deployment UI option
-- Pages – Inheritance behavior when creating elements, default tab selection
-- Security – Group display, visibility flags in tables
-- Importer – Job notifications
-- Schema/Code – Database name display
-- Code – Recently visited elements
-- Data – Array size display limits
+- Global: hide the notifications area, auto-remove time-limited notifications, and show notifications for scripting errors, resource access permission warnings (authenticated and unauthenticated requests) and deprecation warnings
+- Dashboard: use the compact deployment UI
+- Pages: enable edit features in the page preview, inherit visibility flags and access rights from the parent node when creating elements from the context menu, and the sync strategy when updating a shared component
+- Security: list groups hierarchically, show visibility flags and the bitmask column in the Resource Access table
+- Job Queue: show notifications for scheduled jobs
+- Schema/Code: show the database name for direct properties, ignore non-unique relationship type warnings
+- Data: only show the contents of array attributes if they are shorter than the given size
+
+The button "Reset all stored UI settings" at the bottom removes every stored setting and restores the defaults.
 
 Note that the settings relevant to a specific area also appear in a Settings menu within that area. For example, the Pages settings are available both here and in the Pages area's own Settings menu. This allows you to adjust settings without navigating back to the Dashboard.

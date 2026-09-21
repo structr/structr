@@ -1,6 +1,6 @@
 # Getting Started with Structr
 
-Welcome to Structr! This guide will help you get up and running with Structr, a powerful low-code development platform that combines a graph database with a web application framework. Whether you're building a simple website or a complex business application, Structr provides the tools you need to create data-driven applications quickly and efficiently.
+This guide helps you get up and running with Structr, a low-code development platform that combines a graph database with a web application framework. Whether you build a simple website or a complex business application, Structr provides the tools to create data-driven applications.
 
 ## What is Structr?
 
@@ -32,17 +32,9 @@ There are three ways to get started with Structr:
 
 ### Option 1: Structr Sandbox (Recommended for Testing/Exploring)
 
-The easiest way to start is with a free Structr Sandbox - a cloud-hosted server instance managed by the Structr team.
+The quickest way to start is with a free Structr Sandbox, a cloud-hosted server instance managed by the Structr team. A sandbox requires no installation, is ready to use in minutes, offers the full functionality for testing and is free of charge and obligations for 14 days.
 
-**Advantages:**
-
-- No installation required
-- Ready to use in minutes
-- Full functionality for testing
-- No costs, no obligations, no aggressive marketing
-- Free for 14 days
-
-**How to get started:**
+#### How to get started
 
 1. Visit [https://structr.com/try-structr/](https://structr.com/try-structr/)
 2. Sign up for a free sandbox
@@ -53,17 +45,11 @@ The easiest way to start is with a free Structr Sandbox - a cloud-hosted server 
 
 ### Option 2: Docker Installation (Recommended for Development)
 
-For local development or self-hosted production environments, Docker provides the most straightforward setup. See [https://gitlab.structr.com/structr/docker-setup](https://gitlab.structr.com/structr/docker-setup) for more details.
-
-**Advantages:**
-
-- Consistent environment across different systems
-- Easy to update and maintain
-- Includes all necessary dependencies
+For local development or self-hosted production environments, Docker provides the most straightforward setup. See [https://gitlab.structr.com/structr/docker-setup](https://gitlab.structr.com/structr/docker-setup) for more details. The Docker setup gives you a consistent environment across different systems, includes all necessary dependencies and is straightforward to update and maintain.
 
 > **Tip:** If you're new to Docker, install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and use its integrated Terminal (button at the bottom-right of the Docker Desktop window) to run the commands below.
 
-**Quick start:**
+#### Quick start
 
 ```bash
 # Clone the Docker setup repository
@@ -91,7 +77,7 @@ Access Structr in your browser at [http://localhost:8082/structr](http://localho
 
 For experienced administrators who need custom configurations, manual installation is available. In this installation guide, we assume a recent Debian Linux system and you working as the root user.
 
-**Update the system and install dependencies**
+#### Update the system and install dependencies
 
     $ apt update
     $ apt -y upgrade
@@ -104,11 +90,11 @@ GraalVM is a high-performance runtime that can execute applications written in J
  
 Download the GraalVM binaries from [https://www.graalvm.org/downloads/](https://www.graalvm.org/downloads/). 
 
-**Example for x64_64 (X86-64/AMD64) architecture**
+Example for x86_64 (X86-64/AMD64) architecture:
 
     $ wget https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-x64_bin.tar.gz && tar xvzf graalvm-jdk-25_linux-x64_bin.tar.gz && mkdir -p /usr/lib/jvm && mv graalvm-jdk-25+37.1 /usr/lib/jvm && update-alternatives --install /usr/bin/java java /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java 2537 && update-alternatives --auto java
 
-**Example for aarch64 (ARM) architecture**
+Example for aarch64 (ARM) architecture:
 
     $ wget https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-aarch64_bin.tar.gz && tar xvf graalvm-jdk-25_linux-aarch64_bin.tar.gz && mkdir -p /usr/lib/jvm && mv graalvm-jdk-25+37.1 /usr/lib/jvm && update-alternatives --install /usr/bin/java java /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java 2537 && update-alternatives --auto java
 
@@ -125,12 +111,12 @@ If the installation was successful, running `java -version` should result in the
     $ apt update
     $ apt -y install neo4j
 
-You can alternatively install the latest Neo4j version 2026.01.4:
+You can alternatively install Neo4j version 2026.08.1, the version Structr is built against:
 
     $ wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/neotechnology.gpg
     $ echo 'deb [signed-by=/etc/apt/keyrings/neotechnology.gpg] https://debian.neo4j.com stable latest' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
     $ sudo apt-get update
-    $ apt -y install neo4j=1:2026.01.4
+    $ apt -y install neo4j=1:2026.08.1
 
 #### Configure and Start Neo4j
 
@@ -148,10 +134,10 @@ You can check the status of the Neo4j process with the following command:
 
     $ systemctl status neo4j
 
-#### Install and Start Structr (version 6.1.0)
+#### Install and Start Structr (version 7.0)
 
-    $ wget https://download.structr.com/repositories/releases/org/structr/structr/6.1.0/structr-6.1.0.deb
-    $ dpkg -i structr-6.1.0.deb
+    $ wget https://download.structr.com/repositories/releases/org/structr/structr/7.0/structr-7.0.deb
+    $ dpkg -i structr-7.0.deb
     $ systemctl start structr
 
 #### Troubleshooting: Conflicting Java Versions
@@ -218,7 +204,7 @@ For a standard Neo4j setup:
 
 1. Click "Set Neo4j defaults" to auto-fill typical values
 2. Adjust the connection parameters if needed
-3. Click "Save" to establish the connection
+3. Click "Add connection" to establish the connection
 
 ![Database Connections](/structr/docs/config_configure-database-connection.png)
 
@@ -249,5 +235,7 @@ There's default admin user which is created automatically if the database was fo
 ### Change Admin Password
 
 ![Change the admin password](/structr/docs/security_change-admin-password.png)
+
+Enter the new password into the password field and click "Set Password" to apply it. Entering the value alone does not change the password.
 
 Now you're set and done and ready for the [first steps](/structr/docs/ontology/Introduction/First%20Steps) with Structr.

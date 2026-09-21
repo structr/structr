@@ -153,4 +153,4 @@ Error objects contain detailed information about an error. There can be multiple
 - Authentication – Explains how to authenticate requests and configure access permissions for endpoints
 - Data Access – Covers reading, creating, updating, and deleting objects through the API
 - Method Parameters – Explains how to pass parameters when calling schema methods and user-defined functions via REST
-- Views – Describes how to control which properties appear in API responses
+- The Views section of [Data Model](/structr/docs/ontology/Building%20Applications/Data%20Model) describes how to control which properties appear in API responses

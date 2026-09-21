@@ -8,12 +8,15 @@ Sessions, JWT, OAuth and two-factor authentication are covered in detail in the 
 
 Structr determines the user context for each request by checking the following, in order:
 
-1. A session cookie
-2. A JWT in the `Authorization` header
-3. A session token in the `X-StructrSessionToken` header
-4. The `X-User` and `X-Password` headers
+1. An OAuth login flow (external authentication), which runs before all other checks
+2. A session cookie, unless the request carries an `Authorization` header
+3. A JWT in the `Authorization` header; when this header is present, Structr skips the session check
+4. A session token in the `X-StructrSessionToken` header
+5. The `X-User` and `X-Password` headers
 
-If none of these are present, Structr treats the request as anonymous.
+If none of these yield a user, Structr treats the request as anonymous.
+
+The `X-StructrSessionToken` header carries the id of an existing session, the value that the login endpoint sets as `JSESSIONID` cookie, so that a client without cookie support can reuse its session. Structr refuses the token when that session has timed out or no longer exists.
 
 Header authentication is described below because it is the method used in the REST examples throughout this guide. For the other methods, see the Security chapter.
 
@@ -59,7 +62,7 @@ curl -s http://localhost:8082/structr/rest/User
 ```json
 {
     "code": 401,
-    "message": "Forbidden",
+    "message": "Access denied",
     "errors": []
 }
 ```
@@ -74,7 +77,7 @@ Access to the User collection was denied. If you look at the log file, you can s
 
 Resource Access Permissions consist of a signature and a set of flags that control access to individual REST endpoints. The signature of an endpoint is based on its URL, replacing any UUID with `_id`, plus a special representation for the view (the view's name, capitalized and with a leading underscore).
 
-The signature of a schema method equals its name, but capitalized. The following table shows examples for different URLs and the resulting signatures:
+The signature of a schema method or a subcollection contains the method or property name verbatim; only view names are capitalized. The following table shows examples for different URLs and the resulting signatures:
 
 | Type | URL | Signature |
 |------|-----|-----------|
@@ -83,8 +86,8 @@ The signature of a schema method equals its name, but capitalized. The following
 | Collection with view | `/structr/rest/Project/info` | Project/_Info |
 | Object with UUID | `/structr/rest/Project/362cc05768044c7db886f0bec0061a0a` | Project/_id |
 | Object with UUID and view | `/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/info` | Project/_id/_Info |
-| Subcollection | `/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/tasks` | Project/_id/Task |
-| Schema Method | `/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/doUpdate` | Project/_id/DoUpdate |
+| Subcollection | `/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/tasks` | Project/_id/tasks |
+| Schema Method | `/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/doUpdate` | Project/_id/doUpdate |
 
 ### Finding the Correct Signature
 
@@ -111,7 +114,7 @@ curl -s http://localhost:8082/structr/rest/Project
 ```json
 {
     "code": 401,
-    "message": "Forbidden",
+    "message": "Access denied",
     "errors": []
 }
 ```

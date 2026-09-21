@@ -5,7 +5,7 @@ The Pages area is the visual editor for building your application's user interfa
 
 ## The Workspace
 
-The screen is divided into three parts: a left sidebar with the page tree and localization tools, a main area for properties and preview, and a right sidebar with widgets, shared components, recycle bin, and preview panel. All sidebars are collapsible, so you can expand your workspace when you need more room.
+The screen is divided into three parts: a left sidebar with the page tree, the site list and the translation tools, a main area for properties and preview, and a right sidebar with widgets, shared components, recycle bin, and preview panel. All sidebars are collapsible, so you can expand your workspace when you need more room.
 
 ## Left Sidebar
 
@@ -25,18 +25,19 @@ Different element types have distinct icons:
 
 #### Visibility Indicators
 
-A lock icon on the right of each element indicates its visibility settings:
-
-- No icon – The element is visible to both public and authenticated users
-- Lock with key – Only one visibility flag is enabled
+An icon on the right of each element indicates its visibility settings. An open lock means both visibility flags are set, so public and authenticated users can see the element. A key means exactly one of the two flags is set. A closed lock means neither flag is set, so only the owner and users with explicit permissions can see the element.
 
 #### Interaction
 
 Click an element to select it and view its properties in the main area. Right-click (or hover and click the menu icon) to open the context menu. Drag elements to reorder them or move them between parents.
 
-### Localization
+### Sites
 
-The Localization panel lets you manage translations for the current page. Select a page, enter a language code, and click refresh to see all `localize()` calls used in that page. You can create, edit, and delete translations directly here.
+The Sites panel lists the sites of your application. A site binds a set of pages to a hostname and port, so that the same Structr instance can serve several applications. Click "Create Site" to add one; the context menu of a site offers the usual property and security dialogs.
+
+### Translations
+
+The Translations panel lets you manage translations for the current page. Select a page, enter a language code, and click refresh to see all `localize()` calls used in that page. You can create, edit, and delete translations directly here.
 
 ## Right Sidebar
 
@@ -46,11 +47,11 @@ The Widgets panel contains reusable page fragments. You can drag a widget onto y
 
 #### Suggested Widgets
 
-Widgets can also appear as suggestions in the context menu when their selector matches the element you've right-clicked. This speeds up common patterns.
+Widgets can also appear as suggestions in the context menu when their selector matches the element you've right-clicked. Suggestions appear in three places: directly in the context menu for inserting a widget as a child, in the "Wrap Element In" submenu for widgets that can take the selected element as their content, and in the "Replace Element With" submenu for widgets that fit into the parent of the selected element. This speeds up common patterns and keeps the page structure valid.
 
-#### Local and Remote Widgets
+#### Importing and Creating Widgets
 
-The panel shows both local widgets (stored in your database) and remote widgets (fetched from configured servers). Click the plus button to create new local widgets.
+All widgets are stored in your database. On a new application the panel is empty and offers to import the default widget set from structr.com with a single click. Click the plus button to create a new widget. Right-click a widget to edit or delete it, or to open its advanced properties.
 
 ### Shared Components
 
@@ -84,7 +85,7 @@ This is available for HTML elements. Here you can manage HTML attributes – bot
 
 ### Editor Tab
 
-This is available for templates and content elements. It provides a Monaco-based code editor with syntax highlighting and autocompletion. The content type selector at the bottom controls processing: Markdown and AsciiDoc convert to HTML, while plaintext, XML, and JSON output directly.
+This is available for templates and content elements. It provides a Monaco-based code editor with syntax highlighting and autocompletion. The Content-Type selector at the bottom offers text/plain, text/html, text/xml, text/css, text/javascript, text/markdown, text/textile, text/mediawiki, text/tracwiki, text/confluence and text/asciidoc. The markup formats (Markdown, Textile, MediaWiki, TracWiki, Confluence and AsciiDoc) are converted to HTML when the page is rendered; the other types are output as they are.
 
 ### Repeater Tab
 
@@ -93,6 +94,14 @@ Here you can configure data-driven rendering. Select a source (Flow, Cypher Quer
 ### Events Tab
 
 Here you can set up Event Action Mappings – what happens when users interact with the element. Select a DOM event, choose an action, configure parameters, and define follow-up behaviors.
+
+### Process Tab
+
+This tab connects an element to a BPMN process. The Component Binding section attaches the component configuration of a process-bound component to a user task of a process; the task's process then determines the subject type the component works on. The Visibility section holds process visibility rules: the element is shown only while one of the configured process states is active for the current user. Several rules are OR-combined, and the show and hide conditions of the General tab still apply on top. See [BPMN Process Control](/structr/docs/ontology/Building%20Applications/BPMN%20Process%20Control) for the underlying concepts.
+
+### Link Tab
+
+This tab is available for elements that can point to a file or page: `a`, `link`, `script`, `img`, `video` and `object`. It shows the pages and files of your application; click one to link the element to it, and click the highlighted entry again to remove the link. If the element's link attribute (`href` for `link` elements, `src` otherwise) is still empty, Structr sets it to `${link.path}`, so the rendered path follows the linked target when it is renamed or moved.
 
 ### Security Tab
 
@@ -124,18 +133,28 @@ These let you add new elements as children or siblings. Suggested Widgets appear
 
 ### Edit Options
 
+- Edit: Opens an inline editor for the text content of an empty `div` element
 - Clone – Copies the element and inserts it after the original
+- Clone Page: Copies a whole page including all its elements
 - Wrap Element In – Wraps the element with a new parent
 - Replace Element With – Swaps the element while keeping its children
 - Convert to Shared Component – Moves the element to shared components
 
 ### Select/Deselect
 
-This marks elements for move or clone operations. After selecting, you can right-click elsewhere and choose "Clone Selected Element Here" or "Move Selected Element Here."
+This marks elements for move or clone operations. After selecting, you can right-click elsewhere and choose "Clone selected element here" or "Move selected element here". If the selected element is a shared component, the entry "Link shared component here" inserts a reference to it instead of a copy.
+
+### Expand / Collapse
+
+For elements with children, this submenu offers Expand subtree, Expand subtree recursively and Collapse subtree.
 
 ### Remove Node
 
-This sends the element to the recycle bin.
+This sends the element to the recycle bin. It is available for elements that have a parent.
+
+### Delete
+
+Pages, sites and elements without a parent show a "Delete <Type>" entry instead, for example "Delete Page". This removes the node and its children permanently, without a detour through the recycle bin.
 
 ## Creating Pages
 
@@ -143,7 +162,7 @@ The Create Page button in the secondary menu offers two options:
 
 ### Create
 
-Opens a dialog with templates based on Tailwind CSS, ranging from empty pages to complex layouts with sidebars and navigation. These templates are actually widgets with the "Is Page Template" flag enabled.
+Opens a dialog with the built-in tiles Empty Page, Simple Page and Custom Page, followed by the page templates of your application. Page templates are widgets with the "Is Page Template" flag enabled. The default widget set contributes the Default Page, a layout with header, sidebar and menu. If no page template exists yet, the dialog offers to import the default widget set.
 
 ### Import
 

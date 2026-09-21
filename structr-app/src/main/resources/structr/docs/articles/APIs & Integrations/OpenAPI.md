@@ -161,9 +161,10 @@ Structr automatically documents the standard endpoints for authentication and sy
 - `/structr/rest/login` - Session-based login
 - `/structr/rest/logout` - End the current session
 - `/structr/rest/token` - JWT token creation and refresh
-- `/structr/rest/me` - Current user information
+- `/structr/rest/registration` - Self-registration of new users
+- `/structr/rest/reset-password` - Password reset
 
-These endpoints appear in the documentation without additional configuration.
+These endpoints appear in every generated document without additional configuration. The document without a tag additionally contains the maintenance commands `changeNodePropertyKey`, `clearDatabase`, `copyRelationshipProperties`, `createLabels`, `deploy`, `deployData`, `directFileImport`, `fixNodeProperties`, `flushCaches`, `letsencrypt`, `rebuildIndex`, `setNodeProperties`, `setRelationshipProperties`, `setUuid` and `sync` under `/structr/rest/maintenance/`. Tag-specific documents leave them out.
 
 ## Organizing Your API
 
@@ -177,7 +178,7 @@ Tags group related endpoints in the documentation. Choose tags based on how API 
 | By access level | `public`, `internal`, `admin` |
 | By consumer | `mobile-app`, `web-frontend`, `integrations` |
 
-You can use multiple tag strategies by giving some types domain tags and others access-level tags. A type can only have one tag, so choose the most useful grouping for your consumers.
+You can use multiple tag strategies by giving some types domain tags and others access-level tags. The `tags` property of a type is a string array, so a type can carry several tags and appears in the document of each of them.
 
 ### What to Include
 

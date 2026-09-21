@@ -39,7 +39,7 @@ This distinction matters when migrating static websites into Structr's virtual f
 
 ## The start page
 
-When users navigate to the root URL (`/`), Structr displays a start page based on one of two configurations:
+When users navigate to the root URL (`/`), Structr first checks whether a page has a URL route for `/`. Such a route takes precedence over the position lookup described next. Without a matching route, Structr displays a start page based on one of two configurations:
 
 - A page with the lowest `position` value among all visible pages
 - A page with "404" configured in `showOnErrorCodes`
@@ -68,7 +68,7 @@ This is useful for populating forms with data. Create a form that uses `current`
 
 ### Resolving by other attributes
 
-By default, Structr only resolves objects by UUID. To enable resolution by other attributes, configure `htmlservlet.resolveproperties` in structr.conf. The format is a comma-separated list of `Type.attribute` entries:
+By default, Structr resolves objects by UUID and by name, because the default value of the setting `htmlservlet.resolveproperties` is `NodeInterface.name`. To resolve objects by other attributes, configure this setting in structr.conf. The format is a comma-separated list of `Type.attribute` entries:
 
 ```
 htmlservlet.resolveproperties = Product.name, Article.title, Project.urlPath
@@ -112,9 +112,9 @@ The parameter types available are: String, Base64UrlString, Integer, Long, Doubl
 
 Any input (following URL compliance rules) is accepted as-is and returned without conversion. This is the default type. For any unknown type, Structr logs a warning and falls back to this behavior.
 
-#### StringBase64URL
+#### Base64UrlString
 
-The `StringBase64URL` type represents Base64URL-encoded data. By default, decoded values are interpreted as a UTF-8 string.
+The `Base64UrlString` type represents Base64URL-encoded data. By default, decoded values are interpreted as a UTF-8 string.
 
 If you need to transport arbitrary binary data, you can set the content charset to `ISO-8859-1`. This allows a direct byte-to-character mapping without data loss.
 
@@ -260,9 +260,9 @@ $.request.sort      // "price"
 
 You can use request parameters in template expressions, show/hide conditions, function queries, and any other scripting context.
 
-### Redirects and periodic reloads
+### Deferred and periodic rendering
 
-The Load/Update Mode settings on the General tab of a page control automatic redirects and periodic reloads. You can configure the page to redirect to another URL when it loads, or to refresh at regular intervals.
+The Load/Update Mode setting on the General tab of an HTML element controls when the element is rendered: eagerly with the page, after the page has finished loading, with a delay, when the element becomes visible, or periodically at a fixed interval. See the [Pages & Templates](/structr/docs/ontology/Building%20Applications/Pages%20&%20Templates) chapter for details.
 
 
 

@@ -39,6 +39,7 @@ Application deployment exports everything that defines your application:
 - Files and folders marked for export
 - Mail templates
 - Widgets
+- BPMN process definitions with their settings, handlers and visibility rules (when the process module is installed)
 - Site configurations
 - Localizations
 - Security settings (resource access grants)
@@ -83,13 +84,15 @@ There is no conflict resolution or merging during import. If you need to merge c
 
 Enter the path to an existing export in the "Import application from local directory" field and click the button.
 
-To import from a remote location, enter a URL to a ZIP file in the "Import application from URL" field. The URL must be publicly accessible without authentication. Structr downloads the ZIP file and imports its contents.
+To import from a remote location, enter a URL to a ZIP file in the "Import application from URL" field. The URL must be publicly accessible without authentication. Structr downloads the ZIP file and imports its contents. Alternatively, select a ZIP file from your computer in the file field next to it and click the import button; the Dashboard uploads the file to the DeploymentServlet, which unpacks and imports it. If the export does not sit at the root of the ZIP file, enter its path inside the archive in the "ZIP content path" field.
 
 #### Via Admin Console
 
 ```
 import /path/to/application/
 ```
+
+The Admin Console also offers `file-import <source> <target> <mode> <existing> <index>`, which imports files from a directory on the server straight into the virtual filesystem without a deployment export. Type `help file-import` in the console for the parameters. The REST maintenance commands, including `deploy`, `deployData` and `maintenanceMode` (which takes `action` with the value `enable` or `disable`), are listed in the [Maintenance Commands](/structr/docs/ontology/References/Maintenance%20Commands) reference.
 
 #### Via REST API
 
@@ -113,15 +116,23 @@ Structr exports applications to a specific folder structure. Each component type
 | `templates/` | Template elements |
 | `files/` | Files from the virtual filesystem (only those marked for export) |
 | `mail-templates/` | Mail templates |
-| `security/` | Resource access grants |
+| `security/` | Security settings: `grants.json` (resource access grants), `schema-grants.json` (schema grants for groups) and `cors-settings.json` (CORS settings) |
+| `events/` | Event action mappings in `action-mapping.json` and their parameter mappings in `parameter-mapping.json` |
+| `scratchpads/` | Scratchpad contents from the Code area, with metadata in `scratchpads.json` |
 | `modules/` | Application configuration and module definitions |
+| `modules/process/bpmn-deployment.json` | BPMN process definitions, processes, elements, flows, lanes, diagrams, performers, event handlers and process visibility rules |
 | `localizations.json` | Localization entries |
 | `sites.json` | Site configurations |
 | `widgets.json` | Widgets created in the Pages area |
 | `application-configuration-data.json` | Schema layouts from the Schema editor |
-| `deploy.conf` | Information about the exporting Structr instance |
+| `page-paths.json` | URL routes (page paths) defined for pages |
+| `data-adapters.json` | Data adapters and their bindings |
+| `component-configurations.json` | Component configurations that bind components to data sources or processes |
+| `deployment.conf` | Information about the exporting Structr instance |
 
 Each folder has a corresponding `.json` file (e.g., `pages.json`, `files.json`) containing metadata like visibility flags, content types, and UUIDs for each item.
+
+The process definitions in `bpmn-deployment.json` are the design-time model only. Running instances, tokens, tasks, timers and parameter values are never exported, and they are never deleted on import. Unlike the other parts of the import, process definitions are not deleted and recreated but updated in place by UUID, because running instances refer to their process and their elements. A definition that the archive no longer contains is removed, unless instances of it are still running; in that case it is kept and reported, and disappears once those instances have finished.
 
 ### Including Files in the Export
 
@@ -264,5 +275,5 @@ You can follow the progress of any export or import operation in the Server Log 
 
 ## Related Topics
 
-- Virtual File System - Managing files and the includeInFrontendExport flag
+- [Filesystem](/structr/docs/ontology/Operations/Filesystem) - Managing files and the includeInFrontendExport flag
 - Schema - Understanding schema definitions in deployment exports

@@ -1,7 +1,5 @@
 
-The Job Queue area displays scheduled jobs and background tasks. Despite its current label "Importer" in the UI, this area is not limited to import operations – it shows all jobs created with the `$.schedule()` function as well as batch import jobs. By default, this area is hidden in the burger menu.
-
-Note: This area will be renamed from "Importer" to "Job Queue" in a future release.
+The Job Queue area displays scheduled jobs and background tasks. It is not limited to import operations – it shows all jobs created with the `$.schedule()` function as well as batch import jobs. By default, this area is hidden in the burger menu.
 
 ![Job Queue](/structr/docs/importer.png)
 
@@ -13,7 +11,7 @@ The button on the left refreshes the job list.
 
 ### Cancel Jobs
 
-An input field labeled "Cancel all queued jobs after this ID" lets you specify a job ID. Click the Cancel Jobs button to cancel all queued jobs with IDs higher than the specified value. This is useful when you need to stop a large number of scheduled jobs at once.
+An input field labeled "Cancel ALL queued jobs after this ID:" lets you specify a job ID. Click the "Cancel Job" button next to it to cancel all queued jobs with IDs higher than the specified value. This is useful when you need to stop a large number of scheduled jobs at once.
 
 ### Settings
 
@@ -26,7 +24,7 @@ The main area displays a table of all jobs with the following columns:
 - Job ID – The unique identifier for the job
 - Job Type – The type of job (e.g., scheduled function, import batch)
 - User – The user who created the job
-- File UUID – For import jobs, the UUID of the file being imported
+- File UUID / Job Title: For import jobs, the UUID of the file being imported; for scheduled jobs, the title given to `$.schedule()`
 - File Path – For import jobs, the path to the file
 - File Size – For import jobs, the size of the file
 - Processed Chunks – For chunked imports, shows progress as processed/total chunks

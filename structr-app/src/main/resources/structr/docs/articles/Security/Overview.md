@@ -16,7 +16,7 @@ These concepts work together: a request arrives, Structr authenticates the user 
 
 ## Authentication
 
-When a request reaches Structr, the authentication system determines the user context. Structr checks for a session cookie first, then for a JWT token in the Authorization header, then for X-User and X-Password headers. If none of these are present, Structr treats the request as anonymous.
+When a request reaches Structr, the authentication system determines the user context. Structr first checks whether the request belongs to an OAuth login flow. It then looks for a session cookie, unless the request carries an `Authorization` header, in which case it skips the session check and validates the JWT in that header instead. Finally it evaluates the `X-StructrSessionToken` header and the `X-User` and `X-Password` headers. If none of these yield a user, Structr treats the request as anonymous.
 
 Structr supports multiple authentication methods that you can combine based on your needs:
 
@@ -37,13 +37,13 @@ The distinction between the last two server scenarios: when your own backend cal
 Once Structr knows who is making the request, it evaluates permissions for every operation the user attempts. Structr checks permissions in a specific order and stops at the first match:
 
 1. Admin users bypass all permission checks
-2. Visibility flags grant read access to public or authenticated users
-3. Ownership grants full access to the object creator
-4. Direct grants check SECURITY relationships to the user or their groups
-5. Schema permissions check type-level grants for groups
+2. Schema permissions check type-level grants for the user or their groups
+3. Ownership grants full access to the owner of the object
+4. Direct grants check SECURITY relationships from the user to the object
+5. The same checks are repeated for every group the user belongs to, including nested groups
 6. Graph resolution follows permission propagation paths through relationships
 
-For details on each level, see the User Management article.
+Visibility flags are evaluated separately: `visibleToPublicUsers` and `visibleToAuthenticatedUsers` grant read access before this chain is consulted. For details on each level, see the User Management article.
 
 ## Getting Started
 

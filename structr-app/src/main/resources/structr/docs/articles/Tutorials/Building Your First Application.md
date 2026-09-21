@@ -4,6 +4,8 @@ This tutorial walks you through building a simple project management application
 
 The best way to learn Structr is to use it. We'll build the application step by step, starting with a basic data model and simple page, then progressively adding more sophisticated features.
 
+The [First Steps](/structr/docs/ontology/Introduction/First%20Steps) chapter is a shorter guide that builds the same project management example. The two articles overlap in their first part; this tutorial goes further and covers repeaters, template import and shared components.
+
 ## What You'll Build
 
 By the end of this tutorial, you'll have created:
@@ -25,13 +27,14 @@ Pages are the basic elements for rendering content in Structr. Static content di
 To create a new page:
 
 1. Navigate to the Pages area by clicking the pages icon in the main menu
-2. Click "Create Page" in the dropdown menu at the top-right corner of the Page Tree
+2. Click the "Create Page" button at the top of the Page Tree
+3. In the dialog that opens, choose the "Simple Page" tile. The other tiles create an empty page without children ("Empty Page") or a page from HTML source code or a URL ("Custom Page")
 
 This creates a fresh page with a minimal DOM tree structure, visible in the Page Tree on the left. Click on the page element to see its basic attributes.
 
 To preview the page, click the Preview tab in the functions bar above the main area. In preview mode, you can edit static content inline by clicking on text.
 
-The initial page structure includes a `<title>` and a `<div>` inside the body. Let's configure these elements.
+The initial page structure includes a `<title>` in the head and an `<h1>` and a `<div>` inside the body. Let's configure these elements.
 
 ### Understanding Template Expressions
 
@@ -45,7 +48,7 @@ This is a template expression. The `${` and `}` delimiters create a scripting en
 
 The expression calls the `capitalize()` function with `page.name` as its argument. The `page` keyword references the current page, and `.name` accesses its name property. The result: the page title automatically reflects the page name with its first letter capitalized.
 
-Set the page name to "overview" (click Basic or Advanced, enter the name, click outside to save). The title should now display as "Overview".
+Set the page name to "overview" (click the page element, open the "General" tab, enter the name and click outside the field to save). The title should now display as "Overview".
 
 > **Note:** The title starts with an uppercase letter even though the name uses lowercase. The `capitalize()` function transforms the first character.
 
@@ -69,13 +72,13 @@ Let's replace this with a table to display projects:
             <td> with content "Project 1"
 ```
 
-> **Note:** Removed elements go to the Unused Elements area and can be dragged back if needed.
+> **Note:** Removed elements go to the "Recycle Bin" fly-out on the right side of the Pages area and can be dragged back if needed.
 
 ### Create the Data Model
 
 Our static table needs a data model to become dynamic. Navigate to the Schema area by clicking the schema icon.
 
-Create a new type by typing "Project" into the "New type" field and clicking "Add". Wait for the schema to update.
+Click "Create Data Type", enter "Project" into the "Type Name..." field of the dialog and click "Create". Wait for the schema to update.
 
 > **Note:** Schema changes trigger a recompilation. The definition graph is modified, source code is generated and validated. Once complete, the updated schema is available throughout the application without restart or deployment.
 
@@ -85,7 +88,7 @@ With our Project type ready, let's create some data:
 
 1. Navigate to the Data area
 2. Filter the type list by entering "Project"
-3. Click "Create new Project" three times
+3. Click "Create Project" three times
 4. Name the projects "Project 1", "Project 2", and "Project 3" by clicking in the name cells
 
 ### Make Content Dynamic with Repeaters
@@ -102,8 +105,8 @@ To create a repeater:
 find('Project')
 ```
 
-4. Set the Data Key to "project"
-5. Click Save
+4. Click the "Save" button next to the query
+5. Set the Data Key to "project" and click the "Save" button next to the data key field
 
 The `find()` function returns all instances of the specified type. The data key "project" lets us access each result in template expressions.
 
@@ -135,8 +138,8 @@ Let's enhance the user interface by importing an existing web page as a template
 
 ### Import the Template
 
-1. Click "Import page" in the Page Tree dropdown menu
-2. Enter the URL of a Bootstrap template (or paste HTML directly)
+1. Click "Create Page" at the top of the Page Tree and choose the "Custom Page" tile
+2. In the "Import Template" dialog, enter the URL of a Bootstrap template into the URL field (or paste its HTML into the source code field)
 3. Click "Start Import"
 
 The import runs in the background. When finished, select the new page and click Preview to see it.
@@ -152,9 +155,9 @@ Benefits of shared components:
 
 Let's convert the navigation and footer into shared components:
 
-1. Open the Shared Components fly-out on the right side of the Pages area
+1. Open the "Shared Comp." fly-out on the right side of the Pages area
 2. Drag the `<nav>` element into the drop zone
-3. Click Advanced and rename it to "Navigation (top)"
+3. Click the new shared component, open the "General" tab and rename it to "Navigation (top)"
 4. Repeat for the footer, naming it "Footer"
 
 > **Note:** The page output doesn't change when creating shared components – you're reorganizing without affecting the user experience.

@@ -26,7 +26,7 @@ Scripts must be executable:
 chmod +x scripts/generate-pdf.sh
 ```
 
-For security, Structr does not follow symbolic links and does not allow directory traversal (paths containing `..`). These restrictions can be disabled via configuration settings, but this is not recommended.
+For security, Structr does not follow symbolic links and does not allow directory traversal (paths containing `..`). The settings `scripts.path.allowsymboliclinks` and `scripts.path.allowpathtraversal` (both `false` by default) disable these checks, which is not recommended.
 
 ## Executing Scripts
 

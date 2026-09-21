@@ -122,6 +122,8 @@ Configure these settings in `structr.conf` or through the Configuration Interfac
 
 Structr exposes metrics in Prometheus format at `/structr/metrics`. This endpoint is designed for scraping by a Prometheus server.
 
+The `MetricsServlet` is not part of the default servlet list. To activate it, open the Configuration Interface, navigate to Servlet Settings, add `MetricsServlet` to the list of enabled servlets in `httpservice.servlets`, save the configuration, and restart the HTTP service. Use the Configuration Interface rather than editing `structr.conf` by hand for this setting: the value in `structr.conf` replaces the default list instead of extending it, so a line containing only `MetricsServlet` would disable all other servlets.
+
 ### Available Metrics
 
 | Metric | Type | Description |
@@ -176,7 +178,6 @@ The histogram endpoint provides detailed query performance analysis, useful for 
 |-----------|-------------|
 | `sort` | Sort results by: `total`, `count`, `min`, `max`, `avg` (default: `total`) |
 | `top` | Number of results to return (default: 1000) |
-| `reset` | If present, clears the histogram data after returning results |
 
 Example: `/structr/histogram?sort=avg&top=100`
 

@@ -25,6 +25,10 @@ When you hover over a node, additional colored circles appear around it. Each co
 
 Click on one of these colored circles to follow all relationships of that type. The related nodes are then added to the visualization, and you can see the connections between them. This way, you can progressively navigate through your data graph, expanding the view step by step.
 
+### Node and Edge Tooltips
+
+Clicking a node opens a tooltip with three buttons: Properties opens the property dialog of the object, Remove takes the node out of the visualization without touching the database, and Delete deletes the object from the database. The tooltip of an edge offers Properties and Delete.
+
 ## Display Options
 
 A dropdown menu next to the input fields provides configuration options:
@@ -36,9 +40,13 @@ Two checkboxes control what's shown in the visualization:
 - Node Labels – Shows or hides the names on nodes
 - Edge Labels – Shows or hides the names on relationship lines
 
+### Node Types
+
+Checkboxes let you show or hide nodes by type group: Core Types, UI Types, Custom Types, HTML Types, Log Types and Other Types. This keeps the visualization readable when a query returns objects of many different types.
+
 ### Layout Algorithm
 
-You can choose between two different layout algorithms that determine how nodes are arranged on the canvas.
+The "Set Layout" section offers two static layouts, Fruchterman and Dagre, that arrange the nodes once. "Dynamic Layouting On/Off" toggles ForceAtlas2, a continuous force-directed layout that keeps rearranging the nodes while it is active.
 
 ### Clear Graph
 

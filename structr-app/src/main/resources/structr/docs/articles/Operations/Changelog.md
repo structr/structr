@@ -233,6 +233,5 @@ let membershipChanges = $.changelog(group, true, {
 
 ## Related Topics
 
-- Built-in Analytics – Custom event tracking for application-level analytics
 - Logging & Debugging – Server logging and debugging tools
 - Security – Access control and permissions

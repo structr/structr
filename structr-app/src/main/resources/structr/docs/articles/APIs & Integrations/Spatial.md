@@ -5,12 +5,13 @@ Structr provides support for geographic data. This includes a built-in `Location
 
 ## The Location Type
 
-Structr includes a built-in `Location` type for storing geographic coordinates. This type has two key properties:
+Structr includes a built-in `Location` type for storing geographic coordinates. This type has three coordinate properties:
 
 | Property | Type | Description |
 |----------|------|-------------|
 | `latitude` | Double | Latitude coordinate (WGS84) |
 | `longitude` | Double | Longitude coordinate (WGS84) |
+| `altitude` | Double | Altitude, optional |
 
 ### Creating Locations
 
@@ -36,7 +37,7 @@ The `withinDistance` predicate finds objects within a specified radius of a poin
 ```javascript
 {
     // Find all locations within 25 km of a point
-    let nearbyLocations = $.find('Location', $.withinDistance(50.1109, 8.6821, 25));
+    let nearbyLocations = $.find('Location', $.predicate.withinDistance(50.1109, 8.6821, 25));
     
     $.log('Found ' + $.size(nearbyLocations) + ' locations');
 }
@@ -47,10 +48,10 @@ This works with any type that has `latitude` and `longitude` properties:
 ```javascript
 {
     // Find stores within 10 km
-    let nearbyStores = $.find('Store', $.withinDistance(customerLat, customerLon, 10));
+    let nearbyStores = $.find('Store', $.predicate.withinDistance(customerLat, customerLon, 10));
     
     // Find events within 50 km
-    let nearbyEvents = $.find('Event', $.withinDistance(userLat, userLon, 50));
+    let nearbyEvents = $.find('Event', $.predicate.withinDistance(userLat, userLon, 50));
 }
 ```
 
@@ -75,10 +76,10 @@ curl "http://localhost:8082/structr/rest/Store?_country=Germany&_city=Frankfurt&
 **Using combined location string:**
 
 ```bash
-curl "http://localhost:8082/structr/rest/Restaurant?_location=Germany,Berlin,Unter%20den%20Linden&_distance=2"
+curl "http://localhost:8082/structr/rest/Restaurant?_location=Unter%20den%20Linden,Berlin,Germany&_distance=2"
 ```
 
-The `_location` parameter accepts the format `country,city,street`.
+The `_location` parameter accepts up to three comma-separated parts, which Structr reads as `street,city,country` in this order.
 
 **Request Parameters for Distance Search:**
 
@@ -91,6 +92,8 @@ The `_location` parameter accepts the format `country,city,street`.
 | `_city` | City (used with other address fields) |
 | `_street` | Street (used with other address fields) |
 | `_postalCode` | Postal code (used with other address fields) |
+| `_state` | State or region (used with other address fields) |
+| `_house` | House number (used with other address fields) |
 
 When using address-based parameters (`_location` or the individual fields), Structr geocodes the address using the configured provider and searches for objects within the specified radius. Geocoded addresses are cached to minimize API calls.
 
@@ -102,11 +105,11 @@ Geocoding converts addresses into geographic coordinates. Structr uses geocoding
 
 Configure geocoding in the Configuration Interface:
 
-| Setting | Description |
-|---------|-------------|
-| `geocoding.provider` | Full class name of the provider |
-| `geocoding.apikey` | API key (required for Google and Bing) |
-| `geocoding.language` | Language for results (e.g., `en`, `de`) |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `geocoding.provider` | `org.structr.common.geo.GoogleGeoCodingProvider` | Full class name of the provider |
+| `geocoding.apikey` | (empty) | API key (required for Google and Bing) |
+| `geocoding.language` | `de` | Language for results (e.g., `en`, `de`) |
 
 ### Supported Providers
 
@@ -268,6 +271,17 @@ Structr provides functions for creating, parsing, and analyzing geometries.
 | `utmToLatLon(utmString)` | Convert UTM to lat/lon object |
 | `convertGeometry(srcCRS, dstCRS, geom)` | Transform coordinate system |
 
+### Geometry Processing and Remote Sources
+
+| Function | Description |
+|----------|-------------|
+| `makePolygonValid(polygon)` | Makes a polygon valid |
+| `lineStringsToPolygons(geometryOrList)` | Merges line strings to polygons |
+| `lineSegment(start, azimuth, length)` | Returns a line segment with start point, azimuth and length |
+| `getWfsData(baseUrl, version, typeName, parameters)` | Reads features from a WFS endpoint and returns geometries |
+| `getWcsData(baseUrl, coverageId, boundingBox, min, max)` | Reads coverage data from a WCS endpoint and returns it |
+| `getWcsHistogram(baseUrl, coverageId, geometry, numBins, lowValue, cutoffPercentage)` | Reads coverage data from a WCS endpoint and returns a histogram of its values |
+
 ```javascript
 {
     // Lat/Lon to UTM
@@ -350,11 +364,11 @@ The function automatically reads the associated `.dbf` file for attributes and `
 
 ## Map Layers
 
-For applications with multiple geometry sources (e.g., different Shapefiles), organize geometries into layers:
+For applications with multiple geometry sources (e.g., different Shapefiles), organize geometries into layers. Structr has no built-in layer type, so define your own, for example a type `MapLayer` with `name` and `description` properties and a relationship from `Geometry` to `MapLayer` named `mapLayer`:
 
 ```javascript
 {
-    // Create a map layer
+    // Create a map layer (MapLayer is a type you define in the Schema area)
     let layer = $.create('MapLayer', {
         name: 'Administrative Boundaries',
         description: 'Country and state boundaries'
@@ -384,7 +398,7 @@ For applications with multiple geometry sources (e.g., different Shapefiles), or
     let lon = $.retrieve('longitude');
     let radius = $.retrieve('radiusKm');
     
-    let stores = $.find('Store', $.withinDistance(lat, lon, radius));
+    let stores = $.find('Store', $.predicate.withinDistance(lat, lon, radius));
     let customerPoint = $.coordsToPoint([lon, lat]);
     
     let result = [];
@@ -434,6 +448,6 @@ For applications with multiple geometry sources (e.g., different Shapefiles), or
 ## Related Topics
 
 - Building a Spatial Index - Tutorial for optimizing point-in-polygon queries
-- REST API - Distance queries with `_latlon`, `_distance`, and address parameters
+- [Overview](/structr/docs/ontology/REST%20Interface/Overview) - Distance queries with `_latlon`, `_distance`, and address parameters
 - Schema - Creating custom types for geographic data
 - Scheduled Tasks - Batch geocoding and index building

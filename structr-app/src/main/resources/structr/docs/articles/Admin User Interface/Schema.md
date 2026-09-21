@@ -25,25 +25,15 @@ The schema and your data are loosely coupled. If you delete a type from the sche
 
 ### Editing Types and Relationships
 
-Click the pencil icon on a type box to open the Edit Type dialog. Click on a relationship line to open the Edit Relationship dialog. Both dialogs provide access to all configuration options – properties, methods, views, and more. For details on these options, see the Data Model chapter.
+Click the pencil icon on a type box to open the Edit Type dialog. Relationships are edited via the pencil icon on the relationship label in the middle of the line, which is only shown while "Relationship labels" is enabled in the Display menu. Both dialogs provide access to all configuration options – properties, methods, views, and more. For details on these options, see the Data Model chapter.
 
 ## Secondary Menu
 
 The menu bar above the canvas provides tools for managing your schema.
 
-### Create Type
+### Create Data Type
 
-The green button opens the Create Type dialog where you enter a name and select traits for the new type. After creation, the Edit Type dialog opens automatically so you can add properties and configure the type further.
-
-### Snapshots
-
-The Snapshots menu lets you save and restore schema states. A snapshot captures your entire schema definition at a point in time.
-
-- **Create Snapshot** – Saves the current schema state with a name you provide
-- **Restore Snapshot** – Replaces the current schema with a previously saved snapshot
-- **Delete Snapshot** – Removes a saved snapshot
-
-Snapshots are useful before making significant schema changes, allowing you to roll back if needed.
+The green button opens the Create Data Type dialog where you enter a name and select traits for the new type. After creation, the Edit Type dialog opens automatically so you can add properties and configure the type further.
 
 ### User Defined Functions
 
@@ -63,8 +53,8 @@ This is essential for focusing on specific parts of the schema. In a typical app
 
 Two toggles control what information appears on the canvas:
 
-- **Relationship Labels** – Shows or hides the relationship names on connecting lines
-- **Inheritance Arrows** – Shows or hides arrows indicating trait inheritance
+- **Relationship labels** – Shows or hides the relationship names on connecting lines, including the edit and delete icons for the relationship
+- **Trait Inheritance arrows** – Shows or hides arrows indicating trait inheritance
 
 #### Edge Style
 
@@ -72,13 +62,7 @@ Controls how relationship lines are drawn: Flowchart, Bezier, State Machine, or 
 
 #### Layouts
 
-Schema layouts save the visual arrangement of types on the canvas. If you've organized a complex schema to make it readable, you can save that layout and restore it later. You can also export layouts to share with team members or import layouts they've created.
-
-- **Save Current Layout** – Saves the current arrangement
-- **Restore Layout** – Loads a previously saved layout
-- **Export Layout** – Downloads the layout as a file
-- **Import Layout** – Loads a layout from a file
-- **Delete Layout** – Removes a saved layout
+Schema layouts save the visual arrangement of types on the canvas. If you've organized a complex schema to make it readable, you can save that layout and restore it later. The Saved Layouts section of the Display menu has a dropdown of the stored layouts with three buttons: Load restores the selected layout, Save overwrites it with the current arrangement, and Delete removes it. To store the current arrangement under a new name, enter the name in the input below and click Create.
 
 #### Reset Layout / Reset Zoom
 
@@ -88,22 +72,30 @@ Reset Layout returns all types to their default positions. Reset Zoom returns to
 
 An experimental feature that arranges types on the canvas automatically. Results vary depending on schema complexity.
 
+### Hide Selected Types
+
+Hides all currently selected types from the canvas. Select types by clicking them (hold Ctrl to select several), then click the button. The types remain in the schema and can be shown again via Type Visibility.
+
 ## Admin Menu
 
 The Admin menu provides database maintenance functions.
 
 ### Indexing – Nodes
 
-- **Rebuild Index** – Recreates indexes for all or selected node types. Run this after adding indexed properties to a type that already has data.
+A type selector lets you pick a single node type or all node types. The buttons next to it act on the selection:
+
+- **Rebuild node index** – Recreates indexes for the selected node types. Run this after adding indexed properties to a type that already has data.
 - **Add UUIDs** – Adds UUIDs to nodes that lack one. Use this when importing data from an external Neo4j database.
-- **Create Labels** – Creates Neo4j labels based on the type property. Use this when importing data that has type values but is missing the corresponding labels.
+- **Apply Labels** – Creates Neo4j labels based on the type property. Use this when importing data that has type values but is missing the corresponding labels.
 
 ### Indexing – Relationships
 
-- **Rebuild Index** – Recreates indexes for relationships.
+A second type selector picks a single relationship type or all relationship types:
+
+- **Rebuild relationship index** – Recreates indexes for the selected relationship types.
 - **Add UUIDs** – Adds UUIDs to relationships imported from an external database.
 
-### Rebuild All Indexes
+### Rebuild all indexes
 
 Triggers a complete rebuild of all indexes for both nodes and relationships. Use this after importing data or when you suspect index inconsistencies.
 

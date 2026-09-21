@@ -6,7 +6,7 @@ The Security area is where you manage access control for your application. Here 
 
 ## Users and Groups
 
-The first tab displays two lists side by side: users on the left, groups on the right. Both lists are paginated and filterable, which is helpful when you have many users.
+The first tab, "Users and Groups", displays two lists side by side: users on the left, groups on the right. Both lists are paginated and filterable, which is helpful when you have many users.
 
 ### Creating Users and Groups
 
@@ -30,7 +30,7 @@ Here you can edit essential user properties: name, password, and email address. 
 - Two-Factor Authentication confirmed for this User - this user has previously logged in via 2FA and will not be shown the setup QR code on next login
 - Device Trust Possible for this User - Per-user setting to allow/disallow device trust (depends on global configuration)
 
-The Failed Login Attempts counter (useful for diagnosing lockouts) and the Confirmation Key (used during self-registration) are also available here.
+The Failed Login Attempts counter (useful for diagnosing lockouts) and the Confirmation Key (used during self-registration) are also available here. The button "Rotate Device Trust Secret" replaces the secret that signs the device trust cookies of this user, which invalidates all devices the user has marked as trusted.
 
 #### Advanced Dialog
 
@@ -48,15 +48,15 @@ See the User Management chapter for detailed explanations of these settings.
 
 ### Editing Groups
 
-Groups have names and members but fewer special properties. Click to edit the name inline. Use the context menu to access the Advanced dialog (all attributes), Security dialog (access control for the group object), or Delete Group.
+Groups have names and members but fewer special properties. Click to edit the name inline. Use the context menu to access the Advanced dialog (all attributes), Security dialog (access control for the group object), or Delete Group. Groups of type LDAPGroup additionally offer the entry "LDAP Config", which opens the dialog for the LDAP path and filter settings of that group.
 
-## Resource Access
+## Resource Permissions
 
-The second tab controls which REST endpoints are accessible and to whom.
+The second tab, "Resource Permissions", controls which REST endpoints are accessible and to whom.
 
 ### The Resource Access Table
 
-Each row represents a grant with:
+The "Filter/Search..." input above the table narrows the list down to grants whose signature contains the entered text. Each row represents a grant with:
 
 - **Signature** – The URL pattern this grant applies to
 - **Permissions** – Checkboxes for each HTTP method (GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH), separately for authenticated and non-authenticated users
@@ -75,13 +75,13 @@ This means you can create multiple grants for the same signature, each visible t
 
 The Settings menu on the right side of the tab bar includes options for showing visibility flags and bitmask columns in the table. The bitmask is a numeric representation of the permission flags, which can be useful for debugging.
 
-## CORS
+## CORS Settings
 
-The third tab configures Cross-Origin Resource Sharing settings.
+The third tab, "CORS Settings", configures Cross-Origin Resource Sharing settings.
 
 ### The CORS Table
 
-Each row configures CORS for one URL path. Enter a path in the input field, click Create, then fill in the columns:
+Each row configures CORS for one URL path. Enter a path in the input field, click Create, then fill in the columns. A "Filter/Search..." input above the table filters the rows by request URI.
 
 #### Accepted Origins
 

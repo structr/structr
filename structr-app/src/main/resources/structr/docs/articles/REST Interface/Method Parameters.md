@@ -188,7 +188,7 @@ Without declared parameters, all values pass through as-is. JSON numbers arrive 
 
 The `$.store()` / `$.retrieve()` mechanism and method parameters are separate. When you call `$.retrieve('key')`, Structr first checks whether `key` is a method parameter. Only if no parameter with that name exists does it fall back to values stored with `$.store()`.
 
-This means that if you call `$.store('name', ...)` where `name` is also a method parameter, the stored value becomes inaccessible through `$.retrieve()` -- the parameter always takes precedence. Structr logs a warning when this happens. To avoid the conflict, use `$.requestStore` to read and write stored values directly:
+This means that if you call `$.store('name', ...)` where `name` is also a method parameter, the stored value becomes inaccessible through `$.retrieve()` -- the parameter always takes precedence. Structr logs an info message when this happens. To avoid the conflict, use `$.requestStore` to read and write stored values directly:
 
 ```javascript
 {

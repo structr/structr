@@ -91,13 +91,14 @@ Any write operation (creating or deleting a node or relationship) within the tra
 
 ## Configuration
 
-Prefetching behavior is controlled by three settings in the "Prefetching" section of the database configuration.
+Prefetching behavior is controlled by four settings in the "Prefetching" section of the database configuration.
 
 | Setting | Key | Default | Description |
 |---------|-----|---------|-------------|
 | Prefetching Threshold | `database.prefetching.threshold` | 100 | The number of times an identical query pattern must execute within a single transaction before automatic prefetching is activated for that pattern. |
 | Max Duration | `database.prefetching.maxduration` | 1000 | Maximum time in milliseconds that a prefetch query may take. Patterns that exceed this duration are blacklisted and will not be prefetched again. |
 | Max Count | `database.prefetching.maxcount` | 50,000 | Maximum number of results a prefetch pattern may return. Patterns exceeding this count are blacklisted to avoid loading excessively large subgraphs into memory. |
+| Cost Ratio | `database.prefetching.costratio` | 100 | How many entities a prefetch query may load per lookup that it saves in the transaction. A prefetch that loads more than that is blacklisted for the request it was learned for, because loading the graph costs more than the lookups it replaces. |
 
 These settings can be adjusted in the Configuration Interface or directly in `structr.conf`.
 
@@ -106,7 +107,7 @@ These settings can be adjusted in the Configuration Interface or directly in `st
 To monitor prefetching activity, enable Cypher debug logging by setting `log.cypher.debug` to `true` in your configuration. When enabled, the system logs:
 
 - When a pattern is activated for prefetching, including the pattern and the threshold that triggered it
-- When a pattern is blacklisted because it returns too many results or takes too long
+- When a pattern is blacklisted because it returns too many results, takes too long or loads more entities per saved lookup than the cost ratio allows
 - The number of entities prefetched and the time taken for each prefetch operation
 - A query count histogram at the end of each transaction, showing which patterns ran and how often
 

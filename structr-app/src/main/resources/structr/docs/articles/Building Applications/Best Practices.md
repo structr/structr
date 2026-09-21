@@ -12,21 +12,21 @@ Security requires attention at multiple levels. A system is only as strong as it
 All production deployments should use HTTPS. Structr integrates with Let's Encrypt for free SSL certificates:
 
 1. Configure `letsencrypt.domains` in `structr.conf` with your domain
-2. Call the `/maintenance/letsencrypt` endpoint or use the `letsencrypt` maintenance command
+2. Request the certificate with the `letsencrypt` maintenance command, for example via `POST /structr/rest/maintenance/letsencrypt`
 3. Enable HTTPS: `application.https.enabled = true`
 4. Configure ports: `application.http.port = 80` and `application.https.port = 443`
 5. Force HTTPS: `httpservice.force.https = true`
 
 ### Automate Certificate Renewal
 
-Let's Encrypt certificates expire after 90 days. Schedule a user-defined function to call `$.renewCertificates()` daily or weekly to keep certificates current.
+Let's Encrypt certificates expire after 90 days. Create a user-defined function that runs the `letsencrypt` maintenance command via `$.maintenance('letsencrypt', { server: 'production', challenge: 'http', wait: 10, reload: true })` and register it as a scheduled task in `CronService.tasks`. The [SSL Configuration](/structr/docs/ontology/Security/SSL%20Configuration) chapter describes the complete setup.
 
 ### Enable Password Security Rules
 
 Configure password complexity requirements in `structr.conf`:
 
 ```
-security.passwordpolicy.minlength = 8
+security.passwordpolicy.complexity.minlength = 8
 security.passwordpolicy.complexity.enforce = true
 security.passwordpolicy.complexity.requiredigits = true
 security.passwordpolicy.complexity.requirelowercase = true
@@ -37,7 +37,7 @@ security.passwordpolicy.maxfailedattempts = 4
 
 ### Use the LoginServlet for Authentication
 
-Configure your login form to POST directly to `/structr/rest/login` instead of implementing authentication in JavaScript. This handles session management automatically.
+Configure your login form to POST directly to `/structr/login` instead of implementing authentication in JavaScript. This handles session management automatically.
 
 ### Secure File Permissions
 
@@ -171,7 +171,9 @@ This is ideal for data that changes infrequently, such as aggregated statistics 
 Permission resolution adds overhead to every query. For backend operations where you already control access, running queries in the system context bypasses these checks:
 
 ```javascript
-${do_as_admin(do_privileged(() => find('Project')))}
+{
+    let projects = $.doPrivileged(() => $.find('Project'));
+}
 ```
 
 Use this only when the surrounding logic already enforces appropriate access control.

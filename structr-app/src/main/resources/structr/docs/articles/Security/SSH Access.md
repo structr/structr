@@ -9,7 +9,7 @@ The SSH service provides two main capabilities:
 - **Admin Console** - An interactive command-line interface for executing JavaScript, StructrScript, Cypher queries, and administrative commands
 - **Filesystem Access** - SFTP and SSHFS access to Structr's virtual filesystem
 
-SSH access is restricted to admin users. Non-admin users receive an authentication error when attempting to connect.
+Any user with a configured key can log in. The Admin Console, however, requires backend access, which only admin users have: a non-admin user who opens a shell or runs a console command is refused with "Access denied. User has no backend access." or "Access denied. Console commands require backend (admin) access.", while SFTP and scp remain available to them, subject to the permissions on the individual files and folders.
 
 ## Enabling the SSH Service
 
@@ -39,13 +39,14 @@ Configure the SSH service in `structr.conf`:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `sshservice.port` | 8022 | The port the SSH server listens on |
+| `application.ssh.port` | 8022 | The port the SSH server listens on. In maintenance mode, Structr uses `maintenance.application.ssh.port` instead (default 8122). |
+| `application.ssh.forcepublickey` | true | Rejects password logins, so that only public key authentication is accepted |
 
 Remember that `structr.conf` only contains settings that differ from defaults. If you want to use port 8022, you do not need to add this setting.
 
 ## Setting Up User Access
 
-SSH authentication uses public key authentication. Each user who needs SSH access must have their public key configured in Structr.
+By default, SSH authentication uses public key authentication. Each user who needs SSH access must have their public key configured in Structr. The user's `publicKey` property holds a single key, and the `publicKeys` property holds an array of further keys; a login succeeds if the presented key matches any of them.
 
 To add a public key for a user:
 
@@ -58,7 +59,9 @@ To add a public key for a user:
 
 The public key is typically found in `~/.ssh/id_rsa.pub` or `~/.ssh/id_ed25519.pub` on the user's machine. The entire contents of this file should be pasted into the field.
 
-> **Note:** Only users with `isAdmin = true` can connect via SSH. Non-admin users receive the error "SSH access is only allowed for admin users!" when attempting to connect.
+Structr also supports password authentication with the user's Structr password, but rejects it while `application.ssh.forcepublickey` is set (the default), logging "Password-based SSH connections are forbidden". Set it to `false` only if you cannot distribute keys, since the password then travels with every login.
+
+> **Note:** Every user can log in, but only users with `isAdmin = true` have backend access and can use the Admin Console. Non-admin users are limited to SFTP and scp.
 
 ## Connecting via SSH
 
@@ -98,7 +101,6 @@ Console.setMode('JavaScript')   // Default mode
 Console.setMode('StructrScript')
 Console.setMode('Cypher')
 Console.setMode('AdminShell')
-Console.setMode('REST')
 ```
 
 You can also press `Shift+Tab` to cycle through available modes.
@@ -138,16 +140,6 @@ Access administrative commands. Type `help` to see available commands:
 ```
 admin@Structr/> Console.setMode('AdminShell')
 Mode set to 'AdminShell'. Type 'help' to get a list of commands.
-admin@Structr/> help
-```
-
-### REST Mode
-
-Execute REST-style operations. Type `help` to see available commands:
-
-```
-admin@Structr/> Console.setMode('REST')
-Mode set to 'REST'. Type 'help' to get a list of commands.
 admin@Structr/> help
 ```
 
@@ -205,8 +197,8 @@ netstat -tlnp | grep 8022
 
 If authentication fails:
 
-- Verify the public key is correctly entered in the user's `publicKey` field
-- Ensure the user has `isAdmin = true`
+- Verify the public key is correctly entered in the user's `publicKey` or `publicKeys` field
+- If you log in with a password, check that `application.ssh.forcepublickey` is set to `false`
 - Check that you are using the matching private key on the client
 
 ```bash
@@ -214,9 +206,9 @@ If authentication fails:
 ssh -v -p 8022 admin@localhost
 ```
 
-### "SSH access is only allowed for admin users!"
+### "Access denied. User has no backend access."
 
-This error indicates the user exists and authenticated successfully, but does not have admin privileges. Set `isAdmin = true` on the user to grant SSH access.
+This error, or "Access denied. Console commands require backend (admin) access." when running a single command, indicates that the user authenticated successfully but does not have admin privileges. The user can still use SFTP and scp. Set `isAdmin = true` on the user to grant access to the Admin Console.
 
 ## Security Considerations
 

@@ -10,7 +10,7 @@ Note: This area appears empty until you create your first localization entry.
 
 ### Create Localization
 
-Three input fields let you create a new localization entry by entering Key, Domain (optional), and Locale. Click the Create Localization button to create it. After creation, select the entry in the list to add the actual translated text.
+Three input fields let you create a new localization entry by entering Key, Domain (optional), and Locale(s). The locale field accepts a comma-separated list such as `en,de,fr`; Structr then creates one entry per locale in a single step. Click the Create Localization button to create them. After creation, select the entry in the list to add the actual translated text.
 
 ### Pager
 

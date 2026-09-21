@@ -49,8 +49,11 @@ You can adjust token expiration and issuer in the configuration:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `security.jwt.jwtissuer` | `structr` | The issuer field in the JWT |
+| `security.jwt.audience` | empty | Comma-separated list of values written into the `aud` claim of every token this instance issues. When set, verification rejects tokens whose audience does not intersect this list; when empty, no audience claim is emitted or verified. Enabling it invalidates all existing access and refresh tokens. |
 | `security.jwt.expirationtime` | 60 | Access token expiration in minutes |
 | `security.jwt.refreshtoken.expirationtime` | 1440 | Refresh token expiration in minutes (default: 24 hours) |
+
+Besides the REST resource `/structr/rest/token` used in the examples below, Structr also serves a dedicated token servlet and a login servlet. Their paths are configured with `tokenservlet.path` (default `/structr/token`) and `loginservlet.path` (default `/structr/login`). The rate limiter for authentication endpoints uses these paths, see [Rate Limiting](/structr/docs/ontology/Security/Rate%20Limiting).
 
 ## Creating Tokens
 
@@ -113,13 +116,13 @@ Response:
 
 ### Refreshing a Token
 
-To obtain a new access token without sending user credentials again, include the refresh token in the request header:
+To obtain a new access token without sending user credentials again, send the refresh token in the `Refresh-Token` request header or as the `refresh_token` key in the JSON request body:
 
 **curl:**
 
 ```bash
 curl -X POST http://localhost:8082/structr/rest/token \
-  -H "refresh_token: eyJhbGciOiJIUzI1NiJ9..."
+  -H "Refresh-Token: eyJhbGciOiJIUzI1NiJ9..."
 ```
 
 **JavaScript:**
@@ -128,7 +131,7 @@ curl -X POST http://localhost:8082/structr/rest/token \
 const response = await fetch('/structr/rest/token', {
     method: 'POST',
     headers: {
-        'refresh_token': refreshToken
+        'Refresh-Token': refreshToken
     }
 });
 
@@ -141,14 +144,15 @@ const newAccessToken = data.result.access_token;
 The access token remains valid until:
 
 - The expiration time is exceeded
-- You revoke the token
-- You revoke the refresh token that Structr created with it
-- The user creates a new token (which invalidates the previous one)
+- The refresh token that Structr created with it is revoked or used
+
+A refresh token can be used exactly once. When you exchange it for a new access token, Structr removes it from the user and issues a new pair of tokens, which also invalidates the access token that was issued with it. Requesting a token with user credentials does not affect tokens issued earlier; a user can hold several valid token pairs at the same time.
 
 The refresh token remains valid until:
 
 - The expiration time is exceeded
-- You revoke the token
+- It is used to obtain a new access token
+- You revoke it (see Revoking Tokens below)
 
 ## Authenticating Requests
 
@@ -194,68 +198,44 @@ const data = await response.json();
 
 ## Revoking Tokens
 
-Structr stores tokens in the database, allowing you to revoke them before they expire. This is useful for implementing logout functionality or invalidating compromised tokens.
+Structr does not store tokens as separate objects. For each token pair it issues, it records an identifier in the `refreshTokens` property of the user, and an access token is only accepted while its identifier is still present there. Removing identifiers from that property revokes the corresponding tokens before they expire. The property is read-only for REST clients, so revocation happens through the following means.
 
-### Viewing Active Tokens
+### Logout
 
-You can query the `RefreshToken` type to see active tokens for a user:
+A POST request to `/structr/rest/logout`, authenticated with the access token, clears all refresh token identifiers of the current user and thereby revokes all of the user's access and refresh tokens. This requires a Resource Access Permission with the signature `_logout` that allows POST for authenticated users.
 
 **curl:**
 
 ```bash
-curl http://localhost:8082/structr/rest/RefreshToken \
-  -H "X-User: admin" \
-  -H "X-Password: admin"
+curl -X POST http://localhost:8082/structr/rest/logout \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
 ```
 
 **JavaScript:**
 
 ```javascript
-const response = await fetch('/structr/rest/RefreshToken', {
-    headers: {
-        'Authorization': `Bearer ${accessToken}`
-    }
-});
-
-const tokens = await response.json();
-```
-
-### Revoking a Specific Token
-
-To revoke a token, delete the corresponding RefreshToken object:
-
-**curl:**
-
-```bash
-curl -X DELETE http://localhost:8082/structr/rest/RefreshToken/<UUID> \
-  -H "X-User: admin" \
-  -H "X-Password: admin"
-```
-
-**JavaScript:**
-
-```javascript
-await fetch(`/structr/rest/RefreshToken/${tokenId}`, {
-    method: 'DELETE',
+await fetch('/structr/rest/logout', {
+    method: 'POST',
     headers: {
         'Authorization': `Bearer ${accessToken}`
     }
 });
 ```
 
-When you delete a refresh token, the associated access token also becomes invalid.
+### Revoking Tokens From Code
 
-### Revoking All Tokens for a User
+Internally, the Principal interface provides the methods `clearTokens()`, which removes all refresh token identifiers of a user, and `removeRefreshToken(tokenId)`, which removes a single identifier. Structr calls `clearTokens()` on logout and when a session times out, and `removeRefreshToken()` when a refresh token is exchanged. These methods are not exposed to scripts, and the `refreshTokens` property is read-only for admin users as well, so a PUT request or a plain `$.set()` is rejected with a 422 error. A script that runs with superuser privileges may write the property directly, for example to log out a user from all devices:
 
-To log out a user from all devices, delete all their refresh tokens:
-
-**curl:**
-
-```bash
-curl -X DELETE "http://localhost:8082/structr/rest/RefreshToken?user=<USER_UUID>" \
-  -H "X-User: admin" \
-  -H "X-Password: admin"
+```javascript
+{
+    $.doPrivileged(() => {
+        const user = $.find('User', { name: 'john.doe' })[0];
+        $.set(user, 'refreshTokens', []);
+    });
+}
 ```
+
+Removing single identifiers from the array revokes the corresponding token pairs only. Structr also removes expired refresh token identifiers automatically whenever it issues new tokens for a user.
 
 ## External JWKS Providers
 
@@ -316,7 +296,9 @@ When Structr receives a request with a JWT in the Authorization header:
 3. Structr verifies the token signature using the appropriate public key
 4. If validation succeeds, Structr processes the request in the context of the authenticated identity
 
-Structr caches the public keys from the JWKS endpoint to avoid fetching them on every request.
+Structr contacts the JWKS endpoint for every request that carries an externally issued token; it does not cache the public keys. If the endpoint cannot be reached, the token cannot be verified and the request is treated like one with an invalid token.
+
+The identity Structr creates for a validated external token is temporary and not stored in the database. Its id and name are taken from the token claims named by `security.jwks.id.claim.key` and `security.jwks.name.claim.key`, both of which default to `oid`.
 
 ### Error Handling
 
@@ -324,10 +306,7 @@ If token validation fails, Structr returns an appropriate HTTP error:
 
 | Status | Reason |
 |--------|--------|
-| 401 Unauthorized | Token is missing, expired, or has an invalid signature |
-| 503 Service Unavailable | JWKS endpoint is unreachable |
-
-When the JWKS endpoint is temporarily unavailable, Structr uses cached keys if available. If no cached keys exist, the request fails with a 503 error.
+| 401 Unauthorized | Token is missing, expired, has an invalid signature, or could not be verified because the JWKS endpoint was unreachable |
 
 ## Best Practices
 
@@ -335,7 +314,7 @@ When the JWKS endpoint is temporarily unavailable, Structr uses cached keys if a
 - **Store refresh tokens securely** - Refresh tokens have longer lifetimes and should be protected.
 - **Use HTTPS** - Always transmit tokens over encrypted connections.
 - **Implement token refresh logic** - Check for 401 responses and automatically refresh tokens when they expire.
-- **Revoke tokens on logout** - Delete refresh tokens when users log out to prevent token reuse.
+- **Revoke tokens on logout** - Call the logout endpoint when users log out so that Structr clears their refresh tokens and prevents token reuse.
 
 ## Related Topics
 

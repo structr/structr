@@ -61,7 +61,7 @@ If you are building an application to work with existing data, there are several
 
 ### Create Data Manually
 
-You can create data in any scripting context using the built-in `create()` function, in the [Admin Console](/structr/docs/ontology/User%20Interface/Admin%20Console), via [REST](/structr/docs/ontology/REST%20Interface/Overview) and in the [Data](/structr/docs/ontology/Admin%20User%20Interface/Data) area.
+You can create data in any scripting context using the built-in `create()` function, in the [Admin Console](/structr/docs/ontology/Admin%20User%20Interface/Admin%20Console), via [REST](/structr/docs/ontology/REST%20Interface/Overview) and in the [Data](/structr/docs/ontology/Admin%20User%20Interface/Data) area.
 
 #### Using the Create Function
 This JavaScript example assumes that you already have a data model with Project and Task linked together. You could put this code into a user-defined function or a method on the `Project` type.
@@ -77,7 +77,7 @@ This JavaScript example assumes that you already have a data model with Project 
 You can import CSV data in two different ways:
 
 1. Using the CSV Import Wizard in the Files Section. This is the preferred option, although it is somewhat difficult to find. To use it, you first have to upload a CSV file to Structr. An icon will then appear in the context menu of this file, which you can use to open the import wizard.
-2. Using the Simple Import Dialog in the Data Section. This importer is limited to a single type and can only process inputs of up to 100,000 lines, but it is a good option for getting started.
+2. Using the Simple Import Dialog in the Data Section. This importer is limited to a single type and can only process inputs of up to 100,000 characters, but it is a good option for getting started.
 
 ### XML
 
@@ -115,7 +115,7 @@ Pages in Structr are accessible at URLs that match their names. For example, a p
 When a user navigates to a non-existent page, Structr returns a 404 Not Found error by default. To provide a custom error page instead, set its `showOnErrorCodes` attribute to "404" and Structr will display this page for any 404 errors.
 
 #### Start Page
-The page configured in this way will then automatically be displayed as your application's start page when users navigate to the root URL. Note that this page must be visible to public users, otherwise they will receive an Access Denied error instead of seeing your start page.
+When users navigate to the root URL (`/`), Structr displays the visible page with the lowest value in its `position` attribute, which you can set on the General tab of the page. If a page has a URL route for `/`, that route takes precedence over the position lookup. Note that the start page must be visible to public users, otherwise they will receive a 404 error instead of seeing your start page.
 
 [Read more about Navigation & Routing.](/structr/docs/ontology/Building%20Applications/Navigation%20&%20Routing)
 

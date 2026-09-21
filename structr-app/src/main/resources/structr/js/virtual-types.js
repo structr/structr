@@ -80,14 +80,6 @@ let _VirtualTypes = {
 
 		_VirtualTypes.registerChangeListeners();
 
-		_Helpers.appendInfoTextToElement({
-			element: $('.resource-link'),
-			text: `Preview the virtual type in a new window/tab.<br>The request parameter ${Structr.getRequestParameterName('pageSize')}=1 is automatically appended to limit the number of results in the preview.`,
-			css: { marginLeft: "5px" },
-			offsetX: -300,
-			offsetY: 10
-		});
-
 		_Helpers.activateCommentsInElement(_VirtualTypes.virtualTypeDetail);
 
 		Structr.mainMenu.unblock(100);
@@ -151,7 +143,6 @@ let _VirtualTypes = {
 
 				_VirtualTypes.updateVirtualObject('VirtualType', typeId, data, el, el.closest('td'), function() {
 					let rowInList = $('#virtual-type-' + typeId, _VirtualTypes.virtualTypesList);
-					_VirtualTypes.updateResourceLink(data);
 					_VirtualTypes.populateVirtualTypeRow(rowInList, data);
 				});
 			}
@@ -306,19 +297,9 @@ let _VirtualTypes = {
 				}
 			});
 
-			_VirtualTypes.updateResourceLink(vt);
 			_VirtualTypes.listVirtualProperties(vt.properties);
 			_VirtualTypes.virtualTypeDetail.style.display = null;
 		});
-	},
-	updateResourceLink: (virtualType) => {
-
-		let resourceLink = _VirtualTypes.virtualTypeDetail.querySelector('.resource-link a');
-
-		let endpointURL  = `${Structr.rootUrl + virtualType.name}?${Structr.getRequestParameterName('pageSize')}=1`;
-
-		resourceLink.setAttribute('href', endpointURL);
-		resourceLink.textContent = endpointURL;
 	},
 	listVirtualProperties: (properties) => {
 
@@ -468,16 +449,13 @@ let _VirtualTypes = {
 
 				<div id="virtual-type-detail" class="" style="display: none;">
 
-					<div class="flex justify-between">
-						<div class="font-bold mb-4 text-xl px-2">Virtual Type</div>
-						<div class="resource-link"><a target="_blank" href="">/</a></div>
-					</div>
+					<div class="font-bold mb-4 text-xl px-2">Virtual Type</div>
 
 					<table id="virtual-type-detail-table">
 						<thead>
 							<tr class="odd:bg-white even:bg-gray-75">
 								<th class="p-2 pt-1 w-24" data-comment="The position attribute for virtual types is mostly for sorting them in the left column">Position</th>
-								<th class="p-2 pt-1" data-comment="The name under which the virtual type can be queried via REST">Name</th>
+								<th class="p-2 pt-1" data-comment="The name of the virtual type. Virtual types are referenced by name from the ODS and ODT exporters (transformationProvider) and are used as column mappings by the CSV import.">Name</th>
 								<th class="p-2 pt-1" data-comment="Specifies the source type of the type mapping">Source Type</th>
 								<th class="p-2 pt-1" data-comment="Can be used to remove entities from the target collection, e.g. filter entities with invalid names etc. The filter expression is a StructrScript (JavaScript may severely impact performance) expression that will be called for every entity in the source collection, with the current entity being available under the keyword <code>this</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">Filter Expression</th>
 								<th class="p-2 pt-1 w-32 text-center">${Structr.abbreviations['visibleToPublicUsers']}</th>

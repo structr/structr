@@ -1,5 +1,5 @@
 
-The Configuration Interface provides access to all runtime settings that control Structr's behavior. You can open it by clicking the wrench icon in the header bar. The interface opens in a new browser tab and requires a separate login using the superuser password defined in `structr.conf`.
+The Configuration Interface provides access to all runtime settings that control Structr's behavior. You can open it by clicking the wrench icon in the header bar. The interface opens in a new browser tab and requires a separate login with the superuser name and password defined in `structr.conf` (`superuser.username` and `superuser.password`).
 
 ![Configuration Interface](/structr/docs/configuration-interface_login.png)
 
@@ -23,5 +23,13 @@ Some settings display a small red button next to them. Clicking this button rese
 Settings are organized into categories such as application settings, database configuration, HTTP server options, security settings, and more. Most changes take effect immediately, though some require a server restart.
 
 Beyond simple configuration values, the Configuration Interface is currently the only place where you can define cron expressions for user-defined functions. This allows you to schedule functions to run at specific intervals without writing additional code.
+
+## Database Connections
+
+The Database Connections section manages the connections to Neo4j databases. Each connection has a Name, a Driver, the Connection URL, the Database Name and the Username and Password of the database user; "Set Neo4j defaults" fills in the usual values for a local Neo4j instance. You add a connection with "Create new database connection" and "Add connection", optionally with "Connect immediately". Each configured connection can be saved, connected, disconnected or deleted. Only one connection is active at a time.
+
+## First Start
+
+When Structr starts for the first time without a configured database, the Configuration Interface opens in configuration-only mode with a Start tab. It lists the two steps that are required before the server can start: set up the superuser credentials, and configure a database connection. The Database Connections section offers "Create new database connection" for a running Neo4j instance and "Start in demo mode", which runs without a persistent database and loses all data when the server stops. Once both steps are done, Structr starts the server and the regular login applies from then on.
 
 For a complete reference of all available settings, see the Settings chapter in the References section.

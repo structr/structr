@@ -51,7 +51,7 @@ In the select target type box, you can select a target type for your data. After
 
 ##### Start Import
 
-When you are finished configuring the mapping between CSV columns and properties, you can click the "Start Import Button" to start the import. Structr will show status update notifications for the import progress in the upper right corner.
+When you are finished configuring the mapping between CSV columns and properties, you can click the "Start import" button to start the import. Structr will show status update notifications for the import progress in the upper right corner.
 
 #### Mixed Import Mode
 
@@ -96,7 +96,7 @@ If you select the `Create node` action for an element that is **inside** another
 
 #### Start Import
 
-When you are finished configuring the import mapping, you can click the "Start Import Button" to start the import. Structr will show status update notifications for the import progress in the upper right corner.
+When you are finished configuring the import mapping, you can click the "Start import" button to start the import. Structr will show status update notifications for the import progress in the upper right corner.
 
 #### Storing Import Configurations for Later
 
@@ -106,7 +106,7 @@ To save the current configuration you can enter the desired name in the input fi
 
 ## Importing JSON Data
 
-Since Javascript Object Notation (JSON) is the default format for all data going over the REST interface, you can import JSON data very easily using REST. You can find more information about that in the REST Guide and in the REST API section of the Fundamental Concepts document.
+Since Javascript Object Notation (JSON) is the default format for all data going over the REST interface, you can import JSON data very easily using REST. You can find more information about that in the [REST Interface](/structr/docs/ontology/REST%20Interface/Overview) chapter and in the [Core Concepts](/structr/docs/ontology/Introduction/Core%20Concepts) chapter.
 
 ### Create Nodes
 
@@ -233,7 +233,7 @@ If you want to create a relationship between two objects directly, you can use t
 
 ### Learn More
 
-If you want to learn more about the REST API, please read the REST Guide or the section about the REST API in the Fundamental Concepts document.
+If you want to learn more about the REST API, please read the [REST Interface](/structr/docs/ontology/REST%20Interface/Overview) chapter or the [Core Concepts](/structr/docs/ontology/Introduction/Core%20Concepts) chapter.
 
 ## Using Scripting to Create Data
 
@@ -315,7 +315,7 @@ Data in a Neo4j database is available in Structr if the following requirements a
 1. For all data types in Neo4j that should be accessed through Structr, data types must exist in Structr that match the node label. Create these types in the Schema Editor.
 2. The `type` attribute of every node instance is set to the primary type (=simple class name). This is necessary because Neo4j labels don't have a reliable order.
 3. Nodes and relationships have an `id` String property with a UUID as value. Use the "Add UUIDs" function from Schema section -> Admin -> Indexing.
-4. The primary type (simple class name) as well as the supertypes and implementing interfaces have to be set as labels in Neo4j. Use the maintenance command "Create Labels" from Schema -> Admin -> Indexing to set all necessary labels.
+4. The primary type (simple class name) as well as the supertypes and implementing interfaces have to be set as labels in Neo4j. Use the maintenance command "Apply Labels" from Schema -> Admin -> Indexing to set all necessary labels.
 
 It is recommended to rebuild the index and flush the caches after running the above maintenance commands.
 
@@ -327,16 +327,16 @@ Importing data from a SQL database is possible via the jdbc() function in the St
 {
     let url = "jdbc:mysql://localhost:3306/customer";
     let query = "SELECT name, title FROM Customer";
-    let data = $.jdbc(url, query);
+    let rows = $.jdbc(url, query);
 
-    data.entries.forEach(entry => {
+    rows.forEach(row => {
 
         $.create("Customer", {
-            name: entry.name,
-            title: entry.title
+            name: row.name,
+            title: row.title
         });
     });
 }
 ```
 
-You can provide the fully-qualified class name (FQCN) of your preferred JDBC driver as a third parameter to the jdbc() function, and Structr will use that driver to make the connection. Please note that the driver JAR is most likely not shipped with the Structr distribution, so you have to put it in the `lib` directory of your Structr installation manually.
+The jdbc() function returns the result rows as a list of objects, one per row, with the column names as keys. It accepts the JDBC URL and the SQL query as parameters, optionally followed by a username and a password: `$.jdbc(url, query, username, password)`. The credentials can also be included in the JDBC connection string. Structr loads the JDBC driver via the standard `DriverManager` mechanism based on the URL. Please note that the driver JAR is most likely not shipped with the Structr distribution, so you have to put it in the `lib` directory of your Structr installation manually.

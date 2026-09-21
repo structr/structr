@@ -17,11 +17,11 @@ Configure two-factor authentication in `structr.conf` or through the Configurati
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `security.twofactorauthentication.level` | 1 | Enforcement level: 0 = disabled, 1 = optional (per-user), 2 = required for all users |
-| `security.twofactorauthentication.issuer` | structr | The issuer name displayed in authenticator apps |
+| `security.twofactorauthentication.issuer` | Structr | The issuer name displayed in authenticator apps |
 | `security.twofactorauthentication.algorithm` | SHA1 | Hash algorithm: SHA1, SHA256, or SHA512 |
 | `security.twofactorauthentication.digits` | 6 | Code length: 6 or 8 digits |
 | `security.twofactorauthentication.period` | 30 | Code validity period in seconds |
-| `security.twofactorauthentication.logintimeout` | 30 | Time window in seconds to enter the code after password authentication |
+| `security.twofactorauthentication.logintimeout` | 300 | Time window in seconds to enter the code after password authentication |
 | `security.twofactorauthentication.loginpage` | /twofactor | Application page for entering the two-factor code |
 | `security.twofactorauthentication.devicetrust.enabled` | false | Enables or disables users to trust the browser they are logging in with |
 | `security.twofactorauthentication.devicetrust.signingsecret` | | Secret key that signs device trust tokens (auto-generated if not set manually) |
@@ -42,7 +42,7 @@ The `level` setting controls how two-factor authentication applies to users:
 
 ## User Properties
 
-Three properties on the User type control two-factor authentication:
+Four properties on the User type control two-factor authentication:
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -269,7 +269,7 @@ Create a page that displays the QR code for first-time setup and accepts the TOT
 curl -si http://localhost:8082/structr/rest/login \
   -X POST \
   -H "Content-Type: application/json" \
-  -d '{"twoFactorToken": "eyJhbGciOiJIUzI1NiJ9...", "twoFactorCode": "123456", "trustDevice", true}'
+  -d '{"twoFactorToken": "eyJhbGciOiJIUzI1NiJ9...", "twoFactorCode": "123456", "trustDevice": true}'
 ```
 
 ## Managing User Enrollment

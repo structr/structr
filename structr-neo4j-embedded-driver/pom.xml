@@ -35,8 +35,9 @@
 				     is built against 4.2, while neo4j-bolt-connection-netty - the Bolt DRIVER, which is
 				     what nearly every instance runs on - has "requires io.netty.codec" and therefore needs
 				     4.1, because 4.2 renamed that module to io.netty.codec.unused and emptied it. So the
-				     build resolves 4.1 for every shared artifact, and only the ones nobody else asks for
-				     stayed at 4.2 - among them netty-transport-native-epoll, whose native code is compiled
+				     root pom pins every shared artifact to 4.1 (netty.version in dependencyManagement),
+				     and only the ones nobody else asks for stay at 4.2 - among them
+				     netty-transport-native-epoll, whose native code is compiled
 				     against the netty-transport-classes-epoll of its OWN version. Pairing a 4.2 native
 				     library with 4.1 classes cannot load; netty then falls back to NIO. Since
 				     EmbeddedDatabaseService never starts a bolt connector, nothing here wants these jars

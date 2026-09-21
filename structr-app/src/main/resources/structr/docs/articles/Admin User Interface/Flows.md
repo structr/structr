@@ -9,19 +9,19 @@ The Flows area is a visual workflow designer where you can create automated proc
 
 An input field and Create button on the left let you create a new flow. A flow is a container for flow nodes that you connect to define a process.
 
-### Delete
+### Delete flow
 
 Deletes the currently selected flow.
 
 ### Highlight
 
-A dropdown that highlights different aspects of your flow: Execution, Data, Logic, or Exception Handling. This helps you focus on specific channels when working with complex flows.
+A dropdown that highlights different aspects of your flow: Execution Flow, Data Flow, Logic Flow, or Exception Handling. This helps you focus on specific channels when working with complex flows.
 
 ### Run
 
 Executes the current flow.
 
-### Reset View
+### Reset view
 
 Resets the canvas zoom and pan position.
 
@@ -43,7 +43,7 @@ Right-click on the canvas to open the context menu, which lets you add new nodes
 
 #### Action Nodes
 
-Action, Call for each, Aggregate, Filter, Exception Handler, Log, Return
+Action, Call, ForEach, Aggregate, Filter, ExceptionHandler, Log, Return. The Fork and ForkJoin nodes exist in the editor but are currently disabled in the context menu.
 
 #### Data Nodes
 
@@ -64,7 +64,7 @@ Each node has input and output connectors. You connect nodes by dragging from an
 - Green – Execution channel (controls the order of operations)
 - Blue – Data channel (passes data between nodes)
 - Red – Exception handling channel (handles errors)
-- Dark green – Logic channel (passes boolean values)
+- Orange: Logic channel (passes boolean values); an unconnected condition socket is shown in a darker ochre
 
 You can only connect connectors of the same type.
 

@@ -13,19 +13,31 @@ Here you also have access to user-defined functions (global utilities available 
 
 The tree contains the following sections:
 
-### User Defined Functions
+### Scratchpads
+
+Scratchpads are simple blocks of code that you can develop and run without creating a method. Use them for experiments and one-off scripts; click the plus icon in the Scratchpads view to add one.
+
+### User-defined functions
 
 This shows global functions in a table format – the same view that is available in the Schema area. These functions are callable from anywhere in your application.
 
-### OpenAPI
+### OpenAPI - Swagger UI
 
-This section displays the OpenAPI specification for your application. The specification is also exposed as a public endpoint that external consumers can access to discover and interact with your APIs. It serves as the authoritative reference for all API endpoints defined in your application, documenting available methods, their parameters, and expected responses.
+This section displays the OpenAPI specification for your application in Swagger UI. The specification is also exposed as a public endpoint that external consumers can access to discover and interact with your APIs. It serves as the authoritative reference for all API endpoints defined in your application, documenting available methods, their parameters, and expected responses.
 
 ![OpenAPI Output](/structr/docs/code_openapi-root.png)
 
+### Data Sources
+
+This section lists the script-based and query-based data sources that feed data-driven components. Each data source is a piece of code (a script or a query) that returns the objects a component displays, and this is where you edit that code. How components use data sources is described in [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components).
+
+### Processes
+
+This section lists the BPMN processes of your application and gives access to the scripts attached to their elements, for example the code of script tasks and the expressions on gateways, so that process logic can be edited with the same editor as any other method. The processes themselves are modelled in the Processes area.
+
 ### Types
 
-This lists all your custom types and service classes. Expand a type to see its contents:
+This lists all your custom types and service classes in the two subsections Custom and Services. Expand a type to see its contents:
 
 - Direct Properties – Properties defined on this type
 - Linked Properties – Properties from relationships
@@ -75,7 +87,7 @@ This specifies which HTTP method triggers this function when called via REST API
 
 ### Testing Your Code
 
-For static methods, a Run Dialog button appears in the action bar alongside Save, Revert, and Delete. Click it to open a testing interface where you can enter parameters and execute the method immediately. The return value displays in the dialog, making it easy to test and debug without leaving the editor.
+For user-defined functions and static methods, a Run Dialog button appears in the action bar alongside Save, Revert, and Delete, provided the method is callable via HTTP. Click it to open a testing interface where you can enter parameters and execute the method immediately. The return value displays in the dialog, making it easy to test and debug without leaving the editor.
 
 ### API Tab
 

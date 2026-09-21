@@ -17,6 +17,8 @@ The preferred way to edit configuration settings is through the Configuration In
 
 You can access the Configuration Interface by clicking the wrench icon in the Admin UI header bar. The interface opens in a new browser tab and requires authentication with the superuser password.
 
+A fresh installation is also set up through this interface. Until the initial configuration has been completed, requests to the root URL are redirected to `/structr/config`, where a Start tab guides you through choosing a database connection and setting the superuser password. Completing the wizard sets the hidden setting `setup.wizard.completed`; a `structr.conf` that already contains a superuser password is treated as completed as well.
+
 ![Configuration Interface](/structr/docs/configuration-interface.png)
 
 After making changes, click the green button in the lower right corner to save them to `structr.conf`. Individual settings can be reset to their default value using the red button with the white X next to each field. This takes effect immediately. The interface also provides a reload function to apply configuration changes without restarting Structr.
@@ -42,7 +44,7 @@ Each setting goes on its own line:
 ```
 superuser.password = mysecretpassword
 application.title = My Application
-httpservice.maxfilesize = 1000
+uploadservlet.maxfilesize = 1000
 ```
 
 After editing the file manually, changes take effect after restarting Structr or using the reload function in the Configuration Interface.
@@ -81,7 +83,7 @@ services:
     environment:
       - STRUCTR_superuser_password=mysecretpassword
       - STRUCTR_application_instance_name=Production
-      - STRUCTR_application_instance_stage=PROD
+      - STRUCTR_application_instance_stage=production
       - STRUCTR_application_heap_max__size=8g
     volumes:
       - structr-data:/var/lib/structr/files
@@ -96,7 +98,7 @@ While Structr has many configuration options, these are the settings you are mos
 | Category | Setting | Default | Description |
 |----------|---------|---------|-------------|
 | Instance | `application.instance.name` | (empty) | A name displayed in the top right corner of the Admin UI. |
-| Instance | `application.instance.stage` | (empty) | A stage label (e.g., "DEV", "STAGING", "PROD") displayed alongside the instance name. |
+| Instance | `application.instance.stage` | (empty) | The stage of the instance, displayed alongside the instance name. One of `dev`, `test`, `staging` or `production`. |
 | HTTP | `application.http.port` | 8082 | HTTP port. Requires restart. |
 | HTTP | `application.https.port` | 8083 | HTTPS port. Requires restart. |
 | HTTP | `application.https.enabled` | false | Enable HTTPS. Requires a keystore with SSL certificate. |
@@ -106,6 +108,7 @@ While Structr has many configuration options, these are the settings you are mos
 | Logging | `log.level` | INFO | Log verbosity: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`. Takes effect immediately. |
 | Admin | `initialuser.name` | admin | Username for the initial admin. |
 | Admin | `initialuser.password` | admin | Password for the initial admin. Change immediately after first login. |
+| Services | `configured.services` | NodeService SchemaService AgentService CronService HttpService MigrationService StorageSyncService ProcessTimerService | Services started at boot. Remove a service to disable it; `ProcessTimerService` fires BPMN timers and is needed when the process module is installed. Requires restart. |
 
 ## File Permissions
 

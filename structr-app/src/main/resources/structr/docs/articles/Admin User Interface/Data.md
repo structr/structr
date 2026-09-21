@@ -16,6 +16,7 @@ A filter button above the list lets you expand what's shown. You can include:
 - Built-In Relationship Types
 - HTML Types
 - Flow Types
+- Process Types
 - Other Types
 
 ### Recently Used Types
@@ -34,6 +35,8 @@ Above the table, the following controls are available:
 - A page size input to set how many objects appear per page
 - A view dropdown to select which properties appear as columns
 
+A gear icon in the table header opens the "Configure columns for type X" dialog, where you hide individual attributes of the selected view. The id and type columns are always shown first.
+
 ### Editing Values
 
 System properties (like `id` and `type`) are read-only, but you can edit other properties directly in the table cells by clicking on them.
@@ -50,11 +53,11 @@ For relationship properties, a plus button appears in the table cell. Click it t
 
 ### Create Button
 
-The Create button in the header creates a new object of the currently selected type. The button label changes to reflect the type currently being viewed.
+The Create button in the header creates a new object of the currently selected type. The button label changes to reflect the type currently being viewed. Hold Shift while clicking to open the Create Node dialog instead, where you fill in property values before the object is created.
 
 ### Delete All
 
-The "Delete All Objects of This Type" button does exactly what it says – use it with caution. A checkbox lets you restrict deletion to exactly this type; if unchecked, objects of derived types are also deleted.
+The "Delete all objects of this type" button does exactly what it says – use it with caution. The checkbox "Exclude inheriting types" next to it affects both the object list and the delete function: when checked, only objects of exactly the selected type are listed and deleted; when unchecked, objects of all inheriting types are included as well.
 
 ## Import and Export
 

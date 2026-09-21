@@ -9,7 +9,7 @@ Note: This area appears empty until you create your first mail template.
 
 ### Create Mail Template
 
-On the left, two input fields let you enter the Name and Locale for a new mail template. Click the Create button to create it.
+On the left, two input fields let you enter the Name and Locale(s) for a new mail template. The locale field accepts a comma-separated list such as `en,de,fr`; Structr then creates one template per locale in a single step. Click the Create button to create them. The same locale list is used by the template wizard described below.
 
 ### Template Wizard
 
