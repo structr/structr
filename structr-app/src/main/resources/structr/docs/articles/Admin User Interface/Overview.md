@@ -21,7 +21,7 @@ The Structr Admin User Interface is a web-based console for building and managin
 
 ![The Admin User Interface](/structr/docs/dashboard_about-structr.png)
 
-The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Data, and more. Less frequently used items are available in the burger menu, which also contains Export Diff, Documentation and the logout link. You can configure which items appear in the main navigation through the UI Settings on the Dashboard.
+The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Data, and more. Less frequently used items are available in the burger menu, which also contains the Documentation entry and the logout link. You can configure which items appear in the main navigation through the UI Settings on the Dashboard.
 
 On the right side of the header, tools are available regardless of which area you are working in:
 
