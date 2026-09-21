@@ -2235,7 +2235,7 @@ let Structr = {
 								<!--li data-name="Apps"><a id="apps_" href="#apps" data-activate-module="apps">Apps</a></li-->
 								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
-								<li data-name="Export Diff"><a id="export-diff_" href="#export-diff" data-activate-module="export-diff">Export Diff</a></li>
+								<!--li data-name="Export Diff"><a id="export-diff_" href="#export-diff" data-activate-module="export-diff">Export Diff</a></li-->
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
