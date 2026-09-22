@@ -98,7 +98,7 @@ public abstract class Expression implements Documentable {
 
 		if (category != null) {
 
-			concepts.add(ConceptReference.of(ConceptType.Topic, category + " functions"));
+			concepts.add(ConceptReference.of(ConceptType.Topic, category + " Functions"));
 		}
 
 		return concepts;
