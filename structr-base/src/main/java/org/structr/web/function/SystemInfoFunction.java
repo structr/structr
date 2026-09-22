@@ -77,8 +77,8 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. "),
-			Usage.structrScript("Usage: ${systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.")
+			Usage.javaScript("Usage: ${{ $.systemInfo([key]) }}"),
+			Usage.structrScript("Usage: ${systemInfo([key])}")
 		);
 	}
 
@@ -93,6 +93,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 		return """
 		When called without parameters all info will be returned, otherwise specify a key to request specific info.
+
 		| Key | Value |
 		| --- | --- |
 		| now | Current time in ms |
