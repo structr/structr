@@ -1381,10 +1381,4 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		return value1.compareTo(value2);
 	}
-
-	@Override
-	public boolean canShowDetails() {
-
-		return getLongDescription() != null || (getNotes() != null && !getNotes().isEmpty()) || (getExamples() != null && !getExamples().isEmpty());
-	}
 }
