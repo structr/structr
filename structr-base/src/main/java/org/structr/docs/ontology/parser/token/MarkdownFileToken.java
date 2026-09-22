@@ -34,6 +34,7 @@ import com.vladsch.flexmark.util.sequence.BasedSequence;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.function.tokenizer.Token;
+import org.structr.docs.ResourceUtil;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 import org.structr.web.traits.definitions.html.Form;
@@ -81,14 +82,14 @@ public class MarkdownFileToken extends NamedConceptToken {
 		if (baseResource != null) {
 
 			final Resource docsResource = baseResource.resolve("docs");
-			final Path folderPath       = docsResource.resolve(path).getPath();
+			final Resource markdownFile = docsResource.resolve(path);
 			final String fileName       = StringUtils.substringAfterLast(path, "/");
 			final String cleanedName    = cleanName(StringUtils.substringBeforeLast(fileName, "."));
 
 			try {
 
 				// handle children
-				final List<String> lines = Files.readAllLines(folderPath);
+				final List<String> lines = ResourceUtil.readAllLines(markdownFile);
 				final MutableDataSet options = new MutableDataSet();
 
 				options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));

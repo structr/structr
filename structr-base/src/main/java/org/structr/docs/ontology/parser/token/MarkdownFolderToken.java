@@ -30,13 +30,12 @@ import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.function.tokenizer.Token;
+import org.structr.docs.ResourceUtil;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 import org.structr.web.traits.definitions.html.I;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -74,15 +73,15 @@ public class MarkdownFolderToken extends NamedConceptToken {
 			if (baseResource != null) {
 
 				final Resource docsResource = baseResource.resolve("docs");
-				final Path folderPath       = docsResource.resolve(folderName).getPath();
-				final Path indexFile        = folderPath.resolve("index.txt");
+				final Resource folder       = docsResource.resolve(folderName);
+				final Resource indexFile    = folder.resolve("index.txt");
 
 				// resolve markdown folder contents and add them as topics
-				if (Files.exists(indexFile)) {
+				if (indexFile != null && indexFile.exists()) {
 
 					try {
 
-						final List<String> files = Files.readAllLines(indexFile);
+						final List<String> files = ResourceUtil.readAllLines(indexFile);
 
 						for (final String file : files) {
 

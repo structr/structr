@@ -73,7 +73,7 @@ public class DocumentationServlet extends HttpServlet {
 			final ResourceHandler resourceHandler    = service.getExportedResourceHandler();
 			final Resource baseResource              = resourceHandler.getBaseResource();
 			final Resource facts                     = baseResource.resolve("facts");
-			final Ontology ontology                  = new Ontology(baseResource, facts.getPath());
+			final Ontology ontology                  = new Ontology(baseResource, facts);
 			final OutputSettings settings            = setupOutputSettings(ontology, baseResource);
 			final Map<Concept, Double> searchResults = new LinkedHashMap<>();
 			final List<Link> links                   = new LinkedList<>();

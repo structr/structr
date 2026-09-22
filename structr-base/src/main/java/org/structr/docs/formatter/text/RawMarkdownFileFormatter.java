@@ -22,11 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.ResourceUtil;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Link;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 
@@ -50,7 +50,7 @@ public class RawMarkdownFileFormatter extends Formatter {
 			final String folderName = StringUtils.substringBeforeLast(path, "/");
 			final Resource resource = baseResource.resolve("docs/" + folderName);
 
-			lines.addAll(Files.readAllLines(resource.resolve(fileName).getPath()));
+			lines.addAll(ResourceUtil.readAllLines(resource.resolve(fileName)));
 
 		} catch (IOException e) {
 

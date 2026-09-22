@@ -37,11 +37,8 @@ import javax.sql.rowset.BaseRowSet;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
 
 /**
  * The Structr Documentation Ontology.
@@ -67,11 +64,11 @@ public final class Ontology {
 		return Set.of(",", "and");
 	}
 
-	public Ontology(final Resource baseResource, final Path pathToFactsFolder) {
+	public Ontology(final Resource baseResource, final Resource factsFolder) {
 
 		this(baseResource);
 
-		initialize(pathToFactsFolder);
+		initialize(factsFolder);
 		initializeFromDocumentationAnnotations();
 	}
 
@@ -389,18 +386,33 @@ public final class Ontology {
 	}
 
 	// ----- private methods -----
-	private void initialize(final Path path) {
+	private void initialize(final Resource factsFolder) {
 
-		try (final Stream<Path> files = Files.walk(path).filter(Files::isRegularFile).sorted()) {
+		// getAllResources() walks the folder recursively and works for a directory on
+		// disk as well as for the application jar, where getPath() is not reliable
+		final List<Resource> files = new LinkedList<>();
 
-			for (final Path file : files.toList()) {
+		for (final Resource resource : factsFolder.getAllResources()) {
+
+			if (!resource.isDirectory()) {
+
+				files.add(resource);
+			}
+		}
+
+		// Files.walk() was sorted by path, keep that order
+		files.sort(Comparator.comparing(r -> r.getURI().toString()));
+
+		try {
+
+			for (final Resource file : files) {
 
 				final FactsFile factsFile = new FactsFile(file);
 
 				storeFacts(factsFile);
 
 				factContainers.add(factsFile);
-			};
+			}
 
 		} catch (IOException ioex) {
 

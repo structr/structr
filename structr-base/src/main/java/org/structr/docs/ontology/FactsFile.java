@@ -18,10 +18,11 @@
  */
 package org.structr.docs.ontology;
 
+import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
+import org.structr.docs.ResourceUtil;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,17 +34,25 @@ public class FactsFile extends FactsContainer {
 
 	private final List<Token> tokens = new LinkedList<>();
 
-	private final Path path;
+	private final Resource resource;
 
-	public FactsFile(final Path path) throws IOException {
+	public FactsFile(final Resource resource) throws IOException {
 
-		this.path = path;
+		this.resource = resource;
 
 		initialize();
 	}
 
 	@Override
 	public void writeToDisc() {
+
+		// writing only makes sense for a facts file on disk; a resource served from the
+		// application jar (or a CombinedResource) has no path and is read-only anyway
+		final Path path = resource.getPath();
+		if (path == null) {
+
+			return;
+		}
 
 		try (final BufferedWriter writer = Files.newBufferedWriter(path)) {
 
@@ -64,15 +73,12 @@ public class FactsFile extends FactsContainer {
 	@Override
 	public String getName() {
 
-		return path.getFileName().toString();
+		return resource.getFileName();
 	}
 
 	// ----- private methods -----
 	private void initialize() throws IOException {
 
-		try (final BufferedReader reader = Files.newBufferedReader(path)) {
-
-			tokens.addAll(tokenize(reader.readAllAsString()));
-		}
+		tokens.addAll(tokenize(ResourceUtil.readString(resource)));
 	}
 }
