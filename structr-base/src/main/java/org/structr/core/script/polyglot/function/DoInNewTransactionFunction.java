@@ -293,7 +293,10 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 				$.doInNewTransaction(() => {
 					let page = $.create('Page', 'name', 'ExamplePage');
 
-					// this is where the error occurs - the Group node is not yet committed to the graph and when this context is closed a relationship between the group and the page is created - which can not work because only the page is committed to the graph
+					// this is where an error occurs:
+					// the Group node is not yet committed to the graph and when this context is closed,
+					// a relationship between the group and the page is created.
+					// That can not work because only the page is committed to the graph
 					$.grant(group, page, 'read');
 				});
 			}}
@@ -358,9 +361,9 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 		This function allows you to detach long-running functions from the current transaction context (which is bound to the request), or execute large database operations in batches. Useful in situations where large numbers of nodes are created, modified or deleted.
 
 		This function is only available in JavaScript and takes a worker function as its first parameter and an optional error handler function as its second parameter.
-		
+
 		**If the worker function returns `true`, it is run again.** If it returns anything else it is not run again.
-		
+
 		If an exception occurs in the worker function, the error handler function (if present) is called. If the error handler returns `true`, the worker function is called again. If the error handler function returns anything else (or an exception occurs) the worker function is not run again.
 
 		When the `errorHandler` function is called, it receives the error / exception that was raised in the worker function. Depending on the error type, different methods are available on that object. Syntax errors will yield a `PolyglotException` (see https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/PolyglotException.html), other error types will yield different exception object.
