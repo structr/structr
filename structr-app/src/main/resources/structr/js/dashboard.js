@@ -355,62 +355,40 @@ let _Dashboard = {
 			},
 			gatherVersionUpdateInfo: async (envInfo) => {
 
-				let currentVersion = envInfo.version;
-				// let currentBuild = envInfo.build;
-				// let currentDate = envInfo.date;
+				let currentVersion      = envInfo.version;
+				let fullSnapshotVersion = `${currentVersion}-${envInfo.date}.${envInfo.build}`;
+				let versionInfo         = [];
 
-				let releasesIndexUrl  = 'https://download.structr.com/repositories/releases/org/structr/structr/index';
-				let snapshotsIndexUrl = 'https://download.structr.com/repositories/snapshots/org/structr/structr/index';
-
-				let releaseInfo  = '';
-				let snapshotInfo = '';
-
-				// Search for newer releases and store latest version
+				// Search for newer snapshots/releases and store latest version
 				{
-					let response = await fetch(releasesIndexUrl);
+					let response = await fetch('https://structr.org/files/version-info.json');
 					if (response.ok) {
 
-						let releaseVersionsList = await response.text();
-						let newReleaseAvailable = undefined;
+						let versionInfoData = await response.json();
 
-						for (let version of releaseVersionsList.split(/[\n\r]/)) {
-							if (version > currentVersion) {
-								newReleaseAvailable = version;
-							}
-						}
-
-						releaseInfo = (newReleaseAvailable ? 'newer release available: ' +  newReleaseAvailable : 'no new release available');
-					}
-				}
-
-				// Search for newer snapshots and store latest version
-				{
-					let response = await fetch(snapshotsIndexUrl);
-					if (response.ok) {
-
-						let snapshotVersionsList = await response.text();
+						let newReleaseAvailable  = undefined;
 						let newSnapshotAvailable = undefined;
 
-						for (let version of snapshotVersionsList.split(/[\n\r]/)) {
-							if (version > currentVersion) {
-								newSnapshotAvailable = version;
+						for (let releaseVersion of versionInfoData.releases) {
+							if (releaseVersion > currentVersion) {
+								newReleaseAvailable = releaseVersion;
 							}
 						}
 
-						snapshotInfo = (newSnapshotAvailable ? 'newer snapshot available: ' +  newSnapshotAvailable : 'no new snapshot available');
+						versionInfo.push((newReleaseAvailable ? `newer release available: ${newReleaseAvailable}` : 'no new release available'));
+
+						for (let snapshotVersion of versionInfoData.snapshots) {
+							if (snapshotVersion > fullSnapshotVersion) {
+								newSnapshotAvailable = snapshotVersion;
+							}
+						}
+
+						versionInfo.push((newSnapshotAvailable ? `newer snapshot available: ${newSnapshotAvailable}` : 'no new snapshot available'));
 					}
 				}
 
 				let versionUpdateInfoElement = document.querySelector('#version-update-info');
 				if (versionUpdateInfoElement) {
-
-					let versionInfo = [];
-					if (releaseInfo !== '') {
-						versionInfo.push(releaseInfo);
-					}
-					if (snapshotInfo !== '') {
-						versionInfo.push(snapshotInfo);
-					}
 
 					if (versionInfo.length > 0) {
 						versionUpdateInfoElement.textContent = '(' + versionInfo.join(' | ') + ')';
