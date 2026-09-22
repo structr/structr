@@ -62,4 +62,10 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 
 		return concepts;
 	}
+
+	@Override
+	public boolean canShowDetails() {
+
+		return getLongDescription() != null || (getNotes() != null && !getNotes().isEmpty()) || (getExamples() != null && !getExamples().isEmpty());
+	}
 }
