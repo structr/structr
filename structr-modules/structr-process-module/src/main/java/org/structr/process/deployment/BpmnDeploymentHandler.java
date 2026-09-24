@@ -334,7 +334,10 @@ public class BpmnDeploymentHandler {
 			logger.warn("Unable to write {}", file, ioex);
 		}
 
-		logger.info("Exported {} BPMN node(s), {} relationship(s), {} property patch(es)", nodes.size(), relationships.size(), patches.size());
+		if ((nodes.size() + relationships.size() + patches.size()) > 0) {
+
+			logger.info("Exported {} BPMN node(s), {} relationship(s), {} property patch(es)", nodes.size(), relationships.size(), patches.size());
+		}
 	}
 
 	private static Map<String, Object> exportNode(final NodeInterface node) {
