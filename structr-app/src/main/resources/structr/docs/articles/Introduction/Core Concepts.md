@@ -29,7 +29,7 @@ This differs from document databases where nested objects are often duplicated. 
 
 ## Supported Databases
 
-Structr supports several graph database backends. Neo4j is the primary supported database and recommended for production use. The in-memory database is intended for testing only; you select it in the configuration wizard with "Start in demo mode", and all data is lost when the server stops. Memgraph appears as an experimental option in the database connection dialog but is not part of the standard distribution.
+Structr supports several graph database backends. Neo4j is the primary supported database and recommended for production use. The in-memory database is intended for testing only; you select it in the configuration wizard with "Start in demo mode", and all data is lost when the server stops.
 
 ## Schema Enforcement
 
