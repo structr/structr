@@ -29,7 +29,9 @@ import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.api.util.Iterables;
 import org.structr.core.entity.SchemaView;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.*;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -53,7 +55,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 	public AbstractDynamicTraitDefinition(final TraitsInstance traitsInstance, final T schemaNode) {
 
 		this.label = schemaNode.getClassName();
-		this.name  = this.label + "." + schemaNode.getUuid();
+		this.name  = nameFor(schemaNode);
 
 		initializeLifecycleMethods(schemaNode);
 		initializeFrameworkMethods(schemaNode);
@@ -66,6 +68,15 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 	public String getName() {
 
 		return name;
+	}
+
+	/**
+	 * @return the name under which the trait of this schema node is registered. Unlike the label, which
+	 * a type extending a built-in type shares with that type, the name is unique per schema node.
+	 */
+	public static String nameFor(final AbstractSchemaNode schemaNode) {
+
+		return schemaNode.getClassName() + "." + schemaNode.getUuid();
 	}
 
 	@Override
@@ -240,14 +251,25 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 		for (final SchemaView view : schemaNode.getSchemaViews()) {
 
+			final List<SchemaProperty> properties = Iterables.toList(view.getSchemaProperties());
+			final String ngp                      = view.getNonGraphProperties();
+
+			/* A pure copy of an inherited view adds an empty set to a view that another trait of the type
+			   defines, so leaving it out changes nothing about the compiled type. What it changes is the
+			   meaning of getViews(): the views this trait contributes, which is what the reconciliation
+			   of view nodes after compilation asks for (AbstractSchemaNodeTraitDefinition.createViewNodesForClass). */
+			if (view.isBuiltinView() && !AbstractSchemaNodeTraitDefinition.hasOwnContent(properties, ngp)) {
+
+				continue;
+			}
+
 			final Set<String> names = new LinkedHashSet<>();
 
-			for (final SchemaProperty property : view.getSchemaProperties()) {
+			for (final SchemaProperty property : properties) {
 
 				names.add(property.getName());
 			}
 
-			final String ngp = view.getNonGraphProperties();
 			if (StringUtils.isNotBlank(ngp)) {
 
 				for (final String name : ngp.split(",")) {

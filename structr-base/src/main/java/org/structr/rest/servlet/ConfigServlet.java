@@ -122,9 +122,9 @@ public class ConfigServlet extends AbstractServletBase {
 
 		setCustomResponseHeaders(response);
 
-		/* Strict: a POST without an Origin header is rejected. Everything that reaches this method is
-		   sent by a form or a fetch() on the servlet's own pages, and browsers send Origin on both. The
-		   only POSTs without it are the ones the check exists for. */
+		/* Strict: a POST without an Origin header is rejected. The servlet's own pages send every POST
+		   through a form or a fetch(), and browsers send Origin on both, so a POST without it did not
+		   come from one of these pages. */
 		if (!checkCsrfOrigin(request, response, true)) {
 
 			return;
@@ -364,9 +364,9 @@ public class ConfigServlet extends AbstractServletBase {
 	/**
 	 * Before the wizard has run there is no superuser password to log in with, and until ticket 1581 the
 	 * wizard was simply open to anyone who could reach the port. The setup token takes the password's
-	 * place: it is generated once per JVM and written to the log at startup, so whoever can read the
-	 * server log may set up the instance, nobody else. Once the wizard is completed the token is
-	 * worthless.
+	 * place: unless an operator configured one in setup.token, it is generated once per JVM and written
+	 * to the log at startup, so whoever can read the server log may set up the instance, nobody else.
+	 * Once the wizard is completed the token is worthless.
 	 *
 	 * @return the redirect target relative to the servlet location
 	 */
@@ -777,7 +777,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 	/**
 	 * @return the setup token that authenticates the wizard before a superuser password exists, see
-	 * {@link #setup}. Logged by the HttpService at startup while the wizard is not completed.
+	 * {@link #setup}: the value of setup.token when that is configured, otherwise a token generated once
+	 * per JVM. Services logs it at startup while the wizard is not completed.
 	 */
 	public static String getSetupToken() {
 

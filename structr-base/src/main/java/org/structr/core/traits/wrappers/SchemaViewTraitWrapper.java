@@ -19,6 +19,7 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeInterface;
@@ -51,6 +52,18 @@ public class SchemaViewTraitWrapper extends AbstractNodeTraitWrapper implements 
 	public String getNonGraphProperties() {
 
 		return wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY));
+	}
+
+	@Override
+	public boolean isBuiltinView() {
+
+		return Boolean.TRUE.equals(wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.IS_BUILTIN_VIEW_PROPERTY)));
+	}
+
+	@Override
+	public void setIsBuiltinView(final boolean isBuiltinView) throws FrameworkException {
+
+		wrappedObject.setProperty(traits.key(SchemaViewTraitDefinition.IS_BUILTIN_VIEW_PROPERTY), isBuiltinView);
 	}
 
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -25,22 +26,27 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.AbstractSchemaNodeTraitWrapper;
+import org.structr.schema.AbstractDynamicTraitDefinition;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -143,10 +149,61 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		return null;
 	}
 
-	public static void createViewNodesForClass(final TraitsInstance traitsInstance, final AbstractSchemaNode schemaNode, final String type) throws FrameworkException {
+	/**
+	 * @return true if the view carries content of the type's own: schema properties, or nonGraphProperties.
+	 * A copy of an inherited view is created without either, so this is what tells a copy that nobody has
+	 * touched from one that was extended on the subtype. The schema editor writes nonGraphProperties whenever
+	 * it saves a view row, also when only the order was changed, so a re-sorted copy counts as content. A
+	 * sortOrder on its own does not: it orders nothing.
+	 */
+	public static boolean hasOwnContent(final Iterable<SchemaProperty> schemaProperties, final String nonGraphProperties) {
 
-		final Set<String> existingViewNames = Iterables.toList(schemaNode.getSchemaViews()).stream().map(v -> v.getName()).collect(Collectors.toSet());
-		final Traits traits                 = traitsInstance.getTraits(type);
+		return schemaProperties.iterator().hasNext() || StringUtils.isNotBlank(nonGraphProperties);
+	}
+
+	/**
+	 * Brings the SchemaView nodes of a type in line with the schema that has just been compiled.
+	 *
+	 * The views a type inherits - from the Java traits it is built on and from the SchemaView nodes of its
+	 * parent types - are materialized as nodes with isBuiltinView = true, so that the schema editor can list
+	 * them and add properties to them. These nodes mirror the compiled schema, and a mirror has to follow
+	 * its original in both directions: a view that no parent provides anymore has to leave the subtype too,
+	 * otherwise an empty view stays behind on every inheriting type and survives restarts (ticket 776).
+	 * Whether a view is inherited is not stored anywhere, it is derived: inherited is what one of the type's
+	 * other traits contributes. Pure copies contribute nothing (AbstractDynamicTraitDefinition.initializeViews),
+	 * so a copy whose origin is gone does not keep the copies below it alive, and a chain A - B - C with the
+	 * view on B resolves in this one pass once B is gone. That matters because a schema reload requested
+	 * while the schema is being replaced is dropped (SchemaService.schemaIsBeingReplaced), so a cascade of
+	 * compilations cannot be relied on.
+	 */
+	public static void createViewNodesForClass(final TraitsInstance traitsInstance, final AbstractSchemaNode schemaNode) throws FrameworkException {
+
+		final App app                       = StructrApp.getInstance(schemaNode.getSecurityContext());
+		final Traits traits                 = traitsInstance.getTraits(schemaNode.getName());
+		final Set<String> providedViewNames = getProvidedViewNames(traitsInstance, traits, AbstractDynamicTraitDefinition.nameFor(schemaNode));
+		final Set<String> existingViewNames = new HashSet<>();
+
+		// copy first: a view is deleted while we iterate
+		for (final SchemaView view : Iterables.toList(schemaNode.getSchemaViews())) {
+
+			final String viewName = view.getName();
+
+			existingViewNames.add(viewName);
+
+			if (view.isBuiltinView() && !PropertyView.isManagedView(viewName) && !providedViewNames.contains(viewName)) {
+
+				// nothing provides this view anymore
+				if (hasOwnContent(view.getSchemaProperties(), view.getNonGraphProperties())) {
+
+					// properties were added on the subtype, so it is a view of the subtype's own now
+					view.setIsBuiltinView(false);
+
+				} else {
+
+					app.delete(view);
+				}
+			}
+		}
 
 		for (final String view : traits.getViewNames()) {
 
@@ -180,12 +237,54 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 			}
 
 			// create view node
-			StructrApp.getInstance(schemaNode.getSecurityContext()).create(StructrTraits.SCHEMA_VIEW,
+			app.create(StructrTraits.SCHEMA_VIEW,
 					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY),       schemaNode),
 					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           view),
 					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_PROPERTIES_PROPERTY), properties),
 					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.IS_BUILTIN_VIEW_PROPERTY),   true)
 			);
 		}
+	}
+
+	/**
+	 * @return the names of the views that something other than the type's own SchemaView nodes provides,
+	 * which is what a materialized copy may mirror. After resolveTraitHierarchies() the type's trait
+	 * definitions are transitive, so every ancestor is asked directly, by its exact trait name: a type that
+	 * extends a built-in type shares the label with it, and both traits have to be heard. Each other trait
+	 * contributes its compiled views, which for a parent type excludes its pure copies. Of the type's own
+	 * trait only the views count that were registered on it through staticSchemaNodeName - they are in the
+	 * trait but not in its definition - because the definition's views come from the very nodes being checked.
+	 */
+	private static Set<String> getProvidedViewNames(final TraitsInstance traitsInstance, final Traits traits, final String ownTraitName) {
+
+		final Set<String> names = new HashSet<>();
+
+		for (final TraitDefinition definition : traits.getTraitDefinitions()) {
+
+			final String traitName = definition.getName();
+			final Trait trait      = traitsInstance.getTrait(traitName);
+
+			if (trait == null) {
+
+				continue;
+			}
+
+			if (traitName.equals(ownTraitName)) {
+
+				for (final String viewName : trait.getViewNames()) {
+
+					if (!definition.getViews().containsKey(viewName)) {
+
+						names.add(viewName);
+					}
+				}
+
+			} else {
+
+				names.addAll(trait.getViewNames());
+			}
+		}
+
+		return names;
 	}
 }

@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.error.FrameworkException;
+
 import org.structr.core.graph.NodeInterface;
 
 public interface SchemaView extends NodeInterface {
@@ -26,4 +28,6 @@ public interface SchemaView extends NodeInterface {
 	String getStaticSchemaNodeName();
 	String getNonGraphProperties();
 	String getSortOrder();
+	boolean isBuiltinView();
+	void setIsBuiltinView(final boolean isBuiltinView) throws FrameworkException;
 }

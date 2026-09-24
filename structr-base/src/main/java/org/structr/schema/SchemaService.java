@@ -222,10 +222,8 @@ public class SchemaService implements Service {
 
 				for (final NodeInterface node : app.nodeQuery(StructrTraits.ABSTRACT_SCHEMA_NODE).getResultStream()) {
 
-					final String label = node.getName();
-
 					// create views (was a post process before, but needs access to the new schema)
-					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), label);
+					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class));
 				}
 
 				updateIndexConfiguration(newSchema, removedTypes);

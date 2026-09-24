@@ -54,20 +54,20 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 		try {
 
 			// before the wizard: the request is not authenticated and ?finish does not complete the wizard
-			assertLoginPage(get(null, "?finish"));
+			assertLoginPage(get(null, "finish", ""));
 			assertFalse("a GET parameter completed the wizard", Settings.SetupWizardCompleted.getValue());
 
 			// with an authenticated session, the GET parameters that used to be actions change nothing either
 			final String sessionId = authenticateWithSetupToken(ConfigServlet.getSetupToken());
 			final String title     = Settings.ApplicationTitle.getValue();
 
-			assertConfigPage(get(sessionId, "?reset=" + Settings.ApplicationTitle.getKey()));
+			assertConfigPage(get(sessionId, "reset", Settings.ApplicationTitle.getKey()));
 			assertEquals("a GET parameter reset a setting", title, Settings.ApplicationTitle.getValue());
 
-			assertConfigPage(get(sessionId, "?setMaintenance=true"));
+			assertConfigPage(get(sessionId, "setMaintenance", "true"));
 			assertFalse("a GET parameter enabled maintenance mode", Settings.MaintenanceModeEnabled.getValue(false));
 
-			assertConfigPage(get(sessionId, "?finish"));
+			assertConfigPage(get(sessionId, "finish", ""));
 			assertFalse("a GET parameter completed the wizard", Settings.SetupWizardCompleted.getValue());
 
 		} finally {
@@ -95,7 +95,7 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 		final String sessionId = response.getSessionId();
 		if (sessionId != null) {
 
-			assertLoginPage(get(sessionId, ""));
+			assertLoginPage(get(sessionId));
 		}
 	}
 
@@ -125,19 +125,19 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 		try {
 
 			// no session: login page, not the wizard
-			assertLoginPage(get(null, ""));
+			assertLoginPage(get(null));
 
 			// wrong token: still the login page
 			final Response failed = postSameOrigin(null, "action", "setup", "setupToken", "not-the-token");
 
 			assertEquals(302, failed.getStatusCode());
 			assertTrue("a failed setup must redirect to the login page with ?loginFailed", failed.getHeader("Location").contains("?loginFailed"));
-			assertLoginPage(get(failed.getSessionId(), ""));
+			assertLoginPage(get(failed.getSessionId()));
 
 			// right token: the wizard
 			final String sessionId = authenticateWithSetupToken(ConfigServlet.getSetupToken());
 
-			assertConfigPage(get(sessionId, ""));
+			assertConfigPage(get(sessionId));
 
 		} finally {
 
@@ -155,7 +155,7 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 			final Response response = postSameOrigin(null, "action", "setup", "setupToken", ConfigServlet.getSetupToken());
 
 			assertEquals(302, response.getStatusCode());
-			assertLoginPage(get(response.getSessionId(), ""));
+			assertLoginPage(get(response.getSessionId()));
 
 		} finally {
 
@@ -177,13 +177,13 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 			final String sessionId = login.getSessionId();
 
 			assertNotNull("login must issue a session cookie", sessionId);
-			assertConfigPage(get(sessionId, ""));
+			assertConfigPage(get(sessionId));
 
 			Settings.SessionTimeout.setValue(1);
 
 			Thread.sleep(1500);
 
-			assertLoginPage(get(sessionId, ""));
+			assertLoginPage(get(sessionId));
 
 		} finally {
 
@@ -228,7 +228,17 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 		return request.when().post();
 	}
 
-	private Response get(final String sessionId, final String query) {
+	private Response get(final String sessionId) {
+
+		return request(sessionId).when().get();
+	}
+
+	private Response get(final String sessionId, final String parameterName, final String parameterValue) {
+
+		return request(sessionId).queryParam(parameterName, parameterValue).when().get();
+	}
+
+	private RequestSpecification request(final String sessionId) {
 
 		RequestSpecification request = RestAssured
 			.given()
@@ -240,7 +250,7 @@ public class ConfigServletSecurityTest extends StructrUiTest {
 			request = request.sessionId(sessionId);
 		}
 
-		return request.when().get(query);
+		return request;
 	}
 
 	private void assertLoginPage(final Response response) {

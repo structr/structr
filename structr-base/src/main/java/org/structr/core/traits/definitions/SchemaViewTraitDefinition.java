@@ -18,15 +18,19 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaView;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
@@ -36,6 +40,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaViewTraitWrapper;
 
 import java.util.Map;
@@ -104,6 +109,33 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					return valid;
+				}
+			},
+
+			OnModification.class, new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					final SchemaView schemaView                    = obj.as(SchemaView.class);
+					final PropertyKey<NodeInterface> schemaNodeKey = obj.getTraits().key(SCHEMA_NODE_PROPERTY);
+					final GraphObjectMap modifications             = modificationQueue.getModifications(obj);
+					final Map<String, Object> removedRemote        = modifications.get(new GenericProperty<>("removed"));
+
+					/* The schema editor removes a view by writing the type's schemaViews without it, which only
+					   detaches the node (ticket 776). A view that was detached from its type in this transaction,
+					   has no type now and extends no static type describes nothing anymore, so it goes with the
+					   detachment. The removed remote properties are what tells an unlink from a link: the
+					   modification queue lists the former type under schemaNode there on an unlink only, a link
+					   lands among the added ones. A view that has no type because it was created without one -
+					   over REST, to be attached later - was never unlinked and stays. Views on static types have
+					   no schemaNode by design, hence the last condition. */
+					final boolean unlinked = removedRemote != null && removedRemote.containsKey(SCHEMA_NODE_PROPERTY);
+
+					if (unlinked && schemaView.getProperty(schemaNodeKey) == null && StringUtils.isBlank(schemaView.getStaticSchemaNodeName())) {
+
+						StructrApp.getInstance(securityContext).delete(schemaView);
+					}
 				}
 			}
 		);
