@@ -62,14 +62,14 @@ public class ServiceRestartTest extends StructrUiTest {
 
 			try {
 
-				// stop (config servlet: ?stop=...)
+				// stop (config servlet: POST action=stop)
 				services.shutdownService(serviceName);
 
 				// the service layer as a whole must remain up throughout
 				assertNotNull("Singleton must not be nulled by a per-service stop", Services.peekInstance());
 				assertTrue("Service layer must stay initialized during a per-service restart", services.isInitialized());
 
-				// start again (config servlet: ?start=...)
+				// start again (config servlet: POST action=start)
 				services.startService(serviceName);
 
 				final Service restarted = services.getService(serviceType, "default");

@@ -1005,6 +1005,13 @@ public class RenderContext extends ActionContext {
 
 	public void initializeFromEncodedRenderState(final String encoded) {
 
+		// the frontend omits the parameter for an element without state; an empty value from a
+		// hand-built URL means the same and is not worth a stack trace
+		if (StringUtils.isBlank(encoded)) {
+
+			return;
+		}
+
 		final ByteArrayInputStream input = new ByteArrayInputStream(encoded.getBytes(StandardCharsets.UTF_8));
 		final App app                    = StructrApp.getInstance(getSecurityContext());
 		final Gson gson                  = new GsonBuilder().create();
@@ -1012,6 +1019,10 @@ public class RenderContext extends ActionContext {
 		try (final JsonReader reader = new JsonReader(new InputStreamReader(new Base64InputStream(input, false)))) {
 
 			final Map<String, Object> state = gson.fromJson(reader, Map.class);
+			if (state == null) {
+
+				return;
+			}
 
 			for (final Entry<String, Object> entry : state.entrySet()) {
 
@@ -1024,7 +1035,8 @@ public class RenderContext extends ActionContext {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			// a state the client could not have produced: render without it rather than fail the request
+			LoggerFactory.getLogger(RenderContext.class).warn("Ignoring malformed render state: {}", t.getMessage());
 		}
 	}
 

@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,9 +62,13 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);
 	/* Concurrent, like the loginAttempts cache below: authenticateSession() and invalidateSession() write
-	   this from request threads while isAuthenticated() reads it, and what it holds is the set of sessions
-	   that may edit the configuration. A lost add or a torn read here is an authentication answer. */
-	private static final Set<String> sessions         = ConcurrentHashMap.newKeySet();
+	   this from request threads while isAuthenticated() reads it, and what it holds are the sessions
+	   that may edit the configuration, each with the time it was last seen. A lost put or a torn read
+	   here is an authentication answer. The timestamp is what ends a config session: Jetty is told
+	   never to expire sessions itself (HttpService sets maxInactiveInterval to -1), so without it a
+	   session that once logged in here stayed valid until the next restart (ticket 1581). */
+	private static final Map<String, Long> sessions   = new ConcurrentHashMap<>();
+	private static final String setupToken            = generateSetupToken();
 	private static final String TITLE                 = "Structr Configuration Editor";
 
 	// Brute-force protection for ConfigServlet login. Keyed by remote IP so
@@ -89,211 +94,26 @@ public class ConfigServlet extends AbstractServletBase {
 
 		setCustomResponseHeaders(response);
 
-		if (!isAuthenticated(request)) {
+		// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
+		response.setContentType("text/html; charset=utf-8");
 
-			// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
-			response.setContentType("text/html; charset=utf-8");
+		try (final PrintWriter writer = new PrintWriter(response.getWriter())) {
 
-			try (final PrintWriter writer = new PrintWriter(response.getWriter())) {
+			/* A GET renders and changes nothing. The actions used to ride on GET parameters (?reset=,
+			   ?stop=, ?finish, ...), which made each of them reachable through a link that a logged-in
+			   superuser clicks - browsers send no Origin header on such a navigation, so the origin
+			   check could not tell it from a click on the page itself (ticket 1581). They are POST
+			   actions now, see doPost(). */
+			final Document doc = isAuthenticated(request) ? createConfigDocument(request, writer) : createLoginDocument(request, writer);
 
-				final Document doc = createLoginDocument(request, writer);
-				doc.render();
+			doc.render();
 
-				writer.append("\n");
-				writer.flush();
+			writer.append("\n");
+			writer.flush();
 
-			} catch (IOException ioex) {
+		} catch (IOException ioex) {
 
-				logger.error(ExceptionUtils.getStackTrace(ioex));
-			}
-
-		} else {
-
-			if (isStateChangingGetRequest(request) && !checkCsrfOrigin(request, response)) {
-
-				return;
-			}
-
-			if (request.getParameter("reload") != null) {
-
-				// reload data
-				Settings.loadConfiguration(Settings.ConfigFileName);
-
-				// redirect
-				sendRedirectHeader(response, ConfigServletLocation);
-
-			} else if (request.getParameter("reset") != null) {
-
-				final String key = request.getParameter("reset");
-				Setting setting  = Settings.getSetting(key);
-
-				if (setting == null) {
-
-					setting = Settings.getCaseSensitiveSetting(key);
-				}
-
-				if (setting != null) {
-
-					if (setting.isDynamic()) {
-
-						// remove
-						setting.unregister();
-
-					} else {
-
-						// reset to default
-						setting.setValue(setting.getDefaultValue());
-						setting.setIsModified(false);
-					}
-				}
-
-				// serialize settings
-				Settings.storeConfiguration(Settings.ConfigFileName);
-
-				// redirect
-				sendRedirectHeader(response, ConfigServletLocation);
-
-			} else if (request.getParameter("start") != null) {
-
-				final String serviceName = request.getParameter("start");
-				if (serviceName != null) {
-
-					try {
-
-						Services.getInstance().startService(serviceName);
-
-					} catch (FrameworkException fex) {
-
-						response.setContentType("application/json");
-						response.setStatus(fex.getStatus());
-						response.getWriter().print(fex.toJSON());
-						response.getWriter().flush();
-						response.getWriter().close();
-
-						return;
-					}
-				}
-
-				sendRedirectHeader(response, ConfigServletLocation + "#services");
-
-			} else if (request.getParameter("stop") != null) {
-
-				final String serviceName = request.getParameter("stop");
-				if (serviceName != null) {
-
-					Services.getInstance().shutdownService(serviceName);
-				}
-
-				sendRedirectHeader(response, ConfigServletLocation + "#services");
-
-			} else if (request.getParameter("restart") != null) {
-
-				final String serviceName = request.getParameter("restart");
-				if (serviceName != null) {
-
-					new Thread(new Runnable() {
-
-						@Override
-						public void run() {
-
-							try { Thread.sleep(1000); } catch (Throwable t) {}
-
-							Services.getInstance().shutdownService(serviceName);
-
-							try {
-
-								Services.getInstance().startService(serviceName);
-
-							} catch (FrameworkException fex) {
-
-								logger.warn("Unable to start service '{}'", serviceName);
-								logger.warn("", fex);
-							}
-						}
-					}).start();
-				}
-
-				sendRedirectHeader(response, ConfigServletLocation + "#services");
-
-			} else if (request.getParameter("finish") != null) {
-
-				// finish wizard
-				Settings.SetupWizardCompleted.setValue(true);
-				Settings.storeConfiguration(Settings.ConfigFileName);
-
-				sendRedirectHeader(response, AdminBackendLocation);
-
-			} else if (request.getParameter("useDefault") != null) {
-
-				// create default configuration
-				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
-				final String name                   = "neo-1";
-				final String url                    = Settings.SampleConnectionUrl.getDefaultValue();
-				final String databaseName           = Settings.ConnectionDatabaseName.getDefaultValue();
-				final String username               = Settings.ConnectionUser.getDefaultValue();
-				final String password               = Settings.ConnectionPassword.getDefaultValue();
-				final DatabaseConnection connection = new DatabaseConnection();
-
-				connection.setName(name);
-				connection.setUrl(url);
-				connection.setUsername(username);
-				connection.setPassword(password);
-				connection.setDatabaseName(databaseName);
-
-				try {
-
-					cmd.addConnection(connection, false);
-
-				} catch (FrameworkException fex) {
-
-					logger.error(ExceptionUtils.getStackTrace(fex));
-				}
-
-				// finish wizard
-				Settings.SetupWizardCompleted.setValue(true);
-				Settings.storeConfiguration(Settings.ConfigFileName);
-
-				// make session valid
-				authenticateSession(request);
-
-				sendRedirectHeader(response, ConfigServletLocation + "#databases");
-
-			} else if (request.getParameter("setMaintenance") != null) {
-
-				final boolean maintenanceEnabled = Boolean.parseBoolean(request.getParameter("setMaintenance"));
-				final boolean success            = Services.getInstance().setMaintenanceMode(maintenanceEnabled);
-
-				if (success) {
-
-					final String baseUrl = ActionContext.getBaseUrl(request, true);
-					final Map<String, Object> msgData = new HashMap();
-
-					msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
-					msgData.put("enabled",                           maintenanceEnabled);
-					msgData.put("baseUrl",                           baseUrl);
-					TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
-
-					sendRedirectHeader(response, ConfigServletLocation + "#maintenance");
-				}
-
-			} else {
-
-				// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
-				response.setContentType("text/html; charset=utf-8");
-
-				try (final PrintWriter writer = new PrintWriter(response.getWriter())) {
-
-					final Document doc = createConfigDocument(request, writer);
-					doc.render();
-
-					writer.append("\n");
-					writer.flush();
-
-				} catch (IOException ioex) {
-
-					logger.error(ExceptionUtils.getStackTrace(ioex));
-				}
-			}
+			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 	}
 
@@ -302,250 +122,476 @@ public class ConfigServlet extends AbstractServletBase {
 
 		setCustomResponseHeaders(response);
 
-		// CSRF origin check for all ConfigServlet POST requests
-		if (!checkCsrfOrigin(request, response)) {
+		/* Strict: a POST without an Origin header is rejected. Everything that reaches this method is
+		   sent by a form or a fetch() on the servlet's own pages, and browsers send Origin on both. The
+		   only POSTs without it are the ones the check exists for. */
+		if (!checkCsrfOrigin(request, response, true)) {
 
 			return;
 		}
 
-		final String action   = request.getParameter("action");
-		String redirectTarget = "";
+		final String action        = request.getParameter("action");
+		final String activeSection = StringUtils.defaultString(request.getParameter("active_section"));
+
+		if ("login".equals(action)) {
+
+			sendRedirectHeader(response, ConfigServletLocation + login(request, activeSection));
+			return;
+		}
+
+		if ("setup".equals(action)) {
+
+			sendRedirectHeader(response, ConfigServletLocation + setup(request, activeSection));
+			return;
+		}
+
+		if ("logout".equals(action)) {
+
+			invalidateSession(request);
+			sendRedirectHeader(response, ConfigServletLocation + activeSection);
+			return;
+		}
+
+		if (!isAuthenticated(request)) {
+
+			sendRedirectHeader(response, ConfigServletLocation + activeSection);
+			return;
+		}
 
 		if (action != null) {
 
-			switch (action) {
+			handleAction(action, request, response, activeSection);
+			return;
+		}
 
-				case "login":
+		// database connections form
+		if ("/add".equals(request.getPathInfo())) {
 
-					final String remoteIp      = request.getRemoteAddr();
-					final AttemptState state   = getOrCreateAttemptState(remoteIp);
+			final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
+			final String name                   = request.getParameter("name");
+			final String driver                 = request.getParameter("driver");
+			final String url                    = request.getParameter("url");
+			final String databaseName           = request.getParameter("database");
+			final String username               = request.getParameter("username");
+			final String password               = request.getParameter("password");
+			final String connectNow             = request.getParameter("now");
+			final DatabaseConnection connection = new DatabaseConnection();
 
-					// Brute-force protection: check lockout for this IP
-					if (System.currentTimeMillis() < state.lockoutUntil) {
+			connection.setName(name);
+			connection.setDriver(driver);
+			connection.setUrl(url);
+			connection.setDatabaseName(databaseName);
+			connection.setUsername(username);
+			connection.setPassword(password);
 
-						logger.warn("ConfigServlet login attempt rejected for {}: temporarily locked out after {} failed attempts", remoteIp, state.attempts);
-						break;
-					}
+			try {
 
-					final String superUserName = Settings.SuperUserName.getValue();
-					final String superUserPwd  = Settings.SuperUserPassword.getValue();
-					final String submittedName = request.getParameter("superuserName");
-					final String submittedPwd  = request.getParameter("superuserPassword");
+				cmd.addConnection(connection, cmd.getConnections().isEmpty() && "true".equals(connectNow));
 
-					if (StringUtils.isNoneBlank(superUserName, superUserPwd, submittedName, submittedPwd)
-						&& MessageDigest.isEqual(superUserName.getBytes(StandardCharsets.UTF_8), submittedName.getBytes(StandardCharsets.UTF_8))
-						&& MessageDigest.isEqual(superUserPwd.getBytes(StandardCharsets.UTF_8), submittedPwd.getBytes(StandardCharsets.UTF_8))) {
+				// wizard finished
+				Settings.SetupWizardCompleted.setValue(true);
 
-						authenticateSession(request);
+			} catch (FrameworkException fex) {
 
-						// Reset brute-force counter for this IP on successful login
-						loginAttempts.invalidate(remoteIp);
-
-						redirectTarget = request.getParameter("active_section");
-
-					} else {
-
-						redirectTarget = "?loginFailed" + request.getParameter("active_section");
-
-						state.attempts++;
-
-						if (state.attempts >= MAX_FAILED_ATTEMPTS) {
-
-							state.lockoutUntil = System.currentTimeMillis() + LOCKOUT_DURATION_MS;
-							logger.warn("ConfigServlet login locked out for {} for {}ms after {} failed attempts", remoteIp, LOCKOUT_DURATION_MS, state.attempts);
-						}
-					}
-					break;
-
-				case "logout":
-					invalidateSession(request);
-
-					redirectTarget = request.getParameter("active_section");
-
-					break;
-
+				sendFrameworkException(response, fex);
+				return;
 			}
 
-		} else if (isAuthenticated(request)) {
+		} else {
 
-			// set redirect target
-			redirectTarget = request.getParameter("active_section");
+			// check for REST action
+			final String path = request.getPathInfo();
+			if (StringUtils.isNotBlank(path)) {
 
-			// database connections form
-			if ("/add".equals(request.getPathInfo())) {
+				final String[] parts = StringUtils.split(path, "/");
+				if (parts.length == 2) {
 
-				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
-				final String name                   = request.getParameter("name");
-				final String driver                 = request.getParameter("driver");
-				final String url                    = request.getParameter("url");
-				final String databaseName           = request.getParameter("database");
-				final String username               = request.getParameter("username");
-				final String password               = request.getParameter("password");
-				final String connectNow             = request.getParameter("now");
-				final DatabaseConnection connection = new DatabaseConnection();
+					final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
+					final Map<String, Object> data   = new LinkedHashMap<>();
+					final String name                = parts[0];
+					final String restAction          = parts[1];
 
-				connection.setName(name);
-				connection.setDriver(driver);
-				connection.setUrl(url);
-				connection.setDatabaseName(databaseName);
-				connection.setUsername(username);
-				connection.setPassword(password);
+					// values for save action
+					final String driver              = request.getParameter("driver");
+					final String connectionUrl       = request.getParameter("url");
+					final String databaseName        = request.getParameter("database");
+					final String connectionUsername  = request.getParameter("username");
+					final String connectionPassword  = request.getParameter("password");
 
-				try {
+					data.put(DatabaseConnection.KEY_NAME,         name);
+					data.put(DatabaseConnection.KEY_DRIVER,       driver);
+					data.put(DatabaseConnection.KEY_URL,          connectionUrl);
+					data.put(DatabaseConnection.KEY_DATABASENAME, databaseName);
+					data.put(DatabaseConnection.KEY_USERNAME,     connectionUsername);
+					data.put(DatabaseConnection.KEY_PASSWORD,     connectionPassword);
 
-					cmd.addConnection(connection, cmd.getConnections().isEmpty() && "true".equals(connectNow));
+					try {
 
-					// wizard finished
-					Settings.SetupWizardCompleted.setValue(true);
+						switch (restAction) {
 
-					// make session valid
-					authenticateSession(request);
+							case "save":
+								cmd.saveConnection(data);
+								break;
 
-				} catch (FrameworkException fex) {
+							case "delete":
+								cmd.removeConnection(data);
+								break;
 
-					response.setContentType("application/json");
-					response.setStatus(fex.getStatus());
-					response.getWriter().print(fex.toJSON());
-					response.getWriter().flush();
-					response.getWriter().close();
+							case "connect":
+								cmd.saveConnection(data);
+								cmd.activateConnection(data);
+								break;
 
-					return;
+							case "disconnect":
+								cmd.deactivateConnections();
+								break;
+						}
+
+					} catch (FrameworkException fex) {
+
+						sendFrameworkException(response, fex);
+						return;
+					}
 				}
 
 			} else {
 
-				// check for REST action
-				final String path = request.getPathInfo();
-				if (StringUtils.isNotBlank(path)) {
+				// a configuration form was submitted
+				for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
 
-					final String[] parts = StringUtils.split(path, "/");
-					if (parts.length == 2) {
+					final String value   = getFirstElement(entry.getValue());
+					final String key     = entry.getKey();
+					SettingsGroup parent = null;
 
-						final ManageDatabasesCommand cmd = Services.getInstance().command(null, ManageDatabasesCommand.class);
-						final Map<String, Object> data   = new LinkedHashMap<>();
-						final String name                = parts[0];
-						final String restAction          = parts[1];
+					// skip internal group configuration parameter
+					if (key.endsWith("._settings_group")) {
 
-						// values for save action
-						final String driver              = request.getParameter("driver");
-						final String connectionUrl       = request.getParameter("url");
-						final String databaseName        = request.getParameter("database");
-						final String connectionUsername  = request.getParameter("username");
-						final String connectionPassword  = request.getParameter("password");
-
-						data.put(DatabaseConnection.KEY_NAME,         name);
-						data.put(DatabaseConnection.KEY_DRIVER,       driver);
-						data.put(DatabaseConnection.KEY_URL,          connectionUrl);
-						data.put(DatabaseConnection.KEY_DATABASENAME, databaseName);
-						data.put(DatabaseConnection.KEY_USERNAME,     connectionUsername);
-						data.put(DatabaseConnection.KEY_PASSWORD,     connectionPassword);
-
-						try {
-
-							switch (restAction) {
-
-								case "save":
-									cmd.saveConnection(data);
-									break;
-
-								case "delete":
-									cmd.removeConnection(data);
-									break;
-
-								case "connect":
-									cmd.saveConnection(data);
-									cmd.activateConnection(data);
-									break;
-
-								case "disconnect":
-									cmd.deactivateConnections();
-									break;
-							}
-
-						} catch (FrameworkException fex) {
-
-							response.setContentType("application/json");
-							response.setStatus(fex.getStatus());
-							response.getWriter().print(fex.toJSON());
-							response.getWriter().flush();
-							response.getWriter().close();
-
-							return;
-						}
+						continue;
 					}
 
-				} else {
+					// active_section is the redirect target, not a setting
+					if ("active_section".equals(key)) {
 
-					// a configuration form was submitted
-					for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+						continue;
+					}
 
-						final String value   = getFirstElement(entry.getValue());
-						final String key     = entry.getKey();
-						SettingsGroup parent = null;
+					Setting<?> setting = Settings.getSetting(key);
+					if (setting != null && setting.isDynamic()) {
 
-						// skip internal group configuration parameter
-						if (key.endsWith("._settings_group")) {
+						// unregister dynamic settings so the type can change
+						setting.unregister();
+						setting = null;
+					}
 
-							continue;
-						}
+					if (setting == null) {
 
-						// skip
+						if (key.contains(".cronExpression")) {
 
-						if ("active_section".equals(key)) {
+							parent = Settings.cronGroup;
 
-							redirectTarget = value;
-							continue;
-						}
+						} else {
 
-						Setting<?> setting = Settings.getSetting(key);
-						if (setting != null && setting.isDynamic()) {
+							// group specified?
+							final String group = request.getParameter(key + "._settings_group");
+							if (group != null) {
 
-							// unregister dynamic settings so the type can change
-							setting.unregister();
-							setting = null;
-						}
+								parent = Settings.getGroup(group);
 
-						if (setting == null) {
+								if (parent == null) {
 
-							if (key.contains(".cronExpression")) {
-
-								parent = Settings.cronGroup;
+									// default to misc group
+									parent = Settings.miscGroup;
+								}
 
 							} else {
 
-								// group specified?
-								final String group = request.getParameter(key + "._settings_group");
-								if (group != null) {
-
-									parent = Settings.getGroup(group);
-
-									if (parent == null) {
-
-										// default to misc group
-										parent = Settings.miscGroup;
-									}
-
-								} else {
-
-									// fallback to misc group
-									parent = Settings.miscGroup;
-								}
+								// fallback to misc group
+								parent = Settings.miscGroup;
 							}
-
-							setting = Settings.createSettingForValue(parent, key, value);
 						}
 
-						// store new value
-						setting.fromString(value);
+						setting = Settings.createSettingForValue(parent, key, value);
 					}
+
+					// store new value
+					setting.fromString(value);
 				}
 			}
-
-			// serialize settings
-			Settings.storeConfiguration(Settings.ConfigFileName);
 		}
 
-		sendRedirectHeader(response, ConfigServletLocation + redirectTarget);
+		// serialize settings
+		Settings.storeConfiguration(Settings.ConfigFileName);
+
+		sendRedirectHeader(response, ConfigServletLocation + activeSection);
+	}
+
+	// ----- POST actions -----
+	/**
+	 * Checks the submitted superuser credentials and authenticates the session on success.
+	 *
+	 * @return the redirect target relative to the servlet location
+	 */
+	private String login(final HttpServletRequest request, final String activeSection) {
+
+		final String remoteIp    = request.getRemoteAddr();
+		final AttemptState state = getOrCreateAttemptState(remoteIp);
+
+		if (isLockedOut(remoteIp, state)) {
+
+			return activeSection;
+		}
+
+		final String superUserName = Settings.SuperUserName.getValue();
+		final String superUserPwd  = Settings.SuperUserPassword.getValue();
+		final String submittedName = request.getParameter("superuserName");
+		final String submittedPwd  = request.getParameter("superuserPassword");
+
+		if (StringUtils.isNoneBlank(superUserName, superUserPwd, submittedName, submittedPwd) && constantTimeEquals(superUserName, submittedName) && constantTimeEquals(superUserPwd, submittedPwd)) {
+
+			authenticateSession(request);
+
+			// reset brute-force counter for this IP on successful login
+			loginAttempts.invalidate(remoteIp);
+
+			return activeSection;
+		}
+
+		registerFailedAttempt(remoteIp, state);
+
+		return "?loginFailed" + activeSection;
+	}
+
+	/**
+	 * Before the wizard has run there is no superuser password to log in with, and until ticket 1581 the
+	 * wizard was simply open to anyone who could reach the port. The setup token takes the password's
+	 * place: it is generated once per JVM and written to the log at startup, so whoever can read the
+	 * server log may set up the instance, nobody else. Once the wizard is completed the token is
+	 * worthless.
+	 *
+	 * @return the redirect target relative to the servlet location
+	 */
+	private String setup(final HttpServletRequest request, final String activeSection) {
+
+		if (Settings.SetupWizardCompleted.getValue()) {
+
+			return activeSection;
+		}
+
+		final String remoteIp    = request.getRemoteAddr();
+		final AttemptState state = getOrCreateAttemptState(remoteIp);
+
+		if (isLockedOut(remoteIp, state)) {
+
+			return activeSection;
+		}
+
+		final String submittedToken = StringUtils.trim(request.getParameter("setupToken"));
+
+		if (StringUtils.isNotBlank(submittedToken) && constantTimeEquals(getSetupToken(), submittedToken)) {
+
+			authenticateSession(request);
+			loginAttempts.invalidate(remoteIp);
+
+			return activeSection;
+		}
+
+		registerFailedAttempt(remoteIp, state);
+
+		return "?loginFailed" + activeSection;
+	}
+
+	/**
+	 * The state-changing actions of an authenticated session. Each one used to be a GET parameter.
+	 */
+	private void handleAction(final String action, final HttpServletRequest request, final HttpServletResponse response, final String activeSection) throws IOException {
+
+		final String serviceName = request.getParameter("service");
+
+		switch (action) {
+
+			case "reload":
+
+				Settings.loadConfiguration(Settings.ConfigFileName);
+				sendRedirectHeader(response, ConfigServletLocation + activeSection);
+				break;
+
+			case "reset":
+
+				resetSetting(request.getParameter("key"));
+				sendRedirectHeader(response, ConfigServletLocation + activeSection);
+				break;
+
+			case "start":
+
+				if (StringUtils.isBlank(serviceName)) {
+
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing service name");
+					return;
+				}
+
+				try {
+
+					Services.getInstance().startService(serviceName);
+
+				} catch (FrameworkException fex) {
+
+					sendFrameworkException(response, fex);
+					return;
+				}
+
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
+				break;
+
+			case "stop":
+
+				if (StringUtils.isBlank(serviceName)) {
+
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing service name");
+					return;
+				}
+
+				Services.getInstance().shutdownService(serviceName);
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
+				break;
+
+			case "restart":
+
+				if (StringUtils.isBlank(serviceName)) {
+
+					response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing service name");
+					return;
+				}
+
+				restartService(serviceName);
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
+				break;
+
+			case "finish":
+
+				// finish wizard without a database connection (demo mode)
+				Settings.SetupWizardCompleted.setValue(true);
+				Settings.storeConfiguration(Settings.ConfigFileName);
+
+				sendRedirectHeader(response, AdminBackendLocation);
+				break;
+
+			case "setMaintenance":
+
+				setMaintenanceMode(request, Boolean.parseBoolean(request.getParameter("enabled")));
+				sendRedirectHeader(response, ConfigServletLocation + "#maintenance");
+				break;
+
+			default:
+
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
+		}
+	}
+
+	private void resetSetting(final String key) throws IOException {
+
+		if (key == null) {
+
+			return;
+		}
+
+		Setting setting = Settings.getSetting(key);
+		if (setting == null) {
+
+			setting = Settings.getCaseSensitiveSetting(key);
+		}
+
+		if (setting != null) {
+
+			if (setting.isDynamic()) {
+
+				// remove
+				setting.unregister();
+
+			} else {
+
+				// reset to default
+				setting.setValue(setting.getDefaultValue());
+				setting.setIsModified(false);
+			}
+		}
+
+		// serialize settings
+		Settings.storeConfiguration(Settings.ConfigFileName);
+	}
+
+	private void restartService(final String serviceName) {
+
+		new Thread(() -> {
+
+			try { Thread.sleep(1000); } catch (Throwable t) {}
+
+			Services.getInstance().shutdownService(serviceName);
+
+			try {
+
+				Services.getInstance().startService(serviceName);
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Unable to start service '{}'", serviceName);
+				logger.warn("", fex);
+			}
+
+		}).start();
+	}
+
+	private void setMaintenanceMode(final HttpServletRequest request, final boolean maintenanceEnabled) {
+
+		final boolean success = Services.getInstance().setMaintenanceMode(maintenanceEnabled);
+		if (success) {
+
+			final String baseUrl              = ActionContext.getBaseUrl(request, true);
+			final Map<String, Object> msgData = new HashMap<>();
+
+			msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
+			msgData.put("enabled",                           maintenanceEnabled);
+			msgData.put("baseUrl",                           baseUrl);
+
+			TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
+		}
+	}
+
+	private void sendFrameworkException(final HttpServletResponse response, final FrameworkException fex) throws IOException {
+
+		response.setContentType("application/json");
+		response.setStatus(fex.getStatus());
+		response.getWriter().print(fex.toJSON());
+		response.getWriter().flush();
+		response.getWriter().close();
+	}
+
+	// ----- brute-force protection -----
+	private boolean isLockedOut(final String remoteIp, final AttemptState state) {
+
+		if (System.currentTimeMillis() < state.lockoutUntil) {
+
+			logger.warn("ConfigServlet login attempt rejected for {}: temporarily locked out after {} failed attempts", remoteIp, state.attempts);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private void registerFailedAttempt(final String remoteIp, final AttemptState state) {
+
+		state.attempts++;
+
+		if (state.attempts >= MAX_FAILED_ATTEMPTS) {
+
+			state.lockoutUntil = System.currentTimeMillis() + LOCKOUT_DURATION_MS;
+			logger.warn("ConfigServlet login locked out for {} for {}ms after {} failed attempts", remoteIp, LOCKOUT_DURATION_MS, state.attempts);
+		}
+	}
+
+	private static boolean constantTimeEquals(final String expected, final String submitted) {
+
+		return MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), submitted.getBytes(StandardCharsets.UTF_8));
 	}
 
 	// ----- private methods -----
@@ -608,7 +654,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 					if (running) {
 
-						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?restart=" + serviceClassName + "';")).text("Restart");
+						row.block("td").block("button").attr(new Type("button"), new Attr("data-service-action", "restart"), new Attr("data-service-name", serviceClassName)).css("service-action").text("Restart");
 
 						if ("HttpService.default".equals(serviceClassName)) {
 
@@ -616,7 +662,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						} else {
 
-							row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?stop=" + serviceClassName + "';")).text("Stop");
+							row.block("td").block("button").attr(new Type("button"), new Attr("data-service-action", "stop"), new Attr("data-service-name", serviceClassName)).css("service-action").text("Stop");
 						}
 
 						row.block("td");
@@ -625,7 +671,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						row.block("td");
 						row.block("td");
-						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?start=" + serviceClassName + "';")).text("Start");
+						row.block("td").block("button").attr(new Type("button"), new Attr("data-service-action", "start"), new Attr("data-service-name", serviceClassName)).css("service-action").text("Start");
 					}
 				}
 			}
@@ -639,7 +685,7 @@ public class ConfigServlet extends AbstractServletBase {
 			mContainer.block("h1").text("Maintenance");
 			final Tag group  = mContainer.block("div").css("form-group");
 			final Tag label  = group.block("label").text("Maintenance Mode is " + (maintenanceModeActive ? "active" : "not active"));
-			final Tag button = group.block("td").block("button").attr(new Attr("Type", "button"));
+			final Tag button = group.block("td").block("button").id("maintenance-toggle-button").attr(new Type("button"), new Attr("data-enabled", maintenanceModeActive ? "false" : "true"));
 
 			if (Settings.MaintenanceModeEnabled.getComment() != null) {
 
@@ -647,16 +693,7 @@ public class ConfigServlet extends AbstractServletBase {
 				label.attr(new Attr("data-comment", Settings.MaintenanceModeEnabled.getComment()));
 			}
 
-			if (maintenanceModeActive) {
-
-				button.attr(new Attr("onclick", "window.location.href='?setMaintenance=false' + location.hash;"));
-				button.text("Disable");
-
-			} else {
-
-				button.attr(new Attr("onclick", "window.location.href='?setMaintenance=true' + location.hash;"));
-				button.text("Enable");
-			}
+			button.text(maintenanceModeActive ? "Disable" : "Enable");
 
 			// buttons
 			final Tag buttons = form.block("div").css("buttons");
@@ -676,7 +713,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Document doc = new Document(writer);
 
-		setupDocument(request, doc).css("login");
+		// before the wizard has run, the page asks for the setup token instead of the superuser credentials
+		setupDocument(request, doc).css(Settings.SetupWizardCompleted.getValue() ? "login" : "login setup");
 
 		return doc;
 	}
@@ -737,44 +775,74 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 	}
 
-	private boolean isStateChangingGetRequest(final HttpServletRequest request) {
+	/**
+	 * @return the setup token that authenticates the wizard before a superuser password exists, see
+	 * {@link #setup}. Logged by the HttpService at startup while the wizard is not completed.
+	 */
+	public static String getSetupToken() {
 
-		return request.getParameter("reload")         != null
-			|| request.getParameter("reset")          != null
-			|| request.getParameter("start")          != null
-			|| request.getParameter("stop")           != null
-			|| request.getParameter("restart")        != null
-			|| request.getParameter("finish")         != null
-			|| request.getParameter("useDefault")     != null
-			|| request.getParameter("setMaintenance") != null;
+		final String configured = StringUtils.trim(Settings.SetupToken.getValue());
+		if (StringUtils.isNotBlank(configured)) {
+
+			return configured;
+		}
+
+		return setupToken;
+	}
+
+	private static String generateSetupToken() {
+
+		final byte[] bytes = new byte[16];
+
+		new SecureRandom().nextBytes(bytes);
+
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
 	}
 
 	private boolean isAuthenticated(final HttpServletRequest request) {
 
-		if (!Settings.SetupWizardCompleted.getValue()) {
+		final String sessionId = getSessionId(request);
+		if (sessionId == null) {
 
-			return true;
+			return false;
 		}
+
+		final Long lastSeen = sessions.get(sessionId);
+		if (lastSeen == null) {
+
+			return false;
+		}
+
+		final int timeout = Settings.SessionTimeout.getValue();
+		if (timeout > 0 && System.currentTimeMillis() - lastSeen > timeout * 1000L) {
+
+			sessions.remove(sessionId);
+
+			return false;
+		}
+
+		sessions.put(sessionId, System.currentTimeMillis());
+
+		return true;
+	}
+
+	private String getSessionId(final HttpServletRequest request) {
 
 		final HttpSession session = request.getSession();
-		if (session != null) {
-
-			final String sessionId = session.getId();
-			if (sessionId != null) {
-
-				return sessions.contains(sessionId);
-
-			} else {
-
-				logger.warn("Cannot check HTTP session without session ID, ignoring.");
-			}
-
-		} else {
+		if (session == null) {
 
 			logger.warn("Cannot check HTTP request, no session.");
+
+			return null;
 		}
 
-		return false;
+		final String sessionId = session.getId();
+		if (sessionId == null) {
+
+			logger.warn("Cannot check HTTP session without session ID, ignoring.");
+		}
+
+		return sessionId;
 	}
 
 	private void welcomeTab(final Tag menu, final Tag tabs) {
@@ -847,8 +915,13 @@ public class ConfigServlet extends AbstractServletBase {
 			leftDiv.block("button").id("create-db-connection-button").css("default-action").attr(new Type("button")).text("Create new database connection");
 			leftDiv.block("p").text("Configure Structr to connect to a running database.");
 
+			final Tag middleDiv = div.block("div").css("inline-block");
+			middleDiv.block("button").id("use-embedded-database-button").attr(new Type("button"), new Attr("data-database-path", Settings.DatabasePath.getValue())).text("Use Neo4j Embedded");
+			middleDiv.block("p").text("Run an embedded Neo4j database inside the Structr process. The data is stored in the folder configured as <code>database.path</code>.");
+			middleDiv.block("div").id("status-embedded-connection").css("warning warning-message hidden");
+
 			final Tag rightDiv = div.block("div").css("inline-block");
-			rightDiv.block("button").attr(new Type("button")).text("Start in demo mode").attr(new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?finish';"));
+			rightDiv.block("button").id("start-demo-mode-button").attr(new Type("button")).text("Start in demo mode");
 			rightDiv.block("p").text("Start Structr in demo mode. Please note that in this mode any data will be lost when stopping the server.");
 
 		} else {
@@ -931,59 +1004,37 @@ public class ConfigServlet extends AbstractServletBase {
 	private void authenticateSession(final HttpServletRequest request) {
 
 		final HttpSession session = request.getSession();
-		if (session != null) {
-
-			if (Settings.ConfigServletSessionFixationProtection.getValue()) {
-
-				// Regenerate session ID to prevent session fixation attacks
-				final String newSessionId = request.changeSessionId();
-				if (newSessionId != null) {
-
-					sessions.add(newSessionId);
-
-				} else {
-
-					logger.warn("Cannot authenticate HTTP session: changeSessionId() returned null.");
-				}
-
-			} else {
-
-				// Use existing session ID without regeneration
-				final String sessionId = session.getId();
-				if (sessionId != null) {
-
-					sessions.add(sessionId);
-
-				} else {
-
-					logger.warn("Cannot authenticate HTTP session without session ID, ignoring.");
-				}
-			}
-
-		} else {
+		if (session == null) {
 
 			logger.warn("Cannot authenticate HTTP request, no session.");
+
+			return;
 		}
+
+		String sessionId = session.getId();
+
+		if (Settings.ConfigServletSessionFixationProtection.getValue()) {
+
+			// regenerate session ID so that an id planted before the login is worthless afterwards
+			sessionId = request.changeSessionId();
+		}
+
+		if (sessionId == null) {
+
+			logger.warn("Cannot authenticate HTTP session without session ID, ignoring.");
+
+			return;
+		}
+
+		sessions.put(sessionId, System.currentTimeMillis());
 	}
 
 	private void invalidateSession(final HttpServletRequest request) {
 
-		final HttpSession session = request.getSession();
-		if (session != null) {
+		final String sessionId = getSessionId(request);
+		if (sessionId != null) {
 
-			final String sessionId = session.getId();
-			if (sessionId != null) {
-
-				sessions.remove(sessionId);
-
-			} else {
-
-				logger.warn("Cannot invalidate HTTP session without session ID, ignoring.");
-			}
-
-		} else {
-
-			logger.warn("Cannot invalidate HTTP request, no session.");
+			sessions.remove(sessionId);
 		}
 	}
 

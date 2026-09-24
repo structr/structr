@@ -59,6 +59,7 @@ import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.rest.servlet.ConfigServlet;
 import org.structr.rest.servlet.DocumentationServlet;
 import org.structr.rest.servlet.UIExtensionsServlet;
 import org.structr.rest.servlet.MetricsServlet;
@@ -154,6 +155,21 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), Services.getGlobalSessionTimeout(), requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+
+		if (Settings.ConfigServletEnabled.getValue() && !Settings.SetupWizardCompleted.getValue()) {
+
+			// the wizard is closed to anyone without this token, see ConfigServlet.setup()
+			final String configUrl = "http://" + Settings.ApplicationHost.getValue() + ":" + Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue() + Settings.ApplicationRootPath.getValue() + "/structr/config";
+
+			if (StringUtils.isNotBlank(Settings.SetupToken.getValue())) {
+
+				logger.info("Initial setup: open {} and enter the setup token configured in setup.token", configUrl);
+
+			} else {
+
+				logger.info("Initial setup: open {} and enter the setup token {}", configUrl, ConfigServlet.getSetupToken());
+			}
+		}
 
 		Exception exception = null;
 		int maxAttempts = Services.isTesting() ? 12 : 3;

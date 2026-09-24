@@ -89,7 +89,29 @@ public abstract class AbstractServletBase extends HttpServlet {
 	 */
 	protected boolean checkCsrfOrigin(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 
+		return checkCsrfOrigin(request, response, false);
+	}
+
+	/**
+	 * Rejects a request whose Origin header names another host. A request without the header passes
+	 * unless {@code requireOrigin} is set.
+	 *
+	 * @param requireOrigin reject a request that carries no Origin header. Browsers omit the header on
+	 * top-level GET navigations, so a request without it may be a click on a link anywhere on the web -
+	 * a servlet whose pages only ever POST through forms and fetch() can insist on it. A servlet that
+	 * serves API clients (curl, SDKs) cannot, they send none.
+	 */
+	protected boolean checkCsrfOrigin(final HttpServletRequest request, final HttpServletResponse response, final boolean requireOrigin) throws IOException {
+
 		final String origin = request.getHeader("Origin");
+		if (origin == null && requireOrigin) {
+
+			logger.warn("CSRF check failed: request to {} without Origin header rejected", request.getRequestURI());
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, "Request without Origin header rejected");
+
+			return false;
+		}
+
 		if (origin != null) {
 
 			try {
