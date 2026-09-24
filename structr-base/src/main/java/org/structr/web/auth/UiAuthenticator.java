@@ -1110,7 +1110,22 @@ public class UiAuthenticator implements Authenticator {
 				if (typeAndKey.length == 2 && Traits.exists(typeAndKey[0])) {
 
 					final PropertyKey<String> authenticationPropertyKey = Traits.of(typeAndKey[0]).key(typeAndKey[1]);
-					authenticationPropertyKeySet.add(authenticationPropertyKey);
+
+					/* The lookup compares every key with the string the user typed, in a single query. A
+					   key of another type can never match that string, and a query that compares it with
+					   one could fail for the keys that can - so it is left out, loudly. */
+					if (authenticationPropertyKey == null) {
+
+						logger.warn("Ignoring authentication property key {} from {}: no such property", key, Settings.AuthenticationPropertyKeys.getKey());
+
+					} else if (String.class.equals(authenticationPropertyKey.valueType())) {
+
+						authenticationPropertyKeySet.add(authenticationPropertyKey);
+
+					} else {
+
+						logger.warn("Ignoring authentication property key {} from {}: not a string property", key, Settings.AuthenticationPropertyKeys.getKey());
+					}
 				}
 			}
 		}

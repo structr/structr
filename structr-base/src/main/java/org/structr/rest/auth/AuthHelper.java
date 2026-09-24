@@ -29,6 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.common.LogThrottle;
 import org.structr.core.auth.HashHelper;
@@ -124,31 +125,7 @@ public class AuthHelper {
 	 */
 	public static Principal getPrincipalForKeysAndPassword(final LinkedHashSet<PropertyKey<String>> keys, final String value, final String password) throws FrameworkException {
 
-		Principal principal  = null;
-
-		for (final PropertyKey<String> key : keys) {
-
-			try {
-
-				principal = getPrincipalForPassword(key, value, password);
-
-			} catch (final AuthenticationException aex) {
-
-				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
-
-				if (failedLoginLog.allow("no principal")) {
-
-					logger.info("No principal found for {} '{}' (with the given password)", keyMessage, value);
-				}
-			}
-		}
-
-		if (principal == null) {
-
-			throw new AuthenticationException(STANDARD_ERROR_MSG);
-		}
-
-		return principal;
+		return getPrincipalForPassword(keys, value, password);
 	}
 
 	/**
@@ -162,6 +139,17 @@ public class AuthHelper {
 	 */
 	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
 
+		return getPrincipalForPassword(Set.of(key), value, password);
+	}
+
+	/**
+	 * Finds the principal whose value for one of the keys, or whose name, equals the given value, and
+	 * checks the password against that account. One lookup and one check, however many keys: trying the
+	 * keys one after another looked the same account up by name every time, verified the same wrong
+	 * password once per key and counted each of those as a failed attempt (ticket 1544).
+	 */
+	public static Principal getPrincipalForPassword(final Set<PropertyKey<String>> keys, final String value, final String password) throws AuthenticationException, TooManyFailedLoginAttemptsException, PasswordChangeRequiredException {
+
 		Principal principal  = null;
 		final String superuserName = Settings.SuperUserName.getValue();
 		final String superUserPwd  = Settings.SuperUserPassword.getValue();
@@ -170,7 +158,7 @@ public class AuthHelper {
 
 			if (failedLoginLog.allow("empty value")) {
 
-				logger.info("Empty value for key {}", key.dbName());
+				logger.info("Empty value for {}", describeLookupKeys(keys));
 			}
 
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
@@ -204,7 +192,19 @@ public class AuthHelper {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or().key(key, value).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), value).disableSorting().getFirst();
+				final QueryGroup<NodeInterface> lookup = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or();
+
+				lookup.key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), value);
+
+				for (final PropertyKey<String> key : keys) {
+
+					if (!NodeInterfaceTraitDefinition.NAME_PROPERTY.equals(key.jsonName())) {
+
+						lookup.key(key, value);
+					}
+				}
+
+				final NodeInterface node = lookup.disableSorting().getFirst();
 				if (node != null) {
 
 					principal = node.as(Principal.class);
@@ -217,7 +217,7 @@ public class AuthHelper {
 
 			if (principal == null) {
 
-				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
+				final String keyMessage = describeLookupKeys(keys);
 
 				/* Spend the same work a real password check would, so that "no such user" takes as
 				   long as "wrong password". Both answer with the identical message already, but
@@ -499,6 +499,23 @@ public class AuthHelper {
 		}
 
 		return Settings.ConfirmationKeyValidWithoutTimestamp.getValue();
+	}
+
+	/**
+	 * @return "name", followed by every other key the lookup tried, joined with OR
+	 */
+	private static String describeLookupKeys(final Set<PropertyKey<String>> keys) {
+
+		final Set<String> names = new LinkedHashSet<>();
+
+		names.add(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+		for (final PropertyKey<String> key : keys) {
+
+			names.add(key.jsonName());
+		}
+
+		return String.join(" OR ", names);
 	}
 
 	public static void incrementFailedLoginAttemptsCounter (final Principal principal) {

@@ -593,7 +593,7 @@ The following settings complete the account security configuration:
 | `security.passwordhash.parallelism` | 1 | Number of parallel threads for Argon2id |
 | `security.passwordhash.hashlength` | 32 | Length of the Argon2id hash in bytes |
 | `security.passwordhash.saltlength` | 16 | Length of the salt in bytes |
-| `security.authentication.propertykeys` | empty | Space-separated list of additional property keys in the form `<Type>.<key>` that Structr accepts as login name besides `name` and `eMail` |
+| `security.authentication.propertykeys` | empty | Space-separated list of additional property keys in the form `<Type>.<key>` that Structr accepts as login name besides `name` and `eMail`. Only string properties are used; a key of another type is ignored with a warning in the log. All keys are checked in a single lookup, so a wrong password counts as one failed attempt however many keys are configured. |
 | `registration.allowloginbeforeconfirmation` | false | Allows self-registered users to log in before they click the confirmation link |
 
 ### Account Lockout
