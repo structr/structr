@@ -326,6 +326,20 @@ h2 {
 	position: relative;
 }
 
+/* the three ways to get a database on first start, one column each */
+.database-options {
+	display: grid;
+	grid-template-columns: repeat(3, 20rem);
+	column-gap: 3rem;
+	margin: 1.5rem 0 2rem 0;
+}
+
+.database-options p {
+	margin: 1.5rem 0 0 0;
+	font-size: .875rem;
+	line-height: 1.5;
+}
+
 div.connection {
 	float: left;
 	margin: 1em 2em 0 0;

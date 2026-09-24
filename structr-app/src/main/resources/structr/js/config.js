@@ -51,9 +51,17 @@ let _Config = {
 
 		if (document.body.classList.contains('login')) {
 
-			_Dialogs.configLoginDialog.show();
+			if (document.body.classList.contains('setup')) {
 
-			_Config.attachActiveSectionStoringBehaviourToForm(document.getElementById('login-form'));
+				// first start: the wizard is opened with the setup token from the server log
+				_Dialogs.configSetupDialog.show();
+
+			} else {
+
+				_Dialogs.configLoginDialog.show();
+			}
+
+			_Config.attachActiveSectionStoringBehaviourToForm(document.querySelector('#login-form, #setup-form'));
 
 		} else {
 
@@ -64,6 +72,17 @@ let _Config = {
 			});
 
 			_Config.databaseConnections.init();
+
+			for (let serviceButton of document.querySelectorAll('.service-action')) {
+
+				serviceButton.addEventListener('click', () => {
+					_Config.postAction(serviceButton.dataset.serviceAction, { service: serviceButton.dataset.serviceName });
+				});
+			}
+
+			document.querySelector('#maintenance-toggle-button')?.addEventListener('click', (e) => {
+				_Config.postAction('setMaintenance', { enabled: e.target.dataset.enabled });
+			});
 
 			let configureSuperuserCredentialsFormContainer = document.getElementById('superuser-credentials-form');
 			if (configureSuperuserCredentialsFormContainer) {
@@ -107,20 +126,15 @@ let _Config = {
 				}
 			});
 
-			let getActiveTab = () => document.querySelector('#active_section').value;
-
 			for (let resetButton of document.querySelectorAll('.reset-key')) {
 
 				resetButton.addEventListener('click', () => {
-
-					let key = resetButton.dataset['key'];
-
-					window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reset=${key}${getActiveTab()}`;
+					_Config.postAction('reset', { key: resetButton.dataset['key'] });
 				});
 			}
 
 			document.querySelector('#reload-config-button')?.addEventListener('click', () => {
-				window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${getActiveTab()}`;
+				_Config.postAction('reload');
 			});
 
 			let activateHash = (hash) => {
@@ -185,6 +199,36 @@ let _Config = {
 			_Config.cron.init();
 			_Search.init();
 		}
+	},
+	/**
+	 * Submits a state-changing action as a form POST and lets the servlet redirect back to the active
+	 * section. These used to be GET parameters (?reset=key, ?stop=service, ...), which made every one of
+	 * them reachable through a link that a logged-in superuser clicks (ticket 1581). A form POST carries
+	 * the Origin header the servlet insists on.
+	 */
+	postAction: (action, params = {}) => {
+
+		let form    = document.createElement('form');
+		form.method = 'post';
+		form.action = _Helpers.getPrefixedRootUrl('/structr/config');
+
+		let data = Object.assign({
+			action:         action,
+			active_section: document.querySelector('#active_section')?.value || location.hash
+		}, params);
+
+		for (let [key, value] of Object.entries(data)) {
+
+			let input   = document.createElement('input');
+			input.type  = 'hidden';
+			input.name  = key;
+			input.value = value;
+
+			form.appendChild(input);
+		}
+
+		document.body.appendChild(form);
+		form.submit();
 	},
 	attachActiveSectionStoringBehaviourToForm: (form) => {
 		form?.addEventListener('submit', e => {
@@ -411,6 +455,15 @@ let _Config = {
 
 			document.querySelector('#set-neo4j-defaults').addEventListener('click', _Config.databaseConnections.setNeo4jDefaults);
 
+			document.querySelector('#start-demo-mode-button')?.addEventListener('click', () => {
+				_Config.postAction('finish');
+			});
+
+			let useEmbeddedButton = document.querySelector('#use-embedded-database-button');
+			useEmbeddedButton?.addEventListener('click', () => {
+				_Config.databaseConnections.addEmbeddedConnection(useEmbeddedButton);
+			});
+
 			for (let deleteButton of document.querySelectorAll('.delete-connection[data-connection-name]')) {
 
 				deleteButton.addEventListener('click', (e) => {
@@ -466,9 +519,24 @@ let _Config = {
 			return data;
 		},
 		addConnection: (button) => {
+			_Config.databaseConnections.submitNewConnection(button, _Config.databaseConnections.collectData(), 'structr-new-connection');
+		},
+		addEmbeddedConnection: (button) => {
 
-			let name = 'structr-new-connection';
-			let data = _Config.databaseConnections.collectData();
+			// the embedded driver ignores the URL and opens the folder configured as database.path;
+			// the path is sent as URL anyway so that the connection tile shows where the data lives
+			_Config.databaseConnections.submitNewConnection(button, {
+				name:           'neo4j-embedded',
+				driver:         'org.structr.embedded.EmbeddedDatabaseService',
+				url:            button.dataset.databasePath,
+				database:       'neo4j',
+				username:       '',
+				password:       '',
+				now:            true,
+				active_section: '#databases'
+			}, 'embedded-connection');
+		},
+		submitNewConnection: (button, data, name) => {
 
 			button.dataset.text = button.innerHTML;
 			button.disabled     = true;
@@ -636,23 +704,35 @@ let _Config = {
 
 			switch (response.status) {
 
-				case 422:
-					if (json.errors && json.errors.length) {
+				case 422: {
 
-						json.errors.forEach(t => {
-							if (t.property !== undefined && t.token !== undefined) {
-								$(`input#${t.property}-${name}`).closest('p').addClass(t.token);
+					// a token names a field of the form; the embedded connection has no form, so its
+					// tokens are listed in the status line instead
+					let unmatched = [];
+
+					(json.errors ?? []).forEach(t => {
+
+						if (t.property !== undefined && t.token !== undefined) {
+
+							let input = $(`input#${t.property}-${name}`);
+
+							if (input.length) {
+								input.closest('p').addClass(t.token);
+							} else {
+								unmatched.push(`${t.property}: ${t.token}`);
 							}
-						});
+						}
+					});
 
-					} else {
+					if (!json.errors?.length || unmatched.length) {
 
 						let status = $('div#status-' + name);
 						status.empty();
-						status.append(json.message);
+						status.append([json.message, ...unmatched].filter(m => m).join(' '));
 						status.removeClass('hidden');
 					}
 					break;
+				}
 
 				default: {
 					let status = $('div#status-' + name);
@@ -665,6 +745,45 @@ let _Config = {
 		},
 	},
 	templates: {
+		configSetupDialogMarkup: `
+			<div id="login" class="dialog p-8 text-left" style="max-width: 480px; border: 2px solid #c62828; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+					${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+					<span style="font-size: 11px; font-weight: 600; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px;">Initial Setup</span>
+				</div>
+
+				<p class="ml-1 mr-4">This Structr instance has not been set up yet. To protect the setup from anyone else who can reach this server, enter the setup token printed in the server log at startup.</p>
+
+				<form id="setup-form" method="post">
+
+					<div id="setup-token" class="gap-y-2 grid ml-1 mr-4 mt-4" style="grid-template-columns: 35fr 65fr;">
+
+						<input name="active_section" type="hidden">
+
+						<div class="self-center">
+							<label for="setupTokenField">Setup token:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="setupTokenField" type="text" name="setupToken" autocomplete="off" required class="w-full box-border">
+						</div>
+
+						<div class="self-center col-span-2 mt-2 text-right">
+							<button id="setupButton" name="setup" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Start Setup
+							</button>
+
+							<input type="hidden" name="action" value="setup">
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginFailed') ? '' : 'hidden'}">
+							Invalid setup token.
+						</div>
+					</div>
+				</form>
+			</div>
+		`,
 		configLoginDialogMarkup: `
 			<div id="login" class="dialog p-8 text-left" style="max-width: 480px; border: 2px solid #c62828; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
 

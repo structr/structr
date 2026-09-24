@@ -29,6 +29,15 @@ test('config', async ({page}, testInfo) => {
 	//await page.evaluate('document.body.style.zoom="2.0"');
 
 	await expect(page).toHaveTitle('Structr Configuration Editor');
+
+	// the wizard is closed until the setup token from the server log is entered; the test rig
+	// presets it via setup.token (ticket 1581)
+	await expect(page.locator('#setupTokenField')).toBeVisible();
+	await page.screenshot({path: 'screenshots/config_setup-token.png'});
+	await page.locator('#setupTokenField').fill(process.env.SETUP_TOKEN);
+	await page.getByRole('button', {name: 'Start Setup'}).click();
+	await page.waitForTimeout(500);
+
 	await page.screenshot({path: 'screenshots/config_set-superuser-password.png'});
 
 	// this only works the first time the tests are started, do not change

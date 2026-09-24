@@ -185,17 +185,29 @@ After installation (for Docker or manual setup), you'll need to go through the i
 
 >**Note:** In the following chapter, we assume that you installed Structr on your local computer (localhost). If you installed it on a server instead, you need to adapt the URLs accordingly.
 
-### 1. Set a Superuser Password
+### 1. Enter the Setup Token
 
 Navigate to [http://localhost:8082/structr](http://localhost:8082/structr) which will redirect you to the configuration wizard at [http://localhost:8082/structr/config](http://localhost:8082/structr/config).
+
+The wizard asks for a setup token. Structr prints it to the server log at startup in a line beginning with `Initial setup:`, for example:
+
+```
+Initial setup: open http://0.0.0.0:8082/structr/config and enter the setup token 3kQ9vX2mR7pL0sT4wY6zAg
+```
+
+![Enter the setup token](/structr/docs/config_setup-token.png)
+
+Copy the token from the log and enter it. The token protects the wizard from anyone else who can reach the server; it changes with every restart and is no longer needed once the setup is completed.
+
+### 2. Set a Superuser Password
 
 ![Enter a superuser password](/structr/docs/config_set-superuser-password.png)
 
 > **Note:** Choose a strong password - this is your system administrator account with full access to all Structr features. After the first call, the configuration tool is secured with this password. If you have forgotten the password, you can only obtain it as a system administrator at the operating system level from structr.conf.
 
-### 2. Configure a Database Connection
+### 3. Configure a Database Connection
 
-Click "Configure a database connection" and then "Create new database connection".
+Click "Configure a database connection". If you do not have a Neo4j server running, click "Use Neo4j Embedded": Structr creates an embedded Neo4j database in the `db` folder of its installation directory (the setting `database.path`) and connects to it. For a Neo4j server, click "Create new database connection".
 
 ![Configure a database connection](/structr/docs/config_create-database-connection.png)
 
@@ -214,7 +226,7 @@ If your database connection does not use these default settings, change them acc
 
 ![Database Connections](/structr/docs/config_database-connection-wait.png)
 
-### 3. Access the Admin Interface
+### 4. Access the Admin Interface
 
 Once connected, click "Open Structr UI" to enter the main application.
 

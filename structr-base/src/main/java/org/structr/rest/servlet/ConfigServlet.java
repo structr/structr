@@ -909,20 +909,21 @@ public class ConfigServlet extends AbstractServletBase {
 
 			body.block("p").text("There are currently no database connections configured. To use Structr, you have the following options:");
 
-			final Tag div = body.block("div");
-			final Tag leftDiv  = div.block("div").css("inline-block");
+			// one column per option: button on top, explanation below
+			final Tag options = body.block("div").css("database-options");
 
-			leftDiv.block("button").id("create-db-connection-button").css("default-action").attr(new Type("button")).text("Create new database connection");
-			leftDiv.block("p").text("Configure Structr to connect to a running database.");
+			final Tag remote = options.block("div");
+			remote.block("button").id("create-db-connection-button").css("default-action").attr(new Type("button")).text("Create new database connection");
+			remote.block("p").text("Connect to a running Neo4j server.");
 
-			final Tag middleDiv = div.block("div").css("inline-block");
-			middleDiv.block("button").id("use-embedded-database-button").attr(new Type("button"), new Attr("data-database-path", Settings.DatabasePath.getValue())).text("Use Neo4j Embedded");
-			middleDiv.block("p").text("Run an embedded Neo4j database inside the Structr process. The data is stored in the folder configured as <code>database.path</code>.");
-			middleDiv.block("div").id("status-embedded-connection").css("warning warning-message hidden");
+			final Tag embedded = options.block("div");
+			embedded.block("button").id("use-embedded-database-button").attr(new Type("button"), new Attr("data-database-path", Settings.DatabasePath.getValue())).text("Use Neo4j Embedded");
+			embedded.block("p").text("Run an embedded Neo4j database inside the Structr process. The data is stored in the folder configured as <code>database.path</code>.");
+			embedded.block("div").id("status-embedded-connection").css("warning warning-message hidden");
 
-			final Tag rightDiv = div.block("div").css("inline-block");
-			rightDiv.block("button").id("start-demo-mode-button").attr(new Type("button")).text("Start in demo mode");
-			rightDiv.block("p").text("Start Structr in demo mode. Please note that in this mode any data will be lost when stopping the server.");
+			final Tag demo = options.block("div");
+			demo.block("button").id("start-demo-mode-button").attr(new Type("button")).text("Start in demo mode");
+			demo.block("p").text("Run on the in-memory database. All data is lost when the server stops.");
 
 		} else {
 

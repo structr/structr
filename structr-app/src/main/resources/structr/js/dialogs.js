@@ -259,6 +259,17 @@ let _Dialogs = {
 			document.querySelector('#superuserNameField').focus();
 		}
 	},
+	configSetupDialog: {
+		show: () => {
+
+			// first start: ask for the setup token instead of the superuser credentials
+			_Dialogs.basic.append(_Config.templates.configSetupDialogMarkup, {
+				width: ''
+			});
+
+			document.querySelector('#setupTokenField').focus();
+		}
+	},
 	confirmation: {
 		showPromise: (text, highlightedOption = true) => {
 

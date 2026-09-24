@@ -138,7 +138,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 		final Tag driver = div.block("p");
 		driver.block("label").text("Driver");
-		final SelectField driverSelect = new SelectField(driver, "driver-" + name, getDriver()).addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService");
+		final SelectField driverSelect = new SelectField(driver, "driver-" + name, getDriver()).addOption("Neo4j Remote (Bolt)", "org.structr.bolt.BoltDatabaseService").addOption("Neo4j Embedded", "org.structr.embedded.EmbeddedDatabaseService").addOption("In-Memory (non-persistent, all data will be erased on shutdown!)", "org.structr.memory.MemoryDatabaseService");
 
 		if (isActive()) {
 

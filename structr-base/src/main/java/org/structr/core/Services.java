@@ -47,6 +47,7 @@ import org.structr.core.function.SetLogLevelFunction;
 import org.structr.core.graph.*;
 import org.structr.docs.Documentable;
 import org.structr.docs.documentables.service.*;
+import org.structr.rest.servlet.ConfigServlet;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
@@ -405,6 +406,23 @@ public class Services implements StructrServices, BroadcastReceiver {
 		}
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
+
+		if (Settings.ConfigServletEnabled.getValue() && !Settings.SetupWizardCompleted.getValue()) {
+
+			// the wizard is closed to anyone without this token, see ConfigServlet.setup(). Last line
+			// before the completion marker, so it is the one an operator watching the log sees.
+			final String configUrl = "http://" + Settings.ApplicationHost.getValue() + ":" + Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue() + Settings.ApplicationRootPath.getValue() + "/structr/config";
+
+			if (StringUtils.isNotBlank(Settings.SetupToken.getValue())) {
+
+				logger.info("Initial setup: open {} and enter the setup token configured in setup.token", configUrl);
+
+			} else {
+
+				logger.info("Initial setup: open {} and enter the setup token {}", configUrl, ConfigServlet.getSetupToken());
+			}
+		}
+
 		logger.info("---------------- Initialization complete ----------------");
 
 		setOverridingSchemaTypesAllowed(false);

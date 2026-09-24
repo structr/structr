@@ -468,6 +468,9 @@
 												<env>
 													<AGREE_TO_STRUCTR_PRIVACY_POLICY>yes</AGREE_TO_STRUCTR_PRIVACY_POLICY>
 													<STRUCTR_setup_wizard_completed>false</STRUCTR_setup_wizard_completed>
+													<!-- The wizard asks for a setup token that is otherwise only written to the
+													     server log (ticket 1581); 000-test-config enters this one. -->
+													<STRUCTR_setup_token>ui-test-setup-token</STRUCTR_setup_token>
 													<STRUCTR_db_uri>bolt://neo4j-test:7687</STRUCTR_db_uri>
 													<STRUCTR_db_username>neo4j</STRUCTR_db_username>
 													<STRUCTR_db_password>admin123</STRUCTR_db_password>
@@ -510,6 +513,7 @@
 													<DATABASE_URL>bolt://neo4j-test:7687</DATABASE_URL>
 													<DATABASE_PASSWORD>admin123</DATABASE_PASSWORD>
 													<SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
+													<SETUP_TOKEN>ui-test-setup-token</SETUP_TOKEN>
 													<DEBUG>pw:api</DEBUG>
 												</env>
 												<volumes>

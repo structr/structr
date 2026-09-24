@@ -20,8 +20,6 @@ package org.structr.embedded;
 
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
-import org.neo4j.driver.TransactionConfig;
-import org.neo4j.exceptions.CypherExecutionException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +35,6 @@ import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -667,7 +664,8 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 
 			case AuthenticationRequired:
 
-				return true;
+				// the embedded database has no users, so a connection needs no credentials
+				return false;
 
 			case RelationshipIndexes:
 

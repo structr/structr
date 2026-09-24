@@ -17,7 +17,7 @@ The preferred way to edit configuration settings is through the Configuration In
 
 You can access the Configuration Interface by clicking the wrench icon in the Admin UI header bar. The interface opens in a new browser tab and requires authentication with the superuser password.
 
-A fresh installation is also set up through this interface. Until the initial configuration has been completed, requests to the root URL are redirected to `/structr/config`, where a Start tab guides you through choosing a database connection and setting the superuser password. Completing the wizard sets the hidden setting `setup.wizard.completed`; a `structr.conf` that already contains a superuser password is treated as completed as well.
+A fresh installation is also set up through this interface. Until the initial configuration has been completed, requests to the root URL are redirected to `/structr/config`. Since no superuser password exists at that point, the page asks for a setup token, which Structr writes to the server log at every start in a line beginning with `Initial setup:`. An automated setup that cannot read the log presets the token with the hidden setting `setup.token` (`STRUCTR_setup_token` in a Docker environment). After entering it, a Start tab guides you through choosing a database connection and setting the superuser password. Completing the wizard sets the hidden setting `setup.wizard.completed`; a `structr.conf` that already contains a superuser password is treated as completed as well.
 
 ![Configuration Interface](/structr/docs/configuration-interface.png)
 
