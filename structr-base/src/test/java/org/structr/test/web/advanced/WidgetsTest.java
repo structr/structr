@@ -28,8 +28,6 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.JsonInput;
-import org.structr.core.JsonSingleInput;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -1009,13 +1007,10 @@ public class WidgetsTest extends DeploymentTestBase {
 	protected Map<String, Object> prepareData(final Widget widget) {
 
 		final Map<String, Object> parameters = new LinkedHashMap<>();
-		final JsonSingleInput singleInput    = new JsonSingleInput();
-		final JsonInput input                = new JsonInput();
-
-		singleInput.add(input);
+		final Map<String, Object> input      = new LinkedHashMap<>();
 
 		parameters.put("source", widget.getSource());
-		parameters.put("config", singleInput);
+		parameters.put("config", input);
 
 		if (widget.getComponentType() != null) {
 

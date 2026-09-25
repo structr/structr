@@ -24,8 +24,6 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.JsonInput;
-import org.structr.core.JsonSingleInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.ExampleData;
@@ -69,9 +67,9 @@ public interface Widget extends NodeInterface {
 	/**
 	 * Parses HTML code from the "source" entry in the given parameters map into a set of DOMNodes that are created
 	 * in the given page, with the given parent. An additional config entry in the parameters can be specified to
-	 * add the "componentType" and "dimensions" attributes to the newly created widget, but for historical reasons,
-	 * the config object must be of type JsonSingleInput! Caution: this method uses the XML-based HTML parser to
-	 * import fragments, so there might be subtle errors in the imported structure..
+	 * add the "componentType" and "dimensions" attributes to the newly created widget; it must be a Map, which is
+	 * what a nested JSON object in a websocket message arrives as. Caution: this method uses the XML-based HTML
+	 * parser to import fragments, so there might be subtle errors in the imported structure..
 	 *
 	 * @param page
 	 * @param parent
@@ -147,7 +145,7 @@ public interface Widget extends NodeInterface {
 		if (!errorBuffer.hasError()) {
 
 			final ImporterWithXMLParser importer = new ImporterWithXMLParser(securityContext, _source, baseUrl, null, false, false, false, false);
-			final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
+			final Map<String, Object> config     = (Map<String, Object>) parameters.get("config");
 
 			importer.setIsDeployment(true);
 			importer.setCommentHandler(new DeploymentCommentHandler());
@@ -155,7 +153,6 @@ public interface Widget extends NodeInterface {
 			if (importer.parse(true)) {
 
 				final DOMNode imported = importer.createChildNodes(parent, page, true);
-				final JsonInput config = configData != null ? configData.getFirst() : null;
 
 				if (parent != null) {
 

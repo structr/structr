@@ -471,8 +471,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			if (nodeData != null) {
 
-				JsonInputGSONAdapter adapter = new JsonInputGSONAdapter();
-
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
 					final JsonElement obj = entry.getValue();
@@ -480,11 +478,17 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 					if (obj instanceof JsonPrimitive) {
 
-						value = adapter.fromPrimitive(obj.getAsJsonPrimitive());
+						value = fromPrimitive(obj.getAsJsonPrimitive());
 
 					} else if (obj instanceof JsonObject) {
 
-						value = adapter.deserialize(obj, typeOfT, context);
+						// a nested object becomes a JsonInput, i.e. a Map, like the elements of a nested
+						// array below. The instance method deserialize(json, type, context) would wrap it
+						// in a JsonSingleInput instead, which none of the notion deserialization strategies
+						// recognize: IdDeserializationStrategy treated a related object like
+						// "project": { "id": ... } as a UUID string via toString() and never resolved it
+						// (ticket 1108).
+						value = JsonInputGSONAdapter.deserialize(obj, context);
 
 					} else if (obj instanceof JsonArray) {
 
@@ -544,8 +548,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			if (commandConfig != null) {
 
-				JsonInputGSONAdapter adapter = new JsonInputGSONAdapter();
-
 				for (Entry<String, JsonElement> entry : commandConfig.entrySet()) {
 
 					final JsonElement obj = entry.getValue();
@@ -553,11 +555,12 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 					if (obj instanceof JsonPrimitive) {
 
-						value = adapter.fromPrimitive(obj.getAsJsonPrimitive());
+						value = fromPrimitive(obj.getAsJsonPrimitive());
 
 					} else if (obj instanceof JsonObject) {
 
-						value = adapter.deserialize(obj, typeOfT, context);
+						// same shape as a nested object in "data" above: a Map, not a JsonSingleInput
+						value = JsonInputGSONAdapter.deserialize(obj, context);
 
 					} else if (obj instanceof JsonArray) {
 

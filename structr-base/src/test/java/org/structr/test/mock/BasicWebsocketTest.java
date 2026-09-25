@@ -37,6 +37,9 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.File;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.api.DatabaseFeature;
 import org.structr.websocket.StructrWebSocket;
 import org.testng.AssertJUnit;
@@ -401,6 +404,201 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			final List tasks = Iterables.toList(project.getProperty(tasksKey));
 
 			AssertJUnit.assertEquals("Relationship was not created correctly", 1, tasks.size());
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			fail("Unexpected exception: " + t.getMessage());
+		}
+	}
+
+	/**
+	 * Ticket 1108: a related object sent as a single nested JSON object (not wrapped in an array)
+	 * is not resolved to the node it identifies.
+	 */
+	@Test
+	public void testCreateWithSingleNestedObject() {
+
+		createProjectAndTaskSchema();
+
+		final String sessionId = "TESTSESSION";
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		final String projectId           = createEntityAsSuperUser("/Project", "{ name: 'Test Project' }");
+		final MockedWebsocketSetup mock  = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try { Thread.sleep(200); } catch (Throwable t) {}
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "CREATE",
+			"sessionId", sessionId,
+			"data", Map.of(
+				"name", "Test Task",
+				"type", "Task",
+				"project", Map.of(
+					"id", projectId
+				)
+			)
+		)));
+
+		assertTaskIsLinkedToProject(projectId);
+	}
+
+	/**
+	 * Ticket 1108: same as above, but for an UPDATE of an existing node.
+	 */
+	@Test
+	public void testUpdateWithSingleNestedObject() {
+
+		createProjectAndTaskSchema();
+
+		final String sessionId = "TESTSESSION";
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		final String projectId           = createEntityAsSuperUser("/Project", "{ name: 'Test Project' }");
+		final String taskId              = createEntityAsSuperUser("/Task", "{ name: 'Test Task' }");
+		final MockedWebsocketSetup mock  = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try { Thread.sleep(200); } catch (Throwable t) {}
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "UPDATE",
+			"sessionId", sessionId,
+			"id", taskId,
+			"data", Map.of(
+				"project", Map.of(
+					"id", projectId
+				)
+			)
+		)));
+
+		assertTaskIsLinkedToProject(projectId);
+	}
+
+	/**
+	 * The widget commands hand the nested "config" object of the message to Widget.expandWidget,
+	 * which reads it as a Map. Guards the shape a nested object arrives in over the websocket.
+	 */
+	@Test
+	public void testAppendWidgetWithConfigObject() {
+
+		final String sessionId = "TESTSESSION";
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		String pageId   = null;
+		String parentId = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createNewPage(securityContext, "test");
+			final DOMElement html = page.createElement("html");
+			final DOMElement body = page.createElement("body");
+
+			page.appendChild(html);
+			html.appendChild(body);
+
+			pageId   = page.getUuid();
+			parentId = body.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		final MockedWebsocketSetup mock  = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try { Thread.sleep(200); } catch (Throwable t) {}
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "APPEND_WIDGET",
+			"sessionId", sessionId,
+			"pageId", pageId,
+			"data", Map.of(
+				"parentId", parentId,
+				"source", "<section class=\"widget\">Widget content</section>",
+				"config", Map.of(
+					"componentType", "TestComponent",
+					"dimensions", 2
+				)
+			)
+		)));
+
+		final Map<String, Object> response = mock.getLastWebsocketResponse();
+
+		assertEquals("APPEND_WIDGET failed: " + response.get("message"), "APPEND_WIDGET", response.get("command"));
+
+		try (final Tx tx = app.tx()) {
+
+			final DOMNode parent           = app.getNodeById(StructrTraits.DOM_NODE, parentId).as(DOMNode.class);
+			final List<DOMNode> children   = Iterables.toList(parent.getChildren());
+
+			AssertJUnit.assertEquals("Widget was not appended", 1, children.size());
+
+			final DOMNode widgetRoot = children.get(0);
+
+			AssertJUnit.assertEquals("componentType from the config object was not applied", "TestComponent", widgetRoot.getComponentType());
+			AssertJUnit.assertEquals("dimensions from the config object were not applied", 2, widgetRoot.getDimensions(false));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	private void createProjectAndTaskSchema() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema       = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project  = schema.addType("Project");
+			final JsonObjectType task     = schema.addType("Task");
+
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			AssertJUnit.fail(fex.getMessage());
+		}
+	}
+
+	private void assertTaskIsLinkedToProject(final String projectId) {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task = app.nodeQuery("Task").getFirst();
+
+			AssertJUnit.assertNotNull("Task does not exist", task);
+
+			final PropertyKey<NodeInterface> projectKey = task.getTraits().key("project");
+			final NodeInterface project                 = task.getProperty(projectKey);
+
+			AssertJUnit.assertNotNull("Related object sent as nested JSON object was not resolved", project);
+			AssertJUnit.assertEquals("Related object sent as nested JSON object was resolved to the wrong node", projectId, project.getUuid());
 
 			tx.success();
 

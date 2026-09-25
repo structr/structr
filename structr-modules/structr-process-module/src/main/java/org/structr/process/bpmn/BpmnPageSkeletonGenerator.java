@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.JsonInput;
-import org.structr.core.JsonSingleInput;
 import org.structr.core.app.App;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
@@ -862,8 +860,8 @@ public class BpmnPageSkeletonGenerator {
 
 	/**
 	 * Expansion parameters for a widget: its source plus its own {@code componentType} and
-	 * {@code dimensions}, wrapped the way {@code Widget.expandWidget} expects them (a
-	 * {@code JsonSingleInput} under the {@code config} key).
+	 * {@code dimensions}, passed the way {@code Widget.expandWidget} expects them (a Map under
+	 * the {@code config} key).
 	 *
 	 * <p>Passing the config is not optional for data-driven widgets: {@code expandWidget} copies
 	 * these onto the appended roots, and a component without a dimension fails
@@ -874,13 +872,10 @@ public class BpmnPageSkeletonGenerator {
 	private static Map<String, Object> expansionParameters(final Widget widget) {
 
 		final Map<String, Object> parameters  = new HashMap<>();
-		final JsonSingleInput singleInput     = new JsonSingleInput();
-		final JsonInput input                 = new JsonInput();
-
-		singleInput.add(input);
+		final Map<String, Object> input       = new HashMap<>();
 
 		parameters.put("source", widget.getSource());
-		parameters.put("config", singleInput);
+		parameters.put("config", input);
 
 		if (widget.getComponentType() != null) {
 
