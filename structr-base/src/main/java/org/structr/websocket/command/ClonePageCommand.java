@@ -33,6 +33,8 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
+import java.util.Random;
+
 /**
  * Websocket command to clone a page.
  */
@@ -58,7 +60,7 @@ public class ClonePageCommand extends AbstractCommand {
 					final Page pageToClone = nodeToClone.as(Page.class);
 					final Page newPage     = pageToClone.cloneNode(true).as(Page.class);
 
-					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
+					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageToClone.getName() + "-" + String.format("%06d", new Random().nextInt(1000000))));
 				}
 
 			} catch (FrameworkException fex) {

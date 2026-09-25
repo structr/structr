@@ -1028,9 +1028,7 @@ let Command = {
 		let obj = {
 			command: 'CLONE_PAGE',
 			id: id,
-			data: {
-				name: 'New Page ' + Math.floor(Math.random() * (999999 - 1))
-			}
+			data: {}
 		};
 		return StructrWS.sendObj(obj);
 	},
