@@ -116,10 +116,6 @@ Here you can manage translations for multi-language applications.
 
 This is an interactive graph explorer where you can visualize your data objects and their relationships.
 
-### Virtual Types
-
-Here you can configure dynamic types that transform or aggregate data from other sources.
-
 ### Mail Templates
 
 Here you can create and edit email templates used in automated notifications.

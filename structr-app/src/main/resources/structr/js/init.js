@@ -2244,7 +2244,6 @@ let Structr = {
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 								<li data-name="Job Queue"><a id="job-queue_" href="#job-queue" data-activate-module="job-queue">Job Queue</a></li>
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
-								<li data-name="Virtual Types"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
 								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
 								<li data-name="Documentation"><a id="docs_" href="#docs" data-activate-module="docs">Documentation</a></li>
 								<li data-name="Login"><a id="logout_" href="javascript:void(0)">Login</a></li>

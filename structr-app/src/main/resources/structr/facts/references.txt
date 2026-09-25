@@ -28,7 +28,6 @@ Topic References has topics "System Keywords", "Built-in Functions", "System Typ
 #Helper "Refactoring Helper" has javascript-file "structr/js/refactoring-helper.js"
 #Area "Schema" has javascript-file "structr/js/schema.js"
 #Area "Security" has javascript-file "structr/js/security.js"
-#Area "Virtual Types" has javascript-file "structr/js/virtual-types.js"
 #Area "Widgets" has javascript-file "structr/js/widgets.js"
 
 

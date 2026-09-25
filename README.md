@@ -108,7 +108,6 @@ configure, extend, and operate applications defined in the graph database.
 - Type, property, and relationship management
 - Function properties with read/write scripting
 - Runtime schema evolution
-- Virtual types management
 
 ### Data Management
 - Graph-aware data browser and editor
