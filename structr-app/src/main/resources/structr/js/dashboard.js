@@ -78,7 +78,7 @@ let _Dashboard = {
 
 				_Helpers.appendInfoTextToElement({
 					element: document.querySelector('[data-max-memory-slot]'),
-					text: 'Maximum heap size is below the recommended 4 GB. If you use an embedded database or have large datasets, this can lead to problems.<br><br>Please adjust structr.conf according to your workload and setup (see <code>application.heap.max_size</code>).',
+					text: 'Maximum heap size is below the recommended 8 GB. If you use an embedded database or have large datasets, this can lead to problems.<br><br>Please adjust structr.conf according to your workload and setup (see <code>application.heap.max_size</code>).',
 					customToggleIcon: _Icons.iconWarningYellowFilled
 				});
 			}
