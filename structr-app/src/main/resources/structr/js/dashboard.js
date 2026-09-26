@@ -74,6 +74,15 @@ let _Dashboard = {
 			Structr.setMainContainerHTML(_Dashboard.templates.main(dashboardUiConfig));
 			Structr.setFunctionBarHTML(_Dashboard.templates.functions());
 
+			if (dashboardUiConfig.envInfo.dashboardInfo.runtimeInfo.maxMemory < (8 * 1024*1024*1024)) {
+
+				_Helpers.appendInfoTextToElement({
+					element: document.querySelector('[data-max-memory-slot]'),
+					text: 'Maximum heap size is below the recommended 4 GB. If you use an embedded database or have large datasets, this can lead to problems.<br><br>Please adjust structr.conf according to your workload and setup (see <code>application.heap.max_size</code>).',
+					customToggleIcon: _Icons.iconWarningYellowFilled
+				});
+			}
+
 			UISettings.showSettingsForCurrentModule();
 
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
@@ -2002,7 +2011,7 @@ let _Dashboard = {
 								<div>Total Memory</div>
 								<div>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.totalMemory)}</div>
 								<div>Max Memory</div>
-								<div ${(config.envInfo.dashboardInfo.runtimeInfo.maxMemory < (8 * 1024*1024*1024)) ? 'data-comment="Maximum heap size is smaller than recommended, this can lead to problems with large databases! Please configure AT LEAST 8 GBs of heap memory using -Xmx8g." data-comment-config=\'{"customToggleIcon":"' + _Icons.iconWarningYellowFilled + '"}\'' : ''}>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.maxMemory)}</div>
+								<div data-max-memory-slot>${_Helpers.formatBytes(config.envInfo.dashboardInfo.runtimeInfo.maxMemory)}</div>
 							</div>
 						</td>
 					</tr>

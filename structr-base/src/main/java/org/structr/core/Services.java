@@ -564,20 +564,21 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private void checkAvailableMemory() {
 
-		// do simple heap size check
 		final Runtime runtime = Runtime.getRuntime();
-		final long max        = runtime.maxMemory() / 1024 / 1024 / 1024;
+		final long maxMemGB   = runtime.maxMemory() / 1024 / 1024 / 1024;
 		final int processors  = runtime.availableProcessors();
 
-		logger.info("{} processors available, {} GB max heap memory", processors, max);
+		logger.info("{} processors available, {} GB max heap memory", processors, maxMemGB);
 
-		if (max < 8) {
+		final int recommendedMemGB = 8;
 
-			logger.warn("Maximum heap size is smaller than recommended, this can lead to problems with large databases!");
-			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
+		if (maxMemGB < recommendedMemGB) {
+
+			logger.warn("Maximum heap size is below the recommended {} GB. If you use an embedded database or have large datasets, this can lead to problems.", recommendedMemGB);
+			logger.warn("Please adjust structr.conf according to your workload and setup (see {}).", Settings.JavaHeapMax.getKey());
 
 			// reduce fetch size
-			final int maxFetchSize = (max < 1) ? 1_000 : 10_000;
+			final int maxFetchSize = (maxMemGB < 1) ? 1_000 : 10_000;
 			if (Settings.FetchSize.getValue() > maxFetchSize) {
 
 				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
