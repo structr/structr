@@ -45,8 +45,8 @@ renders the children that were added to the linked copy in the page tree at the 
 Because Shared Components are rendered in the context of the page they are used in, you can use template expressions to customize the output based on the page, the current user, or other context information. For example, a Shared Component for a navigation menu could highlight the current page:
 
     <nav>
-        <a href="/" class="${page.name == 'home' ? 'active' : ''}">Home</a>
-        <a href="/about" class="${page.name == 'about' ? 'active' : ''}">About</a>
+        <a href="/" class="${if(equal(page.name, 'home'), 'active', '')}">Home</a>
+        <a href="/about" class="${if(equal(page.name, 'about'), 'active', '')}">About</a>
     </nav>
 
 Structr evaluates the template expressions when rendering each page, so the same Shared Component produces different output depending on where it is used. Template expressions are explained in the [Dynamic Content](/structr/docs/ontology/Building%20Applications/Dynamic%20Content) chapter.
