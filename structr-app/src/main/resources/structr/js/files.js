@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Files = {
 	_moduleName: 'files',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate,includeInFrontendExport',
-	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers,parentId,includeInFrontendExport',
+	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,trusted,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers,parentId,includeInFrontendExport',
 	currentWorkingDir: undefined,
 	chunkSize: 1024 * 64,
 	fileSizeLimit: 1024 * 1024 * 1024,

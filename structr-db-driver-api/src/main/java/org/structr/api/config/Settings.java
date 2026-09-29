@@ -250,6 +250,7 @@ public class Settings {
 	public static final Setting<Boolean> ClearSessionsOnShutdown = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onshutdown", false, "Clear all sessions on shutdown if set to true.");
 
 	public static final Setting<Boolean> ForceHttps             = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",             false, "Enables redirecting HTTP requests from the configured HTTP port to the configured HTTPS port (only works if HTTPS is active).");
+	public static final Setting<Boolean> ForceHttpsPermanent    = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https.permanent",   false, "Answers the redirect to HTTPS with 301 instead of 302. A 301 is cached by browsers and often kept indefinitely, so an instance that may have to serve plain HTTP again later should leave this off.");
 	public static final Setting<Boolean> HttpOnly               = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.cookies.httponly",        false, "Set HttpOnly to true for cookies. Please note that this will disable backend access!");
 	public static final Setting<String> CookieSameSite          = new ChoiceSetting(serverGroup,  "HTTPS Settings", "httpservice.cookies.samesite",        "Lax", Settings.getStringsAsSet("Lax", "Strict", "None"), "Sets the SameSite attribute for the JSESSIONID cookie. For SameSite=None the Secure flag must also be set, otherwise the cookie will be rejected by the browser!");
 	public static final Setting<Boolean> CookieSecure           = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.cookies.secure",          true, "Sets the secure flag for the JSESSIONID cookie, so browsers send it over HTTPS only. The session cookie is the credential, and one sent in the clear can be read off the wire and then planted back into a victim's browser (ticket 1594). Turn it off only for an installation that deliberately serves plain HTTP - after which nobody stays logged in over HTTPS-only browsers anyway.");
@@ -533,6 +534,13 @@ public class Settings {
 	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "htmlservlet.outputdepth",           3, "Not used for HtmlServlet");
 	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "hidden", "htmlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.");
 	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "NodeInterface.name", "Space-separated list of properties that are tried to find the 'current' object (restart of HttpService required).");
+	public static final Setting<String> HtmlFileDelivery          = new ChoiceSetting(servletsGroup,  "HtmlServlet", "htmlservlet.filedelivery",          "auto", Settings.getFileDeliveryOptions(), "How a file is delivered whose content nobody vouched for. A file is trusted when an admin uploaded it from a browser; anything a script wrote, or a stranger uploaded, is not.").setLongDescription("""
+		<br><strong>auto</strong> (default): an untrusted file is downloaded on an instance whose application.instance.stage is 'production', and sandboxed everywhere else.<br>
+		<br><strong>inline</strong>: no extra protection. Only for an instance whose file area nobody but its developers can write to.<br>
+		<br><strong>sandbox</strong>: the file is delivered as its content type says, but with an opaque origin and without scripts, forms or plugins, so HTML someone else wrote renders without running.<br>
+		<br><strong>attachment</strong>: the file is downloaded rather than displayed.<br>
+		<br>A trusted file is always delivered as its content type declares, and a caller asking for a download with the 'filename' parameter always gets one.<br>
+	""");
 	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "htmlservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "hidden", "pdfservlet.path",                  "/structr/pdf/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
@@ -1417,6 +1425,18 @@ public class Settings {
 		options.put("test", "Test");
 		options.put("staging", "Staging");
 		options.put("production", "Production");
+
+		return options;
+	}
+
+	public static Map<String, String> getFileDeliveryOptions() {
+
+		final Map<String, String> options = new LinkedHashMap();
+
+		options.put("auto", "Automatic (download on production, sandbox elsewhere)");
+		options.put("inline", "Inline");
+		options.put("sandbox", "Sandboxed");
+		options.put("attachment", "Download");
 
 		return options;
 	}

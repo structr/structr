@@ -204,6 +204,12 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
+	public boolean isTrusted() {
+
+		return Boolean.TRUE.equals(wrappedObject.getProperty(traits.key(FileTraitDefinition.TRUSTED_PROPERTY)));
+	}
+
+	@Override
 	public boolean dontCache() {
 
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.DONT_CACHE_PROPERTY));

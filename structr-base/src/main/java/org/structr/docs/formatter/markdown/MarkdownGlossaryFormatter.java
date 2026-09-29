@@ -81,7 +81,7 @@ public class MarkdownGlossaryFormatter extends Formatter {
 					lines.add("| --- | --- |");
 				}
 
-				lines.add("| " + c.getName() + " | [" + collectParents(c) + "](" + createLinkForParentsString(collectParents(c)) + ") |");
+				lines.add("| " + c.getName() + " | " + parentCell(c) + " |");
 			}
 		}
 
@@ -89,6 +89,26 @@ public class MarkdownGlossaryFormatter extends Formatter {
 	}
 
 	// ----- private methods -----
+	private String parentCell(final Concept concept) {
+
+		final String parents = collectParents(concept);
+		if (StringUtils.isNotBlank(parents)) {
+
+			return "[" + parents + "](" + createLinkForParentsString(parents) + ")";
+		}
+
+		// a top-level section has no parent to point at, but its overview page is where a reader starts
+		for (final Link child : concept.getChildLinks(Verb.Has)) {
+
+			if ("Overview".equals(child.getTarget().getName())) {
+
+				return "[Overview](/structr/docs/ontology/" + concept.getName().replaceAll(" ", "%20") + "/Overview)";
+			}
+		}
+
+		return "";
+	}
+
 	private String collectParents(final Concept concept) {
 
 		final Set<String> strings = new LinkedHashSet<>();
@@ -155,9 +175,13 @@ public class MarkdownGlossaryFormatter extends Formatter {
 					.replaceAll(" ", "%20");
 		}
 
+		// the last segment is a heading on the page before it, so it is the anchor and not a path segment
+		final int separator = input.lastIndexOf(" / ");
+		final String page   = input.substring(0, separator);
+		final String anchor = input.substring(separator + 3);
+
 		return "/structr/docs/ontology/"
-				+ (input.substring(0, input.lastIndexOf("/") + 2) + "#" + cleanStringForLink(input.substring(input.lastIndexOf("/") + 2)))
-				.replaceAll(" / ", "/")
-				.replaceAll(" ", "%20");
+				+ page.replaceAll(" / ", "/").replaceAll(" ", "%20")
+				+ "#" + cleanStringForLink(anchor);
 	}
 }

@@ -579,7 +579,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								logger.warn("", ioex);
 							}
 
-							this.stats.recordStatsValue("html", rootElement.getName(), System.currentTimeMillis() - t0);
+							// an element addressed by uuid, which is what a partial reload asks for, has no name
+							final String statsName = rootElement.getName() != null ? rootElement.getName() : "unknown";
+
+							this.stats.recordStatsValue("html", statsName, System.currentTimeMillis() - t0);
 						}
 					}
 				}
@@ -1671,42 +1674,110 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	/**
-	 * Content types a browser will execute as a DOCUMENT when it navigates to the file. A subresource -
-	 * a script tag, a stylesheet, an image - is not the problem here; being able to open the file as a
-	 * page in the application's own origin is.
-	 */
-	private static final Set<String> SCRIPTABLE_DOCUMENT_TYPES = Set.of("text/html", "application/xhtml+xml", "image/svg+xml", "text/xml", "application/xml");
-
-	/**
 	 * Ticket 1589: an upload keeps the content type of the multipart part, contentType is an ordinary
-	 * writable property, and this method used to hand both straight to the browser. Content-Disposition
-	 * was set only when the CALLER passed downloadAsFilename - the one thing someone sending a link does
-	 * not do. So x.html uploaded as text/html, made public, and linked to an administrator ran as a page
-	 * in this origin, with their session against /structr/rest and the websocket backend.
+	 * writable property, and this method used to hand both straight to the browser. So x.html uploaded
+	 * as text/html and its link sent to an administrator ran as a page in this origin, with their
+	 * session against /structr/rest and the websocket backend.
+	 *
+	 * <p>What decides the treatment is who vouched for the content, not what the bytes look like: a file
+	 * an admin uploaded from a browser is trusted and delivered as RFC 6266 says, inline and as the
+	 * document its content type declares. Anything else is sandboxed, which gives the document an opaque
+	 * origin and no scripts, forms, plugins or top-level navigation, so a stranger's HTML renders but
+	 * never runs. htmlservlet.filedelivery decides the treatment of an untrusted file, and downloads it
+	 * rather than sandboxing it on an instance that calls itself production.
 	 *
 	 * <p>Template files are exempt: those are developer-authored dynamic files whose content Structr
 	 * renders on purpose, and isTemplate is readOnly and not on UploadServlet's property whitelist, so
 	 * an uploader cannot mark their own file as one.
 	 */
-	private void hardenFileDelivery(final HttpServletResponse response, final File file, final String contentType, final String downloadAsFilename) {
+	private void hardenFileDelivery(final HttpServletRequest request, final HttpServletResponse response, final File file, final SecurityContext securityContext) {
 
 		// no sniffing: a declared text/plain must not become a document because the bytes look like one
 		response.setHeader("X-Content-Type-Options", "nosniff");
 
-		if (file.isTemplate()) {
+		if (file.isTemplate() || file.isTrusted()) {
 
 			return;
 		}
 
-		// an uploaded file is data, so it gets no origin, no scripts and no forms of its own
-		response.setHeader("Content-Security-Policy", "sandbox");
+		// not framed by anyone: an iframe on a foreign page is a request without our cookie, which would
+		// otherwise be answered with the relaxed variant and then script in this origin from inside it
+		response.setHeader("Content-Security-Policy", "sandbox; frame-ancestors 'none'");
 
-		final String bareType = contentType == null ? "" : StringUtils.substringBefore(contentType, ";").trim().toLowerCase();
-		if (SCRIPTABLE_DOCUMENT_TYPES.contains(bareType) && downloadAsFilename == null) {
+		// the treatment below depends on the caller and on where they came from, so the response is not
+		// one a cache may hand to the next caller, and a 304 would revive the treatment of the last one
+		response.setHeader("Vary", "Cookie, Referer");
+		response.setHeader(RequestHeaders.CacheControl.getName(), "private, no-store, max-age=0, must-revalidate");
+
+		if (deliverUntrustedAsAttachment(request, securityContext)) {
 
 			final String cleanedFilename = FilenameCleanerPattern.matcher(file.getName()).replaceAll("");
 
 			response.addHeader("Content-Disposition", "attachment; filename=\"" + cleanedFilename + "\"");
+		}
+	}
+
+	/**
+	 * Whether an untrusted file is downloaded rather than sandboxed.
+	 *
+	 * <p>The setting decides, except that an admin following a link from outside always gets the
+	 * download: that is the shape of the attack, and an admin is the reader whose session is worth
+	 * taking. A missing referrer counts as outside, because the page that sends the admin here controls
+	 * whether one is sent at all.
+	 */
+	private boolean deliverUntrustedAsAttachment(final HttpServletRequest request, final SecurityContext securityContext) {
+
+		final String mode = Settings.HtmlFileDelivery.getValue("auto");
+
+		switch (mode) {
+
+			case "inline":
+				return false;
+
+			case "attachment":
+				return true;
+
+			case "sandbox":
+				break;
+
+			default:
+				if ("production".equals(Settings.InstanceStage.getValue(""))) {
+
+					return true;
+				}
+				break;
+		}
+
+		final Principal user = securityContext.getUser(false);
+		if (user == null || !user.isAdmin()) {
+
+			return false;
+		}
+
+		return !isSameOriginReferrer(request);
+	}
+
+	private boolean isSameOriginReferrer(final HttpServletRequest request) {
+
+		final String referrer = request.getHeader("Referer");
+		if (StringUtils.isBlank(referrer)) {
+
+			return false;
+		}
+
+		try {
+
+			final URI uri      = URI.create(referrer);
+			final String host  = uri.getHost();
+			final int port     = uri.getPort() == -1 ? ("https".equals(uri.getScheme()) ? 443 : 80) : uri.getPort();
+			final int ourPort  = request.getServerPort();
+
+			return host != null && host.equalsIgnoreCase(request.getServerName()) && port == ourPort;
+
+		} catch (IllegalArgumentException iae) {
+
+			// a referrer we cannot parse is not one we can accept
+			return false;
 		}
 	}
 
@@ -1745,7 +1816,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		boolean dontCache = file.dontCache();
-		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, dontCache)) {
+		final boolean notModified = !EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, dontCache);
+
+		// after notModifiedSince, whose cache directives would otherwise overwrite ours, and on the 304
+		// path as well: a stored response carries the treatment of whoever fetched it first, and the
+		// browser answers the next navigation from that entry
+		hardenFileDelivery(request, response, file, securityContext);
+
+		if (notModified) {
 
 			out.flush();
 			out.close();
@@ -1793,8 +1871,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					// Default
 					response.setContentType("application/octet-stream");
 				}
-
-				hardenFileDelivery(response, file, contentType, downloadAsFilename);
 
 				final String range = request.getHeader(RequestHeaders.Range.getName());
 

@@ -38,6 +38,7 @@ public interface File extends AbstractFile, DataSource {
 	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, boolean append);
 	InputStream getRawInputStream();
 	boolean isTemplate();
+	boolean isTrusted();
 	boolean dontCache();
 
 	GraphObject getSearchContext(SecurityContext ctx, String searchTerm, int contextLength);

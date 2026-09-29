@@ -866,7 +866,7 @@ let Structr = {
 				let date        = componentWithVersionInfo.date;
 				let versionInfo = `
 					Structr <span>${componentWithVersionInfo.version}</span>
-					${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
+					${(build && date) ? `<span> build </span><span>${build}</span><span> (${date})</span>` : ''}
 				`;
 
 				$('.structr-version').html(versionInfo);

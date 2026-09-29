@@ -4002,6 +4002,11 @@ let _Entities = {
 							</div>
 
 							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="trusted" id="trusted">
+								<label for="trusted" title="Set automatically when an admin uploads a file from the admin UI. An untrusted HTML or SVG file is sandboxed or downloaded instead of being displayed, because its content could be somebody else's script. Only an admin can change this.">Trusted content</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
 								<input type="checkbox" name="dontCache" id="dontCache">
 								<label for="dontCache">Caching disabled</label>
 							</div>

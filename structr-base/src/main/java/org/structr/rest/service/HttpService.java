@@ -616,7 +616,9 @@ public class HttpService implements RunnableService, StatsCallback {
 			// Enable https redirect handler
 			if (forceHttps) {
 
-				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
+				final int redirectCode = Settings.ForceHttpsPermanent.getValue(false) ? HttpStatus.MOVED_PERMANENTLY_301 : HttpStatus.MOVED_TEMPORARILY_302;
+
+				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler(redirectCode);
 				securedHandler.setHandler(rewriteHandler);
 				server.setHandler(securedHandler);
 			}
@@ -1094,6 +1096,12 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	public void recordStatsValue(final String key, final String source, final long value, final boolean aggregateOnly) {
+
+		// a statistic is not worth a failed request: the map keys are names, and a nameless object has none
+		if (key == null || source == null) {
+
+			return;
+		}
 
 		final Map<String, Stats> map = getRequestStats(key);
 		Stats stats                  = map.get(source);
