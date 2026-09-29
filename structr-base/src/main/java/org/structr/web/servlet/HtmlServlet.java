@@ -904,7 +904,23 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final AsyncContext async      = request.startAsync();
 		final ServletOutputStream out = async.getResponse().getOutputStream();
 		final AtomicBoolean finished  = new AtomicBoolean(false);
+		final AtomicBoolean failed    = new AtomicBoolean(false);
+		final AtomicBoolean completed = new AtomicBoolean(false);
 		final DOMNode rootNode        = rootElement;
+
+		// Completing the exchange recycles the request, so it must not happen while the render thread
+		// still runs code that may read it: the render itself, and the commit of its transaction with all
+		// lifecycle methods. The render thread therefore sets "finished" only after the transaction has
+		// closed, and the exchange has no timeout of its own that could complete it earlier.
+		async.setTimeout(0);
+
+		final Runnable completeOnce = () -> {
+
+			if (completed.compareAndSet(false, true)) {
+
+				async.complete();
+			}
+		};
 
 		threadPool.submit(new Runnable() {
 
@@ -923,7 +939,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					// render
 					rootNode.render(renderContext, 0);
-					finished.set(true);
 
 					tx.success();
 
@@ -935,11 +950,20 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					try {
 
 						response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-						finished.set(true);
 
-					} catch (IOException ex) {
+					} catch (Throwable ex) {
 
 						logger.warn(ExceptionUtils.getStackTrace(ex));
+					}
+
+				} finally {
+
+					finished.set(true);
+
+					// the write listener will not run again after an error, so completing is up to this thread
+					if (failed.get()) {
+
+						completeOnce.run();
 					}
 				}
 
@@ -961,7 +985,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					while (out.isReady()) {
 
-						String buffer = null;
+						// read before polling: once the render thread has finished, every chunk is in the
+						// queue, so an empty poll after that means there is nothing left to write
+						final boolean renderFinished = finished.get();
+						String buffer                = null;
 
 						synchronized (queue) {
 
@@ -974,9 +1001,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						} else {
 
-							if (finished.get()) {
+							if (renderFinished) {
 
-								async.complete();
+								completeOnce.run();
 
 								// prevent this block from being called again
 								break;
@@ -999,10 +1026,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			@Override
 			public void onError(Throwable t) {
 
-				// prevent async from running into default timeout of 30s
-				async.complete();
-				finished.set(true);
-
 				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
 
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
@@ -1011,6 +1034,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
 					logger.warn(" -> From: {} | URI: {} | Query: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString());
+				}
+
+				// a render that is still running completes the exchange itself when it is done
+				failed.set(true);
+
+				if (finished.get()) {
+
+					completeOnce.run();
 				}
 			}
 		});
