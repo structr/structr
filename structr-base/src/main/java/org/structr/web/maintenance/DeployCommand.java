@@ -20,6 +20,7 @@ package org.structr.web.maintenance;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -45,10 +46,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.*;
 import org.structr.core.graph.*;
-import org.structr.core.property.CypherProperty;
-import org.structr.core.property.FunctionProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -78,6 +76,7 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.net.URI;
 import java.nio.file.*;
@@ -103,9 +102,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
 
-	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
-	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
+	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap<>();
+	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap<>();
 	protected static final Set<String> missingSchemaFile            = new HashSet<>();
+
+	protected static final Map<String, Map<String, Object>> builtinTypeCustomRelationships = new LinkedHashMap<>();
 
 	/** What each pre/post-deploy script did, so a caller learns that the documented remedy itself failed. */
 	protected static final List<Map<String, Object>> configScripts  = new LinkedList<>();
@@ -152,6 +153,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DATA_ADAPTERS_FILE_PATH                               = "data-adapters.json";
 	private final static String COMPONENT_CONFIGURATIONS_FILE_PATH                    = "component-configurations.json";
 	private final static String SCRATCHPADS_FILE_PATH                                 = "scratchpads.json";
+	private final static String CUSTOM_REL_DATA_FILE_PATH                             = "custom-relationship-data.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
 	protected final static String FILES_FOLDER_PATH                                   = "files";
@@ -252,10 +254,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		return new HashMap<>();
 	}
-
-//	public StreamingJsonWriter getJsonWriter() {
-//		return new StreamingJsonWriter(PropertyView.All, true, 1, false, true);
-//	}
 
 	public Gson getGson() {
 
@@ -449,6 +447,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// import modules (including flow) after everything else so the DOMNode -> Flow-Relationship can be imported
 			importModuleData(source);
 
+			// must be last so that all other nodes are already imported!
+			importCustomRelationshipData(source.resolve(CUSTOM_REL_DATA_FILE_PATH));
+
 			// apply post-deploy.conf
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
@@ -463,14 +464,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>deployment</b>.<br>"
 						+ "Because of these missing permissions/ownerships, <b>the functionality is not identical to the export you just imported</b>."
 						+ "<ul><li>" + transformCountedMapToHumanReadableList(missingPrincipals, "</li><li>") + "</li></ul>"
-						+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-deploy.conf</a> and re-importing.";
+						+ "Consider adding these principals to your pre-deploy.conf and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
 						+ "\tBecause of these missing permissions/ownerships, the functionality is not identical to the export you just imported.\n\n"
 						+ "\t" + transformCountedMapToHumanReadableList(missingPrincipals, "\n\t")
-						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
+						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' and re-importing.\n"
 						+ "###############################################################################");
 				publishWarningMessage(title, text);
 			}
@@ -699,6 +700,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try {
 
 			deferredLogTexts.clear();
+			builtinTypeCustomRelationships.clear();
 
 			Files.createDirectories(target);
 
@@ -739,6 +741,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path componentConfigurationsConf         = target.resolve(COMPONENT_CONFIGURATIONS_FILE_PATH);
 			final Path dataAdaptersConf                    = target.resolve(DATA_ADAPTERS_FILE_PATH);
 			final Path scratchpadsConf                     = target.resolve(SCRATCHPADS_FILE_PATH);
+			final Path customRelDataConf                   = target.resolve(CUSTOM_REL_DATA_FILE_PATH);
 			final Path preDeployConf            = target.resolve(PRE_DEPLOY_CONF_FILE_PATH);
 			final Path postDeployConf           = target.resolve(POST_DEPLOY_CONF_FILE_PATH);
 
@@ -843,7 +846,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final Path moduleFolder = Files.createDirectories(modules.resolve(module.getName()));
 					module.exportDeploymentData(moduleFolder, getGson());
 				}
+			}
 
+			if (!builtinTypeCustomRelationships.isEmpty()) {
+
+				logger.info("Exporting data for custom relationships on builtin types");
+
+				writeJsonToFile(customRelDataConf, builtinTypeCustomRelationships);
 			}
 
 			// set group grants for created files
@@ -852,9 +861,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				setFileGroupRecursively(groupName, target);
 			}
-
-			// config import order is "users, grants, pages, components, templates"
-			// data import order is "schema, files, templates, components, pages"
 
 			logger.info("Export finished.");
 
@@ -1064,6 +1070,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		exportFileConfiguration(node, properties);
 
+		exportCustomNodeRelationshipData(node);
+
 		if (!properties.isEmpty()) {
 
 			// NFC, so the key matches the name git records for the file it sits next to: git
@@ -1099,6 +1107,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put(SiteTraitDefinition.PAGES_PROPERTY,                                 Iterables.toList(site.getPages()).stream().map(GraphObject::getUuid).toList());
 
 				exportOwnershipAndSecurity(node, entry);
+
+				exportCustomNodeRelationshipData(node);
 			}
 
 			tx.success();
@@ -1217,6 +1227,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						exportOwnershipAndSecurity(page, properties);
 
 						writeStringToFile(pageFile, content);
+
+						exportCustomNodeRelationshipData(page);
 					}
 				}
 			}
@@ -1463,7 +1475,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeSortedCompactJsonToFile(target, corsSettings, null);
 	}
 
-	private void exportSchema(final Path targetFolder) throws FrameworkException {
+	private void exportSchema(final Path targetFolder) {
 
 		logger.info("Exporting schema");
 
@@ -1484,10 +1496,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					for (Map<String, Object> schemaMethod : userDefinedFunctions) {
 
-						final String methodName            = (String) schemaMethod.get("name");
-						final String methodSource          = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
-						final Path globalMethodSourceFile  = globalMethodsFolder.resolve(methodName);
-						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile);
+						final String methodName             = (String) schemaMethod.get("name");
+						final String methodSource           = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
+						final Path globalMethodSourceFile   = globalMethodsFolder.resolve(methodName);
+						final String relativeSourceFilePath = "./" + targetFolder.relativize(globalMethodSourceFile);
 
 						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeSourceFilePath);
 
@@ -1582,7 +1594,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportConfiguration(final NodeInterface node, final Map<String, Object> config) throws FrameworkException {
+	private void exportConfiguration(final NodeInterface node, final Map<String, Object> config) {
 
 		putData(config, GraphObjectTraitDefinition.ID_PROPERTY,                             node.getUuid());
 		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        node.isVisibleToPublicUsers());
@@ -1636,6 +1648,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, PageTraitDefinition.RESTRICT_TO_URL_ROUTES_PROPERTY, page.isRestrictedToUrlRoutes());
 		}
 
+		exportCustomNodeData(node, config);
+	}
+
+	private void exportCustomNodeData(final NodeInterface node, final Map<String, Object> config) {
+
 		final Traits traits = node.getTraits();
 
 		// export all dynamic properties
@@ -1645,6 +1662,62 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (key.isDynamic() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), node.getProperty(key));
+			}
+		}
+	}
+
+	private void exportCustomNodeRelationshipData(final NodeInterface node) {
+
+		final Traits traits = node.getTraits();
+
+		// collect all dynamic relationship properties
+		// these need to be kept separately because on import time, the related node may not yet be created
+		// they need to be imported as a whole at the end of the import
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
+
+			final String relatedType = key.relatedType();
+
+			if (key.isDynamic() && relatedType != null) {
+
+				// this must be restored exactly. we need to store node.id, property, value
+				// the assumption is that the relationships are plain relationships without custom data
+				// if the relation is between two exported types, we will have a duplicate but this does not really matter (duplicate work but correct data)
+				// unless we export relationships only, but that would cause other problems
+
+				final String uuid = node.getUuid();
+
+				final Map<String, Object> nodeData = builtinTypeCustomRelationships.getOrDefault(uuid, new LinkedHashMap<>());
+
+				if (key.isCollection()) {
+
+					final List<NodeInterface> nodeList = switch (key) {
+						case EndNodes e -> Iterables.toList(node.getProperty(e));
+						case StartNodes s -> Iterables.toList(node.getProperty(s));
+						default -> List.of();
+					};
+
+					if (!nodeList.isEmpty()) {
+
+						nodeData.put(key.jsonName(), nodeList.stream().map(GraphObject::getUuid).toList());
+					}
+
+				} else {
+
+					final NodeInterface relatedNode = switch (key) {
+						case EndNode e -> node.getProperty(e);
+						case StartNode s -> node.getProperty(s);
+						default -> null;
+					};
+
+					if (relatedNode != null) {
+
+						nodeData.put(key.jsonName(), relatedNode.getUuid());
+					}
+				}
+
+				if (!builtinTypeCustomRelationships.containsKey(uuid) && !nodeData.isEmpty()) {
+					builtinTypeCustomRelationships.put(uuid, nodeData);
+				}
 			}
 		}
 	}
@@ -1700,19 +1773,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, ImageTraitDefinition.HEIGHT_PROPERTY,       image.getHeight());
 		}
 
-		final Traits traits = node.getTraits();
-
-		// export all dynamic properties
-		for (final PropertyKey key : traits.getAllPropertyKeys()) {
-
-			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (key.isDynamic() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
-
-				putData(config, key.jsonName(), abstractFile.getProperty(key));
-			}
-		}
-
 		exportOwnershipAndSecurity(node, config);
+
+		exportCustomNodeData(node, config);
+
+		exportCustomNodeRelationshipData(node);
 	}
 
 	protected void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
@@ -2800,6 +2865,97 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void importCustomRelationshipData(final Path customRelDataFile) throws FrameworkException {
+
+		if (Files.exists(customRelDataFile)) {
+
+			logger.info("Reading {}", customRelDataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing data for custom relationships on builtin types");
+
+			try (final Reader reader = Files.newBufferedReader(customRelDataFile, StandardCharsets.UTF_8)) {
+
+				final Type type = new TypeToken<Map<String, Map<String, Object>>>(){}.getType();
+				final Map<String, Map<String, Object>> customRelData = getGson().fromJson(reader, type);
+
+				final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
+				final App app                   = StructrApp.getInstance(ctx);
+
+				ctx.setDoTransactionNotifications(false);
+				ctx.disableModificationOfAccessTime();
+				ctx.setDoIndexing(false);
+
+				try (final Tx tx = app.tx()) {
+
+					for (final Map.Entry<String, Map<String, Object>> nodeData : customRelData.entrySet()) {
+
+						final String nodeUuid =  nodeData.getKey();
+						final NodeInterface node = app.getNodeById(nodeUuid);
+
+						if (node != null) {
+
+							final Traits nodeTraits = node.getTraits();
+
+							final Map<String, Object> nodeAttributes = nodeData.getValue();
+
+							for (final Map.Entry<String, Object> entry : nodeAttributes.entrySet()) {
+
+								final String propertyName  = entry.getKey();
+								final Object propertyValue = entry.getValue();
+
+								final PropertyKey key = nodeTraits.key(propertyName);
+
+								if (key.isCollection()) {
+
+									final List<NodeInterface> relatedNodes = new ArrayList<>();
+
+									for (final String relatedUuid : (List<String>) propertyValue) {
+
+										final NodeInterface relatedNode = app.getNodeById(relatedUuid);
+
+										if (relatedNode != null) {
+
+											relatedNodes.add(relatedNode);
+
+										} else {
+
+											logger.warn("Could not find related node with id '{}' for node '{}' and its attribute '{}'", relatedUuid, nodeUuid, propertyName);
+										}
+									}
+
+									node.setProperty(key, relatedNodes);
+
+								} else {
+
+									final String relatedUuid = (String)propertyValue;
+									final NodeInterface relatedNode = app.getNodeById(relatedUuid);
+
+									if (relatedNode != null) {
+
+										node.setProperty(key, relatedNode);
+
+									} else {
+
+										logger.warn("Could not find related node with id '{}' for node '{}' and its attribute '{}'", relatedUuid, nodeUuid, propertyName);
+									}
+								}
+							}
+						}
+					}
+
+					tx.success();
+
+				} catch (Exception e) {
+
+					logger.warn("Unexpected exception while importing custom relationship data", e);
+				}
+
+			} catch (IOException ioex) {
+
+				logger.warn("", ioex);
+			}
+		}
+	}
+
 	private FileImportVisitor.FileImportProblems importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
 
 		if (Files.exists(filesMetadataFile)) {
@@ -3572,7 +3728,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			writer.flush();
-			writer.close();
 
 		} catch (IOException ioex) {
 

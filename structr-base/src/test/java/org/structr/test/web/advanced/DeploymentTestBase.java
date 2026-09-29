@@ -403,6 +403,21 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		final Object value = obj.getProperty(key);
 		if (value != null) {
 
+			// collection properties (e.g. relationship properties) have no stable toString(), so we use sorted names
+			if (value instanceof Iterable<?> iterable) {
+
+				final List<String> names = new ArrayList<>();
+
+				for (final Object element : iterable) {
+
+					names.add(element instanceof NodeInterface node ? node.getName() : String.valueOf(element));
+				}
+
+				Collections.sort(names);
+
+				return key.jsonName() + ":\"" + names + "\";";
+			}
+
 			return key.jsonName() + ":\"" + value + "\";";
 		}
 
