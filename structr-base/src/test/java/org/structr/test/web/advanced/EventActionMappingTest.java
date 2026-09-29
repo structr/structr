@@ -56,6 +56,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -84,6 +85,76 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		assertTrue("Not stripped from the event payload, so these arrive as unknown JSON keys on the created object: "
 			+ missing + ". Add them to DOMElement.EVENT_ACTION_MAPPING_INTERNAL_KEYS.", missing.isEmpty());
+	}
+
+	@Test
+	public void testCurrentObjectIdIsNotStoredOnTheCreatedObject() {
+
+		// the trigger carries data-current-object-id for the partial reload URL, so a create action receives it
+		// in the payload, where it used to be accepted as an unknown JSON key and written onto the new object
+		String buttonUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			final Page page1        = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn    = page1.createElement("button");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			div.appendChild(btn);
+
+			buttonUuid = btn.getUuid();
+
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrDataType: 'Test', name: 'test1', currentObjectId: '0123456789abcdef0123456789abcdef' }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface created = app.nodeQuery("Test").getFirst();
+
+			assertNotNull("Create action did not create an object", created);
+			assertEquals("Wrong name on the created object", "test1", created.getName());
+			assertFalse("currentObjectId is element configuration and must not be stored on the created object",
+				created.getNode().hasProperty(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CURRENTOBJECTID));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 	}
 
 	@Test

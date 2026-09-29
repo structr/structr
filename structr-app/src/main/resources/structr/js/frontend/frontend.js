@@ -55,7 +55,9 @@ export class Frontend {
 		'structrSuccessNotificationsCustomDialogElement',
 		'structrFailureNotifications', 'structrFailureNotificationsDelay', 'structrFailureNotificationsText',
 		'structrFailureNotificationsCssClass', 'structrFailureNotificationsPartial', 'structrFailureNotificationsEvent',
-		'structrFailureNotificationsCustomDialogElement'
+		'structrFailureNotificationsCustomDialogElement',
+		// rendered on the trigger for the partial reload URL, which reads it from the dataset, not from the payload
+		'currentObjectId'
 	]);
 
 	resolveData(event, target) {
