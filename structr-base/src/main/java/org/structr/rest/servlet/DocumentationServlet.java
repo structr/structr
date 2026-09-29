@@ -260,21 +260,23 @@ public class DocumentationServlet extends HttpServlet {
 
 	private void handleRequest(final HttpServletRequest request, final Ontology ontology, final List<Link> links, final OutputSettings settings, final Map<Concept, Double> searchResults) {
 
-		final String path = request.getPathInfo();
-		if (StringUtils.isNotBlank(path)) {
+		// "/" is not blank but has no segments, and is the overview like no path at all
+		final String path       = request.getPathInfo();
+		final String[] segments = StringUtils.isNotBlank(path) ? StringUtils.split(path, '/') : new String[0];
 
-			final String[] parts = StringUtils.split(path, '/');
-			if (parts.length == 2) {
+		if (segments.length > 0) {
+
+			if (segments.length == 2) {
 
 				// parent exists
-				final List<Concept> parents = ontology.getConceptsByName(parts[0]);
+				final List<Concept> parents = ontology.getConceptsByName(segments[0]);
 				if (!parents.isEmpty()) {
 
 					for (final Concept parent : parents) {
 
 						for (final Link link : parent.getChildLinks(Verb.Has)) {
 
-							if (parts[1].equals(link.getTarget().getName())) {
+							if (segments[1].equals(link.getTarget().getName())) {
 
 								links.add(link);
 							}
@@ -284,7 +286,7 @@ public class DocumentationServlet extends HttpServlet {
 
 			} else {
 
-				final List<Concept> parents = ontology.getConceptsByName(parts[0]);
+				final List<Concept> parents = ontology.getConceptsByName(segments[0]);
 
 				for (final Concept parent : parents) {
 
