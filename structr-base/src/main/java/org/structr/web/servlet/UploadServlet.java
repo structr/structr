@@ -72,6 +72,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -438,7 +439,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								// Update type as it could have changed
 								changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
+								// only an admin uploading from a browser makes the content trusted, see isInteractiveAdminUpload()
+								changedProperties.put(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.TRUSTED_PROPERTY), isInteractiveAdminUpload(request, securityContext));
+
 								newFile.unlockSystemPropertiesOnce();
+								newFile.unlockReadOnlyPropertiesOnce();
 								newFile.setProperties(securityContext, changedProperties, true);
 
 								// validate and rename file after setting all properties (as the folder might have changed)
@@ -771,6 +776,29 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		}
 
 		return new LinkedHashMap<>();
+	}
+
+	/**
+	 * Whether this upload makes the file's content trusted, which is the case for an admin uploading
+	 * from a browser.
+	 *
+	 * <p>The content of a file decides how it may be delivered: HtmlServlet serves a trusted file as the
+	 * document its content type declares, an untrusted one sandboxed, because a stranger's HTML running
+	 * in this origin has the reader's session. "Interactive" is the session cookie: a browser sends the
+	 * one it was given, a script authenticating with X-User/X-Password sends none, and a file written by
+	 * a script never reaches this servlet at all, so neither becomes trusted just by being owned by an
+	 * admin.
+	 */
+	private boolean isInteractiveAdminUpload(final HttpServletRequest request, final SecurityContext securityContext) {
+
+		if (request.getRequestedSessionId() == null || !request.isRequestedSessionIdValid()) {
+
+			return false;
+		}
+
+		final Principal user = securityContext.getUser(false);
+
+		return user != null && user.isAdmin();
 	}
 
 	private synchronized Folder getOrCreateFolderPathInAllowedLocation(final String path) {

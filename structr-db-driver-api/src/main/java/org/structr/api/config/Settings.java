@@ -533,6 +533,13 @@ public class Settings {
 	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "htmlservlet.outputdepth",           3, "Not used for HtmlServlet");
 	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "hidden", "htmlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.");
 	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "NodeInterface.name", "Space-separated list of properties that are tried to find the 'current' object (restart of HttpService required).");
+	public static final Setting<String> HtmlFileDelivery          = new ChoiceSetting(servletsGroup,  "HtmlServlet", "htmlservlet.filedelivery",          "auto", Settings.getFileDeliveryOptions(), "How a file is delivered whose content nobody vouched for. A file is trusted when an admin uploaded it from a browser; anything a script wrote, or a stranger uploaded, is not.").setLongDescription("""
+		<br><strong>auto</strong> (default): an untrusted file is downloaded on an instance whose application.instance.stage is 'production', and sandboxed everywhere else.<br>
+		<br><strong>inline</strong>: no extra protection. Only for an instance whose file area nobody but its developers can write to.<br>
+		<br><strong>sandbox</strong>: the file is delivered as its content type says, but with an opaque origin and without scripts, forms or plugins, so HTML someone else wrote renders without running.<br>
+		<br><strong>attachment</strong>: the file is downloaded rather than displayed.<br>
+		<br>A trusted file is always delivered as its content type declares, and a caller asking for a download with the 'filename' parameter always gets one.<br>
+	""");
 	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "htmlservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "hidden", "pdfservlet.path",                  "/structr/pdf/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
@@ -1417,6 +1424,18 @@ public class Settings {
 		options.put("test", "Test");
 		options.put("staging", "Staging");
 		options.put("production", "Production");
+
+		return options;
+	}
+
+	public static Map<String, String> getFileDeliveryOptions() {
+
+		final Map<String, String> options = new LinkedHashMap();
+
+		options.put("auto", "Automatic (download on production, sandbox elsewhere)");
+		options.put("inline", "Inline");
+		options.put("sandbox", "Sandboxed");
+		options.put("attachment", "Download");
 
 		return options;
 	}

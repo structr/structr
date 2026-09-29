@@ -77,6 +77,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EXTRACTED_CONTENT_PROPERTY         = "extractedContent";
 	public static final String IS_FILE_PROPERTY                   = "isFile";
 	public static final String IS_TEMPLATE_PROPERTY               = "isTemplate";
+	public static final String TRUSTED_PROPERTY                   = "trusted";
 	public static final String CACHE_FOR_SECONDS_PROPERTY         = "cacheForSeconds";
 	public static final String VERSION_PROPERTY                   = "version";
 	public static final String MD5_PROPERTY                       = "md5";
@@ -94,6 +95,41 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		super(StructrTraits.FILE);
 	}
 
+	/**
+	 * Refuses isTemplate and trusted for a caller who is not an admin.
+	 *
+	 * <p>Both decide how the content of a file is treated rather than what it says: a template is
+	 * evaluated as a script on the server, a trusted file is delivered to the browser as the document
+	 * its content type declares. readOnly does not carry that weight - unlockReadonlyPropertiesOnce() is
+	 * an ordinary scripting function, so any method could clear the lock and set the flag on a file
+	 * somebody else uploaded.
+	 */
+	private static void assertPrivilegedFlags(final GraphObject graphObject, final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		final Principal user = securityContext.getUser(false);
+		if (securityContext.isSuperUser() || (user != null && user.isAdmin())) {
+
+			return;
+		}
+
+		final Traits traits = Traits.of(StructrTraits.FILE);
+
+		for (final String name : Set.of(IS_TEMPLATE_PROPERTY, TRUSTED_PROPERTY)) {
+
+			final PropertyKey<Boolean> key = traits.key(name);
+
+			// on creation there is no queue to ask, so the value itself decides
+			final boolean touched = modificationQueue == null
+				? Boolean.TRUE.equals(graphObject.getProperty(key))
+				: modificationQueue.isPropertyModified(graphObject, key);
+
+			if (touched) {
+
+				throw new FrameworkException(403, "Only an admin may set " + name + " on a file.");
+			}
+		}
+	}
+
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
@@ -105,6 +141,8 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final File thisFile  = graphObject.as(File.class);
 					final Principal user = securityContext.getUser(false);
+
+					assertPrivilegedFlags(graphObject, securityContext, null);
 
 					if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent() && user != null && !user.isAdmin()) {
 
@@ -122,6 +160,8 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					final File thisFile = graphObject.as(File.class);
+
+					assertPrivilegedFlags(graphObject, securityContext, modificationQueue);
 
 					synchronized (thisFile) {
 
@@ -378,6 +418,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> extractedContentProperty         = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
 		final Property<Boolean> isFileProperty                  = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
 		final Property<Boolean> isTemplateProperty              = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly().description("When checked, the content of this file is evaluated as a script and the resulting content is returned.");
+		final Property<Boolean> trustedProperty                 = new BooleanProperty(TRUSTED_PROPERTY).readOnly().defaultValue(false).description("Set by the upload servlet when an admin uploads the file interactively. A trusted file is delivered as its content type says, an untrusted one is sandboxed, because only the content of an untrusted file can be an attacker's.");
 		final Property<Integer> cacheForSecondsProperty         = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 		final Property<Integer> versionProperty                 = new IntProperty(VERSION_PROPERTY).indexed();
 		final Property<String> md5Property                      = new StringProperty(MD5_PROPERTY).description("MD5 checksum of the file's content (optional, see below).");
@@ -398,6 +439,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			extractedContentProperty,
 			isFileProperty,
 			isTemplateProperty,
+			trustedProperty,
 			cacheForSecondsProperty,
 			versionProperty,
 			md5Property,
@@ -427,7 +469,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			newSet(
 					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY,
 					DONT_CACHE_PROPERTY, CONTENT_TYPE_PROPERTY, CHECKSUM_PROPERTY,
-					CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, MD5_PROPERTY
+					CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, MD5_PROPERTY, TRUSTED_PROPERTY
 			)
 		);
 	}
