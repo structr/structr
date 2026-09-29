@@ -138,14 +138,15 @@ public class SecurityContext {
 
 	private SecurityContext(final HttpServletRequest request) {
 
-		this.internalRequest = request;
+		// a SecurityContext can outlive the exchange of its request, see ExchangeBoundRequest
+		this.internalRequest = ExchangeBoundRequest.bind(request);
 
-		if (request != null) {
+		if (internalRequest != null) {
 
-			initializeRequestInfos(request);
-			initializeCustomView(request);
-			initializeQueryRanges(request);
-			initializeHttpParameters(request);
+			initializeRequestInfos(internalRequest);
+			initializeCustomView(internalRequest);
+			initializeQueryRanges(internalRequest);
+			initializeHttpParameters(internalRequest);
 		}
 
 		// request can be null
@@ -706,13 +707,13 @@ public class SecurityContext {
 		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
-	public void setRequest(HttpServletRequest request) {
+	public void setRequest(final HttpServletRequest request) {
 
-		this.internalRequest = request;
+		this.internalRequest = ExchangeBoundRequest.bind(request);
 
-		if (request != null) {
+		if (internalRequest != null) {
 
-			initializeRequestInfos(request);
+			initializeRequestInfos(internalRequest);
 		}
 	}
 

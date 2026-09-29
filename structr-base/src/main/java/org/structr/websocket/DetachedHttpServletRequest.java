@@ -63,6 +63,9 @@ import java.util.Map;
  * actually reads into this immutable-ish snapshot at upgrade time, while the source request is
  * still valid.
  *
+ * {@link org.structr.common.ExchangeBoundRequest} uses the same snapshot to answer for any HTTP
+ * request that is read after its exchange has completed.
+ *
  * Request-scoped I/O (body, async, session mutation) is intentionally not supported — the source
  * request no longer exists once this snapshot is in use.
  */
@@ -428,13 +431,13 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	@Override
 	public AsyncContext startAsync() throws IllegalStateException {
 
-		throw new IllegalStateException("Async is not supported on a detached WebSocket request.");
+		throw new IllegalStateException("Async is not supported on a detached request.");
 	}
 
 	@Override
 	public AsyncContext startAsync(final ServletRequest servletRequest, final ServletResponse servletResponse) throws IllegalStateException {
 
-		throw new IllegalStateException("Async is not supported on a detached WebSocket request.");
+		throw new IllegalStateException("Async is not supported on a detached request.");
 	}
 
 	@Override
@@ -452,7 +455,7 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	@Override
 	public AsyncContext getAsyncContext() {
 
-		throw new IllegalStateException("Async is not supported on a detached WebSocket request.");
+		throw new IllegalStateException("Async is not supported on a detached request.");
 	}
 
 	@Override
@@ -628,7 +631,7 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	@Override
 	public String changeSessionId() {
 
-		throw new IllegalStateException("No session associated with a detached WebSocket request.");
+		throw new IllegalStateException("No session associated with a detached request.");
 	}
 
 	@Override
@@ -678,6 +681,6 @@ public class DetachedHttpServletRequest implements HttpServletRequest {
 	@Override
 	public <T extends HttpUpgradeHandler> T upgrade(final Class<T> aClass) {
 
-		throw new UnsupportedOperationException("upgrade() is not supported on a detached WebSocket request.");
+		throw new UnsupportedOperationException("upgrade() is not supported on a detached request.");
 	}
 }
