@@ -37,6 +37,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -177,7 +178,15 @@ public class StructrFileSystemView implements FileSystemView {
 
 			if ("..".equals(requestedPath) || "../".equals(requestedPath)) {
 
-				return new StructrFtpFolder(securityContext, cur.getStructrFile().getParent().as(Folder.class));
+				final AbstractFile current = cur.getStructrFile();
+
+				// the root has no node, and a top-level folder has no parent node
+				if (current == null || current.getParent() == null) {
+
+					return new StructrFtpFolder(securityContext, null);
+				}
+
+				return new StructrFtpFolder(securityContext, current.getParent());
 			}
 
 			// If relative path requested, prepend base path

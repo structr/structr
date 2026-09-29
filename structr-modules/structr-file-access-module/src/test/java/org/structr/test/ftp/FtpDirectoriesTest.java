@@ -425,4 +425,53 @@ public class FtpDirectoriesTest extends FtpTest {
 		}
 	}
 
+	@Test
+	public void test09CdUpToRoot() {
+
+		FTPClient ftp = setupFTPClient("ftpuser1");
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			assertEmptyDirectory(ftp);
+
+			String name1 = "/FTPdir1";
+
+			// Create folder by mkdir FTP command
+			ftp.makeDirectory(name1);
+
+			ftp.changeWorkingDirectory(name1);
+
+			String newWorkingDirectory = ftp.printWorkingDirectory();
+			assertEquals(name1, newWorkingDirectory);
+
+			// CDUP from a folder whose parent is the root
+			assertTrue(ftp.changeToParentDirectory());
+
+			newWorkingDirectory = ftp.printWorkingDirectory();
+			assertEquals("/", newWorkingDirectory);
+
+			// CWD .. from a folder whose parent is the root
+			ftp.changeWorkingDirectory(name1);
+			assertTrue(ftp.changeWorkingDirectory(".."));
+
+			newWorkingDirectory = ftp.printWorkingDirectory();
+			assertEquals("/", newWorkingDirectory);
+
+			// CDUP at the root stays at the root
+			assertTrue(ftp.changeToParentDirectory());
+
+			newWorkingDirectory = ftp.printWorkingDirectory();
+			assertEquals("/", newWorkingDirectory);
+
+			ftp.disconnect();
+
+			tx.success();
+
+		} catch (IOException | FrameworkException ex) {
+
+			logger.error("Error while changing FTP directories", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
 }
