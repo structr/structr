@@ -174,20 +174,20 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 			return true;
 		}
 
-		if (value instanceof SearchFunctionPredicate) {
+		if (value instanceof SearchFunctionPredicate predicate) {
 
 			// allow predicate to modify query
-			((SearchFunctionPredicate)value).configureQuery(securityContext, type, key, query, exact);
+			predicate.configureQuery(securityContext, type, key, query, exact);
 
 			return true;
 		}
 
-		if (value instanceof SearchParameter) {
+		if (value instanceof SearchParameter param) {
 
 			// default for simple search predicates is AND
 			final AndPredicate and = new AndPredicate();
 
-			and.addParameter((SearchParameter)value);
+			and.addParameter(param);
 			and.configureQuery(securityContext, type, null, query, exact);
 
 			return true;

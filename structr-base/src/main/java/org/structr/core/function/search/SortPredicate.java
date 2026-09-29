@@ -40,6 +40,11 @@ public class SortPredicate extends AbstractPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
+		if (!type.hasKey(sortKeyName)) {
+
+			throw new FrameworkException(422, "Unknown sort key '" + sortKeyName + "', returning null");
+		}
+
 		query.sort(type.key(sortKeyName), sortDescending);
 	}
 }
