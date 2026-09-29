@@ -5074,7 +5074,7 @@ let _Pages = {
 				let tabName = _Pages.search.getTabForKey(key, result);
 
 				if (tabName === 'editor' || tabName === 'repeater') {
-					_Editors.highlightTextInNextEditor(searchData.queryString);
+					_Editors.highlightTextInNextEditor(searchData.searchString);
 				}
 
 				let matchingTabUrlHash = '#pages:' + tabName;

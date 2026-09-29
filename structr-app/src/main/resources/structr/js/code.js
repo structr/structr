@@ -3469,7 +3469,7 @@ let _Code = {
 
 				if (result.type === 'SchemaMethod' && key === 'source') {
 
-					_Editors.highlightTextInNextEditor(searchData.queryString);
+					_Editors.highlightTextInNextEditor(searchData.searchString);
 				}
 
 				_Code.search.prepareTabForNodeAndKey(node, key);
