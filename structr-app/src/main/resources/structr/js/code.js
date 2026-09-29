@@ -300,7 +300,7 @@ let _Code = {
 						break;
 
 					case 'datasources':
-						Command.query('DataSource', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {}, result => {
+						Command.query('DataSource', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { '!type': 'Folder' }, result => {
 							let sources = result.filter(s => s.type !== 'SchemaNode' && s.type !== 'Folder');
 							_Code.tree.displayFunction(sources, data);
 						}, true, 'ui');
