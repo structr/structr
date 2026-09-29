@@ -616,7 +616,9 @@ public class HttpService implements RunnableService, StatsCallback {
 			// Enable https redirect handler
 			if (forceHttps) {
 
-				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
+				final int redirectCode = Settings.ForceHttpsPermanent.getValue(false) ? HttpStatus.MOVED_PERMANENTLY_301 : HttpStatus.MOVED_TEMPORARILY_302;
+
+				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler(redirectCode);
 				securedHandler.setHandler(rewriteHandler);
 				server.setHandler(securedHandler);
 			}
