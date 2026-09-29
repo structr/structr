@@ -579,7 +579,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								logger.warn("", ioex);
 							}
 
-							this.stats.recordStatsValue("html", rootElement.getName(), System.currentTimeMillis() - t0);
+							// an element addressed by uuid, which is what a partial reload asks for, has no name
+							final String statsName = rootElement.getName() != null ? rootElement.getName() : "unknown";
+
+							this.stats.recordStatsValue("html", statsName, System.currentTimeMillis() - t0);
 						}
 					}
 				}
