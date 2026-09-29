@@ -330,7 +330,9 @@ public class DataImportModeTest extends StructrUiTest {
 			final Path nodes = archive.resolve("data").resolve("nodes");
 
 			Files.createDirectories(nodes);
-			Files.writeString(archive.resolve("deployment.conf"), "structr-version = 7.0-SNAPSHOT\n");
+			// no structr-version: the version check is not what this test is about, and an archive without
+			// one is accepted by any running version, including one that cannot determine its own
+			Files.writeString(archive.resolve("deployment.conf"), "");
 			Files.writeString(nodes.resolve("User.json"), "[]");
 			Files.writeString(nodes.resolve(TYPE + ".json"), "[]");
 
