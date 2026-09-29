@@ -1194,7 +1194,7 @@ let _Schema = {
 						</ul>
 
 						(You can disable this message in the UI settings)
-					`).requiresConfirmation().show();
+					`).uniqueClass("query-performance-risk").requiresConfirmation().show();
 				}
 			}
 		},
