@@ -29,7 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
-import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.common.LogThrottle;
 import org.structr.core.auth.HashHelper;
@@ -192,22 +191,30 @@ public class AuthHelper {
 
 			try {
 
-				final QueryGroup<NodeInterface> lookup = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or();
+				/* One query per key, and not one OR query over all of them: a key adds the label of its
+				   declaring type to the MATCH, and labels are ANDed, so a key from a subtype (Member.memberID)
+				   restricted the whole lookup to that type and nobody else was found by name. Looking up per key
+				   is harmless for ticket 1544, because the password is still checked once, below. */
+				final List<PropertyKey<String>> lookupKeys = new LinkedList<>();
 
-				lookup.key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), value);
+				lookupKeys.add(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 				for (final PropertyKey<String> key : keys) {
 
 					if (!NodeInterfaceTraitDefinition.NAME_PROPERTY.equals(key.jsonName())) {
 
-						lookup.key(key, value);
+						lookupKeys.add(key);
 					}
 				}
 
-				final NodeInterface node = lookup.disableSorting().getFirst();
-				if (node != null) {
+				for (final PropertyKey<String> key : lookupKeys) {
 
-					principal = node.as(Principal.class);
+					final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(key, value).disableSorting().getFirst();
+					if (node != null) {
+
+						principal = node.as(Principal.class);
+						break;
+					}
 				}
 
 			} catch (FrameworkException fex) {

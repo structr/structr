@@ -110,6 +110,36 @@ public class FailedLoginAttemptsTest extends StructrUiTest {
 		}
 	}
 
+	/**
+	 * A key declared on a subtype must not restrict the lookup to that subtype. Every key adds the label
+	 * of its declaring type to the query, and labels are ANDed, so a single OR query over name, eMail
+	 * and Member.memberId only ever found Members: a plain User could no longer log in by name at all.
+	 */
+	@Test
+	public void testAKeyFromASubtypeDoesNotLockOutOtherUsers() {
+
+		final String memberNodeId = createEntityAsSuperUser("/SchemaNode", "{ name: \"Member\", inheritedTraits: [\"User\"] }");
+		createEntityAsSuperUser("/SchemaProperty", "{ name: \"memberId\", propertyType: \"String\", schemaNode: \"" + memberNodeId + "\" }");
+		assertEventually("the subtype and its key must be compiled", () -> Traits.exists("Member") && Traits.of("Member").hasKey("memberId"));
+
+		Settings.AuthenticationPropertyKeys.setValue("Member.memberId");
+
+		try {
+
+			// a plain User, found by name
+			createUserAndAllowLogin();
+			loginWith(USER, PASSWORD, 200);
+
+			// a Member, found by the key its own type declares
+			createEntityAsSuperUser("/Member", "{ 'name': 'alice', 'memberId': 'M-1001', 'password': '" + PASSWORD + "' }");
+			loginWith("M-1001", PASSWORD, 200);
+
+		} finally {
+
+			Settings.AuthenticationPropertyKeys.setValue(Settings.AuthenticationPropertyKeys.getDefaultValue());
+		}
+	}
+
 	// ----- private methods -----
 	private void createUserAndAllowLogin() {
 
@@ -126,6 +156,18 @@ public class FailedLoginAttemptsTest extends StructrUiTest {
 				.body("{ 'name': '" + USER + "', 'password': 'not-the-password' }")
 			.expect()
 				.statusCode(401)
+			.when()
+				.post("/login");
+	}
+
+	private void loginWith(final String name, final String password, final int expectedStatus) {
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ 'name': '" + name + "', 'password': '" + password + "' }")
+			.expect()
+				.statusCode(expectedStatus)
 			.when()
 				.post("/login");
 	}
