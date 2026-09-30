@@ -221,7 +221,7 @@ li.highlight-name > a {
 
 
 [data-is-scratchpad] textarea[data-is-log] {
-	resize: none;
+	resize: vertical;
 	font-family: var(--font-monospace) ! important;
 	font-size: .9rem;
 	line-height: 1rem;
