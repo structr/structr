@@ -84,13 +84,20 @@ public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements 
 	@Override
 	public Object run(final ActionContext actionContext) throws FrameworkException {
 
-		MDC.put(MDC_SCRATCHPAD_TAG, getScratchpadLogString());
+		try {
 
-		// wrap in graphobject so we can yield null values (would otherwise return as [])
-		final GraphObjectMap result = new GraphObjectMap();
-		result.setProperty(new GenericProperty("result"), Scripting.evaluate(actionContext, null, "${" + getSource().trim() + "}", "scratchpad"));
+			MDC.put(MDC_SCRATCHPAD_TAG, getScratchpadLogString());
 
-		return result;
+			// wrap in graphobject so we can yield null values (would otherwise return as [])
+			final GraphObjectMap result = new GraphObjectMap();
+			result.setProperty(new GenericProperty("result"), Scripting.evaluate(actionContext, null, "${" + getSource().trim() + "}", "scratchpad"));
+
+			return result;
+
+		} finally {
+
+			MDC.remove(MDC_SCRATCHPAD_TAG);
+		}
 	}
 
 	public String getServerLog() {
