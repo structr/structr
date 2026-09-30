@@ -836,7 +836,7 @@ let Structr = {
 					Please change the password now, and set '<b>initialuser.password</b>' before provisioning further instances.
 				`;
 
-				new WarningMessage().text(defaultCredentialsWarningText).requiresConfirmation().show();
+				new WarningMessage().text(defaultCredentialsWarningText).uniqueClass('default-admin-credentials-warning').requiresConfirmation().show();
 			}
 
 			let deploymentActive = (envInfo.isDeploymentActive ?? false);
