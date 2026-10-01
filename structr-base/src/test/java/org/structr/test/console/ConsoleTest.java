@@ -18,10 +18,13 @@
  */
 package org.structr.test.console;
 
+import org.structr.api.DatabaseFeature;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
+import org.structr.core.Services;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
@@ -53,6 +56,48 @@ public class ConsoleTest extends StructrUiTest {
 
 			fail("Unexpected exception.");
 			fex.printStackTrace();
+		}
+	}
+
+	@Test
+	public void testCypherMode() {
+
+		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try {
+
+			final Console console = new Console(securityContext, ConsoleMode.Cypher, Collections.emptyMap());
+
+			final String nodes = console.runForTest("MATCH (n:Group:" + randomTenantId + ") RETURN n ORDER BY n.name");
+
+			assertTrue("Invalid console execution result: " + nodes, nodes.startsWith("Query returned 2 objects in "));
+			assertTrue("Invalid console execution result: " + nodes, nodes.contains("\"name\": \"group1\""));
+			assertTrue("Invalid console execution result: " + nodes, nodes.contains("\"name\": \"group2\""));
+
+			final String values = console.runForTest("MATCH (n:Group:" + randomTenantId + ") RETURN n.name AS name ORDER BY name");
+
+			assertTrue("Invalid console execution result: " + values, values.startsWith("Query returned 2 objects in "));
+			assertTrue("Invalid console execution result: " + values, values.contains("\"name\": \"group1\""));
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 

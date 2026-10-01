@@ -85,11 +85,11 @@ public class NativeQueryCommand extends NodeServiceCommand {
 			if (runInNewTransaction) {
 
 				// Run query in isolated tx
-				final Transaction tx = graphDb.beginTx(true);
+				try (final Transaction tx = graphDb.beginTx(true)) {
 
-				result = graphDb.execute(nativeQuery, tx);
-				tx.success();
-				tx.close();
+					result = graphDb.execute(nativeQuery, tx);
+					tx.success();
+				}
 
 			} else {
 
