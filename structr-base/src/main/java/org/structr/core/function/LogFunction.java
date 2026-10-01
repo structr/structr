@@ -84,11 +84,18 @@ public class LogFunction extends CoreFunction {
 						buf.append(".").append(functionName).append("()]: ");
 					}
 
-				} else if (caller instanceof NodeInterface node && node.is(StructrTraits.DOM_NODE)) {
+				} else if (caller instanceof NodeInterface node) {
 
 					// Test this after functionInfo because otherwise log output generated from the console logs the ShadowDocument
 
-					buf.append("[").append(Scripting.formatForLogging(caller)).append("]: ");
+					if (node.is(StructrTraits.DOM_NODE)) {
+
+						buf.append("[").append(Scripting.formatForLogging(caller)).append("]: ");
+
+					} else if (node.is(StructrTraits.FILE)) {
+
+						buf.append("[").append(node.getName()).append("]: ");
+					}
 				}
 			}
 
