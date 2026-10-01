@@ -51,6 +51,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
 
@@ -805,6 +807,130 @@ public class CypherTest extends StructrTest {
 				fail("Unexpected exception.");
 			}
 
+		}
+	}
+
+	@Test
+	public void testCypherInNewTransaction() {
+
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
+			final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<String> idKey   = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface one = createTestNode("TestOne", new NodeAttribute<>(nameKey, "one"));
+				final NodeInterface six = createTestNode("TestSix", new NodeAttribute<>(nameKey, "six"));
+
+				one.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), List.of(six));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final NativeQueryCommand nodes = app.command(NativeQueryCommand.class);
+				nodes.setRunInNewTransaction(true);
+
+				final List<GraphObject> nodeResult = Iterables.toList(nodes.execute("MATCH (n:TestOne:" + randomTenantId + ") RETURN n"));
+
+				assertEquals("Invalid result count for isolated node query", 1, nodeResult.size());
+				assertEquals("Invalid node in isolated query result", "one", nodeResult.get(0).getProperty(nameKey));
+
+				// the same node, looked up in the enclosing transaction after the isolated one has closed
+				final NodeInterface one = app.getNodeById("TestOne", nodeResult.get(0).getProperty(idKey));
+
+				assertEquals("Node from enclosing transaction not readable after isolated query", "one", one.getName());
+
+				final NativeQueryCommand values = app.command(NativeQueryCommand.class);
+				values.setRunInNewTransaction(true);
+
+				final List<GraphObject> valueResult = Iterables.toList(values.execute("MATCH (n:TestOne:" + randomTenantId + ") RETURN n.name AS name"));
+
+				assertEquals("Invalid result count for isolated value query", 1, valueResult.size());
+				assertEquals("Invalid value in isolated query result", "one", valueResult.get(0).getProperty(new GenericProperty<>("name")));
+
+				final NativeQueryCommand paths = app.command(NativeQueryCommand.class);
+				paths.setRunInNewTransaction(true);
+
+				final List pathResult = Iterables.toList(paths.execute("MATCH p = (n:TestOne:" + randomTenantId + ")-[r]-(m:TestSix:" + randomTenantId + ") RETURN p"));
+
+				assertEquals("Invalid isolated path query result", "[[\"TestOne\",\"MANY_TO_MANY\",\"TestSix\"]]", new GsonBuilder().create().toJson(resolve(pathResult)));
+
+				final List<GraphObject> scriptResult = Iterables.toList((Iterable)Scripting.evaluate(new ActionContext(securityContext), null, "${cypher('MATCH (n:TestSix:" + randomTenantId + ") RETURN n', {}, true)}", "test"));
+
+				assertEquals("Invalid result count for isolated cypher() call", 1, scriptResult.size());
+				assertEquals("Invalid node in isolated cypher() result", "six", scriptResult.get(0).getProperty(nameKey));
+
+				final NativeQueryCommand delete = app.command(NativeQueryCommand.class);
+				delete.setRunInNewTransaction(true);
+
+				Iterables.toList(delete.execute("MATCH (n:TestSix:" + randomTenantId + ") DETACH DELETE n RETURN n"));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Node deleted in isolated query still exists", 0, app.nodeQuery("TestSix").getAsList().size());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+		}
+	}
+
+	@Test
+	public void testCypherWriteWithoutReadingResult() {
+
+		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
+			try (final Tx tx = app.tx()) {
+
+				app.command(NativeQueryCommand.class).execute("CREATE (n:TestOne:" + randomTenantId + " { name: 'current' })");
+
+				final NativeQueryCommand isolated = app.command(NativeQueryCommand.class);
+				isolated.setRunInNewTransaction(true);
+				isolated.execute("CREATE (n:TestOne:" + randomTenantId + " { name: 'isolated' })");
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final List<GraphObject> result = Iterables.toList(app.command(NativeQueryCommand.class).execute("MATCH (n:TestOne:" + randomTenantId + ") RETURN n.name AS name ORDER BY name"));
+
+				assertEquals("Write query whose result was not read did not run", 2, result.size());
+				assertEquals("Write query whose result was not read did not run", "current",  result.get(0).getProperty(new GenericProperty<>("name")));
+				assertEquals("Write query whose result was not read did not run", "isolated", result.get(1).getProperty(new GenericProperty<>("name")));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
 		}
 	}
 

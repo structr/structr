@@ -204,6 +204,12 @@ public class EmbeddedTransaction implements Transaction<String> {
 		final Map<String, Object> map = query.getParameters();
 		final Result result            = tx.execute(statement, map);
 
+		// the caller reads the rows in its own transaction, possibly after this one has closed
+		if (db.getCurrentTransaction(false) != this) {
+
+			return new DetachedResult(db, result);
+		}
+
 		return Iterables.map(new RecordMapMapper(db), toIterable(result));
 	}
 
@@ -293,6 +299,30 @@ public class EmbeddedTransaction implements Transaction<String> {
 		}
 
 		return null;
+	}
+
+	boolean nodeExists(final String id) {
+
+		try {
+
+			return tx.getNodeByElementId(id) != null;
+
+		} catch (org.neo4j.graphdb.NotFoundException nfe) {
+
+			return false;
+		}
+	}
+
+	boolean relationshipExists(final String id) {
+
+		try {
+
+			return tx.getRelationshipByElementId(id) != null;
+
+		} catch (org.neo4j.graphdb.NotFoundException nfe) {
+
+			return false;
+		}
 	}
 
 	public RelationshipWrapper getRelationshipWrapper(final String id) {
