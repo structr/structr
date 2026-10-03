@@ -87,7 +87,8 @@ public class Importer {
 	private static final Pattern CSS_URL    = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
 	private static final Pattern CSS_IMPORT = Pattern.compile("(@import\\s*([\"']|url\\('|url\\(\"))([^\"']*)");
 
-	private static final Pattern TABLE_FRAGMENT = Pattern.compile("^\\\\s*<(thead|tbody|caption|colgroup|th|tr|tfoot).*", Pattern.CASE_INSENSITIVE);
+	// DOTALL because a fragment rarely fits on one line, and td because a cell is a table fragment too
+	private static final Pattern TABLE_FRAGMENT = Pattern.compile("^\\s*<(thead|tbody|caption|colgroup|th|td|tr|tfoot)\\b.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
 	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList("link"));
 	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList("#declaration", "#doctype"));
@@ -235,24 +236,18 @@ public class Importer {
 					final Matcher matcher = TABLE_FRAGMENT.matcher(code);
 					if (matcher.matches()) {
 
-						// if outermost tag is a table element so use <table> as context element
-						parsedDocument      = Document.createShell("");
-						final Element body  = parsedDocument.body();
-						final Element table = body.appendElement("table");
-						final List<Node> nodeList = Parser.parseFragment(code, table, "");
-						final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
+						// lowercase, because Widget compares it with the lowercased node type
+						tableChildElement = matcher.group(1).toLowerCase();
 
-						for (int i = nodes.length - 1; i > 0; i--) {
+						// parsed in its own parent's context, so the result is the fragment itself and not wrapped or flattened
+						parsedDocument           = Document.createShell("");
+						final Element body       = parsedDocument.body();
+						final List<Node> nodes   = Parser.parseFragment(code, new Element(tableContextFor(tableChildElement)), "");
 
-							nodes[i].remove();
+						for (final Node node : nodes.toArray(new Node[0])) {
+
+							body.appendChild(node);
 						}
-
-						for (Node node : nodes) {
-
-							table.appendChild(node);
-						}
-
-						tableChildElement = matcher.group(1);
 
 					} else {
 
@@ -425,6 +420,20 @@ public class Importer {
 	public Map<DOMNode, PropertyMap> getDeferredNodesAndTheirProperties() {
 
 		return this.deferredNodesAndTheirProperties;
+	}
+
+	/**
+	 * The element a table fragment's outermost element is a child of: cells live in a row, a row in a
+	 * table body, and the remaining table parts in the table itself.
+	 */
+	static String tableContextFor(final String tag) {
+
+		return switch (tag) {
+
+			case "td", "th" -> "tr";
+			case "tr"       -> "tbody";
+			default         -> "table";
+		};
 	}
 
 	public String getTableChildElement() {
