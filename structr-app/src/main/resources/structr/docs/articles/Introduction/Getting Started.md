@@ -36,7 +36,7 @@ The quickest way to start is with a free Structr Sandbox, a cloud-hosted server 
 
 #### How to get started
 
-1. Visit [https://structr.com/try-structr/](https://structr.com/try-structr/)
+1. Visit [https://structr.cloud/](https://structr.cloud/)
 2. Sign up for a free sandbox
 3. Access your personal Structr instance via the provided URL
 4. Sign in with the credentials sent to your email

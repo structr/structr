@@ -1679,10 +1679,6 @@ body[style*=zoom] .non-block-ui-blocker-content {
 	-o-transition: color 0.1s 0.1s;
 }
 
-#controls {
-	float: right;
-}
-
 .infoBox {
 	position: absolute;
 	min-width: 240px;
