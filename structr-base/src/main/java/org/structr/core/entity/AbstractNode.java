@@ -138,13 +138,14 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	@Override
 	public String getName() {
 
-		String _name = getProperty(typeHandler.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+		// the name property can be overridden with a property that returns a non-string value
+		final Object _name = getProperty(typeHandler.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 		if (_name == null) {
 
-			_name = getUuid();
+			return getUuid();
 		}
 
-		return _name;
+		return _name.toString();
 	}
 
 	@Override

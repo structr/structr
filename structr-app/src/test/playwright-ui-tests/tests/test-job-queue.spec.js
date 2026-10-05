@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import {test} from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import * as fs from "node:fs";
@@ -109,9 +109,12 @@ test('job-queue', async ({page}, testInfo) => {
 	await page.getByText('import-file.csv').first().click({button: 'right'});
 	await page.getByText('General').first().waitFor({state: 'visible'});
 	await page.getByText('General').first().click();
-	await page.keyboard.press('Tab');
-	await page.keyboard.type('text/csv');
-	await page.keyboard.press('Enter');
+
+	// the dialog fills its inputs, registers their change handlers and sets the focus only after loading, so
+	// wait for that and address the input directly instead of tabbing, which can land in the header
+	await expect(page.locator('#name-input')).toHaveValue('import-file.csv');
+	await page.locator('#content-type-input').fill('text/csv');
+	await page.locator('#content-type-input').press('Enter');
 
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/importer_set-content-type.png'});
