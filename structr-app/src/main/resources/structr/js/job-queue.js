@@ -368,7 +368,7 @@ let _JobQueue = {
 
 						if (typeInfo.length > 0) {
 
-							_JobQueue.customTypesOnly = !typeInfo[0].isBuiltinType;
+							_JobQueue.customTypesOnly = !typeInfo[0].isBuiltin;
 
 						} else {
 
@@ -382,9 +382,18 @@ let _JobQueue = {
 						mixedMappingConfig.mappedTypes = config.mixedMappingConfig;
 					}
 
-					$('input[name=import-type][value=' + config.targetType + ']').prop('checked', 'checked').trigger('change');
+					// the change handler rebuilds the type selector, which applies the custom types filter set above
+					$('input[name=import-type][value=' + importType + ']').prop('checked', true).trigger('change');
 
-					$('#target-type-select').val(config.targetType).trigger('change', [config]);
+					// a mixed import has no single target type, its mappings come from mixedMappingConfig
+					if (importType !== 'graph') {
+
+						// the rebuild re-populates the type selector once more when updateSchemaTypeCache() resolves, which
+						// clears its value, so the target type must be set after that (callbacks of resolved promises run in order)
+						_JobQueue.updateSchemaTypeCache().then(() => {
+							$('#target-type-select').val(config.targetType).trigger('change', [config]);
+						});
+					}
 				}
 			});
 		});
