@@ -110,9 +110,6 @@ let _Icons = {
 	iconScriptWrapped:           'curly-braces-wrap-js',
 	iconRecentlyUsed:            'folder_clock',
 	iconScratchpad:              'scratchpad',
-	iconDeploymentConfigScripts: 'plane-package',
-	iconPreDeployConf:           'plane-take-off',
-	iconPostDeployConf:          'plane-land',
 
 	iconFlowSymbol:              'circle-empty',
 

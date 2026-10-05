@@ -266,33 +266,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		if (segments.length > 0) {
 
-			if (segments.length == 3) {
-
-				// parent exists
-				final List<Concept> parents = ontology.getConceptsByName(segments[0]);
-				if (!parents.isEmpty()) {
-
-					for (final Concept parent : parents) {
-
-						for (final Link link : parent.getChildLinks(Verb.Has)) {
-
-							if (segments[1].equals(link.getTarget().getName())) {
-
-								final Concept intermediate = link.getTarget();
-
-								for (final Link subLink : intermediate.getChildLinks(Verb.Has)) {
-
-									if (segments[2].equals(subLink.getTarget().getName())) {
-
-										links.add(subLink);
-									}
-								}
-							}
-						}
-					}
-				}
-
-			} else if (segments.length == 2) {
+			if (segments.length == 2) {
 
 				// parent exists
 				final List<Concept> parents = ontology.getConceptsByName(segments[0]);

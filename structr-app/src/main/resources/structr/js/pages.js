@@ -642,13 +642,6 @@ let _Pages = {
 		if (!pxLeft && !pxRight) {
 			pxLeft  = LSWrapper.getItem(_Pages.getLeftResizerKey())  || _Pages.leftTabMinWidth;
 			pxRight = LSWrapper.getItem(_Pages.getRightResizerKey()) || _Pages.rightTabMinWidth;
-
-			if (pxLeft < _Pages.leftTabMinWidth) {
-				pxLeft = _Pages.leftTabMinWidth;
-			}
-			if (pxRight < _Pages.rightTabMinWidth) {
-				pxRight = _Pages.rightTabMinWidth;
-			}
 		}
 
 		let leftResizer       = document.querySelector('.column-resizer-left');
@@ -4564,6 +4557,8 @@ let _Pages = {
 					targetEl.insertAdjacentHTML('afterbegin', html);
 				}
 			}
+
+
 		},
 		toggleHoverDocumentation: (container) => {
 
