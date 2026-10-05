@@ -128,6 +128,8 @@ Files can be configured to evaluate their content as a template, similar to a Te
 
 The text editor in the Files area has a "Show Preview" checkbox that displays a preview of the rendered output with template expressions evaluated.
 
+> **Note:** When `isTemplate` is enabled to generate dynamic file content, you should usually also enable `dontCache` (shown as "Caching disabled" in the General tab of the file properties dialog).
+
 ### Image Processing
 
 When images are uploaded, Structr automatically extracts metadata and can create variants.
