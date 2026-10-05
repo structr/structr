@@ -1583,7 +1583,7 @@ body[style*=zoom] .non-block-ui-blocker-content {
 	color: var(--gray-555);
 }
 
-#files-main h1, #images h1, #code-main h1, #flows-main h1 {
+#files-main h1, #images h1, #flows-main h1 {
 	color: var(--gray-333);
 	font-weight: bold;
 	margin: 8px 0;
@@ -2629,7 +2629,7 @@ input.tree-search-input {
 	box-shadow: 0px 0px 6px var(--gray-opacity-10);
 }
 
-#folder-contents h1, #code-contents h1, #contents-contents h1, #flows-canvas h1 {
+#folder-contents h1, #contents-contents h1, #flows-canvas h1 {
 	margin: 0px;
 }
 
@@ -5485,3 +5485,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
     90% { transform: rotate(3deg); }
 }
 /* END shake animation for notification bell */
+
+/* BEGIN */
+[data-structr-embedded-documentation-container] .article {
+	padding-left: 5%;
+	padding-right: 5%;
+}
+/* END */

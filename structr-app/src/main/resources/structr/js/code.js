@@ -205,6 +205,7 @@ let _Code = {
 							path:    path + '/processes'
 						},
 					},
+					_Code.mainArea.deploymentConfigurationScripts.getTreeEntry(path),
 					{
 						id:      '/root',
 						text:    'Types',
@@ -330,6 +331,10 @@ let _Code = {
 							_Helpers.sort(list, 'text');
 							data.callback(list);
 						}, true, 'ui');
+						break;
+
+					case 'deploy-configs':
+						data.callback(_Code.mainArea.deploymentConfigurationScripts.getTreeChildren(path));
 						break;
 
 					case 'bpmnDefinitionMethods':
@@ -885,6 +890,19 @@ let _Code = {
 
 					case 'inherited':
 						_Code.tree.findAndOpenNode(data.path, true);
+						break;
+
+					case 'deploy-configs':
+						// no overview UI -> redirect to first child
+						_Code.tree.findAndOpenNode(data.path + '/pre-deploy-conf', false);
+						break;
+
+					case 'pre-deploy-conf':
+						_Code.mainArea.deploymentConfigurationScripts.editDeploymentConfigurationScript(data);
+						break;
+
+					case 'post-deploy-conf':
+						_Code.mainArea.deploymentConfigurationScripts.editDeploymentConfigurationScript(data);
 						break;
 
 					default:
@@ -2968,6 +2986,214 @@ let _Code = {
 				`,
 			}
 		},
+		deploymentConfigurationScripts: {
+			getTreeEntry: (path) => {
+				return {
+					id:       path + '/deploy-configs',
+					text:     'Deployment Configuration Scripts',
+					children: true,
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': 'deploy-configs' },
+					data: {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconDeploymentConfigScripts, 18, 24),
+						key:     'deploy-configs',
+						content: 'deploy-configs',
+						path:    path + '/deploy-configs'
+					},
+				}
+			},
+			getTreeChildren: (path) => {
+				return [
+					{
+						id:       path + '/pre-deploy-conf',
+						text:     'Pre-Deployment Script',
+						children: false,
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'pre-deploy-conf' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconPreDeployConf, 18, 24),
+							key:     'pre-deploy-conf',
+							content: 'pre-deploy-conf',
+							path:    path + '/pre-deploy-conf'
+						},
+					},
+					{
+						id:       path + '/post-deploy-conf',
+						text:     'Post-Deployment Script',
+						children: false,
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'post-deploy-conf' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconPostDeployConf, 18, 24),
+							key:     'post-deploy-conf',
+							content: 'post-deploy-conf',
+							path:    path + '/post-deploy-conf'
+						},
+					}
+				]
+			},
+			editDeploymentConfigurationScript: async (data) => {
+
+				let scriptType = data.content;
+
+				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+
+				let scripts = await Command.queryPromise('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: scriptType }, true, null, null);
+
+				_Code.codeContents.append(_Code.mainArea.deploymentConfigurationScripts.templates.main('Deployment Configuration Script ' + _Code.mainArea.deploymentConfigurationScripts.templates.scriptNames[scriptType]));
+
+				_Code.mainArea.deploymentConfigurationScripts.appendDocumentation(_Code.codeContents[0]).then(/*ignore*/);
+
+				if (scripts.length === 0) {
+
+					_Code.mainArea.helpers.displaySvgActionButton('#deploy-config-script-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Create', () => {
+
+						// create node of type
+						Command.createApplicationConfigurationDataNode(scriptType, scriptType, _Code.mainArea.deploymentConfigurationScripts.templates.initialScript[scriptType], () => {
+
+							_Code.mainArea.deploymentConfigurationScripts.editDeploymentConfigurationScript(data);
+						});
+					});
+
+				} else {
+
+					let entity = scripts[0];
+
+					let container = _Code.codeContents[0].querySelector('#deployment-config-script-container');
+
+					container.insertAdjacentHTML('beforeend', _Code.mainArea.deploymentConfigurationScripts.templates.scriptEditor({ scriptType }));
+
+					_Helpers.activateCommentsInElement(container);
+
+					let config = {
+						language: 'auto',
+						lint: true,
+						autocomplete: true,
+						changeFn: (editor, entity) => {
+							_Code.persistence.updateDirtyFlag(entity);
+						},
+						isAutoscriptEnv: true
+					};
+
+					_Editors.getMonacoEditor(entity, 'content', _Code.codeContents[0].querySelector('#deployment-config-script-editor'), config);
+
+					_Code.persistence.runCurrentEntitySaveAction = () => {
+
+						_Code.persistence.saveEntityAction(entity, (success) => {
+
+						});
+					};
+
+					let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#deploy-config-script-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
+
+					let cancelButton = _Code.mainArea.helpers.displaySvgActionButton('#deploy-config-script-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+						_Code.additionalDirtyChecks = [];
+						_Editors.disposeEditorModel(entity.id, 'content');
+						_Code.mainArea.deploymentConfigurationScripts.editDeploymentConfigurationScript(data);
+					});
+
+					// delete button
+					_Code.mainArea.helpers.displaySvgActionButton('#deploy-config-script-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete', () => {
+						_Code.persistence.deleteSchemaEntityAndLoadPath(entity, `Delete deployment config script?`, 'Delete deployment config script?', data.path);
+					});
+
+					_Helpers.disableElements(true, saveButton, cancelButton);
+
+					document.querySelector('#code-contents .tabs-content-container')?.addEventListener('bulk-data-change', (e) => {
+
+						e.stopPropagation();
+
+						let isDirty     = _Code.persistence.isDirty();
+						_Helpers.disableElements(!isDirty, saveButton, cancelButton);
+
+						_Code.persistence.tellFirstElementToShowDirtyState(isDirty);
+					});
+				}
+			},
+			documentation: undefined,
+			appendDocumentation: async (container) => {
+
+				let targetEl = container.querySelector('[data-structr-deployment-scripts-help-container]');
+
+				if (_Code.mainArea.deploymentConfigurationScripts.documentation) {
+
+					targetEl.insertAdjacentHTML('afterbegin', _Code.mainArea.deploymentConfigurationScripts.documentation);
+
+				} else {
+
+					let res = await fetch(`${Structr.docsUrl}ontology/Application%20Lifecycle/Application%20Deployment/Pre-%20and%20Post-Deploy%20Scripts`);
+
+					if (res.ok) {
+
+						let html = await res.text();
+						_Code.mainArea.deploymentConfigurationScripts.documentation = html;
+						targetEl.insertAdjacentHTML('afterbegin', html);
+					}
+				}
+			},
+			templates: {
+				main: (title) => `
+					<div>
+						<h2>${title}</h2>
+						<div id="method-buttons">
+							<div class="flex flex-wrap gap-x-4">
+								<div>
+									<div id="deploy-config-script-actions" class="flex items-start"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+						
+					<div id="deployment-config-script-container">
+					</div>
+					
+					<div class="inline-info">
+						<div class="inline-info-icon">
+							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+						</div>
+						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;" data-structr-embedded-documentation-container data-structr-deployment-scripts-help-container>
+						</div>
+					</div>
+				`,
+				scriptEditor: config => `
+					<div>
+						<label class="block mt-8 mb-2 font-bold" data-comment="${_Code.mainArea.deploymentConfigurationScripts.templates.tooltips[config.scriptType]}">${_Code.mainArea.deploymentConfigurationScripts.templates.scriptNames[config.scriptType]}</label>
+						<div class="editor w-full h-80" id="deployment-config-script-editor" data-property="content"></div>
+					</div>
+				`,
+				info: config => ``,
+				scriptNames: {
+					'pre-deploy-conf': 'pre-deploy.conf',
+					'post-deploy-conf': 'post-deploy.conf'
+				},
+				tooltips: {
+					'pre-deploy-conf': 'This script is run at the start of a deployment import process',
+					'post-deploy-conf': 'This script is run at the end of a deployment import process',
+				},
+				initialScript: {
+					'pre-deploy-conf':
+						'{\n' +
+						'	// During the application deployment import process, this file is treated as a script and executed *before* any other actions take place.\n' +
+						'	//\n' +
+						'	// Important: because this script runs before the application schema is imported, it operates on the existing (current) schema.\n' +
+						'	//\n' +
+						'	// Its purpose is to ensure that all required users and groups are present before the application import occurs.\n' +
+						'	// All operations in this script should be **idempotent** — meaning they can be safely run multiple times without causing unintended side effects.\n' +
+						'	// For example, prefer using methods like \`get_or_create\` rather than \`create\` to avoid duplicate entries.\n' +
+						'	//\n' +
+						'	// For more information, please refer to the documentation.\n' +
+						'}'
+					,
+					'post-deploy-conf':
+						'{\n' +
+						'	// During the application deployment import process, this file is treated as a script and executed *after* all other operations have finished.\n' +
+						'	//\n' +
+						'	// For more information, please refer to the documentation.\n' +
+						'}'
+				}
+
+			}
+		}
 	},
 	helpers: {
 		getAttributesToFetchForErrorObject: () => 'id,type,name,content,isStatic,ownerDocument,schemaNode',
@@ -3146,6 +3372,10 @@ let _Code = {
 
 			let parent = parts.join('/');
 
+			_Code.persistence.deleteSchemaEntityAndLoadPath(entity, title, text, parent);
+		},
+		deleteSchemaEntityAndLoadPath: (entity, title, text, pathToReloadTo) => {
+
 			_Dialogs.confirmation.showPromise(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
 
 				if (confirm === true) {
@@ -3154,7 +3384,7 @@ let _Code = {
 
 					Command.deleteNode(entity.id, false, () => {
 						_Code.persistence.forceNotDirty();
-						_Code.tree.findAndOpenNode(parent, false);
+						_Code.tree.findAndOpenNode(pathToReloadTo, false);
 						_Code.tree.refreshTree();
 					});
 				}
