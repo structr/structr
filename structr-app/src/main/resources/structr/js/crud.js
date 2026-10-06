@@ -3232,15 +3232,23 @@ let _Crud = {
 		crudCreateSuccess: async (type, newNodeId) => {
 
 			let properties = _Crud.helpers.getPropertiesForTypeAndCurrentView(type);
+			let fetchPropertiesSet = new Set(_Crud.objectList.filterKeys(type, Object.keys(properties)));
+
+			// to always show the correct ACL symbol, we require the visibility flags
+			fetchPropertiesSet.add('visibleToPublicUsers');
+			fetchPropertiesSet.add('visibleToAuthenticatedUsers');
 
 			let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
-				headers: _Helpers.getHeadersForCustomView(_Crud.objectList.filterKeys(type, Object.keys(properties)))
+				headers: _Helpers.getHeadersForCustomView([...fetchPropertiesSet])
 			});
 
 			if (newNodeResponse.ok) {
 
 				let newNodeResult = await newNodeResponse.json();
 				let newNode       = newNodeResult.result;
+
+				StructrModel.create(newNode);
+
 				_Crud.objectList.appendRow(type, properties, newNode);
 
 				_Helpers.blinkGreen(_Crud.objectList.getRow(newNode.id));
