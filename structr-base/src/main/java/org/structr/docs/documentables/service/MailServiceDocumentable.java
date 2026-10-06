@@ -40,13 +40,17 @@ public class MailServiceDocumentable extends AbstractServiceDocumentable {
 	@Override
 	public String getShortDescription() {
 
-		return "A service that queries mailboxes and stores the emails in the database.";
+		return "A service that fetches mailboxes on request and stores the emails in the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
 
 		return """
+		The MailService does not fetch anything by itself. A mailbox is fetched when `fetchMails()` is called on it, and the fetch runs in the background. To fetch mail on a schedule, register a method that calls `fetchMails()` with the CronService.
+
+		Every fetch is logged at info level, together with a short status of the service: fetches running and queued, and counts of requested, succeeded and failed fetches since the service started.
+
 		### Types
 		`Mailbox`, `EMailMessage`
 		""";
@@ -56,9 +60,11 @@ public class MailServiceDocumentable extends AbstractServiceDocumentable {
 	public List<Setting> getSettings() {
 
 		return List.of(
-			new Setting("mail.maxemails",          "Maximum number of (new) emails that are fetched and created in one go"),
-			new Setting("mail.updateinterval",     "Update interval in milliseconds"),
-			new Setting("mail.attachmentbasepath", "path in Structr's virtual filesystem where attachments are downloaded to")
+			new Setting("mail.maxemails",            "Maximum number of (new) emails that are fetched and created in one go"),
+			new Setting("mail.attachmentbasepath",   "path in Structr's virtual filesystem where attachments are downloaded to"),
+			new Setting("mail.connecttimeout",       "How long to wait for a mail server to accept a connection, in milliseconds"),
+			new Setting("mail.readtimeout",          "How long to wait for a mail server to answer once connected, in milliseconds"),
+			new Setting("mail.maxconcurrentfetches", "How many mailboxes are fetched at the same time")
 		);
 	}
 

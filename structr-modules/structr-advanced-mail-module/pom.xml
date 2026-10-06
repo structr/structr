@@ -36,6 +36,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<!-- an in-process IMAP/POP3/SMTP server for the fetch tests, nothing leaves the test JVM -->
+			<groupId>com.icegreen</groupId>
+			<artifactId>greenmail</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<optional>true</optional>

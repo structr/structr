@@ -38,8 +38,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 
-				.body("result", hasSize(22))
-				.body("result_count", equalTo(22))
+				.body("result", hasSize(27))
+				.body("result_count", equalTo(27))
 				.body("result[19].format", equalTo("imaps, pop3"))
 
 			.when()
