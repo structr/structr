@@ -43,6 +43,13 @@
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
+			<exclusions>
+				<!-- its mailcap claims multipart/signed for jakarta.mail, which the javax.mail stack of the mail module cannot load -->
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcjmail-jdk18on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
