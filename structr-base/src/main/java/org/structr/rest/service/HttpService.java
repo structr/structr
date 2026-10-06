@@ -77,6 +77,8 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -126,6 +128,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	private final Map<String, Map<String, Stats>> stats = new ConcurrentHashMap<>();
+	private ScheduledExecutorService statsSnapshots      = null;
 	private ResourceHandler exportedResourceHandler     = null;
 	private SslContextFactory.Server sslContextFactory  = null;
 	private DefaultSessionCache sessionCache            = null;
@@ -153,6 +156,8 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), Services.getGlobalSessionTimeout(), requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
+
+		startStatsSnapshots();
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		Exception exception = null;
@@ -207,6 +212,8 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	@Override
 	public void stopService() {
+
+		stopStatsSnapshots();
 
 		if (server != null) {
 
@@ -1033,6 +1040,8 @@ public class HttpService implements RunnableService, StatsCallback {
 	@Override
 	public void shutdown() {
 
+		stopStatsSnapshots();
+
 		if (server != null) {
 
 			try {
@@ -1087,6 +1096,37 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		return map;
+	}
+
+	// the access statistics outlive a restart: restored before the first request, saved every five minutes and on stop
+	private synchronized void startStatsSnapshots() {
+
+		if (statsSnapshots != null) {
+
+			return;
+		}
+
+		HttpStatsSnapshot.load(stats);
+
+		statsSnapshots = Executors.newSingleThreadScheduledExecutor(runnable -> {
+
+			final Thread thread = new Thread(runnable, "HttpStatsSnapshot");
+			thread.setDaemon(true);
+			return thread;
+		});
+
+		statsSnapshots.scheduleWithFixedDelay(() -> HttpStatsSnapshot.save(stats), 5, 5, TimeUnit.MINUTES);
+	}
+
+	private synchronized void stopStatsSnapshots() {
+
+		if (statsSnapshots != null) {
+
+			statsSnapshots.shutdownNow();
+			statsSnapshots = null;
+
+			HttpStatsSnapshot.save(stats);
+		}
 	}
 
 	// ----- interface StatsCallback -----

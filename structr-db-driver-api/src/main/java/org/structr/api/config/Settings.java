@@ -161,6 +161,7 @@ public class Settings {
 
 	// stats
 	public static final Setting<Integer> HttpStatsAggregationInterval  = new IntegerSetting(generalGroup,            "Logging",     "application.stats.aggregation.interval", 60_000,"Minimum aggregation interval for HTTP request stats.");
+	public static final Setting<Integer> HttpStatsRetentionDays     = new IntegerSetting(generalGroup,            "Logging",     "application.stats.retention.days",      30,    "How many days of HTTP access statistics are kept. They are saved to logs/http-access-statistics.json in the base path, so they survive a restart; to keep them when moving the instance to another server, copy the logs directory along with it.");
 
 	public static final Setting<String> BasePath                       = new StringSetting(generalGroup,             "Paths",       "base.path",                             ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                        = new StringSetting(generalGroup,             "Paths",       "tmp.path",                              System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");

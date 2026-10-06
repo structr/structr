@@ -14,6 +14,7 @@ The Structr directory contains several important subdirectories and files:
 - `files/` – Uploaded files, images, documents (binary content)
 - `structr.conf` – Server settings, credentials, customizations
 - `scripts/` – Host scripts registered for execution
+- `logs/` – Server log and the saved HTTP access statistics (`http-access-statistics.json`). Not needed to restore the application, but without it the access history on the dashboard starts empty after a restore or a move to another server.
 - SSL certificates and keystores
 - Other runtime configuration
 

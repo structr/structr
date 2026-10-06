@@ -61,7 +61,13 @@ For each endpoint (HTML pages and REST API), Structr tracks:
 - Maximum response time
 - Average response time
 
-Statistics are aggregated per time interval to keep memory usage bounded while still providing useful historical data.
+Statistics are grouped into buckets of the aggregation interval and kept for `application.stats.retention.days` days, which keeps memory usage bounded.
+
+### Retention Across Restarts
+
+Structr saves the statistics to `logs/http-access-statistics.json` in its base path every five minutes and when it stops, and restores them at startup, so they survive a restart. A crash loses at most the last five minutes.
+
+The statistics describe the load on this server rather than your application, so they are not stored in the database and are not part of a deployment export. To keep them when you move the instance to another server, copy the `logs/` directory along with it, and include `logs/` in your backups if the history matters to you. Without the file, Structr starts with empty statistics. If you change `application.stats.aggregation.interval`, the saved statistics are discarded at the next start, because buckets of different sizes cannot be combined.
 
 ### Viewing Statistics
 
@@ -77,6 +83,7 @@ Configure these settings in `structr.conf` or through the Configuration Interfac
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `application.stats.aggregation.interval` | 60000 | Aggregation interval in milliseconds. Statistics are grouped into buckets of this size. |
+| `application.stats.retention.days` | 30 | How many days of statistics are kept, in memory and in `logs/http-access-statistics.json`. |
 
 ## Health Check Endpoint
 
