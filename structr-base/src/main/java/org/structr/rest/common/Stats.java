@@ -71,6 +71,43 @@ public class Stats {
 		count++;
 	}
 
+	/**
+	 * A copy of the time buckets, oldest first: start of the bucket to number of requests.
+	 */
+	public Map<Long, Long> buckets() {
+
+		synchronized (values) {
+
+			return new LinkedHashMap<>(values);
+		}
+	}
+
+	/**
+	 * Adds buckets saved before a restart. Called before any new request is counted, so the buckets
+	 * stay in time order, which aggregate() relies on.
+	 */
+	public void restore(final Map<Long, Long> saved) {
+
+		synchronized (values) {
+
+			for (final Map.Entry<Long, Long> entry : new TreeMap<>(saved).entrySet()) {
+
+				values.merge(entry.getKey(), entry.getValue(), Long::sum);
+			}
+		}
+	}
+
+	/**
+	 * Removes the buckets that started before the given time, so the statistics do not grow for as long as the instance runs.
+	 */
+	public void prune(final long cutoff) {
+
+		synchronized (values) {
+
+			values.keySet().removeIf(start -> start < cutoff);
+		}
+	}
+
 	public long getCount() {
 
 		return count;
