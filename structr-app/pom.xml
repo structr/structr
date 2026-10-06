@@ -189,6 +189,31 @@
 							</rules>
 						</configuration>
 					</execution>
+					<execution>
+						<id>align-bouncycastle</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<bannedDependencies>
+									<excludes>
+										<exclude>org.bouncycastle:*-jdk15on</exclude>
+										<exclude>org.bouncycastle:*-jdk15to18</exclude>
+										<exclude>org.bouncycastle:*-jdk14</exclude>
+										<exclude>org.bouncycastle:bc-fips</exclude>
+										<exclude>org.bouncycastle:bcpkix-fips</exclude>
+									</excludes>
+									<message>Another BouncyCastle flavour carries the same packages as the jdk18on jars: on the module path that is a split package and Structr does not start, on the class path the first copy wins. Exclude it where it comes in.</message>
+								</bannedDependencies>
+								<requireSameVersions>
+									<dependencies>
+										<dependency>org.bouncycastle:*</dependency>
+									</dependencies>
+								</requireSameVersions>
+							</rules>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
