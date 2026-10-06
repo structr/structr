@@ -569,6 +569,13 @@ let _Code = {
 							break;
 						}
 
+						case 'ApplicationConfigurationDataNode': {
+
+							list.push(_Code.mainArea.deploymentConfigurationScripts.getTreeChildForKey(path, entity.name));
+
+							break;
+						}
+
 						default: {
 
 							let name = entity.name || '[unnamed]';
@@ -723,22 +730,8 @@ let _Code = {
 		},
 		loadSearchResults: (data) => {
 
-			let text          = $('#tree-search-input').val();
-			let searchResults = {};
-			let count         = 0;
-			let collectFunction = (result) => {
-
-				// remove duplicates
-				for (let r of result) {
-					searchResults[r.id] = r;
-				}
-
-				// only show results after all 6 searches are finished (to prevent duplicates)
-				if (++count === 6) {
-
-					_Code.tree.displayFunction(Object.values(searchResults), data, false, true);
-				}
-			};
+			let text           = $('#tree-search-input').val();
+			let searchPromises = [];
 
 			let parts = text.split('.');
 
@@ -746,12 +739,9 @@ let _Code = {
 
 				let handleExactSchemaNodeSearch = (result) => {
 
-					if (result.length === 0) {
-						// because we will not find methods/properties if no schema node was found via exact search
-						count += 2;
-					}
+					let transformed = [];
 
-					collectFunction(result);
+					transformed.concat(result);
 
 					for (let schemaNode of result) {
 						// should yield at max one hit because we are using exact search
@@ -768,7 +758,7 @@ let _Code = {
 								matchingMethods.push(method);
 							}
 						}
-						collectFunction(matchingMethods);
+						transformed.concat(matchingMethods);
 
 						let matchingProperties = [];
 						for (let property of schemaNode.schemaProperties) {
@@ -781,24 +771,44 @@ let _Code = {
 								matchingProperties.push(property);
 							}
 						}
-						collectFunction(matchingProperties);
+						transformed.concat(matchingProperties);
 					}
 				};
 
-				Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: parts[0] }, handleExactSchemaNodeSearch, true);
+				Command.queryPromise('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: parts[0] }, true).then(data => {
+					return handleExactSchemaNodeSearch(data);
+				});
 
 			} else {
 
-				Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
-				Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
-				Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
+				searchPromises.push(Command.queryPromise('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, false));
+				searchPromises.push(Command.queryPromise('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, false));
+				searchPromises.push(Command.queryPromise('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, false));
 			}
 
 			// text search always happens
-			Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { source: text}, collectFunction, false);
-			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { writeFunction: text}, collectFunction, false);
-			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
+			searchPromises.push(Command.queryPromise('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { source: text}, false));
+			searchPromises.push(Command.queryPromise('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { writeFunction: text}, false));
+			searchPromises.push(Command.queryPromise('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { readFunction: text}, false));
 
+			searchPromises.push(Command.queryPromise('ApplicationConfigurationDataNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { content: text }, false).then(deployConfigScripts => {
+				return deployConfigScripts.filter(acdn => (acdn.configType === 'pre-deploy-conf' || acdn.configType === 'post-deploy-conf'));
+			}));
+
+			Promise.all(searchPromises).then(searchResults => {
+
+				let searchResultMap = {};
+
+				for (let searchResult of searchResults) {
+
+					// remove duplicates
+					for (let r of searchResult) {
+						searchResultMap[r.id] = r;
+					}
+				}
+
+				_Code.tree.displayFunction(Object.values(searchResultMap), data, false, true);
+			});
 		},
 		hasVisibleChildren: (id, entity) => {
 
@@ -3002,34 +3012,25 @@ let _Code = {
 					},
 				}
 			},
+			getTreeChildForKey: (path, key) => {
+				return {
+					id:       path + '/' + key,
+					text:     _Code.mainArea.deploymentConfigurationScripts.templates.treeNames[key],
+					children: false,
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': key },
+					data: {
+						svgIcon: _Icons.getSvgIcon(_Icons[_Code.mainArea.deploymentConfigurationScripts.templates.icons[key]], 18, 24),
+						key:     key,
+						content: key,
+						path:    path + '/' + key
+					},
+				}
+			},
 			getTreeChildren: (path) => {
 				return [
-					{
-						id:       path + '/pre-deploy-conf',
-						text:     'Pre-Deployment Script',
-						children: false,
-						icon:     _Icons.nonExistentEmptyIcon,
-						li_attr:  { 'data-id': 'pre-deploy-conf' },
-						data: {
-							svgIcon: _Icons.getSvgIcon(_Icons.iconPreDeployConf, 18, 24),
-							key:     'pre-deploy-conf',
-							content: 'pre-deploy-conf',
-							path:    path + '/pre-deploy-conf'
-						},
-					},
-					{
-						id:       path + '/post-deploy-conf',
-						text:     'Post-Deployment Script',
-						children: false,
-						icon:     _Icons.nonExistentEmptyIcon,
-						li_attr:  { 'data-id': 'post-deploy-conf' },
-						data: {
-							svgIcon: _Icons.getSvgIcon(_Icons.iconPostDeployConf, 18, 24),
-							key:     'post-deploy-conf',
-							content: 'post-deploy-conf',
-							path:    path + '/post-deploy-conf'
-						},
-					}
+					_Code.mainArea.deploymentConfigurationScripts.getTreeChildForKey(path, 'pre-deploy-conf'),
+					_Code.mainArea.deploymentConfigurationScripts.getTreeChildForKey(path, 'post-deploy-conf')
 				]
 			},
 			editDeploymentConfigurationScript: async (data) => {
@@ -3154,7 +3155,14 @@ let _Code = {
 						<div class="editor w-full h-80" id="deployment-config-script-editor" data-property="content"></div>
 					</div>
 				`,
-				info: config => ``,
+				icons: {
+					'pre-deploy-conf': 'iconPreDeployConf',
+					'post-deploy-conf': 'iconPostDeployConf'
+				},
+				treeNames: {
+					'pre-deploy-conf': 'Pre-Deployment Script',
+					'post-deploy-conf': 'Post-Deployment Script'
+				},
 				scriptNames: {
 					'pre-deploy-conf': 'pre-deploy.conf',
 					'post-deploy-conf': 'post-deploy.conf'
