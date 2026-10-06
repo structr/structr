@@ -99,8 +99,8 @@ public class ImportReportTest extends DeploymentTestBase {
 
 			assertNotNull("the report accounts for the deployment config scripts", scripts);
 
-			// the export writes a post-deploy.conf of its own, so both are accounted for
-			assertEquals("both config scripts should be accounted for: " + scripts, 2, scripts.size());
+			// the export does not write a template post-deploy.conf - only our provided pre-deploy.conf is available
+			assertEquals("both config scripts should be accounted for: " + scripts, 1, scripts.size());
 
 			final Map<String, Object> script = scripts.stream()
 				.filter(entry -> "pre-deploy.conf".equals(entry.get("file")))
