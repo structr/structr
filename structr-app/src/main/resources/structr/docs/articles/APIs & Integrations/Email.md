@@ -1,5 +1,5 @@
 
-Structr provides email functionality for both sending and receiving messages. You can send simple emails with a single function call, compose complex messages with attachments and custom headers, and automatically fetch incoming mail from IMAP or POP3 mailboxes.
+Structr provides email functionality for both sending and receiving messages. You can send simple emails with a single function call, compose complex messages with attachments and custom headers, and fetch incoming mail from IMAP or POP3 mailboxes, on request or on a schedule.
 
 ## Quick Start
 
@@ -294,7 +294,7 @@ This also applies to Structr's built-in mail templates for password reset and re
 
 ## Receiving Emails
 
-Structr can automatically fetch emails from IMAP or POP3 mailboxes and store them as `EMailMessage` objects in the database. The MailService runs in the background and periodically checks all configured mailboxes.
+Structr can fetch emails from IMAP or POP3 mailboxes and store them as `EMailMessage` objects in the database. A mailbox is fetched when you call `fetchMails()` on it; the MailService never fetches on its own. To receive mail regularly, call `fetchMails()` from a scheduled task, as shown in [Fetching on a Schedule](#fetching-on-a-schedule).
 
 ### MailService Configuration
 
@@ -302,9 +302,11 @@ Configure the MailService in the Configuration Interface:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `mail.maxemails` | 25 | Maximum number of emails to fetch per mailbox per check |
-| `mail.updateinterval` | 30000 | Interval between checks in milliseconds (default: 30 seconds) |
+| `mail.maxemails` | 25 | Maximum number of emails to fetch per mailbox per fetch. With IMAP, a larger backlog is fetched over several runs. |
 | `mail.attachmentbasepath` | /mail/attachments | Base path for storing email attachments |
+| `mail.connecttimeout` | 30000 | How long to wait for a mail server to accept a connection, in milliseconds |
+| `mail.readtimeout` | 60000 | How long to wait for a mail server to answer once connected, in milliseconds |
+| `mail.maxconcurrentfetches` | 4 | How many mailboxes are fetched at the same time. Mailboxes on one server all connect from your Structr host, and a server that sees too many connections at once may stop answering. Changes need a restart of the MailService. |
 
 ### Creating a Mailbox
 
@@ -334,15 +336,35 @@ $.create('Mailbox', {
 
 ### How Mail Fetching Works
 
-The MailService automatically:
+When `fetchMails()` is called on a mailbox, the MailService:
 
-1. Connects to each configured mailbox at the configured interval
-2. Fetches messages from the specified folders (newest first)
+1. Queues the fetch and returns immediately; the fetch itself runs in the background
+2. Connects to the mailbox and reads the messages that arrived since the last fetch, oldest first and at most `mail.maxemails` of them. The first fetch of a mailbox takes the newest `mail.maxemails`, so a mailbox full of history is not imported. With POP3, which has no stable message IDs, every fetch reads the newest `mail.maxemails`.
 3. Checks for duplicates using the Message-ID header
 4. Creates `EMailMessage` objects for new messages
 5. Extracts and stores attachments as File objects
 
-Duplicate detection first tries to match by `messageId`. If no Message-ID header exists, it falls back to matching by subject, from, to, and dates.
+Duplicate detection first tries to match by `messageId`. If no Message-ID header exists, it falls back to matching by subject, from, to, and dates. Duplicates are looked for in the same mailbox only: a mail sent to two of your mailboxes is stored once for each. Every message is stored in a transaction of its own, so one that fails costs only itself.
+
+A fetch requested while the previous fetch of the same mailbox is still running is not started. A message that cannot be read or stored is skipped, logged and reported on the mailbox, and the rest of the folder is still fetched; a skipped message is not fetched again. If the connection drops during a fetch, the next fetch resumes where it stopped.
+
+### Fetch Status
+
+Each mailbox records the outcome of its fetches, so a mailbox that stopped receiving mail is visible in the Admin UI:
+
+| Property | Description |
+|----------|-------------|
+| `lastFetchStarted` | When the last fetch started |
+| `lastFetchSucceeded` | When a fetch last completed without an error |
+| `lastFetchError` | What went wrong in the last fetch, empty if it succeeded |
+| `lastFetchCount` | How many new messages the last fetch stored |
+| `fetchState` | Per IMAP folder, the highest message UID fetched so far. Clear it to make the next fetch start over from the newest messages; the duplicate check keeps messages that are already stored from being stored again. |
+
+Every fetch is logged at info level twice, when it is requested and when it ends, each time with a short status of the MailService: fetches running and queued, how long the oldest has been running, and how many fetches were requested, succeeded or failed since the service started, together with the last error. For example:
+
+```
+Fetch of mailbox [a1b2c3...] succeeded after 840 ms, 2 new message(s) | running 1 of 4, queued 0, oldest 0 s; since start: 12 requested, 0 not started (already running), 11 succeeded, 0 could not connect, 0 failed, 18 messages created, 0 skipped
+```
 
 ### EMailMessage Properties
 
@@ -381,14 +403,34 @@ for (let folder of folders) {
 }
 ```
 
-### Manual Mail Fetching
+### Fetching Mail
 
-While the MailService fetches automatically, you can trigger an immediate fetch:
+Call `fetchMails()` on a mailbox to fetch it. The call returns immediately and the fetch runs in the background:
 
 ```javascript
 let mailbox = $.first($.find('Mailbox', 'name', 'Support Inbox'));
 mailbox.fetchMails();
 ```
+
+### Fetching on a Schedule
+
+Structr does not fetch mailboxes automatically. To receive mail regularly, create a user-defined function that fetches the mailboxes you need and register it with the CronService. This function fetches all of them:
+
+```javascript
+// user-defined function fetchAllMailboxes
+for (let mailbox of $.find('Mailbox')) {
+    mailbox.fetchMails();
+}
+```
+
+Then register it in `structr.conf`; this cron expression runs it every five minutes:
+
+```
+CronService.tasks = fetchAllMailboxes
+fetchAllMailboxes.cronExpression = 0 */5 * * * *
+```
+
+Choose the interval by how quickly you need incoming mail, and by how many mailboxes share a server: at most `mail.maxconcurrentfetches` of them are fetched at the same time, and the rest wait in a queue. A fetch requested while the previous one is still running is skipped, so a short interval cannot pile up connections. See [Scheduled Tasks](/structr/docs/ontology/Building%20Applications/Scheduled%20Tasks) for the cron syntax.
 
 ### Custom Email Types
 
@@ -448,8 +490,8 @@ Attachments are linked to their email via the `attachedFiles` property.
 
 - Set a reasonable `mail.maxemails` value to avoid overwhelming the system
 - Use `overrideMailEntityType` to add custom processing logic
-- Monitor the server log for connection or authentication errors
-- Consider the `mail.updateinterval` based on how quickly you need to process incoming mail
+- Monitor the server log for connection or authentication errors; the status in every fetch log line shows failures at a glance
+- Fetch on a schedule with a cron job, and choose its interval by how quickly you need to process incoming mail
 
 ### Security
 

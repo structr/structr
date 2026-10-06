@@ -87,6 +87,7 @@ public class Settings {
 
 		Map.entry("httpservice.uricompliance", "Replaced by httpservice.uricompliance.allowedviolations, which names the individual violations to accept instead of picking one of Jetty's compliance modes."),
 
+		Map.entry("mail.updateinterval",      "Removed. Mailboxes are no longer fetched automatically: call fetchMails() on a Mailbox, and for a schedule register a method that does so with the CronService."),
 		Map.entry("log.functions.stacktrace", "Replaced by log.functions.shortenstacktrace, with the sense inverted: the stack trace of an exception in a system function is logged either way, and this key decides whether it is shortened to the frames that say something."),
 
 		Map.entry("json.output.dateformat",                 "Removed. A date is written in the format of its own property, falling back to dateproperty.defaultformat, so there is no separate output format for JSON any more."),

@@ -44,6 +44,7 @@ import org.structr.mail.service.MailService;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +62,11 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String MAIL_PROTOCOL_PROPERTY               = "mailProtocol";
 	public static final String PORT_PROPERTY                        = "port";
 	public static final String AVAILABLE_FOLDERS_ON_SERVER_PROPERTY = "availableFoldersOnServer";
+	public static final String LAST_FETCH_STARTED_PROPERTY          = "lastFetchStarted";
+	public static final String LAST_FETCH_SUCCEEDED_PROPERTY        = "lastFetchSucceeded";
+	public static final String LAST_FETCH_ERROR_PROPERTY            = "lastFetchError";
+	public static final String LAST_FETCH_COUNT_PROPERTY            = "lastFetchCount";
+	public static final String FETCH_STATE_PROPERTY                 = "fetchState";
 
 	public MailboxTraitDefinition() {
 
@@ -125,7 +131,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public String getDescription() {
 
-					return "Triggers an immediate fetch of emails from this mailbox, bypassing the regular MailService interval. Creates EMailMessage objects for new messages and extracts attachments.";
+					return "Fetches new emails from this mailbox in the background and returns immediately. This is the only way a mailbox is fetched: for a schedule, call it from a cron job. Creates EMailMessage objects for new messages and extracts attachments.";
 				}
 			}
 		);
@@ -143,6 +149,11 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> mailProtocolProperty             = new EnumProperty(MAIL_PROTOCOL_PROPERTY, Set.of("pop3", "imaps")).indexed().notNull().description("Mail protocol.");
 		final Property<Integer> portProperty                    = new IntProperty(PORT_PROPERTY).indexed().description("Port this mailbox connects to.");
 		final Property<Object> availableFoldersOnServerProperty = new FunctionProperty<>(AVAILABLE_FOLDERS_ON_SERVER_PROPERTY).readFunction("{return Structr.this.getAvailableFoldersOnServer()}");
+		final Property<Date> lastFetchStartedProperty           = new DateProperty(LAST_FETCH_STARTED_PROPERTY).readOnly().description("When the last fetch of this mailbox started.");
+		final Property<Date> lastFetchSucceededProperty         = new DateProperty(LAST_FETCH_SUCCEEDED_PROPERTY).readOnly().description("When a fetch of this mailbox last completed without an error.");
+		final Property<String> lastFetchErrorProperty           = new StringProperty(LAST_FETCH_ERROR_PROPERTY).readOnly().description("What went wrong in the last fetch, empty if it succeeded. A message that could not be read is reported here and skipped.");
+		final Property<Integer> lastFetchCountProperty          = new IntProperty(LAST_FETCH_COUNT_PROPERTY).readOnly().description("How many new messages the last fetch stored.");
+		final Property<String> fetchStateProperty               = new StringProperty(FETCH_STATE_PROPERTY).readOnly().description("Per folder, the UIDVALIDITY and the highest UID fetched so far (IMAP only). Clear it to make the next fetch start over from the newest messages.");
 
 		return newSet(
 			emailsProperty,
@@ -153,7 +164,12 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 			foldersProperty,
 			mailProtocolProperty,
 			portProperty,
-			availableFoldersOnServerProperty
+			availableFoldersOnServerProperty,
+			lastFetchStartedProperty,
+			lastFetchSucceededProperty,
+			lastFetchErrorProperty,
+			lastFetchCountProperty,
+			fetchStateProperty
 		);
 	}
 
@@ -163,7 +179,8 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Ui,
-			newSet(HOST_PROPERTY, USER_PROPERTY, OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY, PASSWORD_PROPERTY, FOLDERS_PROPERTY, MAIL_PROTOCOL_PROPERTY, PORT_PROPERTY, AVAILABLE_FOLDERS_ON_SERVER_PROPERTY)
+			newSet(HOST_PROPERTY, USER_PROPERTY, OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY, PASSWORD_PROPERTY, FOLDERS_PROPERTY, MAIL_PROTOCOL_PROPERTY, PORT_PROPERTY, AVAILABLE_FOLDERS_ON_SERVER_PROPERTY,
+				LAST_FETCH_STARTED_PROPERTY, LAST_FETCH_SUCCEEDED_PROPERTY, LAST_FETCH_ERROR_PROPERTY, LAST_FETCH_COUNT_PROPERTY, FETCH_STATE_PROPERTY)
 		);
 	}
 
