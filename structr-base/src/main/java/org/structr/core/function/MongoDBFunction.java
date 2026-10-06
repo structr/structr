@@ -125,6 +125,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 
+
 		return List.of(
 			Example.javaScript("""
 			{
@@ -138,8 +139,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 				// Query all records with a give property set
 				return collection.find($.bson({ name: 'Test4' }));
-			}
-			""", "Open connection, insert object and retrieve objects with identical name"),
+			}""", "Open connection, insert object and retrieve objects with identical name"),
 			Example.javaScript("""
 			{
 				// Open the connection to mongo and return the testCollection
@@ -147,8 +147,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 				// Query all records with a give property set
 				return collection.find($.bson({ name: { $regex: 'Test[0-9]' } }));
-			}
-			""", "Open connection and find objects with regex name"),
+			}""", "Open connection and find objects with regex name"),
 			Example.javaScript("""
 			{
 				// Open the connection to mongo and return the testCollection
@@ -161,8 +160,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 				}));
 
 				return collection.find($.bson({ date: { $gte: new Date(2018, 1, 1) } }));
-			}
-			""", "Open connection, insert object with date and query all objects with dates greater than equal (gte) that date")
+			}""", "Open connection, insert object with date and query all objects with dates greater than equal (gte) that date")
 		);
 	}
 
