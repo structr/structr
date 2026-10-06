@@ -846,7 +846,6 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 				// in finally, so that no failure, however it ends, leaves the mailbox marked as being fetched or the connection open
 				close(store);
-				processingMailboxes.remove(mailboxUuid);
 
 				final String outcome;
 
@@ -876,6 +875,9 @@ public class MailService implements RunnableService, MailServiceInterface {
 				recordOutcome(completed && connected, outcome);
 
 				logger.info("Fetch of mailbox [{}] {} after {} ms, {} new message(s) | {}", mailboxUuid, outcome, System.currentTimeMillis() - start, created, statusReport());
+
+				// last, so that whoever waits for the fetch to end finds its outcome already recorded on the mailbox
+				processingMailboxes.remove(mailboxUuid);
 			}
 		}
 
