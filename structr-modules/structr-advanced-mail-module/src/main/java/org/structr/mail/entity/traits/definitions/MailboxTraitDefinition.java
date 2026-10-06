@@ -131,7 +131,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public String getDescription() {
 
-					return "Triggers an immediate fetch of emails from this mailbox, bypassing the regular MailService interval. Creates EMailMessage objects for new messages and extracts attachments.";
+					return "Fetches new emails from this mailbox in the background and returns immediately. This is the only way a mailbox is fetched: for a schedule, call it from a cron job. Creates EMailMessage objects for new messages and extracts attachments.";
 				}
 			}
 		);
