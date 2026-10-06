@@ -135,6 +135,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_CONF_FILE_PATH                             = "deployment.conf";
 	private final static String PRE_DEPLOY_CONF_FILE_PATH                             = "pre-deploy.conf";
 	private final static String POST_DEPLOY_CONF_FILE_PATH                            = "post-deploy.conf";
+	private final static String PRE_DEPLOY_CONF_ACDN_TYPE                             = "pre-deploy-conf";
+	private final static String POST_DEPLOY_CONF_ACDN_TYPE                            = "post-deploy-conf";
 	private final static String SCHEMA_GRANTS_FILE_PATH                               = "security/schema-grants.json";
 	private final static String GRANTS_FILE_PATH                                      = "security/grants.json";
 	private final static String CORS_SETTINGS_FILE_PATH                               = "security/cors-settings.json";
@@ -430,9 +432,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importWidgets(widgetsMetadataFile);
 			importLocalizations(localizationsMetadataFile);
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
+
+			// import deployment configuration scripts as ACDNs (AFTER importing the regular ACDNs)
+			importDeploymentConfigurationScripts(preDeployConfFile, postDeployConfFile);
+
 			importSchema(schemaFolder, extendExistingApp);
 			importSchemaGrants(schemaGrantsMetadataFile);
-			importScratchpads(scratchpadsMetadataFile, source);
+			importScratchpads(scratchpadsMetadataFile, scratchpadsFolder);
 
 			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 
@@ -742,36 +748,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path dataAdaptersConf                    = target.resolve(DATA_ADAPTERS_FILE_PATH);
 			final Path scratchpadsConf                     = target.resolve(SCRATCHPADS_FILE_PATH);
 			final Path customRelDataConf                   = target.resolve(CUSTOM_REL_DATA_FILE_PATH);
-			final Path preDeployConf            = target.resolve(PRE_DEPLOY_CONF_FILE_PATH);
-			final Path postDeployConf           = target.resolve(POST_DEPLOY_CONF_FILE_PATH);
-
-			if (!Files.exists(preDeployConf)) {
-
-				writeStringToFile(preDeployConf, """
-				{
-					// This file was auto-generated. You may adapt it to suit your specific needs.
-					// During the application deployment import process, this file is treated as a script and executed *before* any other actions take place.
-					//
-					// Important: because this script runs before the application schema is imported, it operates on the existing (current) schema.
-					//
-					// Its purpose is to ensure that all required users and groups are present before the application import occurs.
-					// All operations in this script should be **idempotent** — meaning they can be safely run multiple times without causing unintended side effects.
-					// For example, prefer using methods like `get_or_create` rather than `create` to avoid duplicate entries.
-					//
-					// For more information, please refer to the documentation.
-				}""");
-			}
-
-			if (!Files.exists(postDeployConf)) {
-
-				writeStringToFile(postDeployConf, """
-				{
-					// This file was auto-generated. You may adapt it to suit your specific needs.
-					// During the application deployment import process, this file is treated as a script and executed *after* all other operations have finished.
-					//
-					// For more information, please refer to the documentation.
-				}""");
-			}
 
 			writeDeploymentConfigurationFile(deploymentConfFile);
 
@@ -834,6 +810,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Application Configuration Data");
 			exportApplicationConfigurationData(applicationConfigurationData);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Deployment Configuration Scripts");
+			exportDeploymentConfigurationScripts(target);
 
 			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 
@@ -2045,7 +2024,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).sort(configTypeKey).getAsList()) {
+			final List<NodeInterface> acdnsWithoutDeploymentScripts = app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE)
+																			  .not().or()
+																			  .key(configTypeKey, PRE_DEPLOY_CONF_ACDN_TYPE)
+																			  .key(configTypeKey, POST_DEPLOY_CONF_ACDN_TYPE)
+																			  .sort(configTypeKey).getAsList();
+
+			for (final NodeInterface node : acdnsWithoutDeploymentScripts) {
 
 				final ApplicationConfigurationDataNode acdn = node.as(ApplicationConfigurationDataNode.class);
 				final Map<String, Object> entry             = new TreeMap<>();
@@ -2074,6 +2059,58 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				return (configType != null ? configType.toString() : "00-configType").concat((name != null ? name.toString() : "00-name")).concat(id.toString());
 			}
 		});
+	}
+
+	private void exportDeploymentConfigurationScripts(final Path target) throws FrameworkException {
+
+		logger.info("Exporting Deployment Configuration Scripts");
+
+		final Traits traits                     = Traits.of(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
+		final App app                           = StructrApp.getInstance();
+		final PropertyKey<String> configTypeKey = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
+		final Path preDeployConf                = target.resolve(PRE_DEPLOY_CONF_FILE_PATH);
+		final Path postDeployConf               = target.resolve(POST_DEPLOY_CONF_FILE_PATH);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface preDeployACDN = app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).key(configTypeKey, PRE_DEPLOY_CONF_ACDN_TYPE).getFirst();
+
+			if (preDeployACDN != null) {
+
+				writeStringToFile(preDeployConf, preDeployACDN.as(ApplicationConfigurationDataNode.class).getContent());
+
+			} else if (Files.exists(preDeployConf) && Files.isRegularFile(preDeployConf)) {
+
+				try {
+
+					Files.delete(preDeployConf);
+
+				} catch (IOException e) {
+
+					logger.warn("Failed to delete pre-deploy configuration file: " + preDeployConf, e);
+				}
+			}
+
+			final NodeInterface postDeployACDN = app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).key(configTypeKey, POST_DEPLOY_CONF_ACDN_TYPE).getFirst();
+
+			if (postDeployACDN != null) {
+
+				writeStringToFile(postDeployConf, postDeployACDN.as(ApplicationConfigurationDataNode.class).getContent());
+
+			} else if (Files.exists(postDeployConf) && Files.isRegularFile(postDeployConf)) {
+
+				try {
+
+					Files.delete(postDeployConf);
+
+				} catch (IOException e) {
+
+					logger.warn("Failed to delete post-deploy configuration file: " + postDeployConf, e);
+				}
+			}
+
+			tx.success();
+		}
 	}
 
 	private void exportLocalizations(final Path target) throws FrameworkException {
@@ -2609,7 +2646,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importScratchpads(final Path scratchpadsMetadataFile, final Path source) throws FrameworkException {
+	private void importScratchpads(final Path scratchpadsMetadataFile, final Path scratchpadsFolder) throws FrameworkException {
 
 		if (Files.exists(scratchpadsMetadataFile)) {
 
@@ -2617,7 +2654,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing scratchpads");
 
 			final List<Map<String, Object>> scratchpadsConf = readConfigList(scratchpadsMetadataFile);
-			final Path scratchpadsFolder = source.resolve(SCRATCHPADS_FOLDER_PATH);
 
 			if (Files.exists(scratchpadsFolder)) {
 
@@ -2865,6 +2901,65 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void importDeploymentConfigurationScripts(final Path preDeployConf, final Path postDeployConf) throws FrameworkException {
+
+		if (Files.exists(preDeployConf) || Files.exists(postDeployConf)) {
+
+			logger.info("Importing deployment configuration scripts");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment configuration scripts");
+
+			final Traits traits                     = Traits.of(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
+			final App app                           = StructrApp.getInstance();
+			final PropertyKey<String> configTypeKey = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
+			final PropertyKey<String> contentKey    = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONTENT_PROPERTY);
+
+			try (final Tx tx = app.tx()) {
+
+				tx.disableChangelog();
+
+				if (Files.exists(preDeployConf)) {
+
+					try {
+
+						app.create(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE,
+								new NodeAttribute<>(configTypeKey, PRE_DEPLOY_CONF_ACDN_TYPE),
+								new NodeAttribute<>(contentKey, Files.readString(preDeployConf).trim())
+						);
+
+					} catch (IOException e) {
+
+						logger.warn("Failed importing deployment configuration script: " + preDeployConf.getFileName(), e);
+						publishWarningMessage("File import failed", "Failed importing deployment configuration script: " + preDeployConf.getFileName());
+					}
+				}
+
+				if (Files.exists(postDeployConf)) {
+
+					try {
+
+						app.create(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE,
+								new NodeAttribute<>(configTypeKey, POST_DEPLOY_CONF_ACDN_TYPE),
+								new NodeAttribute<>(contentKey, Files.readString(postDeployConf).trim())
+						);
+
+					} catch (IOException e) {
+
+						logger.warn("Failed importing deployment configuration script: " + postDeployConf.getFileName(), e);
+						publishWarningMessage("File import failed", "Failed importing deployment configuration script: " + postDeployConf.getFileName());
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				logger.error("Unable to import deployment configuration scripts - aborting with {}", fex.getMessage(), fex);
+
+				throw fex;
+			}
+		}
+	}
+
 	private void importCustomRelationshipData(final Path customRelDataFile) throws FrameworkException {
 
 		if (Files.exists(customRelDataFile)) {
@@ -2904,17 +2999,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								final PropertyKey key = nodeTraits.key(propertyName);
 
-								if (key.isCollection()) {
+								if (key != null) {
 
-									final List<NodeInterface> relatedNodes = new ArrayList<>();
+									if (key.isCollection()) {
 
-									for (final String relatedUuid : (List<String>) propertyValue) {
+										final List<NodeInterface> relatedNodes = new ArrayList<>();
 
+										for (final String relatedUuid : (List<String>) propertyValue) {
+
+											final NodeInterface relatedNode = app.getNodeById(relatedUuid);
+
+											if (relatedNode != null) {
+
+												relatedNodes.add(relatedNode);
+
+											} else {
+
+												logger.warn("Could not find related node with id '{}' for node '{}' and its attribute '{}'", relatedUuid, nodeUuid, propertyName);
+											}
+										}
+
+										node.setProperty(key, relatedNodes);
+
+									} else {
+
+										final String relatedUuid = (String)propertyValue;
 										final NodeInterface relatedNode = app.getNodeById(relatedUuid);
 
 										if (relatedNode != null) {
 
-											relatedNodes.add(relatedNode);
+											node.setProperty(key, relatedNode);
 
 										} else {
 
@@ -2922,23 +3036,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 										}
 									}
 
-									node.setProperty(key, relatedNodes);
-
 								} else {
 
-									final String relatedUuid = (String)propertyValue;
-									final NodeInterface relatedNode = app.getNodeById(relatedUuid);
-
-									if (relatedNode != null) {
-
-										node.setProperty(key, relatedNode);
-
-									} else {
-
-										logger.warn("Could not find related node with id '{}' for node '{}' and its attribute '{}'", relatedUuid, nodeUuid, propertyName);
-									}
+									logger.warn("Could not find attribute key '{}' for node '{}'.", propertyName, nodeUuid);
 								}
 							}
+
+						} else {
+
+							logger.warn("Could not find node '{}' - unable to restore saved custom relationship attributes.", nodeUuid);
 						}
 					}
 

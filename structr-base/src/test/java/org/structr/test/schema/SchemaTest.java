@@ -2045,6 +2045,243 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testOverriddenNamePropertyCanBeRenamedAndDeleted() {
+
+		// Ticket 784: an overridden "name" property ends up in the custom view and can
+		// neither be renamed nor deleted afterwards. Repro from the ticket: a type
+		// with a function property "name" and a second type that inherits from it.
+
+		final Traits schemaNodeTraits     = Traits.of(StructrTraits.SCHEMA_NODE);
+		final Traits schemaPropertyTraits = Traits.of(StructrTraits.SCHEMA_PROPERTY);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface itemType = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item")
+			);
+
+			app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "DerivedItem"),
+				new NodeAttribute<>(schemaNodeTraits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { "Item" })
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "'computed name'"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), itemType)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the schema.");
+		}
+
+		// the override must be in effect on both types
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Function property did not override the name property", "computed name", app.create("Item").getName());
+			assertEquals("Function property did not override the name property", "computed name", app.create("DerivedItem").getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while reading the overridden name property.");
+		}
+
+		// rename the overriding property
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).name("name").getFirst();
+
+			property.setProperty(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "itemName");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Renaming the overridden name property must be possible.");
+		}
+
+		for (final String type : List.of("Item", "DerivedItem")) {
+
+			assertTrue("Renamed property is missing on " + type, Traits.of(type).hasKey("itemName"));
+			assertEquals("Name property of " + type + " is still overridden after rename", StructrTraits.NODE_INTERFACE, Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY).getDeclaringTrait().getLabel());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create("DerivedItem", "derived item");
+
+			assertEquals("Name property is still overridden after rename", "derived item", node.getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while reading the name property after rename.");
+		}
+
+		// delete the renamed property
+		try (final Tx tx = app.tx()) {
+
+			app.delete(app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).name("itemName").getFirst());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Deleting the formerly overridden name property must be possible.");
+		}
+
+		for (final String type : List.of("Item", "DerivedItem")) {
+
+			assertFalse("Deleted property still exists on " + type, Traits.of(type).hasKey("itemName"));
+			assertFalse("Deleted property is still in the custom view of " + type, Traits.of(type).getPropertyKeysForView(PropertyView.Custom).stream().anyMatch(k -> "itemName".equals(k.jsonName())));
+		}
+
+		// and the same without renaming first: delete the overriding "name" property directly
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface itemType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Item").getFirst();
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "'computed name'"),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), itemType)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while re-creating the overriding name property.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.delete(app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).name("name").getFirst());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Deleting the overridden name property must be possible.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Name property is still overridden after deletion", "item", app.create("Item", "item").getName());
+			assertEquals("Name property is still overridden after deletion", "derived item", app.create("DerivedItem", "derived item").getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while reading the name property after deletion.");
+		}
+	}
+
+	@Test
+	public void testNamePropertyOverriddenWithStringArrayIsRejected() {
+
+		// Ticket 876, original repro: changing "name" from String to String[] used to be
+		// accepted and broke every caller of getName() with a ClassCastException.
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.addStringArrayProperty("name");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail("Overriding the name property with a String[] property must not be allowed!");
+
+		} catch (FrameworkException fex) {
+
+			assertTrue("Rejection must name the offending property", fex.getErrorBuffer().getErrorTokens().stream().anyMatch(t -> "cannot_override".equals(t.getToken())));
+		}
+	}
+
+	@Test
+	public void testNamePropertyOverriddenWithNonStringValueDoesNotBreakGetName() {
+
+		// Ticket 876: a function property "name" with type hint "string" passes the override
+		// validation, but the type hint does not convert the result. A read function that
+		// returns an array makes getName() fail with a ClassCastException, which breaks
+		// scripting, page rendering, logging and the UI.
+
+		final String uuid;
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.addFunctionProperty("name").setReadFunction("merge('a', 'b')").setTypeHint("string");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Overriding the name property with a function property with type hint string must be allowed!");
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			uuid = app.create("Item").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the node.");
+
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.getNodeById("Item", uuid);
+
+			assertNotNull("getName() must not fail for a name property that returns a non-string value", node.getName());
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			assertEquals("Reading the name property in JavaScript must work", "a", Scripting.evaluate(ctx, null, "${{ $.find('Item', '" + uuid + "').name[0]; }}", "testNamePropertyWithNonStringValue"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception while reading a name property with a non-string value: " + t.getMessage());
+		}
+	}
+
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 

@@ -141,7 +141,7 @@ public class IsExpression extends Expression {
 		return List.of(
 			"This function is only available in StructrScript.",
 			"This function is often used in HTML attributes, for example to conditionally output CSS classes or other attributes.",
-			"This function is essentially a shortcut for the 'if()` function that only evaluates the trueExpression and does nothing if the condition evaluates to `false`."
+			"This function is essentially a shortcut for the `if()` function that only evaluates the trueExpression and does nothing if the condition evaluates to `false`."
 		);
 	}
 

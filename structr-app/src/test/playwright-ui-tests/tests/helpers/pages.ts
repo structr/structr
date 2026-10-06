@@ -252,7 +252,7 @@ export async function setNodeContent(page: Page, node: Container, content: strin
 
     // wait for monaco to have registered the click and be active
     await page.waitForFunction(() => {
-        const ta = document.querySelector('.monaco-editor textarea.inputarea');
+        const ta = document.querySelector('.monaco-editor .native-edit-context');
         return document.activeElement === ta;
     });
 
@@ -306,15 +306,6 @@ export async function useContextMenu(page: Page, container: Container, level1: s
 
 export async function focusCenterPaneMonacoEditor(page: Page) {
 
-	// const monaco = page.locator('#center-pane .monaco-editor');
-	// await monaco.click();
-	// await monaco.focus();
-    //
-    // // wait for monaco to have registered the click and be active
-    // await page.waitForFunction(() => {
-    //     const ta = document.querySelector('#center-pane .monaco-editor textarea.inputarea');
-    //     return document.activeElement === ta;
-    // });
     await focusMonacoEditorInContainer(page, '#center-pane');
 }
 
@@ -326,7 +317,7 @@ export async function focusMonacoEditorInContainer(page: Page, containerSelector
 
     // wait for monaco to have registered the click and be active
     await page.waitForFunction((selector) => {
-        const ta = document.querySelector(`${selector} .monaco-editor textarea.inputarea`);
+        const ta = document.querySelector(`${selector} .monaco-editor .native-edit-context`);
         return document.activeElement === ta;
     }, containerSelector);
 }

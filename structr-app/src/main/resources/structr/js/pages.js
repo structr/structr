@@ -4757,7 +4757,7 @@ let _Pages = {
 						<div class="inline-info-icon">
 							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 						</div>
-						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;" data-structr-routing-help-container>
+						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;" data-structr-embedded-documentation-container data-structr-routing-help-container>
 						</div>
 					</div>
 				</div>

@@ -150,7 +150,9 @@ You can include scripts that run automatically before or after import.
 
 #### pre-deploy.conf
 
-If a file named `pre-deploy.conf` is present in the application folder being imported, Structr executes it as a script before importing the data. Use this to create users or groups that are referenced in visibility settings of the exported files but may not exist in the target system.
+If a file named `pre-deploy.conf` is present in the application folder being imported, Structr executes it as a script before importing the data. Since it is run before the schema from the deployment has been imported, only the then-existing schema types can be used.
+
+Use this to create users or groups that are referenced in visibility settings of the exported files but may not exist in the target system. All operations in this script should be **idempotent** — meaning they can be safely run multiple times without causing unintended side effects. For example, prefer using methods like `get_or_create` rather than `create` to avoid duplicate entries.
 
 ```javascript
 {
@@ -165,16 +167,15 @@ If a file named `pre-deploy.conf` is present in the application folder being imp
 
 #### post-deploy.conf
 
-If a file named `post-deploy.conf` is present, Structr executes it after the import completes successfully. Use this to create data that must exist in every instance of your application.
+If a file named `post-deploy.conf` is present, Structr executes it after the import completes successfully. Since this script is run after the new schema has been imported, all types from the deployed schema are available.
+
+Use this to ensure that required data exists in every instance of your application.
 
 ```javascript
 {
-    let necessaryUser = $.getOrCreate('User', 'name', 'necessaryUser');
-    let myUserGroup = $.getOrCreate('Group', 'name', 'myUserGroup');
+	let necessaryData = $.getOrCreate('TypeFromDeployedSchema', 'name', 'important');
 
-    if (!$.isInGroup(myUserGroup, necessaryUser)) {
-        $.addToGroup(myUserGroup, necessaryUser);
-    }
+	// ... ensure that required data exists
 }
 ```
 
