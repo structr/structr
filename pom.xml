@@ -51,7 +51,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<neo4j.version>2026.08.1</neo4j.version>
-		<netty.version>4.1.130.Final</netty.version>
+		<netty.version>4.1.139.Final</netty.version>
 		<test.neo4j.version>neo4j:latest</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
@@ -59,7 +59,7 @@
 		<maven.plugin.jar.version>3.4.2</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
-		<bouncycastle.version>1.81</bouncycastle.version>
+		<bouncycastle.version>1.86</bouncycastle.version>
 		<tika.version>3.2.3</tika.version>
 		<pulsar.version>4.0.5</pulsar.version>
 		<elk.version>0.11.0</elk.version>
@@ -260,12 +260,18 @@
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
-				<version>2.15.0</version>
+				<version>2.18.11</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
-				<version>2.15.0</version>
+				<version>2.18.11</version>
+			</dependency>
+			<dependency>
+				<!-- aligned with core and databind, Pulsar would bring 2.17 -->
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>2.18.11</version>
 			</dependency>
 			<dependency>
 				<groupId>com.beust</groupId>
@@ -282,7 +288,7 @@
 			<dependency>
 				<groupId>org.jsoup</groupId>
 				<artifactId>jsoup</artifactId>
-				<version>1.22.1</version>
+				<version>1.23.2</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -300,7 +306,7 @@
 			<dependency>
 				<groupId>org.apache.mina</groupId>
 				<artifactId>mina-core</artifactId>
-				<version>2.1.10</version>
+				<version>2.1.15</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -324,12 +330,12 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.5.20</version>
+				<version>1.5.38</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
-				<version>1.5.20</version>
+				<version>1.5.38</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
