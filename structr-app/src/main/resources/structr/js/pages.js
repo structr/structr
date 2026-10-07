@@ -5734,7 +5734,7 @@ let _Pages = {
 									<label class="block mb-2" for="success-inline-message-delay-input" data-comment="How long the inline message stays before it auto-hides. Enter -1 to keep it visible until the next action (never auto-hide).">Display duration (ms)</label>
 									<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000 (-1 = never hide)">
 
-									<label class="block mb-2 mt-4" for="success-notifications-text-input" data-comment="Replaces the wording of the message, the icon is kept. \${...} is evaluated when the page is rendered, so \${me.name} works. {status} and {message} come from the response and are filled in when the message is shown. Leave empty for the default text, and use a custom dialog element for a message that needs its own markup.">Message text</label>
+									<label class="block mb-2 mt-4" for="success-notifications-text-input" data-comment="Replaces the wording of the message, the icon is kept. \${...} is evaluated when the page is rendered, so \${me.name} works. {status}, {message}, {result} and {result.name} come from the response and are filled in when the message is shown. Leave empty for the default text, and use a custom dialog element for a message that needs its own markup.">Message text</label>
 									<input type="text" id="success-notifications-text-input" placeholder="Leave empty for the default text">
 
 									<label class="block mb-2 mt-4" for="success-notifications-css-class-input" data-comment="CSS class for the message element. Setting one removes the built-in styling completely, including the positioning, so the class has to place the message itself.">CSS class</label>
@@ -5785,7 +5785,7 @@ let _Pages = {
 									<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="How long the inline message stays before it auto-hides. Enter -1 to keep it visible until the next action (never auto-hide).">Display duration (ms)</label>
 									<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000 (-1 = never hide)">
 
-									<label class="block mb-2 mt-4" for="failure-notifications-text-input" data-comment="Replaces the wording of the message, the icon is kept. \${...} is evaluated when the page is rendered, so \${me.name} works. {status} and {message} come from the response and are filled in when the message is shown. Leave empty for the default text, and use a custom dialog element for a message that needs its own markup.">Message text</label>
+									<label class="block mb-2 mt-4" for="failure-notifications-text-input" data-comment="Replaces the wording of the message, the icon is kept. \${...} is evaluated when the page is rendered, so \${me.name} works. {status}, {message}, {result} and {result.name} come from the response and are filled in when the message is shown. Leave empty for the default text, and use a custom dialog element for a message that needs its own markup.">Message text</label>
 									<input type="text" id="failure-notifications-text-input" placeholder="Leave empty for the default text">
 
 									<label class="block mb-2 mt-4" for="failure-notifications-css-class-input" data-comment="CSS class for the message element. Setting one removes the built-in styling completely, including the positioning, so the class has to place the message itself.">CSS class</label>

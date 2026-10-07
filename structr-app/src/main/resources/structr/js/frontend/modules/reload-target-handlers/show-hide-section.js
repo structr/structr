@@ -25,22 +25,6 @@ export class Handler {
 	}
 
 	/**
-	 * Resolve a dotted {path} against the given object. Same convention as the
-	 * navigate-to-url handler (url.js) so the client-side {result.id} syntax
-	 * behaves identically across behaviours.
-	 */
-	getValue(obj, path) {
-
-		let components = path
-			.replace(/\["(\w+)"]/g, '.$1')   // convert ["index"] to .index
-			.replace(/\['(\w+)']/g, '.$1')   // convert ['index'] to .index
-			.replace(/\[(\d+)]/g, '.$1')     // convert numeric indexes [0] to .0
-			.split('.');
-
-		return components.reduce((acc, key) => acc && acc[key], obj);
-	}
-
-	/**
 	 * Show/hide page sections without a full reload.
 	 *
 	 * reloadTarget is built server-side as "hide=<sel|sel>;show=<sel|sel>;url=<url>"
@@ -118,7 +102,7 @@ export class Handler {
 		if (url) {
 
 			// resolve client-side {...} placeholders against the action result
-			const resolved = url.replace(/{([^}]+)}/g, (match, path) => this.getValue({ result: parameters }, path));
+			const resolved = url.replace(/{([^}]+)}/g, (match, path) => this.frontendModule.resolvePlaceholder({ result: parameters }, path));
 
 			// decompose the assembled URL into a partial-reload override
 			const override = {};

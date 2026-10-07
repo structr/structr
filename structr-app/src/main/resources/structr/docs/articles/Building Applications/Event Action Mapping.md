@@ -354,7 +354,7 @@ Displays a browser alert dialog with a status message. The message includes the 
 
 Displays the status message on the page, directly after the element that triggered the action. The "Display duration (ms)" field controls how long the message stays before it disappears automatically. The default is 5000 milliseconds, and a value of -1 keeps the message visible until the next action clears it.
 
-The "Message text" field replaces the wording of the message while the icon is kept. The text can contain the placeholders `{status}` and `{message}`, which are filled from the response when the message is shown, for example `Saved ({status})`. Template expressions like `${me.name}` are evaluated when the page renders. Leave the field empty to use the default text. The "CSS class" field sets a class on the message element. Setting a class removes the built-in styling completely, including the positioning, so the class has to place the message itself.
+The "Message text" field replaces the wording of the message while the icon is kept. The text can contain the placeholders `{status}` and `{message}`, which are filled from the response when the message is shown, for example `Saved ({status})`. Properties of the action result are available as `{result.id}`, `{result.name}` and so on, with the same syntax as in the follow-up actions (see "Accessing Result Properties"). If the action is "Execute method" and the method returns a string, `{result}` inserts it directly, for example `Import finished: {result}`. Template expressions like `${me.name}` are evaluated when the page renders. Leave the field empty to use the default text. The "CSS class" field sets a class on the message element. Setting a class removes the built-in styling completely, including the positioning, so the class has to place the message itself.
 
 For validation errors, the specific error messages are included:
 
@@ -383,7 +383,7 @@ Dispatches a custom DOM event that you can handle with JavaScript. You specify t
 
 ### Notifications and Result Data
 
-The built-in notification types have no access to the properties of the action result. The inline text message can include the HTTP status and the server's response message via the `{status}` and `{message}` placeholders, but not result properties like the name of a newly created object. The system alert and the custom dialog types display fixed content. If you need to show result data in a notification, use "Raise a custom event" and handle the display logic in JavaScript.
+The inline text message can include the action result via the `{result}` and `{result.name}` placeholders, in addition to the HTTP status and the server's response message via `{status}` and `{message}`. The system alert and the custom dialog types display fixed content. If you need to show result data in one of these, use "Raise a custom event" and handle the display logic in JavaScript.
 
 In contrast, follow-up actions support result placeholders like `{result.id}`. See the section "Accessing Result Properties" for details.
 
@@ -438,9 +438,13 @@ You access properties from the action result using simple curly braces: `{result
 
 If the action is "Execute method" and the method returns a scalar value like a string or a number instead of an object, the placeholder `{result}` inserts that value directly, for example `/search?query={result}`.
 
+A placeholder whose path does not exist in the result, or whose value is `null`, is replaced by an empty string. An array of plain values like strings or numbers is inserted as a comma-separated list, and an object or an array of objects is inserted as JSON.
+
+The placeholders rely on the default response format, in which the return value is wrapped in a result object. If a method of a type has "Return result object only" enabled, its return value arrives without that wrapper, and `{result}` and `{result.name}` stay empty. This applies to the follow-up actions and to the inline text message alike.
+
 This syntax differs from template expressions, which use `${...}` with a dollar sign. The distinction is intentional. Template expressions are evaluated on the server when the page renders - before the action runs and before any result exists. The curly brace placeholders are resolved on the client after the action completes.
 
-Note that this placeholder syntax is only available in "Navigate to a New Page" and in the URL field of the show/hide follow-up actions. For "Refresh page section(s)", result properties are passed as request parameters but cannot be used in the CSS selector. For "Raise a Custom Event", the result is available in the event's `detail.result` object.
+Note that among the follow-up actions, this placeholder syntax is only available in "Navigate to a New Page" and in the URL field of the show/hide follow-up actions. The message text of the inline text message notification supports it as well. For "Refresh page section(s)", result properties are passed as request parameters but cannot be used in the CSS selector. For "Raise a Custom Event", the result is available in the event's `detail.result` object.
 
 ### Raise a Custom Event
 

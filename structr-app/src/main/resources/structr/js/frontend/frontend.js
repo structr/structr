@@ -387,10 +387,59 @@ export class Frontend {
 
 		if (configuredText) {
 
-			return icon + ' ' + configuredText.replaceAll('{status}', status).replaceAll('{message}', this.escapeHTML(message));
+			// {result} and {result.path} resolve like in the follow-up actions (see resolvePlaceholder), other braces stay literal
+			const text = configuredText.replace(/\{(status|message|result(?:[.\[][^}]*)?)\}/g, (match, path) => {
+
+				if (path === 'status') {
+					return status;
+				}
+
+				if (path === 'message') {
+					return this.escapeHTML(message);
+				}
+
+				return this.escapeHTML(this.resolvePlaceholder({ result: parameter?.result }, path));
+			});
+
+			return icon + ' ' + text;
 		}
 
 		return icon + ' ' + defaultText + ' (' + status + (message ? ': ' + this.escapeHTML(message) : '') + ')';
+	}
+
+	// the text for a client-side placeholder like {result.id}, shared by the inline notification and the reload target handlers:
+	// a path that finds nothing (or null) gives an empty text, an array of plain values keeps its comma-separated form
+	// (a list of ids in a URL), an object or an array containing one is inserted as JSON
+	resolvePlaceholder(obj, path) {
+
+		const value = this.resolvePath(obj, path);
+
+		if (value === undefined || value === null) {
+			return '';
+		}
+
+		if (Array.isArray(value) && value.every(element => element === null || typeof element !== 'object')) {
+			return String(value);
+		}
+
+		if (typeof value === 'object') {
+			return JSON.stringify(value);
+		}
+
+		return String(value);
+	}
+
+	// resolves a dotted path like result.items[0].name, only along own properties, so a path into 0 or '' finds nothing
+	// and result.constructor does not reach the prototype
+	resolvePath(obj, path) {
+
+		let components = path
+			.replace(/\["(\w+)"]/g, '.$1')   // convert ["index"] to .index
+			.replace(/\['(\w+)']/g, '.$1')   // convert ['index'] to .index
+			.replace(/\[(\d+)]/g, '.$1')     // convert numeric indexes [0] to .0
+			.split('.');
+
+		return components.reduce((acc, key) => (acc !== undefined && acc !== null && Object.hasOwn(acc, key)) ? acc[key] : undefined, obj);
 	}
 
 	// a configured class takes the element over completely, so none of the built-in styling is written

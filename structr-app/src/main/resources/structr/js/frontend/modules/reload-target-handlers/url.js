@@ -24,17 +24,6 @@ export class Handler {
 		this.frontendModule = frontendModule;
 	}
 
-	getValue(obj, path) {
-
-		let components = path
-			.replace(/\["(\w+)"]/g, '.$1')   // convert ["index"] to .index
-			.replace(/\['(\w+)']/g, '.$1')   // convert ['index'] to .index
-			.replace(/\[(\d+)]/g, '.$1')     // convert numeric indexes [0] to .0
-			.split('.');
-
-		return components.reduce((acc, key) => acc && acc[key], obj);
-	}
-
 	handleReloadTarget(reloadTarget, element, parameters, status, options) {
 
 		let data = {
@@ -59,7 +48,7 @@ export class Handler {
         } else {
 
             // Evaluate and replace each {} expression
-            reloadTarget = reloadTarget.replace(/{([^}]+)}/g, (match, cg1) => this.getValue(data, cg1));
+            reloadTarget = reloadTarget.replace(/{([^}]+)}/g, (match, cg1) => this.frontendModule.resolvePlaceholder(data, cg1));
         }
 
 		// go to URL
