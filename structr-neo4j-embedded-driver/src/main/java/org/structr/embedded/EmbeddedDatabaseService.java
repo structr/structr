@@ -535,6 +535,7 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		if (searchContexts.contains(GLOBAL_SEARCH_CONTEXT_FILES))          { types.add("(n:AbstractFile AND NOT ((n:Image OR n:VideoFile) AND coalesce(n.isTemplate, false) = false))"); }
 		if (searchContexts.contains(GLOBAL_SEARCH_CONTEXT_LOCALIZATIONS))  { types.add("(n:Localization)"); }
 		if (searchContexts.contains(GLOBAL_SEARCH_CONTEXT_MAIL_TEMPLATES)) { types.add("(n:MailTemplate)"); }
+		if (searchContexts.contains(GLOBAL_SEARCH_CONTEXT_DEPLOY_SCRIPTS)) { types.add("(n:ApplicationConfigurationDataNode AND n.configType IN ['pre-deploy-conf', 'post-deploy-conf'])"); }
 
 		final boolean supportsTypePredicateExpressions = supportsFeature(DatabaseFeature.TypePredicateExpressions);
 		final boolean ignoreCase                       = searchIgnoreCase && supportsTypePredicateExpressions;
