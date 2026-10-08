@@ -99,16 +99,18 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 					for (final DOMNode subNode : node.getChildren()) {
 
-						// output doctype definition only if first child is not a template
-						if (subNode.is(StructrTraits.HTML)) {
+						if (!renderContext.getSecurityContext().isVisible(subNode)) {
+							continue;
+						}
+
+						// the doctype belongs to the html element, so it is output only if the element is: a page whose
+						// html element is hidden usually renders a template that brings its own doctype (ticket 1363)
+						if (subNode.is(StructrTraits.HTML) && subNode.shouldBeRendered(renderContext)) {
 
 							renderContext.getBuffer().append("<!DOCTYPE html>\n");
 						}
 
-						if (renderContext.getSecurityContext().isVisible(subNode)) {
-
-							subNode.render(renderContext, depth);
-						}
+						subNode.render(renderContext, depth);
 					}
 				}
 			},

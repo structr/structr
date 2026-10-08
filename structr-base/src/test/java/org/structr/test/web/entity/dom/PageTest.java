@@ -29,6 +29,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.LinkSource;
@@ -557,6 +558,59 @@ public class PageTest extends StructrUiTest {
 				t.printStackTrace();
 				fail("Unexpected exception");
 			}
+		}
+	}
+
+	/**
+	 * Ticket 1363: a page with a hidden html element and a main page template that brings its own DOCTYPE
+	 * must not output the DOCTYPE twice.
+	 */
+	@Test
+	public void testHiddenHtmlElementDoesNotOutputDoctype() {
+
+		final String templateContent = "<!DOCTYPE html>\n<html><head><title>Template</title></head><body></body></html>";
+		Page page                    = null;
+		DOMNode html                 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			page = Page.createNewPage(securityContext, "doctype");
+			html = page.createElement("html");
+
+			page.appendChild(html);
+
+			html.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), true);
+
+			final Template template = app.create(StructrTraits.TEMPLATE, "Main Page Template").as(Template.class);
+
+			template.setContent(templateContent);
+			template.setContentType("text/html");
+
+			page.adoptNode(template);
+			page.appendChild(template);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("A hidden html element must not output a DOCTYPE", templateContent, page.getContent(RenderContext.EditMode.NONE).trim());
+
+			html.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), false);
+
+			assertEquals("A rendered html element must output a DOCTYPE in addition to the template's", 2, StringUtils.countMatches(page.getContent(RenderContext.EditMode.NONE), "<!DOCTYPE html>"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 
