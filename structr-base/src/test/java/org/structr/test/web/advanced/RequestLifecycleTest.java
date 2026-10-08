@@ -18,8 +18,13 @@
  */
 package org.structr.test.web.advanced;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.core.read.ListAppender;
 import io.restassured.RestAssured;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.ExchangeBoundRequest;
@@ -35,21 +40,28 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.testng.annotations.Test;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -193,6 +205,67 @@ public class RequestLifecycleTest extends StructrUiTest {
 			value, Services.getInstance().getApplicationStore().get("render"));
 	}
 
+	/**
+	 * Ticket 1301: a client that abandoned an asynchronously rendered page made the write listener complete
+	 * the exchange at once, while the render thread was still running. A script that failed after that point
+	 * had its error reported with the session id of a recycled request, and Jetty answered getSession with a
+	 * NullPointerException, which replaced the script's own error in the log.
+	 */
+	@Test
+	public void testScriptErrorOfAnAbandonedAsyncRenderIsReportedAsItself() {
+
+		final String value = uniqueValue();
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page        = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "abandoned"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+			final Template output  = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+			final Template more    = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+			final Template failing = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+
+			// the beginning the client reads before leaving
+			output.setContent("${{ $.print('x'.repeat(1024 * 1024)); }}");
+
+			// more than the socket buffers hold while the client does not read, so the write listener waits
+			// for a write that fails when the client leaves
+			more.setContent("${{ $.sleep(200); $.print('y'.repeat(16 * 1024 * 1024)); }}");
+
+			// fails after the client has left
+			failing.setContent("${{ $.sleep(2000); throw new Error('" + value + "'); }}");
+
+			page.appendChild(output);
+			page.appendChild(more);
+			page.appendChild(failing);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		final Logger contentLogger                 = (Logger) LoggerFactory.getLogger(Content.class);
+		final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+
+		appender.start();
+		contentLogger.addAppender(appender);
+
+		try {
+
+			abandon("/abandoned");
+
+			final ILoggingEvent event = awaitScriptingError(appender, value);
+
+			assertNotNull("The script error of the abandoned render was not reported as itself", event);
+
+		} finally {
+
+			contentLogger.detachAppender(appender);
+			appender.stop();
+		}
+	}
+
 	@Test
 	public void testExchangeBoundRequestOverridesEveryRequestMethod() {
 
@@ -271,6 +344,78 @@ public class RequestLifecycleTest extends StructrUiTest {
 
 		Services.getInstance().getApplicationStore().remove("header");
 		Services.getInstance().getApplicationStore().remove("render");
+	}
+
+	/**
+	 * Requests a page, reads the beginning of the response, stops reading and then drops the connection,
+	 * like a browser navigating away from a page that is still loading.
+	 */
+	private void abandon(final String path) {
+
+		try (final Socket socket = new Socket(host, httpPort)) {
+
+			final OutputStream out = socket.getOutputStream();
+			final InputStream in   = socket.getInputStream();
+			final byte[] buffer    = new byte[8192];
+			int received           = 0;
+
+			out.write(("GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
+			out.flush();
+
+			while (received < 65536) {
+
+				final int count = in.read(buffer);
+				if (count < 0) {
+
+					fail("The response ended before the page had been abandoned");
+				}
+
+				received += count;
+			}
+
+			// not reading lets the output that follows fill the socket buffers
+			Thread.sleep(1000);
+
+			// reset instead of an orderly close, so that the pending write fails at once
+			socket.setSoLinger(true, 0);
+
+		} catch (Exception ex) {
+
+			logger.warn("", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
+	/**
+	 * The error the render logs for a failed script, once it carries the script's message. An error that
+	 * failed on the way, e.g. with an exception from the request, does not count.
+	 */
+	private ILoggingEvent awaitScriptingError(final ListAppender<ILoggingEvent> appender, final String message) {
+
+		final long deadline = System.currentTimeMillis() + 10_000;
+
+		while (System.currentTimeMillis() < deadline) {
+
+			for (final ILoggingEvent event : List.copyOf(appender.list)) {
+
+				for (IThrowableProxy proxy = event.getThrowableProxy(); proxy != null; proxy = proxy.getCause()) {
+
+					if (NullPointerException.class.getName().equals(proxy.getClassName())) {
+
+						fail("Reporting the script error failed with a NullPointerException: " + proxy.getMessage());
+					}
+
+					if (proxy.getMessage() != null && proxy.getMessage().contains(message)) {
+
+						return event;
+					}
+				}
+			}
+
+			try { Thread.sleep(50); } catch (InterruptedException ignore) {}
+		}
+
+		return null;
 	}
 
 	private Object awaitStoreValue(final String key) {
