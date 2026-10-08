@@ -85,6 +85,7 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -599,11 +600,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			logger.error("Exception while processing request: {}", fex.getMessage());
 			UiAuthenticator.writeFrameworkException(response, fex);
 
-		} catch (EofException ex) {
+		} catch (EOFException ex) {
 
-			// ignore EofException which (by jettys standards) should be handled less verbosely
+			// the stream is gone, nobody is left to answer: Jetty's EofException when the client resets it, a plain
+			// EOFException("reset") when Jetty resets it itself, e.g. after closing an HTTP/2 session for too many
+			// RST_STREAM frames, which a browser sends when a reload abandons a page's resource requests (ticket 1197)
 
 		} catch (IOException ioex) {
+
+			// with the status line out, the failure is the connection's and there is nobody to answer, e.g. the plain
+			// IOException("enhance_your_calm_error/invalid_rst_stream_frame_rate") Jetty fails every stream of that session with
+			if (response.isCommitted()) {
+
+				logger.debug("Connection failed during response: {}", ioex.getMessage());
+
+				return;
+			}
 
 			logger.error("Exception while processing request: {}", ioex.getMessage());
 			UiAuthenticator.writeInternalServerError(response);

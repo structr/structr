@@ -965,6 +965,13 @@ public class UiAuthenticator implements Authenticator {
 
 	public static void writeInternalServerError(final HttpServletResponse response) {
 
+		// once the status line is out, there is no error response left to send, and Jetty answers the attempt
+		// with IllegalStateException("Committed") (ticket 1197)
+		if (response.isCommitted()) {
+
+			return;
+		}
+
 		try {
 
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -976,6 +983,13 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	public static void writeFrameworkException(final HttpServletResponse response, final FrameworkException fex) {
+
+		// once the status line is out, there is no error response left to send, and Jetty answers the attempt
+		// with IllegalStateException("Committed") (ticket 1197)
+		if (response.isCommitted()) {
+
+			return;
+		}
 
 		try {
 

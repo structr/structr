@@ -22,6 +22,7 @@ import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.RelationshipQuery;
 import org.structr.api.search.TypeQuery;
 import org.structr.embedded.AdvancedCypherQuery;
 
@@ -47,7 +48,9 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 			// Filter type predicates since they require special handling
 			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
 			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> p instanceof TypeQuery).collect(Collectors.toList());
-			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> !(p instanceof TypeQuery)).collect(Collectors.toList());
+			// relationship visibility has no Cypher form (SearchCommand filters the result in Java), so it must not
+			// take part in the expression: an operator before it would end up with nothing on its right-hand side
+			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> !(p instanceof TypeQuery) && !RelationshipQuery.class.equals(p.getQueryType())).collect(Collectors.toList());
 
 			// Apply all type queries first as they affect as different part of the query expression
 			for (final QueryPredicate p : typePredicates) {
