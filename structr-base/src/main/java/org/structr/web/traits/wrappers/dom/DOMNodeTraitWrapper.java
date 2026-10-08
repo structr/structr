@@ -1613,6 +1613,22 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public final Iterable<ActionMapping> getSuccessHideActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.SUCCESS_HIDE_ACTIONS_PROPERTY);
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public final Iterable<ActionMapping> getFailureHideActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.FAILURE_HIDE_ACTIONS_PROPERTY);
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
 	public final Iterable<ActionMapping> getSuccessNotificationActions() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY);

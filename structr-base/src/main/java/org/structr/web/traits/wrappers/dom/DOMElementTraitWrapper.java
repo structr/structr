@@ -169,10 +169,13 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 			final List<DOMElement> reloadSources = Iterables.toList(getReloadSources());
 			final List<ActionMapping> reloadingActions = Iterables.toList(getReloadingActions());
 			final List<ActionMapping> failureActions = Iterables.toList(getFailureActions());
+			final List<ActionMapping> successHideActions = Iterables.toList(getSuccessHideActions());
+			final List<ActionMapping> failureHideActions = Iterables.toList(getFailureHideActions());
 			final List<ActionMapping> successNotificationActions = Iterables.toList(getSuccessNotificationActions());
 			final List<ActionMapping> failureNotificationActions = Iterables.toList(getFailureNotificationActions());
 
-			cachedIsTargetElement = (isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty() || !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty());
+			// an element that is only hidden by a show/hide follow-up is addressed by its data-structr-id as well
+			cachedIsTargetElement = (isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty() || !failureActions.isEmpty() || !successHideActions.isEmpty() || !failureHideActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty());
 
 			wrappedObject.getTemporaryStorage().put(key, cachedIsTargetElement);
 		}

@@ -38,7 +38,11 @@ export class Frontend {
 		// variables
 		this.eventListeners          = {};
 		this.currentlyFocusedElement = '';
-		this.timeout                 = -1;
+		this.timeouts                = new WeakMap();
+		this.loadedElements          = new WeakSet();
+		this.elementsMarkedWithError = new WeakSet();
+		this.renderingElements       = new WeakSet();
+		this.periodicElementIds      = new Set();
 
 		// init
 		this.bindEvents();
@@ -57,13 +61,23 @@ export class Frontend {
 		'structrFailureNotificationsCssClass', 'structrFailureNotificationsPartial', 'structrFailureNotificationsEvent',
 		'structrFailureNotificationsCustomDialogElement',
 		// rendered on the trigger for the partial reload URL, which reads it from the dataset, not from the payload
-		'currentObjectId'
+		'currentObjectId', 'structrRequestKeys',
+		// set by this module on a reloaded element, not a parameter
+		'lastRefresh'
 	]);
+
+	// the dataset keys of the data-request-* attributes that carry the request parameters of a reload target for its next reload
+	// (see encodeRequestParameters): the server lists them in data-structr-request-keys, because a mapped parameter can be named requestX too
+	requestParameterKeys(data) {
+
+		return new Set((data.structrRequestKeys ?? '').split(' ').filter(name => name.length > 0).map(name => ('request-' + name.toLowerCase()).replace(/-([a-z])/g, (match, letter) => letter.toUpperCase())));
+	}
 
 	resolveData(event, target) {
 
 		let resolved = {};
 		let data = target.dataset;
+		let requestParameterKeys = this.requestParameterKeys(data);
 
 		// active input fields with a name
 		if (target.name && target.name.length > 0) {
@@ -74,7 +88,12 @@ export class Frontend {
 		for (const key in data) {
 
 			let value = data[key];
-			if (!value || Frontend.clientOnlyDataKeys.has(key)) {
+			if (!value || Frontend.clientOnlyDataKeys.has(key) || requestParameterKeys.has(key)) {
+				continue;
+			}
+
+			// the validation error marker of handleNotifications, unless a parameter of that name is mapped on an element it did not mark
+			if (key === 'error' && this.elementsMarkedWithError.has(target)) {
 				continue;
 			}
 
@@ -216,13 +235,13 @@ export class Frontend {
 
 	resolveElements(target, value) {
 
-		let elements, name, id;
+		let elements, name, id, selector;
 		let lastIndex = value.length - 1;
 
 		if (value.startsWith('css(') && value.endsWith(')')) {
 
 			// resolve CSS selector
-			let selector = value.substring(4, lastIndex);
+			selector = value.substring(4, lastIndex);
 			elements = document.querySelectorAll(selector);
 
 		} else if (value.startsWith('name(') && value.endsWith(')')) {
@@ -245,16 +264,31 @@ export class Frontend {
 			let repeaterElement = target.closest('[data-repeater-data-object-id]');
 			if (repeaterElement) {
 
-				let selector;
-				if (id) {
-					selector = selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] [data-structr-id="${id}"]`;
-				} else if (name) {
-					selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`;
-				}
+				if (selector) {
 
-				let element = document.querySelector(selector);
-				if (element) {
-					return [element];
+					// only a plain id selector, as generated for user input, is narrowed to the row: an id is meant to
+					// be unique, so several matches come from the repeated row; any other selector may collect across rows on purpose
+					if (/^#[^\s,>+~:.\[]+$/.test(selector)) {
+
+						let rowElements = repeaterElement.querySelectorAll(selector);
+						if (rowElements.length) {
+							return rowElements;
+						}
+					}
+
+				} else {
+
+					let rowSelector;
+					if (id) {
+						rowSelector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] [data-structr-id="${id}"]`;
+					} else if (name) {
+						rowSelector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`;
+					}
+
+					let element = document.querySelector(rowSelector);
+					if (element) {
+						return [element];
+					}
 				}
 
 			}
@@ -381,30 +415,42 @@ export class Frontend {
 	}
 
 	// the configured text replaces the wording but keeps the icon: a fully custom element is what the custom dialog modes are for
-	notificationText(configuredText, icon, defaultText, status, parameter) {
+	// HTML-escaped for the inline message, plain text for the system alert (escape = false)
+	notificationText(configuredText, icon, defaultText, status, parameter, escape = true) {
 
 		const message = parameter?.message ?? '';
+		const text    = value => escape ? this.escapeHTML(value) : String(value);
 
 		if (configuredText) {
 
-			// {result} and {result.path} resolve like in the follow-up actions (see resolvePlaceholder), other braces stay literal
-			const text = configuredText.replace(/\{(status|message|result(?:[.\[][^}]*)?)\}/g, (match, path) => {
+			// the configured text is text, not markup: the server has already replaced its template expressions, which can
+			// carry user data, so the literal parts are escaped as well as the placeholders. {result} and {result.path}
+			// resolve like in the follow-up actions (see resolvePlaceholder), other braces stay literal
+			let replaced = '';
+			let last     = 0;
+
+			for (const match of configuredText.matchAll(/\{(status|message|result(?:[.\[][^}]*)?)\}/g)) {
+
+				const path = match[1];
+
+				replaced += text(configuredText.substring(last, match.index));
+				last      = match.index + match[0].length;
 
 				if (path === 'status') {
-					return status;
+					replaced += status;
+				} else if (path === 'message') {
+					replaced += text(message);
+				} else {
+					replaced += text(this.resolvePlaceholder({ result: parameter?.result }, path));
 				}
+			}
 
-				if (path === 'message') {
-					return this.escapeHTML(message);
-				}
+			replaced += text(configuredText.substring(last));
 
-				return this.escapeHTML(this.resolvePlaceholder({ result: parameter?.result }, path));
-			});
-
-			return icon + ' ' + text;
+			return icon + ' ' + replaced;
 		}
 
-		return icon + ' ' + defaultText + ' (' + status + (message ? ': ' + this.escapeHTML(message) : '') + ')';
+		return icon + ' ' + defaultText + ' (' + status + (message ? ': ' + text(message) : '') + ')';
 	}
 
 	// the text for a client-side placeholder like {result.id}, shared by the inline notification and the reload target handlers:
@@ -460,29 +506,36 @@ export class Frontend {
 
 	async handleNotifications(element, parameter, status, options) {
 
-		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth, delay;
+		let mode, statusText, alertText, statusHTML, inputElementBorderColor, inputElementBorderWidth, delay;
 		let id = element.dataset.structrId;
 		const success = this.isSuccess(status);
 
 		if (success) {
 			mode = element.dataset.structrSuccessNotifications;
 			statusText = this.notificationText(element.dataset.structrSuccessNotificationsText, '✅', 'Operation successful', status, parameter);
+			alertText = this.notificationText(element.dataset.structrSuccessNotificationsText, '✅', 'Operation successful', status, parameter, false);
 			statusHTML = this.notificationHTML(id, element.dataset.structrSuccessNotificationsCssClass, 'green') + statusText + '</div>';
 			delay = element.dataset.structrSuccessNotificationsDelay;
 
 			for (let elementWithError of document.querySelectorAll('[data-error]')) {
 				elementWithError.style.borderColor = inputElementBorderColor || '';
 				elementWithError.style.borderWidth = inputElementBorderWidth || '';
+				// only a marker set by handleNotifications, a mapped parameter named error stays
+				if (this.elementsMarkedWithError.has(elementWithError)) {
+					delete elementWithError.dataset.error;
+					this.elementsMarkedWithError.delete(elementWithError);
+				}
 			}
 		} else {
 			mode = element.dataset.structrFailureNotifications;
 			statusText = this.notificationText(element.dataset.structrFailureNotificationsText, '❌', 'Operation failed', status, parameter);
+			alertText = this.notificationText(element.dataset.structrFailureNotificationsText, '❌', 'Operation failed', status, parameter, false);
 			statusHTML = this.notificationHTML(id, element.dataset.structrFailureNotificationsCssClass, 'red') + statusText + '<br>';
 			delay = element.dataset.structrFailureNotificationsDelay;
 
 			if (parameter?.errors?.length) {
 				for (const error of parameter.errors) {
-					statusHTML += error.property + ' ' + error.token.replaceAll('_', ' ') + '<br>';
+					statusHTML += this.escapeHTML(error.property + ' ' + error.token.replaceAll('_', ' ')) + '<br>';
 					let propertyKey = error.property;
 
 					let propertyInputElement = element.dataset[propertyKey] ? this.resolveElements(element, element.dataset[propertyKey])[0] : element;
@@ -492,6 +545,7 @@ export class Frontend {
 						propertyInputElement.style.borderColor = 'red';
 						propertyInputElement.style.borderWidth = '1px';
 						propertyInputElement.dataset.error = error.token;
+						this.elementsMarkedWithError.add(propertyInputElement);
 					}
 				}
 			}
@@ -502,7 +556,7 @@ export class Frontend {
 		switch (mode) {
 
 			case 'system-alert':
-				window.alert(statusText);
+				window.alert(alertText);
 				break;
 
 			case 'inline-text-message': {
@@ -552,7 +606,8 @@ export class Frontend {
 
 			case 'fire-event':
 				let event = success ? element.dataset.structrSuccessNotificationsEvent : element.dataset.structrFailureNotificationsEvent;
-				element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: parameter, status: status, element: element } }));
+				// the same detail.result as the custom event follow-up: the action result on success, the error body on failure
+				element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: success ? parameter?.result : parameter, status: status, element: element } }));
 				break;
 
 			case 'none':
@@ -561,10 +616,13 @@ export class Frontend {
 		}
 	}
 
+	// the modules in modules/reload-target-handlers, addressed as "<name>:<argument>"; any other target is a CSS selector, which can contain a colon too
+	static reloadTargetHandlers = new Set([ 'css', 'event', 'show-hide-section', 'template', 'toast', 'url' ]);
+
 	async handleReloadTargetString(targetString, element, parameters, status, options) {
 
 		let colonPosition = targetString.indexOf(':');
-		if (colonPosition !== -1) {
+		if (colonPosition !== -1 && Frontend.reloadTargetHandlers.has(targetString.substring(0, colonPosition))) {
 
 			let moduleName = targetString.substring(0, colonPosition);
 			let module     = await import(`/structr/js/frontend/modules/reload-target-handlers/${moduleName}.js`);
@@ -607,7 +665,10 @@ export class Frontend {
 
 		} else {
 
-			this.reloadPartial(targetString, parameters, element, false, options);
+			// only the object result of a successful action becomes request parameters of the reload, an error body or a scalar result does not
+			const reloadParameters = (this.isSuccess(status) && parameters !== null && typeof parameters === 'object' && !Array.isArray(parameters)) ? parameters : null;
+
+			this.reloadPartial(targetString, reloadParameters, element, false, options);
 		}
 	}
 
@@ -720,10 +781,14 @@ export class Frontend {
 				}
 			}
 
-			for (const channel of options.resets) {
+			for (const channel of options.resets ?? []) {
 				url.searchParams.delete(channel);
 			}
-			history.pushState({}, '', url);
+
+			// several reload targets each arrive here with the same parameters, which must not add a history entry each
+			if (url.href !== window.location.href) {
+				history.pushState({}, '', url);
+			}
 		}
 	}
 
@@ -858,6 +923,11 @@ export class Frontend {
 				// before insertion is futile -- do it here, after the node is in the DOM.
 				if (options && options.removeHiddenOnLoad) {
 					newNode.classList.remove('hidden');
+				}
+
+				// the content of a lazily rendered element is in place now, its rendering mode must not trigger again (see bindEvents)
+				if (options && options.renderingReload) {
+					this.renderingElements.add(newNode);
 				}
 				newNode.dispatchEvent(new Event('structr-reload'));
 				this.fireEvent('reload', {target: newNode});
@@ -1108,11 +1178,10 @@ export class Frontend {
 
 		} else {
 
-			if (this.timeout) {
-				window.clearTimeout(this.timeout);
-			}
+			// one timer per element, so the events of another element do not cancel this element's pending action
+			window.clearTimeout(this.timeouts.get(target));
 
-			this.timeout = window.setTimeout(() => this.doHandleGenericEvent(event, target, data, options), delay);
+			this.timeouts.set(target, window.setTimeout(() => this.doHandleGenericEvent(event, target, data, options), delay));
 		}
 	}
 
@@ -1169,7 +1238,16 @@ export class Frontend {
 				return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText, headers: Object.fromEntries(response.headers.entries()) }))
 			})
 			.then(response => this.handleResult(target, response.json, response.status, options, response.headers))
-			.catch(error   => this.handleNetworkError(target, error, {}));
+			.catch(error   => {
+
+				// a request that failed on the network or with a response that is no JSON never reaches handleResult,
+				// but the action has ended all the same
+				if (target.classList.contains(Frontend.actionRunningClassname)) {
+					this.notifyElementActionFinished(target);
+				}
+
+				this.handleNetworkError(target, error, {});
+			});
 		}
 	}
 
@@ -1337,7 +1415,7 @@ export class Frontend {
 
 	handleRender(el) {
 		const id = el.dataset.structrId;
-		this.reloadPartial('[data-structr-id="' + id + '"]', null, el, true);
+		this.reloadPartial('[data-structr-id="' + id + '"]', null, el, true, { renderingReload: true });
 	}
 
 	handleLogout() {
@@ -1350,7 +1428,22 @@ export class Frontend {
 
 			let renderingMode   = elem.dataset.structrRenderingMode;
 			let delayOrInterval = elem.dataset.structrDelayOrInterval;
-			if (renderingMode.length) {
+			let id              = elem.dataset.structrId;
+
+			// bindEvents runs again after every partial reload, so a handler is attached only once: per element, and the
+			// node an element is replaced with by its own rendering counts as handled (see replacePartial). A periodic
+			// interval is kept per id instead, because handleRender reloads every element with that id, also after the
+			// element was replaced by the reload of an enclosing section
+			let handled = renderingMode === 'periodic' ? this.periodicElementIds.has(id) : this.renderingElements.has(elem);
+
+			if (renderingMode.length && !handled) {
+
+				if (renderingMode === 'periodic') {
+					this.periodicElementIds.add(id);
+				} else {
+					this.renderingElements.add(elem);
+				}
+
 				this.attachRenderingHandler(elem, this.boundHandleRender, renderingMode, delayOrInterval);
 			}
 		});
@@ -1360,15 +1453,16 @@ export class Frontend {
 			let source = elem.dataset.structrEvents;
 			if (source) {
 
-				let mapping = source.split(",");
+				let mapping = source.split(',').map(e => e.trim()).filter(e => e.length > 0);
 				for (let event of mapping) {
 
-					if (event === 'load') {
+					// the 'load' event has to be fired right now because we're in it, but only once per element:
+					// bindEvents runs again after every partial reload, which only replaces the reloaded elements
+					if (event === 'load' && !this.loadedElements.has(elem)) {
 
-						// the 'load' event has to be fired right now because we're in it
-						const event = new Event('load');
-						elem.addEventListener('load',this.boundHandleGenericEvent);
-						elem.dispatchEvent(event);
+						this.loadedElements.add(elem);
+						elem.addEventListener('load', this.boundHandleGenericEvent);
+						elem.dispatchEvent(new Event('load'));
 					}
 
 					elem.removeEventListener(event, this.boundHandleGenericEvent);
@@ -1419,9 +1513,10 @@ export class Frontend {
 
 			let listeners = this.eventListeners[name];
 
-			if (listeners && listeners.length > 0) {
+			let index = listeners.indexOf(listener);
+			if (index !== -1) {
 
-				listener.splice(listeners.indexOf(listener), 1);
+				listeners.splice(index, 1);
 			}
 		}
 	}

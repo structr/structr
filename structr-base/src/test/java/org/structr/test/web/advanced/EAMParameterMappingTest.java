@@ -51,8 +51,8 @@ import static org.testng.AssertJUnit.fail;
  * Integration tests for EAM parameter mapping rendering.
  *
  * Covers all four ParameterType cases (ConstantValue, UserInput, ScriptExpression,
- * PageParam) and all four pagination EventAction variants (prev-page, next-page,
- * first-page, last-page).  Each test creates a minimal page with a trigger button,
+ * PageParam) and both pagination EventAction variants (prev-page, next-page).
+ * Each test creates a minimal page with a trigger button,
  * wires an ActionMapping + one or more ParameterMappings, fetches the rendered HTML
  * and asserts the expected data-* attributes on the button element.
  */
@@ -501,105 +501,6 @@ public class EAMParameterMappingTest extends StructrUiTest {
 		// No ?page= request param → default page is 1 → next = 1+1 = 2.
 		assertEquals("PageParam next-page: data-structr-target must be the parameter name", "page", attrs.get("data-structr-target"));
 		assertEquals("PageParam next-page: data-page must be currentPage+1", "2", attrs.get("data-page"));
-	}
-
-	// -----------------------------------------------------------------------
-	// PageParam — first-page
-	// -----------------------------------------------------------------------
-
-	@Test
-	public void testPageParamFirstPage() {
-
-		try (final Tx tx = app.tx()) {
-
-			createAdminUser();
-
-			final Page page      = Page.createSimplePage(securityContext, "page1");
-			final DOMNode div    = page.getElementsByTagName("div").get(0);
-			final DOMElement btn = page.createElement("button");
-
-			div.appendChild(btn);
-			btn.appendChild(page.createTextNode("First"));
-			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
-
-			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "first-page");
-
-			app.create(StructrTraits.PARAMETER_MAPPING,
-				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam),
-				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "page-param"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "page")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fail("Unexpected exception");
-			fex.printStackTrace();
-		}
-
-		RestAssured.basePath = "/";
-
-		final String html    = fetchPageHtml("/html/page1");
-		final Document doc   = Jsoup.parse(html);
-		final Element button = doc.getElementById("button");
-		final Map<String, String> attrs = getAttributes(button);
-
-		assertEquals("PageParam first-page: data-structr-target must be the parameter name", "page", attrs.get("data-structr-target"));
-		assertEquals("PageParam first-page: data-page must always be 1", "1", attrs.get("data-page"));
-	}
-
-	// -----------------------------------------------------------------------
-	// PageParam — last-page
-	// -----------------------------------------------------------------------
-
-	@Test
-	public void testPageParamLastPage() {
-
-		try (final Tx tx = app.tx()) {
-
-			createAdminUser();
-
-			final Page page      = Page.createSimplePage(securityContext, "page1");
-			final DOMNode div    = page.getElementsByTagName("div").get(0);
-			final DOMElement btn = page.createElement("button");
-
-			div.appendChild(btn);
-			btn.appendChild(page.createTextNode("Last"));
-			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
-
-			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "last-page");
-
-			app.create(StructrTraits.PARAMETER_MAPPING,
-				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam),
-				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "page-param"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "page")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fail("Unexpected exception");
-			fex.printStackTrace();
-		}
-
-		RestAssured.basePath = "/";
-
-		final String html    = fetchPageHtml("/html/page1");
-		final Document doc   = Jsoup.parse(html);
-		final Element button = doc.getElementById("button");
-		final Map<String, String> attrs = getAttributes(button);
-
-		assertEquals("PageParam last-page: data-structr-target must be the parameter name", "page", attrs.get("data-structr-target"));
-		// Hardcoded sentinel value — see DOMElementTraitDefinition PageParam/LastPage branch.
-		assertEquals("PageParam last-page: data-page must be the hardcoded sentinel 1000", "1000", attrs.get("data-page"));
 	}
 
 	// -----------------------------------------------------------------------

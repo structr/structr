@@ -241,6 +241,8 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	Iterable<ActionMapping> getReloadingActions();
 	Iterable<ActionMapping> getFailureActions();
+	Iterable<ActionMapping> getSuccessHideActions();
+	Iterable<ActionMapping> getFailureHideActions();
 	Iterable<ActionMapping> getSuccessNotificationActions();
 	Iterable<ActionMapping> getFailureNotificationActions();
 	Iterable<VisibilityMapping> getVisibilityMappings();

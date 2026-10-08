@@ -36,8 +36,6 @@ public enum EventAction implements Documentable {
 	ReplaceHtml("replace-html", "Replace HTML", null),
 	PrevPage("prev-page", "Previous page", null),
 	NextPage("next-page", "Next page", null),
-	FirstPage("first-page", "First page", null),
-	LastPage("last-page", "Last page", null),
 	SignIn("sign-in", "Sign in", null),
 	SignOut("sign-out", "Sign out", null),
 	SignUp("sign-up", "Sign up", null),

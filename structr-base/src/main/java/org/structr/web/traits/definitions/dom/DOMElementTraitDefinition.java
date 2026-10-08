@@ -579,6 +579,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 								final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getTriggeredActions();
 								final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
 								final GraphObject currentObject                  = renderContext.getDetailsDataObject();
+								final Set<String> parameterAttributeNames        = new HashSet<>();
 								boolean outputStructrId                          = false;
 								boolean outputCurrentObjectId                    = false;
 
@@ -644,7 +645,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 
 									// append all stored action mapping keys as data-structr-<key> attributes.
-									// For method / flow / dataType, prefer the resolved name from the graph
+									// The method is always a static name. For flow / dataType, prefer the resolved name from the graph
 									// relationship (refactor-safe across renames); when the rel is not set
 									// (e.g. the raw string is an expression like ${dataSource.dataType} that
 									// the lifecycle hook could not pre-resolve), variable-replace the raw
@@ -656,8 +657,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										String value;
 										switch (key) {
 											case ActionMappingTraitDefinition.METHOD_PROPERTY: {
-												final NodeInterface n = triggeredAction.getMethodNode();
-												value = (n != null) ? n.getName() : actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
+												// a static name, the event handler takes the method from the action mapping as well
+												value = triggeredAction.getResolvedMethodName();
 												break;
 											}
 											case ActionMappingTraitDefinition.FLOW_PROPERTY: {
@@ -740,6 +741,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										final String nameAttributeHyphenated = DOMNode.sanitizeAttributeName(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName));
 										final ParameterType parameterType    = ParameterType.forName(parameterTypeString);
 
+										parameterAttributeNames.add(nameAttributeHyphenated);
+
 										switch (parameterType) {
 
 											case ParameterType.UserInput:
@@ -797,17 +800,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 														out.append(" data-").append(pageParamName).append("=\"").append(String.valueOf(next + 1)).append("\"");
 														break;
 
-													case EventAction.FirstPage:
-														out.append(" data-structr-target=\"").append(pageParamTarget).append("\"");
-														out.append(" data-").append(pageParamName).append("=\"1\"");
-														break;
-
-													case EventAction.LastPage:
-														// should we really count all objects?
-														out.append(" data-structr-target=\"").append(pageParamTarget).append("\"");
-														out.append(" data-").append(pageParamName).append("=\"1000\"");
-														break;
-
 													default:
 														break;
 												}
@@ -840,6 +832,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									if (request != null) {
 
 										final Map<String, String[]> parameters = request.getParameterMap();
+										final List<String> requestAttrNames    = new LinkedList<>();
 
 										for (final Entry<String, String[]> entry : parameters.entrySet()) {
 
@@ -851,11 +844,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												// #1579: request parameter name and value are attacker-controlled; restrict the name to
 												// [A-Za-z0-9-] and escape the value for an HTML attribute context
 												final String requestAttrName = DOMNode.sanitizeAttributeName(DOMElement.toHtmlAttributeName(key));
-												if (!requestAttrName.isEmpty()) {
+
+												// a parameter of this element's action that is rendered as the same attribute keeps it
+												if (!requestAttrName.isEmpty() && !parameterAttributeNames.contains("request-" + requestAttrName)) {
 
 													out.append(" data-request-").append(requestAttrName).append("=\"").append(DOMNode.escapeForHtmlAttributes(values[0])).append("\"");
+													requestAttrNames.add(requestAttrName);
 												}
 											}
+										}
+
+										// tells frontend.js which data-request-* attributes are request state, so it does not send them as action parameters
+										if (!requestAttrNames.isEmpty()) {
+
+											out.append(" data-structr-request-keys=\"").append(String.join(" ", requestAttrNames)).append("\"");
 										}
 									}
 
@@ -956,7 +958,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final EventContext  eventContext  = new EventContext();
 					final NodeInterface domElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
 					final DOMElement domElement        = domElementNode.as(DOMElement.class);
-					final String actionString          = getActionMapping(domElement).getAction();
+					final ActionMapping actionMapping  = getActionMapping(domElement);
+					final String actionString          = actionMapping.getAction();
 					final EventAction action           = EventAction.forName(actionString);
 
 					// store event context in object
@@ -1028,8 +1031,12 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						case EventAction.Method:
 						case EventAction.Unknown:
-							// execute custom method (and return the result directly)
-							final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
+							// execute custom method (and return the result directly). The method is the static name configured on the
+							// action mapping, never a name from the request and never a template expression
+							final String method          = actionMapping.getResolvedMethodName();
+							final String requestedMethod = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
+
+							warnIfRequestDiffers(renderContext.getSecurityContext(), entity, "method", method, requestedMethod);
 
 							return handleCustomAction(renderContext, domElementNode, parameters, eventContext, method);
 
@@ -1327,16 +1334,30 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private GraphObject handleCreateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataType                 = getDataTypeFromParameters(parameters, "create", true);
+		final String configuredType           = getDataType(securityContext, entity, parameters);
+
+		if (StringUtils.isBlank(configuredType)) {
+
+			throw new FrameworkException(422, "Cannot execute create action without a data type.");
+		}
+
+		removeInternalDataBindingKeys(parameters);
+
+		// AbstractNode as data type means that the "type" parameter determines the type at runtime
+		final boolean runtimeType = "AbstractNode".equals(configuredType);
+		final String dataType     = runtimeType ? getRuntimeDataType(parameters) : configuredType;
 
 		// resolve target type
 		Traits traits = Traits.of(dataType);
-		if (traits == null) {
+		if (traits == null || !traits.isNodeType()) {
 
 			throw new FrameworkException(422, "Cannot execute create action with target type " + dataType + ", type does not exist.");
 		}
 
-		removeInternalDataBindingKeys(parameters);
+		if (runtimeType) {
+
+			checkCreateAccess(securityContext, dataType);
+		}
 
 		// convert input
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, dataType, parameters);
@@ -1344,6 +1365,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// create entity
 
 		return StructrApp.getInstance(securityContext).create(dataType, properties);
+	}
+
+	private String getRuntimeDataType(final Map<String, Object> parameters) throws FrameworkException {
+
+		final Object type = parameters.remove("type");
+		if (type instanceof String typeName && StringUtils.isNotBlank(typeName)) {
+
+			return typeName;
+		}
+
+		throw new FrameworkException(422, "Cannot execute create action with data type AbstractNode without a type parameter.");
 	}
 
 	private void handleUpdateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
@@ -1632,15 +1664,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Principal currentUser                = renderContext.getSecurityContext().getUser(false);
 		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-		final Map<String, Object> properties       = new LinkedHashMap<>();
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			properties.put(key, value);
-		}
+		final Map<String, Object> properties       = new LinkedHashMap<>(parameters);
 
 		return logoutResource.doPost(renderContext.getSecurityContext(), properties);
 	}
@@ -1688,6 +1712,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private Object handleFlowAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String flowName) throws FrameworkException {
 
 		if (flowName != null) {
+
+			removeInternalDataBindingKeys(parameters);
 
 			return Actions.execute(renderContext.getSecurityContext(), entity, "${{$.flow('" + flowName.trim() + "', $.methodParameters)}}", parameters, "flow:" + flowName.trim(), flowName.trim());
 
@@ -1751,6 +1777,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final AbstractMethod method = Methods.resolveMethod(traits, methodName);
 
 					if (method != null) {
+
+						removeInternalDataBindingKeys(parameters);
 
 						if (method.shouldReturnRawResult()) {
 
@@ -1996,36 +2024,19 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			methodName = operation;
 
-			// completeWithSubject: the engine method needs to know which
-			// SchemaNode type to instantiate as the subject. Two sources,
-			// in order of preference:
-			//
-			//   1. The `structrDataType` request parameter, populated from
-			//      the rendered `data-structr-data-type` attribute. This
-			//      went through variable replacement at page-render time,
-			//      so process-bound widgets with `dataType: ${dataSource.dataType}`
-			//      arrive here as the resolved SchemaNode name.
-			//   2. The action's stored dataType (resolved via the dataTypeNode
-			//      rel when set, otherwise the raw string). Fallback for
-			//      actions where the dataType is a static type name baked
-			//      into the EAM, not derived at render time.
-			//
-			// Reading from (1) first is critical for process-bound widgets:
-			// their stored dataType is an unresolved expression, so (2)
-			// alone would surface that expression as a literal type name
-			// and the SchemaNode lookup would fail.
+			// completeWithSubject: the engine method needs to know which SchemaNode type to instantiate as the subject.
+			// It is the data type of the action mapping (resolved via the dataTypeNode rel when set). Process-bound
+			// widgets store an expression like ${dataSource.dataType}, which is evaluated when the page renders, so it
+			// arrives as the structrDataType request parameter.
 			if ("completeWithSubject".equals(operation)) {
 
-				String subjectType = getDataTypeFromParameters(parameters, "completeWithSubject", false);
-				if (StringUtils.isBlank(subjectType)) {
-
-					subjectType = triggeredAction.getResolvedDataTypeName();
-				}
+				final String subjectType = getDataType(renderContext.getSecurityContext(), entity, parameters);
 
 				if (StringUtils.isBlank(subjectType) || subjectType.startsWith("${")) {
 
 					throw new FrameworkException(422, "control-process operation 'completeWithSubject' requires a Data type to resolve to a SchemaNode name (got: '" + subjectType + "'). For process-bound widgets, ensure the form renders 'data-structr-data-type' to a concrete type name; for static actions, set Data type on the action mapping.");
 				}
+
 				parameters.put("subjectType", subjectType);
 			}
 
@@ -2231,15 +2242,57 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		parameters.keySet().removeAll(DOMElement.EVENT_ACTION_MAPPING_INTERNAL_KEYS);
 	}
 
-	private String getDataTypeFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
+	/**
+	 * The data type of the action mapping of the given element. A data type that is a template expression is evaluated
+	 * when the page renders, so it is taken from the request (data-structr-data-type) instead.
+	 */
+	private String getDataType(final SecurityContext securityContext, final NodeInterface entity, final Map<String, Object> parameters) throws FrameworkException {
 
-		final String dataType  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
-		if (StringUtils.isBlank(dataType) && throwExceptionIfEmpty) {
+		final String configuredType = getActionMapping(entity.as(DOMElement.class)).getResolvedDataTypeName();
+		final String requestedType  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
 
-			throw new FrameworkException(422, "Cannot execute " + action + " action without target UUID (data-structr-target attribute).");
+		if (isRenderTimeExpression(configuredType)) {
+
+			return requestedType;
 		}
 
-		return dataType;
+		warnIfRequestDiffers(securityContext, entity, "data type", configuredType, requestedType);
+
+		return configuredType;
+	}
+
+	/**
+	 * The browser sends back the method and data type that were rendered for the element, which are the configured ones,
+	 * so a different value in the request was not produced by the page: it is ignored, and logged as a possible attempt
+	 * to call another method or create another type.
+	 */
+	private static void warnIfRequestDiffers(final SecurityContext securityContext, final GraphObject entity, final String what, final String configured, final String requested) {
+
+		if (StringUtils.isNotBlank(requested) && !requested.equals(configured)) {
+
+			final Principal user = securityContext.getUser(false);
+
+			// the requested value comes from the client: no line breaks, so it cannot forge further log lines
+			final String loggedValue = StringUtils.abbreviate(requested.replaceAll("[\\r\\n]", " "), 200);
+
+			LoggerFactory.getLogger(DOMElementTraitDefinition.class).warn("Ignoring {} '{}' in an event request for element {}, which is configured with '{}'{}. The request was not sent by the rendered page.",
+				what, loggedValue, entity.getUuid(), configured, user != null ? " (user " + user.getName() + ")" : "");
+		}
+	}
+
+	// a type chosen by the user needs the same grant as POST /<type> in the REST API; a call outside of a request is trusted
+	private static void checkCreateAccess(final SecurityContext securityContext, final String type) throws FrameworkException {
+
+		final HttpServletRequest request = securityContext.getRequest();
+		if (request != null && securityContext.getAuthenticator() != null) {
+
+			securityContext.getAuthenticator().checkResourceAccess(securityContext, request, type, "");
+		}
+	}
+
+	private static boolean isRenderTimeExpression(final String value) {
+
+		return value != null && value.contains("${");
 	}
 
 	/**
@@ -2469,7 +2522,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, titleKey);
 			final String dialogText  = triggeredAction.getPropertyWithVariableReplacement(renderContext, textKey);
 
-			out.append(" data-structr-dialog-type=\"").append(dialogType).append("\"");
+			out.append(" data-structr-dialog-type=\"").append(DOMNode.escapeForHtmlAttributes(dialogType)).append("\"");
 			out.append(" data-structr-dialog-title=\"").append(DOMNode.escapeForHtmlAttributes(dialogTitle)).append("\"");
 			out.append(" data-structr-dialog-text=\"").append(DOMNode.escapeForHtmlAttributes(dialogText)).append("\"");
 		}
@@ -2481,7 +2534,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String successNotificationsString = triggeredAction.getSuccessNotifications();
 		if (StringUtils.isNotBlank(successNotificationsString)) {
 
-			out.append(" data-structr-success-notifications=\"").append(successNotificationsString).append("\"");
+			out.append(" data-structr-success-notifications=\"").append(DOMNode.escapeForHtmlAttributes(successNotificationsString)).append("\"");
 
 			// the text is rendered by the inline message and the system alert alike, so it sits outside the switch
 			final PropertyKey<String> successTextKey = triggeredAction.getTraits().key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_TEXT_PROPERTY);
@@ -2500,7 +2553,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					break;
 
 				case EventNotification.FireEvent:
-					out.append(" data-structr-success-notifications-event=\"").append(triggeredAction.getSuccessNotificationsEvent()).append("\"");
+					out.append(" data-structr-success-notifications-event=\"").append(DOMNode.escapeForHtmlAttributes(triggeredAction.getSuccessNotificationsEvent())).append("\"");
 					break;
 
 				case EventNotification.InlineTextMessage:
@@ -2524,7 +2577,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String successNotificationsPartial = triggeredAction.getSuccessNotificationsPartial();
 		if (StringUtils.isNotBlank(successNotificationsPartial)) {
 
-			out.append(" data-structr-success-notifications-partial=\"").append(successNotificationsPartial).append("\"");
+			out.append(" data-structr-success-notifications-partial=\"").append(DOMNode.escapeForHtmlAttributes(successNotificationsPartial)).append("\"");
 		}
 	}
 
@@ -2534,7 +2587,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String failureNotificationsString = triggeredAction.getFailureNotifications();
 		if (StringUtils.isNotBlank(failureNotificationsString)) {
 
-			out.append(" data-structr-failure-notifications=\"").append(failureNotificationsString).append("\"");
+			out.append(" data-structr-failure-notifications=\"").append(DOMNode.escapeForHtmlAttributes(failureNotificationsString)).append("\"");
 
 			// the text is rendered by the inline message and the system alert alike, so it sits outside the switch
 			final PropertyKey<String> failureTextKey = triggeredAction.getTraits().key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_TEXT_PROPERTY);
@@ -2553,7 +2606,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					break;
 
 				case EventNotification.FireEvent:
-					out.append(" data-structr-failure-notifications-event=\"").append(triggeredAction.getFailureNotificationsEvent()).append("\"");
+					out.append(" data-structr-failure-notifications-event=\"").append(DOMNode.escapeForHtmlAttributes(triggeredAction.getFailureNotificationsEvent())).append("\"");
 					break;
 
 				case EventNotification.InlineTextMessage:
@@ -2577,7 +2630,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String failureNotificationsPartial = triggeredAction.getFailureNotificationsPartial();
 		if (StringUtils.isNotBlank(failureNotificationsPartial)) {
 
-			out.append(" data-structr-failure-notifications-partial=\"").append(failureNotificationsPartial).append("\"");
+			out.append(" data-structr-failure-notifications-partial=\"").append(DOMNode.escapeForHtmlAttributes(failureNotificationsPartial)).append("\"");
 		}
 	}
 
@@ -2719,7 +2772,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (StringUtils.isNotBlank(failureTargetString)) {
 
-			out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
+			out.append(" data-structr-failure-target=\"").append(DOMNode.escapeForHtmlAttributes(failureTargetString)).append("\"");
 		}
 	}
 

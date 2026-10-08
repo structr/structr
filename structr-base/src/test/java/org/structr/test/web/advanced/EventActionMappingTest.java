@@ -125,19 +125,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		RestAssured.basePath = "/";
-
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrDataType: 'Test', name: 'test1', currentObjectId: '0123456789abcdef0123456789abcdef' }")
-			.expect()
-			.statusCode(200)
-			.when()
-			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+		postEvent(buttonUuid, Map.of("name", "test1", "currentObjectId", "0123456789abcdef0123456789abcdef"), 200);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2670,7 +2658,6 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testWrappedResultInCustomMethodOutput() {
 
-		String objectUuid = null;
 		String buttonUuid = null;
 
 		try (final Tx tx = app.tx()) {
@@ -2701,6 +2688,9 @@ public class EventActionMappingTest extends StructrUiTest {
 			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
 			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "testMethod");
 
+			// the target is evaluated when the page renders, the browser sends what the page carries
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), "${first(find('Test')).id}");
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -2711,7 +2701,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			objectUuid = app.create("Test").getUuid();
+			app.create("Test");
 
 			tx.success();
 
@@ -2721,27 +2711,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		RestAssured.basePath = "/";
-
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: testMethod, structrTarget: '" + objectUuid + "' }")
-			.expect()
-			.statusCode(200)
+		postEvent(buttonUuid, Map.of(), 200)
 			.body("result.test1", equalTo(1))
-			.body("result.test2", equalTo("test1"))
-			.when()
-			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+			.body("result.test2", equalTo("test1"));
 	}
 
 	@Test
 	public void testRawResultInCustomMethodOutput() {
 
-		String objectUuid = null;
 		String buttonUuid = null;
 
 		try (final Tx tx = app.tx()) {
@@ -2774,6 +2751,9 @@ public class EventActionMappingTest extends StructrUiTest {
 			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
 			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "testMethod");
 
+			// the target is evaluated when the page renders, the browser sends what the page carries
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), "${first(find('Test')).id}");
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -2784,7 +2764,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			objectUuid = app.create("Test").getUuid();
+			app.create("Test");
 
 			tx.success();
 
@@ -2794,21 +2774,9 @@ public class EventActionMappingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		RestAssured.basePath = "/";
-
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: testMethod, structrTarget: '" + objectUuid + "' }")
-			.expect()
-			.statusCode(200)
+		postEvent(buttonUuid, Map.of(), 200)
 			.body("test1", equalTo(1))
-			.body("test2", equalTo("test1"))
-			.when()
-			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+			.body("test2", equalTo("test1"));
 	}
 
 	@Test
@@ -2890,10 +2858,10 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testResponseForNonExistingMethod() {
 
-		String objectUuid  = null;
-		String button1Uuid = null;
-		String button2Uuid = null;
-		String button3Uuid = null;
+		// the server runs the method configured on the action mapping (a method name the client sends instead
+		// is ignored, see EventActionMappingServerSideTest), so each method, existing or not, is configured on a
+		// button of its own
+		final Map<String, String> buttons = new LinkedHashMap<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -2914,59 +2882,19 @@ public class EventActionMappingTest extends StructrUiTest {
 			);
 
 			// create EAM
-			final Page page1        = Page.createSimplePage(securityContext, "page1");
-			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+			final Page page1  = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div = page1.getElementsByTagName("div").get(0);
 
-			// button1 for instance method
-			{
-				final DOMElement btn = page1.createElement("button");
-				final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+			// an instance method on the Test object, evaluated when the page renders, a static method of the type
+			// Test, and a user-defined function without a target
+			final String instance = "${first(find('Test')).id}";
 
-				div.appendChild(btn);
-
-				// save uuid for later
-				button1Uuid = btn.getUuid();
-
-				// base setup
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "instanceMethod");
-			}
-
-			// button2 for static method
-			{
-				final DOMElement btn = page1.createElement("button");
-				final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
-
-				div.appendChild(btn);
-
-				// save uuid for later
-				button2Uuid = btn.getUuid();
-
-				// base setup
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "staticMethod");
-			}
-
-			// button3 for user-defined function
-			{
-				final DOMElement btn = page1.createElement("button");
-				final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
-
-				div.appendChild(btn);
-
-				// save uuid for later
-				button3Uuid = btn.getUuid();
-
-				// base setup
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
-				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "userDefinedFunction");
-			}
+			buttons.put("instanceMethod",                  createMethodButton(page1, div, "instanceMethod", instance));
+			buttons.put("staticMethod",                    createMethodButton(page1, div, "staticMethod", "Test"));
+			buttons.put("userDefinedFunction",             createMethodButton(page1, div, "userDefinedFunction", null));
+			buttons.put("instanceMethodNotExisting",       createMethodButton(page1, div, "instanceMethodNotExisting", instance));
+			buttons.put("staticMethodNotExisting",         createMethodButton(page1, div, "staticMethodNotExisting", "Test"));
+			buttons.put("userDefinedFunctionNotExisting",  createMethodButton(page1, div, "userDefinedFunctionNotExisting", null));
 
 			tx.success();
 
@@ -2978,7 +2906,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			objectUuid = app.create("Test").getUuid();
+			app.create("Test");
 
 			tx.success();
 
@@ -2988,92 +2916,25 @@ public class EventActionMappingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		RestAssured.basePath = "/";
-
 		// test instance method
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: instanceMethod, structrTarget: '" + objectUuid + "' }")
-			.expect()
-			.statusCode(200)
+		postEvent(buttons.get("instanceMethod"), Map.of(), 200)
 			.body("result.test1", equalTo(1))
-			.body("result.test2", equalTo("test1"))
-			.when()
-			.post("/structr/rest/DOMElement/" + button1Uuid + "/event");
+			.body("result.test2", equalTo("test1"));
 
 		// test static method
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: staticMethod, structrTarget: 'Test' }")
-			.expect()
-			.statusCode(200)
+		postEvent(buttons.get("staticMethod"), Map.of(), 200)
 			.body("result.test1", equalTo(2))
-			.body("result.test2", equalTo("test2"))
-			.when()
-			.post("/structr/rest/DOMElement/" + button2Uuid + "/event");
+			.body("result.test2", equalTo("test2"));
 
 		// test user-defined function
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: userDefinedFunction }")
-			.expect()
-			.statusCode(200)
+		postEvent(buttons.get("userDefinedFunction"), Map.of(), 200)
 			.body("result.test1", equalTo(3))
-			.body("result.test2", equalTo("test3"))
-			.when()
-			.post("/structr/rest/DOMElement/" + button3Uuid + "/event");
+			.body("result.test2", equalTo("test3"));
 
 		// now test the three cases with nonexisting methods
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: instanceMethodNotExisting, structrTarget: '" + objectUuid + "' }")
-			.expect()
-			.statusCode(422)
-			.when()
-			.post("/structr/rest/DOMElement/" + button1Uuid + "/event");
-
-		// test static method
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: staticMethodNotExisting, structrTarget: 'Test' }")
-			.expect()
-			.statusCode(422)
-			.when()
-			.post("/structr/rest/DOMElement/" + button2Uuid + "/event");
-
-		// test user-defined function
-		RestAssured
-
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
-			.body("{ htmlEvent: click, structrMethod: userDefinedFunctionNotExisting }")
-			.expect()
-			.statusCode(422)
-			.when()
-			.post("/structr/rest/DOMElement/" + button3Uuid + "/event");
-
+		postEvent(buttons.get("instanceMethodNotExisting"), Map.of(), 422);
+		postEvent(buttons.get("staticMethodNotExisting"), Map.of(), 422);
+		postEvent(buttons.get("userDefinedFunctionNotExisting"), Map.of(), 422);
 	}
 
 	// ----- private methods -----
@@ -3185,6 +3046,55 @@ public class EventActionMappingTest extends StructrUiTest {
 		}
 
 		return map;
+	}
+
+	/**
+	 * A button with an action mapping that calls the given method on the given target (a uuid expression, a type
+	 * name, or null for a user-defined function), returns the uuid of the button.
+	 */
+	private String createMethodButton(final Page page, final DOMNode parent, final String method, final String idExpression) throws FrameworkException {
+
+		final Traits traits     = Traits.of(StructrTraits.ACTION_MAPPING);
+		final DOMElement btn    = page.createElement("button");
+		final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+		parent.appendChild(btn);
+
+		eam.setProperty(traits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+		eam.setProperty(traits.key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+		eam.setProperty(traits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+		eam.setProperty(traits.key(ActionMappingTraitDefinition.METHOD_PROPERTY), method);
+
+		if (idExpression != null) {
+
+			eam.setProperty(traits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), idExpression);
+		}
+
+		return btn.getUuid();
+	}
+
+	/**
+	 * Posts what the browser sends for the trigger in page1: its rendered data attributes plus the given values.
+	 */
+	private io.restassured.response.ValidatableResponse postEvent(final String elementUuid, final Map<String, Object> values, final int expectedStatusCode) {
+
+		final Map<String, Object> payload = BrowserEventPayload.of(fetchPageHtml("/html/page1"), elementUuid);
+
+		payload.put("htmlEvent", "click");
+		payload.putAll(values);
+
+		RestAssured.basePath = "/";
+
+		return RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.body(BrowserEventPayload.toJson(payload))
+			.when()
+				.post("/structr/rest/DOMElement/" + elementUuid + "/event")
+			.then()
+				.statusCode(expectedStatusCode);
 	}
 
 	private String fetchPageHtml(final String path) {

@@ -135,6 +135,40 @@ public class AccessControlTest extends StructrTest {
 	}
 
 	@Test
+	public void testPublicRelationshipLookupByUuid() {
+
+		// remove auto-generated resource access objects
+		clearResourceAccess();
+
+		try {
+
+			final PropertyMap props = new PropertyMap();
+
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+
+			final RelationshipInterface publicRel  = createTestRelationship(createTestNode("TestOne", props), createTestNode("TestFour", props), "OneFourOneToOne");
+			final RelationshipInterface privateRel = createTestRelationship(createTestNode("TestOne"), createTestNode("TestFour"), "OneFourOneToOne");
+
+			final SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
+			final App publicApp                 = StructrApp.getInstance(publicContext);
+
+			try (final Tx tx = publicApp.tx()) {
+
+				// the query getRelationshipById sends: an anonymous relationship search also filters by the visibility of both ends
+				assertEquals("Relationship between public nodes must be found", publicRel.getUuid(), publicApp.relationshipQuery().and().uuid(publicRel.getUuid()).getFirst().getUuid());
+				assertNull("Relationship between non-public nodes must not be found", publicApp.relationshipQuery().and().uuid(privateRel.getUuid()).getFirst());
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void test03PublicAccessToProtectedNode() {
 
 		// remove auto-generated resource access objects

@@ -78,7 +78,17 @@ public class MigrationService {
 		"reset-password",
 		"method",
 		"flow",
-		"control-process"
+		"control-process",
+		"none",
+		"prev-page",
+		"next-page"
+	);
+
+	// actions that were missing from EventActionMappingActions, so migrateCustomEventAction turned them into a method call of that name
+	private static final Set<String> EventActionMappingActionsMigratedToMethod = Set.of(
+		"none",
+		"prev-page",
+		"next-page"
 	);
 
 	private static final Set<String> FQCNBlacklist = Set.of(
@@ -818,6 +828,15 @@ public class MigrationService {
 				eventMappingCount++;
 			}
 
+			// restore built-in actions that an earlier run moved to the method property, before custom actions are checked
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(newActionKey, "method").getResultStream()) {
+
+				if (restoreActionMigratedToMethod(action)) {
+
+					eventMappingCount++;
+				}
+			}
+
 			// check and fix custom actions that call methods (action => "method", method => action)
 			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().key(newActionKey, null).getResultStream()) {
 
@@ -1302,6 +1321,35 @@ public class MigrationService {
 		final NodeInterface actionMapping = StructrApp.getInstance().create(StructrTraits.ACTION_MAPPING, properties);
 
 		migrateParameters(elem, actionMapping, data);
+	}
+
+	/**
+	 * Undo migrateCustomEventAction for the built-in actions that were missing from EventActionMappingActions:
+	 * action "method" with method "none", "prev-page" or "next-page" becomes that action again, unless the
+	 * mapping is linked to a method or a method of that name exists, in which case it is a real method call.
+	 */
+	private static boolean restoreActionMigratedToMethod(final NodeInterface node) throws FrameworkException {
+
+		final ActionMapping actionMapping = node.as(ActionMapping.class);
+		final String methodName           = actionMapping.getMethod();
+
+		if (!EventActionMappingActionsMigratedToMethod.contains(methodName) || actionMapping.getMethodNode() != null) {
+
+			return false;
+		}
+
+		final boolean schemaMethodExists = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getFirst() != null;
+		if (schemaMethodExists || !findTypesWithJavaMethod(methodName).isEmpty()) {
+
+			return false;
+		}
+
+		logger.info("Restoring action '{}' on ActionMapping {}, which an earlier migration had turned into a call of a method with that name.", methodName, node.getUuid());
+
+		actionMapping.setAction(methodName);
+		actionMapping.setMethod(null);
+
+		return true;
 	}
 
 	private static boolean migrateCustomEventAction(final NodeInterface node) throws FrameworkException {

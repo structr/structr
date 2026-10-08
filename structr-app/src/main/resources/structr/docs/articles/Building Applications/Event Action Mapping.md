@@ -115,7 +115,7 @@ The completed configuration looks like this:
 When a user fills in the form and clicks "Create Project", Structr creates a new Project object with the entered name and redirects the browser to the edit page of the project.
 
 ##### Dynamic Type Selection
-Note that you can also enter `AbstractNode` as the type and pass a parameter named `type` to determine the actual type at runtime. This is useful when a form can create different types of objects depending on user input.
+Note that you can also enter `AbstractNode` as the type and pass a parameter named `type` to determine the actual type at runtime. This is useful when a form can create different types of objects depending on user input. Because the type comes from the user, the action needs the same permission as creating that type through the REST API: a resource access permission with POST for the type, unless the user is an administrator.
 
 #### Update Object
 The Update Object action updates an existing object in the database. You enter a template expression in the "UUID of data object to update" field that resolves to the UUID of the object you want to update, for example `${current.id}`. Note that this field is not an auto-script field, so you need to include the `${...}` wrapper.
@@ -269,7 +269,7 @@ Custom logic actions execute your own code.
 
 #### Execute Method
 
-Calls a method defined in your data model. The field "UUID or type of data object to call method on" determines where the method is looked up: a template expression that resolves to a UUID, for example `${current.id}`, calls an instance method on that object; a type name like `Project` calls a static method of that type; an empty field calls a user-defined function. You enter the method name in the method field. Parameters you define in the mapping become available under `$.arguments` in the method body. The method's return value is available in notifications and follow-up actions. For details on defining methods, see the Business Logic chapter.
+Calls a method defined in your data model. The field "UUID or type of data object to call method on" determines where the method is looked up: a template expression that resolves to a UUID, for example `${current.id}`, calls an instance method on that object; a type name like `Project` calls a static method of that type; an empty field calls a user-defined function. You enter the method name in the method field. The name is used exactly as entered: template expressions are not evaluated there, and the method is always the one configured in the mapping. Parameters you define in the mapping become available under `$.arguments` in the method body. The method's return value is available in notifications and follow-up actions. For details on defining methods, see the Business Logic chapter.
 
 #### Execute Flow
 
@@ -354,7 +354,7 @@ Displays a browser alert dialog with a status message. The message includes the 
 
 Displays the status message on the page, directly after the element that triggered the action. The "Display duration (ms)" field controls how long the message stays before it disappears automatically. The default is 5000 milliseconds, and a value of -1 keeps the message visible until the next action clears it.
 
-The "Message text" field replaces the wording of the message while the icon is kept. The text can contain the placeholders `{status}` and `{message}`, which are filled from the response when the message is shown, for example `Saved ({status})`. Properties of the action result are available as `{result.id}`, `{result.name}` and so on, with the same syntax as in the follow-up actions (see "Accessing Result Properties"). If the action is "Execute method" and the method returns a string, `{result}` inserts it directly, for example `Import finished: {result}`. Template expressions like `${me.name}` are evaluated when the page renders. Leave the field empty to use the default text. The "CSS class" field sets a class on the message element. Setting a class removes the built-in styling completely, including the positioning, so the class has to place the message itself.
+The "Message text" field replaces the wording of the message while the icon is kept. The text can contain the placeholders `{status}` and `{message}`, which are filled from the response when the message is shown, for example `Saved ({status})`. Properties of the action result are available as `{result.id}`, `{result.name}` and so on, with the same syntax as in the follow-up actions (see "Accessing Result Properties"). If the action is "Execute method" and the method returns a string, `{result}` inserts it directly, for example `Import finished: {result}`. Template expressions like `${me.name}` are evaluated when the page renders. The message is shown as plain text, so markup in the text, in a placeholder or in a value from a template expression is displayed literally and never interpreted as HTML. If you need formatted content, use a custom dialog element. Leave the field empty to use the default text. The "CSS class" field sets a class on the message element. Setting a class removes the built-in styling completely, including the positioning, so the class has to place the message itself.
 
 For validation errors, the specific error messages are included:
 

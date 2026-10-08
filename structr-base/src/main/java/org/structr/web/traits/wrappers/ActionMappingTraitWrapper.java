@@ -421,6 +421,7 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 		properties.put(traits.key(ActionMappingTraitDefinition.EVENT_PROPERTY),                         getEvent());
 		properties.put(traits.key(ActionMappingTraitDefinition.ACTION_PROPERTY),                        getAction());
 		properties.put(traits.key(ActionMappingTraitDefinition.METHOD_PROPERTY),                        getMethod());
+		properties.put(traits.key(ActionMappingTraitDefinition.FLOW_PROPERTY),                          wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FLOW_PROPERTY)));
 		properties.put(traits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY),                     getDataType());
 		properties.put(traits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY),                 getIdExpression());
 		properties.put(traits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY),                       getOptions());
@@ -453,6 +454,22 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_HIDE_PROPERTY),                  getFailureHide());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_SCOPE_PROPERTY),                 getFailureScope());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY),                 getFailureEvent());
+
+		// the control-process properties are registered by the process module, so they exist only when it is loaded;
+		// the process and the element they point to are not part of the cloned DOM and are referenced directly
+		for (final String processKey : List.of(
+			ActionMappingTraitDefinition.PROCESS_OPERATION_PROPERTY,
+			ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY,
+			ActionMappingTraitDefinition.TARGETS_ELEMENT_PROPERTY,
+			ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY,
+			ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_PROPERTY,
+			ActionMappingTraitDefinition.TARGETS_ELEMENT_BPMN_ID_PROPERTY)) {
+
+			if (traits.hasKey(processKey)) {
+
+				properties.put(traits.key(processKey), wrappedObject.getProperty(traits.key(processKey)));
+			}
+		}
 
 		// clone parameters
 		final List<NodeInterface> clonedParameters = new LinkedList<>();

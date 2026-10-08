@@ -29,7 +29,7 @@ export class Handler {
 		element.classList.add(reloadTarget);
 
 		window.setTimeout(() => {
-			element.classList.remove(css);
+			element.classList.remove(reloadTarget);
 		}, 2000);
 
 	}
