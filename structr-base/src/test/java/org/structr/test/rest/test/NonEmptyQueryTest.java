@@ -22,33 +22,140 @@ import io.restassured.RestAssured;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.BulkRebuildIndexCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
+
+import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 import static org.testng.AssertJUnit.fail;
 
 /**
- * Verifies the documented contract for the non-empty search predicate `?prop=[]` (ticket #414):
- * on a dynamic (data-model) property it works only when the property is indexed-when-empty, which for
- * dynamic properties is enabled automatically when the property is indexed AND has a non-blank default
- * value. Without a default value the predicate is rejected with HTTP 400.
+ * The non-empty search predicate `?prop=[]` selects the objects that have a stored value for the property
+ * (tickets 414 and 1271).
+ *
+ * <p>Searches operate on stored values. A default value is not stored when the property is read, only when
+ * an object with an indexed property is created or modified, or when rebuildIndex runs. The predicate used
+ * to require indexedWhenEmpty(), which a dynamic property only gets together with a default value, although
+ * the "is not null" condition it becomes does not depend on it; it now works on every indexed property.
  */
 public class NonEmptyQueryTest extends StructrRestTestBase {
 
 	@Test
-	public void nonEmptyQueryRequiresDefaultValueOnDynamicProperty() {
+	public void nonEmptyQuerySelectsObjectsWithAStoredValue() {
 
-		// one type, two indexed string properties: one with a default value, one without
+		createItemType();
+
+		createEntity("/Item", "{ name: item1, withDefault: a, noDefault: b }");
+		createEntity("/Item", "{ name: item2, withDefault: c }");
+		createEntity("/Item", "{ name: item3 }");
+
+		// item3 has the default value stored, because it was created with the default in place
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",       hasSize(3))
+				.body("result_count", equalTo(3))
+			.when()
+				.get("/Item?withDefault=[]");
+
+		// no default value: only the object that was given one has a value
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",         hasSize(1))
+				.body("result[0].name", equalTo("item1"))
+			.when()
+				.get("/Item?noDefault=[]&_sort=name");
+	}
+
+	/**
+	 * Objects that exist before a default value is added show the default but have no stored value, so no
+	 * search finds them by it until rebuildIndex has stored it.
+	 */
+	@Test
+	public void defaultValueAddedLaterIsSearchableAfterRebuildIndex() {
+
+		createItemType();
+
+		createEntity("/Item", "{ name: before }");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).name("noDefault").getFirst();
+
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY), "y");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while adding the default value.");
+		}
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result[0].noDefault", equalTo("y"))
+			.when()
+				.get("/Item");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result", hasSize(0))
+			.when()
+				.get("/Item?noDefault=[]");
+
+		app.command(BulkRebuildIndexCommand.class).execute(Map.of("type", "Item"));
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result", hasSize(1))
+			.when()
+				.get("/Item?noDefault=[]");
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result", hasSize(1))
+			.when()
+				.get("/Item?noDefault=y");
+	}
+
+	/**
+	 * One type, two indexed string properties: one with a default value, one without.
+	 */
+	private void createItemType() {
+
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Item");
 
-			type.addStringProperty("withDefault").setIndexed(true).setDefaultValue("x");
-			type.addStringProperty("noDefault").setIndexed(true);
+			type.addStringProperty("withDefault", "public").setIndexed(true).setDefaultValue("x");
+			type.addStringProperty("noDefault", "public").setIndexed(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -59,32 +166,5 @@ public class NonEmptyQueryTest extends StructrRestTestBase {
 			fex.printStackTrace();
 			fail("Unexpected exception during schema setup.");
 		}
-
-		createEntity("/Item", "{ name: item1, withDefault: a, noDefault: b }");
-		createEntity("/Item", "{ name: item2, withDefault: c, noDefault: d }");
-
-		// non-empty predicate WORKS on the indexed property that has a default value
-		// (the default value makes the dynamic property indexed-when-empty)
-		RestAssured
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result",       hasSize(2))
-				.body("result_count", equalTo(2))
-			.when()
-				.get("/Item?withDefault=[]");
-
-		// ...and is REJECTED with 400 on the indexed property WITHOUT a default value,
-		// because it is not indexed-when-empty
-		RestAssured
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(400)
-				.body("code",    equalTo(400))
-				.body("message", containsString("indexedWhenEmpty"))
-			.when()
-				.get("/Item?noDefault=[]");
 	}
 }

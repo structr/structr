@@ -162,6 +162,22 @@ To search for objects without a value for a given property, you simply put the n
 
     $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project?name="
 
+#### Non-Empty Values
+
+The opposite selects all objects that have a value for the property. You write it as an empty range, `[]`, which you can use on any indexed property. This is useful when an optional property marks a state, for example all projects that already have an end date.
+
+    $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project?endDate=[]"
+
+#### Default Values in Searches
+
+Searches compare the values stored in the database. For an indexed property of your data model, Structr stores the default value when it writes the object, which means when you create or modify it, or when you run the `rebuildIndex` maintenance command. Reading an object does not store anything. As long as an object has no stored value, it shows the default value in the response, but a search for that value does not find it, and a search for empty values does.
+
+This matters when you add a default value to a property that already has data. The objects that exist at that point show the default, but have no stored value until they are modified. Run `rebuildIndex` for the type after the schema change, so that every object stores its value and the searches above give the same result for all of them. The Maintenance chapter describes the command and its parameters.
+
+Changing an existing default value is different: objects that have already stored the old default keep it, both in the database and in the response, and `rebuildIndex` does not change that, because the default only applies where no value is stored.
+
+    $ curl -s -HX-User:admin -HX-Password:admin http://localhost:8082/structr/rest/maintenance/rebuildIndex -XPOST -d '{ "type": "Project" }'
+
 ### More Search Options
 
 If you need more search options, e.g. search on multiple types, faceted search etc., have a look at the following options:

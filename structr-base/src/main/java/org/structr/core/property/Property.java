@@ -932,18 +932,12 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 				if ("[]".equals(requestParameter)) {
 
-					if (isIndexedWhenEmpty()) {
+					// requestParameter contains only [], which we use as a "not-blank" selector: objects with a
+					// stored value. It used to require indexedWhenEmpty(), which the "is not null" condition it
+					// becomes does not depend on (ticket 1271).
+					query.notBlank(this);
 
-						// requestParameter contains only [],
-						// which we use as a "not-blank" selector
-						query.notBlank(this);
-
-						return;
-
-					} else {
-
-						throw new FrameworkException(400, "PropertyKey " + this.jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
-					}
+					return;
 
 				} else {
 
