@@ -127,6 +127,11 @@ public class SearchNodesCommand extends AbstractCommand {
 				tmp.put("isMailTemplateElement", true);
 			}
 
+			if (labels.contains(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE)) {
+
+				tmp.put("isDeploymentScript", true);
+			}
+
 			results.add(GraphObjectMap.fromMap(tmp));
 		}
 

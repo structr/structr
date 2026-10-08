@@ -2036,7 +2036,13 @@ let Structr = {
 
 						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
 
-						el.querySelector('.name').textContent = result.name ? `${result.name} [${result.type}]` : result.type;
+						let nameText = result.name ? `${result.name} [${result.type}]` : result.type;
+
+						if (result.isDeploymentScript) {
+							nameText = _Code.mainArea.deploymentConfigurationScripts.templates.treeNames[result.name];
+						}
+
+						el.querySelector('.name').textContent = nameText;
 
 						Structr.globalSearch.insertValuePreview(el, value);
 
@@ -2070,6 +2076,10 @@ let Structr = {
 			} else if (result.isMailTemplateElement) {
 
 				_MailTemplates.search.goToResult(result, key, searchData);
+
+			} else if (result.isDeploymentScript) {
+
+				_Code.search.goToResult(result, key, searchData);
 
 			} else {
 
@@ -2164,6 +2174,7 @@ let Structr = {
 										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="files">Files/Folders</label>
 										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="localizations">Localizations</label>
 										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="mail-templates">Mail Templates</label>
+										<label class="flex items-center"><input type="checkbox" checked data-is-search-context="true" name="deploy-scripts">Deployment Scripts</label>
 										<!--	<label class="flex items-center"><input type="checkbox" checked name="flows">Flow Nodes</label>-->
 									</div>
 								</form>

@@ -2999,16 +2999,16 @@ let _Code = {
 		deploymentConfigurationScripts: {
 			getTreeEntry: (path) => {
 				return {
-					id:       path + '/deploy-configs',
+					id:       path + '/' + _Code.mainArea.deploymentConfigurationScripts.templates.mainTreeName,
 					text:     'Deployment Configuration Scripts',
 					children: true,
 					icon:     _Icons.nonExistentEmptyIcon,
-					li_attr:  { 'data-id': 'deploy-configs' },
+					li_attr:  { 'data-id': _Code.mainArea.deploymentConfigurationScripts.templates.mainTreeName },
 					data: {
 						svgIcon: _Icons.getSvgIcon(_Icons.iconDeploymentConfigScripts, 18, 24),
-						key:     'deploy-configs',
-						content: 'deploy-configs',
-						path:    path + '/deploy-configs'
+						key:     _Code.mainArea.deploymentConfigurationScripts.templates.mainTreeName,
+						content: _Code.mainArea.deploymentConfigurationScripts.templates.mainTreeName,
+						path:    path + '/' + _Code.mainArea.deploymentConfigurationScripts.templates.mainTreeName
 					},
 				}
 			},
@@ -3155,6 +3155,7 @@ let _Code = {
 						<div class="editor w-full h-80" id="deployment-config-script-editor" data-property="content"></div>
 					</div>
 				`,
+				mainTreeName: 'deploy-configs',
 				icons: {
 					'pre-deploy-conf': 'iconPreDeployConf',
 					'post-deploy-conf': 'iconPostDeployConf'
@@ -3710,7 +3711,12 @@ let _Code = {
 		getPathForNode: (node) => {
 
 			if (node.type === 'SchemaMethodParameter') {
+
 				return _Code.helpers.getPathToOpenForSchemaObject(node.schemaMethod);
+
+			} else if (node.type === 'ApplicationConfigurationDataNode') {
+
+				return _Code.mainArea.deploymentConfigurationScripts.getTreeChildForKey('/' + _Code.mainArea.deploymentConfigurationScripts.templates.mainTreeName, node.name).data.path;
 			}
 
 			return _Code.helpers.getPathToOpenForSchemaObject(node);
