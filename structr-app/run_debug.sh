@@ -11,7 +11,7 @@ BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 LOGS_DIR=$BASE_DIR/logs
 
 if [ ! -d "$LOGS_DIR" ]; then
-				mkdir $LOGS_DIR
+	mkdir $LOGS_DIR
 fi
 
 # ensure the user/optional drop-in jar directory exists (class path; empty by default)
@@ -32,9 +32,13 @@ if [ -f "structr.conf" ]; then
 		[ -n "$MAX_HEAP" ] && MEMORY_OPTS="${MEMORY_OPTS} -Xmx${MAX_HEAP}"
 		MEMORY_OPTS=$(echo "$MEMORY_OPTS" | xargs)  # trim whitespace
 		echo "Using structr.conf memory settings: $MEMORY_OPTS"
+	else
+		MEMORY_OPTS="-Xms1g -Xmx4g"
+		echo "Using default structr.conf memory settings: $MEMORY_OPTS"
 	fi
 elif [ -z "$MEMORY_OPTS" ]; then
-	MEMORY_OPTS="-Xms2g -Xmx8g"
+	MEMORY_OPTS="-Xms1g -Xmx4g"
+	echo "Using default structr.conf memory settings: $MEMORY_OPTS"
 fi
 
 

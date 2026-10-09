@@ -16,20 +16,25 @@ if [ -f "structr.conf" ]; then
 fi
 
 if [ -f bin/memory.conf ]; then
-	echo -e "\n\nDeprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
+	echo -e "\n\n        Deprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
 	MEMORY_OPTS="$(cat bin/memory.conf)"
 elif [ -f bin/memory.config ]; then
-	echo -e "\n\nDeprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
+	echo -e "\n\n        Deprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
 	MEMORY_OPTS="$(cat bin/memory.config)"
 elif [ -f "structr.conf" ]; then
 	if [ -n "$MAX_HEAP" ] || [ -n "$MIN_HEAP" ]; then
+		# Using structr.conf memory settings
 		MEMORY_OPTS=""
 		[ -n "$MIN_HEAP" ] && MEMORY_OPTS="-Xms${MIN_HEAP}"
 		[ -n "$MAX_HEAP" ] && MEMORY_OPTS="${MEMORY_OPTS} -Xmx${MAX_HEAP}"
 		MEMORY_OPTS=$(echo "$MEMORY_OPTS" | xargs)  # trim whitespace
+	else
+		# Using default structr.conf memory settings
+		MEMORY_OPTS="-Xms1g -Xmx4g"
 	fi
 else
-	MEMORY_OPTS=""
+	# Using default structr.conf memory settings
+	MEMORY_OPTS="-Xms1g -Xmx4g"
 fi
 
 if [ "$ENABLE_STRUCTR_DEBUG" == "yes" ]; then
