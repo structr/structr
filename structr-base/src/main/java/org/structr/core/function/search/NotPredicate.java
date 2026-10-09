@@ -55,7 +55,7 @@ public class NotPredicate extends AbstractPredicate {
 
 					} else {
 
-						notGroup.key(key, value, exact && p.isExact());
+						notGroup.key(key, searchValue(securityContext, key, value), exact && p.isExact());
 					}
 				}
 			}

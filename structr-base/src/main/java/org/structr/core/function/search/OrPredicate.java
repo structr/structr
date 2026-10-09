@@ -55,7 +55,7 @@ public class OrPredicate extends AbstractPredicate {
 
 					} else {
 
-						orGroup.key(key, value, exact && p.isExact());
+						orGroup.key(key, searchValue(securityContext, key, value), exact && p.isExact());
 					}
 				}
 			}

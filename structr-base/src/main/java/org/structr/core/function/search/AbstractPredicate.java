@@ -18,6 +18,11 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.PropertyKey;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,5 +41,19 @@ public abstract class AbstractPredicate implements SearchFunctionPredicate {
 	public void addParameter(final SearchParameter param) {
 
 		parameters.add(param);
+	}
+
+	/**
+	 * A predicate gets its value as it came from the script, but an array property can only search for an array
+	 * of its component type (ticket 1417).
+	 */
+	protected Object searchValue(final SecurityContext securityContext, final PropertyKey key, final Object value) throws FrameworkException {
+
+		if (key instanceof ArrayProperty arrayProperty) {
+
+			return arrayProperty.convertScriptSearchValue(securityContext, value);
+		}
+
+		return value;
 	}
 }

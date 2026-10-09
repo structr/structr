@@ -344,6 +344,33 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		return new ArraySearchAttribute(this, searchValue, exactMatch);
 	}
 
+	/**
+	 * Converts a search value from a script into an array of the component type. The input converter accepts
+	 * only lists and arrays, but a single value is a valid search value as well: it becomes an array with one
+	 * element (ticket 1417).
+	 */
+	public T[] convertScriptSearchValue(final SecurityContext securityContext, final Object value) throws FrameworkException {
+
+		if (value == null) {
+
+			return null;
+		}
+
+		final PropertyConverter converter = inputConverter(securityContext, false);
+
+		if (value instanceof Collection collection) {
+
+			return (T[])converter.convert(new ArrayList<>(collection));
+		}
+
+		if (value.getClass().isArray()) {
+
+			return (T[])converter.convert(value);
+		}
+
+		return (T[])converter.convert(List.of(value));
+	}
+
 	@Override
 	public boolean isCollection() {
 

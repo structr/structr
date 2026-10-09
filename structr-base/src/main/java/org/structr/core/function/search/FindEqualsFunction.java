@@ -104,7 +104,10 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 
-		return "The second parameter can be a value or one of a list of search predicates (any, range, gt, gte, lt, lte).";
+		return """
+			The second parameter can be a value or one of a list of search predicates (any, range, gt, gte, lt, lte).
+			When used on an array property, it selects the objects whose array is equal to the given list. A single value counts as a list with one element.
+			""";
 	}
 
 	@Override

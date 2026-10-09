@@ -55,7 +55,7 @@ public class AndPredicate extends AbstractPredicate {
 
 					} else {
 
-						andGroup.key(key, value, exact && parameter.isExact());
+						andGroup.key(key, searchValue(securityContext, key, value), exact && parameter.isExact());
 					}
 				}
 			}

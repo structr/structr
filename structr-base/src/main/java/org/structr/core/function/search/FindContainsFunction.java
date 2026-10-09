@@ -99,6 +99,7 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 		return """
 			The contains predicate, when used on String properties, performs a case-insensitive search.
 			When used on a remote collection, a list of search values is required.
+			When used on an array property, it selects the objects whose array contains the given value, or all elements of the given list.
 			""";
 	}
 

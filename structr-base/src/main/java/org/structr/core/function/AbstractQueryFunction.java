@@ -29,6 +29,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.search.AndPredicate;
 import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -253,7 +254,6 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					if (traits.hasKey(keyName)) {
 
 						final PropertyKey key = traits.key(keyName);
-						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 
 						// check number of parameters dynamically
 						if (c + 1 >= sources.length) {
@@ -264,13 +264,8 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 						Object value = sources[++c]; // increment c to
 						if (!isAdvancedSearch(securityContext, traits, key, value, query, exact)) {
 
-							if (inputConverter != null) {
-
-								value = inputConverter.convert(value);
-							}
-
 							// basic search is always AND
-							query.and().key(key, value, exact);
+							query.and().key(key, convertSearchValue(securityContext, key, value), exact);
 						}
 
 					} else {
@@ -285,6 +280,23 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 	}
 
 	// ----- private methods -----
+	private Object convertSearchValue(final SecurityContext securityContext, final PropertyKey key, final Object value) throws FrameworkException {
+
+		// an array property also accepts a single value, which its input converter rejects (ticket 1417)
+		if (key instanceof ArrayProperty arrayProperty) {
+
+			return arrayProperty.convertScriptSearchValue(securityContext, value);
+		}
+
+		final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
+		if (inputConverter != null) {
+
+			return inputConverter.convert(value);
+		}
+
+		return value;
+	}
+
 	private void handleObject(final SecurityContext securityContext, final Traits traits, final QueryGroup query, final Object source, final boolean exact) throws FrameworkException {
 
 		if (source instanceof Map) {
@@ -321,15 +333,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					final PropertyKey key = traits.key(keyName);
 					if (!isAdvancedSearch(securityContext, traits, key, value, query, exact)) {
 
-						Object convertedValue = value;
-						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
-
-						if (inputConverter != null) {
-
-							convertedValue = inputConverter.convert(value);
-						}
-
-						query.key(key, convertedValue, exact);
+						query.key(key, convertSearchValue(securityContext, key, value), exact);
 					}
 				}
 			}
