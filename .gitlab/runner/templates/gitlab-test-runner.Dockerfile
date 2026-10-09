@@ -8,8 +8,8 @@ FROM alpine:3.22 AS setup
 WORKDIR /setup
 
 ARG TARGETARCH
-ARG MAVEN_VERSION="3.9.15"
-ARG GLAB_VERSION="1.97.0"
+ARG MAVEN_VERSION="3.9.16"
+ARG GLAB_VERSION="1.122.0"
 
 RUN echo "TARGETARCH is: $TARGETARCH" \
     && echo "Full URL: https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm"
@@ -19,7 +19,7 @@ RUN echo "TARGETARCH is: $TARGETARCH" \
 RUN apk update \
     && apk add tar gzip curl git wget \
     && wget https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm \
-    && curl -fsSL https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -o /setup/maven.tgz \
+    && curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -o /setup/maven.tgz \
     && tar -xzf /setup/maven.tgz -C /opt \
     && rm -f /setup/maven.tgz
 
@@ -27,8 +27,8 @@ FROM ghcr.io/graalvm/jdk-community:25-ol9 AS main
 WORKDIR /structr-runner
 
 ARG TARGETARCH
-ARG MAVEN_VERSION="3.9.15"
-ARG GLAB_VERSION="1.97.0"
+ARG MAVEN_VERSION="3.9.16"
+ARG GLAB_VERSION="1.122.0"
 
 COPY --from=setup /setup/glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm /structr-runner/
 COPY --from=setup /opt/apache-maven-${MAVEN_VERSION} /opt/maven
