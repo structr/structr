@@ -109,7 +109,6 @@ public class HttpStreamResetTest extends StructrUiTest {
 		for (final ILoggingEvent event : List.copyOf(appender.list)) {
 
 			final String message = event.getFormattedMessage();
-
 			if (message != null && message.startsWith("Exception while processing request")) {
 
 				fail("HtmlServlet treated a reset stream as an error: " + message);

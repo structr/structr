@@ -41,10 +41,11 @@ import static org.testng.AssertJUnit.fail;
  * The non-empty search predicate `?prop=[]` selects the objects that have a stored value for the property
  * (tickets 414 and 1271).
  *
- * <p>Searches operate on stored values. A default value is not stored when the property is read, only when
- * an object with an indexed property is created or modified, or when rebuildIndex runs. The predicate used
- * to require indexedWhenEmpty(), which a dynamic property only gets together with a default value, although
- * the "is not null" condition it becomes does not depend on it; it now works on every indexed property.
+ * <p>Searches operate on stored values. A default value is not stored when the property is read. It is stored
+ * when an object is created, and for an indexed property also when the object is modified or rebuildIndex runs.
+ * The predicate used to require indexedWhenEmpty(), which a dynamic property only gets together with a default
+ * value, although the "is not null" condition it becomes does not depend on it; it now works on every property
+ * that stores its value on the object.
  */
 public class NonEmptyQueryTest extends StructrRestTestBase {
 
@@ -81,8 +82,8 @@ public class NonEmptyQueryTest extends StructrRestTestBase {
 	}
 
 	/**
-	 * Objects that exist before a default value is added show the default but have no stored value, so no
-	 * search finds them by it until rebuildIndex has stored it.
+	 * Objects that exist before a default value is added to an indexed property show the default but have no
+	 * stored value, so no search finds them by it until it is stored, which rebuildIndex does for all of them.
 	 */
 	@Test
 	public void defaultValueAddedLaterIsSearchableAfterRebuildIndex() {

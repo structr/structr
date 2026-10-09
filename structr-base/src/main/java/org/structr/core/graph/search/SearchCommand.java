@@ -152,10 +152,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					factory.disablePaging();
 				}
 
+				// the database may skip the records before the requested page only if the result is paged as it comes
+				// from the database: a result that is sorted or filtered in Java needs all of them (ticket 1371)
+				final boolean processedInJava = comparator != null || !(sortOrder instanceof DefaultSortOrder) || config.hasGraphSources || config.hasSpatialSource || config.hasRelationshipVisibilitySearch;
+				final int queryPageSize       = processedInJava ? Integer.MAX_VALUE : pageSize;
+				final int queryPage           = processedInJava ? 1 : page;
+
 				// do query
 				try {
 
-					indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, pageSize, page));
+					indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, queryPageSize, queryPage));
 
 				} catch (UnknownClientException uclex) {
 

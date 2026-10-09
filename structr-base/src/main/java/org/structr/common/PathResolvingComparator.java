@@ -22,30 +22,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Documentation;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.action.ActionContext;
 
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * A comparator for structr entities that uses a dot-notation path
  * through the graph for comparison.
  *
- * Properties with null values (not existing properties) are always handled
- * as "lower than", so that any not-null value ranks higher.
+ * A path through a collection, like projects.name, resolves to several values
+ * per object: ascending order uses the smallest of them, descending order the
+ * largest, so each object is placed by the value that comes first.
+ *
+ * Objects without a value, including those with an empty collection on the
+ * path, are handled as "higher than" any value, so they come last in ascending
+ * and first in descending order.
  */
 @Documentation(name="Transitive sorting", type=ConceptType.Feature, shortDescription="Sort a list of nodes by property of related nodes.", parent="Advanced find")
 public class PathResolvingComparator implements Comparator<GraphObject> {
 
 	private static final Logger logger    = LoggerFactory.getLogger(PathResolvingComparator.class.getName());
 
-	private ActionContext actionContext = null;
-	private boolean sortDescending      = false;
-	private String sortKey              = null;
+	private final Map<GraphObject, Comparable> resolvedValues = new IdentityHashMap<>();
+	private ActionContext actionContext                       = null;
+	private boolean sortDescending                            = false;
+	private boolean warned                                    = false;
+	private String[] parts                                    = null;
+	private String sortKey                                    = null;
 
 	/**
 	 * Creates a new PathResolvingComparator with the given sort key and order.
@@ -58,6 +68,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 		this.sortDescending = sortDescending;
 		this.actionContext  = actionContext;
 		this.sortKey        = sortKey;
+		this.parts          = sortKey.split("[\\.]+");
 	}
 
 	@Override
@@ -68,8 +79,8 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 			throw new NullPointerException();
 		}
 
-		final Comparable c1 = resolve(n1, sortKey);
-		final Comparable c2 = resolve(n2, sortKey);
+		final Comparable c1 = getValue(n1);
+		final Comparable c2 = getValue(n2);
 
 		if (c1 == null || c2 == null) {
 
@@ -100,72 +111,117 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 	}
 
 	// ----- private methods -----
-	private Comparable resolve(final GraphObject obj, final String path) {
+	private Comparable getValue(final GraphObject obj) {
 
-		final String[] parts = path.split("[\\.]+");
-		GraphObject current  = obj;
-		int pos              = 0;
+		// a sort compares each object many times, and resolving the path means traversing relationships
+		if (resolvedValues.containsKey(obj)) {
 
-		for (final String part : parts) {
-
-			final Traits type     = current.getTraits();
-			final PropertyKey key = type.key(part);
-
-			if (key == null) {
-
-				logger.warn("Unknown key {} while resolving path {} for sorting.", part, path);
-
-				return null;
-			}
-
-			try {
-
-				final Object value = current.evaluate(actionContext, part, null, obj, 1, 1);
-				if (value != null) {
-
-					// last part of path?
-					if (++pos == parts.length) {
-
-						if (value instanceof Comparable c) {
-
-							return c;
-						}
-
-						logger.warn("Path evaluation result of component {} of type {} in {} cannot be used for sorting.", part, value.getClass().getSimpleName(), path);
-
-						return null;
-					}
-
-					if (value instanceof GraphObject o) {
-
-						current = o;
-
-					} else if (value instanceof NodeInterface t) {
-
-						current = t;
-
-					} else {
-
-						logger.warn("Path component {} of type {} in {} cannot be evaluated further.", part, value.getClass().getSimpleName(), path);
-
-						return null;
-					}
-
-				} else {
-
-					// value needs to be sorted as null if getProperty() returns null
-
-					return null;
-				}
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Exception while evaluating sort path {}: {}", path, fex.getMessage());
-
-				return null;
-			}
+			return resolvedValues.get(obj);
 		}
 
-		return null;
+		final Comparable value = resolve(obj, obj, 0, null);
+
+		resolvedValues.put(obj, value);
+
+		return value;
+	}
+
+	/**
+	 * Resolves the path from the given position on and returns the value that comes first in the sort order,
+	 * either the given one or one found on the path.
+	 */
+	private Comparable resolve(final GraphObject current, final GraphObject obj, final int pos, final Comparable first) {
+
+		final String part     = parts[pos];
+		final Traits type     = current.getTraits();
+		final PropertyKey key = type.key(part);
+
+		if (key == null) {
+
+			warnOnce("Unknown key {} while resolving path {} for sorting.", part, sortKey);
+
+			return first;
+		}
+
+		try {
+
+			return collect(current.evaluate(actionContext, part, null, obj, 1, 1), obj, pos, first);
+
+		} catch (FrameworkException fex) {
+
+			warnOnce("Exception while evaluating sort path {}: {}", sortKey, fex.getMessage());
+
+			return first;
+		}
+	}
+
+	private Comparable collect(final Object value, final GraphObject obj, final int pos, final Comparable first) {
+
+		// no value at this point of the path: the object keeps the value found so far, if any
+		if (value == null) {
+
+			return first;
+		}
+
+		// a collection on the path (or at its end, like an array property) contributes all of its values
+		if (value instanceof Iterable<?> iterable) {
+
+			Comparable result = first;
+
+			for (final Object element : iterable) {
+
+				result = collect(element, obj, pos, result);
+			}
+
+			return result;
+		}
+
+		if (value instanceof Object[] array) {
+
+			return collect(Arrays.asList(array), obj, pos, first);
+		}
+
+		// last part of path?
+		if (pos == parts.length - 1) {
+
+			if (value instanceof Comparable c) {
+
+				return comesFirst(c, first) ? c : first;
+			}
+
+			warnOnce("Path evaluation result of component {} of type {} in {} cannot be used for sorting.", parts[pos], value.getClass().getSimpleName(), sortKey);
+
+			return first;
+		}
+
+		if (value instanceof GraphObject o) {
+
+			return resolve(o, obj, pos + 1, first);
+		}
+
+		warnOnce("Path component {} of type {} in {} cannot be evaluated further.", parts[pos], value.getClass().getSimpleName(), sortKey);
+
+		return first;
+	}
+
+	private boolean comesFirst(final Comparable value, final Comparable first) {
+
+		if (first == null) {
+
+			return true;
+		}
+
+		return sortDescending ? value.compareTo(first) > 0 : value.compareTo(first) < 0;
+	}
+
+	// the same problem would otherwise be logged for every comparison of the sort
+	private void warnOnce(final String message, final Object... arguments) {
+
+		if (!warned) {
+
+			warned = true;
+
+			logger.warn(message, arguments);
+		}
 	}
 }

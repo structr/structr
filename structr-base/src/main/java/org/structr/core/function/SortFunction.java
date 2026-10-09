@@ -165,6 +165,8 @@ public class SortFunction extends CoreFunction {
 
 			* **Collection of nodes**: Sorted by `sortKey`. The `descending` flag controls the order.
 			* **Collection of strings**: Sorted lexicographically. The `sortKey` is ignored. The `descending` flag controls the order.
+
+			For nodes, `sortKey` can also be a path through related nodes, like `owner.name`. If the path leads through a collection, like `projects.name`, a node can have several values. Ascending order then uses the smallest of them and descending order the largest. Nodes without a value at the end of the path sort last in ascending and first in descending order.
 			""";
 	}
 
@@ -174,7 +176,8 @@ public class SortFunction extends CoreFunction {
 		return List.of(
 				Example.structrScript("${extract(sort(find('User'), 'name'), 'name')}"),
 				Example.structrScript("${extract(sort(find('User'), 'name', true), 'name')}"),
-				Example.javaScript("${{ $.sort($.find('User'), 'name') }}")
+				Example.javaScript("${{ $.sort($.find('User'), 'name') }}"),
+				Example.javaScript("${{ $.sort($.find('Project'), 'owner.name') }}", "Sort projects by the name of their owner")
 		);
 	}
 
@@ -183,7 +186,7 @@ public class SortFunction extends CoreFunction {
 
 		return List.of(
 				Parameter.mandatory("collection", "collection to be sorted"),
-				Parameter.optional("sortKey", "property name used for sorting (applies only to collections of nodes). Default: `name`"),
+				Parameter.optional("sortKey", "property name or path through related nodes used for sorting (applies only to collections of nodes). Default: `name`"),
 				Parameter.optional("descending", "if `true`, sorts in descending order; otherwise ascending. Default: `false`")
 		);
 	}

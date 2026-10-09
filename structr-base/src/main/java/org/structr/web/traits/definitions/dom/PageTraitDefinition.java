@@ -100,11 +100,12 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					for (final DOMNode subNode : node.getChildren()) {
 
 						if (!renderContext.getSecurityContext().isVisible(subNode)) {
+
 							continue;
 						}
 
-						// the doctype belongs to the html element, so it is output only if the element is: a page whose
-						// html element is hidden usually renders a template that brings its own doctype (ticket 1363)
+						// the doctype belongs to the html element, so it is output only if the element is rendered: a page
+						// can hide its html element and render a template that brings its own doctype instead (ticket 1363)
 						if (subNode.is(StructrTraits.HTML) && subNode.shouldBeRendered(renderContext)) {
 
 							renderContext.getBuffer().append("<!DOCTYPE html>\n");

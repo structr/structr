@@ -164,19 +164,19 @@ To search for objects without a value for a given property, you simply put the n
 
 #### Non-Empty Values
 
-The opposite selects all objects that have a value for the property. You write it as an empty range, `[]`, which you can use on any indexed property. This is useful when an optional property marks a state, for example all projects that already have an end date.
+The opposite selects all objects that have a value for the property. You write it as an empty range, `[]`, which works on every property that stores its value on the object itself, whether it is indexed or not. It does not work on properties that reference other objects, like the tasks of a project: such a search finds nothing. This is useful when an optional property marks a state, for example all projects that already have an end date.
 
     $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project?endDate=[]"
 
 #### Default Values in Searches
 
-Searches compare the values stored in the database. For an indexed property of your data model, Structr stores the default value when it writes the object, which means when you create or modify it, or when you run the `rebuildIndex` maintenance command. Reading an object does not store anything. As long as an object has no stored value, it shows the default value in the response, but a search for that value does not find it, and a search for empty values does.
+Searches compare the values stored in the database. When you create an object, Structr stores the default value of every property you do not set. For an indexed property of your data model, Structr also stores the default value when you modify the object or run the `rebuildIndex` maintenance command. Reading an object does not store anything. As long as an object has no stored value, it shows the default value in the response, but a search for that value does not find it, and a search for empty values does.
 
-This matters when you add a default value to a property that already has data. The objects that exist at that point show the default, but have no stored value until they are modified. Run `rebuildIndex` for the type after the schema change, so that every object stores its value and the searches above give the same result for all of them. The Maintenance chapter describes the command and its parameters.
-
-Changing an existing default value is different: objects that have already stored the old default keep it, both in the database and in the response, and `rebuildIndex` does not change that, because the default only applies where no value is stored.
+This matters when you add a default value to a property that already has data. The objects that exist at that point show the default, but have no stored value. If the property is indexed, run `rebuildIndex` for the type after the schema change, so that every object stores its value and the searches above give the same result for all of them. The Maintenance chapter describes the command and its parameters. If the property is not indexed, neither modifying an object nor `rebuildIndex` stores the default, so the existing objects keep showing a value that searches do not find until you set it explicitly.
 
     $ curl -s -HX-User:admin -HX-Password:admin http://localhost:8082/structr/rest/maintenance/rebuildIndex -XPOST -d '{ "type": "Project" }'
+
+Changing an existing default value is different: objects that have already stored the old default keep it, both in the database and in the response, and `rebuildIndex` does not change that, because the default only applies where no value is stored. Objects you create after the change store the new default.
 
 ### More Search Options
 

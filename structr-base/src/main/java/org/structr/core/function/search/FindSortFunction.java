@@ -101,6 +101,10 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 			This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes.
 
 			Default is ascending order; items with a null key sort last. If the parameter `descending` is true, the sort order is descending and items with a null key sort first.
+
+			If the path leads through a collection, like `projects.name`, an item can have several values. Ascending order then uses the smallest of them and descending order the largest, so an item in the projects "B" and "D" sorts as "B" in ascending and as "D" in descending order. Items with an empty collection sort like items with a null key.
+
+			If a key in the path exists neither on the type at that point of the path nor on one of its subtypes, the query fails with an error. The check ends at the first property that does not reference objects of a known type, like a function property or a string property: the keys behind it are not checked, and items without a value for them sort like items with a null key.
 			""";
 	}
 
@@ -125,6 +129,10 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 				{
 					let projects = $.find('Project', $.predicate.sort('owner.name'));
 				}""", "Fetch the list of projects sorted by owner name (transitive sorting)"),
+				Example.javaScript("""
+				{
+					let tasks = $.find('Task', $.predicate.sort('projects.name'));
+				}""", "Fetch the list of tasks sorted by the alphabetically first name of their projects"),
 				Example.javaScript("""
 				{
 					let projects = $.find('Project', $.predicate.sort('budget', true));

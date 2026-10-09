@@ -3856,6 +3856,246 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	/**
+	 * Ticket 1371: sorting by a path like project.name happens in Java, so the requested page must be cut from
+	 * the sorted result. For an admin, the Cypher drivers skipped the fetch batches before the requested page in
+	 * the database, so the page was cut from what was left of the unsorted result. A fetch size smaller than the
+	 * result makes that happen with a few records instead of more than the default 100,000.
+	 */
+	@Test
+	public void testFindWithPathSortAndPage() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema        = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project   = schema.addType("Project");
+			final JsonObjectType component = schema.addType("Component");
+
+			project.relate(component, "HAS", Cardinality.OneToMany, "project", "components");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final PropertyKey<String> name              = Traits.of("Component").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<NodeInterface> projectKey = Traits.of("Component").key("project");
+		final PropertyKey<Boolean> visible          = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
+		Principal user                              = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user = createTestNode(StructrTraits.USER, "tester").as(Principal.class);
+
+			// created in an order that differs from the sort order, so an unsorted page cannot pass by accident
+			final List<NodeInterface> projects = List.of(
+				app.create("Project", new NodeAttribute<>(name, "C"), new NodeAttribute<>(visible, true)),
+				app.create("Project", new NodeAttribute<>(name, "A"), new NodeAttribute<>(visible, true)),
+				app.create("Project", new NodeAttribute<>(name, "B"), new NodeAttribute<>(visible, true))
+			);
+
+			for (int i = 0; i < 30; i++) {
+
+				app.create("Component", new NodeAttribute<>(name, "component" + i), new NodeAttribute<>(projectKey, projects.get(i % 3)), new NodeAttribute<>(visible, true));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.FetchSize.setValue(10);
+
+		try {
+
+			assertPathSortPages(new ActionContext(securityContext), projectKey);
+			assertPathSortPages(new ActionContext(SecurityContext.getInstance(user, AccessMode.Backend)), projectKey);
+
+		} finally {
+
+			Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
+		}
+	}
+
+	private void assertPathSortPages(final ActionContext ctx, final PropertyKey<NodeInterface> projectKey) {
+
+		try (final Tx tx = app.tx()) {
+
+			assertPage(ctx, projectKey, "$.predicate.sort('project.name'), $.predicate.page(1, 10)", "A");
+			assertPage(ctx, projectKey, "$.predicate.sort('project.name'), $.predicate.page(2, 10)", "B");
+			assertPage(ctx, projectKey, "$.predicate.sort('project.name'), $.predicate.page(3, 10)", "C");
+			assertPage(ctx, projectKey, "$.predicate.sort('project.name', true), $.predicate.page(2, 10)", "B");
+			assertPage(ctx, projectKey, "$.predicate.sort('project.name', true), $.predicate.page(3, 10)", "A");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	private void assertPage(final ActionContext ctx, final PropertyKey<NodeInterface> projectKey, final String predicates, final String expectedProject) throws FrameworkException {
+
+		final List<NodeInterface> page = (List)Scripting.evaluate(ctx, null, "${{ $.find('Component', " + predicates + "); }}", "testFindWithPathSortAndPage");
+
+		assertEquals("find() with " + predicates + " returns wrong number of results", 10, page.size());
+
+		for (final NodeInterface component : page) {
+
+			assertEquals("find() with " + predicates + " must return the components of project " + expectedProject, expectedProject, component.getProperty(projectKey).getName());
+		}
+	}
+
+	/**
+	 * A sort path through a collection, like projects.name, resolves to several values per object. Ascending
+	 * order uses the smallest of them and descending order the largest, an empty collection counts as null.
+	 */
+	@Test
+	public void testSortByPathThroughCollection() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType item    = schema.addType("Item");
+
+			project.relate(item, "HAS", Cardinality.ManyToMany, "projects", "items");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final PropertyKey<String> name          = Traits.of("Item").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<Iterable> projectsKey = Traits.of("Item").key("projects");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface a = app.create("Project", "A");
+			final NodeInterface b = app.create("Project", "B");
+			final NodeInterface c = app.create("Project", "C");
+			final NodeInterface d = app.create("Project", "D");
+			final NodeInterface e = app.create("Project", "E");
+
+			// created in an order that differs from both sort orders
+			app.create("Item", new NodeAttribute<>(name, "item1"), new NodeAttribute<>(projectsKey, List.of(b, d)));
+			app.create("Item", new NodeAttribute<>(name, "item2"), new NodeAttribute<>(projectsKey, List.of(c)));
+			app.create("Item", new NodeAttribute<>(name, "item3"));
+			app.create("Item", new NodeAttribute<>(name, "item4"), new NodeAttribute<>(projectsKey, List.of(e, a)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			// ascending by the smallest name: A (item4), B (item1), C (item2), none (item3)
+			assertEquals("Sorting by a path through a collection must use the smallest value in ascending order", List.of("item4", "item1", "item2", "item3"),
+				Scripting.evaluate(ctx, null, "${{ $.find('Item', $.predicate.sort('projects.name')).map(i => i.name); }}", "testSortByPathThroughCollection"));
+
+			// descending by the largest name: none (item3), E (item4), D (item1), C (item2)
+			assertEquals("Sorting by a path through a collection must use the largest value in descending order", List.of("item3", "item4", "item1", "item2"),
+				Scripting.evaluate(ctx, null, "${{ $.find('Item', $.predicate.sort('projects.name', true)).map(i => i.name); }}", "testSortByPathThroughCollection"));
+
+			assertEquals("The sort() function must sort by a path through a collection like find() does", List.of("item4", "item1", "item2", "item3"),
+				Scripting.evaluate(ctx, null, "${{ $.sort($.find('Item'), 'projects.name').map(i => i.name); }}", "testSortByPathThroughCollection"));
+
+			assertEquals("Paging must apply to the result sorted by a path through a collection", List.of("item2", "item3"),
+				Scripting.evaluate(ctx, null, "${{ $.find('Item', $.predicate.sort('projects.name'), $.predicate.page(2, 2)).map(i => i.name); }}", "testSortByPathThroughCollection"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	/**
+	 * An unknown key in a sort path is an error like an unknown sort key, not an unsorted result. A key that only a
+	 * subtype of the related type has is known, because the related objects can be of that subtype.
+	 */
+	@Test
+	public void testSortByPathWithUnknownKey() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema             = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project        = schema.addType("Project");
+			final JsonObjectType derivedProject = schema.addType("DerivedProject");
+			final JsonObjectType item           = schema.addType("Item");
+
+			derivedProject.addTrait("Project");
+			derivedProject.addStringProperty("code");
+
+			project.relate(item, "HAS", Cardinality.ManyToMany, "projects", "items");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface derived = app.create("DerivedProject", new NodeAttribute<>(Traits.of("DerivedProject").key("code"), "x"));
+
+			app.create("Item", new NodeAttribute<>(Traits.of("Item").key("projects"), List.of(derived)));
+
+			assertEquals("A sort path with a key of a subtype of the related type must be accepted", 1,
+				((List)Scripting.evaluate(ctx, null, "${{ $.find('Item', $.predicate.sort('projects.code')); }}", "testSortByPathWithUnknownKey")).size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		for (final String path : List.of("unknown.name", "projects.unknown")) {
+
+			try (final Tx tx = app.tx()) {
+
+				Scripting.evaluate(ctx, null, "${{ $.find('Item', $.predicate.sort('" + path + "')); }}", "testSortByPathWithUnknownKey");
+
+				fail("A sort path with an unknown key must be rejected: " + path);
+
+			} catch (FrameworkException fex) {
+
+				assertEquals("Wrong error code for an unknown key in a sort path", 422, fex.getStatus());
+			}
+		}
+	}
+
 	@Test
 	public void testAdvancedFindForRemoteProperties() {
 
