@@ -236,6 +236,20 @@ let content = $.getContent(file);
 $.setContent(file, 'New content');
 ```
 
+### Minifying Web Resources
+
+`$.minify()` writes a minified copy of a JavaScript, CSS, HTML, SVG, XML or JSON file and returns the new file. The type is detected from the content type of the file, or from its extension when the content type is missing or not specific, and decides how the file is minified: JavaScript with terser, CSS with csso, HTML, SVG and XML by removing comments and redundant whitespace, JSON by removing all whitespace. In HTML files, inline scripts and styles are minified as well.
+
+```javascript
+// Writes /js/app.min.js next to the source
+$.minify('/js/app.js');
+
+// Writes to a path of your choice, relative to the folder of the source file
+$.minify(file, 'dist/app.js');
+```
+
+The file can be passed as a file object or as its absolute path. Missing folders on the output path are created, and an existing file at the output path is overwritten, so calling `$.minify()` again after editing the source updates the minified file. A file that cannot be parsed is not written; the error names the problem.
+
 ### Custom File Types
 
 For more control, create custom types that inherit from the File trait. This allows you to add custom properties and methods to your files while retaining all standard file functionality. For example, an `InvoiceDocument` type could have properties for invoice number and amount, plus a method to generate a PDF.
