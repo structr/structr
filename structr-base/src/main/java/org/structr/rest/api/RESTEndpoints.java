@@ -62,6 +62,7 @@ public class RESTEndpoints {
 		RESTEndpoints.register(new RegistrationResource());
 		RESTEndpoints.register(new ResetPasswordResource());
 		RESTEndpoints.register(new RuntimeEventLogResource());
+		RESTEndpoints.register(new ServerLogResource());
 		RESTEndpoints.register(new SchemaResource());
 		RESTEndpoints.register(new SchemaTypeResource());
 		RESTEndpoints.register(new StaticMethodResource());

@@ -197,6 +197,26 @@ Configure these settings in `structr.conf` or through the Configuration Interfac
 | `histogramservlet.path` | /structr/histogram | Endpoint path |
 | `histogramservlet.whitelist` | 127.0.0.1, localhost, ::1 | IPs allowed to access histogram data |
 
+## Server Log Endpoint
+
+The server log endpoint returns the last lines of the server log over HTTP, for example to collect them from a script or another tool without opening the dashboard. Only admin users can read it; a resource permission for another user is refused with 403, because the log records everything the instance has been sent.
+
+### Endpoint
+
+`GET /structr/rest/_serverLog`
+
+### Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `lines` | Number of lines to return, counted from the end of the log (default: 50) |
+| `filter` | Only return lines that contain this text; `lines` then counts matching lines |
+| `logFile` | The log file to read, one of `availableLogFiles` in the response (default: the current log file) |
+
+Example: `/structr/rest/_serverLog?lines=200&filter=ERROR`
+
+The response contains `logFile`, the file that was read, `availableLogFiles`, and `lines`, oldest first.
+
 ## Related Topics
 
 - Dashboard - Interactive monitoring in the Admin UI
