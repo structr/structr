@@ -35,6 +35,7 @@ import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -227,6 +228,55 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.statusCode(200)
 			.when()
 				.post("/_runtimeEventLog");
+	}
+
+	@Test
+	public void testServerLogIsRefusedForNonAdmins() {
+
+		createUser("serverlogreader");
+
+		grant("_serverLog", UiAuthenticator.AUTH_USER_GET, true);
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, "serverlogreader", X_PASSWORD_HEADER, PASSWORD)
+			.expect()
+				.statusCode(403)
+			.when()
+				.get("/_serverLog");
+	}
+
+	/** The counterpart, plus the two parameter errors an administrator can run into. */
+	@Test
+	public void testServerLogStillWorksForAdmins() {
+
+		createAdminUser();
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(200)
+				.body("result.availableLogFiles", notNullValue())
+				.body("result.lines", notNullValue())
+			.when()
+				.get("/_serverLog?lines=10&filter=INFO");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(422)
+			.when()
+				.get("/_serverLog?lines=-1");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(422)
+			.when()
+				.get("/_serverLog?logFile=/etc/passwd");
 	}
 
 	/**
