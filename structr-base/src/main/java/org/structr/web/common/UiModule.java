@@ -557,6 +557,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new SetContentFunction());
 		Functions.put(licenseManager, new AppendContentFunction());
 		Functions.put(licenseManager, new CopyFileContentsFunction());
+		Functions.put(licenseManager, new MinifyFunction());
 		Functions.put(licenseManager, new SetSessionAttributeFunction());
 		Functions.put(licenseManager, new GetSessionAttributeFunction());
 		Functions.put(licenseManager, new RemoveSessionAttributeFunction());
