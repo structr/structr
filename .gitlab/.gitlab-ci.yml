@@ -37,7 +37,7 @@ setup-variables:
   script:
     - MVN_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
     - BUILD_TIMESTAMP=$(date -u -d "$CI_COMMIT_TIMESTAMP" +%Y%m%d%H%M)
-    - COMMIT_SHORT=${CI_COMMIT_SHA:0:5}
+    - COMMIT_SHORT=${CI_COMMIT_SHA:0:8}
     - echo "STRUCTR_VERSION=$MVN_VERSION" >> build.env
     - echo "BUILD_TIMESTAMP=$BUILD_TIMESTAMP" >> build.env
     - echo "COMMIT_SHORT=$COMMIT_SHORT" >> build.env

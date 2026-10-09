@@ -958,6 +958,7 @@
 								<exclude>src/main/resources/deb/**</exclude>
 								<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
 								<exclude>src/main/resources/structr/swagger/**/*</exclude>
+								<exclude>src/main/resources/minify/**</exclude>
 								<exclude>src/test/resources/**/*</exclude>
 							</excludes>
 						</licenseSet>
@@ -1020,7 +1021,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <shortRevisionLength>5</shortRevisionLength>
+                    <shortRevisionLength>8</shortRevisionLength>
                     <doCheck>false</doCheck>
                     <doUpdate>false</doUpdate>
                     <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
