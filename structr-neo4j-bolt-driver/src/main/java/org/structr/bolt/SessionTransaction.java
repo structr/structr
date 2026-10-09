@@ -40,8 +40,10 @@ import org.structr.api.util.Iterables;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -50,6 +52,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 	private static final Logger logger                         = LoggerFactory.getLogger(SessionTransaction.class);
 	protected static final AtomicLong ID_SOURCE                = new AtomicLong();
+
+	// a UUID in a prefetch hint, in either format, regardless of application.uuid.allowedformats: a hint names a kind of
+	// request, so requests for different objects must share it, otherwise every object gets its own learned patterns
+	private static final Pattern UUID_IN_HINT = Pattern.compile("(?<![0-9a-fA-F])([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?![0-9a-fA-F])");
 
 	protected static final Map<String, Set<PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
 	protected static final Map<String, Boolean> prefetchBlacklist       = new ConcurrentHashMap<>();
@@ -333,7 +339,9 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	}
 
 	@Override
-	public void prefetchHint(final String hint) {
+	public void prefetchHint(final String rawHint) {
+
+		final String hint = normalizeHint(rawHint);
 
 		if (this.prefetchHint == null) {
 
@@ -752,6 +760,20 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
 	}
 
+	/**
+	 * Replaces the UUIDs in a prefetch hint with a placeholder, so that requests that differ only in the object they
+	 * address, like REST GET /structr/rest/Project/{uuid}, learn and use the same prefetch patterns (ticket 1420).
+	 */
+	static String normalizeHint(final String hint) {
+
+		if (hint == null) {
+
+			return null;
+		}
+
+		return UUID_IN_HINT.matcher(hint).replaceAll("<uuid>");
+	}
+
 	// ----- protected methods -----
 	protected void logQuery(final CypherQuery query) {
 
@@ -767,7 +789,9 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 				if (count > threshold && !prefetchBlacklist.containsKey(prefetchHint + ": " + info.getPattern())) {
 
-					final Set<PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new LinkedHashSet<>());
+					// the set is shared by all transactions with this hint and is iterated in prefetchHint() while other
+					// requests learn or combine patterns, so it must allow concurrent modification (ticket 1420)
+					final Set<PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new CopyOnWriteArraySet<>());
 
 					// store prefetching info and log info message
 					if (infos.add(info)) {

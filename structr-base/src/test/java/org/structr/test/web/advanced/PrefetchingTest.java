@@ -33,6 +33,8 @@ import org.structr.web.entity.dom.Page;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
+import java.util.UUID;
+
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -140,6 +142,84 @@ public class PrefetchingTest extends StructrUiTest {
 			Settings.CypherDebugLogging.setValue(previousLogging);
 			Settings.PrefetchingThreshold.setValue(previousThreshold);
 			Settings.PrefetchingCostRatio.setValue(Settings.PrefetchingCostRatio.getDefaultValue());
+		}
+	}
+
+	/**
+	 * A hint names a kind of request, and requests that differ only in the object they address must share it. The
+	 * hints contain the request path, so they used to differ by the UUID in it, and every object learned its own
+	 * patterns (ticket 1420). Both UUID formats must be recognized, independent of the configured one.
+	 */
+	@Test
+	public void testRequestsForDifferentObjectsShareTheLearnedPatterns() {
+
+		if (!Settings.DatabaseDriver.getValue().contains("bolt")) {
+
+			throw new SkipException("Prefetching is a feature of the bolt driver, skipping test with " + Settings.DatabaseDriver.getValue());
+		}
+
+		final int threshold = 20;
+		String div          = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			div = createPageWithDivs("detail", threshold + 100);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final Logger logger                         = (Logger) LoggerFactory.getLogger(BOLT_LOGGER);
+		final ListAppender<ILoggingEvent> appender  = new ListAppender<>();
+		final boolean previousLogging               = Settings.CypherDebugLogging.getValue();
+		final int previousThreshold                 = Settings.PrefetchingThreshold.getValue();
+
+		Settings.CypherDebugLogging.setValue(true);
+		Settings.PrefetchingThreshold.setValue(threshold);
+
+		appender.start();
+		logger.addAppender(appender);
+
+		try {
+
+			final String first  = UUID.randomUUID().toString();
+			final String second = UUID.randomUUID().toString();
+
+			// UUIDs without dashes: the pattern learned for the first object must be used for the second one
+			lookupChildren("REST GET /structr/rest/DOMNode/" + first.replace("-", "") + "/children", div);
+			assertTrue("Prefetching was not activated for the CONTAINS lookups", containsMessage(appender, "Activating prefetching for", "CONTAINS"));
+
+			appender.list.clear();
+			lookupChildren("REST GET /structr/rest/DOMNode/" + second.replace("-", "") + "/children", div);
+			assertTrue("A request for another object (UUID without dashes) did not use the learned pattern", containsMessage(appender, "prefetched", "(n:DOMNode"));
+
+			// UUIDs with dashes, under a hint that has not learned anything yet
+			appender.list.clear();
+			lookupChildren("HTTP GET /detail/" + first, div);
+			assertTrue("Prefetching was not activated for the CONTAINS lookups", containsMessage(appender, "Activating prefetching for", "CONTAINS"));
+
+			appender.list.clear();
+			lookupChildren("HTTP GET /detail/" + second, div);
+			assertTrue("A request for another object (UUID with dashes) did not use the learned pattern", containsMessage(appender, "prefetched", "(n:DOMNode"));
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+
+		} finally {
+
+			logger.detachAppender(appender);
+			appender.stop();
+
+			Settings.CypherDebugLogging.setValue(previousLogging);
+			Settings.PrefetchingThreshold.setValue(previousThreshold);
 		}
 	}
 
