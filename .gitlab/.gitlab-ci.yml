@@ -115,15 +115,15 @@ snapshot-build:
     - |
       if [[ "$STRUCTR_VERSION" =~ SNAPSHOT && "$CI_COMMIT_REF_NAME" == "main" ]]; then
         echo "Building SNAPSHOT version $STRUCTR_VERSION on main branch"
-        
+
         # Build with sources but skip tests (already completed)
         mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
 
         # Configure glab for HTTP GitLab instance
-        glab config set host "https://$CI_SERVER_HOST" 
+        glab config set host "https://$CI_SERVER_HOST"
         glab config set api_protocol https
         glab config set token "$CI_RELEASE_TOKEN"
-        
+
         # Remove previous SNAPSHOT release to allow updates
         echo "Deleting previous SNAPSHOT release with glab..."
         if ! glab release delete "$STRUCTR_VERSION" --with-tag -y 2>/dev/null; then
@@ -132,21 +132,21 @@ snapshot-build:
 
         # Create new SNAPSHOT release with build artifacts
         echo "Creating SNAPSHOT release with glab..."
-      
+
         glab release create "$STRUCTR_VERSION" \
         --use-package-registry \
         --name "structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT" \
         --notes "## Latest SNAPSHOT Build
-        
+
         **Version:** $STRUCTR_VERSION
         **Commit:** [$CI_COMMIT_SHORT_SHA]($CI_PROJECT_URL/-/commit/$CI_COMMIT_SHA)
         **Date:** $(date)
         **Branch:** $CI_COMMIT_REF_NAME
         **Build:** $BUILD_TIMESTAMP.$COMMIT_SHORT
-        
+
         This release is automatically updated with each commit to main." \
         structr-app/target/*.deb structr-app/target/*.zip
-      
+
         echo "Cleaning up old package files for $STRUCTR_VERSION..."
 
         # Get the package ID
@@ -175,7 +175,7 @@ snapshot-build:
         else
           echo "Nothing to clean up."
         fi
-      
+
         echo "SNAPSHOT build and release completed successfully"
       else
         echo "Skipping build because version is no SNAPSHOT and/or not on main branch"
@@ -205,15 +205,15 @@ release-build:
     - |
       if [[ "$CI_COMMIT_REF_NAME" == "release" ]]; then
         echo "Building release version $STRUCTR_VERSION on release branch"
-        
+
         # Build with sources but skip tests (already completed)
         mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
 
         # Configure glab for HTTP GitLab instance`
-        glab config set host "https://$CI_SERVER_HOST" 
+        glab config set host "https://$CI_SERVER_HOST"
         glab config set api_protocol https
         glab config set token "$CI_RELEASE_TOKEN"
-        
+
         # Create versioned release with build artifacts
         echo "Creating release with glab..."
         glab release create "$STRUCTR_VERSION" \
@@ -223,7 +223,7 @@ release-build:
 
           **Date:** $(date)" \
           structr-app/target/*.deb structr-app/target/*.zip
-        
+
         echo "Release build and release completed successfully"
       else
         echo "Refusing release build for other branches than 'release'"
@@ -232,6 +232,36 @@ release-build:
       fi
   rules:
     - when: on_success
+
+# Promote the moving Docker tags (MAJOR, MAJOR.MINOR, latest) for a finished release.
+# The immutable MAJOR.MINOR.PATCH tag is built and pushed by the fabric8 plugin during
+# "mvn install" in release-build. This job builds and pushes no image content: it only
+# gives that manifest additional names, so every moving tag carries the same digest,
+# platforms and attestations as the version tag it follows.
+docker-moving-tags:
+  stage: deploy
+  tags:
+    - shared
+  needs:
+    - job: setup-variables
+      artifacts: true
+    - job: release-build
+      artifacts: false
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "release"
+      when: on_success
+    - when: never
+  before_script:
+    - '[ -n "$DOCKERHUB_USER" ] && [ -n "$DOCKERHUB_TOKEN" ] || { echo "error: the DOCKERHUB_USER and DOCKERHUB_TOKEN CI variables must be set to promote moving tags on Docker Hub"; exit 1; }'
+    - echo "$CI_REGISTRY_PASSWORD" | docker login registry.structr.com -u "$CI_REGISTRY_USER" --password-stdin
+    - echo "$DOCKERHUB_TOKEN" | docker login docker.io -u "$DOCKERHUB_USER" --password-stdin
+  script:
+    # Set MOVING_TAGS_DRY_RUN=1 when starting a pipeline manually to see the decisions
+    # without changing anything in the registries.
+    - bash "$CI_PROJECT_DIR/.gitlab/scripts/docker-moving-tags.sh" ${MOVING_TAGS_DRY_RUN:+--dry-run} "$STRUCTR_VERSION"
+  after_script:
+    - docker logout docker.io || true
+    - docker logout registry.structr.com || true
 
 trigger-enterprise:
   stage: deploy
@@ -269,6 +299,8 @@ cleanup-system:
     - job: snapshot-build
       optional: true
     - job: release-build
+      optional: true
+    - job: docker-moving-tags
       optional: true
   script:
     - docker container prune -f

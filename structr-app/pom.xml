@@ -159,8 +159,11 @@
 							   [ui-tests] Start Neo4j + Structr test containers
 	- integration-test      - [ui-tests] Run Playwright tests
 	- post-integration-test - [ui-tests] Stop test containers
-	- install               - [docker-build] Build production image 'structr/structr:${version}'
-	- deploy                - [docker-push] Push to Docker Hub
+	- install               - [docker-build] Build production images
+							   'structr/structr:${version}' and
+							   'registry.structr.com/structr/structr:${version}'
+							   and push both (the build and push goals are both bound to
+							   the install phase)
 	-->
 
 	<build>

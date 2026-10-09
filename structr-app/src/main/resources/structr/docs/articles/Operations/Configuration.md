@@ -77,7 +77,9 @@ Note how `min_size` becomes `min__size` – the double underscore preserves the 
 ```yaml
 services:
   structr:
-    image: structr/structr:latest
+    # See "Docker Image Tags" below. The 7 tag follows the newest 7.x release;
+    # pin an exact version such as structr/structr:7.0.0 for production.
+    image: structr/structr:7
     ports:
       - "8082:8082"
     environment:
@@ -90,6 +92,26 @@ services:
 ```
 
 Environment variables take precedence over settings in `structr.conf`.
+
+## Docker Image Tags
+
+Structr images are published to Docker Hub as `structr/structr` and to the Structr registry as `registry.structr.com/structr/structr`. Both carry the same tags, built from the same sources.
+
+Besides the exact version, a release also updates a set of moving tags that always follow the newest matching release:
+
+| Tag | Example | Moves to a new image | Use it when |
+|-----|---------|----------------------|-------------|
+| `MAJOR.MINOR.PATCH` | `7.0.0` | Never | **Recommended for production.** The image never changes underneath you. |
+| `MAJOR.MINOR` | `7.0` | With every patch release of that line | You want bug fixes, nothing else. |
+| `MAJOR` | `7` | With every release of that major line | You want bug fixes and new features, but no breaking changes. |
+| `latest` | `latest` | With every release, **including new major versions** | Evaluation and testing only. |
+| `MAJOR.MINOR-SNAPSHOT` | `7.1-SNAPSHOT` | On every commit to the development branch | You want to try out unreleased development builds. Not supported for production. |
+
+Structr Enterprise images are published only to the Structr registry, as `registry.structr.com/structr/structr-enterprise`. They follow the same scheme with an `-enterprise` suffix: `7.0.0-enterprise`, `7.0-enterprise`, `7-enterprise` and `7.1-enterprise-SNAPSHOT`. Their `latest` tag follows the newest Enterprise release.
+
+All images are multi-architecture and contain both a `linux/amd64` and a `linux/arm64` variant. Docker picks the matching one automatically.
+
+> **Recommendation:** Pin `MAJOR.MINOR.PATCH` in production and update deliberately, or use the `MAJOR` tag if you want automatic updates within a major version. Avoid `latest`: breaking changes are introduced in major releases, and `latest` will eventually pull one, which may require a migration of your application.
 
 ## Essential Settings
 

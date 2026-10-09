@@ -38,10 +38,13 @@ ENV MAVEN_HOME=/opt/maven \
     PATH=/opt/maven/bin:$PATH
 
 # Install docker-cli for docker functions and setup glab and maven
+# docker-buildx-plugin is required: the multi-arch image build and the moving tag promotion
+# both shell out to "docker buildx". CLI plugins live in the client, so the mounted host
+# docker socket does not provide it.
 RUN microdnf install -y dnf dnf-plugins-core \
      && dnf -y install dnf-plugins-core \
      && dnf config-manager --add-repo "https://download.docker.com/linux/centos/docker-ce.repo" \
-     && dnf -y install docker-ce-cli git \
+     && dnf -y install docker-ce-cli docker-buildx-plugin git \
      && dnf -y install socat \
   	 && dnf -y install jq \
      && dnf install -y glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm \

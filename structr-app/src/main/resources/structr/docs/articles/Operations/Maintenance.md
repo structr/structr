@@ -137,6 +137,7 @@ The update process is straightforward:
 3. Install the new version:
    - **Debian package:** `dpkg -i structr-<version>.deb`
    - **ZIP distribution:** Extract and replace the installation files
+   - **Docker:** Change the image tag to the new version and recreate the container. If you use a moving tag such as `structr/structr:7`, run `docker compose pull` first to fetch the new image. The [Configuration](/structr/docs/ontology/Operations/Configuration) chapter describes what each tag follows.
 4. Start Structr: `systemctl start structr`
 5. Disable maintenance mode
 
