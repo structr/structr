@@ -42,10 +42,12 @@ import org.structr.rest.exception.NotAllowedException;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-@Documentation(name="Server log endpoint", type=ConceptType.RestEndpoint, shortDescription="HTTP endpoint that returns the server log, for admin users only. URL path is /_serverLog, with the optional request parameters lines (default 50), level (minimum level), filter (only entries containing this text), since (the offset of a previous response, to read only what was logged after it) and logFile (one of availableLogFiles in the response).", parent="System endpoints")
+@Documentation(name="Server log endpoint", type=ConceptType.RestEndpoint, shortDescription="HTTP endpoint that returns the server log, for admin users only. URL path is /_serverLog, with the optional request parameters lines (default 50), level (minimum level), filter (only entries containing this text), since (the offset of a previous response, to read only what was logged after it) and logFile (one of availableLogFiles in the response, the current log first and the rotated ones newest first; since cannot be used with a compressed one).", parent="System endpoints")
 public class ServerLogResource extends ExactMatchEndpoint {
 
 	private static final int DEFAULT_LINES = 50;
@@ -83,7 +85,7 @@ public class ServerLogResource extends ExactMatchEndpoint {
 			}
 
 			final HttpServletRequest request = securityContext.getRequest();
-			final List<String> logFiles      = GetAvailableServerLogsFunction.getListOfServerlogFileNames();
+			final List<String> logFiles      = newestFirst(GetAvailableServerLogsFunction.getListOfServerlogFileNames(true));
 			final String requestedFile       = request != null ? request.getParameter("logFile") : null;
 			final String filter              = request != null ? request.getParameter("filter") : null;
 			final String levelValue          = request != null ? request.getParameter("level") : null;
@@ -111,7 +113,19 @@ public class ServerLogResource extends ExactMatchEndpoint {
 
 					final Path path = Path.of(logFile);
 
-					log = since != null ? ServerLogReader.since(path, since, lines, level, filter) : ServerLogReader.tail(path, lines, level, filter);
+					if (ServerLogReader.isCompressed(path)) {
+
+						if (since != null) {
+
+							throw new FrameworkException(422, "since cannot be used with " + logFile + ", a compressed log has no offsets");
+						}
+
+						log = ServerLogReader.tailCompressed(path, lines, level, filter);
+
+					} else {
+
+						log = since != null ? ServerLogReader.since(path, since, lines, level, filter) : ServerLogReader.tail(path, lines, level, filter);
+					}
 
 				} catch (IOException ex) {
 
@@ -122,7 +136,7 @@ public class ServerLogResource extends ExactMatchEndpoint {
 			result.setProperty(new StringProperty("logFile"),            logFile);
 			result.setProperty(new GenericProperty("availableLogFiles"), logFiles);
 			result.setProperty(new GenericProperty("lines"),             log.lines());
-			result.setProperty(new LongProperty("offset"),               log.offset());
+			result.setProperty(new LongProperty("offset"),               log.offset() >= 0 ? log.offset() : null);
 			result.setProperty(new BooleanProperty("rotated"),           log.rotated());
 
 			return new PagingIterable(getURL(), List.of(result));
@@ -147,6 +161,22 @@ public class ServerLogResource extends ExactMatchEndpoint {
 		}
 
 		// ----- private methods -----
+		private List<String> newestFirst(final List<String> logFiles) {
+
+			// sorted by name, the current log comes first and the rotated ones follow by date, oldest first
+			if (logFiles.size() < 2) {
+
+				return logFiles;
+			}
+
+			final List<String> sorted = new ArrayList<>(logFiles.subList(1, logFiles.size()));
+
+			Collections.reverse(sorted);
+			sorted.addFirst(logFiles.getFirst());
+
+			return sorted;
+		}
+
 		private Long getSince(final HttpServletRequest request) throws FrameworkException {
 
 			final String value = request != null ? request.getParameter("since") : null;

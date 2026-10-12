@@ -24,12 +24,14 @@ import org.structr.common.helper.ServerLogReader.Result;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -170,6 +172,26 @@ public class ServerLogReaderTest {
 	}
 
 	@Test
+	public void testCompressedLogsAnswerLikePlainOnes() throws IOException {
+
+		final String[] lines = { INFO_1, WARN_1, ERROR_1, TRACE_1, TRACE_2, INFO_2, ERROR_2 };
+		final Path plain     = log(lines);
+		final Path gzipped   = gzip(lines);
+
+		assertTrue(ServerLogReader.isCompressed(gzipped));
+		assertFalse(ServerLogReader.isCompressed(plain));
+
+		for (final int max : new int[] { 1, 2, 3, 4, 100 }) {
+
+			assertEquals(ServerLogReader.tail(plain, max, null, null).lines(), ServerLogReader.tailCompressed(gzipped, max, null, null).lines());
+			assertEquals(ServerLogReader.tail(plain, max, Level.WARN, null).lines(), ServerLogReader.tailCompressed(gzipped, max, Level.WARN, null).lines());
+			assertEquals(ServerLogReader.tail(plain, max, null, "Script.java").lines(), ServerLogReader.tailCompressed(gzipped, max, null, "Script.java").lines());
+		}
+
+		assertEquals(-1L, ServerLogReader.tailCompressed(gzipped, 50, null, null).offset());
+	}
+
+	@Test
 	public void testParseLevel() {
 
 		assertEquals(Level.WARN, ServerLogReader.parseLevel("warn"));
@@ -185,6 +207,20 @@ public class ServerLogReaderTest {
 		file.toFile().deleteOnExit();
 
 		append(file, lines);
+
+		return file;
+	}
+
+	private Path gzip(final String... lines) throws IOException {
+
+		final Path file = Files.createTempFile("server", ".log.gz");
+
+		file.toFile().deleteOnExit();
+
+		try (final OutputStream out = new GZIPOutputStream(Files.newOutputStream(file))) {
+
+			out.write((String.join("\n", lines) + "\n").getBytes(StandardCharsets.UTF_8));
+		}
 
 		return file;
 	}

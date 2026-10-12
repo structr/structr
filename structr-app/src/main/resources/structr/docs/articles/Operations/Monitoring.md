@@ -231,7 +231,7 @@ The endpoint reads the log as entries: a line that starts with a timestamp begin
 | `level` | Minimum level: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`. `level=WARN` returns warnings and errors. The level is read from the level column, not from the message |
 | `filter` | Only return entries that contain this text, in any of their lines |
 | `since` | The `offset` of a previous response. Returns only what was logged after it, oldest first |
-| `logFile` | The log file to read, one of `availableLogFiles` in the response (default: the current log file) |
+| `logFile` | The log file to read, one of `availableLogFiles` in the response (default: the current log file). Rotated logs are listed too, newest first, including the ones compressed with gzip; `since` cannot be used with a compressed log |
 
 Without `since`, the endpoint returns the most recent entries. With `since`, it reads forward from that offset and returns the oldest new entries first, up to `lines`; the `offset` of the response then points to the first entry not yet returned, so the next request continues there and nothing is skipped.
 
@@ -240,10 +240,10 @@ Without `since`, the endpoint returns the most recent entries. With `since`, it 
 | Field | Description |
 |-------|-------------|
 | `lines` | The lines of the selected entries, oldest first |
-| `offset` | The byte position to pass as `since` in the next request |
+| `offset` | The byte position to pass as `since` in the next request; empty for a compressed log |
 | `rotated` | `true` if `since` lay beyond the end of the file. The log was rotated, and the new file was read from the start |
 | `logFile` | The file that was read |
-| `availableLogFiles` | All log files that can be read |
+| `availableLogFiles` | All log files that can be read: the current one first, then the rotated ones, newest first |
 
 ### Watching for Errors
 

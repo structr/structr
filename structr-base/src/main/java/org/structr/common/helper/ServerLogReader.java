@@ -18,19 +18,25 @@
  */
 package org.structr.common.helper;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Reads the server log as entries: a line that starts with a timestamp begins an entry, and the lines
@@ -44,7 +50,7 @@ public final class ServerLogReader {
 
 	/**
 	 * @param lines   the lines of the selected entries, oldest first
-	 * @param offset  the byte offset to continue from
+	 * @param offset  the byte offset to continue from, or -1 for a compressed file, which has none
 	 * @param rotated true if the requested offset lay beyond the end of the file, so it was read from the start
 	 */
 	public record Result(List<String> lines, long offset, boolean rotated) {}
@@ -125,6 +131,45 @@ public final class ServerLogReader {
 		}
 	}
 
+	public static boolean isCompressed(final Path file) {
+
+		return file.getFileName().toString().endsWith(".gz");
+	}
+
+	/**
+	 * Like tail(), for a rotated log that was compressed with gzip: it can only be read from the start,
+	 * so it is read through once, keeping no more than the last entries that match.
+	 */
+	public static Result tailCompressed(final Path file, final int maxLines, final Level minLevel, final String filter) throws IOException {
+
+		final Deque<List<String>> kept = new ArrayDeque<>();
+		List<String> entry             = new ArrayList<>();
+		int count                      = 0;
+
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(Files.newInputStream(file)), StandardCharsets.UTF_8))) {
+
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+
+				if (HEADER.matcher(line).find() && !entry.isEmpty()) {
+
+					count = keep(entry, kept, count, maxLines, minLevel, filter);
+					entry = new ArrayList<>();
+				}
+
+				entry.add(line);
+			}
+		}
+
+		if (!entry.isEmpty()) {
+
+			keep(entry, kept, count, maxLines, minLevel, filter);
+		}
+
+		return new Result(flatten(new ArrayList<>(kept)), -1L, false);
+	}
+
 	/**
 	 * Returns the entries that match after the given offset, oldest first, until they add up to at least
 	 * maxLines lines. The offset of the result points to the first entry not yet examined, so nothing is
@@ -197,6 +242,26 @@ public final class ServerLogReader {
 	}
 
 	// ----- private methods -----
+	private static int keep(final List<String> entry, final Deque<List<String>> kept, final int count, final int maxLines, final Level minLevel, final String filter) {
+
+		if (!matches(entry, minLevel, filter)) {
+
+			return count;
+		}
+
+		int total = count + entry.size();
+
+		kept.addLast(entry);
+
+		// the oldest entry goes once the others reach maxLines without it
+		while (kept.size() > 1 && total - kept.peekFirst().size() >= maxLines) {
+
+			total -= kept.removeFirst().size();
+		}
+
+		return total;
+	}
+
 	private static int collect(final String text, final List<String> pending, final List<List<String>> found, final Level minLevel, final String filter) {
 
 		pending.add(text);
