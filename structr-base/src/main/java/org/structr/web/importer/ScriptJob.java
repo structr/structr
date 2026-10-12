@@ -29,6 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
@@ -70,6 +71,33 @@ public class ScriptJob extends ScheduledJob {
 		return script instanceof String;
 	}
 
+	/**
+	 * The security context the job runs in.
+	 *
+	 * A job reuses the scheduling user's own context so that its script still sees the request that
+	 * scheduled it. Two principals have none to hand over: an anonymous context carries no user at all,
+	 * and a SuperUser answers null. Both then get a context of their own carrying the job's store, which
+	 * has no request behind it -- request data is only available to a job whose user carried the context
+	 * the request was served with.
+	 */
+	private SecurityContext getJobSecurityContext() {
+
+		final SecurityContext userContext = (user != null) ? user.getSecurityContext() : null;
+
+		if (userContext != null) {
+
+			return userContext;
+		}
+
+		final SecurityContext jobContext = (user instanceof SuperUser)
+			? SecurityContext.getSuperUserInstance()
+			: SecurityContext.getInstance(user, AccessMode.Backend);
+
+		jobContext.setContextStore(ctxStore);
+
+		return jobContext;
+	}
+
 	@Override
 	public Runnable getRunnable() {
 
@@ -79,7 +107,7 @@ public class ScriptJob extends ScheduledJob {
 
 			MDC.setContextMap(contextMap);
 
-			final SecurityContext securityContext = user.getSecurityContext();
+			final SecurityContext securityContext = getJobSecurityContext();
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
