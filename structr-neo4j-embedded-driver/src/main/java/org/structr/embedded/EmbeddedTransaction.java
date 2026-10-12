@@ -27,6 +27,9 @@ import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.CloseableIterator;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryHistogram;
+import org.structr.api.util.QueryTimer;
+import org.structr.api.util.TimedIterable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,6 +44,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 	protected final Map<String, RelationshipWrapper> rels = new HashMap<>();
 	protected final Map<String, NodeWrapper> nodes        = new HashMap<>();
+	protected final List<QueryTimer> openTimers            = new ArrayList<>();
 	protected final Set<String> deletedNodes              = new HashSet<>();
 	protected final Set<String> createdNodes              = new HashSet<>();
 	protected final Set<String> deletedRels               = new HashSet<>();
@@ -69,6 +73,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	@Override
 	public void close() {
 
+		recordOpenTimers();
 		clearChangeset();
 
 		closed = true;
@@ -134,56 +139,92 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 		logQuery(query);
 
-		final String statement        = query.getStatement();
-		final Map<String, Object> map    = query.getParameters();
-		final Result              result = tx.execute(statement, map);
-		final Boolean             value  = getFirstBoolean(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement        = query.getStatement();
+			final Map<String, Object> map    = query.getParameters();
+			final Result              result = tx.execute(statement, map);
+			final Boolean             value  = getFirstBoolean(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Long getLong(final CypherQuery query) {
 
 		logQuery(query);
 
-		final String statement            = query.getStatement();
-		final Map<String, Object> map     = query.getParameters();
-		final Result result               = tx.execute(statement, map);
-		final Long value                  = getFirstLong(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
+			final Result result               = tx.execute(statement, map);
+			final Long value                  = getFirstLong(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Node getNode(final CypherQuery query) {
 
 		logQuery(query);
 
-		final String statement            = query.getStatement();
-		final Map<String, Object> map     = query.getParameters();
-		final Result result               = tx.execute(statement, map);
-		final Node value                  = getFirstNode(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
+			final Result result               = tx.execute(statement, map);
+			final Node value                  = getFirstNode(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Relationship getRelationship(final CypherQuery query) {
 
 		logQuery(query);
 
-		final String statement        = query.getStatement();
-		final Map<String, Object> map = query.getParameters();
-		final Result result           = tx.execute(statement, map);
-		final Relationship value      = getFirstRelationship(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
+			final Result result           = tx.execute(statement, map);
+			final Relationship value      = getFirstRelationship(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Iterable<Map<String, Object>> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer unused) {
@@ -193,7 +234,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 		final String statement        = query.getStatement();
 		final Map<String, Object> map = query.getParameters();
 
-		return toIterable(tx.execute(statement, map));
+		return timed(startTimer(statement), toIterable(tx.execute(statement, map)));
 	}
 
 	public Iterable<Map<String, Object>> run(final CypherQuery query) {
@@ -202,24 +243,64 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 		final String statement        = query.getStatement();
 		final Map<String, Object> map = query.getParameters();
+		final QueryTimer timer         = startTimer(statement);
 		final Result result            = tx.execute(statement, map);
 
 		// the caller reads the rows in its own transaction, possibly after this one has closed
 		if (db.getCurrentTransaction(false) != this) {
 
-			return new DetachedResult(db, result);
+			return new TimedIterable<>(timer, new DetachedResult(db, result));
 		}
 
-		return Iterables.map(new RecordMapMapper(db), toIterable(result));
+		return timed(timer, Iterables.map(new RecordMapMapper(db), toIterable(result)));
 	}
 
 	public void set(final String statement, final Map<String, Object> map) {
 
 		logQuery(statement, map);
 
-		final Result result = tx.execute(statement, map);
+		final QueryTimer timer = startTimer(statement);
 
-		logSummary(result.getQueryStatistics());
+		try {
+
+			final Result result = tx.execute(statement, map);
+
+			logSummary(result.getQueryStatistics());
+
+		} finally {
+
+			timer.finished();
+		}
+	}
+
+	// ----- query timing -----
+	private QueryTimer startTimer(final String statement) {
+
+		final QueryTimer timer = QueryHistogram.newTimer();
+
+		timer.started(statement);
+
+		return timer;
+	}
+
+	private <T> Iterable<T> timed(final QueryTimer timer, final Iterable<T> records) {
+
+		openTimers.add(timer);
+
+		return new TimedIterable<>(timer, records);
+	}
+
+	/**
+	 * Records the queries whose results were not read to the end, at the time of their last record.
+	 */
+	private void recordOpenTimers() {
+
+		for (final QueryTimer timer : openTimers) {
+
+			timer.record();
+		}
+
+		openTimers.clear();
 	}
 
 	public Iterable<Map<String, Object>> newIterable(final EmbeddedDatabaseService db, final CypherQuery query) {

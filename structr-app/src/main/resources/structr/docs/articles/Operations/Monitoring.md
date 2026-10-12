@@ -175,6 +175,8 @@ A pre-built Grafana dashboard for Structr is available at [grafana.com/grafana/d
 
 The histogram endpoint provides detailed query performance analysis, useful for identifying slow queries and optimization opportunities.
 
+It covers every database query since Structr started, grouped by statement: how often each statement ran, and its total, maximum, minimum and average time, from sending the query until its last result was read. Up to 10,000 distinct statements are listed individually; any further ones are counted together in one entry. The statistics are cleared on restart.
+
 ### Endpoint
 
 `/structr/histogram`

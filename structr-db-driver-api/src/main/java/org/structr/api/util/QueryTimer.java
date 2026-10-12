@@ -18,96 +18,81 @@
  */
 package org.structr.api.util;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Times one query, from the moment it is sent until its last record has been read, and hands the
+ * duration to the QueryHistogram once, when the query is finished or its results are closed.
+ */
 public class QueryTimer {
 
-	private final Map<String, Double> timestamps = new LinkedHashMap<>();
-	private String statement                     = null;
+	private final AtomicBoolean recorded = new AtomicBoolean(false);
+	private volatile String statement    = null;
+	private volatile long start          = 0L;
+	private volatile long last           = 0L;
 
 	// prevent access outside of package
 	QueryTimer() {}
 
 	public String getStatement() {
-
 		return statement;
-	}
-
-	public double getOverallDuration() {
-
-		double min = Double.MAX_VALUE;
-		double max = Double.MIN_VALUE;
-
-		for (final String key : timestamps.keySet()) {
-
-			double value = value(key);
-
-			min = Math.min(min, value);
-			max = Math.max(max, value);
-		}
-
-		// return milliseconds
-
-		return (max - min) / 1000000000.0;
-	}
-
-	public boolean isEmpty() {
-
-		return timestamps.isEmpty();
 	}
 
 	public void started(final String statement) {
 
-		recordTime("started");
-
 		this.statement = statement;
+		this.start     = System.nanoTime();
+		this.last      = start;
 	}
 
 	public void querySent() {
+		touch();
+	}
 
-		recordTime("querySent");
+	public void nextPage() {
+		touch();
+	}
+
+	public void finishReceived() {
+		touch();
 	}
 
 	public void closed() {
+		touch();
+	}
 
-		recordTime("closed");
+	/**
+	 * Notes that a record was read, so a query whose results are not read to the end is timed until
+	 * the last record that was.
+	 */
+	public void touch() {
+
+		if (start != 0L) {
+
+			last = System.nanoTime();
+		}
 	}
 
 	public void consumed() {
 
-		recordTime("consumed");
-	}
-
-	public void finishReceived() {
-
-		recordTime("finishReceived");
-	}
-
-	public void nextPage() {
-
-		recordTime("nextPage");
+		touch();
+		record();
 	}
 
 	public void finished() {
 
-		recordTime("finished");
+		touch();
+		record();
 	}
 
-	// ----- private methods -----
-	private void recordTime(final String key) {
+	/**
+	 * Records the query as it stands, up to its last activity, for results that were never read to the end.
+	 */
+	public void record() {
 
-		timestamps.put(key, Double.valueOf(System.nanoTime()));
-	}
+		if (start != 0L && statement != null && recorded.compareAndSet(false, true)) {
 
-	private double value(final String key) {
-
-		Double value = timestamps.get(key);
-		if (value != null) {
-
-			return value;
+			QueryHistogram.record(statement, last - start);
 		}
-
-		return 0;
 	}
 }

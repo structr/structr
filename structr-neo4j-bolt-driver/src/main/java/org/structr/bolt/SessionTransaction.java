@@ -37,6 +37,9 @@ import org.structr.api.*;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryHistogram;
+import org.structr.api.util.QueryTimer;
+import org.structr.api.util.TimedIterable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,6 +66,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	protected final Map<String, PrefetchInfo> histogram = new ConcurrentHashMap<>();
 	protected final Map<Long, RelationshipWrapper> rels = new HashMap<>();
 	protected final Map<Long, NodeWrapper> nodes        = new HashMap<>();
+	protected final List<QueryTimer> openTimers           = new ArrayList<>();
 	protected final Set<Long> deletedNodes              = new HashSet<>();
 	protected final Set<Long> createdNodes              = new HashSet<>();
 	protected final Set<Long> deletedRels               = new HashSet<>();
@@ -775,6 +779,36 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	}
 
 	// ----- protected methods -----
+	// ----- query timing -----
+	protected QueryTimer startTimer(final String statement) {
+
+		final QueryTimer timer = QueryHistogram.newTimer();
+
+		timer.started(statement);
+
+		return timer;
+	}
+
+	protected Iterable<Record> timed(final QueryTimer timer, final Iterable<Record> records) {
+
+		openTimers.add(timer);
+
+		return new TimedIterable<>(timer, records);
+	}
+
+	/**
+	 * Records the queries whose results were not read to the end, at the time of their last record.
+	 */
+	protected void recordOpenTimers() {
+
+		for (final QueryTimer timer : openTimers) {
+
+			timer.record();
+		}
+
+		openTimers.clear();
+	}
+
 	protected void logQuery(final CypherQuery query) {
 
 		if (prefetchHint != null && query.getType() != null && query.getRelationshipType() != null) {
