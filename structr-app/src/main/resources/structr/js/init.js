@@ -1301,7 +1301,7 @@ let Structr = {
 					END:    'Script finished'
 				};
 				let scriptJobTexts = {
-					QUEUED: `Script job #${data.jobId} will begin after currently running/queued job(s)`,
+					QUEUED: `Script job #${data.jobId} will begin after the running/queued job(s) in queue '${data.queue}'`,
 					BEGIN:  `Started script job #${data.jobId}${((data.jobName.length > 0) ? ` (${data.jobName})` : '')}`,
 					END:    `Finished script job #${data.jobId}${((data.jobName.length > 0) ? ` (${data.jobName})` : '')}`
 				};
@@ -1309,7 +1309,7 @@ let Structr = {
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
-					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).prependsText();
+					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}-${data.jobId}`).prependsText();
 
 					if (data.subtype !== 'QUEUED') {
 						messageBuilder.requiresConfirmation();

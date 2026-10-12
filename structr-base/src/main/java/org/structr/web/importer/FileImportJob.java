@@ -102,6 +102,7 @@ abstract class FileImportJob extends ScheduledJob {
 		data.put("jobId",      jobId());
 		data.put("type",       getJobStatusType());
 		data.put("jobtype",    getJobType());
+		data.put("queue",      getQueueName());
 		data.put("subtype",    subtype);
 		data.put("username",   username);
 
@@ -120,6 +121,7 @@ abstract class FileImportJob extends ScheduledJob {
 		jobInfo.put("jobtype",          getJobType());
 		jobInfo.put("username",         getUsername());
 		jobInfo.put("status",           getCurrentStatus());
+		jobInfo.put("queue",           getQueueName());
 
 		jobInfo.put("fileUuid",         getFileUuid());
 		jobInfo.put("filepath",         getFilePath());

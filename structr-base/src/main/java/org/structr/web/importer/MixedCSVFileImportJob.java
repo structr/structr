@@ -80,14 +80,6 @@ public class MixedCSVFileImportJob extends FileImportJob {
 	}
 
 	@Override
-	public boolean canRunMultiThreaded() {
-
-		// think about this, maybe we can add parallelism here?
-
-		return false;
-	}
-
-	@Override
 	public Runnable getRunnable() {
 
 		return () -> {
