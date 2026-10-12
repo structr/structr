@@ -51,6 +51,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.ScriptTestHelper;
+import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -1922,6 +1923,70 @@ public class UiScriptingTest extends StructrUiTest {
 
 			ex.printStackTrace();
 			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testScheduleRunsTheJobInTheNamedQueue() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Object jobId;
+
+		try (final Tx tx = app.tx()) {
+
+			jobId = Scripting.evaluate(ctx, null, "${schedule('sleep(3000)', 'queued work', {queue:'imports'})}", "test", null);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+			return;
+		}
+
+		// the job is only queued once the scheduling transaction has been processed
+		final Map<String, Object> info = JobQueueManager.getInstance().jobInfo(((Number)jobId).longValue());
+
+		assertNotNull("a scheduled job must be findable by the id schedule() returned", info);
+		assertEquals("the job must run in the queue the options named", "imports", info.get("queue"));
+	}
+
+	@Test
+	public void testScheduleRejectsAnUnknownOption() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(ctx, null, "${schedule('true', 'typo', {qeue:'imports'})}", "test", null);
+
+			assertNull("an unknown option must be reported rather than ignored", result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testScheduleReturnsTheJobId() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(ctx, null, "${schedule('true', 'returns its id')}", "test", null);
+
+			assertNotNull("schedule() must return the id the job is registered under", result);
+			assertTrue("schedule() must return a numeric job id, got " + result, result instanceof Number);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
 		}
 	}
 

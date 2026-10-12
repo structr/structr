@@ -29,6 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
@@ -49,9 +50,9 @@ public class ScriptJob extends ScheduledJob {
 	private static final Logger logger = LoggerFactory.getLogger(ScriptJob.class);
 	private Object script              = null;
 
-	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore, final String jobTitle) {
+	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore, final String jobTitle, final String queueName) {
 
-		super(jobTitle, user, configuration, ctxStore);
+		super(jobTitle, user, configuration, ctxStore, queueName);
 
 		this.script  = script;
 	}
@@ -62,12 +63,31 @@ public class ScriptJob extends ScheduledJob {
 		return true;
 	}
 
-	@Override
-	public boolean canRunMultiThreaded() {
+	/**
+	 * The security context the job runs in.
+	 *
+	 * A job reuses the scheduling user's own context so that its script still sees the request that
+	 * scheduled it. Two principals have none to hand over: an anonymous context carries no user at all,
+	 * and a SuperUser answers null. Both then get a context of their own carrying the job's store, which
+	 * has no request behind it -- request data is only available to a job whose user carried the context
+	 * the request was served with.
+	 */
+	private SecurityContext getJobSecurityContext() {
 
-		// only those jobs that are actual string-based scripts can be run in parallel
+		final SecurityContext userContext = (user != null) ? user.getSecurityContext() : null;
 
-		return script instanceof String;
+		if (userContext != null) {
+
+			return userContext;
+		}
+
+		final SecurityContext jobContext = (user instanceof SuperUser)
+			? SecurityContext.getSuperUserInstance()
+			: SecurityContext.getInstance(user, AccessMode.Backend);
+
+		jobContext.setContextStore(ctxStore);
+
+		return jobContext;
 	}
 
 	@Override
@@ -79,7 +99,7 @@ public class ScriptJob extends ScheduledJob {
 
 			MDC.setContextMap(contextMap);
 
-			final SecurityContext securityContext = user.getSecurityContext();
+			final SecurityContext securityContext = getJobSecurityContext();
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
@@ -145,6 +165,7 @@ public class ScriptJob extends ScheduledJob {
 		data.put("subtype",    subtype);
 		data.put("username",   getUsername());
 		data.put("jobName",    jobName);
+		data.put("queue",      getQueueName());
 
 		return data;
 	}
@@ -159,6 +180,7 @@ public class ScriptJob extends ScheduledJob {
 		jobInfo.put("username",        getUsername());
 		jobInfo.put("status",          getCurrentStatus());
 		jobInfo.put("jobName",         jobName);
+		jobInfo.put("queue",           getQueueName());
 
 		if (getEncounteredException() != null) {
 

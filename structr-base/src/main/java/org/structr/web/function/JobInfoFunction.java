@@ -101,6 +101,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 			| `jobtype` | The job type |
 			| `username` | The username of the user who started the job |
 			| `status` | The current status of the job |
+			| `queue` | The name of the queue the job runs in |
 			| `jobName` | The name of the script job |
 			| `exception` | <p>**If an exception was caught** during the execution, an exception object containing:</p><p></p><p>`message` : The message of the exception</p><p>`cause` : The cause of the exception</p><p>`stacktrace` : The stacktrace of the exception |
 	
@@ -112,6 +113,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 			| `jobtype` | The job type |
 			| `username` | The username of the user who started the job |
 			| `status` | The current status of the job |
+			| `queue` | The name of the queue the job runs in |
 			| `fileUuid` | The UUID of the imported file |
 			| `filepath` | The path of the imported file |
 			| `filesize` | The size of the imported file |

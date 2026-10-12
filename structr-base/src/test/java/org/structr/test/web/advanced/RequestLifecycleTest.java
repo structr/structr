@@ -126,6 +126,44 @@ public class RequestLifecycleTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testScheduledFunctionRunsWithoutAUser() {
+
+		setupScheduleSchema();
+
+		RestAssured.basePath = "/structr/rest";
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.expect()
+			.statusCode(200)
+			.when()
+			.post("/RequestTest/scheduleAnonymously");
+
+		assertEquals("A function scheduled from an anonymous context must still run", "ran", awaitStoreValue("anonymous"));
+	}
+
+	@Test
+	public void testScheduledStringScriptRunsAsSuperuser() {
+
+		setupScheduleSchema();
+
+		RestAssured.basePath = "/structr/rest";
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "superadmin")
+			.header("X-Password", "sehrgeheim")
+			.expect()
+			.statusCode(200)
+			.when()
+			.post("/RequestTest/scheduleStringScript");
+
+		assertEquals("A string script scheduled by the superuser must run on a usable context", "ran", awaitStoreValue("stringScript"));
+	}
+
+	@Test
 	public void testScheduledFunctionDoesNotSeeTheNextRequestOnTheSameConnection() {
 
 		setupScheduleSchema();
@@ -302,6 +340,12 @@ public class RequestLifecycleTest extends StructrUiTest {
 			type.addMethod("scheduleHeaderRead", "{ $.schedule(() => { $.sleep(500); " + String.format(READ_HEADER_INTO_STORE, "header") + " }); }").setIsStatic(true);
 			type.addMethod("slow", "{ $.sleep(1500); }").setIsStatic(true);
 
+			// a job whose principal cannot hand over a SecurityContext: nobody authenticated, so there is no user
+			type.addMethod("scheduleAnonymously", "{ $.schedule(() => { $.applicationStorePut('anonymous', 'ran'); }); }").setIsStatic(true);
+
+			// a STRING script rather than a function: this is the branch that runs on the job's own ActionContext
+			type.addMethod("scheduleStringScript", "{ $.schedule(\"{ $.applicationStorePut('stringScript', 'ran'); }\"); }").setIsStatic(true);
+
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			tx.success();
@@ -316,6 +360,8 @@ public class RequestLifecycleTest extends StructrUiTest {
 
 		grant("RequestTest/scheduleHeaderRead", UiAuthenticator.AUTH_USER_POST, false);
 		grant("RequestTest/slow", UiAuthenticator.AUTH_USER_POST, false);
+		grant("RequestTest/scheduleAnonymously", UiAuthenticator.NON_AUTH_USER_POST, false);
+		grant("RequestTest/scheduleStringScript", UiAuthenticator.AUTH_USER_POST, false);
 
 		clearStore();
 	}

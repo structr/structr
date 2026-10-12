@@ -56,6 +56,7 @@ let _JobQueue = {
 		});
 
 		let jobIdInput = $('#cancel-all-queued-after-job-id');
+		let queueInput = $('#cancel-all-queued-after-queue');
 
 		$('#cancel-all-queued-after').click(function () {
 
@@ -79,7 +80,7 @@ let _JobQueue = {
 
 						jobIdInput.val('');
 						_JobQueue.updateJobTable();
-					});
+					}, queueInput.val());
 				}
 			}
 		});
@@ -114,7 +115,7 @@ let _JobQueue = {
 					});
 
 				} else {
-					tbody.append('<td colspan=9>No import jobs</td>');
+					tbody.append('<td colspan=10>No import jobs</td>');
 				}
 
 			});
@@ -130,6 +131,7 @@ let _JobQueue = {
 			<tr>
 				<td data-property="jobId"></td>
 				<td data-property="jobtype"></td>
+				<td data-property="queue"></td>
 				<td data-property="username"></td>
 				${_JobQueue.createJobInfoHTML(job)}
 				<td data-property="status"></td>
@@ -174,7 +176,6 @@ let _JobQueue = {
 			case 'CSV':
 				switch (job.status) {
 					case 'QUEUED':
-						actionHtml += _JobQueue.createActionButton('start', job.jobId, 'Start');
 						actionHtml += _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');
 						break;
 
@@ -1657,6 +1658,7 @@ let _JobQueue = {
 					<thead><tr>
 						<th>Job ID</th>
 						<th>Job Type</th>
+						<th>Queue</th>
 						<th>User</th>
 						<th>File UUID / Job Title</th>
 						<th>File path</th>
@@ -1679,10 +1681,14 @@ let _JobQueue = {
 				<div class="button-and-input inline-flex items-center">
 
 					<label for="cancel-all-queued-after-job-id" class="mr-2">
-						Cancel ALL <b>queued</b> jobs after this ID:
+						Cancel <b>queued</b> jobs after this ID:
 					</label>
 
 					<input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
+
+					<label for="cancel-all-queued-after-queue" class="ml-2 mr-2">in queue</label>
+
+					<input size="12" type="text" id="cancel-all-queued-after-queue" title="Leave empty to use the queue the job itself is in" placeholder="the job's queue">
 
 					<button id="cancel-all-queued-after" class="inline-flex items-center ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel Job
