@@ -80,6 +80,8 @@ To sort the result based on multiple fields, repeat the `_sort` and `_order` par
     $ curl -s -HX-User:admin -HX-Password:admin http://localhost:8082/structr/rest/Project?_sort=name&_order=desc
     $ curl -s -HX-User:admin -HX-Password:admin "http://localhost:8082/structr/rest/Project?_sort=status&_sort=name&_order=desc&_order=asc"
 
+A `_sort` key that neither the type nor one of its subtypes has is rejected with status 422. The REST interface does not resolve paths like `owner.name` for sorting.
+
 ### Null Values
 
 If a sorted collection includes objects with null values, those objects are placed at the end of the collection for ascending order (“nulls last”), or at the beginning of the collection for descending order.

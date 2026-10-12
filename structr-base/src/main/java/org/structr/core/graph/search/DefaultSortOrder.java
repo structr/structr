@@ -18,9 +18,11 @@
  */
 package org.structr.core.graph.search;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.search.SortType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -35,27 +37,33 @@ public class DefaultSortOrder implements SortOrder {
 	public DefaultSortOrder() {
 	}
 
-	public DefaultSortOrder(final String type, final String[] sortKeyNames, final String[] sortOrders) {
+	/**
+	 * Rejects a sort key that neither the type nor one of its subtypes has, like SortPredicate does in find(),
+	 * instead of returning an unsorted result. Keys for a type that is not in the schema cannot be checked and
+	 * are ignored.
+	 */
+	public DefaultSortOrder(final String type, final String[] sortKeyNames, final String[] sortOrders) throws FrameworkException {
 
-		if (sortKeyNames != null) {
+		if (sortKeyNames == null || !Traits.exists(type)) {
+			return;
+		}
 
-			final int length = sortKeyNames.length;
+		final int length = sortKeyNames.length;
 
-			for (int i=0; i<length; i++) {
+		for (int i=0; i<length; i++) {
 
-				if (Traits.exists(type)) {
-
-					final Traits traits = Traits.of(type);
-					if (traits.hasKey(sortKeyNames[i])) {
-
-						final PropertyKey key = traits.key(sortKeyNames[i]);
-						if (key != null) {
-
-							specs.add(new PropertySortSpec(key, sortOrders != null && sortOrders.length > i && "desc".equals(sortOrders[i])));
-						}
-					}
-				}
+			final String name = sortKeyNames[i];
+			if (StringUtils.isBlank(name)) {
+				continue;
 			}
+
+			final PropertyKey key = resolveSortKey(type, name);
+			if (key == null) {
+
+				throw new FrameworkException(422, "Unknown sort key '" + name + "' for type " + type);
+			}
+
+			specs.add(new PropertySortSpec(key, sortOrders != null && sortOrders.length > i && "desc".equals(sortOrders[i])));
 		}
 	}
 
@@ -133,6 +141,27 @@ public class DefaultSortOrder implements SortOrder {
 	public boolean isEmpty() {
 
 		return specs.isEmpty();
+	}
+
+	// ----- private methods -----
+	private static PropertyKey resolveSortKey(final String type, final String name) {
+
+		final Traits traits = Traits.of(type);
+		if (traits.hasKey(name)) {
+
+			return traits.key(name);
+		}
+
+		for (final String subtype : Traits.getAllTypes(t -> t.contains(type))) {
+
+			final Traits subtypeTraits = Traits.of(subtype);
+			if (subtypeTraits.hasKey(name)) {
+
+				return subtypeTraits.key(name);
+			}
+		}
+
+		return null;
 	}
 
 	// ----- nested classes -----

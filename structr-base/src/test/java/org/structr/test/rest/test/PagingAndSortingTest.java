@@ -396,6 +396,40 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 	}
 
 	@Test
+	public void testUnknownSortKey() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create("TestOne", "name1");
+			app.create("TestOne", "name2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(422)
+			.body("message", equalTo("Unknown sort key 'unknownKey' for type TestOne"))
+			.when().get("/TestOne?_sort=unknownKey");
+
+		// a known key does not make up for an unknown one
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(422)
+			.body("message", equalTo("Unknown sort key 'unknownKey' for type TestOne"))
+			.when().get("/TestOne?_sort=name&_sort=unknownKey");
+
+		// REST does not resolve paths
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(422)
+			.body("message", equalTo("Unknown sort key 'owner.name' for type TestOne"))
+			.when().get("/TestOne?_sort=owner.name");
+
+		// a key that only a subtype has is known, the objects of the other subtypes have no value
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.when().get("/AbstractFile?_sort=size");
+	}
+
+	@Test
 	public void testLegacyModeRequestParameterNames() {
 
 		try {

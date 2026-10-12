@@ -70,7 +70,7 @@ public class SortFunction extends CoreFunction {
 				if (!list.isEmpty()) {
 
 					final Object firstElement = list.get(0);
-					if (firstElement instanceof GraphObject graphObject) {
+					if (firstElement instanceof GraphObject) {
 
 						final List<GraphObject> sortCollection = (List<GraphObject>)list;
 
@@ -87,8 +87,7 @@ public class SortFunction extends CoreFunction {
 
 								// as-documented code path with 1 set of sortKey/descending (supports sortKey = null so we can use the default key descending)
 
-								final Traits type            = graphObject.getTraits();
-								final PropertyKey key        = type.key(sortKey);
+								final PropertyKey key        = resolveSortKey(sortCollection, sortKey);
 								final DefaultSortOrder order = new DefaultSortOrder(key, descending);
 
 								Collections.sort(sortCollection, order);
@@ -98,12 +97,11 @@ public class SortFunction extends CoreFunction {
 								// hidden functionality: code path with multiple set of sortKey/descending (all sortKeys must exist, otherwise we get errors)
 
 								final DefaultSortOrder order           = new DefaultSortOrder();
-								final Traits type                      = graphObject.getTraits();
 
 								for (int i = 1; i < sources.length; i += 2) {
 
 									final String name        = (String)sources[i];
-									final PropertyKey key    = type.key(name);
+									final PropertyKey key    = resolveSortKey(sortCollection, name);
 									final boolean keyDescending = sources.length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
 
 									order.addElement(key, keyDescending);
@@ -142,6 +140,25 @@ public class SortFunction extends CoreFunction {
 		return sources[0];
 	}
 
+	/**
+	 * Resolves the sort key from the first element that has it, so a key that only some elements of a list with
+	 * mixed types have still counts as known. Rejects a key that no element has, like SortPredicate does in find(),
+	 * instead of returning the collection unsorted.
+	 */
+	private PropertyKey resolveSortKey(final List<GraphObject> collection, final String name) throws FrameworkException {
+
+		for (final GraphObject obj : collection) {
+
+			final Traits traits = obj.getTraits();
+			if (traits.hasKey(name)) {
+
+				return traits.key(name);
+			}
+		}
+
+		throw new FrameworkException(422, "Unknown sort key '" + name + "' for type " + collection.get(0).getType());
+	}
+
 	@Override
 	public List<Usage> getUsages() {
 
@@ -163,7 +180,7 @@ public class SortFunction extends CoreFunction {
 		return """
 			Supported collection types:
 
-			* **Collection of nodes**: Sorted by `sortKey`. The `descending` flag controls the order.
+			* **Collection of nodes**: Sorted by `sortKey`. The `descending` flag controls the order. A `sortKey` that none of the nodes has raises an error.
 			* **Collection of strings**: Sorted lexicographically. The `sortKey` is ignored. The `descending` flag controls the order.
 
 			For nodes, `sortKey` can also be a path through related nodes, like `owner.name`. If the path leads through a collection, like `projects.name`, a node can have several values. Ascending order then uses the smallest of them and descending order the largest. Nodes without a value at the end of the path sort last in ascending and first in descending order.

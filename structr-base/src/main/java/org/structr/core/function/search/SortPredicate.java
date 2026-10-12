@@ -42,7 +42,7 @@ public class SortPredicate extends AbstractPredicate {
 
 		if (!type.hasKey(sortKeyName)) {
 
-			throw new FrameworkException(422, "Unknown sort key '" + sortKeyName + "', returning null");
+			throw new FrameworkException(422, "Unknown sort key '" + sortKeyName + "' for type " + type.getName());
 		}
 
 		query.sort(type.key(sortKeyName), sortDescending);

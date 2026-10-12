@@ -2619,6 +2619,124 @@ public class SearchAndSortingTest extends StructrTest {
 	}
 
 	@Test
+	public void testFindWithUnknownSortKey() {
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(StructrTraits.GROUP, "group1");
+			createTestNode(StructrTraits.GROUP, "group2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, String> expressions = Map.of(
+			"StructrScript", "${find('Group', sort('unknownKey'))}",
+			"JavaScript",    "${{ $.find('Group', $.predicate.sort('unknownKey')); }}"
+		);
+
+		for (final Map.Entry<String, String> entry : expressions.entrySet()) {
+
+			try (final Tx tx = app.tx()) {
+
+				Scripting.evaluate(new ActionContext(securityContext), null, entry.getValue(), "test");
+
+				fail(entry.getKey() + ": find() with an unknown sort key must fail.");
+
+			} catch (FrameworkException fex) {
+
+				final String message = fex.getMessage();
+
+				// the message must name the key and the type, and must not claim that null is returned
+				assertEquals(entry.getKey() + ": wrong status", 422, fex.getStatus());
+				assertTrue(entry.getKey() + ": message does not name the key: " + message, message.contains("unknownKey"));
+				assertTrue(entry.getKey() + ": message does not name the type: " + message, message.contains("Group"));
+				assertFalse(entry.getKey() + ": message claims a null result: " + message, message.contains("returning null"));
+			}
+		}
+	}
+
+	@Test
+	public void testSortFunctionWithUnknownSortKey() {
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(StructrTraits.GROUP, "group1");
+			createTestNode(StructrTraits.GROUP, "group2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, String> expressions = Map.of(
+			"StructrScript",           "${sort(find('Group'), 'unknownKey')}",
+			"JavaScript",              "${{ $.sort($.find('Group'), 'unknownKey'); }}",
+			"StructrScript, two keys", "${sort(find('Group'), 'name', false, 'unknownKey', true)}"
+		);
+
+		for (final Map.Entry<String, String> entry : expressions.entrySet()) {
+
+			try (final Tx tx = app.tx()) {
+
+				Scripting.evaluate(new ActionContext(securityContext), null, entry.getValue(), "test");
+
+				fail(entry.getKey() + ": sort() with an unknown sort key must fail.");
+
+			} catch (FrameworkException fex) {
+
+				final String message = fex.getMessage();
+
+				assertEquals(entry.getKey() + ": wrong status", 422, fex.getStatus());
+				assertTrue(entry.getKey() + ": message does not name the key: " + message, message.contains("unknownKey"));
+				assertTrue(entry.getKey() + ": message does not name the type: " + message, message.contains("Group"));
+			}
+		}
+	}
+
+	@Test
+	public void testSortFunctionWithKeyUnknownToFirstElement() {
+
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> eMail   = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(StructrTraits.GROUP, "group1");
+			createTestNode(StructrTraits.USER, new NodeAttribute<>(nameKey, "user2"), new NodeAttribute<>(eMail, "b@example.com"));
+			createTestNode(StructrTraits.USER, new NodeAttribute<>(nameKey, "user1"), new NodeAttribute<>(eMail, "a@example.com"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// a key counts as known if one of the elements has it, not only the first one
+			final List<NodeInterface> list = (List<NodeInterface>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(merge(find('Group'), find('User')), 'eMail')}", "test");
+
+			assertEquals("Invalid sort() result", "user1",  list.get(0).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "user2",  list.get(1).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "group1", list.get(2).getProperty(nameKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testRegexPredicate() {
 
 		try  {
