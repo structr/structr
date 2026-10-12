@@ -165,6 +165,7 @@ public class ScriptJob extends ScheduledJob {
 		data.put("subtype",    subtype);
 		data.put("username",   getUsername());
 		data.put("jobName",    jobName);
+		data.put("queue",      getQueueName());
 
 		return data;
 	}

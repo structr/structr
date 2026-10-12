@@ -1276,12 +1276,13 @@ let Command = {
 	 * Depending on the mode the server will either list/start/pause/resume/cancel
 	 * file imports
 	 */
-	fileImport: function(mode, jobId, callback) {
+	fileImport: function(mode, jobId, callback, queue) {
 		let obj  = {
 			command: 'FILE_IMPORT',
 			data: {
 				mode: mode,
-				jobId: jobId
+				jobId: jobId,
+				queue: queue
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
