@@ -45,17 +45,18 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(Map<String, Object> attributes) {
 
-		final String mode = (String) attributes.get("mode");
-		final String type = (String) attributes.get("type");
+		final String mode       = (String) attributes.get("mode");
+		final String entityType = (String) attributes.get("type");
+		final String relType    = (String) attributes.get("relType");
 
 		if (mode == null || "nodesOnly".equals(mode)) {
 
-			rebuildNodeIndex(type);
+			rebuildNodeIndex(entityType);
 		}
 
 		if (mode == null || "relsOnly".equals(mode)) {
 
-			rebuildRelationshipIndex(type);
+			rebuildRelationshipIndex(relType);
 		}
 
 		if ("fulltext".equals(mode)) {
@@ -75,17 +76,18 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	public long executeWithCount(Map<String, Object> attributes) {
 
-		final String mode = (String) attributes.get("mode");
-		final String type = (String) attributes.get("type");
+		final String mode       = (String) attributes.get("mode");
+		final String entityType = (String) attributes.get("type");
+		final String relType    = (String) attributes.get("relType");
 
 		if (mode == null || "nodesOnly".equals(mode)) {
 
-			return rebuildNodeIndex(type);
+			return rebuildNodeIndex(entityType);
 		}
 
 		if (mode == null || "relsOnly".equals(mode)) {
 
-			return rebuildRelationshipIndex(type);
+			return rebuildRelationshipIndex(relType);
 		}
 
 		if ("fulltext".equals(mode)) {

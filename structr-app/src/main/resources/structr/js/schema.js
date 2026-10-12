@@ -4576,7 +4576,7 @@ let _Schema = {
 				relTypeSelector.querySelector('[data-builtin-types-heading]')?.insertAdjacentHTML('afterbegin', builtinTypes.map(mapFn).join(''));
 			});
 
-			_Schema.adminTools.registerAdminToolClickHandler('#reindex-rels', 'rebuildIndex', relTypeSelector, (type) => (type === 'allRels') ? { mode: 'relsOnly' } : { mode: 'relsOnly', type: type });
+			_Schema.adminTools.registerAdminToolClickHandler('#reindex-rels', 'rebuildIndex', relTypeSelector, (type) => (type === 'allRels') ? { mode: 'relsOnly' } : { mode: 'relsOnly', relType: type });
 			_Schema.adminTools.registerAdminToolClickHandler('#add-rel-uuids', 'setUuid', relTypeSelector, (type) => (type === 'allRels') ? { allRels: true } : { relType: type });
 		},
 		registerAdminToolClickHandler: (btnId, target, connectedSelectElement, getPayloadFunction) => {
