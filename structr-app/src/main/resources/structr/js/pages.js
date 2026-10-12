@@ -1929,6 +1929,11 @@ let _Pages = {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
+
+		} else {
+
+			let noneEvent = eventSelectUl.querySelector('[data-value="none"]');
+			noneEvent.classList.add("hidden");
 		}
 
 		// Text inputs save (and blink green) on focusout; checkboxes don't fire focusout on
@@ -2827,6 +2832,10 @@ let _Pages = {
 					Command.deleteNode(actionMappingObject.id, undefined, () => {
 						updateEventMappingInterface(entity, actionMappingObject, true);
 						_Helpers.blinkGreen(el);
+
+						let noneEvent = eventSelectUl.querySelector('[data-value="none"]');
+						noneEvent.classList.add("hidden");
+						eventInput.value = '';
 					});
 
 				} else {
@@ -2859,6 +2868,9 @@ let _Pages = {
 					actionMappingObject.id = newActionMapping.id;
 					updateEventMappingInterface(entity, newActionMapping);
 					actionMapping = newActionMapping;
+
+					let noneEvent = eventSelectUl.querySelector('[data-value="none"]');
+					noneEvent.classList.remove("hidden");
 				});
 			}
 
