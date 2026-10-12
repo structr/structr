@@ -1926,6 +1926,26 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testScheduleReturnsTheJobId() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(ctx, null, "${schedule('true', 'returns its id')}", "test", null);
+
+			assertNotNull("schedule() must return the id the job is registered under", result);
+			assertTrue("schedule() must return a numeric job id, got " + result, result instanceof Number);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testNestedScheduleFunction() {
 
 		final ActionContext ctx = new ActionContext(securityContext);

@@ -53,12 +53,21 @@ public class JobQueueManager {
 		return singletonInstance;
 	}
 
+	/**
+	 * The id a job is known by, taken when the job is created rather than when it is queued.
+	 *
+	 * schedule() hands the id back to its caller, and the job only reaches addJob() after the calling
+	 * transaction has been processed -- so an id taken at queueing time is assigned after the caller has
+	 * already been given it.
+	 */
+	Long nextJobId() {
+
+		return importJobIdCount.incrementAndGet();
+	}
+
 	public void addJob(final ScheduledJob job) throws FrameworkException {
 
 		if (job.runInitialChecks()) {
-
-			final Long jobId = importJobIdCount.incrementAndGet();
-			job.setJobId(jobId);
 
 			synchronized (dispatchLock) {
 

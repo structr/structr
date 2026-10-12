@@ -57,7 +57,7 @@ public abstract class ScheduledJob {
 	final Condition paused   = lock.newCondition();
 
 	private Thread jobThread = null;
-	private Long jobId       = null;
+	private final Long jobId;
 
 	protected Map<String, Object> configuration;
 	protected Principal user;
@@ -70,6 +70,7 @@ public abstract class ScheduledJob {
 
 	public ScheduledJob (final String jobName, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
+		this.jobId         = JobQueueManager.getInstance().nextJobId();
 		this.user          = user;
 		this.jobName       = jobName;
 		this.username      = (user != null) ? user.getName() : "no user - anonymous context";
@@ -149,11 +150,6 @@ public abstract class ScheduledJob {
 	public Long jobId() {
 
 		return jobId;
-	}
-
-	public void setJobId(final Long jobId) {
-
-		this.jobId = jobId;
 	}
 
 	public String getUsername () {
