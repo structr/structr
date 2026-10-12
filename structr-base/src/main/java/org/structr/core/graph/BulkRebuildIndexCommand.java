@@ -45,18 +45,17 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(Map<String, Object> attributes) {
 
-		final String mode       = (String) attributes.get("mode");
-		final String entityType = (String) attributes.get("type");
-		final String relType    = (String) attributes.get("relType");
+		final String mode = (String) attributes.get("mode");
+		final String type = (String) attributes.get("type");
 
 		if (mode == null || "nodesOnly".equals(mode)) {
 
-			rebuildNodeIndex(entityType);
+			rebuildNodeIndex(type);
 		}
 
 		if (mode == null || "relsOnly".equals(mode)) {
 
-			rebuildRelationshipIndex(relType);
+			rebuildRelationshipIndex(type);
 		}
 
 		if ("fulltext".equals(mode)) {
@@ -76,18 +75,17 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	public long executeWithCount(Map<String, Object> attributes) {
 
-		final String mode       = (String) attributes.get("mode");
-		final String entityType = (String) attributes.get("type");
-		final String relType    = (String) attributes.get("relType");
+		final String mode = (String) attributes.get("mode");
+		final String type = (String) attributes.get("type");
 
 		if (mode == null || "nodesOnly".equals(mode)) {
 
-			return rebuildNodeIndex(entityType);
+			return rebuildNodeIndex(type);
 		}
 
 		if (mode == null || "relsOnly".equals(mode)) {
 
-			return rebuildRelationshipIndex(relType);
+			return rebuildRelationshipIndex(type);
 		}
 
 		if ("fulltext".equals(mode)) {
@@ -250,9 +248,8 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.optional("type", "Limit to this node type"),
-			Parameter.optional("relType", "Limit to this relationship type"),
-			Parameter.optional("mode", "`nodesOnly` or `relsOnly`")
+			Parameter.optional("mode", "`nodesOnly` or `relsOnly`"),
+			Parameter.optional("type", "Limit to this node/relationship type")
 		);
 	}
 
