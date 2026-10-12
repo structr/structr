@@ -50,9 +50,9 @@ public class ScriptJob extends ScheduledJob {
 	private static final Logger logger = LoggerFactory.getLogger(ScriptJob.class);
 	private Object script              = null;
 
-	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore, final String jobTitle) {
+	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore, final String jobTitle, final String queueName) {
 
-		super(jobTitle, user, configuration, ctxStore);
+		super(jobTitle, user, configuration, ctxStore, queueName);
 
 		this.script  = script;
 	}
@@ -179,6 +179,7 @@ public class ScriptJob extends ScheduledJob {
 		jobInfo.put("username",        getUsername());
 		jobInfo.put("status",          getCurrentStatus());
 		jobInfo.put("jobName",         jobName);
+		jobInfo.put("queue",           getQueueName());
 
 		if (getEncounteredException() != null) {
 

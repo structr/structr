@@ -44,7 +44,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("function [, title, [ onFinish ]]");
+		return Signature.forAllScriptingLanguages("function [, title [, onFinish ] [, options ] ]");
 	}
 
 	@Override
@@ -52,12 +52,17 @@ public class ScheduleFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4);
 
-			final String jobName                  = (sources.length >= 2) ? sources[1].toString() : "Untitled script job";
-			final Object jobFinishedScript        = (sources.length == 3) ? sources[2] : null;
+			// the options may stand in for either optional argument, so neither has to be passed to reach them
+			final ScheduleOptions options         = ScheduleOptions.fromAnyOf(sources, 3, 1, 2).validate();
+			final boolean hasTitle                = sources.length >= 2 && !ScheduleOptions.isOptionsAt(sources, 1);
+			final boolean hasOnFinish             = sources.length >= 3 && !ScheduleOptions.isOptionsAt(sources, 2);
+
+			final String jobName                  = hasTitle ? sources[1].toString() : "Untitled script job";
+			final Object jobFinishedScript        = hasOnFinish ? sources[2] : null;
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ScriptJob job                   = new ScriptJob(securityContext.getCachedUser(), Collections.EMPTY_MAP, sources[0], securityContext.getContextStore(), jobName);
+			final ScriptJob job                   = new ScriptJob(securityContext.getCachedUser(), Collections.EMPTY_MAP, sources[0], securityContext.getContextStore(), jobName, options.getQueue());
 
 			job.setOnFinishScript(jobFinishedScript);
 
@@ -86,7 +91,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(Usage.structrScript("Usage: ${schedule(function [, title, [ onFinish ]])}."), Usage.javaScript("Usage: ${{$.schedule(function [, title, [ onFinish ]])}}."));
+		return List.of(Usage.structrScript("Usage: ${schedule(function [, title [, onFinish ] [, options ] ])}."), Usage.javaScript("Usage: ${{$.schedule(function [, title [, onFinish ] [, options ] ])}}."));
 	}
 
 	@Override
@@ -107,6 +112,10 @@ public class ScheduleFunction extends UiAdvancedFunction {
 		The `onFinish` parameter is a script snippet which will be called when the process finishes (successfully or with an exception).
 		A parameter `jobInfo` is injected in the context of the `onFinish` function (see `jobInfo()` for more information on this object).
 		The schedule function returns the job id under which it is registered.
+		The `options` parameter is an object. Its only key, `queue`, names the queue the job runs in.
+		A queue runs one job at a time, and separate queues run in parallel, so two jobs that must not
+		touch the same data at once belong in the same queue. A job that names no queue runs in the
+		default queue, and so does a job scheduled from inside another job: a queue is not inherited.
 		""";
 	}
 
@@ -130,6 +139,13 @@ public class ScheduleFunction extends UiAdvancedFunction {
 						        $.log('Job Info: ', $.get('jobInfo'));
 						    });
 						}}
+						"""),
+				Example.javaScript("""
+						${{
+						    $.schedule(function() {
+						        $.call('myLongImport');
+						    }, 'Imports the nightly data', { queue: 'imports' });
+						}}
 						""")
 		);
 	}
@@ -140,7 +156,8 @@ public class ScheduleFunction extends UiAdvancedFunction {
 		return List.of(
 				Parameter.mandatory("function", "function to run later"),
 				Parameter.optional("title", "title of scheduled function to be shown in job queue"),
-				Parameter.optional("onFinish", "function to be called when main expression finished")
+				Parameter.optional("onFinish", "function to be called when main expression finished"),
+				Parameter.optional("options", "object whose queue key names the queue the job runs in")
 		);
 	}
 
