@@ -63,14 +63,6 @@ public class ScriptJob extends ScheduledJob {
 		return true;
 	}
 
-	@Override
-	public boolean canRunMultiThreaded() {
-
-		// only those jobs that are actual string-based scripts can be run in parallel
-
-		return script instanceof String;
-	}
-
 	/**
 	 * The security context the job runs in.
 	 *

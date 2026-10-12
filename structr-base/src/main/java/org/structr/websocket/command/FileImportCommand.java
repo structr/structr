@@ -45,6 +45,7 @@ public class FileImportCommand extends AbstractCommand {
 
 		final String mode                     = webSocketData.getNodeDataStringValue("mode");		// default: list    pause | resume | cancel | abort | cancelAllAfter
 		final Long jobId                      = webSocketData.getNodeDataLongValue("jobId");
+		final String queueName                = webSocketData.getNodeDataStringValue("queue");
 		final JobQueueManager mgr = JobQueueManager.getInstance();
 		final List<GraphObject> result = new LinkedList<>();
 
@@ -67,7 +68,7 @@ public class FileImportCommand extends AbstractCommand {
 				break;
 
 			case "cancelAllAfter":
-				mgr.cancelAllQueuedJobsAfter(jobId);
+				mgr.cancelAllQueuedJobsAfter(jobId, queueName);
 				break;
 
 			case "list":

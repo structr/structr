@@ -59,6 +59,15 @@ public abstract class ScheduledJob {
 	private Thread jobThread = null;
 	private final Long jobId;
 
+	/**
+	 * The queue this job runs in, fixed for its whole life.
+	 *
+	 * The slot a running job holds is released by looking its queue up again, from the job's own thread,
+	 * after the run is over. A job that could change its queue name in between would free a slot in a
+	 * queue it never occupied and leave its own queue holding one forever.
+	 */
+	private final String queueName;
+
 	protected Map<String, Object> configuration;
 	protected Principal user;
 	protected String username;
@@ -70,6 +79,12 @@ public abstract class ScheduledJob {
 
 	public ScheduledJob (final String jobName, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
+		this(jobName, user, configuration, ctxStore, JobQueueManager.DEFAULT_QUEUE_NAME);
+	}
+
+	public ScheduledJob (final String jobName, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore, final String queueName) {
+
+		this.queueName     = JobQueueManager.normalize(queueName);
 		this.jobId         = JobQueueManager.getInstance().nextJobId();
 		this.user          = user;
 		this.jobName       = jobName;
@@ -81,7 +96,6 @@ public abstract class ScheduledJob {
 	}
 
 	public abstract boolean runInitialChecks() throws FrameworkException;
-	public abstract boolean canRunMultiThreaded();
 	public abstract Runnable getRunnable();
 	public abstract String getJobType();
 	public abstract String getJobStatusType();
@@ -97,7 +111,7 @@ public abstract class ScheduledJob {
 
 		currentStatus = JobStatus.RUNNING;
 
-		startNewThread(getRunnable(), false);
+		startNewThread(getRunnable());
 	}
 
 	public void pauseJob() {
@@ -152,6 +166,11 @@ public abstract class ScheduledJob {
 		return jobId;
 	}
 
+	public String getQueueName() {
+
+		return queueName;
+	}
+
 	public String getUsername () {
 
 		return username;
@@ -184,17 +203,12 @@ public abstract class ScheduledJob {
 		JobQueueManager.getInstance().jobAborted(this);
 	}
 
-	protected void startNewThread(final Runnable runnable, final boolean wait) {
+	protected void startNewThread(final Runnable runnable) {
 
-		jobThread = new Thread(runnable);
+		// named after its queue, so a thread dump says which lane is busy and with what
+		jobThread = new Thread(runnable, "structr-job-" + queueName + "-" + jobId);
 
 		jobThread.start();
-
-		if (wait) {
-
-			try { jobThread.join(); } catch (InterruptedException ex) {}
-		}
-
 	}
 
 	protected void shouldPause() {
