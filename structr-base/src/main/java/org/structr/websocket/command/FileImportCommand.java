@@ -43,16 +43,12 @@ public class FileImportCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String mode                     = webSocketData.getNodeDataStringValue("mode");		// default: list    start | pause | resume | cancel | abort | cancelAllAfter
+		final String mode                     = webSocketData.getNodeDataStringValue("mode");		// default: list    pause | resume | cancel | abort | cancelAllAfter
 		final Long jobId                      = webSocketData.getNodeDataLongValue("jobId");
 		final JobQueueManager mgr = JobQueueManager.getInstance();
 		final List<GraphObject> result = new LinkedList<>();
 
 		switch (mode) {
-
-			case "start":
-				mgr.startJob(jobId);
-				break;
 
 			case "pause":
 				mgr.pauseRunningJob(jobId);

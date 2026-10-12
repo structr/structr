@@ -87,12 +87,15 @@ public class JobQueueManager {
 	}
 
 	/**
-	 * Starts an import job if it exists. Returns true if it is started.
+	 * Starts a queued job if it is still queued. Returns true if it was started.
+	 *
+	 * Dispatching happens here and nowhere else: a caller that could start a job directly would do so
+	 * without the dispatch lock, and two jobs would run where the queue admits one.
 	 *
 	 * @param jobId Job to start
 	 * @return boolean "job started"
 	 */
-	public boolean startJob(final Long jobId) {
+	private boolean startJob(final Long jobId) {
 
 		final ScheduledJob job = removeFromQueueInternal(jobId);
 		if (job != null) {
@@ -110,17 +113,32 @@ public class JobQueueManager {
 
 	public void pauseRunningJob(final Long jobId) {
 
-		activeJobs.get(jobId).pauseJob();
+		final ScheduledJob job = activeJobs.get(jobId);
+
+		if (job != null) {
+
+			job.pauseJob();
+		}
 	}
 
 	public void resumePausedJob(final Long jobId) {
 
-		activeJobs.get(jobId).resumeJob();
+		final ScheduledJob job = activeJobs.get(jobId);
+
+		if (job != null) {
+
+			job.resumeJob();
+		}
 	}
 
 	public void abortActiveJob(final Long jobId) {
 
-		activeJobs.get(jobId).abortJob();
+		final ScheduledJob job = activeJobs.get(jobId);
+
+		if (job != null) {
+
+			job.abortJob();
+		}
 	}
 
 	public void cancelQueuedJob(final Long jobId) {

@@ -174,7 +174,6 @@ let _JobQueue = {
 			case 'CSV':
 				switch (job.status) {
 					case 'QUEUED':
-						actionHtml += _JobQueue.createActionButton('start', job.jobId, 'Start');
 						actionHtml += _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');
 						break;
 
