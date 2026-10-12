@@ -2095,47 +2095,64 @@ let _Files = {
 				);
 			}, 250);
 
-			let response = await fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1${searchString.split(' ').map(str => '&extractedContent=' + str).join('')}`);
-
-			if (response.ok) {
-
-				let data = await response.json();
-
-				window.clearTimeout(timeoutIt);
-				_Helpers.fastRemoveAllChildren(container);
-
-				if (!data.result || data.result.length === 0) {
-
-					container.insertAdjacentHTML('beforeend', `
-						<h1>No results for "${searchString}"</h1>
-						<h2>Press ESC or click <a href="javascript:_Files.search.clearSearch();" class="clear-results">here to clear</a> empty result list.</h2>
-					`);
-
-				} else {
-
-					container.insertAdjacentHTML('beforeend', `
-						<div class="font-bold mb-4 text-3xl">${data.result.length} result${data.result.length > 1 ? 's' : ''}:</div>
-						${_Files.templates.folderContentsTableSkeleton({})}
-					`);
-
-					container.querySelector('th[data-icon-col]').classList.add('with-search-icon');
-
-					for (let fileHit of data.result) {
-
-						_Files.appendFileOrFolder(fileHit, container);
-
-						let row           = container.querySelector('#row' + fileHit.id);
-						let iconContainer = row.querySelector('td[data-icon-col] div[data-row-icon-container]');
-						let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context'));
-
-						icon.addEventListener('click', (e) => {
-
-							_Files.search.getAndAppendSearchContext(fileHit.id, searchString);
-						});
-
-						iconContainer.insertAdjacentElement('afterbegin', icon);
-						iconContainer.classList.add('with-search-icon');
+			let data = await Promise.all([
+				fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1&name=${searchString}`).then(response => {
+					if (response.ok) {
+						return response.json();
+					} else {
+						return {};
 					}
+				}),
+				fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1${searchString.split(' ').map(str => '&extractedContent=' + str).join('')}`).then(response => {
+					if (response.ok) {
+						return response.json();
+					} else {
+						return {};
+					}
+				})
+			]);
+
+			let matches = {
+				name: data[0]?.result ?? [],
+				content: data[1]?.result ?? []
+			};
+
+			window.clearTimeout(timeoutIt);
+			_Helpers.fastRemoveAllChildren(container);
+
+			if (matches.name.length === 0 && matches.content.length === 0) {
+
+				container.insertAdjacentHTML('beforeend', `
+					<h1>No results for "${searchString}"</h1>
+					<h2>Press ESC or click <a href="javascript:_Files.search.clearSearch();" class="clear-results">here to clear</a> empty result list.</h2>
+				`);
+
+			} else {
+
+				let resultCount = matches.name.length + matches.content.length;
+
+				container.insertAdjacentHTML('beforeend', `
+					<div class="font-bold mb-4 text-3xl">${resultCount} result${resultCount > 1 ? 's' : ''}:</div>
+					${_Files.templates.folderContentsTableSkeleton({})}
+				`);
+
+				container.querySelector('th[data-icon-col]').classList.add('with-search-icon');
+
+				for (let fileHit of [...matches.name, ...matches.content]) {
+
+					_Files.appendFileOrFolder(fileHit, container);
+
+					let row           = container.querySelector('#row' + fileHit.id);
+					let iconContainer = row.querySelector('td[data-icon-col] div[data-row-icon-container]');
+					let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context'));
+
+					icon.addEventListener('click', (e) => {
+
+						_Files.search.getAndAppendSearchContext(fileHit.id, searchString);
+					});
+
+					iconContainer.insertAdjacentElement('afterbegin', icon);
+					iconContainer.classList.add('with-search-icon');
 				}
 			}
 		},

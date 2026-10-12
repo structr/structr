@@ -387,19 +387,34 @@ let Structr = {
 
 			StructrWS.sessionId = Structr.getSessionId();
 
-			if (!StructrWS.sessionId && location.protocol === 'http:') {
+			if (!StructrWS.sessionId) {
+
+				let message = `
+					There are three possible reasons for not being able to retrieve the session cookie:
+
+					<ul>
+						<li>An old secure cookie exists from a previous HTTPS visit. Browsers block it over HTTP. Delete it to continue.</li>
+						<li>You’re using HTTP on a non-local address. Browsers only allow secure cookies over HTTP on localhost or 127.0.0.1. Use HTTPS, or connect via localhost.</li>
+						<li><code>httpservice.cookies.httponly</code> may be set to <code>true</code>, which blocks JavaScript from reading the cookie. If so, set it to <code>false</code>.</li>
+					</ul>
+
+					If none of these apply, please contact Structr support.<br><br>
+
+					<b>Workaround</b> (for the first two cases): set <code>httpservice.cookies.secure = false</code>. This lowers security, so don't use it in production.
+				`;
 
 				new WarningMessage()
-					.title("Unable to retrieve session id cookie")
-					.text("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+					.title("Unable to read session id cookie")
+					.text(message)
 					.requiresConfirmation()
-					.uniqueClass("http-only-cookie")
+					.uniqueClass("unable-to-read-cookie")
 					.show();
 			}
 
 			if (typeof callback === "function") {
 				callback();
 			}
+
 		}).catch(error => {console.error(error); });
 	},
 	loadInitialModule: (isLogin, callback) => {
