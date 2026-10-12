@@ -18,6 +18,8 @@
  */
 package org.structr.schema;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
@@ -27,6 +29,8 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> implements RelationshipBaseTraitDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(DynamicRelationshipTraitDefinition.class);
 
 	private Relation.Multiplicity sourceMultiplicity;
 	private Relation.Multiplicity targetMultiplicity;
@@ -49,6 +53,17 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 		this.relationshipType    = schemaNode.getRelationshipType();
 		this.sourceType          = schemaNode.getSchemaNodeSourceType();
 		this.targetType          = schemaNode.getSchemaNodeTargetType();
+
+		// The schema still builds without them, but the relationship properties of this definition then cannot
+		// resolve a related node, and that only shows when one is set. Report it where the cause is visible.
+		if (sourceType == null || targetType == null) {
+
+			final String missing = sourceType == null ? (targetType == null ? "source and target type" : "source type") : "target type";
+
+			logger.warn("Schema relationship {} ({}, relationship type {}) has no {}: neither a linked schema node nor sourceType/targetType names it. Its relationship properties cannot resolve related nodes.",
+				schemaNode.getClassName(), schemaNode.getUuid(), relationshipType, missing
+			);
+		}
 
 		initializeMultiplicity(schemaNode);
 		initializePermissionPropagation(schemaNode);

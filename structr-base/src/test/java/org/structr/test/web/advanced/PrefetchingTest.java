@@ -23,9 +23,15 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -36,6 +42,7 @@ import org.testng.annotations.Test;
 import java.util.UUID;
 
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -207,6 +214,105 @@ public class PrefetchingTest extends StructrUiTest {
 			appender.list.clear();
 			lookupChildren("HTTP GET /detail/" + second, div);
 			assertTrue("A request for another object (UUID with dashes) did not use the learned pattern", containsMessage(appender, "prefetched", "(n:DOMNode"));
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+
+		} finally {
+
+			logger.detachAppender(appender);
+			appender.stop();
+
+			Settings.CypherDebugLogging.setValue(previousLogging);
+			Settings.PrefetchingThreshold.setValue(previousThreshold);
+		}
+	}
+
+	/**
+	 * A learned pattern loads the relationships of one direction, e.g. (n:SchemaRelationshipNode)<-[r:IS_RELATED_TO]-(m)
+	 * the source side of all schema relationships. Both directions used to be marked as prefetched, so the target side
+	 * was served from an empty cache. A schema reload runs in the transaction of the request that changed the schema,
+	 * with its hint, so after saving a method twice every schema relationship lost its target type until a restart.
+	 */
+	@Test
+	public void testPrefetchOfOneDirectionDoesNotHideTheOther() {
+
+		if (!Settings.DatabaseDriver.getValue().contains("bolt")) {
+
+			throw new SkipException("Prefetching is a feature of the bolt driver, skipping test with " + Settings.DatabaseDriver.getValue());
+		}
+
+		final String hint   = "HTTP PUT /structr/rest/" + UUID.randomUUID().toString().replace("-", "");
+		final int threshold = 20;
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema     = StructrSchema.createFromDatabase(app);
+			final JsonObjectType target = schema.addType("Target");
+
+			for (int i = 0; i < threshold + 10; i++) {
+
+				schema.addType("Source" + i).relate(target, "RELATED_TO_" + i, Cardinality.ManyToOne, "sources" + i, "target");
+			}
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final Logger logger                         = (Logger) LoggerFactory.getLogger(BOLT_LOGGER);
+		final ListAppender<ILoggingEvent> appender  = new ListAppender<>();
+		final boolean previousLogging               = Settings.CypherDebugLogging.getValue();
+		final int previousThreshold                 = Settings.PrefetchingThreshold.getValue();
+
+		Settings.CypherDebugLogging.setValue(true);
+		Settings.PrefetchingThreshold.setValue(threshold);
+
+		appender.start();
+		logger.addAppender(appender);
+
+		try {
+
+			// 1st request: looks up the source side only, which learns the pattern for the incoming direction
+			try (final Tx tx = app.tx()) {
+
+				tx.prefetchHint(hint);
+
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList()) {
+
+					node.as(SchemaRelationshipNode.class).getSourceNode();
+				}
+
+				tx.success();
+			}
+
+			assertTrue("Prefetching was not activated for the source side", containsMessage(appender, "Activating prefetching for", "(n:SchemaRelationshipNode", "<-[r:IS_RELATED_TO]-"));
+
+			// 2nd request: runs the prefetch, then looks up the target side, which the prefetch did not load
+			appender.list.clear();
+
+			try (final Tx tx = app.tx()) {
+
+				tx.prefetchHint(hint);
+
+				assertTrue("Prefetch was not executed in the second request", containsMessage(appender, "prefetched", "(n:SchemaRelationshipNode", "<-[r:IS_RELATED_TO]-"));
+
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList()) {
+
+					final SchemaRelationshipNode rel = node.as(SchemaRelationshipNode.class);
+
+					assertNotNull("Target node of " + rel.getRelationshipType() + " is hidden by the prefetch of the source side", rel.getTargetNode());
+				}
+
+				tx.success();
+			}
 
 		} catch (FrameworkException fex) {
 

@@ -66,6 +66,14 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 		if (source != null) {
 
+			// Without a type, no lookup below can succeed: a uuid would be resolved to any node and then fail the
+			// type check, which reports a mismatch that the input did not cause. The type comes from the relationship
+			// definition, so the problem is in the schema and is reported as such.
+			if (type == null) {
+
+				throw new FrameworkException(500, getMissingTypeMessage());
+			}
+
 			if (source instanceof Map) {
 
 				final Map<String, Object> properties = (Map<String, Object>) source;
@@ -248,7 +256,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 							propertyName = propertyKey.jsonName();
 						}
 
-						throw new FrameworkException(422, "Node type mismatch", new TypeToken(g.getClass().getSimpleName(), propertyName, type));
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(traits.getName(), propertyName, type));
 					}
 
 				} else {
@@ -270,7 +278,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 					if (obj != null && !obj.getTraits().contains(type)) {
 
-						throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type));
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getTraits().getName(), null, type));
 					}
 
 					return (T) obj;
@@ -291,6 +299,23 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 		}
 
 		return buf.toString();
+	}
+
+	private String getMissingTypeMessage() {
+
+		if (relationProperty instanceof PropertyKey propertyKey) {
+
+			final Relation relation = relationProperty.getRelation();
+			final String relType    = relation != null ? relation.getType() : null;
+
+			return concat(
+				"Unable to resolve the related node for property ", propertyKey.jsonName(),
+				": relationship ", relType, " has no related type. Its schema relationship definition is neither linked",
+				" to a schema node nor does it name the type in sourceType or targetType."
+			);
+		}
+
+		return "Unable to resolve the related node: no related type given.";
 	}
 
 	private boolean isIdentifying(final Traits actualType, final PropertyKey key) {

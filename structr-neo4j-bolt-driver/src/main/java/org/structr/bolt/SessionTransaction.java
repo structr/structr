@@ -1270,8 +1270,17 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			this.type     = query.getType();
 			this.outgoing = query.isOutgoing();
 
-			outgoingSet.add(type + "/all/OUTGOING/" + query.getRelationshipType());
-			incomingSet.add(type + "/all/INCOMING/" + query.getRelationshipType());
+			// The pattern loads the relationships of the queried direction only. Marking the other direction as
+			// prefetched as well would serve every lookup in it from an empty cache, e.g. a schema reload that
+			// runs in a request would see no target node for any schema relationship.
+			if (outgoing) {
+
+				outgoingSet.add(type + "/all/OUTGOING/" + query.getRelationshipType());
+
+			} else {
+
+				incomingSet.add(type + "/all/INCOMING/" + query.getRelationshipType());
+			}
 
 			relTypes.add(query.getRelationshipType());
 		}

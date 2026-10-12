@@ -80,7 +80,10 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, final T value) throws FrameworkException {
 
-		throw new FrameworkException(422, "Property ‛" + this.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(obj.getClass().getSimpleName(), jsonName));
+		// every node is an AbstractNode, so the class name says nothing; GraphObjectMap has no type name
+		final String typeName = obj.getTraits().getName();
+
+		throw new FrameworkException(422, "Property ‛" + this.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(typeName != null ? typeName : obj.getClass().getSimpleName(), jsonName));
 	}
 
 	@Override

@@ -152,7 +152,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 				T obj = result.get(0);
 				if (!obj.getTraits().contains(type)) {
 
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKeyName, type));
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getTraits().getName(), propertyKeyName, type));
 				}
 
 				if (!convertedSourceMap.isEmpty()) {
