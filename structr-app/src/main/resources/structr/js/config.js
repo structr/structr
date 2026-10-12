@@ -59,6 +59,16 @@ let _Config = {
 			} else {
 
 				_Dialogs.configLoginDialog.show();
+
+				// with a second factor set up, the code is sent together with name and password
+				if (document.body.classList.contains('twofactor') || new URLSearchParams(location.search).has('twoFactorRequired')) {
+
+					for (let row of document.querySelectorAll('#login-form .twofactor-row')) {
+						row.classList.remove('hidden');
+					}
+
+					document.getElementById('superuserTwoFactorCodeField').required = true;
+				}
 			}
 
 			_Config.attachActiveSectionStoringBehaviourToForm(document.querySelector('#login-form, #setup-form'));
@@ -83,6 +93,12 @@ let _Config = {
 			document.querySelector('#maintenance-toggle-button')?.addEventListener('click', (e) => {
 				_Config.postAction('setMaintenance', { enabled: e.target.dataset.enabled });
 			});
+
+			for (let twoFactorButton of document.querySelectorAll('[data-twofactor-action]')) {
+				twoFactorButton.addEventListener('click', () => {
+					_Config.postAction(twoFactorButton.dataset.twofactorAction, { superuserTwoFactorCode: document.getElementById('twofactor-code')?.value ?? '' });
+				});
+			}
 
 			let configureSuperuserCredentialsFormContainer = document.getElementById('superuser-credentials-form');
 			if (configureSuperuserCredentialsFormContainer) {
@@ -814,6 +830,14 @@ let _Config = {
 							<input id="superuserPasswordField" type="password" name="superuserPassword" autocomplete="current-password" required class="w-full box-border">
 						</div>
 
+						<div class="self-center twofactor-row hidden">
+							<label for="superuserTwoFactorCodeField">Code:</label>
+						</div>
+
+						<div class="self-center twofactor-row hidden">
+							<input id="superuserTwoFactorCodeField" type="text" name="superuserTwoFactorCode" autocomplete="one-time-code" inputmode="numeric" class="w-full box-border">
+						</div>
+
 						<div class="self-center col-span-2 mt-2 text-right">
 							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
 								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Sign In
@@ -823,7 +847,11 @@ let _Config = {
 						</div>
 
 						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginFailed') ? '' : 'hidden'}">
-							Invalid username or password.
+							Invalid username, password or code.
+						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('twoFactorRequired') ? '' : 'hidden'}">
+							Please enter the code from your authenticator app.
 						</div>
 					</div>
 				</form>

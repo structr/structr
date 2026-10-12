@@ -42,10 +42,13 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.docs.Documentation;
+import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.function.BarcodeFunction;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -53,6 +56,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
@@ -85,6 +89,11 @@ public class ConfigServlet extends AbstractServletBase {
 		int attempts;
 		long lockoutUntil;
 	}
+
+	// second factor of the superuser: secrets being set up, per session, and the last time step a code was accepted for
+	private static final Map<String, String> pendingTwoFactorSecrets = new ConcurrentHashMap<>();
+	private static final AtomicLong lastTwoFactorStep                = new AtomicLong(-1L);
+	private static final String TwoFactorCodeParameter               = "superuserTwoFactorCode";
 
 	private static final String ConfigServletLocation = "/structr/config";
 	private static final String AdminBackendLocation  = "/structr/";
@@ -345,8 +354,19 @@ public class ConfigServlet extends AbstractServletBase {
 		final String superUserPwd  = Settings.SuperUserPassword.getValue();
 		final String submittedName = request.getParameter("superuserName");
 		final String submittedPwd  = request.getParameter("superuserPassword");
+		final String twoFactor     = getTwoFactorSecret();
+		final String submittedCode = StringUtils.trim(request.getParameter(TwoFactorCodeParameter));
 
-		if (StringUtils.isNoneBlank(superUserName, superUserPwd, submittedName, submittedPwd) && constantTimeEquals(superUserName, submittedName) && constantTimeEquals(superUserPwd, submittedPwd)) {
+		/* Asked for before anything is checked, so the answer says nothing about the password: telling
+		   "wrong code" apart from "wrong password" would confirm a guessed password without the code. */
+		if (twoFactor != null && StringUtils.isBlank(submittedCode)) {
+
+			return "?twoFactorRequired" + activeSection;
+		}
+
+		final boolean credentialsMatch = StringUtils.isNoneBlank(superUserName, superUserPwd, submittedName, submittedPwd) && constantTimeEquals(superUserName, submittedName) && constantTimeEquals(superUserPwd, submittedPwd);
+
+		if (credentialsMatch && (twoFactor == null || isValidTwoFactorCode(twoFactor, submittedCode))) {
 
 			authenticateSession(request);
 
@@ -475,6 +495,28 @@ public class ConfigServlet extends AbstractServletBase {
 				sendRedirectHeader(response, AdminBackendLocation);
 				break;
 
+			case "twoFactorSetup":
+
+				pendingTwoFactorSecrets.put(getSessionId(request), TimeBasedOneTimePasswordHelper.generateBase32Secret());
+				sendRedirectHeader(response, ConfigServletLocation + activeSection);
+				break;
+
+			case "twoFactorCancel":
+
+				pendingTwoFactorSecrets.remove(getSessionId(request));
+				sendRedirectHeader(response, ConfigServletLocation + activeSection);
+				break;
+
+			case "twoFactorConfirm":
+
+				sendRedirectHeader(response, ConfigServletLocation + confirmTwoFactor(request, activeSection));
+				break;
+
+			case "twoFactorDisable":
+
+				sendRedirectHeader(response, ConfigServletLocation + disableTwoFactor(request, activeSection));
+				break;
+
 			case "setMaintenance":
 
 				setMaintenanceMode(request, Boolean.parseBoolean(request.getParameter("enabled")));
@@ -563,6 +605,178 @@ public class ConfigServlet extends AbstractServletBase {
 		response.getWriter().print(fex.toJSON());
 		response.getWriter().flush();
 		response.getWriter().close();
+	}
+
+	// ----- second factor -----
+	/**
+	 * Saves the secret being set up once a code from it is accepted, so a mistyped secret cannot lock the
+	 * superuser out.
+	 */
+	private String confirmTwoFactor(final HttpServletRequest request, final String activeSection) throws IOException {
+
+		final String remoteIp    = request.getRemoteAddr();
+		final AttemptState state = getOrCreateAttemptState(remoteIp);
+		final String sessionId   = getSessionId(request);
+		final String pending     = sessionId != null ? pendingTwoFactorSecrets.get(sessionId) : null;
+
+		if (isLockedOut(remoteIp, state) || pending == null) {
+
+			return "?twoFactorFailed" + activeSection;
+		}
+
+		if (isValidTwoFactorCode(pending, StringUtils.trim(request.getParameter(TwoFactorCodeParameter)))) {
+
+			Settings.SuperUserTwoFactorSecret.setValue(pending);
+			Settings.storeConfiguration(Settings.ConfigFileName);
+
+			pendingTwoFactorSecrets.remove(sessionId);
+			loginAttempts.invalidate(remoteIp);
+
+			logger.info("Second factor for the superuser login of the configuration interface turned on");
+
+			return activeSection;
+		}
+
+		registerFailedAttempt(remoteIp, state);
+
+		return "?twoFactorFailed" + activeSection;
+	}
+
+	/**
+	 * Turning the second factor off takes a current code, so a session left open is not enough.
+	 */
+	private String disableTwoFactor(final HttpServletRequest request, final String activeSection) throws IOException {
+
+		final String remoteIp    = request.getRemoteAddr();
+		final AttemptState state = getOrCreateAttemptState(remoteIp);
+		final String secret      = getTwoFactorSecret();
+
+		if (isLockedOut(remoteIp, state) || secret == null) {
+
+			return "?twoFactorFailed" + activeSection;
+		}
+
+		if (isValidTwoFactorCode(secret, StringUtils.trim(request.getParameter(TwoFactorCodeParameter)))) {
+
+			Settings.SuperUserTwoFactorSecret.setValue("");
+			Settings.storeConfiguration(Settings.ConfigFileName);
+
+			loginAttempts.invalidate(remoteIp);
+
+			logger.info("Second factor for the superuser login of the configuration interface turned off");
+
+			return activeSection;
+		}
+
+		registerFailedAttempt(remoteIp, state);
+
+		return "?twoFactorFailed" + activeSection;
+	}
+
+	private static String getTwoFactorSecret() {
+
+		final String secret = StringUtils.trim(Settings.SuperUserTwoFactorSecret.getValue());
+
+		return StringUtils.isNotBlank(secret) ? secret : null;
+	}
+
+	/**
+	 * Same algorithm, digits and period as the second factor of user logins. A code is accepted once:
+	 * whoever watched it being typed cannot use it again within its time step.
+	 */
+	private static boolean isValidTwoFactorCode(final String secret, final String code) {
+
+		if (StringUtils.isBlank(code)) {
+
+			return false;
+		}
+
+		try {
+
+			final int period     = Settings.TwoFactorPeriod.getValue();
+			final long step      = System.currentTimeMillis() / 1000 / period;
+			final String current = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(secret, "Hmac" + Settings.TwoFactorAlgorithm.getValue(), period, Settings.TwoFactorDigits.getValue());
+
+			if (!constantTimeEquals(current, code)) {
+
+				return false;
+			}
+
+			final long last = lastTwoFactorStep.get();
+
+			return step > last && lastTwoFactorStep.compareAndSet(last, step);
+
+		} catch (Exception ex) {
+
+			logger.warn("Unable to check the second factor of the superuser: {}", ex.getMessage());
+
+			return false;
+		}
+	}
+
+	private static String getTwoFactorUrl(final String secret) {
+
+		final String issuer = Settings.TwoFactorIssuer.getValue();
+		final String label  = encode(issuer) + ":" + encode(Settings.SuperUserName.getValue() + " (configuration)");
+
+		return "otpauth://totp/" + label + "?secret=" + secret + "&issuer=" + encode(issuer) + "&algorithm=" + Settings.TwoFactorAlgorithm.getValue() + "&digits=" + Settings.TwoFactorDigits.getValue() + "&period=" + Settings.TwoFactorPeriod.getValue();
+	}
+
+	private static String encode(final String value) {
+
+		return URLEncoder.encode(StringUtils.defaultString(value), StandardCharsets.UTF_8).replace("+", "%20");
+	}
+
+	private void twoFactorTab(final HttpServletRequest request, final Tag menu, final Tag tabs) {
+
+		final String id        = "twofactor";
+		final String secret    = getTwoFactorSecret();
+		final String sessionId = getSessionId(request);
+		final String pending   = sessionId != null ? pendingTwoFactorSecrets.get(sessionId) : null;
+		final boolean failed   = request.getParameter("twoFactorFailed") != null;
+
+		menu.block("li").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Two-Factor");
+
+		final Tag container = tabs.block("div").css("tab-content").id(id);
+
+		container.block("h1").text("Two-Factor Authentication");
+
+		if (secret != null) {
+
+			container.block("p").text("The superuser login of this configuration interface asks for a code from an authenticator app.");
+			container.block("p").text("To turn the second factor off, enter a current code. If the authenticator is lost, clear <code>superuser.twofactor.secret</code> in structr.conf instead.");
+
+			final Tag group = container.block("div").css("form-group");
+
+			group.empty("input").id("twofactor-code").attr(new Type("text"), new Attr("autocomplete", "one-time-code"), new Attr("inputmode", "numeric"), new Attr("placeholder", "Code"));
+			group.block("button").attr(new Type("button"), new Attr("data-twofactor-action", "twoFactorDisable")).text("Turn off");
+
+		} else if (pending != null) {
+
+			final String url  = getTwoFactorUrl(pending);
+			final byte[] png  = BarcodeFunction.getQRCode(url, "QR_CODE", 200, 200, Map.of()).getBytes(StandardCharsets.ISO_8859_1);
+
+			container.block("p").text("Scan the code with an authenticator app, or enter the secret by hand, then confirm with the code the app shows.");
+			container.empty("img").attr(new Src("data:image/png;base64," + Base64.getEncoder().encodeToString(png)), new Attr("alt", "QR code"), new Attr("width", "200"), new Attr("height", "200"));
+			container.block("p").text("Secret: <code>" + pending + "</code>");
+
+			final Tag group = container.block("div").css("form-group");
+
+			group.empty("input").id("twofactor-code").attr(new Type("text"), new Attr("autocomplete", "one-time-code"), new Attr("inputmode", "numeric"), new Attr("placeholder", "Code"));
+			group.block("button").attr(new Type("button"), new Attr("data-twofactor-action", "twoFactorConfirm")).text("Confirm");
+			group.block("button").attr(new Type("button"), new Attr("data-twofactor-action", "twoFactorCancel")).text("Cancel");
+
+		} else {
+
+			container.block("p").text("Protect the superuser login of this configuration interface with a second factor: a code from an authenticator app, in addition to name and password.");
+			container.block("p").text("The code uses the algorithm, digits and period of the user two-factor settings.");
+			container.block("div").css("form-group").block("button").attr(new Type("button"), new Attr("data-twofactor-action", "twoFactorSetup")).text("Set up");
+		}
+
+		if (failed) {
+
+			container.block("p").css("text-red font-medium").text("The code was not accepted.");
+		}
 	}
 
 	// ----- brute-force protection -----
@@ -695,6 +909,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 			button.text(maintenanceModeActive ? "Disable" : "Enable");
 
+			twoFactorTab(request, menu, tabs);
+
 			// buttons
 			final Tag buttons = form.block("div").css("buttons");
 
@@ -714,7 +930,10 @@ public class ConfigServlet extends AbstractServletBase {
 		final Document doc = new Document(writer);
 
 		// before the wizard has run, the page asks for the setup token instead of the superuser credentials
-		setupDocument(request, doc).css(Settings.SetupWizardCompleted.getValue() ? "login" : "login setup");
+		final String css = Settings.SetupWizardCompleted.getValue() ? "login" : "login setup";
+
+		// the login form asks for the code in the same request when a second factor is set up
+		setupDocument(request, doc).css(getTwoFactorSecret() != null ? css + " twofactor" : css);
 
 		return doc;
 	}

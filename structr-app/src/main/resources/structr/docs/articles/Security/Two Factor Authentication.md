@@ -382,6 +382,28 @@ If the QR code does not display:
 2. Verify the base64 conversion (URL-safe to standard)
 3. Ensure the `twoFactorConfirmed` property is false
 
+## Superuser Login of the Configuration Interface
+
+The superuser login of the configuration interface at `/structr/config` can ask for a second factor as well. It uses the algorithm, digits and period of the settings above; the enforcement level does not apply to it.
+
+### Setting It Up
+
+Log in to the configuration interface and open the Two-Factor tab. Click Set up, scan the QR code with an authenticator app or enter the secret by hand, and confirm with the code the app shows. The secret is only saved once a code from it is accepted, so a mistyped secret cannot lock you out. It is stored as `superuser.twofactor.secret` in `structr.conf`; while that setting is empty, the login asks for name and password only.
+
+To turn the second factor off, enter a current code on the same tab. If the authenticator is lost, clear `superuser.twofactor.secret` in `structr.conf` on the server and restart Structr.
+
+### Logging In
+
+With a second factor set up, the login form has a code field, and name, password and code are sent together. Each code is accepted once. A wrong code counts against the same lockout as a wrong password.
+
+Tools that log in by posting the form themselves send the code in the field `superuserTwoFactorCode`, along with `action=login`, `superuserName` and `superuserPassword`. The redirect after the login tells them the outcome:
+
+| Redirect | Meaning |
+|----------|---------|
+| `?twoFactorRequired` | A second factor is set up and no code was sent. The password was not checked; send all three fields again |
+| `?loginFailed` | The name, the password or the code was wrong. On purpose, the answer does not say which |
+| neither | Logged in |
+
 ## Related Topics
 
 - User Management - User properties and account security
