@@ -593,8 +593,13 @@ The following settings complete the account security configuration:
 | `security.passwordhash.parallelism` | 1 | Number of parallel threads for Argon2id |
 | `security.passwordhash.hashlength` | 32 | Length of the Argon2id hash in bytes |
 | `security.passwordhash.saltlength` | 16 | Length of the salt in bytes |
+| `security.passwordhash.maxconcurrent` | 0 | Maximum number of Argon2id computations that run at the same time; further logins wait for their turn. 0 means automatic: one per processor, but no more than fit into a quarter of the maximum heap at `security.passwordhash.memory` each |
 | `security.authentication.propertykeys` | empty | Space-separated list of additional property keys in the form `<Type>.<key>` that Structr accepts as login name besides `name` and `eMail`. Only string properties are used; a key of another type is ignored with a warning in the log. All keys are checked in a single lookup, so a wrong password counts as one failed attempt however many keys are configured. |
 | `registration.allowloginbeforeconfirmation` | false | Allows self-registered users to log in before they click the confirmation link |
+
+Structr stores the Argon2id parameters in every password hash, so a hash keeps working after you change the `security.passwordhash.*` settings. Structr rewrites a hash with the current settings the next time its user logs in successfully, because that is the only moment the cleartext password is available. Accounts that nobody logs into keep their old hash.
+
+Each Argon2id computation holds the memory parameter of its hash for as long as it runs. Many simultaneous logins would therefore exhaust a small heap, which is why `security.passwordhash.maxconcurrent` limits how many computations run at once. A login that waits for its turn is neither rejected nor counted as a failed attempt.
 
 ### Account Lockout
 

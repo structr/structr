@@ -31,9 +31,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.traits.*;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -159,20 +163,11 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 							HashHelper.spendVerificationTime(password);
 						}
 
-						// Transparent migration: re-hash legacy SHA-512 to Argon2id on successful login
-						if (valid && !HashHelper.isArgon2Hash(encryptedPasswordFromDatabase)) {
+						/* Transparent migration on successful login: re-hash a legacy SHA-512 hash to
+						   Argon2id, and an Argon2id hash made with other than the configured parameters. */
+						if (valid && HashHelper.needsRehash(encryptedPasswordFromDatabase)) {
 
-							try {
-
-								final PropertyKey<String> passwordKey = principal.getTraits().key(PASSWORD_PROPERTY);
-								principal.setProperty(passwordKey, password);
-
-							} catch (FrameworkException e) {
-
-								// Re-hashing failed; not critical, login still succeeds.
-								// The password will be migrated on the next login attempt.
-								LoggerFactory.getLogger(PrincipalTraitDefinition.class).warn("Unable to re-hash password for user {}: {}", principal.getName(), e.getMessage());
-							}
+							rehashPassword(principal, encryptedPasswordFromDatabase, password);
 						}
 
 						return valid;
@@ -186,6 +181,58 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			}
 		);
+	}
+
+	/**
+	 * Replaces the stored hash with one made with the current settings, in a thread and therefore a
+	 * transaction of its own, for the reasons AuthHelper.resetFailedLoginAttemptsCounter() gives:
+	 * header authentication runs the login inside a transaction that is never committed, so a write
+	 * there is lost, and the login goes on to reset the failed-attempt counter of this very node in
+	 * a transaction of its own. Writing the node here, in the caller's transaction, would hold the
+	 * node lock that the counter reset then waits for while the caller waits for the reset.
+	 *
+	 * The hash is only replaced if it is still the one that was just verified, so that a password
+	 * changed in the meantime is not overwritten with the old one.
+	 */
+	private static void rehashPassword(final Principal principal, final String verifiedHash, final String password) {
+
+		final String uuid = principal.getUuid();
+		final String name = principal.getName();
+
+		final Thread thread = new Thread(() -> {
+
+			final App app = StructrApp.getInstance();
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = app.getNodeById(uuid);
+				if (node != null && verifiedHash.equals(node.as(Principal.class).getEncryptedPassword())) {
+
+					node.setProperty(node.getTraits().key(PASSWORD_PROPERTY), password);
+				}
+
+				tx.success();
+
+			} catch (FrameworkException | RuntimeException e) {
+
+				/* Not critical: the login still succeeds, and the next successful login tries again.
+				   RuntimeException as well, because Argon2 rejects an invalid hash setting (iterations
+				   below 1, for example) with an IllegalStateException, and that must not turn every
+				   successful login into an error. */
+				LoggerFactory.getLogger(PrincipalTraitDefinition.class).warn("Unable to re-hash password for user {}: {}", name, e.getMessage());
+			}
+		});
+
+		thread.start();
+
+		try {
+
+			thread.join();
+
+		} catch (InterruptedException iex) {
+
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	@Override
