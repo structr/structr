@@ -159,8 +159,8 @@ public class ToExcel2Function extends ToExcelFunction {
 							</ul>\
 							"""
 				),
-				Parameter.mandatory("data_N", "same as above"),
-				Parameter.mandatory("config_N", "same as above")
+				Parameter.optional("data_N", "same as above"),
+				Parameter.optional("config_N", "same as above")
 		);
 	}
 
