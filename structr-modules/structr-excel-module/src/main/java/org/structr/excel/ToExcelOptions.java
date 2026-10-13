@@ -94,7 +94,7 @@ public class ToExcelOptions {
 
 		final Object value = options.get(key);
 
-		return value instanceof Integer i ? i : defaultValue;
+		return value instanceof Number i ? i.intValue() : defaultValue;
 	}
 
 	public String getSheetName() {
