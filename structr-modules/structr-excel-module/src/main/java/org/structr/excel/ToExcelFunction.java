@@ -205,7 +205,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					toExcel(find('User'), 'public')
 				)}\
-				""", "Downloadable dynamic file containing the list of users in StructrScript."),
+				""", "Downloadable dynamic file containing the list of users"),
 				Example.javaScript("""
 				${{
 					$.setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"');
@@ -213,7 +213,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					$.print($.toExcel($.find('User'), 'public'));
 				}}\
-				""", "Downloadable dynamic file with view 'public' of user list of users in JavaScript."),
+				""", "Downloadable dynamic file with view 'public' of user list of users"),
 				Example.javaScript("""
 				${{
 					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-truncated.xlsx"');

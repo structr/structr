@@ -180,31 +180,54 @@ public class ToExcel2Function extends ToExcelFunction {
 	public List<Example>getExamples() {
 
 		return List.of(
-				Example.structrScript("${setContent(create('File', 'name', 'newDocument.xlsx'), toExcel2(find('User'), { view: 'public' }), 'ISO-8859-1')}", "Excel file with view 'public' of user list."),
+				Example.structrScript("""
+				${
+					setContent(
+						create('File', 'name', 'users.xlsx'),
+						toExcel2(
+							find('User'), { view: 'public', sheetName: 'Users' },
+						),
+						'ISO-8859-1'
+					)
+				}\
+				""", "Excel file with view 'public' of user list."),
 				Example.structrScript("""
 				${(
-					setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"'),
+					setResponseHeader('Content-Disposition', 'attachment; filename="users-and-projects.xlsx"'),
 					setResponseHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1', true),
 
-					toExcel2(find('User'), { view: 'public', sheetName: 'Users' }, find('Page'), { view: 'public', sheetName: 'Pages' })
+					toExcel2(
+						find('User'), { view: 'public', sheetName: 'Users' },
+						find('Project'), { properties: ['id', 'type', 'name'], sheetName: 'Pages' }
+					)
 				)}\
-				""", "Downloadable dynamic file containing the list of users and pages in StructrScript."),
+				""", "Downloadable dynamic file containing the list of users and pages"),
 				Example.javaScript("""
 				${{
-					$.setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"');
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-and-projects.xlsx"');
 					$.setResponseHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1', true);
 
-					$.print($.toExcel2($.find('User'), { view: 'public' }));
+					$.print(
+						$.toExcel2(
+							$.find('User'), { view: 'public', sheetName: 'Users' },
+							$.find('Project'), { view: 'public', sheetName: 'Projects' }
+						)
+					);
 				}}\
-				""", "Downloadable dynamic file with view 'public' of user list of users in JavaScript."),
+				""", "Downloadable dynamic file with view 'public' of user list of users"),
 				Example.javaScript("""
 				${{
-					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-truncated.xlsx"');
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-and-projects.xlsx"');
 					$.setResponseHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1', true);
 
-					$.print($.toExcel2($.find('User'), { view: 'excelView', includeHeader: true, localizeHeader: false, maxCellLength: 1000, overflowMode: 't' }));
+					$.print(
+						$.toExcel2(
+							$.find('User'), { view: 'excelView', sheetName: 'Users', maxCellLength: 1000, overflowMode: 't' },
+							$.find('Project'), { view: 'excelView', sheetName: 'Projects', maxCellLength: 1000, overflowMode: 't' }
+						)
+					);
 				}}\
-				""", "Downloadable dynamic file with view 'excelView' of user list where headers are included but not localized and all cells are truncated after 1000 characters.")
+				""", "Downloadable dynamic file with view 'excelView' of user and project list where all cells are truncated after 1000 characters.")
 		);
 	}
 
