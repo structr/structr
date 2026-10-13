@@ -123,6 +123,19 @@ public interface DatabaseService<IDType> {
 
 	public Map<String, Map<String, Integer>> getCachesInfo();
 
+	/**
+	 * Returns what prefetching did since the start or the last reset, per prefetch hint: the
+	 * transactions with that hint and the prefetch patterns that ran in them. A driver without
+	 * prefetching returns an empty map.
+	 */
+	default Map<String, Object> getPrefetchStatistics() {
+
+		return Map.of();
+	}
+
+	default void resetPrefetchStatistics() {
+	}
+
 	// ----- index -----
 	Index<Node<IDType>> nodeIndex();
 	Index<Relationship<IDType>> relationshipIndex();

@@ -110,6 +110,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		maintenanceCommandMap.put("manageDatabases",            ManageDatabasesCommand.class);
 		maintenanceCommandMap.put("manageThreads",              ManageThreadsCommand.class);
 		maintenanceCommandMap.put("migrateChangelog",           BulkMigrateChangelogCommand.class);
+		maintenanceCommandMap.put("prefetchStatistics",         PrefetchStatisticsCommand.class);
 		maintenanceCommandMap.put("rebuildIndex",               BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("setNodeProperties",          BulkSetNodePropertiesCommand.class);
 		maintenanceCommandMap.put("setRelationshipProperties",  BulkSetRelationshipPropertiesCommand.class);

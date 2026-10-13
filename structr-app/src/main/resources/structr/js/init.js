@@ -1987,6 +1987,8 @@ let Structr = {
 	},
 
 	globalSearch: {
+		// counts every clear(), so that doSearch can tell its results have been superseded while it waited
+		searchNumber: 0,
 		init: () => {
 
 			let supportsGlobalSearch    = (Structr.rawEnvInfo?.globalSearchSupport === true);
@@ -2025,6 +2027,9 @@ let Structr = {
 		},
 		clear: () => {
 
+			// whatever is still on its way belongs to a search the user has moved on from
+			Structr.globalSearch.searchNumber++;
+
 			let resultsElement = document.querySelector('#global-search-results');
 			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
 				_Helpers.fastRemoveElement(oldResult);
@@ -2037,9 +2042,19 @@ let Structr = {
 
 			Structr.globalSearch.clear();
 
+			let searchNumber = Structr.globalSearch.searchNumber;
+
 			if (data.searchString.length > 0) {
 
-				let results        = await Command.searchNodes(data);
+				let results = await Command.searchNodes(data);
+
+				// A newer search, an emptied search field or a logout can clear the table while this search
+				// waits for its answer. Without this check, the answer would be appended anyway and show
+				// results for a search string that is no longer in the field.
+				if (searchNumber !== Structr.globalSearch.searchNumber) {
+					return;
+				}
+
 				let resultsElement = document.querySelector('#global-search-results tbody');
 
 				for (let result of results) {

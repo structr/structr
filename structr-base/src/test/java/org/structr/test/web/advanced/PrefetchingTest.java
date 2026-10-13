@@ -105,6 +105,11 @@ public class PrefetchingTest extends StructrUiTest {
 		Settings.PrefetchingThreshold.setValue(threshold);
 		Settings.PrefetchingCostRatio.setValue(costRatio);
 
+		// the test is about the cost ratio, so the first failed evaluation deactivates the prefetch, and the
+		// comparison of durations, which depends on the machine, must not deactivate the effective one
+		Settings.PrefetchingMaxFailures.setValue(1);
+		Settings.PrefetchingCompareDuration.setValue(false);
+
 		appender.start();
 		logger.addAppender(appender);
 
@@ -149,6 +154,8 @@ public class PrefetchingTest extends StructrUiTest {
 			Settings.CypherDebugLogging.setValue(previousLogging);
 			Settings.PrefetchingThreshold.setValue(previousThreshold);
 			Settings.PrefetchingCostRatio.setValue(Settings.PrefetchingCostRatio.getDefaultValue());
+			Settings.PrefetchingMaxFailures.setValue(Settings.PrefetchingMaxFailures.getDefaultValue());
+			Settings.PrefetchingCompareDuration.setValue(Settings.PrefetchingCompareDuration.getDefaultValue());
 		}
 	}
 
