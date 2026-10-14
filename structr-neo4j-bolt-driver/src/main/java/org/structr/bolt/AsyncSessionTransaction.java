@@ -89,6 +89,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 	@Override
 	public void close() {
 
+		recordOpenTimers();
 		clearChangeset();
 
 		if (forcedFailure || !success) {
