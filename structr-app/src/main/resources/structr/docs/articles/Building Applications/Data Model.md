@@ -415,7 +415,7 @@ Example – checking what changed in onSave:
 
 ```javascript
 {
-    let modifications = $.retrieve('modifications');
+    let modifications = $.retrieve('modifications');        // from v7.1 on also available as $.modifications
     
     if (modifications.after.status === 'published') {
         // Status was changed to published

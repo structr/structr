@@ -2663,9 +2663,11 @@ class LifecycleMethods {
 		{
 			name: 'onStructrLogin',
 			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
-			comment: `Is called when a (any) user logs in<br><br><strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
+			comment: `
+				Is called when a (any) user logs in<br><br>
+				<strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
 				<br><br>
-				<div class="grid grid-cols-2">
+				<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
 					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
 					<div><code>user</code></div><div>The user logging in</div>
 				</div>`,
@@ -2674,9 +2676,11 @@ class LifecycleMethods {
 		{
 			name: 'onStructrLogout',
 			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
-			comment: `Is called when a (any) user logs out<br><br><strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
+			comment: `
+				Is called when a (any) user logs out<br><br>
+				<strong>INFO</strong>: Only one such function can exist/is called. If multiple exist, the first being found is being called.
 				<br><br>
-				<div class="grid grid-cols-2">
+				<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
 					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
 					<div><code>user</code></div><div>The user logging out</div>
 				</div>`,
@@ -2685,9 +2689,11 @@ class LifecycleMethods {
 		{
 			name: 'onAcmeChallenge',
 			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
-			comment: `This method is called when an ACME challenge of type <strong>dns</strong> is triggered, typically by using the maintenance method letsencrypt. The primary use case of this method is creating a DNS TXT record via an external API call to a DNS provider.
+			comment: `
+				This method is called when an ACME challenge of type <strong>dns</strong> is triggered, typically by using the maintenance method letsencrypt.
+				The primary use case of this method is creating a DNS TXT record via an external API call to a DNS provider.
 				<br><br>
-				<div class="grid grid-cols-2">
+				<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
 					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
 					<div><code>type</code></div><div> The type of the ACME authorisation challenge</div>
 					<div><code>domain</code></div><div> The domain the ACME challenge is created for</div>
@@ -2699,13 +2705,15 @@ class LifecycleMethods {
 		{
 			name: 'afterAcmeChallenge',
 			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
-			comment: `This method is called after an ACME challenge of type <strong>dns</strong> is finished. The primary use case of this method is cleaning up a DNS TXT record via an external API call to a DNS provider.
+			comment: `
+				This method is called after an ACME challenge of type <strong>dns</strong> is finished.
+				The primary use case of this method is cleaning up a DNS TXT record via an external API call to a DNS provider.
 				<br><br>
-				<div class="grid grid-cols-2">
+				<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
 					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
 					<div><code>type</code></div><div> The type of the ACME authorisation challenge</div>
 					<div><code>domain</code></div><div> The domain the ACME challenge is created for</div>
-					<div><code>record</code></div><div> The name of the DNS record including prefix <code>_acme-challenge.</code> and suffix <code>.</code> </div>
+					<div><code>record</code></div><div> The name of the DNS record including prefix <code>_acme-challenge.</code> and suffix <code>.</code></div>
 					<div><code>digest</code> </div><div> The token string that is probed by the ACME server to validate the challenge </div>
 				</div>`,
 			isPrefix: false
@@ -2732,31 +2740,66 @@ class LifecycleMethods {
 		{
 			name: 'afterCreate',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling \'send_html_mail()\' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.',
+			comment: `
+				The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong>
+				is called after all checks have run and the transaction is committed successfully.
+				The commit can not be rolled back anymore.<br><br>
+
+				<strong>Example</strong>: There is a unique constraint and you want to send an email when an object is created.<br><br>
+
+				Calling <code>send_html_mail()</code> in onCreate would send the email even if the transaction would be rolled back due to an error.
+				The appropriate place for this would be afterCreate.
+			`,
 			isPrefix: true
 		},
 		{
 			name: 'onSave',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.',
+			comment: `
+				The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction,
+				before everything is committed.<br><br>
+
+				An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.<br><br>
+
+				An object of exactly what changed is made available via <strong>$.modifications</strong>.
+			`,
 			isPrefix: true
 		},
 		{
 			name: 'afterSave',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling \'send_html_mail()\' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.',
+			comment: `
+				The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong>
+				is called after all checks have run and the transaction is committed.<br><br>
+
+				<strong>Example</strong>: There is a unique constraint, and you want to send an email when an object is saved successfully.<br><br>
+
+				Calling <code>send_html_mail()</code> in onCreate would send the email even if the transaction would be rolled back due to an error.
+				The appropriate place for this would be afterSave.
+			`,
 			isPrefix: true
 		},
 		{
 			name: 'onDelete',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The node being deleted can be accessed via <strong>$.this</strong>.',
+			comment: `
+				The <strong>onDelete</strong> method runs when a node is being deleted.
+				The deletion can still be stopped by either an error in this method or by validation code.<br><br>
+
+				The node being deleted can be accessed via <strong>$.this</strong>.
+			`,
 			isPrefix: true
 		},
 		{
 			name: 'afterDelete',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.',
+			comment: `
+				The <strong>afterDelete</strong> method runs after a node has been deleted.
+				The deletion can not be stopped at this point.<br><br>
+
+				The <code>$.this</code> object is not available anymore but using the keyword <code>$.data</code>,
+				the attributes (not the relationships) of the deleted node can be accessed.
+			`,
 			isPrefix: true
 		},
 		/** FILE */
@@ -2776,9 +2819,10 @@ class LifecycleMethods {
 		{
 			name: 'onOAuthLogin',
 			available: LifecycleMethods.onlyAvailableWithUserNodeContext,
-			comment: `Is called after a user successfully logs into the system via a configured OAuth provider. This function can not prevent the login of a user. The function is called with two parameters:
+			comment: `
+				Is called after a user successfully logs into the system via a configured OAuth provider. This function can not prevent the login of a user. The function is called with two parameters:
 				<br><br>
-				<div class="grid grid-cols-2">
+				<div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
 					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
 					<div><code>provider</code></div><div>OAuth provider name</div>
 					<div><code>userinfo</code></div><div>information pulled from the userinfo endpoint of the OAuth provider</div>
