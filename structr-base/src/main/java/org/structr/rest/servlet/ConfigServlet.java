@@ -357,8 +357,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final String twoFactor     = getTwoFactorSecret();
 		final String submittedCode = StringUtils.trim(request.getParameter(TwoFactorCodeParameter));
 
-		/* Asked for before anything is checked, so the answer says nothing about the password: telling
-		   "wrong code" apart from "wrong password" would confirm a guessed password without the code. */
+		// asked for before anything is checked, so the answer cannot confirm a guessed password
 		if (twoFactor != null && StringUtils.isBlank(submittedCode)) {
 
 			return "?twoFactorRequired" + activeSection;
@@ -608,10 +607,7 @@ public class ConfigServlet extends AbstractServletBase {
 	}
 
 	// ----- second factor -----
-	/**
-	 * Saves the secret being set up once a code from it is accepted, so a mistyped secret cannot lock the
-	 * superuser out.
-	 */
+	/** Saves the pending secret only once a code from it is accepted, so a mistyped secret cannot lock anyone out. */
 	private String confirmTwoFactor(final HttpServletRequest request, final String activeSection) throws IOException {
 
 		final String remoteIp    = request.getRemoteAddr();
@@ -642,9 +638,7 @@ public class ConfigServlet extends AbstractServletBase {
 		return "?twoFactorFailed" + activeSection;
 	}
 
-	/**
-	 * Turning the second factor off takes a current code, so a session left open is not enough.
-	 */
+	/** Turning the second factor off takes a current code, so a session left open is not enough. */
 	private String disableTwoFactor(final HttpServletRequest request, final String activeSection) throws IOException {
 
 		final String remoteIp    = request.getRemoteAddr();
@@ -680,10 +674,7 @@ public class ConfigServlet extends AbstractServletBase {
 		return StringUtils.isNotBlank(secret) ? secret : null;
 	}
 
-	/**
-	 * Same algorithm, digits and period as the second factor of user logins. A code is accepted once:
-	 * whoever watched it being typed cannot use it again within its time step.
-	 */
+	/** Same algorithm, digits and period as user logins; each code is accepted once, so one seen being typed is useless. */
 	private static boolean isValidTwoFactorCode(final String secret, final String code) {
 
 		if (StringUtils.isBlank(code)) {
