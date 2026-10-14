@@ -58,11 +58,11 @@ public class MemoryNodeIndex extends AbstractMemoryIndex<Node<Long>> {
 
 		if (labels.isEmpty()) {
 
-			result = Iterables.filter(query, query.sort(db.getAllNodes()));
+			result = query.sort(Iterables.filter(query, db.getAllNodes()));
 
 		} else {
 
-			result = Iterables.filter(query, query.sort(db.getFilteredNodes(new MemoryLabelFilter<>(labels))));
+			result = query.sort(Iterables.filter(query, db.getFilteredNodes(new MemoryLabelFilter<>(labels))));
 		}
 
 		if (queryContext.isSliced()) {

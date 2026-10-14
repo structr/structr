@@ -280,10 +280,21 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 	 */
 	await globalSearchActivator.click();
 
-	// update search results
-	await searchInput.fill('');
-	await expect(page.locator('#global-search-results tbody tr')).toHaveCount(0);
-	await searchInput.fill(oldName);
+	// Search again until the first content element has dropped out of the results. Ctrl+S only STARTS
+	// saving it, and this step takes the first row whatever its type: searching before the save has
+	// landed finds the first element again, the test edits it a second time, and the second element is
+	// never renamed - which only shows up in the final check below, as one row left over.
+	await expect(async () => {
+
+		await searchInput.fill('');
+		await expect(page.locator('#global-search-results tbody tr')).toHaveCount(0);
+		await searchInput.fill(oldName);
+
+		// the second element still has the old name, so rows appearing proves the search has answered
+		await expect(page.locator('#global-search-results tbody tr')).not.toHaveCount(0);
+		await expect(page.locator(`#global-search-results tbody tr[data-id="${firstNodeId}"]`)).toHaveCount(0);
+
+	}).toPass();
 
 	contentResultRow = await page.locator('#global-search-results tbody tr').first();
 	let secondNodeId = await contentResultRow.getAttribute('data-id');

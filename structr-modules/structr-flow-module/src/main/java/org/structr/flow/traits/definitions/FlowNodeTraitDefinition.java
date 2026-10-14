@@ -36,6 +36,8 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_START_NODE_OF_CONTAINER_PROPERTY       = "isStartNodeOfContainer";
 	public static final String PREV_PROPERTY                             = "prev";
 	public static final String NEXT_PROPERTY                             = "next";
+	public static final String FOR_EACH_PROPERTY                         = "forEach";
+	public static final String FORK_PROPERTY                             = "fork";
 
 	public FlowNodeTraitDefinition() {
 
@@ -55,10 +57,14 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> prev         = new StartNodes(traitsInstance, PREV_PROPERTY, StructrTraits.FLOW_NODES);
 		final Property<NodeInterface> next                   = new EndNode(traitsInstance, NEXT_PROPERTY, StructrTraits.FLOW_NODES);
 
-		// No inverse of FlowForEach.loopBody here: nothing reads it, and the editor connects a loop body
-		// through loopBody and prev (see FlowConnectionTypes.js / FlowSockets.js).
+		// The inverses of FlowForEach.loopBody and FlowFork.loopBody. Nothing reads them, but the relationships are
+		// one-to-one, and setting a loop body checks the existing incoming relationship of the body through them.
+		// Without them, setting a loop body could fail without an error. They are not in the views, so the output
+		// does not change.
+		final Property<NodeInterface> forEach                = new StartNode(traitsInstance, FOR_EACH_PROPERTY, StructrTraits.FLOW_FOR_EACH_BODY);
+		final Property<NodeInterface> fork                   = new StartNode(traitsInstance, FORK_PROPERTY, StructrTraits.FLOW_FORK_BODY);
 
-		return newSet(isStartNodeOfContainer, prev, next);
+		return newSet(isStartNodeOfContainer, prev, next, forEach, fork);
 	}
 
 	@Override

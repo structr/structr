@@ -19,12 +19,13 @@
 package org.structr.test.web.files;
 
 import org.structr.api.config.Settings;
+import org.structr.core.Services;
+import org.structr.files.ftp.FtpService;
+import org.structr.files.ssh.SSHService;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
-
-import java.util.Random;
 
 /**
  * Base class for all structr UI tests.
@@ -33,8 +34,11 @@ import java.util.Random;
  */
 public abstract class StructrFileTestBase extends StructrUiTest {
 
-	protected int ftpPort = 8876 + new Random().nextInt(1000);
-	protected int sshPort = 8877 + new Random().nextInt(1000);
+	/* 0 lets the operating system pick a free port, and setup() reads back the one it picked, like
+	   StructrUiTest does for HTTP. A port chosen at random here collided now and then between test
+	   classes running in parallel, and the class that lost started without an FTP server. */
+	protected int ftpPort = 0;
+	protected int sshPort = 0;
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
@@ -47,6 +51,20 @@ public abstract class StructrFileTestBase extends StructrUiTest {
 		Settings.SshPort.setValue(sshPort);
 
 		super.setup(testDatabaseConnection);
+
+		final Services services = Services.getInstance();
+
+		final FtpService ftpService = services.getServiceImplementation(FtpService.class);
+		if (ftpService != null) {
+
+			ftpPort = ftpService.getAllocatedPort();
+		}
+
+		final SSHService sshService = services.getServiceImplementation(SSHService.class);
+		if (sshService != null) {
+
+			sshPort = sshService.getAllocatedPort();
+		}
 	}
 }
 

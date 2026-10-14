@@ -41,11 +41,11 @@ public class MemoryRelationshipIndex extends AbstractMemoryIndex<Relationship<Lo
 		final Set<String> labels = query.getTypeLabels();
 		if (labels.isEmpty()) {
 
-			return Iterables.filter(query, query.sort(db.getAllRelationships()));
+			return query.sort(Iterables.filter(query, db.getAllRelationships()));
 
 		} else {
 
-			return Iterables.filter(query, query.sort(db.getFilteredRelationships(new MemoryLabelFilter<>(labels))));
+			return query.sort(Iterables.filter(query, db.getFilteredRelationships(new MemoryLabelFilter<>(labels))));
 		}
 	}
 }

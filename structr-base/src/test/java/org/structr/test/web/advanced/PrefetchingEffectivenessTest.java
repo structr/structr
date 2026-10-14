@@ -117,6 +117,10 @@ public class PrefetchingEffectivenessTest extends StructrUiTest {
 			Settings.CypherDebugLogging.setValue(true);
 			Settings.PrefetchingThreshold.setValue(THRESHOLD);
 
+			// the measurement compares requests with and without the learned prefetch, so it must not be deactivated
+			// because it takes longer than the lookups it saves, which depends on the machine
+			Settings.PrefetchingCompareDuration.setValue(false);
+
 			// the first request under the learning hint learns the pattern, the threshold then keeps the other hint from learning it
 			lookupChildren(LEARNED_HINT, container);
 			assertTrue("Prefetching was not activated for the CONTAINS lookups", containsMessage(appender, "Activating prefetching for", "CONTAINS"));
@@ -189,6 +193,7 @@ public class PrefetchingEffectivenessTest extends StructrUiTest {
 
 			Settings.CypherDebugLogging.setValue(previousLogging);
 			Settings.PrefetchingThreshold.setValue(previousThreshold);
+			Settings.PrefetchingCompareDuration.setValue(Settings.PrefetchingCompareDuration.getDefaultValue());
 		}
 	}
 

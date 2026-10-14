@@ -20,7 +20,6 @@ package org.structr.bolt;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
@@ -63,6 +62,18 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	protected static final Map<String, Set<PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
 	protected static final Map<String, Boolean> prefetchBlacklist       = new ConcurrentHashMap<>();
 
+	// the failed evaluations in a row of each pattern, by hint and pattern like the blacklist
+	protected static final Map<String, Integer> prefetchFailures        = new ConcurrentHashMap<>();
+
+	// the learned patterns whose prefetch query groups by m instead of n, see prefetchLearnedPatternAndCount
+	protected static final Set<String> prefetchGroupedByOtherEnd        = ConcurrentHashMap.newKeySet();
+
+	// the moving average of the time of a relationship lookup query, which estimates what the lookups that a prefetch
+	// answers would have cost; a new lookup moves it by 1/LOOKUP_AVERAGE_WEIGHT of its difference, so it follows
+	// changes of the latency or the load of the database without jumping with every single lookup
+	private static final int LOOKUP_AVERAGE_WEIGHT                      = 100;
+	private static final AtomicLong averageLookupNanos                  = new AtomicLong();
+
 	protected final Map<String, PrefetchInfo> histogram = new ConcurrentHashMap<>();
 	protected final Map<Long, RelationshipWrapper> rels = new HashMap<>();
 	protected final Map<Long, NodeWrapper> nodes        = new HashMap<>();
@@ -74,14 +85,21 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	protected final Set<String> prefetchedIncoming      = new HashSet<>();
 	protected final Set<String> prefetchedQueries       = new HashSet<>();
 
-	// lookups that were served from a prefetch in this transaction, by typed key (e.g. DOMNode/all/OUTGOING/CONTAINS)
-	protected final Map<String, Integer> prefetchHits            = new HashMap<>();
-	protected final Map<PrefetchInfo, Long> executedPrefetches   = new LinkedHashMap<>();
+	// the nodes whose lookups were answered by a prefetch in this transaction, by typed key (e.g. DOMNode/all/OUTGOING/CONTAINS)
+	protected final Map<String, Set<Long>> prefetchHits          = new HashMap<>();
+	protected final Map<PrefetchInfo, ExecutedPrefetch> executedPrefetches = new LinkedHashMap<>();
+	protected final Set<String> failedPrefetches                 = new HashSet<>();
 
 	protected final Map<Integer, Set<Long>> queryResultCache = new HashMap<>();
 
 	protected final BoltDatabaseService db;
 	protected final long transactionId;
+
+	// for the prefetch statistics; the setting is read once, so a transaction runs entirely with or without prefetching
+	protected final boolean prefetchingEnabled;
+	protected final long startNanos;
+	protected long queryCount                           = 0L;
+	protected long lookupQueryCount                     = 0L;
 
 	protected String prefetchHint                       = null;
 	protected boolean success                           = false;
@@ -91,8 +109,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 	public SessionTransaction(final BoltDatabaseService db) {
 
-		this.transactionId = ID_SOURCE.getAndIncrement();
-		this.db            = db;
+		this.transactionId      = ID_SOURCE.getAndIncrement();
+		this.db                 = db;
+		this.prefetchingEnabled = Settings.PrefetchingEnabled.getValue();
+		this.startNanos         = System.nanoTime();
 	}
 
 	public abstract boolean isClosed();
@@ -153,7 +173,19 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 			prefetchInfos.clear();
 			prefetchBlacklist.clear();
+			prefetchFailures.clear();
+			prefetchGroupedByOtherEnd.clear();
 		}
+	}
+
+	/**
+	 * Counts a relationship lookup query, with the time it took to run and read its result.
+	 */
+	static void lookupExecuted(final long nanos) {
+
+		averageLookupNanos.updateAndGet(average -> average == 0L ? nanos : average + (nanos - average) / LOOKUP_AVERAGE_WEIGHT);
+
+		PrefetchStatistics.lookupExecuted(nanos);
 	}
 
 	public NodeWrapper getNodeWrapper(final org.neo4j.driver.types.Node node) {
@@ -314,7 +346,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		}
 
 		evaluatePrefetching();
-		optimizePrefetching();
+		combinePrefetchingQueriesWithIdenticalTypeAndDirection();
+
+		if (prefetchHint != null) {
+
+			PrefetchStatistics.transactionClosed(prefetchHint, prefetchingEnabled, System.nanoTime() - startNanos, queryCount, lookupQueryCount);
+		}
 
 		// this is internal, will only be displayed if logPrefetching is set to true at compile time..
 		if (logPrefetching && prefetchHint != null) {
@@ -352,47 +389,49 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			this.prefetchHint = hint;
 		}
 
-		if (hint != null && hint.equals(this.prefetchHint)) {
+		if (!prefetchingEnabled || hint == null || !hint.equals(this.prefetchHint)) {
 
-			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
-			if (infos != null) {
+			return;
+		}
 
-				for (final PrefetchInfo prefetch : infos) {
+		final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
+		if (infos == null) {
 
-					final long t0 = System.currentTimeMillis();
-					final String pattern = prefetch.getPattern();
+			return;
+		}
 
-					if (!prefetchBlacklist.containsKey(prefetchHint + ": " + pattern)) {
+		for (final PrefetchInfo prefetch : infos) {
 
-						final long entities = prefetchAndCount(pattern, prefetch.getOutgoingSet(), prefetch.getIncomingSet());
-						final long dt       = System.currentTimeMillis() - t0;
-						final int maxCount  = Settings.PrefetchingMaxCount.getValue(50_000);
+			final String pattern = prefetch.getPattern();
 
-						// remember for the cost/benefit evaluation when the transaction is closed
-						executedPrefetches.put(prefetch, entities);
+			// a nested transaction can give the same hint again, and a pattern that already ran must not
+			// run again, nor replace the entities it loaded with 0 (which would exempt it from the evaluation)
+			if (isBlacklisted(pattern) || isPrefetched(pattern, prefetch.getOutgoingSet(), prefetch.getIncomingSet())) {
 
-						if (dt > Settings.PrefetchingMaxDuration.getValue(500)) {
+				continue;
+			}
 
-							if (logPrefetching || db.logQueries()) {
+			final long t0         = System.nanoTime();
+			final long entities   = prefetchLearnedPatternAndCount(pattern, prefetch.getOutgoingSet(), prefetch.getIncomingSet());
+			final long nanos      = System.nanoTime() - t0;
+			final long dt         = nanos / 1_000_000L;
+			final int maxDuration = Settings.PrefetchingMaxDuration.getValue();
+			final int maxCount    = Settings.PrefetchingMaxCount.getValue();
 
-								// blacklist prefetching calls that take too long
-								logger.info("{}: Blacklisting prefetching pattern {} because it takes {} ms, {} is {}", transactionId, pattern, dt, Settings.PrefetchingMaxDuration.getKey(), Settings.PrefetchingMaxDuration.getValue(500));
-							}
+			// remember for the cost/benefit evaluation when the transaction is closed
+			executedPrefetches.put(prefetch, new ExecutedPrefetch(entities, nanos));
 
-							prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
+			PrefetchStatistics.prefetchExecuted(prefetchHint, pattern, entities, nanos);
 
-						} else if (entities > maxCount) {
+			if (dt > maxDuration) {
 
-							// the size is checked when a pattern is learned, but combined patterns (see optimizePrefetching) are not
-							if (logPrefetching || db.logQueries()) {
+				// a single slow execution can be a cold cache or a busy database, so it only counts as a failure
+				fail(pattern, "it took " + dt + " ms, " + Settings.PrefetchingMaxDuration.getKey() + " is " + maxDuration);
 
-								logger.info("{}: Blacklisting prefetching pattern {} because it loads {} entities, {} is {}", transactionId, pattern, entities, Settings.PrefetchingMaxCount.getKey(), maxCount);
-							}
+			} else if (entities > maxCount) {
 
-							prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
-						}
-					}
-				}
+				// the size is checked when a pattern is learned, but combined patterns (see combinePrefetchingQueriesWithIdenticalTypeAndDirection) are not
+				blacklist(pattern, "it loads " + entities + " entities, " + Settings.PrefetchingMaxCount.getKey() + " is " + maxCount);
 			}
 		}
 	}
@@ -439,21 +478,25 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	@Override
 	public void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
 
-		prefetchAndCount(query, outgoingKeys, incomingKeys);
+		if (!isPrefetched(query, outgoingKeys, incomingKeys)) {
+
+			prefetchAndCount(query, outgoingKeys, incomingKeys);
+		}
 	}
 
 	/**
-	 * Runs the prefetch query and stores all nodes and relationships of the resulting paths
-	 * in the transaction cache.
+	 * Runs the prefetch query of a pattern like (n:Type)-[r:REL]->(m) and stores the relationships it returns in the
+	 * relationship cache of n, the start node of each path, as the complete set of n's relationships of that type and
+	 * direction.
 	 *
-	 * @return the number of entities that were loaded, 0 if the query was already prefetched
+	 * The other end m only gets a node wrapper. Its relationships of that type are NOT complete: the pattern loads
+	 * those that start at a node labelled Type, but REL may connect m to nodes of other types as well, for example
+	 * when the schema uses one relationship type name for Project-[:HAS]->Task and Milestone-[:HAS]->Task. Storing
+	 * them at m would answer m's lookup with that partial set (see NodeWrapper.getRelationshipsFromCache).
+	 *
+	 * @return the number of distinct nodes and relationships that were loaded
 	 */
 	protected long prefetchAndCount(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
-
-		if (prefetchedOutgoing.containsAll(outgoingKeys) && prefetchedIncoming.containsAll(incomingKeys) && prefetchedQueries.contains(query)) {
-
-			return 0L;
-		}
 
 		prefetchedOutgoing.addAll(outgoingKeys);
 		prefetchedIncoming.addAll(incomingKeys);
@@ -461,8 +504,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		final long t0             = System.currentTimeMillis();
 		final StringBuilder buf   = new StringBuilder();
+		final Set<Long> nodesSeen = new HashSet<>();
 		final Set<Long> relsSeen  = new HashSet<>();
-		long count                = 0L;
 
 		buf.append("MATCH p = ");
 		buf.append(query);
@@ -470,56 +513,26 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		for (final org.neo4j.driver.Record r : collectRecords(new SimpleCypherQuery(buf), null)) {
 
-			final Path p        = r.get("p").asPath();
-			NodeWrapper current = null;
+			final Path p = r.get("p").asPath();
 
-			if (p.length() == 0) {
+			for (final Node n : p.nodes()) {
 
-				// iterate individual nodes as well
-				for (final Node n : p.nodes()) {
-
-					getNodeWrapper(n);
-					count++;
-				}
+				getNodeWrapper(n);
+				nodesSeen.add(n.id());
 			}
 
 			for (final Segment s : p) {
 
 				final org.neo4j.driver.types.Relationship relationship = s.relationship();
-				final long relId                                       = relationship.id();
-				final boolean alreadySeen                              = relsSeen.contains(relId);
-				RelationshipWrapper rel                                = null;
 
-				if (current == null) {
+				if (relsSeen.add(relationship.id())) {
 
-					current = getNodeWrapper(s.start());
-					current.storePrefetchInfo(outgoingKeys);
-					count++;
-				}
-
-				if (!alreadySeen) {
-
-					relsSeen.add(relId);
-
-					rel = getRelationshipWrapper(relationship);
-
-					// store outgoing rel
-					current.storeRelationship(rel, true);
-					count++;
-				}
-
-				// advance
-				current = getNodeWrapper(s.end());
-				current.storePrefetchInfo(incomingKeys);
-
-				if (!alreadySeen) {
-
-					// store incoming rel as well
-					current.storeRelationship(rel, true);
-					count++;
+					getNodeWrapper(s.start()).storeRelationship(getRelationshipWrapper(relationship), true);
 				}
 			}
 		}
+
+		final long count = nodesSeen.size() + relsSeen.size();
 
 		if (logPrefetching || db.logQueries()) {
 
@@ -530,14 +543,109 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	}
 
 	/**
+	 * Runs the prefetch query of a learned pattern, which always has the form (n:Type)-[r:REL]->(m) or
+	 * (n:Type)<-[r:REL]-(m), and stores what it returns like prefetchAndCount does.
+	 *
+	 * The query returns one row per node of one end, with the relationships and the nodes at the other end collected,
+	 * so that the node of that end is transferred once and not once per relationship, as it is in the paths that
+	 * prefetchAndCount asks for. The end with fewer distinct nodes is the one that repeats, so the query groups by
+	 * it: (n:Project)-[:HAS]->(m) has few projects with many tasks each and groups by n, (n:Task)<-[:HAS]-(m) has the
+	 * same projects at the other end and groups by m. Each execution counts both ends and chooses the grouping for
+	 * the next one; the first one groups by n.
+	 *
+	 * @return the number of distinct nodes and relationships that were loaded
+	 */
+	protected long prefetchLearnedPatternAndCount(final String pattern, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+
+		prefetchedOutgoing.addAll(outgoingKeys);
+		prefetchedIncoming.addAll(incomingKeys);
+		prefetchedQueries.add(pattern);
+
+		final boolean groupedByM = prefetchGroupedByOtherEnd.contains(pattern);
+		final long t0            = System.currentTimeMillis();
+		final StringBuilder buf  = new StringBuilder();
+		final Set<Long> nSeen    = new HashSet<>();
+		final Set<Long> mSeen    = new HashSet<>();
+		final Set<Long> relsSeen = new HashSet<>();
+
+		buf.append("MATCH ");
+		buf.append(pattern);
+
+		if (groupedByM) {
+
+			buf.append(" RETURN m AS node, collect([r, n]) AS pairs");
+
+		} else {
+
+			buf.append(" RETURN n AS node, collect([r, m]) AS pairs");
+		}
+
+		for (final org.neo4j.driver.Record r : collectRecords(new SimpleCypherQuery(buf), null)) {
+
+			final Node node = r.get("node").asNode();
+
+			getNodeWrapper(node);
+
+			for (final org.neo4j.driver.Value pair : r.get("pairs").values()) {
+
+				final org.neo4j.driver.types.Relationship relationship = pair.get(0).asRelationship();
+				final Node other                                       = pair.get(1).asNode();
+				final Node n                                           = groupedByM ? other : node;
+				final Node m                                           = groupedByM ? node : other;
+
+				getNodeWrapper(other);
+
+				nSeen.add(n.id());
+				mSeen.add(m.id());
+
+				if (relsSeen.add(relationship.id())) {
+
+					getNodeWrapper(n).storeRelationship(getRelationshipWrapper(relationship), true);
+				}
+			}
+		}
+
+		// the grouping for the next execution: by the end that has fewer distinct nodes, because that end repeats
+		if (mSeen.size() < nSeen.size()) {
+
+			prefetchGroupedByOtherEnd.add(pattern);
+
+		} else {
+
+			prefetchGroupedByOtherEnd.remove(pattern);
+		}
+
+		final Set<Long> nodesSeen = new HashSet<>(nSeen);
+
+		nodesSeen.addAll(mSeen);
+
+		final long count = nodesSeen.size() + relsSeen.size();
+
+		if (logPrefetching || db.logQueries()) {
+
+			logger.info(transactionId + ": prefetched {} entities in {} ms with {}: {} / {}", count, (System.currentTimeMillis() - t0), buf, nodes.size(), rels.size());
+		}
+
+		return count;
+	}
+
+	private boolean isPrefetched(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+
+		return prefetchedOutgoing.containsAll(outgoingKeys) && prefetchedIncoming.containsAll(incomingKeys) && prefetchedQueries.contains(query);
+	}
+
+	/**
 	 * Counts a relationship lookup that was served from a prefetch, so that the cost/benefit
-	 * of the prefetch can be evaluated when the transaction is closed.
+	 * of the prefetch can be evaluated when the transaction is closed. A node counts once per
+	 * key: without the prefetch, its first lookup would have been a query, but the repeated
+	 * ones would have been answered by the relationship cache of the node anyway.
 	 *
 	 * @param typedKey the key of the lookup, e.g. DOMNode/all/OUTGOING/CONTAINS
+	 * @param nodeId the node whose relationships were looked up
 	 */
-	public void countPrefetchHit(final String typedKey) {
+	public void countPrefetchHit(final String typedKey, final long nodeId) {
 
-		prefetchHits.merge(typedKey, 1, Integer::sum);
+		prefetchHits.computeIfAbsent(typedKey, k -> new HashSet<>()).add(nodeId);
 	}
 
 	@Override
@@ -811,58 +919,79 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 	protected void logQuery(final CypherQuery query) {
 
-		if (prefetchHint != null && query.getType() != null && query.getRelationshipType() != null) {
+		if (query.getType() != null && query.getRelationshipType() != null) {
 
-			final String statement = query.getStatement();
-			final PrefetchInfo info = histogram.get(statement);
+			lookupQueryCount++;
 
-			if (info != null) {
+			if (prefetchHint != null && prefetchingEnabled) {
 
-				final int count     = info.incrementAndGetCount();
-				final int threshold = Settings.PrefetchingThreshold.getValue(100);
-
-				if (count > threshold && !prefetchBlacklist.containsKey(prefetchHint + ": " + info.getPattern())) {
-
-					// the set is shared by all transactions with this hint and is iterated in prefetchHint() while other
-					// requests learn or combine patterns, so it must allow concurrent modification (ticket 1420)
-					final Set<PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new CopyOnWriteArraySet<>());
-
-					// store prefetching info and log info message
-					if (infos.add(info)) {
-
-						final String pattern = info.getPattern();
-						final long prefetchResultCount = getLong(new SimpleCypherQuery("MATCH p = " + pattern + " RETURN count(p)"));
-
-						if (prefetchResultCount < Settings.PrefetchingMaxCount.getValue(100_000)) {
-
-							if (logPrefetching || db.logQueries()) {
-
-								logger.info("{}: Activating prefetching for {} because it runs more than {} times in a single transaction", transactionId, pattern, threshold);
-							}
-
-						} else {
-
-							if (logPrefetching || db.logQueries()) {
-
-								logger.info("{}: NOT activating prefetching for {} because it returns more than {} results", transactionId, pattern, prefetchResultCount);
-							}
-
-							prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
-						}
-					}
-				}
-
-			} else {
-
-				final PrefetchInfo newInfo = new PrefetchInfo(query);
-				histogram.put(statement, newInfo);
+				learn(query);
 			}
 		}
 
 		logQuery(query.getStatement(), query.getParameters());
 	}
 
+	/**
+	 * Counts a relationship lookup and learns its pattern for the hint of this transaction once it ran more
+	 * often than the threshold.
+	 */
+	private void learn(final CypherQuery query) {
+
+		// The statement of a lookup does not contain the type of the node, and relationships of different source
+		// types can share a relationship type name, so the type is part of the key. Otherwise their lookups would
+		// be counted together and learned as a pattern for the type of the first one.
+		final String key        = query.getType() + " " + query.getStatement();
+		final PrefetchInfo info = histogram.get(key);
+
+		if (info == null) {
+
+			histogram.put(key, new PrefetchInfo(query));
+
+			return;
+		}
+
+		final int count      = info.incrementAndGetCount();
+		final int threshold  = Settings.PrefetchingThreshold.getValue();
+		final String pattern = info.getPattern();
+
+		if (count <= threshold || isBlacklisted(pattern)) {
+
+			return;
+		}
+
+		// the set is shared by all transactions with this hint and is iterated in prefetchHint() while other
+		// requests learn or combine patterns, so it must allow concurrent modification (ticket 1420)
+		final Set<PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new CopyOnWriteArraySet<>());
+
+		if (infos.contains(info)) {
+
+			return;
+		}
+
+		final long prefetchResultCount = getLong(new SimpleCypherQuery("MATCH p = " + pattern + " RETURN count(p)"));
+		final int maxCount             = Settings.PrefetchingMaxCount.getValue();
+
+		if (prefetchResultCount < maxCount) {
+
+			if (logPrefetching || db.logQueries()) {
+
+				logger.info("{}: Activating prefetching for {} because it runs more than {} times in a single transaction", transactionId, pattern, threshold);
+			}
+
+			infos.add(info);
+
+			PrefetchStatistics.patternLearned(prefetchHint, pattern);
+
+		} else {
+
+			blacklist(pattern, "it returns " + prefetchResultCount + " results, " + Settings.PrefetchingMaxCount.getKey() + " is " + maxCount);
+		}
+	}
+
 	protected void logQuery(final String query, final Map<String, Object> map) {
+
+		queryCount++;
 
 		if (db.logQueries()) {
 
@@ -980,9 +1109,14 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	 * Deactivates the prefetches of this transaction that did not pay off. A prefetch pattern is
 	 * type-wide (all nodes of a type with their relationships of some types), so its cost grows
 	 * with the database and not with the request it was learned for. Loading the graph is only
-	 * worth it when the request then serves many relationship lookups from it; a prefetch that
-	 * loads more entities per served lookup than the configured ratio is blacklisted for this
-	 * hint, otherwise every request with this hint would pay for loading the whole graph.
+	 * worth it when the request then serves many relationship lookups from it. A prefetch fails
+	 * its evaluation when it loads more entities per served lookup than the configured ratio, or
+	 * when it took longer than the served lookups would have taken. The second rule follows the
+	 * latency of the database: with a remote database, a lookup costs a network round trip, and
+	 * a prefetch pays off with far fewer served lookups than with a local one. The ratio limits
+	 * the memory a prefetch takes, whatever the latency. A prefetch that fails repeatedly is
+	 * deactivated for this hint (see fail), otherwise every request with this hint would pay for
+	 * loading the whole graph.
 	 */
 	private void evaluatePrefetching() {
 
@@ -991,17 +1125,20 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			return;
 		}
 
-		final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
-		final int costRatio           = Settings.PrefetchingCostRatio.getValue(100);
+		final int costRatio           = Settings.PrefetchingCostRatio.getValue();
+		final boolean compareDuration = Settings.PrefetchingCompareDuration.getValue();
+		final long lookupNanos        = averageLookupNanos.get();
 
-		for (final Map.Entry<PrefetchInfo, Long> entry : executedPrefetches.entrySet()) {
+		for (final Map.Entry<PrefetchInfo, ExecutedPrefetch> entry : executedPrefetches.entrySet()) {
 
 			final PrefetchInfo info = entry.getKey();
 			final String pattern    = info.getPattern();
-			final long entities     = entry.getValue();
+			final long entities     = entry.getValue().entities();
+			final long nanos        = entry.getValue().nanos();
 
-			// a modification in this transaction invalidated the prefetched data (and the hit counting with it)
-			if (entities == 0 || !prefetchedQueries.contains(pattern)) {
+			// a modification in this transaction invalidated the prefetched data (and the hit counting with it);
+			// a pattern that loaded nothing is still evaluated, it can answer lookups of nodes without relationships
+			if (!prefetchedQueries.contains(pattern)) {
 
 				continue;
 			}
@@ -1010,35 +1147,87 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 			for (final String key : info.getOutgoingSet()) {
 
-				hits += prefetchHits.getOrDefault(key, 0);
+				hits += prefetchHits.getOrDefault(key, Set.of()).size();
 			}
 
 			for (final String key : info.getIncomingSet()) {
 
-				hits += prefetchHits.getOrDefault(key, 0);
+				hits += prefetchHits.getOrDefault(key, Set.of()).size();
 			}
+
+			PrefetchStatistics.lookupsSaved(prefetchHint, pattern, hits);
 
 			if (entities > hits * costRatio) {
 
-				if (logPrefetching || db.logQueries()) {
+				fail(pattern, "it loaded " + entities + " entities for " + hits + " lookups, " + Settings.PrefetchingCostRatio.getKey() + " is " + costRatio);
 
-					logger.info("{}: Blacklisting prefetching pattern {} for {} because it loaded {} entities for {} lookups, {} is {}", transactionId, pattern, prefetchHint, entities, hits, Settings.PrefetchingCostRatio.getKey(), costRatio);
-				}
+			} else if (compareDuration && lookupNanos > 0L && nanos > hits * lookupNanos) {
 
-				prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
+				fail(pattern, "it took " + millis(nanos) + " ms, the " + hits + " lookups it answered would have taken about " + millis(hits * lookupNanos) + " ms");
 
-				if (infos != null) {
+			} else if (!failedPrefetches.contains(pattern)) {
 
-					infos.remove(info);
-				}
+				prefetchFailures.remove(prefetchHint + ": " + pattern);
 			}
 		}
 	}
 
-	private void optimizePrefetching() {
+	private boolean isBlacklisted(final String pattern) {
 
-		combinePrefetchingQueriesWithIdenticalTypeAndDirection();
-		combinePrefetchingQueriesWithInheritance();
+		return prefetchBlacklist.containsKey(prefetchHint + ": " + pattern);
+	}
+
+	/**
+	 * Counts a failed evaluation of a pattern and deactivates it once it failed in database.prefetching.maxfailures
+	 * transactions in a row. A hint names a kind of request, but its requests differ: a list can be asked for an
+	 * empty page, a detail request for an object without relationships. Such a request uses little or nothing of
+	 * the prefetched data, and deactivating the pattern for good on it would take the prefetch from all the other
+	 * requests with this hint, for which it pays off. A transaction without a failure starts the count again.
+	 */
+	private void fail(final String pattern, final String reason) {
+
+		// a transaction counts once, also when the prefetch was too slow and loaded too much
+		if (!failedPrefetches.add(pattern)) {
+
+			return;
+		}
+
+		final int maxFailures = Math.max(1, Settings.PrefetchingMaxFailures.getValue());
+		final int failures    = prefetchFailures.merge(prefetchHint + ": " + pattern, 1, Integer::sum);
+
+		PrefetchStatistics.evaluationFailed(prefetchHint, pattern);
+
+		if (logPrefetching || db.logQueries()) {
+
+			logger.info("{}: Prefetching pattern {} for {} failed {} of {} times in a row because {}", transactionId, pattern, prefetchHint, failures, maxFailures, reason);
+		}
+
+		if (failures >= maxFailures) {
+
+			blacklist(pattern, failures > 1 ? reason + ", in " + failures + " transactions in a row" : reason);
+		}
+	}
+
+	/**
+	 * Deactivates a pattern for the hint of this transaction, until the caches are flushed.
+	 */
+	private void blacklist(final String pattern, final String reason) {
+
+		if (logPrefetching || db.logQueries()) {
+
+			logger.info("{}: Blacklisting prefetching pattern {} for {} because {}", transactionId, pattern, prefetchHint, reason);
+		}
+
+		prefetchBlacklist.put(prefetchHint + ": " + pattern, true);
+		prefetchFailures.remove(prefetchHint + ": " + pattern);
+
+		final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
+		if (infos != null) {
+
+			infos.removeIf(info -> pattern.equals(info.getPattern()));
+		}
+
+		PrefetchStatistics.patternDeactivated(prefetchHint, pattern, reason);
 	}
 
 	private void combinePrefetchingQueriesWithIdenticalTypeAndDirection() {
@@ -1053,6 +1242,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 				final Map<String, Set<PrefetchInfo>> typesIncoming = new ConcurrentHashMap<>();
 
 				for (final PrefetchInfo info : infos) {
+
+					// a pattern that was deactivated in a concurrent transaction must not come back as part of a combined one
+					if (isBlacklisted(info.getPattern())) {
+
+						continue;
+					}
 
 					final String type = info.getType();
 
@@ -1081,16 +1276,19 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 							combinedIncoming.addAll(info.getIncomingSet());
 
 							relTypes.addAll(info.getRelationshipTypes());
-
-							prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
-
-							infos.remove(info);
 						}
 
 						final String pattern       = createPatternFromDetails(type, relTypes, true);
 						final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, true, combinedOutgoing, combinedIncoming, relTypes);
 
 						infos.add(newInfo);
+
+						PrefetchStatistics.patternLearned(prefetchHint, pattern);
+
+						for (final PrefetchInfo info : entriesToReplace) {
+
+							blacklist(info.getPattern(), "it is part of " + pattern);
+						}
 					}
 				}
 
@@ -1109,134 +1307,23 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 							combinedIncoming.addAll(info.getIncomingSet());
 
 							relTypes.addAll(info.getRelationshipTypes());
-
-							prefetchBlacklist.put(prefetchHint + ": " + info.getPattern(), true);
-
-							infos.remove(info);
 						}
 
 						final String pattern       = createPatternFromDetails(type, relTypes, false);
 						final PrefetchInfo newInfo = new PrefetchInfo(pattern, type, false, combinedOutgoing, combinedIncoming, relTypes);
 
 						infos.add(newInfo);
+
+						PrefetchStatistics.patternLearned(prefetchHint, pattern);
+
+						for (final PrefetchInfo info : entriesToReplace) {
+
+							blacklist(info.getPattern(), "it is part of " + pattern);
+						}
 					}
 				}
 			}
 		}
-	}
-
-	private void combinePrefetchingQueriesWithInheritance() {
-
-		// check if we can combine multiple prefetching queries into one
-		if (prefetchHint != null) {
-
-			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
-			if (infos != null) {
-
-				final Queue<PrefetchInfo> outgoingKeyQueue = new LinkedList<>();
-				final Queue<PrefetchInfo> incomingKeyQueue = new LinkedList<>();
-
-				for (final PrefetchInfo info : infos) {
-
-					if (info.isOutgoing()) {
-
-						outgoingKeyQueue.add(info);
-
-					} else {
-
-						incomingKeyQueue.add(info);
-					}
-				}
-
-				handleOutgoing(outgoingKeyQueue);
-				handleIncoming(incomingKeyQueue);
-			}
-		}
-	}
-
-	private void handleOutgoing(final Queue<PrefetchInfo> infos) {
-
-		boolean hasChanges = true;
-
-		while (infos.size() > 1 && hasChanges) {
-
-			hasChanges = false;
-
-			final PrefetchInfo info1 = infos.remove();
-			final PrefetchInfo info2 = infos.remove();
-
-			if (info1 != null && info2 != null) {
-
-				final String type1 = info1.getType();
-				final String type2 = info2.getType();
-				final String commonBaseType = getHighestCommonBaseType(type1, type2);
-
-				if (commonBaseType != null) {
-
-					hasChanges = true;
-
-					final Set<String> rels = SetUtils.union(info1.getRelationshipTypes(), info2.getRelationshipTypes());
-					final Set<String> set1 = SetUtils.union(info1.getOutgoingSet(), info2.getOutgoingSet());
-					final Set<String> set2 = SetUtils.union(info1.getIncomingSet(), info2.getIncomingSet());
-					final String pattern   = createPatternFromDetails(commonBaseType, rels, true);
-
-					infos.add(new PrefetchInfo(pattern, commonBaseType, true, set1, set2, rels));
-
-				} else {
-
-					// add types again
-					infos.add(info1);
-					infos.add(info2);
-				}
-			}
-		}
-	}
-
-	private void handleIncoming(final Queue<PrefetchInfo> queue) {
-
-		boolean hasChanges = true;
-
-		while (queue.size() > 1 && hasChanges) {
-
-			hasChanges = false;
-
-			final PrefetchInfo info1 = queue.remove();
-			final PrefetchInfo info2 = queue.remove();
-
-			if (info1 != null && info2 != null) {
-
-				final String type1 = info1.getType();
-				final String type2 = info2.getType();
-				final String commonBaseType = getHighestCommonBaseType(type1, type2);
-
-				if (commonBaseType != null) {
-
-					hasChanges = true;
-
-					final Set<String> rels = SetUtils.union(info1.getRelationshipTypes(), info2.getRelationshipTypes());
-					final Set<String> set1 = SetUtils.union(info1.getOutgoingSet(), info2.getOutgoingSet());
-					final Set<String> set2 = SetUtils.union(info1.getIncomingSet(), info2.getIncomingSet());
-					final String pattern   = createPatternFromDetails(commonBaseType, rels, false);
-
-					queue.add(new PrefetchInfo(pattern, commonBaseType, false, set1, set2, rels));
-
-				} else {
-
-					queue.add(info1);
-					queue.add(info2);
-				}
-			}
-		}
-	}
-
-	private String getHighestCommonBaseType(final String type1, final String type2) {
-
-		final Set<String> types1 = getBaseTypes(type1);
-		final Set<String> types2 = getBaseTypes(type2);
-
-		types1.retainAll(types2);
-
-		return Iterables.first(types1);
 	}
 
 	private String stringify(final Map map) {
@@ -1244,23 +1331,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		final Gson gson = new GsonBuilder().create();
 
 		return gson.toJson(map);
-	}
-
-	private Set<String> getBaseTypes(final String type) {
-
-		final Set<String> baseTypes = new LinkedHashSet<>();
-		final Queue<String> queue   = new LinkedList<>();
-
-		queue.add(type);
-
-		while (!queue.isEmpty()) {
-
-			final String c = queue.remove();
-
-			baseTypes.add(c);
-		}
-
-		return baseTypes;
 	}
 
 	public Iterable<org.structr.api.graph.Node<Long>> getCachedResult(final CypherQuery query) {
@@ -1286,6 +1356,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		}
 
 		return nodes;
+	}
+
+	private static String millis(final long nanos) {
+
+		return String.format(Locale.ROOT, "%.1f", nanos / 1_000_000.0);
 	}
 
 	private class PrefetchInfo {
@@ -1387,5 +1462,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 			return other.hashCode() == this.hashCode();
 		}
+	}
+
+	/**
+	 * A learned prefetch that ran in this transaction, with the number of entities it loaded and the time it took.
+	 */
+	protected record ExecutedPrefetch(long entities, long nanos) {
 	}
 }
