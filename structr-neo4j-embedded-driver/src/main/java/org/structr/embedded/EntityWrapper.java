@@ -90,9 +90,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 			return propertyCacheForDeletedEntities.get(name);
 		}
 
-		if (hasProperty(name)) {
+		// one property read instead of two (hasProperty and getProperty), Neo4j does not store null values
+		final Object value = entity.getProperty(name, null);
+		if (value != null) {
 
-			return revertFromStorage(entity.getProperty(name));
+			return revertFromStorage(value);
 		}
 
 		return null;

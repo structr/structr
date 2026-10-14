@@ -365,10 +365,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	public Iterable<Relationship<Long>> getRelationships(final MemoryNode node) {
 
-		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id = node.getIdentity();
-
-		return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity()) || id.equals(r.getTargetNodeIdentity())), tx.getRelationships(null)));
+		return bothDirections(node, null);
 	}
 
 	public Iterable<Relationship<Long>> getRelationships(final MemoryNode node, final Direction direction) {
@@ -380,15 +377,15 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 			case BOTH:
 
-				return getRelationships(node);
+				return bothDirections(node, null);
 
 			case INCOMING:
 
-				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getTargetNodeIdentity())), tx.getRelationships(null)));
+				return inCreationOrder(Iterables.filter(r -> (id.equals(r.getTargetNodeIdentity())), tx.getRelationships(new TargetNodeFilter<>(id))));
 
 			case OUTGOING:
 
-				return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity())), tx.getRelationships(null)));
+				return inCreationOrder(Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity())), tx.getRelationships(new SourceNodeFilter<>(id))));
 		}
 
 		return null;
@@ -404,15 +401,15 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 			case BOTH:
 
-				return getRelationships(node);
+				return bothDirections(node, relType);
 
 			case INCOMING:
 
-				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getTargetNodeIdentity())), tx.getRelationships(new TargetNodeFilter<>(id))));
+				return inCreationOrder(Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getTargetNodeIdentity())), tx.getRelationships(new TargetNodeFilter<>(id))));
 
 			case OUTGOING:
 
-				return Iterables.map(n -> n, Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getSourceNodeIdentity())), tx.getRelationships(new SourceNodeFilter<>(id))));
+				return inCreationOrder(Iterables.filter(r -> (r.getType().name().equals(relType) && id.equals(r.getSourceNodeIdentity())), tx.getRelationships(new SourceNodeFilter<>(id))));
 		}
 
 		return null;
@@ -421,18 +418,13 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	public void delete(final MemoryNode node) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id    = node.getIdentity();
 
 		tx.delete(node);
 
 		// remove relationships as well
-		for (final Iterator<MemoryRelationship> it = tx.getRelationships(null).iterator(); it.hasNext();) {
+		for (final Relationship<Long> rel : bothDirections(node, null)) {
 
-			final MemoryRelationship rel = it.next();
-			if (id.equals(rel.getSourceNodeIdentity()) || id.equals(rel.getTargetNodeIdentity())) {
-
-				tx.delete(rel);
-			}
+			tx.delete((MemoryRelationship) rel);
 		}
 	}
 
@@ -524,6 +516,51 @@ public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 	void updateCache(final MemoryRelationship relationship) {
 
 		relationships.updateCache(relationship);
+	}
+
+	/**
+	 * The relationships of a node in both directions, of one type or of all types if the type is null, in the order of
+	 * their creation. They are looked up through the source and target indexes. A relationship from the node to itself
+	 * is in both indexes and counts once.
+	 */
+	private Iterable<Relationship<Long>> bothDirections(final MemoryNode node, final String relType) {
+
+		final MemoryTransaction tx            = getCurrentTransaction();
+		final MemoryIdentity id               = node.getIdentity();
+		final List<MemoryRelationship> result = new ArrayList<>();
+
+		for (final MemoryRelationship relationship : tx.getRelationships(new SourceNodeFilter<>(id))) {
+
+			if (id.equals(relationship.getSourceNodeIdentity()) && (relType == null || relationship.getType().name().equals(relType))) {
+
+				result.add(relationship);
+			}
+		}
+
+		for (final MemoryRelationship relationship : tx.getRelationships(new TargetNodeFilter<>(id))) {
+
+			if (id.equals(relationship.getTargetNodeIdentity()) && !id.equals(relationship.getSourceNodeIdentity()) && (relType == null || relationship.getType().name().equals(relType))) {
+
+				result.add(relationship);
+			}
+		}
+
+		return inCreationOrder(result);
+	}
+
+	/**
+	 * Relationships in the order of their creation, which callers rely on. The source and target indexes hold the
+	 * committed relationships in the order of the commits, which differs when transactions commit concurrently, and a
+	 * transaction lists the relationships it created before the committed ones. The identities are assigned from a
+	 * counter when a relationship is created, so their order is the order of creation.
+	 */
+	private Iterable<Relationship<Long>> inCreationOrder(final Iterable<MemoryRelationship> relationships) {
+
+		final List<MemoryRelationship> result = Iterables.toList(relationships);
+
+		result.sort((a, b) -> a.getIdentity().compareTo(b.getIdentity()));
+
+		return Iterables.map(n -> n, result);
 	}
 
 	// ----- nested classes -----

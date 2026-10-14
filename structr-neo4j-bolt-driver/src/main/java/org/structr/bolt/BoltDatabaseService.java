@@ -96,7 +96,10 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			final String instanceName = StringUtils.defaultIfBlank(instance, "unknown instance");
 			final String userAgent    = "structr/" + versionName  + "-" + instanceName;
 			final boolean isTesting   = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
-			final Config config       = Config.builder().withUserAgent(userAgent).build();
+
+			// The driver fetches the records of a result in batches, one network round trip each. With the default of
+			// 1000, a result of 10000 records costs ten round trips, and a larger batch costs memory for every open result.
+			final Config config = Config.builder().withUserAgent(userAgent).withFetchSize(10000).build();
 
 			try {
 

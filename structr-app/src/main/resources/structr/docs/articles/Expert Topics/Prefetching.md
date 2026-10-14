@@ -162,6 +162,10 @@ If your database runs on another host, use the `prefetchStatistics` maintenance 
 
 Independent of prefetching, every transaction costs round trips of its own: one to begin it and two to commit it, because the Neo4j driver resets the connection before it returns it to its pool. With a remote database, many small transactions are therefore noticeably slower than one transaction that does the same work.
 
+The Bolt driver also keeps the number of queries for writes low, because each of them costs a round trip as well. Setting a property to a new value writes the value together with the time and the user of the modification in one query, and setting a value that is equal to the stored one, including an array with the same elements, runs no query at all. Deleting a relationship runs one query: the relationship is removed from the cached relationships of both end nodes, so the remaining relationships of these nodes stay cached and the next lookup in the same transaction needs no query. Replacing the elements of a collection property therefore costs one query per removed element.
+
+Large results are transferred in batches of 10000 records, and each batch costs a round trip. A result of 10000 records takes one round trip instead of the ten that the default batch size of the Neo4j driver would take. The batch size is independent of the `database.result.fetchsize` setting, which controls the page size that Structr uses to page through large results.
+
 ## Related Topics
 
 - Configuration - General configuration settings

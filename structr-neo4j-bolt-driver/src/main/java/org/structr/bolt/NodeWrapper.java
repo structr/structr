@@ -171,6 +171,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType type, final Node targetNode) {
 
+		final String key = createKey(Direction.OUTGOING, type);
+		if (prefetched.contains(key)) {
+
+			return getCachedRelationshipTo(key, db.unwrap(targetNode.getId())) != null;
+		}
+
 		final SessionTransaction tx      = db.getCurrentTransaction();
 		final Map<String, Object> params = new LinkedHashMap<>();
 		final String tenantIdentifier    = getTenantIdentifier(db);
@@ -195,6 +201,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public Relationship<Long> getRelationshipTo(final RelationshipType type, final Node<Long> targetNode) {
 
+		final String key = createKey(Direction.OUTGOING, type);
+		if (prefetched.contains(key)) {
+
+			return getCachedRelationshipTo(key, db.unwrap(targetNode.getId()));
+		}
+
 		final SessionTransaction tx                 = db.getCurrentTransaction();
 		final Map<String, Object> params            = new LinkedHashMap<>();
 		final String tenantIdentifier               = getTenantIdentifier(db);
@@ -204,7 +216,11 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		try {
 
-			return tx.getRelationshipWrapper(tx.getRelationship(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN r"), params)));
+			final org.neo4j.driver.types.Relationship relationship = tx.getRelationship(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ")-[r:", type.name(), "]->(m", tenantIdentifier, ") WHERE id(n) = $id1 AND id(m) = $id2 RETURN r"), params));
+			if (relationship != null) {
+
+				return tx.getRelationshipWrapper(relationship);
+			}
 
 		} catch (Throwable t) {
 
@@ -319,6 +335,15 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	/**
+	 * Removes a deleted relationship from the relationship cache. A key that is marked as prefetched stays complete
+	 * without it, so the next lookup of the key needs no query.
+	 */
+	public void removeRelationship(final RelationshipWrapper rel) {
+
+		relationshipCache.remove(createKey(rel), rel);
+	}
+
+	/**
 	 * Notifies this NodeWrapper that all keys contained in the keys parameter
 	 * can be considered prefetched, so no additional database query needs to
 	 * be made in the current transaction.
@@ -373,7 +398,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			relationshipCache.insert(relKey, rel);
 			list.add(rel);
 
-			prefetched.add(relKey);
+			// The result is complete for the keys in the subtree of the queried key only. A relationship from this node
+			// to itself is stored under the OUTGOING key, but an INCOMING query does not return the other outgoing ones.
+			if (relKey.equals(key) || relKey.startsWith(key + "/")) {
+
+				prefetched.add(relKey);
+			}
 		}
 
 		prefetched.add(key);
@@ -409,6 +439,28 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		}
 
 		return buf.toString();
+	}
+
+	/**
+	 * The relationship to the target node among the cached relationships of the key. The key must be marked as
+	 * prefetched, so that the cache holds all relationships of this node for it, and no cached relationship to the
+	 * target node means that there is none in the database.
+	 */
+	private Relationship<Long> getCachedRelationshipTo(final String key, final long targetNodeId) {
+
+		final Iterable<Relationship<Long>> relationships = relationshipCache.get(key);
+		if (relationships != null) {
+
+			for (final Relationship<Long> relationship : relationships) {
+
+				if (((RelationshipWrapper) relationship).getTargetNodeId() == targetNodeId) {
+
+					return relationship;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**

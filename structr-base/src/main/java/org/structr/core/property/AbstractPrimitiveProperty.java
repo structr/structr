@@ -220,6 +220,9 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			// catch all sorts of errors and wrap them in a FrameworkException
 			try {
 
+				// the value and the access information are written together, which the Bolt driver does in one query instead of one per property
+				final Map<String, Object> properties = new LinkedHashMap<>();
+
 				// save space
 				if (convertedValue == null) {
 
@@ -229,7 +232,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 					if (!isSystemInternal() || internalSystemPropertiesUnlocked) {
 
-						propertyContainer.setProperty(dbName(), convertedValue);
+						properties.put(dbName(), convertedValue);
 
 					} else {
 
@@ -238,7 +241,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 					}
 				}
 
-				updateAccessInformation(securityContext, propertyContainer);
+				addAccessInformation(securityContext, properties);
+
+				if (!properties.isEmpty()) {
+
+					propertyContainer.setProperties(properties);
+				}
 
 			} catch (final RetryException rex) {
 
@@ -417,7 +425,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 	}
 
 	// ----- private methods -----
-	private void updateAccessInformation(final SecurityContext securityContext, final PropertyContainer propertyContainer) throws FrameworkException {
+	private void addAccessInformation(final SecurityContext securityContext, final Map<String, Object> properties) {
 
 		try {
 
@@ -438,10 +446,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 						modifiedById = user.getUuid();
 					}
 
-					propertyContainer.setProperty(GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, modifiedById);
+					properties.put(GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, modifiedById);
 				}
 
-				propertyContainer.setProperty(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, System.currentTimeMillis());
+				properties.put(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, System.currentTimeMillis());
 			}
 
 		} catch (Throwable t) {

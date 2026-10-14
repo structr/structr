@@ -25,6 +25,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.flow.impl.FlowStore;
 import org.structr.flow.traits.definitions.FlowStoreTraitDefinition;
 import org.structr.core.traits.StructrTraits;
@@ -34,6 +35,7 @@ import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.flow.engine.FlowError;
 import org.structr.flow.impl.*;
 import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
+import org.structr.flow.traits.definitions.FlowForkTraitDefinition;
 import org.structr.flow.traits.definitions.FlowTypeQueryTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
@@ -136,6 +138,11 @@ public class FlowTest extends StructrUiTest {
 			agg.setScript("{let data = $.get('data'); let currentData = $.get('currentData'); if (data === currentData || $.empty(currentData)) { throw 'ForEach scoping problem! Values should not be the same.' } }");
 			forEach.setLoopBody(agg);
 
+			// Setting the loop body could fail without an error, so the loop ran without a body and the
+			// scoping check in the script above did not run.
+			assertNotNull("The loop body must be set", forEach.getLoopBody());
+			assertEquals("The loop body must be set", agg.getUuid(), forEach.getLoopBody().getUuid());
+
 			// evaluate() RETURNS the FlowError when a flow fails and otherwise only logs it, so discarding
 			// the return value is what let a broken flow count as a passing test.
 			final Object result = container.evaluate(securityContext, new HashMap<>());
@@ -150,6 +157,38 @@ public class FlowTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void testFlowForkBody() {
+
+		// The fork body is a one-to-one relationship, and setting it checks the existing incoming relationship
+		// of the body, which needs the inverse property on FlowNode.
+
+		try (final Tx tx = app.tx()) {
+
+			final FlowFork fork        = app.create(StructrTraits.FLOW_FORK).as(FlowFork.class);
+			final FlowAggregate first  = app.create(StructrTraits.FLOW_AGGREGATE).as(FlowAggregate.class);
+			final FlowAggregate second = app.create(StructrTraits.FLOW_AGGREGATE).as(FlowAggregate.class);
+			final PropertyKey<NodeInterface> forkBody = Traits.of(StructrTraits.FLOW_FORK).key(FlowForkTraitDefinition.LOOP_BODY_PROPERTY);
+
+			fork.setProperty(forkBody, first);
+
+			assertNotNull("The fork body must be set", fork.getForkBody());
+			assertEquals("The fork body must be set", first.getUuid(), fork.getForkBody().getUuid());
+
+			fork.setProperty(forkBody, second);
+
+			assertEquals("The fork body must be replaced", second.getUuid(), fork.getForkBody().getUuid());
+			assertEquals("The fork body must be replaced", 1, Iterables.count(fork.getOutgoingRelationships(StructrTraits.FLOW_FORK_BODY)));
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 	@Test
