@@ -259,8 +259,34 @@ public class AdminOnlyEndpointTest extends StructrUiTest {
 				.statusCode(200)
 				.body("result.availableLogFiles", notNullValue())
 				.body("result.lines", notNullValue())
+				.body("result.offset", notNullValue())
 			.when()
 				.get("/_serverLog?lines=10&filter=INFO");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(200)
+				.body("result.rotated", notNullValue())
+			.when()
+				.get("/_serverLog?since=0&level=warn");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(422)
+			.when()
+				.get("/_serverLog?level=CRITICAL");
+
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(422)
+			.when()
+				.get("/_serverLog?since=-5");
 
 		RestAssured
 			.given()

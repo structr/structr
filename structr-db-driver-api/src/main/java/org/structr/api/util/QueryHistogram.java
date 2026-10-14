@@ -20,144 +20,115 @@ package org.structr.api.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Collects the duration of every query per statement since startup: count, total, minimum and maximum.
+ * Memory depends on the number of distinct statements, which is capped, and recording a query only
+ * locks the entry of its own statement.
+ */
 public class QueryHistogram {
 
-	private static final List<QueryTimer> timers = new LinkedList<>();
-	private static final int HISTOGRAM_SIZE      = 100_000;
+	private static final Map<String, Entry> entries = new ConcurrentHashMap<>();
+	private static final int MAX_STATEMENTS         = 10_000;
+	private static final String OTHER_STATEMENTS    = "(statements beyond the first " + MAX_STATEMENTS + " distinct ones)";
 
+	private static final String QUERY      = "Query";
 	private static final String COUNT      = "Count";
 	private static final String TOTAL_TIME = "Overall time (s)";
 	private static final String MAX_TIME   = "Maximum time (s)";
 	private static final String MIN_TIME   = "Minimum time (s)";
 	private static final String AVG_TIME   = "Average time (s)";
 
-	public static synchronized QueryTimer newTimer() {
-
-		final QueryTimer timer = new QueryTimer();
-
-		// remove first element
-		if (timers.size() > HISTOGRAM_SIZE) {
-
-			timers.remove(0);
-		}
-
-		timers.add(timer);
-
-		return timer;
+	public static QueryTimer newTimer() {
+		return new QueryTimer();
 	}
 
-	public static synchronized void clear() {
-
-		timers.clear();
+	public static void clear() {
+		entries.clear();
 	}
 
-	public static synchronized List<Map<String, Object>> analyze(final String sortKey, final int topCount) {
+	static void record(final String statement, final long nanos) {
 
-		final Map<String, Map<String, Object>> data = new LinkedHashMap<>();
-		final List<Map<String, Object>> sorted      = new LinkedList<>();
-		String actualSortKey                        = TOTAL_TIME;
+		Entry entry = entries.get(statement);
+		if (entry == null) {
 
-		if (sortKey != null) {
+			// statements with inline values would otherwise grow the map without end
+			final String key = entries.size() < MAX_STATEMENTS ? statement : OTHER_STATEMENTS;
 
-			switch (sortKey) {
-
-				case "min":
-					actualSortKey = MIN_TIME;
-					break;
-
-				case "max":
-					actualSortKey = MAX_TIME;
-					break;
-
-				case "avg":
-					actualSortKey = AVG_TIME;
-					break;
-
-				case "count":
-					actualSortKey = COUNT;
-					break;
-			}
+			entry = entries.computeIfAbsent(key, k -> new Entry());
 		}
 
-		for (final QueryTimer timer : timers) {
+		entry.add(nanos);
+	}
 
-			if (!timer.isEmpty()) {
+	public static List<Map<String, Object>> analyze(final String sortKey, final int topCount) {
 
-				final String statement    = timer.getStatement();
-				final double duration     = timer.getOverallDuration();
-				Map<String, Object> value = data.get(statement);
+		final List<Map<String, Object>> sorted = new ArrayList<>();
+		final String actualSortKey             = switch (sortKey != null ? sortKey : "") {
 
-				if (value == null) {
+			case "min"   -> MIN_TIME;
+			case "max"   -> MAX_TIME;
+			case "avg"   -> AVG_TIME;
+			case "count" -> COUNT;
+			default      -> TOTAL_TIME;
+		};
 
-					value = new LinkedHashMap<>();
-					data.put(statement, value);
+		for (final Map.Entry<String, Entry> entry : entries.entrySet()) {
 
-					// store statement in map as well
-					value.put("Query", statement);
-				}
+			final long[] values = entry.getValue().snapshot();
+			final long count    = values[0];
 
-				value.put(COUNT,      get(value, COUNT, 0.0) + 1.0);
-				value.put(TOTAL_TIME, get(value, TOTAL_TIME, 0.0) + duration);
-				value.put(MAX_TIME,   Math.max(get(value, MAX_TIME, Double.MIN_VALUE), duration));
-				value.put(MIN_TIME,   Math.min(get(value, MIN_TIME, Double.MAX_VALUE), duration));
-			}
-		}
+			if (count == 0) {
 
-		for (final Map<String, Object> value : data.values()) {
-
-			// calculate average
-			final double count = get(value, COUNT,      1.0);
-			final double time  = get(value, TOTAL_TIME, 0.0);
-
-			if (count > 0) {
-
-				value.put(AVG_TIME, (time / count));
-
-			} else {
-
-				value.put(AVG_TIME, 0L);
+				continue;
 			}
 
-			// round values to 4 decimal places
-			round(value, COUNT,      0);
-			round(value, TOTAL_TIME, 8);
-			round(value, MAX_TIME,   8);
-			round(value, MIN_TIME,   8);
-			round(value, AVG_TIME,   8);
+			final Map<String, Object> value = new LinkedHashMap<>();
+
+			value.put(QUERY,      entry.getKey());
+			value.put(COUNT,      BigDecimal.valueOf(count));
+			value.put(TOTAL_TIME, seconds(values[1]));
+			value.put(MAX_TIME,   seconds(values[3]));
+			value.put(MIN_TIME,   seconds(values[2]));
+			value.put(AVG_TIME,   seconds(values[1] / (double) count));
 
 			sorted.add(value);
 		}
 
-		final String finalActualSortKey = actualSortKey;
-
-		Collections.sort(sorted, (v1, v2) -> {
-
-			final BigDecimal count1 = (BigDecimal)v1.get(finalActualSortKey);
-			final BigDecimal count2 = (BigDecimal)v2.get(finalActualSortKey);
-
-			return count2.compareTo(count1);
-		});
+		sorted.sort((v1, v2) -> ((BigDecimal) v2.get(actualSortKey)).compareTo((BigDecimal) v1.get(actualSortKey)));
 
 		return sorted.subList(0, Math.max(0, Math.min(sorted.size(), topCount)));
 	}
 
-	private static double get(final Map<String, Object> value, final String key, final double defaultValue) {
+	// ----- private methods -----
+	private static BigDecimal seconds(final double nanos) {
 
-		final Double data = (Double)value.get(key);
-		if (data != null) {
-
-			return data;
-		}
-
-		return defaultValue;
+		return BigDecimal.valueOf(nanos / 1_000_000_000.0).setScale(8, RoundingMode.CEILING);
 	}
 
-	private static void round(final Map<String, Object> value, final String key, final int scale) {
+	private static final class Entry {
 
-		final BigDecimal decimal = BigDecimal.valueOf(get(value, key, 0.0));
+		private long count = 0L;
+		private long total = 0L;
+		private long min   = Long.MAX_VALUE;
+		private long max   = 0L;
 
-		value.put(key, decimal.setScale(scale, RoundingMode.CEILING));
+		synchronized void add(final long nanos) {
+
+			count++;
+			total += nanos;
+			min    = Math.min(min, nanos);
+			max    = Math.max(max, nanos);
+		}
+
+		synchronized long[] snapshot() {
+
+			return new long[] { count, total, min, max };
+		}
 	}
 }

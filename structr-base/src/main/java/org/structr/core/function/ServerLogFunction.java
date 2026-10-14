@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServerLogFunction extends AdvancedScriptingFunction {
@@ -162,7 +163,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 			try (final ReversedLinesFileReader reader = ReversedLinesFileReader.builder().setPath(logFile.toPath()).setBufferSize(4096).setCharset(StandardCharsets.UTF_8).get()) {
 
-				final StringBuilder sb = new StringBuilder();
+				final List<String> lines = new ArrayList<>();
 
 				while (linesToGet > 0) {
 
@@ -180,11 +181,19 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 						if (filterEmpty || line.contains(filter)) {
 
-							sb.insert(0, line.concat("\n"));
+							lines.add(line);
 
 							linesToGet--;
 						}
 					}
+				}
+
+				// read backwards, so reversing once restores the order without copying for every line
+				final StringBuilder sb = new StringBuilder();
+
+				for (int i = lines.size() - 1; i >= 0; i--) {
+
+					sb.append(lines.get(i)).append('\n');
 				}
 
 				return sb.toString();
