@@ -309,6 +309,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 				// isolate doPost
 				boolean retry = true;
+				int attempts  = 0;
 
 				while (retry) {
 
@@ -352,7 +353,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 								} catch (RetryException ddex) {
 
-									retry = true;
+									retry = RetryException.retry(ddex, ++attempts);
 								}
 
 							}
@@ -370,7 +371,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 							} catch (RetryException ddex) {
 
-								retry = true;
+								retry = RetryException.retry(ddex, ++attempts);
 							}
 						}
 
@@ -390,7 +391,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 						} catch (RetryException ddex) {
 
-							retry = true;
+							retry = RetryException.retry(ddex, ++attempts);
 						}
 					}
 				}

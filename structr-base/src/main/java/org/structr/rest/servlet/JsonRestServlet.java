@@ -136,6 +136,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate doDelete
 			boolean retry = true;
+			int attempts  = 0;
 
 			while (retry) {
 
@@ -146,7 +147,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				} catch (RetryException ddex) {
 
-					retry = true;
+					retry = RetryException.retry(ddex, ++attempts);
 				}
 			}
 
@@ -371,6 +372,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate doPost
 				boolean retry = true;
+				int attempts  = 0;
 
 				while (retry) {
 
@@ -390,7 +392,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 						} catch (RetryException ddex) {
 
-							retry = true;
+							retry = RetryException.retry(ddex, ++attempts);
 						}
 
 					} else {
@@ -406,7 +408,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 						} catch (RetryException ddex) {
 
-							retry = true;
+							retry = RetryException.retry(ddex, ++attempts);
 						}
 					}
 				}
@@ -569,6 +571,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate doPut
 				boolean retry = true;
+				int attempts  = 0;
 
 				while (retry) {
 
@@ -582,7 +585,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					} catch (RetryException ddex) {
 
-						retry = true;
+						retry = RetryException.retry(ddex, ++attempts);
 					}
 				}
 
@@ -708,6 +711,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate doPatch
 				boolean retry = true;
+				int attempts  = 0;
 
 				while (retry) {
 
@@ -721,7 +725,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					} catch (RetryException ddex) {
 
-						retry = true;
+						retry = RetryException.retry(ddex, ++attempts);
 					}
 				}
 
