@@ -36,6 +36,7 @@ import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryTimer;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -101,6 +102,7 @@ class BlockingSessionTransaction extends SessionTransaction {
 	@Override
 	public void close() {
 
+		recordOpenTimers();
 		clearChangeset();
 
 		try {
@@ -150,6 +152,8 @@ class BlockingSessionTransaction extends SessionTransaction {
 	@Override
 	protected Boolean getBoolean(final CypherQuery query) {
 
+		final QueryTimer timer = startTimer(query.getStatement());
+
 		try {
 
 			logQuery(query);
@@ -165,11 +169,17 @@ class BlockingSessionTransaction extends SessionTransaction {
 		} catch (RuntimeException ex) {
 
 			throw translate(ex);
+
+		} finally {
+
+			timer.finished();
 		}
 	}
 
 	@Override
 	protected Long getLong(final CypherQuery query) {
+
+		final QueryTimer timer = startTimer(query.getStatement());
 
 		try {
 
@@ -191,11 +201,17 @@ class BlockingSessionTransaction extends SessionTransaction {
 		} catch (RuntimeException ex) {
 
 			throw translate(ex);
+
+		} finally {
+
+			timer.finished();
 		}
 	}
 
 	@Override
 	protected Node getNode(final CypherQuery query) {
+
+		final QueryTimer timer = startTimer(query.getStatement());
 
 		try {
 
@@ -217,11 +233,17 @@ class BlockingSessionTransaction extends SessionTransaction {
 		} catch (RuntimeException ex) {
 
 			throw translate(ex);
+
+		} finally {
+
+			timer.finished();
 		}
 	}
 
 	@Override
 	protected Relationship getRelationship(final CypherQuery query) {
+
+		final QueryTimer timer = startTimer(query.getStatement());
 
 		try {
 
@@ -248,6 +270,10 @@ class BlockingSessionTransaction extends SessionTransaction {
 
 			// the only branch here that does not rethrow, so the cause would be lost otherwise
 			logger.warn("Unable to fetch relationship: {}", t.getMessage(), t);
+
+		} finally {
+
+			timer.finished();
 		}
 
 		return null;
@@ -260,10 +286,11 @@ class BlockingSessionTransaction extends SessionTransaction {
 
 			logQuery(query);
 
-			final Result result = tx.run(query.getStatement(), query.getParameters());
+			final QueryTimer timer = startTimer(query.getStatement());
+			final Result result    = tx.run(query.getStatement(), query.getParameters());
 
 			// a result can be read only once, like the iterable that ReactiveSessionTransaction returns
-			return () -> new TranslatingIterator(result);
+			return timed(timer, () -> new TranslatingIterator(result));
 
 		} catch (RuntimeException ex) {
 
@@ -273,6 +300,8 @@ class BlockingSessionTransaction extends SessionTransaction {
 
 	@Override
 	protected Iterable<Map<String, Object>> run(final CypherQuery query) {
+
+		final QueryTimer timer = startTimer(query.getStatement());
 
 		try {
 
@@ -285,11 +314,17 @@ class BlockingSessionTransaction extends SessionTransaction {
 		} catch (RuntimeException ex) {
 
 			throw translate(ex);
+
+		} finally {
+
+			timer.finished();
 		}
 	}
 
 	@Override
 	protected void set(final String statement, final Map<String, Object> map) {
+
+		final QueryTimer timer = startTimer(statement);
 
 		try {
 
@@ -300,6 +335,10 @@ class BlockingSessionTransaction extends SessionTransaction {
 		} catch (RuntimeException ex) {
 
 			throw translate(ex);
+
+		} finally {
+
+			timer.finished();
 		}
 	}
 
