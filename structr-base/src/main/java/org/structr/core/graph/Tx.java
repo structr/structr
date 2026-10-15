@@ -18,6 +18,8 @@
  */
 package org.structr.core.graph;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Prefetcher;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
@@ -36,6 +38,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 public class Tx implements AutoCloseable, Prefetcher {
+
+	private static final Logger logger = LoggerFactory.getLogger(Tx.class);
 
 	private final AtomicBoolean guard       = new AtomicBoolean(false);
 	private SecurityContext securityContext = null;
@@ -121,52 +125,63 @@ public class Tx implements AutoCloseable, Prefetcher {
 			boolean retry          = true;
 			int attempts           = 0;
 
-			while (retry) {
+			try {
 
-				retry = false;
+				while (retry) {
 
-				// experimental
-				try (final Tx tx = begin()) {
+					retry = false;
 
-					if (doCallbacks && modificationQueue != null) {
+					// experimental
+					try (final Tx tx = begin()) {
 
-						modificationQueue.doOuterCallbacks(securityContext);
+						if (doCallbacks && modificationQueue != null) {
 
-						// notify listeners if desired, and allow this setting to be overriden locally AND remotely
-						if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.doTransactionNotifications() ) {
+							modificationQueue.doOuterCallbacks(securityContext);
 
-							final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+							// notify listeners if desired, and allow this setting to be overriden locally AND remotely
+							if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.doTransactionNotifications() ) {
 
-							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+								final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
 
-								listener.afterCommit(securityContext, modificationEvents);
+								for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+									listener.afterCommit(securityContext, modificationEvents);
+								}
 							}
+
+							hasChanges = modificationQueue.hasChanges();
+
+							if (hasChanges) {
+
+								ids.clear();
+								ids.addAll(modificationQueue.getIds());
+							}
+
+							modificationQueue.updateChangelog();
 						}
 
-						hasChanges = modificationQueue.hasChanges();
+						tx.success();
 
-						if (hasChanges) {
+					} catch (FrameworkException fex) {
 
-							ids.addAll(modificationQueue.getIds());
-						}
+						retry = retryCallbacks(fex, ++attempts);
 
-						modificationQueue.updateChangelog();
-						modificationQueue.clear();
+					} catch (RuntimeException rex) {
+
+						retry = retryCallbacks(rex, ++attempts);
 					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-
-					retry = RetryException.retry(fex, ++attempts);
-
-				} catch (RuntimeException rex) {
-
-					retry = RetryException.retry(rex, ++attempts);
 				}
-			}
 
-			guard.set(false);
+				// the queue is cleared only after the commit, so that a repetition runs the callbacks again
+				if (doCallbacks && modificationQueue != null) {
+
+					modificationQueue.clear();
+				}
+
+			} finally {
+
+				guard.set(false);
+			}
 
 			// only for clustering
 			if (hasChanges) {
@@ -180,6 +195,31 @@ public class Tx implements AutoCloseable, Prefetcher {
 				
 				securityContext.getContextStore().clearFunctionPropertyCache();
 			}
+		}
+	}
+
+	/**
+	 * Repeats the callbacks after the commit if the database terminated their transaction. The data of the transaction
+	 * that this Tx belongs to is already committed at this point, so when the callbacks fail for good, the exception
+	 * must not contain the RetryException, otherwise the caller would repeat the whole transaction and create its
+	 * data a second time.
+	 */
+	private <E extends Exception> boolean retryCallbacks(final E ex, final int attempts) throws E, FrameworkException {
+
+		try {
+
+			return RetryException.retry(ex, attempts);
+
+		} catch (Exception failed) {
+
+			if (RetryException.find(ex) != null) {
+
+				logger.error("Unable to run the callbacks of a committed transaction after {} attempts", attempts, ex);
+
+				throw new FrameworkException(500, "The transaction was committed, but its callbacks could not be completed: " + ex.getMessage());
+			}
+
+			throw ex;
 		}
 	}
 

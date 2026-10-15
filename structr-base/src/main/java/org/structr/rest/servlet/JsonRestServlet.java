@@ -380,6 +380,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				while (retry) {
 
+					// a repetition must not return the objects of the attempt that was rolled back
+					results.clear();
+					securityContext.getCreationDetails().clear();
+
 					if (handler.createPostTransaction()) {
 
 						try (final Tx tx = app.tx()) {
@@ -718,18 +722,18 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
-				final List<Map<String, Object>> inputs = new LinkedList<>();
-
-				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
-
-					inputs.add(convertPropertySetToMap(propertySet));
-				}
-
 				// isolate doPatch
 				boolean retry = true;
 				int attempts  = 0;
 
 				while (retry) {
+
+					final List<Map<String, Object>> inputs = new LinkedList<>();
+
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+						inputs.add(convertPropertySetToMap(propertySet));
+					}
 
 					try (final Tx tx = app.tx()) {
 
@@ -1000,7 +1004,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		if (propertySet != null) {
 
-			return propertySet.getAttributes();
+			// handlers may remove entries, e.g. PATCH removes the id, so a repeated transaction needs a fresh copy
+			return new LinkedHashMap<>(propertySet.getAttributes());
 		}
 
 		return new LinkedHashMap<>();

@@ -137,13 +137,16 @@ public class ForkHandler implements FlowHandler {
 					// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
 					RetryException.repeat(() -> {
 
+						// each attempt starts from a copy, so that the result or error of a terminated attempt does not end the next one early
+						final Context attempt = new Context(context);
+
 						try (final Tx tx = app.tx()) {
 
-							fork.as(FlowFork.class).handle(context);
+							fork.as(FlowFork.class).handle(attempt);
 
-							final FlowEngine engine = new FlowEngine(context);
+							final FlowEngine engine = new FlowEngine(attempt);
 
-							result[0] = engine.execute(context, startNode.as(FlowNode.class));
+							result[0] = engine.execute(attempt, startNode.as(FlowNode.class));
 
 							tx.success();
 						}
