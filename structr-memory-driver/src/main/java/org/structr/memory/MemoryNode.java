@@ -46,6 +46,12 @@ public class MemoryNode extends MemoryEntity implements Node<Long> {
 	}
 
 	@Override
+	public void acquireWriteLock() {
+
+		lock();
+	}
+
+	@Override
 	public Relationship<Long> createRelationshipTo(final Node<Long> endNode, final RelationshipType relationshipType) {
 
 		if (getId().compareTo(endNode.getId()) == -1) {

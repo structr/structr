@@ -20,6 +20,7 @@ package org.structr.flow.engine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -131,20 +132,27 @@ public class ForkHandler implements FlowHandler {
 
 				if (startNode != null && fork != null) {
 
-					Object result = null;
+					final Object[] result = { null };
 
-					try (final Tx tx = app.tx()) {
+					// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
+					RetryException.repeat(() -> {
 
-						fork.as(FlowFork.class).handle(context);
+						// each attempt starts from a copy, so that the result or error of a terminated attempt does not end the next one early
+						final Context attempt = new Context(context);
 
-						final FlowEngine engine = new FlowEngine(context);
+						try (final Tx tx = app.tx()) {
 
-						result = engine.execute(context, startNode.as(FlowNode.class));
+							fork.as(FlowFork.class).handle(attempt);
 
-						tx.success();
-					}
+							final FlowEngine engine = new FlowEngine(attempt);
 
-					return result;
+							result[0] = engine.execute(attempt, startNode.as(FlowNode.class));
+
+							tx.success();
+						}
+					});
+
+					return result[0];
 
 				}
 

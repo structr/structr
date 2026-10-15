@@ -18,6 +18,7 @@
  */
 package org.structr.memory;
 
+import org.structr.api.RetryException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -41,6 +42,7 @@ public class MemoryTransaction implements Transaction<Long> {
 	private final Map<MemoryIdentity, MemoryRelationship> deletedRelationships = new LinkedHashMap<>();
 	//private final Map<MemoryIdentity, MemoryNode> createdNodes                 = new LinkedHashMap<>();
 	private final Set<MemoryEntity> modifiedEntities                           = new LinkedHashSet<>();
+	private final Set<MemoryEntity> lockedEntities                             = new LinkedHashSet<>();
 	private final Set<MemoryIdentity> deletedNodes                             = new LinkedHashSet<>();
 	private final Set<Long> nodesCreated                                       = new LinkedHashSet<>();
 	private final long transactionId                                           = idCounter.incrementAndGet();
@@ -48,6 +50,9 @@ public class MemoryTransaction implements Transaction<Long> {
 	private boolean failureOverride                                            = false;
 	private boolean isPing                                                     = false;
 	private boolean success                                                    = false;
+
+	// set when this transaction was chosen to resolve a deadlock, so that it cannot commit even if the code that runs in it catches the RetryException
+	private RetryException terminated                                          = null;
 
 	public MemoryTransaction(final MemoryDatabaseService db) {
 
@@ -75,7 +80,7 @@ public class MemoryTransaction implements Transaction<Long> {
 	@Override
 	public boolean isSuccessful() {
 
-		return success;
+		return success && terminated == null;
 	}
 	@Override
 	public boolean isRolledBack() {
@@ -92,27 +97,41 @@ public class MemoryTransaction implements Transaction<Long> {
 	@Override
 	public void close() {
 
-		if (success && !failureOverride) {
+		try {
 
-			for (final MemoryEntity entity : modifiedEntities) {
+			if (success && !failureOverride && terminated == null) {
 
-				entity.commit(transactionId);
+				for (final MemoryEntity entity : modifiedEntities) {
+
+					entity.commit(transactionId);
+				}
+
+				db.commitTransaction(createdNodes.getMasterData(), createdRelationships.getMasterData(), deletedNodes, deletedRelationships);
+
+			} else {
+
+				for (final MemoryEntity entity : modifiedEntities) {
+
+					entity.rollback(transactionId);
+				}
+
+				db.rollbackTransaction();
 			}
 
-			db.commitTransaction(createdNodes.getMasterData(), createdRelationships.getMasterData(), deletedNodes, deletedRelationships);
+		} finally {
 
-		} else {
-
-			for (final MemoryEntity entity : modifiedEntities) {
-
-				entity.rollback(transactionId);
-			}
-
-			db.rollbackTransaction();
+			// the locks are released after the new relationships are visible, so a transaction that waited for a lock reads them
+			lockedEntities.stream().forEach(e -> e.unlock());
+			modifiedEntities.stream().forEach(e -> e.unlock());
+			createdNodes.getMasterData().values().stream().forEach(n -> n.unlock());
+			createdRelationships.getMasterData().values().stream().forEach(r -> r.unlock());
 		}
 
-		createdNodes.getMasterData().values().stream().forEach(n -> n.unlock());
-		createdRelationships.getMasterData().values().stream().forEach(r -> r.unlock());
+		if (terminated != null) {
+
+			// the code that ran in this transaction caught the RetryException, so it is thrown again here
+			throw new RetryException("The transaction was terminated to resolve a deadlock before it was closed", terminated);
+		}
 	}
 
 	@Override
@@ -149,6 +168,19 @@ public class MemoryTransaction implements Transaction<Long> {
 	public boolean isNodeDeleted(final Long id) {
 
 		return deletedNodes.contains(id);
+	}
+
+	void terminated(final RetryException rex) {
+
+		if (terminated == null) {
+
+			terminated = rex;
+		}
+	}
+
+	void locked(final MemoryEntity entity) {
+
+		lockedEntities.add(entity);
 	}
 
 	public void create(final MemoryNode newNode) {

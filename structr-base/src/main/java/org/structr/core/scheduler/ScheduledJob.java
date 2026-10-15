@@ -20,6 +20,7 @@ package org.structr.core.scheduler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
@@ -358,30 +359,37 @@ public abstract class ScheduledJob {
 
 		if (onFinishScript != null) {
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try {
 
-				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-				securityContext.setContextStore(ctxStore);
+				// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
+				RetryException.repeat(() -> {
 
-				ctxStore.setConstant("jobInfo", getJobInfo());
+					try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final ActionContext actionContext = new ActionContext(securityContext);
+						final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+						securityContext.setContextStore(ctxStore);
 
-				// If a polyglot function was supplied, execute it directly
-				if (onFinishScript instanceof PolyglotWrapper.FunctionWrapper) {
+						ctxStore.setConstant("jobInfo", getJobInfo());
 
-					((PolyglotWrapper.FunctionWrapper)onFinishScript).execute();
+						final ActionContext actionContext = new ActionContext(securityContext);
 
-				} else if (onFinishScript instanceof String) {
+						// If a polyglot function was supplied, execute it directly
+						if (onFinishScript instanceof PolyglotWrapper.FunctionWrapper) {
 
-					Scripting.evaluate(actionContext, null, (String)onFinishScript, jobName, null);
+							((PolyglotWrapper.FunctionWrapper)onFinishScript).execute();
 
-				} else if (onFinishScript != null) {
+						} else if (onFinishScript instanceof String) {
 
-					logger.warn("Unable to run jobFinishedScript of type {}, ignoring", onFinishScript.getClass().getName());
-				}
+							Scripting.evaluate(actionContext, null, (String)onFinishScript, jobName, null);
 
-				tx.success();
+						} else if (onFinishScript != null) {
+
+							logger.warn("Unable to run jobFinishedScript of type {}, ignoring", onFinishScript.getClass().getName());
+						}
+
+						tx.success();
+					}
+				});
 
 			} catch (Exception e) {
 
