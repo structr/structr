@@ -145,9 +145,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 					result = handler.doDelete(securityContext);
 					retry = false;
 
-				} catch (RetryException ddex) {
+				} catch (FrameworkException fex) {
 
-					retry = RetryException.retry(ddex, ++attempts);
+					retry = RetryException.retry(fex, ++attempts);
+
+				} catch (RuntimeException rex) {
+
+					retry = RetryException.retry(rex, ++attempts);
 				}
 			}
 
@@ -376,6 +380,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				while (retry) {
 
+					// a repetition must not return the objects of the attempt that was rolled back
+					results.clear();
+					securityContext.getCreationDetails().clear();
+
 					if (handler.createPostTransaction()) {
 
 						try (final Tx tx = app.tx()) {
@@ -390,9 +398,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 							tx.success();
 							retry = false;
 
-						} catch (RetryException ddex) {
+						} catch (FrameworkException fex) {
 
-							retry = RetryException.retry(ddex, ++attempts);
+							retry = RetryException.retry(fex, ++attempts);
+
+						} catch (RuntimeException rex) {
+
+							retry = RetryException.retry(rex, ++attempts);
 						}
 
 					} else {
@@ -406,9 +418,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 							retry = false;
 
-						} catch (RetryException ddex) {
+						} catch (FrameworkException fex) {
 
-							retry = RetryException.retry(ddex, ++attempts);
+							retry = RetryException.retry(fex, ++attempts);
+
+						} catch (RuntimeException rex) {
+
+							retry = RetryException.retry(rex, ++attempts);
 						}
 					}
 				}
@@ -583,9 +599,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 						tx.success();
 						retry = false;
 
-					} catch (RetryException ddex) {
+					} catch (FrameworkException fex) {
 
-						retry = RetryException.retry(ddex, ++attempts);
+						retry = RetryException.retry(fex, ++attempts);
+
+					} catch (RuntimeException rex) {
+
+						retry = RetryException.retry(rex, ++attempts);
 					}
 				}
 
@@ -702,18 +722,18 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
-				final List<Map<String, Object>> inputs = new LinkedList<>();
-
-				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
-
-					inputs.add(convertPropertySetToMap(propertySet));
-				}
-
 				// isolate doPatch
 				boolean retry = true;
 				int attempts  = 0;
 
 				while (retry) {
+
+					final List<Map<String, Object>> inputs = new LinkedList<>();
+
+					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+						inputs.add(convertPropertySetToMap(propertySet));
+					}
 
 					try (final Tx tx = app.tx()) {
 
@@ -723,9 +743,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 						tx.success();
 						retry = false;
 
-					} catch (RetryException ddex) {
+					} catch (FrameworkException fex) {
 
-						retry = RetryException.retry(ddex, ++attempts);
+						retry = RetryException.retry(fex, ++attempts);
+
+					} catch (RuntimeException rex) {
+
+						retry = RetryException.retry(rex, ++attempts);
 					}
 				}
 
@@ -799,6 +823,23 @@ public class JsonRestServlet extends AbstractDataServlet {
 		}
 	}
 
+	/**
+	 * Decides whether a request whose transaction ended with the given exception is repeated. The result of such a
+	 * request is written inside its transaction, so a repetition is only possible as long as no part of the response
+	 * has been sent, and the buffered part is discarded before.
+	 */
+	protected <E extends Exception> boolean retryAfterOutput(final HttpServletResponse response, final E ex, final int attempts) throws E {
+
+		if (RetryException.find(ex) == null || response.isCommitted()) {
+
+			throw ex;
+		}
+
+		response.resetBuffer();
+
+		return RetryException.retry(ex, attempts);
+	}
+
 	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
 
 		final long t0 = System.currentTimeMillis();
@@ -808,60 +849,80 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		setCustomResponseHeaders(response);
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try {
 
-			// first thing to do!
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=utf-8");
+			// the database can terminate the transaction to resolve a deadlock, so it is repeated like a POST request
+			boolean retry = true;
+			int attempts  = 0;
 
-			authenticator = config.getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			while (retry) {
 
-			final Principal currentUser = securityContext.getUser(false);
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
-			authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
+					// first thing to do!
+					request.setCharacterEncoding("UTF-8");
+					response.setCharacterEncoding("UTF-8");
+					response.setContentType("application/json; charset=utf-8");
 
-			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getResourceSignature(), currentUser);
+					authenticator = config.getAuthenticator();
+					securityContext = authenticator.initializeAndExamineRequest(request, response);
 
-			tx.prefetchHint("REST GET " + handler.getURL());
+					final Principal currentUser = securityContext.getUser(false);
 
-			// add sorting && pagination
-			final String pageSizeParameter          = request.getParameter(RequestParameters.PageSize.getName());
-			final String pageParameter              = request.getParameter(RequestParameters.PageNumber.getName());
-			final String outputDepth                = request.getParameter(RequestParameters.OutputDepth.getName());
-			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-			final String[] sortKeyNames             = request.getParameterValues(RequestParameters.SortKey.getName());
-			final String[] sortOrders               = request.getParameterValues(RequestParameters.SortOrder.getName());
-			final String type                       = handler.getEntityClassOrDefault(securityContext);
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
-			// evaluate constraints and measure query time
-			final double queryTimeStart = System.nanoTime();
+					RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getResourceSignature(), currentUser);
 
-			try (final ResultStream result = handler.doGet(securityContext, new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
+					tx.prefetchHint("REST GET " + handler.getURL());
 
-				final double queryTimeEnd = System.nanoTime();
+					// add sorting && pagination
+					final String pageSizeParameter          = request.getParameter(RequestParameters.PageSize.getName());
+					final String pageParameter              = request.getParameter(RequestParameters.PageNumber.getName());
+					final String outputDepth                = request.getParameter(RequestParameters.OutputDepth.getName());
+					final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+					final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+					final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
+					final String[] sortKeyNames             = request.getParameterValues(RequestParameters.SortKey.getName());
+					final String[] sortOrders               = request.getParameterValues(RequestParameters.SortOrder.getName());
+					final String type                       = handler.getEntityClassOrDefault(securityContext);
 
-				if (result == null) {
+					// evaluate constraints and measure query time
+					final double queryTimeStart = System.nanoTime();
 
-					throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
-				}
+					try (final ResultStream result = handler.doGet(securityContext, new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
 
-				if (returnContent) {
+						final double queryTimeEnd = System.nanoTime();
 
-					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+						if (result == null) {
 
-					processResult(securityContext, request, response, result, handler.getRequestedView(), depth, handler.isCollection());
+							throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
+						}
+
+						if (returnContent) {
+
+							final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+							result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+							processResult(securityContext, request, response, result, handler.getRequestedView(), depth, handler.isCollection());
+						}
+					}
+
+					tx.success();
+
+					response.setStatus(HttpServletResponse.SC_OK);
+
+					retry = false;
+
+				} catch (FrameworkException fex) {
+
+					retry = retryAfterOutput(response, fex, ++attempts);
+
+				} catch (RuntimeException rex) {
+
+					retry = retryAfterOutput(response, rex, ++attempts);
 				}
 			}
-
-			tx.success();
-
-			response.setStatus(HttpServletResponse.SC_OK);
 
 		} catch (FrameworkException | AssertException jsonException) {
 
@@ -943,7 +1004,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		if (propertySet != null) {
 
-			return propertySet.getAttributes();
+			// handlers may remove entries, e.g. PATCH removes the id, so a repeated transaction needs a fresh copy
+			return new LinkedHashMap<>(propertySet.getAttributes());
 		}
 
 		return new LinkedHashMap<>();

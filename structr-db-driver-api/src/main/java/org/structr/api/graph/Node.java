@@ -42,5 +42,13 @@ public interface Node<T> extends PropertyContainer<T> {
 	Iterable<Relationship<T>> getRelationships(final Direction direction, final RelationshipType relationshipType);
 
 	Map<String, Long> getDegree();
+
+	/**
+	 * Locks this node exclusively until the current transaction ends. A transaction that checks the relationships
+	 * of a node before it changes them must lock the node first, otherwise a concurrent transaction can change the
+	 * relationships between the check and the change. Relationships of this node read in the current transaction
+	 * before the lock are read again afterwards.
+	 */
+	void acquireWriteLock();
 	//Map<String, Object> getCache();
 }

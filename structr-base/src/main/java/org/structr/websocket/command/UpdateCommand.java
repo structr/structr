@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +41,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,7 +58,7 @@ public class UpdateCommand extends AbstractCommand {
 	private static final String RECURSIVE_KEY                       = "recursive";
 	public static final String SHARED_COMPONENT_SYNC_MODE_KEY       = "syncMode";
 
-	private int count = 0;
+	private static final int BATCH_SIZE = 100;
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
@@ -100,13 +101,13 @@ public class UpdateCommand extends AbstractCommand {
 			}
 
 			final Set<String> entities = new LinkedHashSet<>();
-			PropertyMap properties = null;
+			PropertyMap changes        = null;
 
 			try (final Tx tx = app.tx()) {
 
 				collectEntities(entities, obj, recursive);
 
-				properties = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getType(), webSocketData.getNodeData());
+				changes = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getType(), webSocketData.getNodeData());
 
 				// carry the shared-component sync mode into onModification, which now performs the
 				// actual propagation to synced nodes (see DOMNode.syncSharedComponentProperties).
@@ -131,38 +132,42 @@ public class UpdateCommand extends AbstractCommand {
 				tx.success();
 			}
 
-			final Iterator<String> iterator = entities.iterator();
+			final List<String> ids       = new ArrayList<>(entities);
+			final PropertyMap properties = changes;
 
-			while (iterator.hasNext()) {
+			for (int start = 0; start < ids.size(); start += BATCH_SIZE) {
 
-				count = 0;
+				final List<String> batch = ids.subList(start, Math.min(start + BATCH_SIZE, ids.size()));
 
-				try (final Tx tx = app.tx()) {
+				// the database can terminate the transaction to resolve a deadlock, so the batch is repeated like a REST request
+				RetryException.repeat(() -> {
 
-					while (iterator.hasNext() && count++ < 100) {
+					try (final Tx tx = app.tx()) {
 
-						final String uuid = iterator.next();
-						final NodeInterface nodeObj = app.getNodeById(uuid);
+						for (final String uuid : batch) {
 
-						if (nodeObj != null) {
+							final NodeInterface nodeObj = app.getNodeById(uuid);
 
-							nodeObj.setProperties(nodeObj.getSecurityContext(), properties);
+							if (nodeObj != null) {
 
-							TransactionCommand.registerNodeCallback(nodeObj, callback);
+								nodeObj.setProperties(nodeObj.getSecurityContext(), properties);
 
-						} else {
+								TransactionCommand.registerNodeCallback(nodeObj, callback);
 
-							final RelationshipInterface relObj = app.getRelationshipById(uuid);
-							if (relObj != null) {
+							} else {
 
-								relObj.setProperties(relObj.getSecurityContext(), properties);
-								TransactionCommand.registerRelCallback(relObj, callback);
+								final RelationshipInterface relObj = app.getRelationshipById(uuid);
+								if (relObj != null) {
+
+									relObj.setProperties(relObj.getSecurityContext(), properties);
+									TransactionCommand.registerRelCallback(relObj, callback);
+								}
 							}
 						}
-					}
 
-					tx.success();
-				}
+						tx.success();
+					}
+				});
 			}
 
 		} catch (PasswordPolicyViolationException ppve) {

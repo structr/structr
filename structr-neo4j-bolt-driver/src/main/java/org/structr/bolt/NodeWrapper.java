@@ -356,6 +356,29 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	@Override
+	public void acquireWriteLock() {
+
+		final SessionTransaction tx = db.getCurrentTransaction();
+
+		if (tx.lockedNodes.add(id)) {
+
+			final Map<String, Object> map = new HashMap<>();
+
+			map.put("id", id);
+
+			// Cypher has no statement that only locks, but setting a property locks the node until the transaction ends
+			tx.getLong(new SimpleCypherQuery(concat("MATCH (n", getTenantIdentifier(db), ") WHERE ID(n) = $id SET n._structrLock = true REMOVE n._structrLock RETURN ID(n)"), map));
+
+			// relationships cached before the lock can miss those of transactions that committed in the meantime
+			invalidate();
+
+			tx.prefetchedOutgoing.clear();
+			tx.prefetchedIncoming.clear();
+			tx.prefetchedQueries.clear();
+		}
+	}
+
+	@Override
 	public void invalidate() {
 
 		relationshipCache.clear();

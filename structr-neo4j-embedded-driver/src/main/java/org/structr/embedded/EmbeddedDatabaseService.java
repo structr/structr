@@ -21,6 +21,7 @@ package org.structr.embedded;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.TransientFailureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.*;
@@ -444,6 +445,20 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 	public EmbeddedTransaction getCurrentTransaction() {
 
 		return getCurrentTransaction(true);
+	}
+
+	/**
+	 * Records at the current transaction that the database terminated it, and returns the exception to throw.
+	 */
+	RetryException terminated(final TransientFailureException tex) {
+
+		final EmbeddedTransaction tx = getCurrentTransaction(false);
+		if (tx != null) {
+
+			return tx.terminated(tex);
+		}
+
+		return new RetryException(tex);
 	}
 
 	public EmbeddedTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
