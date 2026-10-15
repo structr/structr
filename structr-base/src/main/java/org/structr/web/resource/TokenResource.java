@@ -28,6 +28,7 @@ import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.auth.exception.SuperuserLoginNotSupportedException;
 import org.structr.core.entity.Principal;
 import org.structr.docs.Documentation;
 import org.structr.docs.ontology.ConceptType;
@@ -71,6 +72,12 @@ public class TokenResource extends ExactMatchEndpoint {
 
 		@Override
 		protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
+
+			final String superUserName = Settings.SuperUserName.getValue();
+			if (StringUtils.equals(superUserName, emailOrUsername)) {
+
+				throw new SuperuserLoginNotSupportedException();
+			}
 
 			Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 			boolean isFromRefreshToken = false;
