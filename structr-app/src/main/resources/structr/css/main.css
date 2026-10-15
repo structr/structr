@@ -3762,7 +3762,6 @@ table.props td.__value {
 	outline: none;
 }
 #global-search-results {
-	margin-top: 2rem;
 	width: 100%;
 }
 #global-search-results tbody tr:nth-child(2n) {

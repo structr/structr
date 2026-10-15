@@ -2037,14 +2037,19 @@ let Structr = {
 		},
 		doSearch: async () => {
 
-			let form = document.querySelector('#global-search-node-form');
-			let data = Structr.globalSearch.getBasicFormData(form);
+			let wrapper = document.querySelector('#global-search-results-wrapper');
+			let form    = document.querySelector('#global-search-node-form');
+			let data    = Structr.globalSearch.getBasicFormData(form);
 
 			Structr.globalSearch.clear();
+
+			wrapper.classList.add('hidden');
 
 			let searchNumber = Structr.globalSearch.searchNumber;
 
 			if (data.searchString.length > 0) {
+
+				wrapper.classList.replace('hidden', 'show-spinner');
 
 				let results = await Command.searchNodes(data);
 
@@ -2054,6 +2059,8 @@ let Structr = {
 				if (searchNumber !== Structr.globalSearch.searchNumber) {
 					return;
 				}
+
+				wrapper.classList.remove('show-spinner');
 
 				let resultsElement = document.querySelector('#global-search-results tbody');
 
@@ -2208,18 +2215,25 @@ let Structr = {
 										<!--	<label class="flex items-center"><input type="checkbox" checked name="flows">Flow Nodes</label>-->
 									</div>
 								</form>
-		
-								<table id="global-search-results">
-									<thead>
-										<tr>
-											<th>ID</th>
-											<th>Name/Type</th>
-											<th>Attribute Key</th>
-											<th>Value</th>
-										</tr>
-									</thead>
-									<tbody></tbody>
-								</table>
+
+								<div id="global-search-results-wrapper" class="hidden mt-8 group">
+
+									<div class="text-center hidden group-[.show-spinner]:block">
+										${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 32, 32)}
+									</div>
+
+									<table id="global-search-results" class="group-[.show-spinner]:hidden">
+										<thead>
+											<tr>
+												<th>ID</th>
+												<th>Name/Type</th>
+												<th>Attribute Key</th>
+												<th>Value</th>
+											</tr>
+										</thead>
+										<tbody></tbody>
+									</table>
+								</div>
 							</div>
 						</div>
 					</div>
