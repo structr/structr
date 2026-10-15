@@ -155,7 +155,7 @@ public class SettingDocumentable implements Documentable {
 
 				for (final org.structr.api.config.Setting setting : group.getSettings()) {
 
-					if (setting.getComment() != null) {
+					if (setting.getComment() != null && !"hidden".equals(setting.getCategory())) {
 
 						documentables.add(new SettingDocumentable(group, setting));
 					}

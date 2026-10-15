@@ -400,7 +400,7 @@ let _Helpers = {
 		let offsetY            = config.offsetY || 0;
 		let width              = config.width || 12;
 		let height             = config.height || 12;
-		let skipClick          = config?.skipClick ?? false;
+		let hasOwnClickHandler = config?.hasOwnClickHandler ?? false;
 
 		let createdElements = [];
 
@@ -426,6 +426,10 @@ let _Helpers = {
 		let helpElement = $(`<span class="context-help-text">${text}</span>`);
 		createdElements.push(helpElement);
 
+		helpElement[0].addEventListener('click', e => {
+			e.stopPropagation();
+		});
+
 		toggleElement
 			.on("mousemove", function(e) {
 				let isPinned = toggleElement[0].dataset['pinned'] ?? false;
@@ -446,10 +450,11 @@ let _Helpers = {
 				}
 			});
 
-		if (skipClick === false) {
+		if (hasOwnClickHandler === false) {
 
 			toggleElement[0].addEventListener('click', (e) => {
 				e.preventDefault();
+				e.stopPropagation();
 
 				let wasPinned = toggleElement[0].dataset['pinned'] ?? false;
 

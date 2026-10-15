@@ -3060,6 +3060,7 @@ let _Code = {
 					let container = _Code.codeContents[0].querySelector('#deployment-config-script-container');
 
 					container.insertAdjacentHTML('beforeend', _Code.mainArea.deploymentConfigurationScripts.templates.scriptEditor({ scriptType }));
+					_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
 					_Helpers.activateCommentsInElement(container);
 
@@ -3103,6 +3104,10 @@ let _Code = {
 
 						_Code.persistence.tellFirstElementToShowDirtyState(isDirty);
 					});
+
+					_Helpers.requestAnimationFrameWrapper(null, () => {
+						_Editors.resizeVisibleEditors();
+					});
 				}
 			},
 			documentation: undefined,
@@ -3128,18 +3133,18 @@ let _Code = {
 			},
 			templates: {
 				main: (title) => `
-					<div>
-						<h2>${title}</h2>
-						<div id="method-buttons">
-							<div class="flex flex-wrap gap-x-4">
-								<div>
-									<div id="deploy-config-script-actions" class="flex items-start"></div>
-								</div>
+					<h2>${title}</h2>
+
+					<div id="method-buttons">
+						<div class="flex flex-wrap gap-x-4">
+							<div>
+								<div id="deploy-config-script-actions" class="flex items-start"></div>
 							</div>
 						</div>
 					</div>
 
-					<div id="deployment-config-script-container"></div>
+					<div id="deployment-config-script-container" class="flex flex-col flex-grow"></div>
+					<div class="editor-info"></div>
 
 					<div class="inline-info">
 						<div class="inline-info-icon">
@@ -3150,10 +3155,8 @@ let _Code = {
 					</div>
 				`,
 				scriptEditor: config => `
-					<div>
-						<label class="block mt-8 mb-2 font-bold" data-comment="${_Code.mainArea.deploymentConfigurationScripts.templates.tooltips[config.scriptType]}">${_Code.mainArea.deploymentConfigurationScripts.templates.scriptNames[config.scriptType]}</label>
-						<div class="editor w-full h-80" id="deployment-config-script-editor" data-property="content"></div>
-					</div>
+					<div class="block mt-6 mb-2 font-bold" data-comment="${_Code.mainArea.deploymentConfigurationScripts.templates.tooltips[config.scriptType]}">${_Code.mainArea.deploymentConfigurationScripts.templates.scriptNames[config.scriptType]}</div>
+					<div class="editor property-code flex-grow" id="deployment-config-script-editor" data-property="content"></div>
 				`,
 				mainTreeName: 'deploy-configs',
 				icons: {

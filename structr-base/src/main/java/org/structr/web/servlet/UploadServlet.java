@@ -400,6 +400,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
 					File newFile = null;
 					boolean retry = true;
+					int attempts  = 0;
 
 					while (retry) {
 
@@ -460,7 +461,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						} catch (RetryException rex) {
 
-							retry = true;
+							retry = RetryException.retry(rex, ++attempts);
 						}
 					}
 

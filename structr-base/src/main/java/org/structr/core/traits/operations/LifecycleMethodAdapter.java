@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
@@ -42,6 +43,9 @@ import java.util.Map;
 public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDeletion, AfterCreation, AfterModification, AfterDeletion, OnNodeCreation, OnNodeDeletion {
 
 	private final List<ScriptMethod> methods = new LinkedList<>();
+
+	private final static String KEYWORD_MODIFICATIONS = "modifications";
+	private final static String KEYWORD_DATA          = "data";
 
 	public LifecycleMethodAdapter(final SchemaMethod schemaMethod) {
 
@@ -104,7 +108,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		try {
 
-			securityContext.getContextStore().setConstant("data", properties.getAsMap());
+			securityContext.getContextStore().setConstant(KEYWORD_DATA, properties.getAsMap());
 
 			// entity is null because it is deleted, properties are available via "data" keyword
 			for (final ScriptMethod method : methods) {
@@ -167,8 +171,12 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 					.currentMethod(method)
 					.build();
 
+			final GraphObjectMap modifications = modificationQueue.getModifications(graphObject);
+
 			final Map<String, Object> parameters = new LinkedHashMap<>();
-			parameters.put("modifications", modificationQueue.getModifications(graphObject));
+			parameters.put(KEYWORD_MODIFICATIONS, modifications);
+
+			securityContext.getContextStore().setConstant(KEYWORD_MODIFICATIONS, modifications);
 
 			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", parameters, type + ".onSave", null, scriptConfig);
 		}

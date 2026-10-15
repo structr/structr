@@ -1093,7 +1093,7 @@ let _ResourceAccessPermissions = {
 				customToggleIconClasses: [''],
 				width: 16,
 				height: 16,
-				skipClick: true
+				hasOwnClickHandler: true
 			});
 
 			_Entities.bindAccessControl(x[0], resourceAccess);

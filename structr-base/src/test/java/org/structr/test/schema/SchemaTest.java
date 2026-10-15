@@ -836,15 +836,28 @@ public class SchemaTest extends StructrTest {
 			type.addStringProperty("nameAfter");
 			type.addStringProperty("descBefore");
 			type.addStringProperty("descAfter");
+			type.addStringProperty("nameBefore2");
+			type.addStringProperty("nameAfter2");
+			type.addStringProperty("descBefore2");
+			type.addStringProperty("descAfter2");
 
-			type.addMethod("onSave", "{"
-					+ " var self = Structr.this;"
-					+ " var mod = Structr.retrieve('modifications');"
-					+ " self.nameBefore = mod.before.name;"
-					+ " self.nameAfter  = mod.after.name;"
-					+ " self.descBefore = mod.before.desc;"
-					+ " self.descAfter  = mod.after.desc;"
-				+ " }");
+			type.addMethod("onSave", """
+					{
+						var self = Structr.this;
+						var mod1 = Structr.retrieve('modifications');
+
+						self.nameBefore = mod1.before.name;
+						self.nameAfter  = mod1.after.name;
+						self.descBefore = mod1.before.desc;
+						self.descAfter  = mod1.after.desc;
+
+						var mod2 = $.modifications;
+
+						self.nameBefore2 = mod2.before.name;
+						self.nameAfter2  = mod2.after.name;
+						self.descBefore2 = mod2.before.desc;
+						self.descAfter2  = mod2.after.desc;
+					}""");
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -888,6 +901,11 @@ public class SchemaTest extends StructrTest {
 			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("descBefore")));
 			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("descAfter")));
 
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("nameBefore2")));
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("nameAfter2")));
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("descBefore2")));
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("descAfter2")));
+
 			tx.success();
 
 		} catch (Throwable fex) {
@@ -923,6 +941,11 @@ public class SchemaTest extends StructrTest {
 			assertEquals("Invalid value after modification", "new test",    test.getProperty(Traits.of(type).key("nameAfter")));
 			assertNull("Invalid value after modification",                          test.getProperty(Traits.of(type).key("descBefore")));
 			assertEquals("Invalid value after modification", "description", test.getProperty(Traits.of(type).key("descAfter")));
+
+			assertEquals("Invalid value after modification", "test",        test.getProperty(Traits.of(type).key("nameBefore2")));
+			assertEquals("Invalid value after modification", "new test",    test.getProperty(Traits.of(type).key("nameAfter2")));
+			assertNull("Invalid value after modification",                          test.getProperty(Traits.of(type).key("descBefore2")));
+			assertEquals("Invalid value after modification", "description", test.getProperty(Traits.of(type).key("descAfter2")));
 
 			tx.success();
 
