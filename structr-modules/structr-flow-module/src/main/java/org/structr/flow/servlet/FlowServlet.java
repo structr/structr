@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -93,41 +94,46 @@ public class FlowServlet extends JsonRestServlet {
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
 
-			try (final Tx tx = app.tx()) {
+			final SecurityContext context = securityContext;
 
-				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
-				final String flowName             = request.getPathInfo().substring(1);
-				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
+			evaluateWithRetry(response, () -> {
 
-				tx.prefetchHint("Flow " + flowName);
+				try (final Tx tx = app.tx()) {
 
-				if (flowNode != null) {
+					final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
+					final String flowName             = request.getPathInfo().substring(1);
+					final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(context).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
 
-					final FlowContainer flow          = flowNode.as(FlowContainer.class);
-					final Object flowResult           = flow.evaluate(securityContext, flowParameters);
-					ResultStream result               =  new PagingIterable<>("FlowContainer " + flow.getUuid(), List.of(flowResult));
+					tx.prefetchHint("Flow " + flowName);
 
-					if (returnContent) {
+					if (flowNode != null) {
 
-						// timing..
-						double queryTimeEnd = System.nanoTime();
-						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+						final FlowContainer flow          = flowNode.as(FlowContainer.class);
+						final Object flowResult           = flow.evaluate(context, flowParameters);
+						ResultStream result               =  new PagingIterable<>("FlowContainer " + flow.getUuid(), List.of(flowResult));
 
-						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+						if (returnContent) {
 
-						processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
+							// timing..
+							double queryTimeEnd = System.nanoTime();
+							DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+
+							result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+							processResult(context, request, response, result, PropertyView.Public, depth, false);
+						}
+
+						response.setStatus(HttpServletResponse.SC_OK);
+
+					} else {
+
+						response.setStatus(404);
+						response.getWriter().append(RestMethodResult.jsonError(404, "Requested flow could not be found."));
 					}
 
-					response.setStatus(HttpServletResponse.SC_OK);
-
-				} else {
-
-					response.setStatus(404);
-					response.getWriter().append(RestMethodResult.jsonError(404, "Requested flow could not be found."));
+					tx.success();
 				}
-
-				tx.success();
-			}
+			});
 
 		} catch (FrameworkException frameworkException) {
 
@@ -153,6 +159,30 @@ public class FlowServlet extends JsonRestServlet {
 
 		}
 
+	}
+
+	/**
+	 * Runs the transaction that evaluates the flow and writes its result, and repeats it when the database terminated
+	 * it to resolve a deadlock, like a REST request.
+	 */
+	private void evaluateWithRetry(final HttpServletResponse response, final RetryException.Attempt<Exception> attempt) throws Exception {
+
+		boolean retry = true;
+		int attempts  = 0;
+
+		while (retry) {
+
+			try {
+
+				attempt.run();
+
+				retry = false;
+
+			} catch (Exception ex) {
+
+				retry = retryAfterOutput(response, ex, ++attempts);
+			}
+		}
 	}
 
 	@Override
@@ -224,36 +254,41 @@ public class FlowServlet extends JsonRestServlet {
 			// evaluate constraints and measure query time
 			double queryTimeStart    = System.nanoTime();
 
-			try (final Tx tx = app.tx()) {
+			final SecurityContext context = securityContext;
 
-				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
-				final String flowName             = request.getPathInfo().substring(1);
-				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
+			evaluateWithRetry(response, () -> {
 
-				if (flowNode != null) {
+				try (final Tx tx = app.tx()) {
 
-					final FlowContainer flow          = flowNode.as(FlowContainer.class);
-					final Object flowResult           = flow.evaluate(securityContext, flowParameters);
-					final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), ((flowResult == null) ? List.of() : List.of(flowResult)));
+					final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
+					final String flowName             = request.getPathInfo().substring(1);
+					final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(context).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
 
-					// timing..
-					double queryTimeEnd = System.nanoTime();
-					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					if (flowNode != null) {
 
-					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+						final FlowContainer flow          = flowNode.as(FlowContainer.class);
+						final Object flowResult           = flow.evaluate(context, flowParameters);
+						final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), ((flowResult == null) ? List.of() : List.of(flowResult)));
 
-					processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
+						// timing..
+						double queryTimeEnd = System.nanoTime();
+						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
-					response.setStatus(HttpServletResponse.SC_OK);
+						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-				} else {
+						processResult(context, request, response, result, PropertyView.Public, depth, false);
 
-					response.setStatus(404);
-					response.getWriter().append(RestMethodResult.jsonError(404, "Requested flow could not be found."));
+						response.setStatus(HttpServletResponse.SC_OK);
+
+					} else {
+
+						response.setStatus(404);
+						response.getWriter().append(RestMethodResult.jsonError(404, "Requested flow could not be found."));
+					}
+
+					tx.success();
 				}
-
-				tx.success();
-			}
+			});
 
 		} catch (FrameworkException frameworkException) {
 

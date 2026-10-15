@@ -62,8 +62,28 @@ test('graph', async ({page}, testInfo) => {
 	// canvas top when this test was written; once the toolbar became about 20 pixels shorter, every
 	// click landed just below its node and the test failed on the properties dialog never opening,
 	// which looks like a broken dialog rather than a missed click.
+	//
+	// The layout places the nodes differently in every run, and a node at the edge of the canvas can be cut off,
+	// so a click on the first node sometimes missed it. The test therefore clicks a node that lies inside the
+	// canvas with some margin, preferably the page created above.
 	const canvasBox  = await page.locator('#graph-canvas').boundingBox();
-	const canvasNode = await page.evaluate('_Graph.graphBrowser.getNodes()[0]');
+	const canvasNode = await page.evaluate(({width, height}) => {
+
+		const margin = 50;
+		const inside = _Graph.graphBrowser.getNodes().filter(node => {
+
+			const x = parseFloat(node['renderer1:x']);
+			const y = parseFloat(node['renderer1:y']);
+
+			return x >= margin && x <= width - margin && y >= margin && y <= height - margin;
+		});
+
+		return inside.find(node => (node.label ?? '').startsWith('New Page')) ?? inside[0];
+
+	}, {width: canvasBox.width, height: canvasBox.height});
+
+	expect(canvasNode, 'no node lies inside the visible area of the graph canvas').toBeTruthy();
+
 	const x = canvasBox.x + parseFloat(canvasNode['renderer1:x']);
 	const y = canvasBox.y + parseFloat(canvasNode['renderer1:y']);
 

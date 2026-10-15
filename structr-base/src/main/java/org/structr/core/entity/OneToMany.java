@@ -76,6 +76,8 @@ public abstract class OneToMany extends AbstractRelation implements Relation<One
 
 		if (targetNode != null) {
 
+			lockForCardinality(targetNode);
+
 			// check existing relationships
 			final RelationshipInterface incomingRel = targetNode.getIncomingRelationshipAsSuperUser(type);
 			if (incomingRel != null) {

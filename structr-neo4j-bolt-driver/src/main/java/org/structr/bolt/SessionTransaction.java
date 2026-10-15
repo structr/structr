@@ -84,6 +84,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	protected final Set<String> prefetchedOutgoing      = new HashSet<>();
 	protected final Set<String> prefetchedIncoming      = new HashSet<>();
 	protected final Set<String> prefetchedQueries       = new HashSet<>();
+	protected final Set<Long> lockedNodes               = new HashSet<>();
+
+	// set when the database terminated this transaction, so that it cannot commit even if the code that runs in it catches the RetryException
+	protected RetryException terminated = null;
 
 	// the nodes whose lookups were answered by a prefetch in this transaction, by typed key (e.g. DOMNode/all/OUTGOING/CONTAINS)
 	protected final Map<String, Set<Long>> prefetchHits          = new HashMap<>();
@@ -325,6 +329,33 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	public boolean isRelationshipDeleted(final Long id) {
 
 		return deletedRels.contains(id);
+	}
+
+	/**
+	 * Records that the database terminated this transaction, and returns the exception to throw.
+	 */
+	protected RetryException terminated(final Throwable tex) {
+
+		final RetryException rex = new RetryException(tex);
+
+		if (terminated == null) {
+
+			terminated = rex;
+		}
+
+		return rex;
+	}
+
+	/**
+	 * Throws a RetryException when the database terminated this transaction earlier and the code that ran in it caught
+	 * the exception, so that the caller repeats the transaction instead of taking it as committed.
+	 */
+	protected void throwIfTerminated() {
+
+		if (terminated != null) {
+
+			throw new RetryException("The database terminated the transaction before it was closed", terminated.getCause());
+		}
 	}
 
 	@Override

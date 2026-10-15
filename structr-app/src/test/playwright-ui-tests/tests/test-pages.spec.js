@@ -198,21 +198,10 @@ test('pages', async ({page}, testInfo) => {
 	await page.getByRole('link', {name: 'General'}).click();
 	await page.getByRole('link', {name: 'Preview'}).click();
 
-	await preview.getByText('firstname.lastname@example.com', {exact: true}).click({button: 'right'});
-	await page.locator('#context-menu-dialog .context_menu_icon').click();
-	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
-
-	await preview.getByText('Email', {exact: true}).click({button: 'right'});
-	await page.locator('#context-menu-dialog .context_menu_icon').click();
-	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
-
-	await preview.getByText('Example Role', {exact: true}).click({button: 'right'});
-	await page.locator('#context-menu-dialog .context_menu_icon').click();
-	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
-
-	await preview.getByText('Role', {exact: true}).click({button: 'right'});
-	await page.locator('#context-menu-dialog .context_menu_icon').click();
-	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
+	await removeNodeInPreview(page, preview, 'firstname.lastname@example.com');
+	await removeNodeInPreview(page, preview, 'Email');
+	await removeNodeInPreview(page, preview, 'Example Role');
+	await removeNodeInPreview(page, preview, 'Role');
 
 	await page.waitForTimeout(1000);
 	await page.screenshot({path: 'screenshots/pages_output-expression.png'});
@@ -263,3 +252,23 @@ test('pages', async ({page}, testInfo) => {
 	await logout(page);
 });
 
+/**
+ * Removes an element through its context menu in the preview. Every removal reloads the preview, and the context menu
+ * handlers are attached only after the new document has loaded, so a right-click during the reload opens no menu.
+ * The right-click is therefore repeated until the menu appears, and the removal waits until the element is gone.
+ */
+async function removeNodeInPreview(page, preview, text) {
+
+	const element  = preview.getByText(text, {exact: true});
+	const menuIcon = page.locator('#context-menu-dialog .context_menu_icon');
+
+	await expect(async () => {
+		await element.click({button: 'right'});
+		await expect(menuIcon).toBeVisible({timeout: 1000});
+	}).toPass({timeout: 15000});
+
+	await menuIcon.click();
+	await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
+
+	await expect(element).toHaveCount(0);
+}

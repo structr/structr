@@ -351,9 +351,13 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 									chunkMsgData.put("username",       username);
 									TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
 
-								} catch (RetryException ddex) {
+								} catch (FrameworkException fex) {
 
-									retry = RetryException.retry(ddex, ++attempts);
+									retry = RetryException.retry(fex, ++attempts);
+
+								} catch (RuntimeException rex) {
+
+									retry = RetryException.retry(rex, ++attempts);
 								}
 
 							}
@@ -369,9 +373,13 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 								tx.success();
 
-							} catch (RetryException ddex) {
+							} catch (FrameworkException fex) {
 
-								retry = RetryException.retry(ddex, ++attempts);
+								retry = RetryException.retry(fex, ++attempts);
+
+							} catch (RuntimeException rex) {
+
+								retry = RetryException.retry(rex, ++attempts);
 							}
 						}
 
@@ -389,9 +397,13 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 								handleCsvPropertySet(securityContext, results, handler, propertySet);
 							}
 
-						} catch (RetryException ddex) {
+						} catch (FrameworkException fex) {
 
-							retry = RetryException.retry(ddex, ++attempts);
+							retry = RetryException.retry(fex, ++attempts);
+
+						} catch (RuntimeException rex) {
+
+							retry = RetryException.retry(rex, ++attempts);
 						}
 					}
 				}
