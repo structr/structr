@@ -140,7 +140,7 @@ This helps you distinguish scheduled task output from other log entries.
 
 ## Error Handling
 
-When a scheduled task throws an exception, Structr logs the error and continues with the next scheduled execution. The failed task is not retried immediately - it simply runs again at the next scheduled time.
+When a scheduled task throws an exception, Structr logs the error and continues with the next scheduled execution. The failed task is not retried immediately - it simply runs again at the next scheduled time. The only exception is a transaction that the database terminated to resolve a deadlock with another transaction. Structr repeats such a task immediately, up to ten times, as described in the Repeated Transactions section of the [Data Model](/structr/docs/ontology/Building%20Applications/Data%20Model) chapter.
 
 Error log entries look like this:
 

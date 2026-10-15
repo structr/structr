@@ -234,7 +234,11 @@ public class CardinalityLockingTest extends StructrTest {
 
 						retry = false;
 
-					} catch (RetryException rex) {
+					} catch (FrameworkException fex) {
+
+						retry = RetryException.retry(fex, ++attempts);
+
+					} catch (RuntimeException rex) {
 
 						retry = RetryException.retry(rex, ++attempts);
 					}

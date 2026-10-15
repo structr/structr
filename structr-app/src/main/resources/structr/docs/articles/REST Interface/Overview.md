@@ -10,6 +10,8 @@ Structr automatically creates REST endpoints for all types in the data model. Th
 
 All requests made via the REST interface are subject to the ACID principle, meaning each request is processed as a single atomic transaction. If a request is successful, all changes made within that request are guaranteed to be saved in the database. Conversely, if any part of the request fails, all changes are rolled back and the database remains in its previous state. This ensures data consistency even when multiple related objects are created or modified in a single request.
 
+If the database terminates the transaction of a request to resolve a deadlock with another request, Structr repeats the request automatically, up to ten times. The client only receives an error if the last attempt fails as well. See the Repeated Transactions section of the [Data Model](/structr/docs/ontology/Building%20Applications/Data%20Model) chapter for what this means for lifecycle methods.
+
 ### How to access the API
 
 To use the API, you need an HTTP client that supports GET, PUT, POST, PATCH (optional) and DELETE, and a JSON parser/formatter to process the response. Since these technologies are available in all modern browsers, it is very easy to work with the API in a web application using `fetch()` or libraries like jQuery. The Data Access article shows examples for different HTTP clients.

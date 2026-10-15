@@ -209,8 +209,7 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 	}
 
 	/**
-	 * Locks this entity until the current transaction ends. A thread that would wait for a lock in a deadlock throws
-	 * a RetryException instead, like Neo4j, so that its transaction is repeated after the others have finished.
+	 * Records at the given transaction that it was terminated, so that it cannot commit, and returns the exception to throw.
 	 */
 	private static RetryException terminated(final MemoryTransaction tx, final RetryException rex) {
 
@@ -222,6 +221,10 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 		return rex;
 	}
 
+	/**
+	 * Locks this entity until the current transaction ends. A thread that would wait for a lock in a deadlock throws
+	 * a RetryException instead, like Neo4j, so that its transaction is repeated after the others have finished.
+	 */
 	MemoryEntity lock() {
 
 		if (lock.isHeldByCurrentThread()) {

@@ -80,8 +80,10 @@ public abstract class AbstractRelation {
 	/**
 	 * Locks the nodes whose relationships ensureCardinality checks, so that no concurrent transaction can create a
 	 * relationship between the check and the creation of the new one. Without the lock, two transactions that set
-	 * the same relationship at the same time both find none and both create one. The nodes are locked in the order
-	 * of their UUIDs, so that two transactions never lock the same two nodes in opposite order. A node created in the
+	 * the same relationship at the same time both find none and both create one. The nodes of one call are locked in
+	 * the order of their UUIDs, so that two transactions that set the same relationship do not lock its two nodes in
+	 * opposite order. Transactions that set several relationships, or that lock nodes in other ways, can still lock
+	 * nodes in opposite order; the database then terminates one of them, and it is repeated. A node created in the
 	 * current transaction is not visible to others, so it needs no lock.
 	 */
 	protected void lockForCardinality(final NodeInterface... nodes) {

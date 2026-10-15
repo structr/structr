@@ -307,105 +307,51 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				data.put("username", username);
 				TransactionCommand.simpleBroadcastGenericMessage(data);
 
-				// isolate doPost
-				boolean retry = true;
-				int attempts  = 0;
+				// The reader can only be consumed once, so the CSV is parsed before the first attempt and a repeated
+				// transaction imports the same rows again.
+				final List<JsonInput> csv = new ArrayList<>();
 
-				while (retry) {
+				CsvHelper.cleanAndParseCSV(securityContext, input, handler.getTypeName(securityContext), fieldSeparator, quoteCharacter, rangeHeader).iterator().forEachRemaining(csv::add);
 
-					retry = false;
+				if (handler.createPostTransaction()) {
 
-					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getTypeName(securityContext), fieldSeparator, quoteCharacter, rangeHeader);
+					if (doPeriodicCommit) {
 
-					if (handler.createPostTransaction()) {
+						final List<List<JsonInput>> chunkedCsv = ListUtils.partition(csv, periodicCommitInterval);
+						final int totalChunkNo = chunkedCsv.size();
+						int currentChunkNo = 0;
 
-						if (doPeriodicCommit) {
+						for (final List<JsonInput> currentChunk : chunkedCsv) {
 
-							final List<JsonInput> list = new ArrayList<>();
-							csv.iterator().forEachRemaining(list::add);
-							final List<List<JsonInput>> chunkedCsv = ListUtils.partition(list, periodicCommitInterval);
-							final int totalChunkNo = chunkedCsv.size();
-							int currentChunkNo = 0;
+							currentChunkNo++;
 
-							for (final List<JsonInput> currentChunk : chunkedCsv) {
+							// only the chunk that failed is repeated, the chunks before it are already committed
+							importWithRetry(app, securityContext, results, handler, currentChunk);
 
-								try (final Tx tx = app.tx()) {
+							logger.info("CSV: Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
 
-									currentChunkNo++;
-
-									for (final JsonInput propertySet : currentChunk) {
-
-										handleCsvPropertySet(securityContext, results, handler, propertySet);
-
-									}
-
-									tx.success();
-
-									logger.info("CSV: Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
-
-									final Map<String, Object> chunkMsgData = new LinkedHashMap();
-									chunkMsgData.put("type",           "CSV_IMPORT_STATUS");
-									chunkMsgData.put("subtype",        "CHUNK");
-									chunkMsgData.put("currentChunkNo", currentChunkNo);
-									chunkMsgData.put("totalChunkNo",   totalChunkNo);
-									chunkMsgData.put("username",       username);
-									TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
-
-								} catch (FrameworkException fex) {
-
-									retry = RetryException.retry(fex, ++attempts);
-
-								} catch (RuntimeException rex) {
-
-									retry = RetryException.retry(rex, ++attempts);
-								}
-
-							}
-
-						} else {
-
-							try (final Tx tx = app.tx()) {
-
-								for (final JsonInput propertySet : csv) {
-
-									handleCsvPropertySet(securityContext, results, handler, propertySet);
-								}
-
-								tx.success();
-
-							} catch (FrameworkException fex) {
-
-								retry = RetryException.retry(fex, ++attempts);
-
-							} catch (RuntimeException rex) {
-
-								retry = RetryException.retry(rex, ++attempts);
-							}
+							final Map<String, Object> chunkMsgData = new LinkedHashMap();
+							chunkMsgData.put("type",           "CSV_IMPORT_STATUS");
+							chunkMsgData.put("subtype",        "CHUNK");
+							chunkMsgData.put("currentChunkNo", currentChunkNo);
+							chunkMsgData.put("totalChunkNo",   totalChunkNo);
+							chunkMsgData.put("username",       username);
+							TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
 						}
 
 					} else {
 
-						if (doPeriodicCommit) {
-
-							logger.warn("Resource auto-creates POST transaction - can not commit periodically!");
-						}
-
-						try {
-
-							for (final JsonInput propertySet : csv) {
-
-								handleCsvPropertySet(securityContext, results, handler, propertySet);
-							}
-
-						} catch (FrameworkException fex) {
-
-							retry = RetryException.retry(fex, ++attempts);
-
-						} catch (RuntimeException rex) {
-
-							retry = RetryException.retry(rex, ++attempts);
-						}
+						importWithRetry(app, securityContext, results, handler, csv);
 					}
+
+				} else {
+
+					if (doPeriodicCommit) {
+
+						logger.warn("Resource auto-creates POST transaction - can not commit periodically!");
+					}
+
+					importWithRetry(null, securityContext, results, handler, csv);
 				}
 
 				final long endTime = System.currentTimeMillis();
@@ -518,6 +464,56 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	public String getModuleName() {
 
 		return "csv";
+	}
+
+	/**
+	 * Imports the given rows in a transaction and repeats it if the database terminated it. Without an app, the handler
+	 * creates the transaction itself.
+	 */
+	private void importWithRetry(final App app, final SecurityContext securityContext, final List<RestMethodResult> results, final RESTCallHandler handler, final List<JsonInput> rows) throws FrameworkException {
+
+		final int resultCount = results.size();
+		boolean retry         = true;
+		int attempts          = 0;
+
+		while (retry) {
+
+			// a repetition must not return the objects of the attempt that was rolled back
+			results.subList(resultCount, results.size()).clear();
+
+			try {
+
+				if (app != null) {
+
+					try (final Tx tx = app.tx()) {
+
+						for (final JsonInput propertySet : rows) {
+
+							handleCsvPropertySet(securityContext, results, handler, propertySet);
+						}
+
+						tx.success();
+					}
+
+				} else {
+
+					for (final JsonInput propertySet : rows) {
+
+						handleCsvPropertySet(securityContext, results, handler, propertySet);
+					}
+				}
+
+				retry = false;
+
+			} catch (FrameworkException fex) {
+
+				retry = RetryException.retry(fex, ++attempts);
+
+			} catch (RuntimeException rex) {
+
+				retry = RetryException.retry(rex, ++attempts);
+			}
+		}
 	}
 
 	private void handleCsvPropertySet(final SecurityContext securityContext, final List<RestMethodResult> results, final RESTCallHandler handler, final JsonInput propertySet) throws FrameworkException {
@@ -734,7 +730,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		if (propertySet != null) {
 
-			return propertySet.getAttributes();
+			// handlers may remove entries, so a repeated transaction needs a fresh copy
+			return new LinkedHashMap<>(propertySet.getAttributes());
 		}
 
 		return new LinkedHashMap<>();

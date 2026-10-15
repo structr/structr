@@ -84,7 +84,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	private Console console                        = null;
 	private Boolean timedOut                       = false;
 
-	// messages that the command processed by the current thread sends are held back until its transaction has committed
+	// messages that the command processed by the current thread sends are held back until its transaction has ended, and dropped if it failed
 	private final ThreadLocal<List<String>> deferredMessages = new ThreadLocal<>();
 
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
@@ -289,7 +289,8 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 					// The database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request.
 					// The messages of an attempt are sent after it ends, so that the client does not receive the messages
-					// of a terminated attempt in addition to those of its repetition.
+					// of a terminated attempt in addition to those of its repetition. If the last attempt fails, its
+					// messages are dropped as well, and the client receives only the error.
 					final List<String> messages = new ArrayList<>();
 
 					deferredMessages.set(messages);
@@ -321,6 +322,12 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 								tx.success();
 							}
 						});
+
+					} catch (Throwable t) {
+
+						messages.clear();
+
+						throw t;
 
 					} finally {
 
