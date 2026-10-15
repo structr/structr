@@ -28,6 +28,7 @@ import org.eclipse.jetty.util.StaticException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
 import org.structr.common.AccessMode;
@@ -58,7 +59,9 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -80,6 +83,9 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	private String pagePath                        = null;
 	private Console console                        = null;
 	private Boolean timedOut                       = false;
+
+	// messages that the command processed by the current thread sends are held back until its transaction has committed
+	private final ThreadLocal<List<String>> deferredMessages = new ThreadLocal<>();
 
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
@@ -281,25 +287,46 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 				// transactions in case of bulk processing commands etc.
 				if (abstractCommand.requiresEnclosingTransaction()) {
 
-					try (final Tx tx = app.tx(true, true, true)) {
+					// The database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request.
+					// The messages of an attempt are sent after it ends, so that the client does not receive the messages
+					// of a terminated attempt in addition to those of its repetition.
+					final List<String> messages = new ArrayList<>();
 
-						// enable prefetching for websockets
-						tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+					deferredMessages.set(messages);
 
-						if (abstractCommand instanceof PingCommand) {
+					try {
 
-							tx.setIsPing(true);
-						}
+						RetryException.repeat(() -> {
 
-						// store authenticated-Flag in webSocketData
-						// so the command can access it
-						webSocketData.setSessionValid(isAuthenticated());
-						webSocketData.setSecurityContext(securityContext);
+							messages.clear();
 
-						abstractCommand.processMessage(webSocketData);
+							try (final Tx tx = app.tx(true, true, true)) {
 
-						// commit transaction
-						tx.success();
+								// enable prefetching for websockets
+								tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+
+								if (abstractCommand instanceof PingCommand) {
+
+									tx.setIsPing(true);
+								}
+
+								// store authenticated-Flag in webSocketData
+								// so the command can access it
+								webSocketData.setSessionValid(isAuthenticated());
+								webSocketData.setSecurityContext(securityContext);
+
+								abstractCommand.processMessage(webSocketData);
+
+								// commit transaction
+								tx.success();
+							}
+						});
+
+					} finally {
+
+						deferredMessages.remove();
+
+						sendDeferredMessages(messages);
 					}
 
 				} else {
@@ -416,7 +443,12 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 				securityContext.clearCustomView();
 			}
 
-			if (session != null) {
+			final List<String> deferred = deferredMessages.get();
+			if (deferred != null) {
+
+				deferred.add(msg);
+
+			} else if (session != null) {
 
 				session.sendText(msg, null);
 
@@ -432,6 +464,24 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		} catch (Throwable t) {
 
 			handleWebSocketException(t, "Unable to send websocket message to remote client");
+		}
+	}
+
+	private void sendDeferredMessages(final List<String> messages) {
+
+		for (final String msg : messages) {
+
+			try {
+
+				if (session != null) {
+
+					session.sendText(msg, null);
+				}
+
+			} catch (Throwable t) {
+
+				handleWebSocketException(t, "Unable to send websocket message to remote client");
+			}
 		}
 	}
 

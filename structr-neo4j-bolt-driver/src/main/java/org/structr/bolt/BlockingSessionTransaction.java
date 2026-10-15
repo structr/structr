@@ -96,18 +96,37 @@ class BlockingSessionTransaction extends SessionTransaction {
 	@Override
 	public boolean isSuccessful() {
 
-		return success && !forcedFailure;
+		return success && !forcedFailure && terminated == null;
 	}
 
 	@Override
 	public void close() {
 
 		recordOpenTimers();
+
+		try {
+
+			closeTransaction();
+
+		} catch (RuntimeException ex) {
+
+			// a transaction that the database terminated can fail to roll back, the RetryException below is what counts
+			if (terminated == null) {
+
+				throw ex;
+			}
+		}
+
+		throwIfTerminated();
+	}
+
+	private void closeTransaction() {
+
 		clearChangeset();
 
 		try {
 
-			if (forcedFailure || !success) {
+			if (forcedFailure || !success || terminated != null) {
 
 				tx.rollback();
 
@@ -368,7 +387,7 @@ class BlockingSessionTransaction extends SessionTransaction {
 		if (ex instanceof TransientException tex) {
 
 			closed = true;
-			return new RetryException(tex);
+			return terminated(tex);
 		}
 
 		if (ex instanceof NoSuchRecordException nex) {

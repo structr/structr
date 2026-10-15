@@ -76,6 +76,8 @@ public abstract class ManyToOne extends AbstractRelation implements Relation<Man
 
 		if (sourceNode != null) {
 
+			lockForCardinality(sourceNode);
+
 			// check existing relationships
 			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
 			if (outgoingRel != null) {

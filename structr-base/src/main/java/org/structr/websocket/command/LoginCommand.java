@@ -90,6 +90,12 @@ public class LoginCommand extends AbstractCommand {
 
 					username = username.trim();
 
+					final String superUserName = Settings.SuperUserName.getValue();
+					if (StringUtils.equals(superUserName, username)) {
+
+						throw new SuperuserLoginNotSupportedException();
+					}
+
 					user = auth.doLogin(getWebSocket().getRequest(), username, password);
 
 					tx.setSecurityContext(SecurityContext.getInstance(user, AccessMode.Backend));
@@ -197,6 +203,10 @@ public class LoginCommand extends AbstractCommand {
 
 				logger.info("Unable to login {}, probably wrong password", username);
 				getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).build(), true);
+
+			} catch (SuperuserLoginNotSupportedException s) {
+
+				getWebSocket().send(MessageBuilder.status().code(HttpServletResponse.SC_FORBIDDEN).data("reason", s.getMessage()).build(), true);
 
 			} catch (FrameworkException fex) {
 

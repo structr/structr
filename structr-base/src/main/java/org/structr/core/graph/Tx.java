@@ -119,6 +119,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 			final List<Object> ids = new ArrayList<>();
 			boolean hasChanges     = false;
 			boolean retry          = true;
+			int attempts           = 0;
 
 			while (retry) {
 
@@ -155,9 +156,13 @@ public class Tx implements AutoCloseable, Prefetcher {
 
 					tx.success();
 
-				} catch (RetryException rex) {
+				} catch (FrameworkException fex) {
 
-					retry = true;
+					retry = RetryException.retry(fex, ++attempts);
+
+				} catch (RuntimeException rex) {
+
+					retry = RetryException.retry(rex, ++attempts);
 				}
 			}
 

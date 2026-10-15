@@ -18,6 +18,7 @@
  */
 package org.structr.memory;
 
+import org.structr.api.RetryException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.ChangeAwareMap;
@@ -30,17 +31,22 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  */
 public abstract class MemoryEntity implements PropertyContainer<Long> {
 
+	// the lock that each waiting thread waits for, to detect deadlocks
+	private static final Map<Thread, EntityLock> WAITING = new ConcurrentHashMap<>();
+
 	private final Map<String, Object> dataCache    = new HashMap<>();
 	private final Map<Long, ChangeAwareMap> txData = new HashMap<>();
 	private final ChangeAwareMap data              = new ChangeAwareMap();
 	private final Set<String> labels               = new LinkedHashSet<>();
-	private ReentrantLock lock                     = new ReentrantLock();
+	private EntityLock lock                        = new EntityLock();
 	protected MemoryDatabaseService db             = null;
 	private MemoryIdentity id                      = null;
 
@@ -195,21 +201,67 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 
 			txData.remove(transactionId);
 		}
-
-		unlock();
 	}
 
 	void rollback(final long transactionId) {
 
 		txData.remove(transactionId);
-		unlock();
+	}
+
+	/**
+	 * Locks this entity until the current transaction ends. A thread that would wait for a lock in a deadlock throws
+	 * a RetryException instead, like Neo4j, so that its transaction is repeated after the others have finished.
+	 */
+	private static RetryException terminated(final MemoryTransaction tx, final RetryException rex) {
+
+		if (tx != null) {
+
+			tx.terminated(rex);
+		}
+
+		return rex;
 	}
 
 	MemoryEntity lock() {
 
-		if (!lock.isHeldByCurrentThread()) {
+		if (lock.isHeldByCurrentThread()) {
 
-			lock.lock();
+			return this;
+		}
+
+		if (!lock.tryLock()) {
+
+			final MemoryTransaction tx = db.getCurrentTransaction(false);
+			final Thread current       = Thread.currentThread();
+
+			WAITING.put(current, lock);
+
+			try {
+
+				while (!lock.tryLock(10, TimeUnit.MILLISECONDS)) {
+
+					if (isDeadlocked(current)) {
+
+						throw terminated(tx, new RetryException("Deadlock detected while waiting for the lock of " + id));
+					}
+				}
+
+			} catch (InterruptedException iex) {
+
+				Thread.currentThread().interrupt();
+
+				throw terminated(tx, new RetryException(iex));
+
+			} finally {
+
+				WAITING.remove(current);
+			}
+		}
+
+		final MemoryTransaction tx = db.getCurrentTransaction(false);
+		if (tx != null) {
+
+			tx.locked(this);
 		}
 
 		return this;
@@ -280,6 +332,37 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 	}
 
 	// ----- private methods -----
+	/**
+	 * Follows the owners of the locks that the threads wait for, starting with the given thread. A deadlock exists if
+	 * the chain leads back to that thread. All threads in the cycle notice it, but only the one with the highest id
+	 * gives up, like Neo4j terminates a single transaction. If all of them gave up, they would collide again when
+	 * they are repeated.
+	 */
+	private static boolean isDeadlocked(final Thread thread) {
+
+		EntityLock waitingFor = WAITING.get(thread);
+		long highestId        = thread.threadId();
+
+		for (int i = 0; waitingFor != null && i <= WAITING.size(); i++) {
+
+			final Thread owner = waitingFor.owner();
+			if (owner == null) {
+
+				return false;
+			}
+
+			if (owner == thread) {
+
+				return highestId == thread.threadId();
+			}
+
+			highestId  = Math.max(highestId, owner.threadId());
+			waitingFor = WAITING.get(owner);
+		}
+
+		return false;
+	}
+
 	private ChangeAwareMap getData(final boolean read) {
 
 		// read-only access does not need a transaction
@@ -305,4 +388,13 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 		}
 	}
 
+
+	// ----- nested classes -----
+	private static class EntityLock extends ReentrantLock {
+
+		Thread owner() {
+
+			return getOwner();
+		}
+	}
 }

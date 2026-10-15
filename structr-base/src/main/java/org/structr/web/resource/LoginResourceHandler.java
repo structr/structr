@@ -173,7 +173,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		final String superUserName = Settings.SuperUserName.getValue();
 		if (StringUtils.equals(superUserName, emailOrUsername)) {
 
-			throw new AuthenticationException("login with superuser not supported.");
+			throw new SuperuserLoginNotSupportedException();
 		}
 
 		final Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);

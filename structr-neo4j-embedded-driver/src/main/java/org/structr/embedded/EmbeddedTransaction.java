@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import org.neo4j.graphdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.CloseableIterator;
@@ -62,6 +63,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	protected org.neo4j.graphdb.Transaction tx           = null;
 	private   boolean                       closed       = false;
 	private   boolean                       forcedFailure = false;
+	private   RetryException                terminated    = null;
 
 	public EmbeddedTransaction(final EmbeddedDatabaseService db, final org.neo4j.graphdb.Transaction tx) {
 
@@ -80,7 +82,11 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 		try {
 
-			if (forcedFailure || !success) {
+			if (terminated != null) {
+
+				rollbackTerminated();
+
+			} else if (forcedFailure || !success) {
 
 				tx.rollback();
 
@@ -89,10 +95,37 @@ public class EmbeddedTransaction implements Transaction<String> {
 				tx.commit();
 			}
 
+		} catch (TransientFailureException tex) {
+
+			// the database terminated the transaction, e.g. to resolve a deadlock
+			throw terminated(tex);
+
 		} finally {
 
 			tx.close();
 		}
+
+		if (terminated != null) {
+
+			// the code that ran in this transaction caught the RetryException, so it is thrown again here
+			throw new RetryException("The database terminated the transaction before it was closed", terminated.getCause());
+		}
+	}
+
+	/**
+	 * Records that the database terminated this transaction, so that it cannot commit even if the code that runs in it
+	 * catches the RetryException, and returns the exception to throw.
+	 */
+	public RetryException terminated(final TransientFailureException tex) {
+
+		final RetryException rex = new RetryException(tex);
+
+		if (terminated == null) {
+
+			terminated = rex;
+		}
+
+		return rex;
 	}
 
 	public boolean isClosed() {
@@ -114,7 +147,26 @@ public class EmbeddedTransaction implements Transaction<String> {
 			labelObjects.add(Label.label(label));
 		}
 
-		return tx.createNode(labelObjects.toArray(new Label[0]));
+		try {
+
+			return tx.createNode(labelObjects.toArray(new Label[0]));
+
+		} catch (TransientFailureException tex) {
+
+			throw terminated(tex);
+		}
+	}
+
+	public void acquireWriteLock(final Entity entity) {
+
+		try {
+
+			tx.acquireWriteLock(entity);
+
+		} catch (TransientFailureException tex) {
+
+			throw terminated(tex);
+		}
 	}
 
 	public void delete(final NodeWrapper wrapper) {
@@ -145,7 +197,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 			final String statement        = query.getStatement();
 			final Map<String, Object> map    = query.getParameters();
-			final Result              result = tx.execute(statement, map);
+			final Result              result = execute(statement, map);
 			final Boolean             value  = getFirstBoolean(result);
 
 			logSummary(result.getQueryStatistics());
@@ -168,7 +220,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 			final String statement            = query.getStatement();
 			final Map<String, Object> map     = query.getParameters();
-			final Result result               = tx.execute(statement, map);
+			final Result result               = execute(statement, map);
 			final Long value                  = getFirstLong(result);
 
 			logSummary(result.getQueryStatistics());
@@ -191,7 +243,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 			final String statement            = query.getStatement();
 			final Map<String, Object> map     = query.getParameters();
-			final Result result               = tx.execute(statement, map);
+			final Result result               = execute(statement, map);
 			final Node value                  = getFirstNode(result);
 
 			logSummary(result.getQueryStatistics());
@@ -214,7 +266,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 			final String statement        = query.getStatement();
 			final Map<String, Object> map = query.getParameters();
-			final Result result           = tx.execute(statement, map);
+			final Result result           = execute(statement, map);
 			final Relationship value      = getFirstRelationship(result);
 
 			logSummary(result.getQueryStatistics());
@@ -234,7 +286,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 		final String statement        = query.getStatement();
 		final Map<String, Object> map = query.getParameters();
 
-		return timed(startTimer(statement), toIterable(tx.execute(statement, map)));
+		return timed(startTimer(statement), toIterable(execute(statement, map)));
 	}
 
 	public Iterable<Map<String, Object>> run(final CypherQuery query) {
@@ -244,7 +296,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 		final String statement        = query.getStatement();
 		final Map<String, Object> map = query.getParameters();
 		final QueryTimer timer         = startTimer(statement);
-		final Result result            = tx.execute(statement, map);
+		final Result result            = execute(statement, map);
 
 		// the caller reads the rows in its own transaction, possibly after this one has closed
 		if (db.getCurrentTransaction(false) != this) {
@@ -263,13 +315,41 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 		try {
 
-			final Result result = tx.execute(statement, map);
+			final Result result = execute(statement, map);
 
 			logSummary(result.getQueryStatistics());
 
 		} finally {
 
 			timer.finished();
+		}
+	}
+
+	/**
+	 * Executes a Cypher statement in this transaction. Neo4j terminates a transaction that would wait for a lock in a
+	 * deadlock, and only a repetition of the whole transaction can succeed then.
+	 */
+	private Result execute(final String statement, final Map<String, Object> map) {
+
+		try {
+
+			return tx.execute(statement, map);
+
+		} catch (TransientFailureException tex) {
+
+			throw terminated(tex);
+		}
+	}
+
+	private void rollbackTerminated() {
+
+		try {
+
+			tx.rollback();
+
+		} catch (RuntimeException ignore) {
+
+			// the database has already ended the transaction
 		}
 	}
 
@@ -484,7 +564,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	@Override
 	public boolean isSuccessful() {
 
-		return success && !forcedFailure;
+		return success && !forcedFailure && terminated == null;
 	}
 
 	@Override
