@@ -281,6 +281,10 @@ public class MigrationService {
 				logger.info("MigrationService: {} is '{}'. Every step runs and reports what it would change, and the change is rolled back. "
 					+ "If anything would change, startup stops afterwards: a rolled back schema migration leaves the compiled schema in "
 					+ "memory out of step with the database, so this instance must not go on to serve anything.", Settings.MigrationMode.getKey(), DRY_RUN);
+
+			} else {
+
+				logger.info("MigrationService: Looking for schema and data that need to be migrated and migrating them.");
 			}
 
 			// A migration is a hard, all-or-nothing operation: if any step fails, the
