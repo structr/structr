@@ -281,6 +281,10 @@ public class MigrationService {
 				logger.info("MigrationService: {} is '{}'. Every step runs and reports what it would change, and the change is rolled back. "
 					+ "If anything would change, startup stops afterwards: a rolled back schema migration leaves the compiled schema in "
 					+ "memory out of step with the database, so this instance must not go on to serve anything.", Settings.MigrationMode.getKey(), DRY_RUN);
+
+			} else {
+
+				logger.info("MigrationService: Looking for schema and data that need to be migrated and migrating them.");
 			}
 
 			// A migration is a hard, all-or-nothing operation: if any step fails, the
@@ -342,9 +346,10 @@ public class MigrationService {
 
 					} else {
 
-						// mirrors the dry run's line. A step that finds nothing returns early and silently,
-						// so without this "no output" cannot be told apart from "the step never ran".
-						logger.info("MigrationService: {}", step.name());
+						// debug only: a step that finds nothing returns early and silently, and a step that does
+						// something logs that itself, so at info level this line would only repeat on every start.
+						// Enable debug logging to tell "no output" apart from "the step never ran".
+						logger.debug("MigrationService: {}", step.name());
 
 						step.action().run(!reportOnly);
 					}
