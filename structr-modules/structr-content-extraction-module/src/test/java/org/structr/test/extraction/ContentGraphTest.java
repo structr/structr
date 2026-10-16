@@ -52,18 +52,23 @@ import org.structr.extraction.traits.definitions.ContentExtractionConfigurationT
 import org.structr.extraction.traits.properties.ContentFileStateProperties;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 import org.structr.websocket.command.SearchNodesCommand;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -250,6 +255,63 @@ public class ContentGraphTest extends StructrUiTest {
 			assertEquals("file", ContentExtraction.shouldExtract(file(optedOut)).source());
 
 			tx.success();
+		}
+	}
+
+	@Test
+	public void testExternalChangeOnMountedFolderIsExtracted() throws Exception {
+
+		final Path root = Files.createTempDirectory("structr-content-mount-test");
+		final Path file = root.resolve("notes.txt");
+
+		Files.writeString(file, "The first version of these notes is about apples.");
+
+		try {
+
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("contentMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
+				final NodeInterface folder       = app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mountedDocs"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2)
+				);
+
+				createConfiguration(folder, Map.of());
+				tx.success();
+			}
+
+			final String fileId = awaitFileAtPath("/mountedDocs/notes.txt");
+
+			assertEquals("done", awaitStatus(fileId));
+			assertTrue(extractedText(fileId).contains("apples"));
+
+			// changed outside of Structr: the storage sync picks it up, and the new content is extracted
+			Files.writeString(file, "The second version of these notes is about pears.");
+
+			final long timeout = System.currentTimeMillis() + 60_000;
+
+			while (!extractedText(fileId).contains("pears") && System.currentTimeMillis() < timeout) {
+
+				Thread.sleep(250);
+			}
+
+			assertTrue("The externally changed file must be extracted again", extractedText(fileId).contains("pears"));
+
+		} finally {
+
+			try (final Tx tx = app.tx()) {
+
+				for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).name("mountedDocs").getAsList()) {
+
+					app.delete(folder);
+				}
+
+				tx.success();
+			}
+
+			Files.deleteIfExists(file);
+			Files.deleteIfExists(root);
 		}
 	}
 
@@ -1050,6 +1112,44 @@ public class ContentGraphTest extends StructrUiTest {
 		fail("File " + fileId + " was not extracted within 60 seconds");
 
 		return null;
+	}
+
+	private String awaitFileAtPath(final String path) throws Exception {
+
+		final long timeout = System.currentTimeMillis() + 30_000;
+
+		while (System.currentTimeMillis() < timeout) {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getFirst();
+
+				tx.success();
+
+				if (node != null) {
+
+					return node.getUuid();
+				}
+			}
+
+			Thread.sleep(250);
+		}
+
+		fail("No file at " + path + " within 30 seconds");
+
+		return null;
+	}
+
+	private String extractedText(final String fileId) throws Exception {
+
+		try (final Tx tx = app.tx()) {
+
+			final String text = ContentExtraction.getExtractedText(file(fileId));
+
+			tx.success();
+
+			return text != null ? text : "";
+		}
 	}
 
 	private int chunkCount(final String fileId) throws Exception {

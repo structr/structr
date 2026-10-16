@@ -40,13 +40,14 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
+import java.util.Objects;
+
 /**
  * Maps external change events and enumerated entries for one sync target
  * onto graph operations: creates, updates, moves and deletes File and Folder
  * nodes (honouring mountTargetFileType/mountTargetFolderType), creates
  * intermediate folders, marks nodes isExternal, maintains lastSeenMounted
- * and triggers fulltext indexing and metadata refresh where content actually
- * changed. All methods require an active transaction.
+ * and refreshes metadata and the version where content actually changed. All methods require an active transaction.
  *
  * Node resolution: entries are resolved by node UUID first; entries without
  * a (known) UUID are resolved by their virtual path relative to the sync
@@ -446,13 +447,24 @@ public class ExternalFileSyncHandler {
 
 	/**
 	 * Ported from the legacy FileSyncWatchEventListener: full metadata refresh
-	 * for files, lastSeenMounted for folders.
+	 * for files, and a new version when their content changed; lastSeenMounted
+	 * for folders.
 	 */
 	private void updateNode(final NodeInterface node, final long timestamp) throws FrameworkException {
 
 		if (node.is(StructrTraits.FILE)) {
 
-			FileHelper.updateMetadata(node.as(File.class), new PropertyMap(lastSeenMountedKey(), timestamp), true);
+			final File file     = node.as(File.class);
+			final Long previous = file.getChecksum();
+
+			FileHelper.updateMetadata(file, new PropertyMap(lastSeenMountedKey(), timestamp), true);
+
+			// a new version is the signal for "the content changed", as after an upload; listeners such as
+			// automatic content extraction react to it. A changed timestamp alone is no new content.
+			if (!Objects.equals(previous, file.getChecksum())) {
+
+				file.increaseVersion();
+			}
 
 		} else if (node.is(StructrTraits.ABSTRACT_FILE)) {
 

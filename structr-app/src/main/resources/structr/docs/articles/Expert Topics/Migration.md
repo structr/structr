@@ -186,9 +186,6 @@ let words = $.documents.stopWords('de');
 let text  = $.documents.getExtractedText(file);
 ```
 
-> **Note:** On mounted folders, a file whose content is changed by the storage sync is not extracted again
-> yet. New files found by the sync are extracted.
-
 ### Debian Package No Longer Installs Java
 
 The Debian package no longer depends on `openjdk-11-jdk-headless`, which was outdated: Structr 7 requires

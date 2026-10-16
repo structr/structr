@@ -376,6 +376,81 @@ public class StorageSyncServiceTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testExternalContentChangeIncreasesVersion() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-mount-test");
+
+			final java.io.File file = root.resolve("test.txt").toFile();
+
+			writeFile(file, "version test - before change");
+
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("versionMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mountedVersion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2)
+				);
+
+				tx.success();
+			}
+
+			waitForNodeAtPath(StructrTraits.FILE, "/mountedVersion/test.txt");
+
+			final String uuid;
+
+			try (final Tx tx = app.tx()) {
+
+				uuid = getNodeAtPath("/mountedVersion/test.txt").getUuid();
+
+				tx.success();
+			}
+
+			final Integer first    = fileState(uuid, File::getVersion);
+			final Long firstUpdate = fileState(uuid, File::getFileModificationDate);
+
+			// a new timestamp with the same content is no new content
+			assertTrue(file.setLastModified(file.lastModified() + 10000));
+
+			waitFor("The new timestamp should have been synced", () -> !java.util.Objects.equals(firstUpdate, fileState(uuid, File::getFileModificationDate)));
+
+			assertEquals("The version must not change without a content change", first, fileState(uuid, File::getVersion));
+
+			// new content is a new version, like an upload
+			writeFile(file, "version test - AFTER change");
+
+			waitFor("The new content should have been synced with a new version", () -> {
+
+				try {
+
+					final Integer version = fileState(uuid, File::getVersion);
+
+					return FileHelper.getChecksum(file).equals(fileState(uuid, File::getChecksum)) && version != null && version > (first != null ? first : 0);
+
+				} catch (IOException ex) {
+
+					return false;
+				}
+			});
+
+		} catch (IOException | FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
 	public void testDisableWatchKeyRegistration() {
 
 		Path root          = null;
@@ -1687,6 +1762,25 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				return false;
 			}
 		});
+	}
+
+	/**
+	 * Reads a value of the file in a transaction of its own, so the sync's latest commit is visible.
+	 */
+	private <T> T fileState(final String uuid, final java.util.function.Function<File, T> getter) {
+
+		try (final Tx tx = app.tx()) {
+
+			final T value = getter.apply(app.getNodeById(StructrTraits.FILE, uuid).as(File.class));
+
+			tx.success();
+
+			return value;
+
+		} catch (FrameworkException fex) {
+
+			return null;
+		}
 	}
 
 	private void setNodeProperty(final NodeInterface node, final String keyName, final Object value) {
