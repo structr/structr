@@ -65,7 +65,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FOLDER_PARENT_PROPERTY               = "folderParent";
 	public static final String HOME_FOLDER_OF_USER_PROPERTY         = "homeFolderOfUser";
 	public static final String IS_FOLDER_PROPERTY                   = "isFolder";
-	public static final String MOUNT_DO_FULLTEXT_INDEXING_PROPERTY  = "mountDoFulltextIndexing";
 	public static final String MOUNT_WATCH_CONTENTS_PROPERTY        = "mountWatchContents";
 	public static final String MOUNT_SCAN_INTERVAL_PROPERTY         = "mountScanInterval";
 	public static final String ENABLED_CHECKSUMS_PROPERTY           = "enabledChecksums";
@@ -265,7 +264,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> folderParentProperty                = new StartNode(traitsInstance, FOLDER_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
 		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode(traitsInstance, HOME_FOLDER_OF_USER_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
 		final Property<Boolean> isFolderProperty                          = new ConstantBooleanProperty(IS_FOLDER_PROPERTY, true).readOnly();
-		final Property<Boolean> mountDoFulltextIndexingProperty           = new BooleanProperty(MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
 		final Property<Boolean> mountWatchContentsProperty                = new BooleanProperty(MOUNT_WATCH_CONTENTS_PROPERTY);
 		final Property<Integer> mountScanIntervalProperty                 = new IntProperty(MOUNT_SCAN_INTERVAL_PROPERTY);
 		final Property<String> enabledChecksumsProperty                   = new StringProperty(ENABLED_CHECKSUMS_PROPERTY).description("Override for the global checksums setting, allows you to enable or disable individual checksums for all files in this folder (and sub-folders).");
@@ -286,7 +284,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			homeFolderOfUserProperty,
 			workFolderOfUsersProperty,
 			isFolderProperty,
-			mountDoFulltextIndexingProperty,
 			mountWatchContentsProperty,
 			mountScanIntervalProperty,
 			enabledChecksumsProperty,
@@ -307,7 +304,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public,
 			newSet(
 					EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
-					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY, MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY, MOUNT_TARGET_PROPERTY,
+					MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY, MOUNT_TARGET_PROPERTY,
 					MOUNT_TARGET_FILE_TYPE_PROPERTY, MOUNT_TARGET_FOLDER_TYPE_PROPERTY, MOUNT_WATCH_CONTENTS_PROPERTY,
 					FILES_COUNT_PROPERTY, FOLDERS_COUNT_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
 			),
@@ -315,7 +312,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Ui,
 			newSet(
 					EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
-					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY, MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY, MOUNT_TARGET_PROPERTY,
+					MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY, MOUNT_TARGET_PROPERTY,
 					MOUNT_TARGET_FILE_TYPE_PROPERTY, MOUNT_TARGET_FOLDER_TYPE_PROPERTY, MOUNT_WATCH_CONTENTS_PROPERTY
 			)
 		);

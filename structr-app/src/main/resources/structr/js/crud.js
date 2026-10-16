@@ -1895,8 +1895,8 @@ let _Crud = {
 			let hiddenKeys = [];
 
 			const hiddenKeysForAllTypes       = [ 'base', 'createdBy', 'lastModifiedBy', 'hidden', 'internalEntityContextPath', 'grantees' ];
-			const hiddenKeysForFileTypes      = [ 'base64Data', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'relationshipId', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate' ];
-			const hiddenKeysForImageTypes     = [ 'base64Data', 'imageData', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate' ];
+			const hiddenKeysForFileTypes      = [ 'base64Data', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'relationshipId', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'fileModificationDate' ];
+			const hiddenKeysForImageTypes     = [ 'base64Data', 'imageData', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'fileModificationDate' ];
 			const hiddenKeysForPrincipalTypes = [ 'isUser', 'isAdmin', 'createdBy', 'sessionIds', 'publicKeys', 'sessionData', 'password', 'passwordChangeDate', 'salt', 'twoFactorSecret', 'twoFactorToken', 'isTwoFactorUser', 'twoFactorConfirmed', 'ownedNodes', 'localStorage' ];
 
 			let typeDef = _Crud.types[type];

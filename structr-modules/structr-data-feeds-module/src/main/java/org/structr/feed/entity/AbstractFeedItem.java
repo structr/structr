@@ -18,7 +18,6 @@
  */
 package org.structr.feed.entity;
 
-import org.structr.common.SecurityContext;
 import org.structr.core.graph.NodeInterface;
 
 /**
@@ -26,10 +25,4 @@ import org.structr.core.graph.NodeInterface;
  *
  */
 public interface AbstractFeedItem extends NodeInterface {
-
-	void updateIndex(final SecurityContext securityContext);
-	boolean indexingEnabled();
-	Integer maximumIndexedWords();
-	Integer indexedWordMinLength();
-	Integer indexedWordMaxLength();
 }

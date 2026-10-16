@@ -332,7 +332,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			ctx.setDoTransactionNotifications(false);
 			ctx.disablePreventDuplicateRelationships();
 			ctx.disableModificationOfAccessTime();
-			ctx.setDoIndexing(false);
 
 			if (StringUtils.isBlank(path)) {
 
@@ -2977,7 +2976,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				ctx.setDoTransactionNotifications(false);
 				ctx.disableModificationOfAccessTime();
-				ctx.setDoIndexing(false);
 
 				try (final Tx tx = app.tx()) {
 

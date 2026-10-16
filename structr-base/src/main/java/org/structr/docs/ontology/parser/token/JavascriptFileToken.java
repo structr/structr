@@ -21,17 +21,13 @@ package org.structr.docs.ontology.parser.token;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.Services;
 import org.structr.docs.ontology.*;
-import org.structr.module.StructrModule;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,8 +38,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 	// @code-quality:accept - last reviewed 2026-08-14. Reads the doc comments out of a JavaScript
 	// source file, which means finding comment and string boundaries by hand: charAt, indexOf and
-	// StringBuilder are 56 of its 63 points and are what the class does. Same reasoning as
-	// FulltextTokenizer and TextSearchModule.
+	// StringBuilder are 56 of its 63 points and are what the class does.
 
 	private static final Logger logger = LoggerFactory.getLogger(JavascriptFileToken.class);
 
@@ -55,31 +50,12 @@ public class JavascriptFileToken extends NamedConceptToken {
 	private static final Pattern TEMPLATE_EXPRESSION = Pattern.compile("\\$\\{.*\\}");
 	private static final Pattern HTML_TAG            = Pattern.compile("<[^>]*>");
 	private static final Pattern WHITESPACE_RUN      = Pattern.compile("\\s+");
-	private final Set<String> stopWords = new LinkedHashSet<>();
 	private final int minLength         = 4;
 	private final int maxLength         = 40;
 
 	public JavascriptFileToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
 		super(conceptToken, identifierToken);
-
-		// fetch stop words from text search module..
-		final StructrModule textSearchModule = Services.getInstance().getConfigurationProvider().getModules().get("text-search-module");
-		if (textSearchModule != null) {
-
-			try {
-
-				final Set<String> stopWordsFromModule = textSearchModule.getModuleSpecificFeature("stopwords", Set.class, "en");
-				if (stopWordsFromModule != null) {
-
-					stopWords.addAll(stopWordsFromModule);
-				}
-
-			} catch (Throwable t) {
-
-				logger.warn("Unable to load stop words: {}", t.getMessage(), t);
-			}
-		}
 	}
 
 	public boolean isUnknown() {

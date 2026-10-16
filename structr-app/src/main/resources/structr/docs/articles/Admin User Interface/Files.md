@@ -30,7 +30,6 @@ The dialog includes:
 
 - Storage Provider: Select the storage backend (currently the local file system of the server)
 - Name: The name for the new mounted folder in Structr
-- Do Fulltext Indexing: Index the contents of the mounted files for the full-text search
 - Scan Interval (s): Interval for the periodic scans of the mount target
 - Mount Target Folder Type: The type used for folders found below the mount point
 - Mount Target File Type: The type used for files found below the mount point
@@ -40,7 +39,7 @@ The dialog includes:
 
 ### Search
 
-The search field on the right searches across all files, including their contents. This full-text search is powered by Apache Tika and can index text from PDFs, images (via OCR), Office documents, and many other formats. Type your query and press Enter to see results.
+The search field on the right searches across all files by name and, with the content-extraction module, by their contents. Content search covers files in folders with a content extraction configuration (see the Content Extraction button and context menu entry, available to admins); it ignores case, finds words by their beginning or inside longer words (such as `sendReminder` in `$.invoices.sendReminder()`) and tolerates small typos. Type your query and press Enter to see results; the search icon next to a result shows the places in the file that match.
 
 ## Left Sidebar
 

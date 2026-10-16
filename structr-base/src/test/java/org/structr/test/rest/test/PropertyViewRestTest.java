@@ -472,11 +472,9 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.body("result[1].isFile",       equalTo(true))
 			.body("result[1].isImage",      equalTo(null))
 
-			.body("result[0].extractedContent", equalTo(null))
 			.body("result[0].base64Data",       equalTo(null))
 			.body("result[0].imageData",        equalTo(null))
 
-			.body("result[1].extractedContent", equalTo(null))
 			.body("result[1].base64Data",       equalTo(null))
 			.body("result[1].imageData",        equalTo(null))
 

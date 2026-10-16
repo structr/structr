@@ -18,7 +18,6 @@
  */
 package org.structr.feed.entity;
 
-import java.io.InputStream;
 /**
  * Represents a single item of a data feed.
  *
@@ -26,7 +25,5 @@ import java.io.InputStream;
 public interface FeedItem extends AbstractFeedItem {
 
 	String getUrl();
-	InputStream getInputStream();
-	String getExtractedContent();
 	String getContentType();
 }

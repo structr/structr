@@ -95,6 +95,14 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 			await goToModule(page, '#files_');
 
 			await createFileWithContentAndContentType(page, 'documentation.md', [`With this app we can define ${oldName} and track progress.`], 'text/plain');
+
+			// file content is found by the global search only once the content-extraction module has extracted it
+			let restUrl = process.env.BASE_URL + '/structr/rest';
+			let fileId  = (await (await page.request.get(`${restUrl}/File?name=documentation.md`)).json()).result[0].id;
+
+			expect((await page.request.post(`${restUrl}/ContentExtractionConfiguration/save`, { data: { target: fileId, values: {}, process: true } })).status()).toBe(200);
+
+			await expect.poll(async () => (await (await page.request.get(`${restUrl}/File/${fileId}/ui`)).json()).result.contentExtractionStatus, { timeout: 30000 }).toBe('done');
 		}
 
 		// set up localization

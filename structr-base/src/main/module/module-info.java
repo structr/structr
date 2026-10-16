@@ -123,7 +123,6 @@ module structr.base {
 	exports org.structr.common;
 	exports org.structr.common.error;
 	exports org.structr.common.event;
-	exports org.structr.common.fulltext;
 	exports org.structr.common.geo;
 	exports org.structr.common.helper;
 	exports org.structr.common.mail;

@@ -14,7 +14,6 @@ A file or folder is synchronized when it is directly linked to a StorageConfigur
 | `mountScanInterval` | Seconds between rescans (0 = no periodic scan) |
 | `mountTargetFileType` | Node type created for discovered files (default: File) |
 | `mountTargetFolderType` | Node type created for discovered folders (default: Folder) |
-| `mountDoFulltextIndexing` | Add discovered files to the fulltext index |
 
 ## Storage Configuration Entries
 

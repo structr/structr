@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
@@ -58,11 +57,6 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 			rebuildRelationshipIndex(relType);
 		}
-
-		if ("fulltext".equals(mode)) {
-
-			rebuildFulltextIndex();
-		}
 	}
 
 	// ----- interface TransactionPostProcess -----
@@ -88,11 +82,6 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		if (mode == null || "relsOnly".equals(mode)) {
 
 			return rebuildRelationshipIndex(relType);
-		}
-
-		if ("fulltext".equals(mode)) {
-
-			return rebuildFulltextIndex();
 		}
 
 		return 0;
@@ -185,36 +174,6 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		});
 
 		info("Done with (re-)indexing {} relationships", count);
-
-		return count;
-	}
-
-	private long rebuildFulltextIndex() {
-
-		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery("Indexable"), 1000, "RebuildFulltextIndex", new BulkGraphOperation<NodeInterface>() {
-
-			@Override
-			public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface indexable) throws FrameworkException {
-
-				StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(indexable);
-
-				return true;
-			}
-
-			@Override
-			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface rel) {
-
-				logger.warn("Unable to build fulltext index for {}: {}", rel.getUuid(), t.getMessage());
-			}
-
-			@Override
-			public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
-
-				logger.warn("Unable to build fulltext index: {}", t.getMessage());
-			}
-		});
-
-		info("Rebuilding fulltext index done.");
 
 		return count;
 	}

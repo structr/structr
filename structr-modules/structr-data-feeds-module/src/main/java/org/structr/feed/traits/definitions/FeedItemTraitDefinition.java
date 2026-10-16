@@ -19,9 +19,7 @@
 package org.structr.feed.traits.definitions;
 
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
@@ -33,9 +31,7 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.core.traits.operations.graphobject.IsValid;
-import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.feed.entity.FeedItem;
 import org.structr.feed.traits.wrappers.FeedItemTraitWrapper;
 
@@ -84,24 +80,6 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 					valid &= ValidationHelper.isValidUniqueProperty(obj, urlProperty, errorBuffer);
 
 					return valid;
-				}
-			},
-
-			OnCreation.class, new OnCreation() {
-
-				@Override
-				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-					graphObject.as(FeedItem.class).updateIndex(securityContext);
-				}
-			},
-
-			AfterCreation.class, new AfterCreation() {
-
-				@Override
-				public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
-
-					graphObject.as(FeedItem.class).updateIndex(securityContext);
 				}
 			}
 		);

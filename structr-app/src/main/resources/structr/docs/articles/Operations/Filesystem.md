@@ -167,15 +167,13 @@ Images can be cropped directly in the editor. This is currently the only image e
 
 The media module adds the `VideoFile` type. It relies on an external `ffmpeg` binary on the server, which Structr locates with `which ffmpeg`; without it the video functions do nothing. The instance method `updateVideoInfo()` reads codec, pixel format, audio channel and duration information from the file into the corresponding properties. Converted versions of a video are linked through the `convertedVideos` property (with `originalVideo` pointing back), and a `posterImage` can hold a frame grabbed from the video. Conversion and frame grabbing call ffmpeg through converter scripts that you register in `structr.conf` as settings named `VideoFile.<scriptName>`; a conversion whose script is not registered is skipped with a warning in the server log. Structr serves video files like any other file; it does not offer timestamp-based playback or adaptive streaming.
 
-### Text Extraction
+### Content Extraction
 
-Structr integrates Apache Tika to extract text from documents. Supported formats include PDF, Microsoft Office documents (Word, Excel, PowerPoint), and many others – over a thousand file types in total.
+The content-extraction module uses Apache Tika to extract text and structure (headings, pages, tables, lists, links) from documents. Supported formats include PDF, Microsoft Office documents (Word, Excel, PowerPoint), HTML, Markdown, e-mails and many others – over a thousand file types in total. Scanned documents and images are read with OCR when Tesseract is installed on the server.
 
-Extracted text can be indexed for full-text search, making document contents searchable alongside structured data.
+Extraction is opt-in: it runs automatically for files in folders that have a content extraction configuration, which an admin creates with the Content Extraction dialog of the Files area (or as a `ContentExtractionConfiguration` node). A configuration covers its folder and all subfolders; a configuration closer to a file replaces it completely, and one with `enabled = false` switches extraction off for its subtree. New uploads, changed content and files moved into a configured folder are extracted in the background. Existing files are processed with the option "Process Existing Files" of the dialog or with `$.documents.processContent()`.
 
-### Fulltext Indexing
-
-When indexing is enabled for a file type, Structr builds full-text indexes from extracted content. This allows searching across document contents using the same query mechanisms as structured data.
+The extracted text is split into chunks, stored as `ExtractedContentNode`s connected to the file, and indexed for full-text search. The search box of the Files area and the global search find files by their content, ignoring case and tolerating small typos; scripts search with `$.documents.searchExtractedContent()`. The functions of the module are listed under `documents` in the function reference.
 
 ## Configuration
 
@@ -184,8 +182,6 @@ Key settings in `structr.conf`:
 | Setting | Description |
 |---------|-------------|
 | `application.filesystem.enabled` | Enable per-user home directories |
-| `application.filesystem.indexing.enabled` | Enable text extraction and indexing |
-| `application.filesystem.indexing.maxsize` | Maximum file size (MB) for indexing |
 | `application.filesystem.unique.paths` | Prevent duplicate filenames in folders |
 | `application.filesystem.checksums.default` | Checksums to calculate on upload |
 

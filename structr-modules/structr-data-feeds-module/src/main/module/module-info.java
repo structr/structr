@@ -19,9 +19,7 @@
 module structr.data.feeds.module {
 
     requires structr.base;
-    requires structr.text.search.module;
     requires rome;
-    requires org.apache.commons.io;
 
     // base (AgentService) reflectively instantiates this Agent impl across the module boundary
     exports org.structr.feed.cron;

@@ -18,22 +18,11 @@
  */
 package org.structr.feed.traits.wrappers;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.StructrTraits;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.feed.entity.FeedItem;
 import org.structr.feed.traits.definitions.FeedItemTraitDefinition;
 import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
-import org.structr.rest.common.HttpHelper;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Map;
 
 /**
  * Represents a single item of a data feed.
@@ -50,48 +39,6 @@ public class FeedItemTraitWrapper extends AbstractFeedItemTraitWrapper implement
 	public String getUrl() {
 
 		return wrappedObject.getProperty(traits.key(FeedItemTraitDefinition.URL_PROPERTY));
-	}
-
-	@Override
-	public InputStream getInputStream() {
-
-		final boolean indexRemoteDocument = Settings.FeedItemIndexRemoteDocument.getValue();
-		if (indexRemoteDocument) {
-
-			final String remoteUrl = getUrl();
-			if (StringUtils.isNotBlank(remoteUrl)) {
-
-				// FeedItem.getInputStream() declares no checked exception, so the failure cannot be propagated
-				// and is logged here instead -- getAsStream used to answer null on one, which is what this
-				// fall-through to the stored description already handled.
-				try {
-
-					final Map<String, Object> responseData = HttpHelper.getAsStream(remoteUrl);
-					if (responseData.get(HttpHelper.FIELD_BODY) instanceof InputStream stream) {
-
-						return stream;
-					}
-
-				} catch (final FrameworkException fex) {
-
-					LoggerFactory.getLogger(FeedItemTraitWrapper.class).warn("Unable to fetch remote document for feed item {}: {}", remoteUrl, fex.getMessage());
-				}
-			}
-		}
-
-		final String description = wrappedObject.getProperty(traits.key(FeedItemTraitDefinition.DESCRIPTION_PROPERTY));
-
-		return new ByteArrayInputStream(description.getBytes());
-	}
-
-	@Override
-	public String getExtractedContent() {
-
-		// The fulltext indexer stores the extracted text under the File key for every node it indexes
-		// (see FulltextIndexingAgent), so it has to be read with that same key: this type does not
-		// declare the property itself since it no longer has the removed "Indexable" trait.
-
-		return wrappedObject.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override

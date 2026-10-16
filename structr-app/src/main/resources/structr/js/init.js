@@ -1323,6 +1323,51 @@ let Structr = {
 				}
 				break;
 
+			case "CONTENT_EXTRACTION_STATUS": {
+
+				// automatic extraction runs without a user, so it only shows up in the job queue panel
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
+
+					let progress = `${data.processed} / ${data.files} file(s)<br>Extracted: ${data.done}, unchanged: ${data.unchanged}, skipped: ${data.skipped}, failed: ${data.failed}`;
+					let titles   = {
+						QUEUED:     'Content extraction added to queue',
+						BEGIN:      'Content extraction started',
+						CHUNK:      'Content extraction status',
+						END:        'Content extraction finished',
+						WAIT_ABORT: 'Content extraction waiting to abort',
+						ABORTED:    'Content extraction aborted',
+						WAIT_PAUSE: 'Content extraction waiting to pause',
+						PAUSED:     'Content extraction paused',
+						RESUMED:    'Content extraction resumed'
+					};
+
+					let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
+					messageBuilder.title(titles[data.subtype] ?? 'Content extraction').text(`Job #${data.jobId} (${data.jobName}), queue '${data.queue}'<br>${progress}`).uniqueClass(`${data.jobtype}-${data.jobId}`);
+
+					if (data.subtype !== 'QUEUED') {
+						messageBuilder.updatesText().requiresConfirmation();
+					}
+
+					messageBuilder.show();
+				}
+
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
+				}
+				break;
+			}
+
+			case "CONTENT_EXTRACTION_EXCEPTION":
+
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
+					new ErrorMessage().title('Exception in content extraction').text(_Helpers.escapeForHtmlAttributes(data.message ?? '')).requiresConfirmation().show();
+				}
+
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
+				}
+				break;
+
 			case 'DEPLOYMENT_IMPORT_STATUS':
 			case 'DEPLOYMENT_EXPORT_STATUS':
 			case 'DEPLOYMENT_DATA_IMPORT_STATUS':

@@ -80,6 +80,17 @@ public class Functions {
 		return functions.get(name);
 	}
 
+	/**
+	 * Whether functions are registered below the given name, e.g. {@code documents} for
+	 * {@code documents.extractContent}.
+	 */
+	public static boolean isNamespace(final String name) {
+
+		final String prefix = name + ".";
+
+		return functions.keySet().stream().anyMatch(key -> key.startsWith(prefix));
+	}
+
 	public static Function<Object, Object> getByClass(final Class clazz) {
 
 		for (Map.Entry<String, Function<Object, Object>> entry : functions.entrySet()) {

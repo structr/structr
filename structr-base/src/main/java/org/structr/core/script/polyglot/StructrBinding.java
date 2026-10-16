@@ -198,6 +198,12 @@ public class StructrBinding implements ProxyObject {
 					return new FunctionWrapper(actionContext, entity, func);
 				}
 
+				// a namespace of dotted functions without a function of its own, e.g. $.documents
+				if (Functions.isNamespace(name)) {
+
+					return new FunctionNamespaceWrapper(actionContext, entity, name);
+				}
+
 				try {
 
 					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, entity, 1, 1));

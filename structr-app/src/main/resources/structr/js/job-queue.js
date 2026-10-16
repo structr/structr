@@ -164,6 +164,9 @@ let _JobQueue = {
 			case 'SCRIPT':
 				return `<td data-property="jobName" colspan=4 class="${job.jobName.length === 0 ? 'placeholderText' : ''}"></td>`;
 
+			case 'CONTENT_EXTRACTION':
+				return `<td colspan=4>${_Helpers.escapeForHtmlAttributes(job.jobName)}: ${job.processed} / ${job.files} file(s), ${job.done} extracted, ${job.unchanged} unchanged, ${job.skipped} skipped, ${job.failed} failed</td>`;
+
 			default:
 				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';
 		}
@@ -174,6 +177,7 @@ let _JobQueue = {
 		switch (job.jobtype) {
 			case 'XML':
 			case 'CSV':
+			case 'CONTENT_EXTRACTION':
 				switch (job.status) {
 					case 'QUEUED':
 						actionHtml += _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');

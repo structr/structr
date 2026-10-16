@@ -285,6 +285,7 @@ trigger-enterprise:
         --form "variables[COMMUNITY_VERSION]=$STRUCTR_VERSION" \
         --form "variables[BUILD_TIMESTAMP]=$BUILD_TIMESTAMP" \
         --form "variables[COMMIT_SHORT]=$COMMIT_SHORT" \
+        --form "variables[COMMUNITY_REF]=$CI_COMMIT_REF_NAME" \
         "https://$CI_SERVER_HOST/api/v4/projects/20/trigger/pipeline"
 
 # Clean up Docker resources after pipeline completion

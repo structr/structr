@@ -20,8 +20,6 @@ package org.structr.feed.entity;
 
 import org.structr.core.graph.NodeInterface;
 
-import java.io.InputStream;
-
 /**
  *
  *
@@ -29,11 +27,5 @@ import java.io.InputStream;
 public interface RemoteDocument extends NodeInterface {
 
 	String getUrl();
-	InputStream getInputStream();
-	boolean indexingEnabled();
-	Integer maximumIndexedWords();
-	Integer indexedWordMinLength();
-	Integer indexedWordMaxLength();
-	String getExtractedContent();
 	String getContentType();
 }

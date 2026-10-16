@@ -21,9 +21,12 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
+import org.structr.core.graph.search.GlobalSearchContributor;
+import org.structr.core.graph.search.GlobalSearchContributors;
 import org.structr.core.traits.StructrTraits;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -49,7 +52,7 @@ public class SearchNodesCommand extends AbstractCommand {
 
 		try {
 
-			final List<GraphObject> result = executeSearch(searchString, searchContexts, searchIgnoreCase);
+			final List<GraphObject> result = executeSearch(getWebSocket().getSecurityContext(), searchString, searchContexts, searchIgnoreCase);
 			int resultCountBeforePaging = result.size();
 
 			webSocketData.setRawResultCount(resultCountBeforePaging);
@@ -78,9 +81,28 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	public static List<GraphObject> executeSearch(final String searchString, final List<String> searchContexts, final boolean searchIgnoreCase) {
 
+		return executeSearch(SecurityContext.getSuperUserInstance(), searchString, searchContexts, searchIgnoreCase);
+	}
+
+	public static List<GraphObject> executeSearch(final SecurityContext securityContext, final String searchString, final List<String> searchContexts, final boolean searchIgnoreCase) {
+
 		final DatabaseService db                   = Services.getInstance().getDatabaseService();
-		final List<Map<String, Object>> rawResults = db.globalSearch(new HashSet<>(searchContexts), searchString, searchIgnoreCase);
+		final Set<String> contexts                 = new HashSet<>(searchContexts);
+		final List<Map<String, Object>> rawResults = new ArrayList<>(db.globalSearch(contexts, searchString, searchIgnoreCase));
 		final List<GraphObject> results            = new LinkedList<>();
+
+		// results contributed by modules, e.g. file content found by the content-extraction module
+		for (final GlobalSearchContributor contributor : GlobalSearchContributors.getContributors()) {
+
+			try {
+
+				rawResults.addAll(contributor.search(securityContext, contexts, searchString, searchIgnoreCase));
+
+			} catch (final RuntimeException ex) {
+
+				logger.warn("Global search contributor {} failed: {}", contributor.getClass().getName(), ex.getMessage());
+			}
+		}
 
 		for (final Map<String, Object> result : rawResults) {
 

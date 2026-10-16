@@ -18,16 +18,12 @@
  */
 package org.structr.feed.entity;
 
-import java.io.InputStream;
-
 /**
  * Represents feed enclosures
  */
 public interface FeedItemEnclosure extends AbstractFeedItem {
 
 	String getUrl();
-	InputStream getInputStream();
-	String getExtractedContent();
 	String getContentType();
 
 }

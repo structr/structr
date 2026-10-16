@@ -20,7 +20,6 @@ package org.structr.web.entity;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 
 import javax.activation.DataSource;
@@ -41,8 +40,6 @@ public interface File extends AbstractFile, DataSource {
 	boolean isTrusted();
 	boolean dontCache();
 
-	GraphObject getSearchContext(SecurityContext ctx, String searchTerm, int contextLength);
-
 	void notifyUploadCompletion();
 	void callOnUploadHandler(final SecurityContext ctx);
 	void increaseVersion() throws FrameworkException;
@@ -58,7 +55,6 @@ public interface File extends AbstractFile, DataSource {
 
 	Folder getCurrentWorkingDir();
 	String getFormattedSize();
-	String getExtractedContent();
 	String getPath();
 	String getDiskFilePath(final SecurityContext securityContext);
 
@@ -68,8 +64,6 @@ public interface File extends AbstractFile, DataSource {
 
 	void checkMoveBinaryContents(final NodeInterface newProvider) throws FrameworkException;
 	void checkMoveBinaryContents(final Folder previousParent, final NodeInterface newParent) throws FrameworkException;
-
-	boolean doIndexing();
 
 	String getContentType();
 

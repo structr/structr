@@ -102,13 +102,12 @@ Imports data for specific types from a directory.
 
 Imports files directly from a server directory into Structr's virtual filesystem.
 
-`file-import <source> <target> [mode] [existing] [index]`
+`file-import <source> <target> [mode] [existing]`
 
 - **source** - Path to a directory on the server
 - **target** - Target path in Structr's virtual filesystem
 - **mode** - copy (default) or move
 - **existing** - skip (default), overwrite, or rename
-- **index** - Fulltext-index imported files: true (default) or false
 
 #### init
 

@@ -39,7 +39,6 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 /**
  * Maps external change events and enumerated entries for one sync target
@@ -446,22 +445,12 @@ public class ExternalFileSyncHandler {
 	}
 
 	/**
-	 * Ported from the legacy FileSyncWatchEventListener: fulltext indexing
-	 * and full metadata refresh for files, lastSeenMounted for folders.
+	 * Ported from the legacy FileSyncWatchEventListener: full metadata refresh
+	 * for files, lastSeenMounted for folders.
 	 */
 	private void updateNode(final NodeInterface node, final long timestamp) throws FrameworkException {
 
 		if (node.is(StructrTraits.FILE)) {
-
-			final NodeInterface syncRoot = getSyncRoot();
-			if (syncRoot != null && syncRoot.is(StructrTraits.FOLDER)) {
-
-				final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
-				if (Boolean.TRUE.equals(syncRoot.getProperty(doFulltextIndexing))) {
-
-					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(node);
-				}
-			}
 
 			FileHelper.updateMetadata(node.as(File.class), new PropertyMap(lastSeenMountedKey(), timestamp), true);
 

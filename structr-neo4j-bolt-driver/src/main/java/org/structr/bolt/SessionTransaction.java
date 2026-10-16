@@ -836,14 +836,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 				if (map != null && !map.isEmpty()) {
 
-					if (query.contains("extractedContent")) {
-
-						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), query);
-
-					} else {
-
-						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, stringify(map));
-					}
+					logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, stringify(map));
 
 				} else {
 

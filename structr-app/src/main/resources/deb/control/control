@@ -4,5 +4,6 @@ Section: misc
 Priority: low
 Architecture: all
 Depends: openjdk-11-jdk-headless | openjdk-11-jdk | logrotate
+Recommends: tesseract-ocr, tesseract-ocr-eng, tesseract-ocr-deu, tesseract-ocr-fra, tesseract-ocr-spa, tesseract-ocr-ita, tesseract-ocr-nld, tesseract-ocr-osd
 Description: [[description]]
 Maintainer: Axel Morgner <axel.morgner@structr.com>
