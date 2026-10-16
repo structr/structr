@@ -36,6 +36,17 @@ import java.util.Map.Entry;
 
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer<String> {
 
+	private static final Map<Class<?>, Class<?>> PRIMITIVE_TYPES = Map.of(
+		Boolean.class,   Boolean.TYPE,
+		Byte.class,      Byte.TYPE,
+		Character.class, Character.TYPE,
+		Short.class,     Short.TYPE,
+		Integer.class,   Integer.TYPE,
+		Long.class,      Long.TYPE,
+		Float.class,     Float.TYPE,
+		Double.class,    Double.TYPE
+	);
+
 	private final Map<String, Object> propertyCacheForDeletedEntities = new HashMap<>();
 	protected final EmbeddedDatabaseService database;
 	protected final EmbeddedIdentity        identity;
@@ -191,8 +202,8 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 		return deleted;
 	}
 
-	// ----- private methods -----
-	private Object convertForStorage(final Object value) {
+	// ----- package-private methods -----
+	static Object convertForStorage(final Object value) {
 
 		if (value != null) {
 
@@ -201,13 +212,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 				final List<?> list = Iterables.toList(i);
 				if (!list.isEmpty()) {
 
-					// if value is a list, it is likely a list of Strings..
-
-					return convertArray(list.toArray(new String[0]));
+					return convertArray(toTypedArray(list));
 				}
 			}
 
-			if(value.getClass().isArray()) {
+			if (value.getClass().isArray()) {
 
 				return convertArray(value);
 			}
@@ -216,7 +225,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 		return value;
 	}
 
-	private Object revertFromStorage(final Object value) {
+	static Object revertFromStorage(final Object value) {
 
 		if (value != null) {
 
@@ -252,33 +261,62 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 		return value;
 	}
 
-	private Object convertArray(final Object value) {
+	// ----- private methods -----
+	/**
+	 * Copies a list into an array of the type all its elements share (e.g. String[] or Double[]), because
+	 * Neo4j only stores typed arrays. A list of nulls becomes a String[], as before.
+	 */
+	private static Object[] toTypedArray(final List<?> list) {
 
-		if (!value.getClass().isArray()) {
+		Class<?> elementType = null;
 
-			throw new IllegalArgumentException(value.getClass() + " is not an array.");
+		for (final Object element : list) {
+
+			if (element != null) {
+
+				if (elementType == null) {
+
+					elementType = element.getClass();
+
+				} else if (!elementType.isInstance(element)) {
+
+					// mixed types: Neo4j rejects the array with its own error
+					elementType = Object.class;
+					break;
+				}
+			}
 		}
 
-		final Class<?> componentType = value.getClass().getComponentType();
-		final Class<?> wrapperType = switch (componentType.getName()) {
-			case "Boolean" -> Boolean.TYPE;
+		final Class<?> arrayType = elementType != null ? elementType : String.class;
 
-			case "Byte" -> Byte.TYPE;
-			case "Char" -> Character.TYPE;
-			case "Short" -> Short.TYPE;
-			case "Int" -> Integer.TYPE;
-			case "Long" -> Long.TYPE;
-			case "Float" -> Float.TYPE;
-			case "Double" -> Double.TYPE;
-			default -> componentType;
-		};
+		return list.toArray((Object[]) Array.newInstance(arrayType, 0));
+	}
+
+	/**
+	 * Converts an array of wrapper objects (e.g. Double[]) into the corresponding primitive array. Other
+	 * arrays (Strings, temporal values, primitives), and arrays with null elements, which Neo4j cannot
+	 * store, are returned unchanged.
+	 */
+	private static Object convertArray(final Object value) {
+
+		final Class<?> primitiveType = PRIMITIVE_TYPES.get(value.getClass().getComponentType());
+		if (primitiveType == null) {
+
+			return value;
+		}
 
 		final int    length   = Array.getLength(value);
-		final Object newArray = Array.newInstance(wrapperType, length);
+		final Object newArray = Array.newInstance(primitiveType, length);
 
 		for (int i = 0; i < length; i++) {
 
-			Array.set(newArray, i, Array.get(value, i));
+			final Object element = Array.get(value, i);
+			if (element == null) {
+
+				return value;
+			}
+
+			Array.set(newArray, i, element);
 		}
 
 		return newArray;
