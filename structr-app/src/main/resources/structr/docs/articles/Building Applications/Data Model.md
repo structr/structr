@@ -400,6 +400,16 @@ During the transaction, the lifecycle methods `onCreate`, `onSave`, and `onDelet
 #### Step 2: Post-Commit Lifecycle Methods
 After the transaction is committed successfully and data is securely stored in the database, the lifecycle methods `afterCreate`, `afterSave`, and `afterDelete` are executed in a separate follow-up transaction. These methods are guaranteed to be executed only when data has been safely persisted, which makes them the best place for notifications like sending emails etc.
 
+### Repeated Transactions
+When several transactions change the same objects at the same time, the database can terminate one of them to resolve a deadlock. Structr then rolls this transaction back and repeats it from the beginning, up to ten times. Only if the last attempt fails as well does the operation end with an error. Structr repeats transactions for REST requests, CSV imports, file uploads, most actions in the Admin UI, flows, scheduled tasks, and code queued with `$.schedule()`.
+
+A repeated transaction runs all of its code again, including the lifecycle methods `onCreate`, `onSave` and `onDelete`. The database changes of a failed attempt are rolled back, but effects outside the database, like an email or a request to another system, are not. Put such effects into `afterCreate`, `afterSave` or `afterDelete`, which run only after the data has been committed. Their follow-up transaction is repeated in the same way, so in rare cases they can run more than once as well, but the data of the original transaction is never stored twice.
+
+A REST GET request is repeated only as long as no part of its response has been sent to the client.
+
+### Concurrent Changes to Relationships
+If several transactions set the same relationship with cardinality 1 at the same time, for example the `project` of a task, Structr locks the objects involved until the end of the transaction. The transactions are processed one after another, so exactly one relationship remains, and it is the one set by the transaction that committed last.
+
 ### The Modifications Object
 
 In `onSave` methods, you can access the `modifications` keyword to see exactly what changed. This read-only object contains four elements:
@@ -415,7 +425,7 @@ Example – checking what changed in onSave:
 
 ```javascript
 {
-    let modifications = $.retrieve('modifications');
+    let modifications = $.retrieve('modifications');        // from v7.1 on also available as $.modifications
     
     if (modifications.after.status === 'published') {
         // Status was changed to published

@@ -96,7 +96,10 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			final String instanceName = StringUtils.defaultIfBlank(instance, "unknown instance");
 			final String userAgent    = "structr/" + versionName  + "-" + instanceName;
 			final boolean isTesting   = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
-			final Config config       = Config.builder().withUserAgent(userAgent).build();
+
+			// The driver fetches the records of a result in batches, one network round trip each. With the default of
+			// 1000, a result of 10000 records costs ten round trips, and a larger batch costs memory for every open result.
+			final Config config = Config.builder().withUserAgent(userAgent).withFetchSize(10000).build();
 
 			try {
 
@@ -189,14 +192,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 			try {
 
-				if (neo4jMajorVersion >= 4) {
-
-					return new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
-
-				} else {
-
-					return new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
-				}
+				return newSessionTransaction();
 
 			} catch (ServiceUnavailableException ex) {
 
@@ -221,14 +217,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 			try {
 
-				if (neo4jMajorVersion >= 4) {
-
-					session = new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
-
-				} else {
-
-					session = new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
-				}
+				session = newSessionTransaction();
 
 				sessions.set(session);
 
@@ -255,14 +244,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 			try {
 
-				if (neo4jMajorVersion >= 4) {
-
-					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig), timeoutInSeconds);
-
-				} else {
-
-					session = new AsyncSessionTransaction(this, driver.asyncSession(), timeoutInSeconds);
-				}
+				session = newSessionTransaction(timeoutInSeconds);
 
 				sessions.set(session);
 
@@ -928,7 +910,53 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 		SessionTransaction.flushCaches();
 	}
 
+	@Override
+	public Map<String, Object> getPrefetchStatistics() {
+
+		return PrefetchStatistics.snapshot();
+	}
+
+	@Override
+	public void resetPrefetchStatistics() {
+
+		PrefetchStatistics.reset();
+	}
+
 	// ----- private methods -----
+	/**
+	 * Opens a session and a transaction in it, on the blocking API of the driver for Neo4j 4 and later, unless
+	 * database.driver.reactive asks for the reactive API.
+	 */
+	private SessionTransaction newSessionTransaction() {
+
+		if (neo4jMajorVersion < 4) {
+
+			return new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
+		}
+
+		if (Settings.DatabaseDriverReactive.getValue()) {
+
+			return new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
+		}
+
+		return new BlockingSessionTransaction(this, driver.session(Session.class, sessionConfig));
+	}
+
+	private SessionTransaction newSessionTransaction(final int timeoutInSeconds) {
+
+		if (neo4jMajorVersion < 4) {
+
+			return new AsyncSessionTransaction(this, driver.session(AsyncSession.class), timeoutInSeconds);
+		}
+
+		if (Settings.DatabaseDriverReactive.getValue()) {
+
+			return new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig), timeoutInSeconds);
+		}
+
+		return new BlockingSessionTransaction(this, driver.session(Session.class, sessionConfig), timeoutInSeconds);
+	}
+
 	private String getNeo4jVersion() {
 
 		try (final Session session = driver.session()) {

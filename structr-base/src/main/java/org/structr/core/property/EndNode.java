@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import org.structr.api.Predicate;
+import org.structr.api.RetryException;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -153,6 +154,11 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 			}
 
 			return endpoint.set(securityContext, (NodeInterface)obj, value);
+
+		} catch (RetryException rex) {
+
+			// the database terminated the transaction, so only a repetition of the whole transaction can succeed
+			throw rex;
 
 		} catch (RuntimeException r) {
 

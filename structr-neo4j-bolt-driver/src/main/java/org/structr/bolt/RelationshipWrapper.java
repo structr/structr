@@ -59,6 +59,11 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 		return "MATCH (s)-[n]->(t)";
 	}
 
+	long getTargetNodeId() {
+
+		return targetNodeId;
+	}
+
 	@Override
 	public Node<Long> getStartNode() {
 
@@ -109,25 +114,17 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	@Override
 	public void delete(final boolean deleteRelationships) {
 
-		if (!db.getCurrentTransaction().isNodeDeleted(sourceNodeId)) {
-
-			getStartNode().invalidate();
-		}
-
-		if (!db.getCurrentTransaction().isNodeDeleted(targetNodeId)) {
-
-			getEndNode().invalidate();
-		}
+		final SessionTransaction tx = db.getCurrentTransaction();
 
 		super.delete(deleteRelationships);
 
-		final SessionTransaction tx = db.getCurrentTransaction();
-
 		tx.delete(this);
 
-		// invalidate node caches
-		tx.nodes.remove(sourceNodeId);
-		tx.nodes.remove(targetNodeId);
+		// Only the relationship caches of the end nodes are outdated, their properties are not. An end node that this
+		// transaction has not loaded has nothing cached, so it is not loaded just to remove the relationship, and a
+		// loaded one keeps the rest of its cache, so that the next lookup of its relationships needs no query.
+		removeFromCache(tx, sourceNodeId);
+		removeFromCache(tx, targetNodeId);
 	}
 
 	@Override
@@ -145,5 +142,15 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	public boolean isNode() {
 
 		return false;
+	}
+
+	// ----- private methods -----
+	private void removeFromCache(final SessionTransaction tx, final long nodeId) {
+
+		final NodeWrapper node = tx.nodes.get(nodeId);
+		if (node != null) {
+
+			node.removeRelationship(this);
+		}
 	}
 }

@@ -100,6 +100,15 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 	public static List<String> getListOfServerlogFileNames() {
 
+		return getListOfServerlogFileNames(false);
+	}
+
+	/**
+	 * @param includeCompressed whether to list rotated logs that were compressed with gzip, which only
+	 *                          a reader that decompresses them can use
+	 */
+	public static List<String> getListOfServerlogFileNames(final boolean includeCompressed) {
+
 		final String basePath = Settings.getBasePath();
 		if (!basePath.isEmpty()) {
 
@@ -114,7 +123,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 				if (logFile.exists()) {
 
 					String parentDir = logFile.getParent() + File.separator;
-					List<String> logsInDir = getLogFilesInDirectory(parentDir, logFile.getName());
+					List<String> logsInDir = getLogFilesInDirectory(parentDir, logFile.getName(), includeCompressed);
 
 					if (logsInDir.size() > 1) {
 
@@ -131,7 +140,8 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 			if (logFile.exists()) {
 
-				return List.of(logPath.concat("server.log"));
+				// the rolling policy in logback.xml keeps the rotated logs next to it
+				return getLogFilesInDirectory(logPath, logFile.getName(), includeCompressed);
 			}
 
 			// third priority: deb installation / log files in /var/log/ (although ENV can also use this path)
@@ -139,7 +149,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 			if (logFile.exists()) {
 
-				return getLogFilesInDirectory("/var/log/", logFile.getName());
+				return getLogFilesInDirectory("/var/log/", logFile.getName(), includeCompressed);
 			}
 
 			logger.warn("Could not locate logfile(s)");
@@ -152,9 +162,9 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 		return List.of();
 	}
 
-	private static List<String> getLogFilesInDirectory(String logDirectory, String logFileName) {
+	private static List<String> getLogFilesInDirectory(final String logDirectory, final String logFileName, final boolean includeCompressed) {
 
-		// return all (non-gzipped) files starting with "structr.log" in logDirectory
+		// return all files starting with the name of the log file in logDirectory, gzipped ones only on request
 		final List<String> logFiles = new ArrayList<>();
 
 		try {
@@ -165,7 +175,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 					final String name = file.getFileName().toString();
 
-					return (name.startsWith(logFileName) && !name.endsWith(".gz"));
+					return name.startsWith(logFileName) && (includeCompressed || !name.endsWith(".gz"));
 				}
 
 				@Override

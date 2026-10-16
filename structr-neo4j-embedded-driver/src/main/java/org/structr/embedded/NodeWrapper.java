@@ -20,6 +20,7 @@ package org.structr.embedded;
 
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.TransientFailureException;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -61,29 +62,50 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 	@Override
 	public Relationship<String> createRelationshipTo(final Node<String> endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
-		final org.neo4j.graphdb.Relationship newRelationship = entity.createRelationshipTo(convert(endNode), convert(relationshipType));
+		try {
 
-		for (final Map.Entry<String, Object> entry : properties.entrySet()) {
+			final org.neo4j.graphdb.Relationship newRelationship = entity.createRelationshipTo(convert(endNode), convert(relationshipType));
 
-			newRelationship.setProperty(entry.getKey(), entry.getValue());
+			for (final Map.Entry<String, Object> entry : properties.entrySet()) {
+
+				newRelationship.setProperty(entry.getKey(), entry.getValue());
+			}
+
+			return new RelationshipWrapper(database, newRelationship);
+
+		} catch (TransientFailureException tex) {
+
+			throw database.terminated(tex);
 		}
-
-		return new RelationshipWrapper(database, newRelationship);
 	}
 
 	@Override
 	public void addLabels(final Set<String> input) {
 
-		for (final String name : input) {
+		try {
 
-			entity.addLabel(Label.label(name));
+			for (final String name : input) {
+
+				entity.addLabel(Label.label(name));
+			}
+
+		} catch (TransientFailureException tex) {
+
+			throw database.terminated(tex);
 		}
 	}
 
 	@Override
 	public void removeLabel(final String label) {
 
-		entity.removeLabel(Label.label(label));
+		try {
+
+			entity.removeLabel(Label.label(label));
+
+		} catch (TransientFailureException tex) {
+
+			throw database.terminated(tex);
+		}
 	}
 
 	@Override
@@ -166,6 +188,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 	}
 
 	@Override
+	public void acquireWriteLock() {
+
+		database.getCurrentTransaction().acquireWriteLock(entity);
+	}
+
+	@Override
 	public void invalidate() {
 	}
 
@@ -232,14 +260,20 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 
 	private Iterable<org.neo4j.graphdb.Relationship> sort(final Iterable<org.neo4j.graphdb.Relationship> input) {
 
-		final List<org.neo4j.graphdb.Relationship> result = Iterables.toList(input);
+		final List<SortKey> keys = new ArrayList<>();
 
-		Collections.sort(result, (a, b) -> {
+		// a comparison reads the timestamps of both relationships, so they are read once per relationship instead of once per comparison
+		for (final org.neo4j.graphdb.Relationship relationship : input) {
 
-			if (a.hasProperty("internalTimestamp") && b.hasProperty("internalTimestamp")) {
+			keys.add(new SortKey(relationship, relationship.getProperty("internalTimestamp", null)));
+		}
 
-				final Comparable t1 = (Comparable) a.getProperty("internalTimestamp");
-				final Comparable t2 = (Comparable) b.getProperty("internalTimestamp");
+		Collections.sort(keys, (a, b) -> {
+
+			if (a.timestamp() != null && b.timestamp() != null) {
+
+				final Comparable t1 = (Comparable) a.timestamp();
+				final Comparable t2 = (Comparable) b.timestamp();
 
 				// Yes, we deliberately provoke both ClassCastException and NullPointerException here.
 
@@ -248,9 +282,20 @@ class NodeWrapper extends EntityWrapper<org.neo4j.graphdb.Node> implements Node<
 
 			// fallback: element ID
 
-			return a.getElementId().compareTo(b.getElementId());
+			return a.relationship().getElementId().compareTo(b.relationship().getElementId());
 		});
 
+		final List<org.neo4j.graphdb.Relationship> result = new ArrayList<>(keys.size());
+
+		for (final SortKey key : keys) {
+
+			result.add(key.relationship());
+		}
+
 		return result;
+	}
+
+	// ----- nested classes -----
+	private record SortKey(org.neo4j.graphdb.Relationship relationship, Object timestamp) {
 	}
 }

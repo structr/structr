@@ -123,12 +123,13 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 	@Override
 	public void setProperty(final String key, final Object value) {
 
-		final SessionTransaction tx = db.getCurrentTransaction();
-
-		tx.queryResultCache.clear();
-
 		// only update values if actually different from what is stored
 		if (needsUpdate(key, value)) {
+
+			final SessionTransaction tx = db.getCurrentTransaction();
+
+			// a changed value can change the results of the cached queries, an unchanged one cannot
+			tx.queryResultCache.clear();
 
 			final String query = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";
 			final Map<String, Object> properties = new HashMap<>();
@@ -280,6 +281,12 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long
 	}
 
 	private boolean equal(final Object existingValue, final Object newValue) {
+
+		// getProperty returns lists as arrays, and arrays are only equal to themselves
+		if (existingValue instanceof Object[] existingArray && newValue instanceof Object[] newArray) {
+
+			return Arrays.deepEquals(existingArray, newArray);
+		}
 
 		if (existingValue instanceof List) {
 

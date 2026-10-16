@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.DataConnectionConfigurationFactory;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
+import org.apache.ftpserver.listener.Listener;
 import org.apache.ftpserver.listener.ListenerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class FtpService implements RunnableService {
 	private static int port;
 	private static String passivePortRange;
 	private FtpServer server;
+	private Listener listener;
 
 	@Override
 	public void startService() throws Exception {
@@ -64,7 +66,9 @@ public class FtpService implements RunnableService {
 
 		factory.setPort(port);
 
-		serverFactory.addListener("default", factory.createListener());
+		listener = factory.createListener();
+
+		serverFactory.addListener("default", listener);
 
 		logger.info("Starting FTP server on port {}", String.valueOf(port));
 
@@ -73,6 +77,20 @@ public class FtpService implements RunnableService {
 
 		this.isRunning = true;
 
+	}
+
+	/**
+	 * The port the FTP server actually listens on, which differs from the configured one when that is
+	 * 0 and the operating system picked a free port. Tests rely on that to run in parallel.
+	 */
+	public int getAllocatedPort() {
+
+		if (listener != null) {
+
+			return listener.getPort();
+		}
+
+		return 0;
 	}
 
 	@Override

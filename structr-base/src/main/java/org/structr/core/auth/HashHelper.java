@@ -28,21 +28,26 @@ import org.structr.api.config.Settings;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Password hashing utility supporting Argon2id (preferred) and legacy SHA-512.
  *
- * New passwords are always hashed with Argon2id. Legacy SHA-512 hashes are
- * recognized and verified for backward compatibility, enabling transparent
- * migration on login.
+ * New passwords are always hashed with Argon2id. Legacy SHA-512 hashes, and
+ * Argon2id hashes made with parameters other than the configured ones, still
+ * verify; the next successful login replaces them, see {@link #needsRehash(String)}.
  *
- * Argon2id parameters (OWASP 2023 recommendation):
+ * Default Argon2id parameters, above every minimum configuration that OWASP
+ * recommends, and configurable in the security.passwordhash.* settings:
  *   memory: 64 MB (65536 KB)
  *   iterations: 3
  *   parallelism: 1
  *   salt: 16 bytes from SecureRandom
  *   hash length: 32 bytes
+ *
+ * Every Argon2id computation holds its full memory while it runs, so the number
+ * of concurrent computations is limited, see {@link #getMaxConcurrentComputations()}.
  *
  * Output format: $argon2id$v=19$m=65536,t=3,p=1$<base64-salt>$<base64-hash>
  */
@@ -56,6 +61,11 @@ public class HashHelper {
 	private static final AtomicLong VERIFICATION_COUNT = new AtomicLong();
 
 	private static final String ARGON2_PREFIX = "$argon2id$";
+
+	// replaced when the limit changes, see acquireComputationPermit(); its own lock, because
+	// getTimingReferenceHash() waits for a permit while it holds the class monitor
+	private static final Object COMPUTATION_LIMIT_LOCK        = new Object();
+	private static volatile ComputationLimit computationLimit = null;
 
 	// ----- Argon2id methods -----
 
@@ -79,10 +89,8 @@ public class HashHelper {
 			.build();
 
 		final byte[] hash = new byte[Settings.PasswordHashArgon2idHashLength.getValue()];
-		final Argon2BytesGenerator generator = new Argon2BytesGenerator();
 
-		generator.init(params);
-		generator.generateBytes(password.toCharArray(), hash);
+		computeArgon2(params, password, hash);
 
 		return encodeArgon2Hash(params, salt, hash);
 	}
@@ -128,14 +136,67 @@ public class HashHelper {
 	}
 
 	/**
+	 * Whether a stored hash should be replaced by a fresh one on the next successful login: it is a
+	 * legacy SHA-512 hash, or an Argon2id hash whose parameters differ from the configured ones.
+	 * The parameters are part of every Argon2id hash, so a hash made before a settings change still
+	 * verifies; re-hashing is what makes the new settings reach existing accounts.
+	 *
+	 * @param storedHash the stored hash string
+	 * @return true if the hash does not match the current configuration
+	 */
+	public static boolean needsRehash(final String storedHash) {
+
+		if (!isArgon2Hash(storedHash)) {
+
+			return true;
+		}
+
+		final Argon2Hash parsed = parseArgon2Hash(storedHash);
+		if (parsed == null) {
+
+			return true;
+		}
+
+		return parsed.memory()      != Settings.PasswordHashArgon2idMemory.getValue()
+			|| parsed.iterations()  != Settings.PasswordHashArgon2idIterations.getValue()
+			|| parsed.parallelism() != Settings.PasswordHashArgon2idParallelism.getValue()
+			|| parsed.salt().length != Settings.PasswordHashArgon2idSaltLength.getValue()
+			|| parsed.hash().length != Settings.PasswordHashArgon2idHashLength.getValue();
+	}
+
+	/**
+	 * The number of Argon2id computations allowed to run at the same time.
+	 *
+	 * Each computation allocates its full memory parameter (64 MB by default) up front, so a few dozen
+	 * simultaneous logins exhaust a small heap with an OutOfMemoryError. The automatic value allows one
+	 * computation per processor, since more than that only makes each one slower, but no more than
+	 * fit into a quarter of the maximum heap.
+	 */
+	public static int getMaxConcurrentComputations() {
+
+		final int configured = Settings.PasswordHashMaxConcurrent.getValue();
+		if (configured > 0) {
+
+			return configured;
+		}
+
+		final Runtime runtime   = Runtime.getRuntime();
+		final long memoryBytes  = Math.max(1L, Settings.PasswordHashArgon2idMemory.getValue()) * 1024L;
+		final long fittingCount = (runtime.maxMemory() / 4L) / memoryBytes;
+
+		return (int)Math.max(1L, Math.min(runtime.availableProcessors(), fittingCount));
+	}
+
+	/**
 	 * Spend the same verification work as a real password check, and return false.
 	 *
 	 * Call this on a login path that has NO principal to check against, so that a failed attempt
 	 * costs the same whether or not the account exists. Without it, "no such user" returns
-	 * immediately while an existing user pays for a full Argon2 verification (64 MB, 3 iterations
-	 * here), and that difference is easily measurable: an attacker can enumerate valid user names by
-	 * timing alone, even though both cases answer with the same error message. Structr is open
-	 * source, so the shape of that difference is not a secret and must not be relied upon.
+	 * immediately while an existing user pays for a full Argon2 verification (64 MB and 3
+	 * iterations by default), and that difference is easily measurable: an attacker can enumerate
+	 * valid user names by timing alone, even though both cases answer with the same error message.
+	 * Structr is open source, so the shape of that difference is not a secret and must not be
+	 * relied upon.
 	 *
 	 * @param password the cleartext password that was offered, may be null
 	 * @return always false, so this can be used directly in place of a verification result
@@ -148,20 +209,21 @@ public class HashHelper {
 	}
 
 	/**
-	 * A hash of a random value, generated once, purely to give
-	 * {@link #spendVerificationTime(String)} something realistic to verify against. It never
-	 * matches any password, and is created lazily so that starting the server does not pay for it.
+	 * A hash of a random value, purely to give {@link #spendVerificationTime(String)} something
+	 * realistic to verify against. It never matches any password, and is created lazily so that
+	 * starting the server does not pay for it. A change of the hash settings replaces it, so that it
+	 * keeps costing what an account costs once the next login has re-hashed it.
 	 */
 	private static String getTimingReferenceHash() {
 
 		String hash = timingReferenceHash;
-		if (hash == null) {
+		if (hash == null || needsRehash(hash)) {
 
 			synchronized (HashHelper.class) {
 
 				hash = timingReferenceHash;
 
-				if (hash == null) {
+				if (hash == null || needsRehash(hash)) {
 
 					final byte[] random = new byte[32];
 					SECURE_RANDOM.nextBytes(random);
@@ -242,26 +304,62 @@ public class HashHelper {
 
 		try {
 
-			final String[] parts = encodedHash.split("\\$");
-			// Format: $argon2id$v=19$m=65536,t=3,p=1$<salt>$<hash>
-			// parts[0] = "" (before first $)
-			// parts[1] = "argon2id"
-			// parts[2] = "v=19"
-			// parts[3] = "m=65536,t=3,p=1"
-			// parts[4] = base64 salt
-			// parts[5] = base64 hash
+			final Argon2Hash parsed = parseArgon2Hash(encodedHash);
+			if (parsed == null) {
 
-			if (parts.length != 6) {
-
-				logger.warn("Invalid Argon2 hash format: unexpected number of segments");
+				logger.warn("Invalid Argon2 hash format");
 
 				return false;
 			}
 
-			final String paramString = parts[3];
+			final Argon2Parameters params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+				.withSalt(parsed.salt())
+				.withMemoryAsKB(parsed.memory())
+				.withIterations(parsed.iterations())
+				.withParallelism(parsed.parallelism())
+				.build();
+
+			final byte[] computedHash = new byte[parsed.hash().length];
+
+			computeArgon2(params, password, computedHash);
+
+			// Constant-time comparison
+
+			return java.security.MessageDigest.isEqual(parsed.hash(), computedHash);
+
+		} catch (Exception e) {
+
+			logger.warn("Error verifying Argon2 hash: {}", e.getMessage());
+
+			return false;
+		}
+	}
+
+	/**
+	 * Splits an encoded Argon2id hash into its parameters, salt and hash, or returns null if it is
+	 * malformed.
+	 */
+	private static Argon2Hash parseArgon2Hash(final String encodedHash) {
+
+		final String[] parts = encodedHash.split("\\$");
+		// Format: $argon2id$v=19$m=65536,t=3,p=1$<salt>$<hash>
+		// parts[0] = "" (before first $)
+		// parts[1] = "argon2id"
+		// parts[2] = "v=19"
+		// parts[3] = "m=65536,t=3,p=1"
+		// parts[4] = base64 salt
+		// parts[5] = base64 hash
+
+		if (parts.length != 6) {
+
+			return null;
+		}
+
+		try {
+
 			int memory = 0, iterations = 0, parallelism = 0;
 
-			for (final String param : paramString.split(",")) {
+			for (final String param : parts[3].split(",")) {
 
 				final String[] kv = param.split("=");
 				switch (kv[0]) {
@@ -271,31 +369,68 @@ public class HashHelper {
 				}
 			}
 
-			final byte[] salt         = Base64.getDecoder().decode(parts[4]);
-			final byte[] expectedHash = Base64.getDecoder().decode(parts[5]);
-			final Argon2Parameters params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
-				.withSalt(salt)
-				.withMemoryAsKB(memory)
-				.withIterations(iterations)
-				.withParallelism(parallelism)
-				.build();
+			final byte[] salt = Base64.getDecoder().decode(parts[4]);
+			final byte[] hash = Base64.getDecoder().decode(parts[5]);
 
-			final byte[] computedHash = new byte[expectedHash.length];
+			return new Argon2Hash(memory, iterations, parallelism, salt, hash);
+
+		} catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+
+			// NumberFormatException is an IllegalArgumentException, as is invalid base64
+
+			return null;
+		}
+	}
+
+	/**
+	 * Runs one Argon2id computation once a permit is free. A caller waits rather than being refused:
+	 * refusing a login would count against the account as a failed attempt and could block it.
+	 */
+	private static void computeArgon2(final Argon2Parameters params, final String password, final byte[] output) {
+
+		final Semaphore permits = acquireComputationPermit();
+
+		try {
+
 			final Argon2BytesGenerator generator = new Argon2BytesGenerator();
 
 			generator.init(params);
-			generator.generateBytes(password.toCharArray(), computedHash);
+			generator.generateBytes(password.toCharArray(), output);
 
-			// Constant-time comparison
+		} finally {
 
-			return java.security.MessageDigest.isEqual(expectedHash, computedHash);
-
-		} catch (Exception e) {
-
-			logger.warn("Error verifying Argon2 hash: {}", e.getMessage());
-
-			return false;
+			permits.release();
 		}
+	}
+
+	/**
+	 * Acquires a permit and returns the semaphore it came from, which is the one to release it to. A
+	 * change of the limit replaces the semaphore. Computations still holding a permit of the old one
+	 * release it there and are not counted by the new one, so until they finish, more computations
+	 * than the new limit can run at the same time.
+	 */
+	private static Semaphore acquireComputationPermit() {
+
+		final int max           = getMaxConcurrentComputations();
+		ComputationLimit limit  = computationLimit;
+
+		if (limit == null || limit.max() != max) {
+
+			synchronized (COMPUTATION_LIMIT_LOCK) {
+
+				limit = computationLimit;
+
+				if (limit == null || limit.max() != max) {
+
+					limit            = new ComputationLimit(max, new Semaphore(max, true));
+					computationLimit = limit;
+				}
+			}
+		}
+
+		limit.semaphore().acquireUninterruptibly();
+
+		return limit.semaphore();
 	}
 
 	private static String encodeArgon2Hash(final Argon2Parameters params, final byte[] salt, final byte[] hash) {
@@ -310,4 +445,8 @@ public class HashHelper {
 
 		return sb.toString();
 	}
+
+	private record Argon2Hash(int memory, int iterations, int parallelism, byte[] salt, byte[] hash) {}
+
+	private record ComputationLimit(int max, Semaphore semaphore) {}
 }

@@ -75,6 +75,8 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 		final String sourceType = getSourceType();
 		final String targetType = getTargetType();
 
+		lockForCardinality(sourceNode, targetNode);
+
 		if (sourceNode != null) {
 
 			// check existing relationships

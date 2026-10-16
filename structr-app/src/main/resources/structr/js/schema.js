@@ -4283,7 +4283,7 @@ let _Schema = {
 				</div>
 			`,
 			methodsDropdownButton: (config) => `
-				<a data-name="${config.name}" data-is-prefix="${config.isPrefix}" class="add-method-button inline-flex items-center gap-x-2 justify-between hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="${_Helpers.escapeForHtmlAttributes(config.comment)}" data-comment-config='{ "customToggleIconClasses": ["flex-shrink-0"] }'>
+				<a data-name="${config.name}" data-is-prefix="${config.isPrefix}" class="add-method-button inline-flex items-center gap-x-2 justify-between hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="${_Helpers.escapeForHtmlAttributes(config.comment)}" data-comment-config='{"customToggleIconClasses":["flex-shrink-0"],"helpElementCss":{"width":"400px","max-width":"initial"}}'>
 					<span class="inline-flex items-center">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2 flex-shrink-0')} Add ${config.name}</span>
 				</a>
 			`

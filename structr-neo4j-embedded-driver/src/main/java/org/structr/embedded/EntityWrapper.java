@@ -19,6 +19,7 @@
 package org.structr.embedded;
 
 import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.TransientFailureException;
 import org.neo4j.values.storable.LongArray;
 import org.neo4j.values.storable.Values;
 import org.structr.api.ConstraintViolationException;
@@ -90,9 +91,11 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 			return propertyCacheForDeletedEntities.get(name);
 		}
 
-		if (hasProperty(name)) {
+		// one property read instead of two (hasProperty and getProperty), Neo4j does not store null values
+		final Object value = entity.getProperty(name, null);
+		if (value != null) {
 
-			return revertFromStorage(entity.getProperty(name));
+			return revertFromStorage(value);
 		}
 
 		return null;
@@ -125,11 +128,15 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 
 				e.printStackTrace();
 				throw new ConstraintViolationException(e, "constraint_violation", e.getMessage());
+
+			} catch (TransientFailureException tex) {
+
+				throw database.terminated(tex);
 			}
 
 		} else {
 
-			entity.removeProperty(key);
+			removeProperty(key);
 		}
 	}
 
@@ -145,7 +152,14 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 	@Override
 	public void removeProperty(final String key) {
 
-		entity.removeProperty(key);
+		try {
+
+			entity.removeProperty(key);
+
+		} catch (TransientFailureException tex) {
+
+			throw database.terminated(tex);
+		}
 	}
 
 	@Override
@@ -158,7 +172,16 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Stri
 	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
 
 		propertyCacheForDeletedEntities.putAll(entity.getAllProperties());
-		entity.delete();
+
+		try {
+
+			entity.delete();
+
+		} catch (TransientFailureException tex) {
+
+			throw database.terminated(tex);
+		}
+
 		deleted = true;
 	}
 

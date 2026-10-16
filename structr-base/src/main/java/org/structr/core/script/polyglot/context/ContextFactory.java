@@ -21,6 +21,7 @@ package org.structr.core.script.polyglot.context;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.ResourceLimits;
+import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -31,7 +32,6 @@ import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
@@ -40,9 +40,12 @@ import java.util.stream.Collectors;
 public abstract class ContextFactory {
 
 	private static final Logger ctxLogger          = LoggerFactory.getLogger(ContextFactory.class);
-	private static final String debuggerPath        = "/structr/scripting/remotedebugger/";
+
+	private static final String debuggerPath  = "/structr/scripting/remotedebugger/";
 	private static String currentDebuggerUUID = "";
 	private static Engine engine              = buildEngine();
+
+	private static final Predicate<Source> STATEMENT_LIMIT_FILTER = source -> !source.isInternal();
 
 	// javascript context builder
 	private static final Context.Builder jsBuilder = applyResourceLimits(Context.newBuilder("js")
@@ -111,11 +114,11 @@ public abstract class ContextFactory {
 		final int limit = Settings.ScriptingStatementLimit.getValue(0);
 		if (limit <= 0) {
 
-			return builder;
+			return builder.resourceLimits(null);
 		}
 
 		final ResourceLimits limits = ResourceLimits.newBuilder()
-			.statementLimit(limit, null)
+			.statementLimit(limit, STATEMENT_LIMIT_FILTER)
 			.onLimit(event -> ctxLogger.warn("Scripting context cancelled: statement limit of {} exceeded", limit))
 			.build();
 
@@ -140,6 +143,19 @@ public abstract class ContextFactory {
 					genericBuilder.engine(engine);
 					jsBuilder.engine(engine);
 					pythonBuilder.engine(engine);
+				}
+			});
+		}
+
+		if (Settings.ScriptingStatementLimit.getChangeHandler() == null) {
+
+			Settings.ScriptingStatementLimit.setChangeHandler((setting, oldValue, newValue) -> {
+
+				if (oldValue != newValue) {
+
+					applyResourceLimits(genericBuilder);
+					applyResourceLimits(jsBuilder);
+					applyResourceLimits(pythonBuilder);
 				}
 			});
 		}

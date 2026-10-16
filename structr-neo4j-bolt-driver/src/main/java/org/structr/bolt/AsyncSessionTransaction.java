@@ -83,15 +83,34 @@ class AsyncSessionTransaction extends SessionTransaction {
 	@Override
 	public boolean isSuccessful() {
 
-		return success && !forcedFailure;
+		return success && !forcedFailure && terminated == null;
 	}
 
 	@Override
 	public void close() {
 
+		try {
+
+			closeTransaction();
+
+		} catch (RuntimeException ex) {
+
+			// a transaction that the database terminated can fail to roll back, the RetryException below is what counts
+			if (terminated == null) {
+
+				throw ex;
+			}
+		}
+
+		throwIfTerminated();
+	}
+
+	private void closeTransaction() {
+
+		recordOpenTimers();
 		clearChangeset();
 
-		if (forcedFailure || !success) {
+		if (forcedFailure || !success || terminated != null) {
 
 			try {
 
@@ -100,7 +119,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 			} catch (TransientException tex) {
 
 				closed = true;
-				throw new RetryException(tex);
+				throw terminated(tex);
 
 			} catch (NoSuchRecordException nex) {
 
@@ -130,7 +149,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 			} catch (TransientException tex) {
 
 				closed = true;
-				throw new RetryException(tex);
+				throw terminated(tex);
 
 			} catch (NoSuchRecordException nex) {
 
@@ -205,7 +224,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (TransientException tex) {
 
 			closed = true;
-			throw new RetryException(tex);
+			throw terminated(tex);
 
 		} catch (NoSuchRecordException nex) {
 
@@ -246,7 +265,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (TransientException tex) {
 
 			closed = true;
-			throw new RetryException(tex);
+			throw terminated(tex);
 
 		} catch (NoSuchRecordException nex) {
 
@@ -294,7 +313,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (TransientException tex) {
 
 			closed = true;
-			throw new RetryException(tex);
+			throw terminated(tex);
 
 		} catch (NoSuchRecordException nex) {
 
@@ -342,7 +361,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (TransientException tex) {
 
 			closed = true;
-			throw new RetryException(tex);
+			throw terminated(tex);
 
 		} catch (NoSuchRecordException nex) {
 
@@ -404,7 +423,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (TransientException tex) {
 
 			closed = true;
-			throw new RetryException(tex);
+			throw terminated(tex);
 
 		} catch (NoSuchRecordException nex) {
 
@@ -441,7 +460,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (TransientException tex) {
 
 			closed = true;
-			throw new RetryException(tex);
+			throw terminated(tex);
 
 		} catch (NoSuchRecordException nex) {
 

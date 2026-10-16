@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
+import org.structr.api.RetryException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
@@ -654,9 +655,21 @@ public abstract class RESTCallHandler {
 
 			} catch (FrameworkException nfex) {
 
+				// the database terminated the transaction, so the request is repeated (chunks that were committed stay deleted)
+				if (RetryException.find(nfex) != null) {
+
+					throw nfex;
+				}
+
 				// ignore NotFoundException
 
 			} catch (Throwable t) {
+
+				// the database terminated the transaction, so the request is repeated (chunks that were committed stay deleted)
+				if (t instanceof RuntimeException rex && RetryException.find(rex) != null) {
+
+					throw rex;
+				}
 
 				logger.warn("Exception in DELETE chunk #{}: {}", chunk, t.toString());
 

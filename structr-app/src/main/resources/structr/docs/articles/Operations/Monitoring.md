@@ -71,10 +71,24 @@ The statistics describe the load on this server rather than your application, so
 
 ### Viewing Statistics
 
-Access statistics are available in two places:
+Access statistics are available in three places:
 
 - Dashboard – The "About Structr" tab shows a filterable table with request statistics grouped by timestamp, request count, and HTTP method
 - Health Check Endpoint – The `/structr/health` endpoint includes response time statistics in the `html:responseTime` and `json:responseTime` sections
+- Statistics Endpoint – `/structr/rest/stats` returns the request counts as JSON, for monitoring systems and other remote tools
+
+### Statistics Endpoint
+
+`GET /structr/rest/stats` returns one object per HTTP method (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`) that has seen requests, each mapping the start of a time bucket, in milliseconds since the epoch, to the number of requests in it.
+
+| Parameter | Description |
+|-----------|-------------|
+| `interval` | Bucket size in milliseconds (default: 60000). Must be a multiple of `application.stats.aggregation.interval`, otherwise the request is refused with 422 |
+| `max` | Only return this many of the most recent buckets per method (default: all) |
+
+Example: `/structr/rest/stats?interval=3600000&max=24` returns the requests per hour for the last 24 hours.
+
+Admin users can always read the endpoint. Other users need a resource permission for `stats` with GET, which lets a monitoring account poll the statistics without admin rights. The endpoint only returns request counts, no paths, addresses or users.
 
 ### Configuration
 
@@ -175,6 +189,8 @@ A pre-built Grafana dashboard for Structr is available at [grafana.com/grafana/d
 
 The histogram endpoint provides detailed query performance analysis, useful for identifying slow queries and optimization opportunities.
 
+It covers every database query since Structr started, grouped by statement: how often each statement ran, and its total, maximum, minimum and average time, from sending the query until its last result was read. Up to 10,000 distinct statements are listed individually; any further ones are counted together in one entry. The statistics are cleared on restart.
+
 ### Endpoint
 
 `/structr/histogram`
@@ -199,23 +215,48 @@ Configure these settings in `structr.conf` or through the Configuration Interfac
 
 ## Server Log Endpoint
 
-The server log endpoint returns the last lines of the server log over HTTP, for example to collect them from a script or another tool without opening the dashboard. Only admin users can read it; a resource permission for another user is refused with 403, because the log records everything the instance has been sent.
+The server log endpoint returns the server log over HTTP, for example to collect it from a script or a monitoring tool without opening the dashboard. Only admin users can read it; a resource permission for another user is refused with 403, because the log records everything the instance has been sent.
 
 ### Endpoint
 
 `GET /structr/rest/_serverLog`
 
+### Entries
+
+The endpoint reads the log as entries: a line that starts with a timestamp begins an entry, and the lines without one that follow it, such as a stack trace, belong to it. `level` and `filter` select whole entries, so an error always comes back with its stack trace.
+
 ### Parameters
 
 | Parameter | Description |
 |-----------|-------------|
-| `lines` | Number of lines to return, counted from the end of the log (default: 50) |
-| `filter` | Only return lines that contain this text; `lines` then counts matching lines |
-| `logFile` | The log file to read, one of `availableLogFiles` in the response (default: the current log file) |
+| `lines` | Number of lines to return (default: 50). Entries are never cut, so the response can contain a few more |
+| `level` | Minimum level: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`. `level=WARN` returns warnings and errors. The level is read from the level column, not from the message |
+| `filter` | Only return entries that contain this text, in any of their lines |
+| `since` | The `offset` of a previous response. Returns only what was logged after it, oldest first |
+| `logFile` | The log file to read, one of `availableLogFiles` in the response (default: the current log file). Rotated logs are listed too, newest first, including the ones compressed with gzip; `since` cannot be used with a compressed log |
 
-Example: `/structr/rest/_serverLog?lines=200&filter=ERROR`
+Without `since`, the endpoint returns the most recent entries. With `since`, it reads forward from that offset and returns the oldest new entries first, up to `lines`; the `offset` of the response then points to the first entry not yet returned, so the next request continues there and nothing is skipped.
 
-The response contains `logFile`, the file that was read, `availableLogFiles`, and `lines`, oldest first.
+### Response
+
+| Field | Description |
+|-------|-------------|
+| `lines` | The lines of the selected entries, oldest first |
+| `offset` | The byte position to pass as `since` in the next request; empty for a compressed log |
+| `rotated` | `true` if `since` lay beyond the end of the file. The log was rotated, and the new file was read from the start |
+| `logFile` | The file that was read |
+| `availableLogFiles` | All log files that can be read: the current one first, then the rotated ones, newest first |
+
+### Watching for Errors
+
+To watch an instance for errors, make one request without `since` and keep its `offset`, then poll with `since` and `level=ERROR`:
+
+```
+GET /structr/rest/_serverLog?lines=1
+GET /structr/rest/_serverLog?since=48213377&level=ERROR&lines=500
+```
+
+Each poll reads only the bytes logged since the previous one, so its cost does not depend on the size of the log, and a poll every few seconds is cheap. A line that is still being written is left for the next poll. Log in once and reuse the session or a token for the polls; sending the password with every request makes each one pay for the password hash.
 
 ## Related Topics
 

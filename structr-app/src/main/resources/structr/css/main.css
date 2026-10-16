@@ -3762,7 +3762,6 @@ table.props td.__value {
 	outline: none;
 }
 #global-search-results {
-	margin-top: 2rem;
 	width: 100%;
 }
 #global-search-results tbody tr:nth-child(2n) {
@@ -5032,6 +5031,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .grid-cols-12 {
 	grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.grid-cols-\[auto_1fr\] {
+	grid-template-columns: auto 1fr;
 }
 .overflow-hidden {
 	overflow: hidden;

@@ -259,7 +259,10 @@ let StructrWS = {
 					_Dialogs.loginDialog.appendErrorMessage('Max. number of sessions exceeded.');
 				} else {
 					_Dialogs.loginDialog.show();
-					_Dialogs.loginDialog.appendErrorMessage('Wrong username or password!');
+
+					let message = data.data.reason ?? 'Wrong username or password!';
+
+					_Dialogs.loginDialog.appendErrorMessage(message);
 				}
 
 			} else if (code === 401) {

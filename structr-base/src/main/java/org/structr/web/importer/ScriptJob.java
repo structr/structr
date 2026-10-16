@@ -23,6 +23,7 @@ import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.structr.api.RetryException;
 import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
@@ -101,29 +102,36 @@ public class ScriptJob extends ScheduledJob {
 
 			final SecurityContext securityContext = getJobSecurityContext();
 
-			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-				final ActionContext actionContext = new ActionContext(securityContext);
+			try {
 
 				reportBegin();
 
-				// If a polyglot function was supplied, execute it directly
-				if (script instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
+				// the database can terminate the transaction to resolve a deadlock, so it is repeated like a REST request
+				RetryException.repeat(() -> {
 
-					functionWrapper.execute();
+					try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-				} else if (script instanceof String) {
+						final ActionContext actionContext = new ActionContext(securityContext);
 
-					Scripting.evaluate(actionContext, null, (String)script, jobName, null);
+						// If a polyglot function was supplied, execute it directly
+						if (script instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
 
-				} else if (script != null) {
+							functionWrapper.execute();
 
-					logger.warn("Unable to schedule script of type {}, ignoring", script.getClass().getName());
-				}
+						} else if (script instanceof String) {
+
+							Scripting.evaluate(actionContext, null, (String)script, jobName, null);
+
+						} else if (script != null) {
+
+							logger.warn("Unable to schedule script of type {}, ignoring", script.getClass().getName());
+						}
+
+						tx.success();
+					}
+				});
 
 				reportFinished();
-
-				tx.success();
 
 			} catch (Exception e) {
 

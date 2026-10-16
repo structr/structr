@@ -131,6 +131,20 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		return new ServiceResult(running);
 	}
 
+	/**
+	 * The port the SSH server actually listens on, which differs from the configured one when that is
+	 * 0 and the operating system picked a free port. Tests rely on that to run in parallel.
+	 */
+	public int getAllocatedPort() {
+
+		if (server != null) {
+
+			return server.getPort();
+		}
+
+		return 0;
+	}
+
 	@Override
 	public void shutdown() {
 

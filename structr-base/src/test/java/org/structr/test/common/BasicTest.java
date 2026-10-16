@@ -26,6 +26,7 @@ import org.structr.api.NotInTransactionException;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -2284,6 +2285,277 @@ public class BasicTest extends StructrTest {
 	}
 
 	@Test
+	public void testRelationshipsInBothDirectionsOfOneType() {
+
+		// A lookup in both directions with a relationship type must return the relationships of that type
+		// only, in both directions.
+
+		try (final Tx tx = app.tx()) {
+
+			final Node six   = createTestNode("TestSix").getNode();
+			final Node one   = createTestNode("TestOne").getNode();
+			final Node three = createTestNode("TestThree").getNode();
+
+			final RelationshipType firstType  = RelationshipType.forName("FIRST_TYPE");
+			final RelationshipType secondType = RelationshipType.forName("SECOND_TYPE");
+
+			six.createRelationshipTo(one, firstType);
+			three.createRelationshipTo(six, secondType);
+			one.createRelationshipTo(six, firstType);
+
+			assertEquals("A lookup in both directions must return the relationships of its type only", 2, Iterables.count(six.getRelationships(Direction.BOTH, firstType)));
+			assertEquals("A lookup in both directions must return the relationships of its type only", 1, Iterables.count(six.getRelationships(Direction.BOTH, secondType)));
+			assertEquals("A lookup in both directions without a type must return every relationship", 3, Iterables.count(six.getRelationships(Direction.BOTH)));
+			assertEquals("A lookup of all relationships must return every relationship", 3, Iterables.count(six.getRelationships()));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testDeletedRelationshipIsGoneFromTheCachesOfBothNodes() {
+
+		// The relationships of both end nodes are read before the deletion, so they are in the caches of the
+		// driver, and the deleted relationship must be gone from both of them in the same transaction.
+
+		try (final Tx tx = app.tx()) {
+
+			final Node six   = createTestNode("TestSix").getNode();
+			final Node one   = createTestNode("TestOne").getNode();
+			final Node three = createTestNode("TestThree").getNode();
+
+			final RelationshipType type = RelationshipType.forName("DELETED_TYPE");
+
+			six.createRelationshipTo(one, type);
+			six.createRelationshipTo(three, type);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Node six              = app.nodeQuery("TestSix").getFirst().getNode();
+			final Node one              = app.nodeQuery("TestOne").getFirst().getNode();
+			final Node three            = app.nodeQuery("TestThree").getFirst().getNode();
+			final RelationshipType type = RelationshipType.forName("DELETED_TYPE");
+
+			// fill the caches of both end nodes, for every key that the deleted relationship is stored under
+			assertEquals(2, Iterables.count(six.getRelationships(Direction.OUTGOING, type)));
+			assertEquals(2, Iterables.count(six.getRelationships(Direction.OUTGOING)));
+			assertEquals(2, Iterables.count(six.getRelationships()));
+			assertEquals(1, Iterables.count(one.getRelationships(Direction.INCOMING, type)));
+			assertEquals(1, Iterables.count(one.getRelationships(Direction.INCOMING)));
+			assertEquals(1, Iterables.count(one.getRelationships()));
+
+			six.getRelationshipTo(type, one).delete(true);
+
+			assertEquals("The deleted relationship must be gone from the source node", 1, Iterables.count(six.getRelationships(Direction.OUTGOING, type)));
+			assertEquals("The deleted relationship must be gone from the source node", 1, Iterables.count(six.getRelationships(Direction.OUTGOING)));
+			assertEquals("The deleted relationship must be gone from the source node", 1, Iterables.count(six.getRelationships()));
+			assertFalse("The deleted relationship must be gone from the source node", six.hasRelationshipTo(type, one));
+			assertNull("The deleted relationship must be gone from the source node", six.getRelationshipTo(type, one));
+
+			assertEquals("The deleted relationship must be gone from the target node", 0, Iterables.count(one.getRelationships(Direction.INCOMING, type)));
+			assertEquals("The deleted relationship must be gone from the target node", 0, Iterables.count(one.getRelationships(Direction.INCOMING)));
+			assertEquals("The deleted relationship must be gone from the target node", 0, Iterables.count(one.getRelationships()));
+
+			assertTrue("The other relationship must still be there", six.hasRelationshipTo(type, three));
+			assertEquals("The other relationship must still be there", 1, Iterables.count(three.getRelationships(Direction.INCOMING, type)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testRelationshipsAreReturnedInCreationOrder() {
+
+		// Callers rely on the order in which relationships were created, also when some of them were created
+		// in the current transaction and others in a transaction that was committed before.
+
+		final List<String> sixes = new LinkedList<>();
+		final List<String> ones  = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			sixes.add(app.create("TestSix").getUuid());
+			sixes.add(app.create("TestSix").getUuid());
+
+			ones.add(app.create("TestOne").getUuid());
+			ones.add(app.create("TestOne").getUuid());
+			ones.add(app.create("TestOne").getUuid());
+
+			app.create(app.getNodeById("TestSix", sixes.get(0)), app.getNodeById("TestOne", ones.get(0)), "SixOneManyToMany");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface six   = app.getNodeById("TestSix", sixes.get(0));
+			final NodeInterface other = app.getNodeById("TestSix", sixes.get(1));
+			final NodeInterface first = app.getNodeById("TestOne", ones.get(0));
+
+			app.create(six, app.getNodeById("TestOne", ones.get(1)), "SixOneManyToMany");
+			app.create(six, app.getNodeById("TestOne", ones.get(2)), "SixOneManyToMany");
+			app.create(other, first, "SixOneManyToMany");
+
+			final RelationshipType type = RelationshipType.forName("MANY_TO_MANY");
+			final Node sixNode          = six.getNode();
+			final Node firstNode        = first.getNode();
+
+			assertEquals("Relationships must be returned in creation order", ones, targets(sixNode.getRelationships(Direction.OUTGOING, type)));
+			assertEquals("Relationships must be returned in creation order", ones, targets(sixNode.getRelationships(Direction.OUTGOING)));
+			assertEquals("Relationships must be returned in creation order", ones, targets(sixNode.getRelationships(Direction.BOTH, type)));
+			assertEquals("Relationships must be returned in creation order", ones, targets(sixNode.getRelationships(Direction.BOTH)));
+			assertEquals("Relationships must be returned in creation order", ones, targets(sixNode.getRelationships()));
+
+			assertEquals("Relationships must be returned in creation order", sixes, sources(firstNode.getRelationships(Direction.INCOMING, type)));
+			assertEquals("Relationships must be returned in creation order", sixes, sources(firstNode.getRelationships(Direction.INCOMING)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testDeletingARelationshipAfterItsTimestampChanged() {
+
+		// Creating a relationship that already exists between two nodes of the Bolt driver merges it with the
+		// existing one, which changes the internal timestamp that the cached relationships are ordered by.
+		// Deleting it afterwards must remove it from the cache nonetheless. With three relationships, the
+		// changed one is not the first one that a search in the ordered cache compares with.
+
+		final RelationshipType type = RelationshipType.forName("MERGED_TYPE");
+		final List<String> uuids    = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface six = createTestNode("TestSix");
+			final Node sixNode      = six.getNode();
+
+			uuids.add(six.getUuid());
+
+			for (final String timestamp : List.of("1", "5", "7")) {
+
+				final NodeInterface one = createTestNode("TestOne");
+				final Node oneNode      = one.getNode();
+
+				sixNode.createRelationshipTo(oneNode, type, Map.of("internalTimestamp", timestamp));
+
+				uuids.add(one.getUuid());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Node six   = app.getNodeById("TestSix", uuids.get(0)).getNode();
+			final Node first = app.getNodeById("TestOne", uuids.get(1)).getNode();
+			final Node last  = app.getNodeById("TestOne", uuids.get(3)).getNode();
+
+			// fill the cache, then change the timestamp of the relationship to the first node
+			assertEquals(3, Iterables.count(six.getRelationships(Direction.OUTGOING, type)));
+
+			six.createRelationshipTo(first, type, Map.of("internalTimestamp", "9"));
+
+			final List<Relationship> relationships = Iterables.toList(six.getRelationships(Direction.OUTGOING, type));
+
+			for (final Relationship relationship : relationships) {
+
+				if (relationship.getEndNode().getId().equals(first.getId())) {
+
+					relationship.delete(true);
+				}
+			}
+
+			assertFalse("The deleted relationship must be gone from the cache", six.hasRelationshipTo(type, first));
+			assertNull("The deleted relationship must be gone from the cache", six.getRelationshipTo(type, first));
+			assertEquals("The deleted relationship must be gone from the cache", 2, Iterables.count(six.getRelationships(Direction.OUTGOING, type)));
+			assertTrue("The other relationships must still be there", six.hasRelationshipTo(type, last));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testIncomingLookupOfANodeWithARelationshipToItself() {
+
+		// A relationship from a node to itself is outgoing as well as incoming. Looking up the incoming
+		// relationships must not make the other outgoing relationships of the node look absent.
+
+		final RelationshipType type = RelationshipType.forName("LOOP_TYPE");
+
+		try (final Tx tx = app.tx()) {
+
+			final Node six = createTestNode("TestSix").getNode();
+			final Node one = createTestNode("TestOne").getNode();
+
+			six.createRelationshipTo(six, type);
+			six.createRelationshipTo(one, type);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Node six = app.nodeQuery("TestSix").getFirst().getNode();
+			final Node one = app.nodeQuery("TestOne").getFirst().getNode();
+
+			assertEquals(1, Iterables.count(six.getRelationships(Direction.INCOMING, type)));
+
+			assertTrue("The outgoing relationship to the other node must be found", six.hasRelationshipTo(type, one));
+			assertNotNull("The outgoing relationship to the other node must be found", six.getRelationshipTo(type, one));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testRelationDirectionForType() {
 
 		// The direction of a relation depends on which end a node type sits at. A type that only has the
@@ -2377,5 +2649,35 @@ public class BasicTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 		}
+	}
+
+	private List<String> targets(final Iterable<Relationship> relationships) {
+
+		final List<String> uuids = new LinkedList<>();
+
+		for (final Relationship relationship : relationships) {
+
+			if ("MANY_TO_MANY".equals(relationship.getType().name())) {
+
+				uuids.add((String) relationship.getEndNode().getProperty("id"));
+			}
+		}
+
+		return uuids;
+	}
+
+	private List<String> sources(final Iterable<Relationship> relationships) {
+
+		final List<String> uuids = new LinkedList<>();
+
+		for (final Relationship relationship : relationships) {
+
+			if ("MANY_TO_MANY".equals(relationship.getType().name())) {
+
+				uuids.add((String) relationship.getStartNode().getProperty("id"));
+			}
+		}
+
+		return uuids;
 	}
 }

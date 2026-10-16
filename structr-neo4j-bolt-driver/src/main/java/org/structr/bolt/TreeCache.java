@@ -22,8 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
-import java.util.*;
-
 /**
  * A tree-based hierarchical cache implementation.
  * @param <T>
@@ -62,6 +60,15 @@ public class TreeCache<T extends Comparable> {
 		}
 
 		return null;
+	}
+
+	public void remove(final String key, final T value) {
+
+		final TreeCacheNode<T> node = getNode(key, false);
+		if (node != null) {
+
+			node.remove(value);
+		}
 	}
 
 	public boolean contains(final String key) {
@@ -151,6 +158,13 @@ public class TreeCache<T extends Comparable> {
 		public void add(final T value) {
 
 			data.add(value);
+		}
+
+		public void remove(final T value) {
+
+			// Not data.remove: the set is ordered by the internal timestamp of the relationships, which a MERGE of an
+			// existing relationship changes in place, so the set may not find the value where its order says it is.
+			data.removeIf(value::equals);
 		}
 
 		public void clear() {

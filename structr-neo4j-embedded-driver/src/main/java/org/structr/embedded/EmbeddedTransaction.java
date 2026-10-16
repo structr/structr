@@ -23,10 +23,14 @@ import com.google.gson.GsonBuilder;
 import org.neo4j.graphdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.CloseableIterator;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryHistogram;
+import org.structr.api.util.QueryTimer;
+import org.structr.api.util.TimedIterable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,6 +45,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 	protected final Map<String, RelationshipWrapper> rels = new HashMap<>();
 	protected final Map<String, NodeWrapper> nodes        = new HashMap<>();
+	protected final List<QueryTimer> openTimers            = new ArrayList<>();
 	protected final Set<String> deletedNodes              = new HashSet<>();
 	protected final Set<String> createdNodes              = new HashSet<>();
 	protected final Set<String> deletedRels               = new HashSet<>();
@@ -58,6 +63,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	protected org.neo4j.graphdb.Transaction tx           = null;
 	private   boolean                       closed       = false;
 	private   boolean                       forcedFailure = false;
+	private   RetryException                terminated    = null;
 
 	public EmbeddedTransaction(final EmbeddedDatabaseService db, final org.neo4j.graphdb.Transaction tx) {
 
@@ -69,13 +75,18 @@ public class EmbeddedTransaction implements Transaction<String> {
 	@Override
 	public void close() {
 
+		recordOpenTimers();
 		clearChangeset();
 
 		closed = true;
 
 		try {
 
-			if (forcedFailure || !success) {
+			if (terminated != null) {
+
+				rollbackTerminated();
+
+			} else if (forcedFailure || !success) {
 
 				tx.rollback();
 
@@ -84,10 +95,37 @@ public class EmbeddedTransaction implements Transaction<String> {
 				tx.commit();
 			}
 
+		} catch (TransientFailureException tex) {
+
+			// the database terminated the transaction, e.g. to resolve a deadlock
+			throw terminated(tex);
+
 		} finally {
 
 			tx.close();
 		}
+
+		if (terminated != null) {
+
+			// the code that ran in this transaction caught the RetryException, so it is thrown again here
+			throw new RetryException("The database terminated the transaction before it was closed", terminated.getCause());
+		}
+	}
+
+	/**
+	 * Records that the database terminated this transaction, so that it cannot commit even if the code that runs in it
+	 * catches the RetryException, and returns the exception to throw.
+	 */
+	public RetryException terminated(final TransientFailureException tex) {
+
+		final RetryException rex = new RetryException(tex);
+
+		if (terminated == null) {
+
+			terminated = rex;
+		}
+
+		return rex;
 	}
 
 	public boolean isClosed() {
@@ -109,7 +147,26 @@ public class EmbeddedTransaction implements Transaction<String> {
 			labelObjects.add(Label.label(label));
 		}
 
-		return tx.createNode(labelObjects.toArray(new Label[0]));
+		try {
+
+			return tx.createNode(labelObjects.toArray(new Label[0]));
+
+		} catch (TransientFailureException tex) {
+
+			throw terminated(tex);
+		}
+	}
+
+	public void acquireWriteLock(final Entity entity) {
+
+		try {
+
+			tx.acquireWriteLock(entity);
+
+		} catch (TransientFailureException tex) {
+
+			throw terminated(tex);
+		}
 	}
 
 	public void delete(final NodeWrapper wrapper) {
@@ -134,56 +191,92 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 		logQuery(query);
 
-		final String statement        = query.getStatement();
-		final Map<String, Object> map    = query.getParameters();
-		final Result              result = tx.execute(statement, map);
-		final Boolean             value  = getFirstBoolean(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement        = query.getStatement();
+			final Map<String, Object> map    = query.getParameters();
+			final Result              result = execute(statement, map);
+			final Boolean             value  = getFirstBoolean(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Long getLong(final CypherQuery query) {
 
 		logQuery(query);
 
-		final String statement            = query.getStatement();
-		final Map<String, Object> map     = query.getParameters();
-		final Result result               = tx.execute(statement, map);
-		final Long value                  = getFirstLong(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
+			final Result result               = execute(statement, map);
+			final Long value                  = getFirstLong(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Node getNode(final CypherQuery query) {
 
 		logQuery(query);
 
-		final String statement            = query.getStatement();
-		final Map<String, Object> map     = query.getParameters();
-		final Result result               = tx.execute(statement, map);
-		final Node value                  = getFirstNode(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement            = query.getStatement();
+			final Map<String, Object> map     = query.getParameters();
+			final Result result               = execute(statement, map);
+			final Node value                  = getFirstNode(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Relationship getRelationship(final CypherQuery query) {
 
 		logQuery(query);
 
-		final String statement        = query.getStatement();
-		final Map<String, Object> map = query.getParameters();
-		final Result result           = tx.execute(statement, map);
-		final Relationship value      = getFirstRelationship(result);
+		final QueryTimer timer = startTimer(query.getStatement());
 
-		logSummary(result.getQueryStatistics());
+		try {
 
-		return value;
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
+			final Result result           = execute(statement, map);
+			final Relationship value      = getFirstRelationship(result);
+
+			logSummary(result.getQueryStatistics());
+
+			return value;
+
+		} finally {
+
+			timer.finished();
+		}
 	}
 
 	public Iterable<Map<String, Object>> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer unused) {
@@ -193,7 +286,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 		final String statement        = query.getStatement();
 		final Map<String, Object> map = query.getParameters();
 
-		return toIterable(tx.execute(statement, map));
+		return timed(startTimer(statement), toIterable(execute(statement, map)));
 	}
 
 	public Iterable<Map<String, Object>> run(final CypherQuery query) {
@@ -202,24 +295,92 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 		final String statement        = query.getStatement();
 		final Map<String, Object> map = query.getParameters();
-		final Result result            = tx.execute(statement, map);
+		final QueryTimer timer         = startTimer(statement);
+		final Result result            = execute(statement, map);
 
 		// the caller reads the rows in its own transaction, possibly after this one has closed
 		if (db.getCurrentTransaction(false) != this) {
 
-			return new DetachedResult(db, result);
+			return new TimedIterable<>(timer, new DetachedResult(db, result));
 		}
 
-		return Iterables.map(new RecordMapMapper(db), toIterable(result));
+		return timed(timer, Iterables.map(new RecordMapMapper(db), toIterable(result)));
 	}
 
 	public void set(final String statement, final Map<String, Object> map) {
 
 		logQuery(statement, map);
 
-		final Result result = tx.execute(statement, map);
+		final QueryTimer timer = startTimer(statement);
 
-		logSummary(result.getQueryStatistics());
+		try {
+
+			final Result result = execute(statement, map);
+
+			logSummary(result.getQueryStatistics());
+
+		} finally {
+
+			timer.finished();
+		}
+	}
+
+	/**
+	 * Executes a Cypher statement in this transaction. Neo4j terminates a transaction that would wait for a lock in a
+	 * deadlock, and only a repetition of the whole transaction can succeed then.
+	 */
+	private Result execute(final String statement, final Map<String, Object> map) {
+
+		try {
+
+			return tx.execute(statement, map);
+
+		} catch (TransientFailureException tex) {
+
+			throw terminated(tex);
+		}
+	}
+
+	private void rollbackTerminated() {
+
+		try {
+
+			tx.rollback();
+
+		} catch (RuntimeException ignore) {
+
+			// the database has already ended the transaction
+		}
+	}
+
+	// ----- query timing -----
+	private QueryTimer startTimer(final String statement) {
+
+		final QueryTimer timer = QueryHistogram.newTimer();
+
+		timer.started(statement);
+
+		return timer;
+	}
+
+	private <T> Iterable<T> timed(final QueryTimer timer, final Iterable<T> records) {
+
+		openTimers.add(timer);
+
+		return new TimedIterable<>(timer, records);
+	}
+
+	/**
+	 * Records the queries whose results were not read to the end, at the time of their last record.
+	 */
+	private void recordOpenTimers() {
+
+		for (final QueryTimer timer : openTimers) {
+
+			timer.record();
+		}
+
+		openTimers.clear();
 	}
 
 	public Iterable<Map<String, Object>> newIterable(final EmbeddedDatabaseService db, final CypherQuery query) {
@@ -403,7 +564,7 @@ public class EmbeddedTransaction implements Transaction<String> {
 	@Override
 	public boolean isSuccessful() {
 
-		return success && !forcedFailure;
+		return success && !forcedFailure && terminated == null;
 	}
 
 	@Override
