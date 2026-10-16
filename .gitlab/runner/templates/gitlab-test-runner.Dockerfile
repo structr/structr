@@ -38,8 +38,6 @@ ENV MAVEN_HOME=/opt/maven \
     PATH=/opt/maven/bin:$PATH
 
 # Install docker-cli for docker functions and setup glab and maven
-# tesseract + eng/deu language data let the content extraction module's OCR tests run (they skip without it);
-# fontconfig and a font let those tests draw their test images with Java2D (they skip without them, too)
 # docker-buildx-plugin is required: the multi-arch image build and the moving tag promotion
 # both shell out to "docker buildx". CLI plugins live in the client, so the mounted host
 # docker socket does not provide it.

@@ -8,10 +8,8 @@ RUN apk update && \
 
 FROM ghcr.io/graalvm/jdk-community:25-ol10 AS main
 
-# Tesseract for OCR in the content extraction module (Tika calls the binary). Without it, extraction
-# still works, just without OCR. Derived builds can change the language set via this build argument.
 ARG TESSERACT_PACKAGES="tesseract tesseract-langpack-eng tesseract-langpack-deu tesseract-langpack-fra tesseract-langpack-spa tesseract-langpack-ita tesseract-langpack-nld tesseract-osd"
-RUN microdnf install -y $TESSERACT_PACKAGES && \
+RUN microdnf install -y $TESSERACT_PACKAGES fontconfig dejavu-sans-fonts && \
     microdnf clean all
 
 COPY --from=build /root/structr-* /var/lib/structr
