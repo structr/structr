@@ -384,25 +384,46 @@ If the QR code does not display:
 
 ## Superuser Login of the Configuration Interface
 
-The superuser login of the configuration interface at `/structr/config` can ask for a second factor as well. It uses the algorithm, digits and period of the settings above; the enforcement level does not apply to it.
+The superuser of the configuration interface at `/structr/config` can be asked for a second factor as well. It uses the algorithm, digits and period of the settings above; the enforcement level does not apply to it.
 
 ### Setting It Up
 
-Log in to the configuration interface and open the Two-Factor tab. Click Set up, scan the QR code with an authenticator app or enter the secret by hand, and confirm with the code the app shows. The secret is only saved once a code from it is accepted, so a mistyped secret cannot lock you out. It is stored as `superuser.twofactor.secret` in `structr.conf`; while that setting is empty, the login asks for name and password only.
+Switch on `superuser.twofactor.enabled`, in the Superuser section of the configuration interface or in `structr.conf`. The next login with the right name and password then shows a QR code instead of logging in: scan it with an authenticator app, or enter the secret by hand, and confirm with the code the app shows. Only then is the secret saved, as `superuser.twofactor.secret` in `structr.conf`, and the session logged in. From then on, the login asks for a code.
 
-To turn the second factor off, enter a current code on the same tab. If the authenticator is lost, clear `superuser.twofactor.secret` in `structr.conf` on the server and restart Structr.
+Whoever logs in first after the switch is turned on sets up the authenticator, so turn it on when you are about to log in yourself. Every setup is logged as a warning and in the runtime event log, with the address it came from.
+
+If the authenticator is lost, clear `superuser.twofactor.secret` in `structr.conf` and restart Structr: the next login sets up a new one. To turn the second factor off, switch off `superuser.twofactor.enabled`.
 
 ### Logging In
 
-With a second factor set up, the login form has a code field, and name, password and code are sent together. Each code is accepted once. A wrong code counts against the same lockout as a wrong password.
+With a second factor set up, the login form has a code field, and name, password and code are sent together. Each code is accepted once.
 
 Tools that log in by posting the form themselves send the code in the field `superuserTwoFactorCode`, along with `action=login`, `superuserName` and `superuserPassword`. The redirect after the login tells them the outcome:
 
 | Redirect | Meaning |
 |----------|---------|
 | `?twoFactorRequired` | A second factor is set up and no code was sent. The password was not checked; send all three fields again |
+| `?twoFactorSetup` | The second factor is switched on but not set up yet. The page shows the QR code; post `action=twoFactorSetup` with `superuserTwoFactorCode` in the same session to confirm it |
 | `?loginFailed` | The name, the password or the code was wrong. On purpose, the answer does not say which |
-| neither | Logged in |
+| `?loginBlocked` | Too many failed attempts, try again later |
+| none of them | Logged in |
+
+### Superuser Access over HTTP
+
+The superuser credentials also work outside the configuration interface, with the `X-User` and `X-Password` headers and with HTTP Basic authentication. That is meant for the exception, a request sent by hand, not for scripts; scripts use an admin user.
+
+While `superuser.twofactor.enabled` is on, a superuser request needs the current code in the `X-TwoFactor-Code` header as well. Each code is accepted once, so it is one request per code. HTTP Basic authentication cannot carry a code and is refused for the superuser, and so is every request while the second factor is switched on but not set up yet. Every superuser request with a code is logged as a warning and in the runtime event log.
+
+### Failed Attempts
+
+While the superuser has no active second factor, the password is all there is. Then 3 failed attempts within 15 minutes, counted across all addresses and all of these ways in together, block the superuser login everywhere for 15 minutes, including for the right password. With a second factor set up, wrong codes over HTTP block superuser access over HTTP the same way, and the login form locks out a single address for 30 seconds after 5 failed attempts.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `configservlet.login.maxattempts` | 3 | Failed attempts that block the superuser login |
+| `configservlet.login.lockout.seconds` | 900 | How long the block lasts, and the window in which failures are counted. 0 turns it off |
+
+There is no exception for local addresses: behind a reverse proxy on the same host, every client would appear local. If an attacker keeps the login blocked, set `configservlet.login.lockout.seconds` to 0 in `structr.conf`, which leaves only the per-address limit.
 
 ## Related Topics
 
