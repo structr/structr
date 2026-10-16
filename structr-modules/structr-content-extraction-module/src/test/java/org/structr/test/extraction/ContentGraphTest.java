@@ -601,38 +601,6 @@ public class ContentGraphTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testIndexUpdateKeepsVectorIndexes() throws Exception {
-
-		final String index = "ExtractedContentNode_embedding";
-
-		try (final Tx tx = app.tx()) {
-
-			app.query("CREATE VECTOR INDEX " + index + " IF NOT EXISTS FOR (n:ExtractedContentNode) ON n.embedding OPTIONS { indexConfig: { `vector.dimensions`: 2, `vector.similarity_function`: 'cosine' } }", Map.of());
-			tx.success();
-		}
-
-		try {
-
-			// an index update drops every index it lists and that is not in the schema, here all of them
-			app.getDatabaseService().updateIndexConfiguration(List.of());
-
-			try (final Tx tx = app.tx()) {
-
-				assertTrue("The vector index of the AI module survives Structr's index update", app.query("SHOW VECTOR INDEXES YIELD name WHERE name = $name RETURN name", Map.of("name", index)).iterator().hasNext());
-				tx.success();
-			}
-
-		} finally {
-
-			try (final Tx tx = app.tx()) {
-
-				app.query("DROP INDEX " + index + " IF EXISTS", Map.of());
-				tx.success();
-			}
-		}
-	}
-
-	@Test
 	public void testDeleteContentAndCascade() throws Exception {
 
 		final String first  = createFile("/docs", "first.html", Fixtures.html());

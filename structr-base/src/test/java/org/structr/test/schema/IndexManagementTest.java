@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -796,6 +797,58 @@ public class IndexManagementTest extends StructrTest {
 	}
 
 	// ----- private methods -----
+	@Test
+	public void testIndexUpdateKeepsVectorIndexes() {
+
+		final DatabaseService db = app.getDatabaseService();
+
+		// only run this test if the database has vector indexes (Neo4j 5.13 and later)
+		if (db.supportsFeature(DatabaseFeature.QueryLanguage, "text/cypher") && db.supportsFeature(DatabaseFeature.VectorIndexes)) {
+
+			final String index = "VectorIndexTest_embedding";
+
+			try {
+
+				// created outside of Structr's schema, as a module like the AI module does
+				try (final Tx tx = app.tx()) {
+
+					app.query("CREATE VECTOR INDEX " + index + " IF NOT EXISTS FOR (n:VectorIndexTest) ON n.embedding OPTIONS { indexConfig: { `vector.dimensions`: 2, `vector.similarity_function`: 'cosine' } }", Map.of());
+					tx.success();
+				}
+
+				// an index update drops every index it lists that is not in the schema, here all of them
+				db.updateIndexConfiguration(List.of());
+
+				try (final Tx tx = app.tx()) {
+
+					assertTrue("Structr's index update must not drop VECTOR indexes", app.query("SHOW VECTOR INDEXES YIELD name WHERE name = $name RETURN name", Map.of("name", index)).iterator().hasNext());
+					tx.success();
+				}
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+
+			} finally {
+
+				try (final Tx tx = app.tx()) {
+
+					app.query("DROP INDEX " + index + " IF EXISTS", Map.of());
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Unable to drop test index {}: {}", index, fex.getMessage());
+				}
+			}
+
+		} else {
+
+			System.out.println("Skipping test because vector indexes are not supported.");
+		}
+	}
+
 	private boolean indexCreatedSuccessfully(final DatabaseService db, final boolean isNode, final boolean isRelationship, final String indexType, final String entityType, final Set<String> propertyNames, final int expectedEntryCount) {
 
 		logger.info("Waiting for index update..");

@@ -33,6 +33,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.testng.SkipException;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -261,6 +262,26 @@ public final class Fixtures {
 	}
 
 	/**
+	 * A PNG without text, drawn without fonts, for tests that only need an image.
+	 */
+	public static byte[] blankPng() throws IOException {
+
+		final BufferedImage image = new BufferedImage(200, 100, BufferedImage.TYPE_INT_RGB);
+		final Graphics2D graphics = image.createGraphics();
+
+		graphics.setColor(Color.WHITE);
+		graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+		graphics.dispose();
+
+		try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+			ImageIO.write(image, "png", out);
+
+			return out.toByteArray();
+		}
+	}
+
+	/**
 	 * An e-mail with a plain text body and a text file attached.
 	 */
 	public static byte[] eml() {
@@ -326,18 +347,32 @@ public final class Fixtures {
 		}
 	}
 
+	/**
+	 * An image of the given text, for the OCR tests. Drawing text needs fonts (fontconfig and at least one
+	 * font on Linux); without them the OCR tests are skipped, like without Tesseract.
+	 */
 	private static BufferedImage textImage(final String text) {
 
 		final BufferedImage image = new BufferedImage(1400, 220, BufferedImage.TYPE_INT_RGB);
 		final Graphics2D graphics = image.createGraphics();
 
-		graphics.setColor(Color.WHITE);
-		graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
-		graphics.setColor(Color.BLACK);
-		graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 96));
-		graphics.drawString(text, 40, 150);
-		graphics.dispose();
+		try {
+
+			graphics.setColor(Color.WHITE);
+			graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+			graphics.setColor(Color.BLACK);
+			graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 96));
+			graphics.drawString(text, 40, 150);
+
+		} catch (final LinkageError | AWTError ex) {
+
+			throw new SkipException("No fonts available to draw the OCR test image (install fontconfig and a font such as DejaVu Sans): " + ex);
+
+		} finally {
+
+			graphics.dispose();
+		}
 
 		return image;
 	}

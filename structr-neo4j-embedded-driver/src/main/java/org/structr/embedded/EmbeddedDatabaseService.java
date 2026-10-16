@@ -706,6 +706,11 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 
 				return neo4jMajorVersion >= 5;
 
+			case VectorIndexes:
+				// CREATE VECTOR INDEX exists from Neo4j 5.13 on
+
+				return neo4jMajorVersion >= 2025 || (neo4jMajorVersion >= 5 && neo4jMinorVersion >= 13);
+
 			case GlobalSearch:
 
 				return true;

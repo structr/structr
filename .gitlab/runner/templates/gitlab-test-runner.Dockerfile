@@ -38,7 +38,8 @@ ENV MAVEN_HOME=/opt/maven \
     PATH=/opt/maven/bin:$PATH
 
 # Install docker-cli for docker functions and setup glab and maven
-# tesseract + eng/deu language data let the content extraction module's OCR tests run (they skip without it)
+# tesseract + eng/deu language data let the content extraction module's OCR tests run (they skip without it);
+# fontconfig and a font let those tests draw their test images with Java2D (they skip without them, too)
 # docker-buildx-plugin is required: the multi-arch image build and the moving tag promotion
 # both shell out to "docker buildx". CLI plugins live in the client, so the mounted host
 # docker socket does not provide it.
@@ -48,7 +49,7 @@ RUN microdnf install -y dnf dnf-plugins-core \
      && dnf -y install docker-ce-cli docker-buildx-plugin git \
      && dnf -y install socat \
   	 && dnf -y install jq \
-     && dnf -y install tesseract tesseract-langpack-eng tesseract-langpack-deu \
+     && dnf -y install tesseract tesseract-langpack-eng tesseract-langpack-deu fontconfig dejavu-sans-fonts \
      && dnf install -y glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm \
      && dnf clean all \
      && rm -f *.rpm

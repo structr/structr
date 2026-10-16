@@ -270,7 +270,8 @@ public class ExtractionTest {
 			assertFalse(excluded + " must not be part of the parser tree", parsers.contains(excluded));
 		}
 
-		assertTrue("Tesseract is the one external program allowed, as a configured parser", parsers.contains("org.apache.tika.parser.ocr.TesseractOCRParser"));
+		// Tesseract is the one external program allowed, and only as a configured parser when it is installed
+		assertEquals("The Tesseract parser is in the tree exactly when Tesseract is installed", ContentExtraction.getOcrInfo().available(), parsers.contains("org.apache.tika.parser.ocr.TesseractOCRParser"));
 	}
 
 	// ----- OCR -----
@@ -351,7 +352,8 @@ public class ExtractionTest {
 
 			ContentExtractionSettings.TesseractPath.setValue("/nonexistent/tesseract/bin");
 
-			final ExtractedDocument document = extract(Fixtures.png(), "probe.png", options().setOcrMode(OcrMode.AUTO));
+			// any image will do: OCR never runs, so it needs no text
+			final ExtractedDocument document = extract(Fixtures.blankPng(), "probe.png", options().setOcrMode(OcrMode.AUTO));
 
 			assertFalse(ContentExtraction.getOcrInfo().available());
 			assertFalse(document.getMetadata().ocrApplied());
