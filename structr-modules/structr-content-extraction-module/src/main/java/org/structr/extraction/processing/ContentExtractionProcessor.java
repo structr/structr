@@ -26,6 +26,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -322,7 +323,8 @@ public final class ContentExtractionProcessor {
 			}
 		}
 
-		final Map<String, ExtractedContentNode> embedded = embeddedNodesByHash(oldNodes);
+		// read before the old nodes are deleted: a deleted node's properties are not reliable on every driver
+		final Map<String, Embedding> embedded = embeddingsByHash(oldNodes);
 
 		for (final ExtractedContentNode old : oldNodes) {
 
@@ -351,11 +353,11 @@ public final class ContentExtractionProcessor {
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.CONTENT_HASH_PROPERTY), chunk.contentHash());
 
 			// an unchanged chunk keeps the embedding of its old node, so only changed chunks need a new one
-			final ExtractedContentNode unchanged = embedded.remove(chunk.contentHash());
+			final Embedding unchanged = embedded.remove(chunk.contentHash());
 			if (unchanged != null) {
 
-				properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_PROPERTY), unchanged.getProperty(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_PROPERTY)));
-				properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_MODEL_PROPERTY), unchanged.getEmbeddingModel());
+				properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_PROPERTY), unchanged.vector());
+				properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_MODEL_PROPERTY), unchanged.model());
 			}
 
 			final NodeInterface node = app.create(ContentExtractionTraits.EXTRACTED_CONTENT_NODE, properties);
@@ -368,19 +370,23 @@ public final class ContentExtractionProcessor {
 	}
 
 	/**
-	 * The old chunks that have an embedding, by content hash. A hash that occurs more than once maps to
-	 * its first chunk; each entry is reused by at most one new chunk.
+	 * The embeddings of the old chunks, by content hash. A hash that occurs more than once maps to the
+	 * embedding of its first chunk; each entry is reused by at most one new chunk.
 	 */
-	private static Map<String, ExtractedContentNode> embeddedNodesByHash(final List<ExtractedContentNode> oldNodes) {
+	private static Map<String, Embedding> embeddingsByHash(final List<ExtractedContentNode> oldNodes) {
 
-		final Map<String, ExtractedContentNode> embedded = new HashMap<>();
+		final PropertyKey<Double[]> embeddingKey = Traits.of(ContentExtractionTraits.EXTRACTED_CONTENT_NODE).key(ExtractedContentNodeTraitDefinition.EMBEDDING_PROPERTY);
+		final Map<String, Embedding> embedded    = new HashMap<>();
 
 		for (final ExtractedContentNode old : oldNodes) {
 
-			final String hash = old.getContentHash();
-			if (hash != null && old.getEmbeddingModel() != null && old.getEmbedding() != null) {
+			final String hash     = old.getContentHash();
+			final String model    = old.getEmbeddingModel();
+			final Double[] vector = old.getProperty(embeddingKey);
 
-				embedded.putIfAbsent(hash, old);
+			if (hash != null && model != null && vector != null) {
+
+				embedded.putIfAbsent(hash, new Embedding(vector, model));
 			}
 		}
 
@@ -436,5 +442,8 @@ public final class ContentExtractionProcessor {
 	 * unchanged), or the copy to extract and what is needed to store the result.
 	 */
 	private record Prepared(ProcessingResult result, Path copy, String fileName, Long checksum, EffectiveContentOptions options) {
+	}
+
+	private record Embedding(Double[] vector, String model) {
 	}
 }
