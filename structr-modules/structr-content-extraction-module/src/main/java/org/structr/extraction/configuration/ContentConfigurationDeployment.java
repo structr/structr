@@ -26,14 +26,18 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.extraction.ContentExtractionSettings;
 import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.entity.ContentExtractionConfiguration;
+import org.structr.extraction.processing.ContentExtractionJob;
 import org.structr.extraction.traits.definitions.ContentExtractionConfigurationTraitDefinition;
 import org.structr.web.entity.AbstractFile;
 
@@ -56,6 +60,10 @@ import java.util.TreeMap;
  * module's deployment folder. Module data is imported after the files, and files keep their UUIDs, so
  * each configuration is attached to its File or Folder again by UUID. Like the storage configurations,
  * the import replaces all existing configurations.
+ *
+ * Chunks are not part of a deployment, and the files were imported before their configurations existed,
+ * so the import starts an automatic extraction of the enabled targets after the commit (unchanged files
+ * are skipped).
  */
 public final class ContentConfigurationDeployment {
 
@@ -142,7 +150,8 @@ public final class ContentConfigurationDeployment {
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 		context.setDoTransactionNotifications(false);
 
-		final App app = StructrApp.getInstance(context);
+		final App app                = StructrApp.getInstance(context);
+		final List<String> toExtract = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -155,8 +164,20 @@ public final class ContentConfigurationDeployment {
 
 				for (final Map<String, Object> data : configurations) {
 
-					importConfiguration(context, app, data);
+					final String targetId = importConfiguration(context, app, data);
+					if (targetId != null) {
+
+						toExtract.add(targetId);
+					}
 				}
+			}
+
+			if (!toExtract.isEmpty() && ContentExtractionSettings.AutoExtractionEnabled.getValue()) {
+
+				final ContentExtractionJob job = ContentExtractionJob.automatic(toExtract, ContentExtractionSettings.ExtractionQueue.getValue());
+
+				// the job runs in its own thread and must see the committed configurations
+				TransactionCommand.queuePostCommitProcedure(() -> startJob(job));
 			}
 
 			tx.success();
@@ -164,7 +185,22 @@ public final class ContentConfigurationDeployment {
 	}
 
 	// ----- private methods -----
-	private static void importConfiguration(final SecurityContext context, final App app, final Map<String, Object> data) throws FrameworkException {
+	private static void startJob(final ContentExtractionJob job) {
+
+		try {
+
+			JobQueueManager.getInstance().addJob(job);
+
+		} catch (final FrameworkException ex) {
+
+			logger.warn("Unable to start content extraction after the deployment import: {}", ex.getMessage(), ex);
+		}
+	}
+
+	/**
+	 * Creates one configuration and returns the UUID of its target if the configuration is enabled.
+	 */
+	private static String importConfiguration(final SecurityContext context, final App app, final Map<String, Object> data) throws FrameworkException {
 
 		final String targetId          = (String) data.get(KEY_TARGET);
 		final NodeInterface configured = targetId != null ? app.getNodeById(StructrTraits.ABSTRACT_FILE, targetId) : null;
@@ -173,7 +209,7 @@ public final class ContentConfigurationDeployment {
 
 			logger.warn("Content extraction configuration '{}': file or folder {} ({}) not found, configuration skipped.", data.get(KEY_NAME), targetId, data.get(KEY_TARGET_PATH));
 
-			return;
+			return null;
 		}
 
 		final Map<String, Object> input = new LinkedHashMap<>();
@@ -189,7 +225,9 @@ public final class ContentConfigurationDeployment {
 
 		input.put(KEY_ID,      data.get(KEY_ID));
 		input.put(KEY_NAME,    data.get(KEY_NAME));
-		input.put(KEY_ENABLED, !Boolean.FALSE.equals(data.get(KEY_ENABLED)));
+		final boolean enabled = !Boolean.FALSE.equals(data.get(KEY_ENABLED));
+
+		input.put(KEY_ENABLED, enabled);
 
 		// converts the numbers Gson reads as Double, and lists to arrays
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(context, ContentExtractionTraits.CONTENT_EXTRACTION_CONFIGURATION, input);
@@ -197,5 +235,7 @@ public final class ContentConfigurationDeployment {
 		properties.put(Traits.of(ContentExtractionTraits.CONTENT_EXTRACTION_CONFIGURATION).key(KEY_TARGET), configured);
 
 		app.create(ContentExtractionTraits.CONTENT_EXTRACTION_CONFIGURATION, properties);
+
+		return enabled ? configured.getUuid() : null;
 	}
 }

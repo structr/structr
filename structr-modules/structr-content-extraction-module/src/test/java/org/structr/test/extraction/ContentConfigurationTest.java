@@ -29,10 +29,13 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.extraction.ContentExtractionTraits;
+import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.entity.ContentExtractionConfiguration;
 import org.structr.extraction.traits.definitions.ContentExtractionConfigurationTraitDefinition;
+import org.structr.extraction.traits.properties.ContentFileStateProperties;
 import org.structr.test.web.advanced.DeploymentTestBase;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;
@@ -201,7 +204,101 @@ public class ContentConfigurationTest extends DeploymentTestBase {
 		}
 	}
 
+	@Test
+	public void testDeploymentImportExtractsConfiguredFiles() throws Exception {
+
+		final String extractedId;
+		final String disabledId;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface knowledge = exportedFolder("knowledge");
+			final NodeInterface disabled  = exportedFolder("disabled");
+
+			extractedId = FileHelper.createFile(securityContext, new ByteArrayInputStream(Fixtures.text()), "text/plain", StructrTraits.FILE, "notes.txt", knowledge.as(Folder.class)).getUuid();
+			disabledId  = FileHelper.createFile(securityContext, new ByteArrayInputStream(Fixtures.text()), "text/plain", StructrTraits.FILE, "notes.txt", disabled.as(Folder.class)).getUuid();
+
+			createConfiguration(knowledge, true);
+			createConfiguration(disabled, false);
+
+			tx.success();
+		}
+
+		// chunks are not exported, and the files are imported before their configurations
+		doImportExportRoundtrip(true);
+
+		assertEquals("Files of an enabled configuration are extracted after the import", "done", awaitStatus(extractedId));
+		assertTrue("The imported file has chunks again", chunkCount(extractedId) > 0);
+
+		// the same job has finished the enabled file, so it would have processed the other one as well
+		assertNull("Files of a disabled configuration are not extracted", status(disabledId));
+	}
+
 	// ----- private methods -----
+	private NodeInterface exportedFolder(final String name) throws Exception {
+
+		return app.create(StructrTraits.FOLDER,
+			new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
+			new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true)
+		);
+	}
+
+	private void createConfiguration(final NodeInterface target, final boolean enabled) throws Exception {
+
+		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, TYPE, Map.of("enabled", enabled));
+
+		properties.put(Traits.of(TYPE).key(ContentExtractionConfigurationTraitDefinition.TARGET_PROPERTY), target);
+
+		app.create(TYPE, properties);
+	}
+
+	private String status(final String fileId) throws Exception {
+
+		try (final Tx tx = app.tx()) {
+
+			final String status = (String) app.getNodeById(StructrTraits.FILE, fileId).getProperty(Traits.of(StructrTraits.FILE).key(ContentFileStateProperties.STATUS));
+
+			tx.success();
+
+			return status;
+		}
+	}
+
+	/**
+	 * Waits for an automatic extraction job to finish the file.
+	 */
+	private String awaitStatus(final String fileId) throws Exception {
+
+		final long timeout = System.currentTimeMillis() + 60_000;
+
+		while (System.currentTimeMillis() < timeout) {
+
+			final String status = status(fileId);
+			if (status != null && !"running".equals(status)) {
+
+				return status;
+			}
+
+			Thread.sleep(250);
+		}
+
+		fail("File " + fileId + " was not extracted within 60 seconds");
+
+		return null;
+	}
+
+	private int chunkCount(final String fileId) throws Exception {
+
+		try (final Tx tx = app.tx()) {
+
+			final int count = ContentExtraction.getExtractedContent(app.getNodeById(StructrTraits.FILE, fileId).as(File.class)).size();
+
+			tx.success();
+
+			return count;
+		}
+	}
+
 	private RequestSpecification request(final String body) {
 
 		return RestAssured
