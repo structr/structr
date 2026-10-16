@@ -35,8 +35,9 @@ public interface ContentExtractionListener {
 
 	/**
 	 * Called in the transaction that replaces the chunks of a file, before the old chunks are deleted.
-	 * A listener can carry data over from old to new chunks here, e.g. reuse the embeddings of chunks
-	 * whose content hash is unchanged. When content is deleted, {@code newChunks} is empty.
+	 * A listener can carry data over from old to new chunks here. Embeddings need no listener: the
+	 * module itself copies them to new chunks with an unchanged content hash. When content is deleted,
+	 * {@code newChunks} is empty.
 	 *
 	 * @param file      the file
 	 * @param oldNodes  the chunks about to be deleted

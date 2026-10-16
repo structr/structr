@@ -52,6 +52,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -321,6 +322,8 @@ public final class ContentExtractionProcessor {
 			}
 		}
 
+		final Map<String, ExtractedContentNode> embedded = embeddedNodesByHash(oldNodes);
+
 		for (final ExtractedContentNode old : oldNodes) {
 
 			app.delete(old);
@@ -347,6 +350,14 @@ public final class ContentExtractionProcessor {
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.LANGUAGE_PROPERTY), language);
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.CONTENT_HASH_PROPERTY), chunk.contentHash());
 
+			// an unchanged chunk keeps the embedding of its old node, so only changed chunks need a new one
+			final ExtractedContentNode unchanged = embedded.remove(chunk.contentHash());
+			if (unchanged != null) {
+
+				properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_PROPERTY), unchanged.getProperty(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_PROPERTY)));
+				properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDING_MODEL_PROPERTY), unchanged.getEmbeddingModel());
+			}
+
 			final NodeInterface node = app.create(ContentExtractionTraits.EXTRACTED_CONTENT_NODE, properties);
 
 			uuids.add(node.getUuid());
@@ -354,6 +365,26 @@ public final class ContentExtractionProcessor {
 		}
 
 		return uuids;
+	}
+
+	/**
+	 * The old chunks that have an embedding, by content hash. A hash that occurs more than once maps to
+	 * its first chunk; each entry is reused by at most one new chunk.
+	 */
+	private static Map<String, ExtractedContentNode> embeddedNodesByHash(final List<ExtractedContentNode> oldNodes) {
+
+		final Map<String, ExtractedContentNode> embedded = new HashMap<>();
+
+		for (final ExtractedContentNode old : oldNodes) {
+
+			final String hash = old.getContentHash();
+			if (hash != null && old.getEmbeddingModel() != null && old.getEmbedding() != null) {
+
+				embedded.putIfAbsent(hash, old);
+			}
+		}
+
+		return embedded;
 	}
 
 	private static void setStatus(final File file, final ExtractionStatus status, final String error) throws FrameworkException {

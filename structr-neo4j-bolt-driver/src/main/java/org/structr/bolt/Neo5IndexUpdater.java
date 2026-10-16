@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -30,6 +30,11 @@ public class Neo5IndexUpdater extends IndexUpdater {
 		super(db, supportsRelationshipIndexes);
 	}
 
+	/**
+	 * Lists only the index types Structr manages. Every listed index that is not in the schema is
+	 * dropped, so other types must stay out of this list, e.g. VECTOR indexes created by the AI module
+	 * (ExtractedContentNode_embedding), LOOKUP and POINT indexes.
+	 */
 	@Override
 	protected String getIndexInfoQuery() {
 

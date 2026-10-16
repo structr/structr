@@ -27,7 +27,9 @@ import java.util.List;
 /**
  * A chunk of a file's content, stored in the graph.
  *
- * The embedding properties are written by the Enterprise AI module, never by this module.
+ * The embedding properties are written by the Enterprise AI module, never computed by this module.
+ * When a file is extracted again, a new chunk with the same content hash as an old one keeps the
+ * old chunk's embedding and model.
  */
 public interface ExtractedContentNode extends NodeInterface {
 

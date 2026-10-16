@@ -511,6 +511,66 @@ public class ContentGraphTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testUnchangedChunksKeepTheirEmbedding() throws Exception {
+
+		final String fileId = createFile("/docs", "guide.html", Fixtures.html());
+		final String call   = "${{ $.documents.processContent($.find('File', '" + fileId + "'), { wait: true, force: true, ocr: 'off', splitter: 'structure', chunkSize: 1000, chunkOverlap: 0 }); }}";
+
+		evaluate(call);
+
+		try (final Tx tx = app.tx()) {
+
+			for (final ExtractedContentNode chunk : ContentExtraction.getExtractedContent(file(fileId))) {
+
+				chunk.setEmbedding(new double[] { chunk.getPosition(), 0.5 }, "test-model");
+			}
+
+			tx.success();
+		}
+
+		// forced re-processing of the same content keeps every embedding
+		evaluate(call);
+		assertEmbeddings(fileId, List.of(true, true, true, true));
+
+		// only the changed "Download" section loses its embedding
+		writeChunk(fileId, new String(Fixtures.html(), StandardCharsets.UTF_8).replace("for packages.", "for packages and installers.").getBytes(StandardCharsets.UTF_8), true);
+		evaluate(call);
+		assertEmbeddings(fileId, List.of(true, true, false, true));
+	}
+
+	@Test
+	public void testIndexUpdateKeepsVectorIndexes() throws Exception {
+
+		final String index = "ExtractedContentNode_embedding";
+
+		try (final Tx tx = app.tx()) {
+
+			app.query("CREATE VECTOR INDEX " + index + " IF NOT EXISTS FOR (n:ExtractedContentNode) ON n.embedding OPTIONS { indexConfig: { `vector.dimensions`: 2, `vector.similarity_function`: 'cosine' } }", Map.of());
+			tx.success();
+		}
+
+		try {
+
+			// an index update drops every index it lists and that is not in the schema, here all of them
+			app.getDatabaseService().updateIndexConfiguration(List.of());
+
+			try (final Tx tx = app.tx()) {
+
+				assertTrue("The vector index of the AI module survives Structr's index update", app.query("SHOW VECTOR INDEXES YIELD name WHERE name = $name RETURN name", Map.of("name", index)).iterator().hasNext());
+				tx.success();
+			}
+
+		} finally {
+
+			try (final Tx tx = app.tx()) {
+
+				app.query("DROP INDEX " + index + " IF EXISTS", Map.of());
+				tx.success();
+			}
+		}
+	}
+
+	@Test
 	public void testDeleteContentAndCascade() throws Exception {
 
 		final String first  = createFile("/docs", "first.html", Fixtures.html());
@@ -1001,6 +1061,35 @@ public class ContentGraphTest extends StructrUiTest {
 			tx.success();
 
 			return count;
+		}
+	}
+
+	/**
+	 * Checks per chunk, in reading order, whether it has the embedding set by the test.
+	 */
+	private void assertEmbeddings(final String fileId, final List<Boolean> expected) throws Exception {
+
+		try (final Tx tx = app.tx()) {
+
+			final List<ExtractedContentNode> chunks = ContentExtraction.getExtractedContent(file(fileId));
+
+			assertEquals(expected.size(), chunks.size());
+
+			for (final ExtractedContentNode chunk : chunks) {
+
+				if (expected.get(chunk.getPosition())) {
+
+					assertTrue(Arrays.equals(new double[] { chunk.getPosition(), 0.5 }, chunk.getEmbedding()));
+					assertEquals("test-model", chunk.getEmbeddingModel());
+
+				} else {
+
+					assertNull(chunk.getEmbedding());
+					assertNull(chunk.getEmbeddingModel());
+				}
+			}
+
+			tx.success();
 		}
 	}
 
