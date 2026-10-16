@@ -19,7 +19,9 @@
 package org.structr.test.extraction;
 
 import io.restassured.RestAssured;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -62,6 +64,7 @@ import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
 import org.structr.websocket.command.SearchNodesCommand;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
@@ -1000,6 +1003,12 @@ public class ContentGraphTest extends StructrUiTest {
 	}
 
 	private void createFulltextIndex() throws Exception {
+
+		// keyword search needs Neo4j's fulltext index; the in-memory driver has none
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+
+			throw new SkipException("Keyword search needs a fulltext index, skipping test with " + Settings.DatabaseDriver.getValue());
+		}
 
 		// Structr's index management is off in tests, so the fulltext index is created here
 		try (final Tx tx = app.tx()) {

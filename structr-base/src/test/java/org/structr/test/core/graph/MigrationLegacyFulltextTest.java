@@ -18,6 +18,8 @@
  */
 package org.structr.test.core.graph;
 
+import org.structr.api.DatabaseFeature;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -26,6 +28,7 @@ import org.structr.core.graph.MigrationService;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.test.common.StructrTest;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -44,6 +47,12 @@ public class MigrationLegacyFulltextTest extends StructrTest {
 
 	@Test
 	public void testLegacyFulltextDataIsRemoved() throws FrameworkException {
+
+		// the migration step is Cypher, and the legacy data can only be written with Cypher
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
+			throw new SkipException("The migration step needs Cypher, skipping test with " + Settings.DatabaseDriver.getValue());
+		}
 
 		final String fileId;
 		final String folderId;
