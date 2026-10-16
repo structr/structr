@@ -149,7 +149,7 @@ public class CryptFunctionMigrationHandler {
 
 		if (findings.isEmpty()) {
 
-			logger.info("MigrationService: no calls to encrypt() or decrypt() use the pre-7.0 signature.");
+			// no calls to encrypt() or decrypt() use the pre-7.0 signature
 
 			return;
 		}
