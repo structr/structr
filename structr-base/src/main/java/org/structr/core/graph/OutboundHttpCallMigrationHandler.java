@@ -523,7 +523,7 @@ public class OutboundHttpCallMigrationHandler {
 
 		if (findings.isEmpty()) {
 
-			// no calls to the HTTP functions use the pre-7.0 signature
+			logger.debug("MigrationService: no calls to the HTTP functions use the pre-7.0 signature.");
 
 			return;
 		}

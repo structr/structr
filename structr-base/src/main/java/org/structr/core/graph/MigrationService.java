@@ -342,9 +342,10 @@ public class MigrationService {
 
 					} else {
 
-						// mirrors the dry run's line. A step that finds nothing returns early and silently,
-						// so without this "no output" cannot be told apart from "the step never ran".
-						logger.info("MigrationService: {}", step.name());
+						// debug only: a step that finds nothing returns early and silently, and a step that does
+						// something logs that itself, so at info level this line would only repeat on every start.
+						// Enable debug logging to tell "no output" apart from "the step never ran".
+						logger.debug("MigrationService: {}", step.name());
 
 						step.action().run(!reportOnly);
 					}
