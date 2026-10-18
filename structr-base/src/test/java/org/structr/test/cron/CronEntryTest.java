@@ -23,6 +23,9 @@ import org.structr.cron.CronField;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -65,6 +68,30 @@ public class CronEntryTest {
 		}
 	}
 
+	@Test
+	public void testNextExecution() {
+
+		// strictly after the given time
+		assertNext("*/10 * * * * *", at(2026, 10, 18, 12, 0, 3), at(2026, 10, 18, 12, 0, 10));
+		assertNext("*/10 * * * * *", at(2026, 10, 18, 12, 0, 10), at(2026, 10, 18, 12, 0, 20));
+
+		// quarterly, also across the end of the year
+		assertNext("0 0 6 1 */3 *", at(2026, 2, 15, 10, 0, 0), at(2026, 4, 1, 6, 0, 0));
+		assertNext("0 0 6 1 */3 *", at(2026, 11, 20, 10, 0, 0), at(2027, 1, 1, 6, 0, 0));
+		assertNext("0 30 6 * * *", at(2026, 12, 31, 7, 0, 0), at(2027, 1, 1, 6, 30, 0));
+
+		// months without the day are skipped
+		assertNext("0 0 0 31 * *", at(2026, 4, 1, 0, 0, 0), at(2026, 5, 31, 0, 0, 0));
+		assertNext("0 0 0 29 2 *", at(2026, 3, 1, 0, 0, 0), at(2028, 2, 29, 0, 0, 0));
+
+		// day of month OR day of week: the next Monday, or the 1st when it comes first
+		assertNext("0 0 12 1 * 1", at(2026, 10, 18, 13, 0, 0), at(2026, 10, 19, 12, 0, 0));
+		assertNext("0 0 12 1 * 1", at(2026, 10, 30, 13, 0, 0), at(2026, 11, 1, 12, 0, 0));
+
+		// weekdays only, from a Friday over the weekend and the end of daylight saving time
+		assertNext("0 0 8 * * 1-5", at(2026, 10, 23, 9, 0, 0), at(2026, 10, 26, 8, 0, 0));
+	}
+
 	// ----- private methods -----
 	private List<Integer> matching(final CronField field, final int min, final int max) {
 
@@ -79,5 +106,23 @@ public class CronEntryTest {
 		}
 
 		return values;
+	}
+
+	private void assertNext(final String expression, final long from, final long expected) {
+
+		final CronEntry entry = CronEntry.parse("test", expression);
+
+		assertNotNull(expression, entry);
+		assertEquals(expression + " after " + new Date(from), new Date(expected), new Date(entry.getNextExecutionAfter(from)));
+	}
+
+	private long at(final int year, final int month, final int day, final int hour, final int minute, final int second) {
+
+		final Calendar calendar = GregorianCalendar.getInstance();
+
+		calendar.clear();
+		calendar.set(year, month - 1, day, hour, minute, second);
+
+		return calendar.getTimeInMillis();
 	}
 }

@@ -252,7 +252,15 @@ public class CronEntry implements Delayed {
 
 	private void calculateNextExecutionTime() {
 
+		nextScheduledExecution = getNextExecutionAfter(System.currentTimeMillis());
+	}
+
+	/** The first full second after the given time at which the expression matches, in the server's time zone. */
+	public long getNextExecutionAfter(final long time) {
+
 		Calendar now       = GregorianCalendar.getInstance();
+		now.setTimeInMillis(time);
+		now.set(Calendar.MILLISECOND, 0);
 		now.add(Calendar.SECOND, 1);								// next execution is at least 1 sec away
 		int nowSeconds     = now.get(Calendar.SECOND);
 		int nowMinutes     = now.get(Calendar.MINUTE);
@@ -333,7 +341,7 @@ public class CronEntry implements Delayed {
 
 		now.set(Calendar.MILLISECOND, 0);
 
-		nextScheduledExecution = now.getTimeInMillis();
+		return now.getTimeInMillis();
 	}
 
 	private void addAndResetLowerFields (Calendar cal, int field, int amount) {
