@@ -108,6 +108,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
 
+	public static final String ROUTE_PATH_PARAMETER      = "structr-route-path";
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
 	public static final String CONFIRMATION_KEY_KEY      = "key";
@@ -430,6 +431,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						}
 
 					}
+				}
+
+				// a partial reload sends the path of its page, so the partial sees the values of the route that rendered it
+				final String routePath = request.getParameter(ROUTE_PATH_PARAMETER);
+				if (routePath != null && rootElement != null && !rootElement.is(StructrTraits.PAGE)) {
+
+					PagePaths.resolveParametersForPartial(renderContext, StringUtils.removeStart(routePath, request.getContextPath()), rootElement);
 				}
 
 				// Disable Basic auth for any EditMode other than NONE
