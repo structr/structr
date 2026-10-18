@@ -45,7 +45,8 @@ public class CronServiceTest extends StructrUiTest {
 	@Test
 	public void testTaskRunsOnScheduleAsSuperuser() throws Exception {
 
-		createFunction(TASK, "{ $.create('Group', { name: 'cron run by ' + $.me.name }); }");
+		// group names are unique, so every run gets its own
+		createFunction(TASK, "{ $.create('Group', { name: 'cron run by ' + $.me.name + ' at ' + Date.now() }); }");
 
 		Settings.CronTasks.setValue(TASK);
 		Settings.createSettingForValue(Settings.cronGroup, TASK + ".cronExpression", "* * * * * *");
@@ -64,7 +65,7 @@ public class CronServiceTest extends StructrUiTest {
 
 				Thread.sleep(500);
 
-				runs = groupsNamed(expected);
+				runs = groupsStartingWith(expected);
 			}
 
 			assertFalse("the task did not run within 30 s", runs.isEmpty());
@@ -80,11 +81,11 @@ public class CronServiceTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
-	private List<NodeInterface> groupsNamed(final String name) throws FrameworkException {
+	private List<NodeInterface> groupsStartingWith(final String prefix) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> groups = app.nodeQuery(StructrTraits.GROUP).name(name).getAsList();
+			final List<NodeInterface> groups = app.nodeQuery(StructrTraits.GROUP).getAsList().stream().filter(g -> g.getName() != null && g.getName().startsWith(prefix + " at ")).toList();
 
 			tx.success();
 
