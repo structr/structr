@@ -173,7 +173,7 @@ Use this setting with caution. Parallel executions of the same task can lead to 
 
 ## Cron Expression Syntax
 
-A cron expression consists of six fields that specify when the task should run:
+A cron expression consists of exactly six fields, separated by spaces or tabs. Unlike the classic Unix crontab, the first field is the seconds:
 
 ```
 <seconds> <minutes> <hours> <day-of-month> <month> <day-of-week>
@@ -186,28 +186,65 @@ A cron expression consists of six fields that specify when the task should run:
 | Hours | 0–23 |
 | Day of month | 1–31 |
 | Month | 1–12 |
-| Day of week | 0–6 (0 = Sunday) |
+| Day of week | 0–6 (0 = Sunday, 6 = Saturday) |
 
-Each field supports several notations:
+Each field takes one of these notations:
 
 | Notation | Meaning | Example |
 |----------|---------|---------|
-| `*` | Every possible value | `* * * * * *` runs every second |
-| `x` | At the specific value | `0 30 * * * *` runs at minute 30 |
-| `x-y` | Range from x to y | `0 0 9-17 * * *` runs hourly from 9 AM to 5 PM |
-| `*/x` | Every multiple of x | `0 */15 * * * *` runs every 15 minutes |
-| `x,y,z` | At specific values | `0 0 8,12,18 * * *` runs at 8 AM, noon, and 6 PM |
+| `*` | Every value | `* * * * * *` runs every second |
+| `x` | The value x | `0 30 * * * *` runs at minute 30 of every hour |
+| `x-y` | Every value from x to y, both included | `0 0 9-17 * * *` runs every hour from 9:00 to 17:00 |
+| `x,y,z` | Each of the listed values | `0 0 8,12,18 * * *` runs at 8:00, 12:00 and 18:00 |
+| `*/n` | Every n-th value, counted from the first allowed value of the field | `0 */15 * * * *` runs at minutes 0, 15, 30 and 45 |
 
-### Common Patterns
+A step counts from the first allowed value of its field: `*/15` in the minutes is 0, 15, 30 and 45, `*/3` in the months is January, April, July and October, and `*/10` in the days of the month is the 1st, 11th, 21st and 31st. A step in the days of the month starts over with every month, so `*/3` runs on the 1st, 4th, … 28th and 31st and then again on the 1st, which is not strictly every third day.
+
+### Day of Month and Day of Week
+
+If both the day of month and the day of week are restricted, that is neither of them is `*`, the task runs on every day that matches either of them, as in the Unix crontab: `0 0 12 1 * 1` runs at noon on the first of every month and on every Monday. To restrict only one of them, leave the other at `*`.
+
+### Time Zone
+
+The times refer to the time zone of the server, the default time zone of the Java process running Structr.
+
+### Not Supported
+
+The following notations from other cron implementations are not supported. An expression containing one of them is rejected with a message in the server log, and the configuration interface marks it as invalid:
+
+| Notation | Instead |
+|----------|---------|
+| Five fields, as in the Unix crontab | Add the seconds in front: `*/5 * * * *` becomes `0 */5 * * * *` |
+| `/n` without a star | `*/n` |
+| A start value with a step, such as `5/15` | A list: `5,20,35,50` |
+| A range with a step, such as `9-17/2` | A list: `9,11,13,15,17` |
+| Lists containing ranges, such as `1-5,10` | A list of single values: `1,2,3,4,5,10` |
+| Names such as `MON` or `JAN` | Numbers: `1` for Monday, `1` for January |
+| `7` for Sunday | `0` |
+| `?`, `L`, `W` and `#` | Lists of the actual days |
+
+### Examples
 
 | Expression | Schedule |
 |------------|----------|
-| `0 0 * * * *` | Every hour at minute 0 |
-| `0 */15 * * * *` | Every 15 minutes |
+| `* * * * * *` | Every second |
+| `*/10 * * * * *` | Every 10 seconds |
+| `0 * * * * *` | Every minute, at second 0 |
+| `0 */5 * * * *` | Every 5 minutes |
+| `30 */15 * * * *` | Every 15 minutes, 30 seconds past the full minute |
+| `0 0 * * * *` | Every hour, on the hour |
+| `0 0 */2 * * *` | Every 2 hours: 0:00, 2:00, 4:00 and so on |
+| `0 0 8-18 * * 1-5` | Every hour from 8:00 to 18:00 on weekdays |
 | `0 0 0 * * *` | Every day at midnight |
-| `0 0 8 * * 1-5` | Every weekday at 8 AM |
-| `0 0 3 * * 0` | Every Sunday at 3 AM |
-| `0 0 0 1 * *` | First day of every month at midnight |
+| `0 30 6 * * *` | Every day at 6:30 |
+| `0 0 8 * * 1-5` | Every weekday at 8:00 |
+| `0 0 3 * * 0` | Every Sunday at 3:00 |
+| `0 0 9 * * 1,3,5` | Mondays, Wednesdays and Fridays at 9:00 |
+| `0 0 0 1 * *` | The first day of every month at midnight |
+| `0 0 0 1,15 * *` | The 1st and 15th of every month at midnight |
+| `0 0 6 1 */3 *` | Quarterly: January, April, July and October 1st at 6:00 |
+| `0 0 0 1 1 *` | Once a year, January 1st at midnight |
+| `0 0 12 1 * 1` | At noon on the first of every month and on every Monday |
 
 ## Complete Configuration Example
 

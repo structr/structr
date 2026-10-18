@@ -103,7 +103,7 @@ public class CronEntry implements Delayed {
 	// ----- static methods -----
 	public static CronEntry parse(String task, String expression) {
 
-		String[] fields = expression.split("[ \\t]+");
+		String[] fields = expression.trim().split("[ \\t]+");
 		if (fields.length == CronService.NUM_FIELDS) {
 
 			CronEntry cronEntry = new CronEntry(task);
@@ -213,14 +213,23 @@ public class CronEntry implements Delayed {
 
 			for (final String value : listValues) {
 
+				final int number;
+
 				try {
 
-					values.add(Integer.parseInt(value));
+					number = Integer.parseInt(value);
 
 				} catch (Throwable t) {
 
 					throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid list value: '" + value + "'");
 				}
+
+				if (number < minValue || number > maxValue) {
+
+					throw new IllegalArgumentException("Field '" + fieldName + "'. List value not within range: '" + value + "'");
+				}
+
+				values.add(number);
 			}
 
 			return new CronField(values);
@@ -231,6 +240,11 @@ public class CronEntry implements Delayed {
 		if (fieldValue.matches("[0-9]{1,2}-[0-9]{1,2}/[0-9]{1,2}")) {
 
 			throw new IllegalArgumentException("Field '" + fieldName + "'. Steps are not supported.");
+		}
+
+		if (fieldValue.startsWith("/")) {
+
+			throw new IllegalArgumentException("Field '" + fieldName + "'. '" + fieldValue + "' is not supported, use '*" + fieldValue + "'.");
 		}
 
 		throw new IllegalArgumentException("Field '" + fieldName + "'. Invalid content: '" + fieldValue + "'");

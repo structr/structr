@@ -64,7 +64,8 @@ public class CronField {
 			return list.contains(value);
 		}
 
-		return value >= start && value <= end && ((value+start) % step) == 0;
+		// counted from the start of the field, so */3 in months is January, April, July and October
+		return value >= start && value <= end && ((value - start) % step) == 0;
 	}
 
 	public int getStartValue() {
