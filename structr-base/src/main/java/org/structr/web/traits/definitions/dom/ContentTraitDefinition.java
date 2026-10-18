@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.LogThrottle;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -35,6 +36,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.script.ScriptLiterals;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.*;
@@ -44,6 +46,7 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.web.ContentHandler;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -63,6 +66,9 @@ import java.util.Set;
  * All methods in the W3C Text interface are based on the raw database content.
  */
 public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
+
+	private static final Logger logger                     = LoggerFactory.getLogger(ContentTraitDefinition.class);
+	private static final LogThrottle unclosedExpressionLog = new LogThrottle("Unclosed template expression", 1);
 
 	public static final String CONTENT_PROPERTY      = "content";
 	public static final String CONTENT_TYPE_PROPERTY = "contentType";
@@ -388,6 +394,8 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 			boolean hasSlash                 = false;
 			boolean hasBackslash             = false;
 			boolean hasDollar                = false;
+			char lastSignificant             = '{';
+			final StringBuilder lastWord     = new StringBuilder();
 			int startRow                     = 0;
 			int level                        = 0;
 			int row                          = 0;
@@ -397,10 +405,29 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				final char c = source.charAt(i);
 
+				// a regular expression literal is skipped whole, so the quotes and braces in it do not count
+				if (c == '/' && inTemplate && !inComment && !inSingleQuotes && !inDoubleQuotes && !hasSlash && ScriptLiterals.regexMayStart(source, i, lastSignificant, lastWord)) {
+
+					final int regexEnd = ScriptLiterals.endOfRegex(source, i);
+					if (regexEnd > 0) {
+
+						scriptBuffer.append(source, i, regexEnd);
+
+						column         += regexEnd - i;
+						i               = regexEnd - 1;
+						lastSignificant = ')';
+						hasDollar       = false;
+						hasBackslash    = false;
+
+						continue;
+					}
+				}
+
 				switch (c) {
 
 					case '\\':
 						hasBackslash  = !hasBackslash;
+						hasSlash      = false;
 						break;
 
 					case '\'':
@@ -412,6 +439,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 						hasDollar = false;
 						hasBackslash = false;
+						hasSlash = false;
 						break;
 
 					case '\"':
@@ -423,6 +451,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 						hasDollar = false;
 						hasBackslash = false;
+						hasSlash = false;
 						break;
 
 					case '$':
@@ -433,6 +462,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 							hasBackslash = false;
 						}
 
+						hasSlash = false;
 						break;
 
 					case '{':
@@ -441,6 +471,9 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 							startRow   = row;
 							inTemplate = true;
+
+							lastSignificant = '{';
+							lastWord.setLength(0);
 
 							// extract and handle content from non-script buffer
 							textBuffer.setLength(Math.max(0, textBuffer.length() - 1));
@@ -464,6 +497,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 						hasDollar = false;
 						hasBackslash = false;
+						hasSlash = false;
 						break;
 
 					case '}':
@@ -510,6 +544,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					case '\r':
 					case '\n':
 						inComment = false;
+						hasSlash  = false;
 						column = 0;
 						row++;
 						break;
@@ -517,7 +552,24 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					default:
 						hasDollar = false;
 						hasBackslash = false;
+						hasSlash = false;
 						break;
+				}
+
+				// what came last decides whether a following slash starts a regular expression or divides
+				if (inTemplate && !inComment && !inSingleQuotes && !inDoubleQuotes && !Character.isWhitespace(c)) {
+
+					if (ScriptLiterals.isIdentifierPart(c)) {
+
+						if (!ScriptLiterals.isIdentifierPart(lastSignificant)) {
+
+							lastWord.setLength(0);
+						}
+
+						lastWord.append(c);
+					}
+
+					lastSignificant = c;
 				}
 
 				if (ignoreNext) {
@@ -551,14 +603,6 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				handler.handleText(textBuffer.toString());
 			}
 		}
-	}
-
-	public interface ContentHandler {
-
-		void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException;
-		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
-		void handleText(final String text) throws FrameworkException;
-		void possibleStartOfScript(final int row, final int column);
 	}
 
 	public class RenderContextContentHandler implements ContentHandler {
@@ -598,6 +642,16 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 		@Override
 		public void handleIncompleteScript(final String script) throws FrameworkException, IOException {
+
+			Scripting.extractScripts(script, (excerpt, state) -> {
+
+				final String where = node.getType() + " " + node.getUuid();
+
+				if (unclosedExpressionLog.allow(where + excerpt)) {
+
+					logger.warn("Template expression starting '{}' in {} is never closed ({} at the end of the content) and is not rendered. A quote inside a regular expression literal is a common cause: write it as \\x22 or \\x27, or use new RegExp(...).", excerpt, where, state);
+				}
+			});
 		}
 
 		@Override

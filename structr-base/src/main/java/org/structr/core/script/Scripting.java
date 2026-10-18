@@ -667,9 +667,9 @@ public class Scripting {
 			buffer.append(c);
 
 			// a regular expression literal is skipped whole, so the quotes and braces in it do not count
-			if (c == '/' && inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && !inLineComment && !inBlockComment && !hasSlash && regexMayStart(source, i, lastSignificant, lastWord)) {
+			if (c == '/' && inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && !inLineComment && !inBlockComment && !hasSlash && ScriptLiterals.regexMayStart(source, i, lastSignificant, lastWord)) {
 
-				final int regexEnd = endOfRegex(source, i);
+				final int regexEnd = ScriptLiterals.endOfRegex(source, i);
 				if (regexEnd > 0) {
 
 					buffer.append(source, i + 1, regexEnd);
@@ -863,9 +863,9 @@ public class Scripting {
 			// what came last decides whether a following slash starts a regular expression or divides
 			if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && !inLineComment && !inBlockComment && !Character.isWhitespace(c)) {
 
-				if (isIdentifierPart(c)) {
+				if (ScriptLiterals.isIdentifierPart(c)) {
 
-					if (!isIdentifierPart(lastSignificant)) {
+					if (!ScriptLiterals.isIdentifierPart(lastSignificant)) {
 
 						lastWord.setLength(0);
 					}
@@ -906,84 +906,6 @@ public class Scripting {
 		}
 
 		return expressions;
-	}
-
-	// ----- regular expression literals in templates -----
-	private static final Set<String> KEYWORDS_BEFORE_REGEX = Set.of("return", "typeof", "case", "in", "of", "delete", "void", "throw", "new", "else", "do", "instanceof", "yield", "await");
-
-	/** After an operator, an opening bracket or a keyword a slash starts a regular expression, after an operand it divides. */
-	private static boolean regexMayStart(final String source, final int index, final char lastSignificant, final CharSequence lastWord) {
-
-		final char next = index + 1 < source.length() ? source.charAt(index + 1) : 0;
-
-		// comments keep their own handling
-		if (next == '/' || next == '*' || next == 0) {
-
-			return false;
-		}
-
-		if (isIdentifierPart(lastSignificant)) {
-
-			return KEYWORDS_BEFORE_REGEX.contains(lastWord.toString());
-		}
-
-		return switch (lastSignificant) {
-
-			case ')', ']', '\'', '"', '`' -> false;
-			default -> true;
-		};
-	}
-
-	/** The index after a regular expression literal starting at the given slash, including its flags, or -1 if it does not end on the same line. */
-	private static int endOfRegex(final String source, final int slash) {
-
-		boolean inClass = false;
-		boolean escaped = false;
-
-		for (int j = slash + 1; j < source.length(); j++) {
-
-			final char c = source.charAt(j);
-
-			if (c == '\n' || c == '\r') {
-
-				return -1;
-			}
-
-			if (escaped) {
-
-				escaped = false;
-
-			} else if (c == '\\') {
-
-				escaped = true;
-
-			} else if (c == '[') {
-
-				inClass = true;
-
-			} else if (c == ']') {
-
-				inClass = false;
-
-			} else if (c == '/' && !inClass) {
-
-				int end = j + 1;
-
-				while (end < source.length() && Character.isLetter(source.charAt(end))) {
-
-					end++;
-				}
-
-				return end;
-			}
-		}
-
-		return -1;
-	}
-
-	private static boolean isIdentifierPart(final char c) {
-
-		return Character.isLetterOrDigit(c) || c == '_' || c == '$';
 	}
 
 	public static String formatToDefaultDateOrString(final Object value) {
