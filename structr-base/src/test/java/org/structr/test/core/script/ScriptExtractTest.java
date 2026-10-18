@@ -21,9 +21,11 @@ package org.structr.test.core.script;
 import org.structr.core.script.Scripting;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Unit tests for Scripting.extractScripts() — verifies that braces inside
@@ -120,5 +122,44 @@ public class ScriptExtractTest {
 		assertEquals("Two script blocks must be extracted", 2, r.size());
 		assertEquals("${{ $.log('a'); }}", r.get(0));
 		assertEquals("${{ $.log('b'); }}", r.get(1));
+	}
+
+	@Test
+	public void testUnclosedBlockIsReportedWithItsState() {
+
+		final List<String> reports = new ArrayList<>();
+
+		// the production case: a quote inside a regular expression literal opens a string that never ends
+		final List<String> r = Scripting.extractScripts("<main>${{ const html = $.this.body; return html.replace(/href=\"([^\"]+)'/g, '$1'); }}</main>", (excerpt, state) -> reports.add(excerpt + " | " + state));
+
+		assertEquals("the unclosed block is not extracted", 0, r.size());
+		assertEquals(1, reports.size());
+		assertTrue(reports.get(0), reports.get(0).startsWith("${{ const html = $.this.body;"));
+		assertTrue(reports.get(0), reports.get(0).endsWith("inside a single-quoted string"));
+
+		reports.clear();
+
+		Scripting.extractScripts("${ concat('a', 'b') ", (excerpt, state) -> reports.add(state));
+
+		assertEquals(List.of("1 brace(s) still open"), reports);
+	}
+
+	@Test
+	public void testClosedBlocksAreNotReported() {
+
+		final List<String> reports = new ArrayList<>();
+
+		for (final String source : new String[] {
+			"${{ $.log('Test'); }}",
+			"${{ $.log('it\\'s \\\"quoted\\\"'); }}",
+			"<p>${current.name}</p><p>${{ return 1; }}</p>",
+			"<script>const greeting = `Hello ${name}`; ${{ return 'x'; }}</script>",
+			"no expression at all"
+		}) {
+
+			Scripting.extractScripts(source, (excerpt, state) -> reports.add(source + " | " + state));
+		}
+
+		assertEquals(List.of(), reports);
 	}
 }

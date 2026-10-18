@@ -26,6 +26,7 @@ import org.slf4j.MDC;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.common.LogThrottle;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
@@ -55,6 +56,7 @@ import org.structr.schema.parser.DatePropertyGenerator;
 import org.structr.web.traits.wrappers.ScratchpadTraitWrapper;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -64,6 +66,7 @@ public class Scripting {
 
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final LogThrottle unclosedExpressionLog          = new LogThrottle("Unclosed template expression", 1);
 	private static final String PENDING_PROMISE_MESSAGE             = "Attempt to unwrap pending promise";
 
 	/**
@@ -115,7 +118,17 @@ public class Scripting {
 
 				final List<Tuple> replacements = new LinkedList<>();
 
-				for (final String expression : extractScripts(value)) {
+				final List<String> expressions = extractScripts(value, (excerpt, state) -> {
+
+					final String where = entity != null ? entity.getType() + " " + entity.getUuid() : StringUtils.defaultString(methodName, "unknown source");
+
+					if (unclosedExpressionLog.allow(where + excerpt)) {
+
+						logger.warn("Template expression starting '{}' in {} is never closed ({} at the end of the source) and is skipped. A quote inside a regular expression literal is a common cause: write it as \\x22 or \\x27, or use new RegExp(...).", excerpt, where, state);
+					}
+				});
+
+				for (final String expression : expressions) {
 
 					try {
 
@@ -622,6 +635,12 @@ public class Scripting {
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {
 
+		return extractScripts(source, null);
+	}
+
+	/** Like extractScripts(source), and reports a block that is opened but never closed, with what was still open at the end of the source. */
+	public static List<String> extractScripts(final String source, final BiConsumer<String, String> onUnclosed) {
+
 		final List<String> expressions = new LinkedList<>();
 		final StringBuilder buffer     = new StringBuilder();
 		final int length               = source.length();
@@ -817,6 +836,34 @@ public class Scripting {
 					hasStar      = false;
 					break;
 			}
+		}
+
+		if (inTemplate && onUnclosed != null) {
+
+			final String state;
+
+			if (inDoubleQuotes) {
+
+				state = "inside a double-quoted string";
+
+			} else if (inSingleQuotes) {
+
+				state = "inside a single-quoted string";
+
+			} else if (inTemplateLiteral) {
+
+				state = "inside a template literal";
+
+			} else if (inBlockComment) {
+
+				state = "inside a block comment";
+
+			} else {
+
+				state = (level + 1) + " brace(s) still open";
+			}
+
+			onUnclosed.accept(StringUtils.abbreviate(source.substring(start).replaceAll("\\s+", " "), 60), state);
 		}
 
 		return expressions;
