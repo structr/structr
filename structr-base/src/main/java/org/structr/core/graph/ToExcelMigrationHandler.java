@@ -54,7 +54,7 @@ import static org.structr.core.graph.OutboundHttpCallMigrationHandler.matchingBr
 import static org.structr.core.graph.OutboundHttpCallMigrationHandler.splitArguments;
 
 /**
- * Reports, and in apply mode rewrites, calls to toExcel() that still use the pre-7.0 signature.
+ * Reports, and in apply mode rewrites, calls to toExcel() (or to_excel()) that still use the pre-7.0 signature.
  *
  * Before 7.0 the function took one collection and up to six positional arguments:
  * `toExcel(nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode])`.
@@ -78,10 +78,11 @@ public class ToExcelMigrationHandler {
 	private static final Logger logger = LoggerFactory.getLogger(ToExcelMigrationHandler.class.getName());
 
 	/**
-	 * The builtin, called bare (StructrScript) or as $.toExcel / Structr.toExcel (JavaScript). A method of
-	 * some other object (foo.toExcel) and a declaration of a function of that name are someone else's code.
+	 * The builtin, called bare (StructrScript) or as $.toExcel / Structr.toExcel (JavaScript), and under its
+	 * even older name to_excel, which still resolves. A method of some other object (foo.toExcel) and a
+	 * declaration of a function of that name are someone else's code.
 	 */
-	private static final Pattern CALL = Pattern.compile("(?<!function\\s{1,10})(?:\\$\\.|\\bStructr\\.|(?<![\\w.$]))toExcel\\s*\\(");
+	private static final Pattern CALL = Pattern.compile("(?<!function\\s{1,10})(?:\\$\\.|\\bStructr\\.|(?<![\\w.$]))(?:toExcel|to_excel)\\s*\\(");
 
 	/** The options keys for the old positional arguments after propertiesOrView, in their old order. */
 	private static final List<String> OPTION_KEYS = List.of("includeHeader", "localizeHeader", "localizationDomain", "maxCellLength", "overflowMode");
@@ -128,7 +129,7 @@ public class ToExcelMigrationHandler {
 		report(findings, apply);
 	}
 
-	/** Every call to toExcel() in the given source, from the name (with $. or Structr. if present) to its closing brace. */
+	/** Every call to toExcel() or to_excel() in the given source, from the name (with $. or Structr. if present) to its closing brace. */
 	public static List<String> findCalls(final String source) {
 
 		final List<String> calls = new ArrayList<>();
@@ -244,7 +245,8 @@ public class ToExcelMigrationHandler {
 			entries.add(entry.getKey() + ": " + entry.getValue());
 		}
 
-		final String rewritten = function + "(" + args.get(0) + ", { " + String.join(", ", entries) + " })";
+		// a call that is rewritten anyway gets the current name too
+		final String rewritten = function.replace("to_excel", "toExcel") + "(" + args.get(0) + ", { " + String.join(", ", entries) + " })";
 
 		return new Assessment(Verdict.AUTOMATIC, describeRewrite(isView, options), rewritten);
 	}

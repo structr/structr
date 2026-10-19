@@ -57,7 +57,7 @@ import static org.testng.AssertJUnit.fail;
 public class ToExcelMigrationApplyTest extends StructrTest {
 
 	private static final String OLD_SOURCE = """
-		${toExcel(find('User'), 'public')}
+		${to_excel(find('User'), 'public')}
 		${toExcel(find('User'), ['name', 'id'], true, false, 'excel', 1000, 't')}
 		${toExcel(find('User'), 'public', this.withHeader)}
 		${{

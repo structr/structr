@@ -40,11 +40,11 @@ public class ToExcelMigrationHandlerTest {
 	@Test
 	public void testCallsAreFoundInSurroundingCode() {
 
-		final String source = "${toExcel(find('User'), 'public')} ${{ $.log('x'); const a = $.toExcel($.find('User'), ['name', 'id']); Structr.toExcel(users, 'ui'); }}";
+		final String source = "${to_excel(find('User'), 'public')} ${{ $.log('x'); const a = $.toExcel($.find('User'), ['name', 'id']); Structr.toExcel(users, 'ui'); }}";
 		final List<String> calls = ToExcelMigrationHandler.findCalls(source);
 
 		assertEquals("all three calls must be found", 3, calls.size());
-		assertEquals("toExcel(find('User'), 'public')", calls.get(0));
+		assertEquals("to_excel(find('User'), 'public')", calls.get(0));
 		assertEquals("$.toExcel($.find('User'), ['name', 'id'])", calls.get(1));
 		assertEquals("Structr.toExcel(users, 'ui')", calls.get(2));
 	}
@@ -137,7 +137,8 @@ public class ToExcelMigrationHandlerTest {
 
 		assertEquals("toExcel(find('User'), { view: 'public' })", ToExcelMigrationHandler.rewrite("toExcel(find('User'), 'public')"));
 
-		assertEquals("toExcel(find('User'), { properties: ['name', 'id'] })", ToExcelMigrationHandler.rewrite("toExcel(find('User'), ['name', 'id'])"));
+		// the even older name is replaced along the way
+		assertEquals("toExcel(find('User'), { properties: ['name', 'id'] })", ToExcelMigrationHandler.rewrite("to_excel(find('User'), ['name', 'id'])"));
 
 		// every position has its own key, and the localization domain has a new name
 		assertEquals("$.toExcel($.find('User'), { view: 'excelView', includeHeader: true, localizeHeader: false, localizationDomain: '', maxCellLength: 1000, overflowMode: 't' })",
