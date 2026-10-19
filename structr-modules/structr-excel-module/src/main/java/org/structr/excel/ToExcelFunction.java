@@ -33,6 +33,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -376,13 +377,21 @@ public class ToExcelFunction extends Function<Object, Object> {
 				} else if (obj instanceof GraphObject) {
 
 					final GraphObject graphObj = (GraphObject)obj;
+					final Traits traits = graphObj.getTraits();
 
 					for (final String colName : properties) {
 
-						final PropertyKey key = graphObj.getTraits().key(colName);
-						final Object value    = graphObj.getProperty(key);
+						cell         = currentRow.createCell(cellCount++);
+						Object value = "";
 
-						cell                  = currentRow.createCell(cellCount++);
+						if (traits.hasKey(colName)) {
+
+							value = graphObj.getProperty(traits.key(colName));
+
+						} else {
+
+							logger.warn("{}(): Node of type '{}' does not have attribute '{}' - writing empty string.", getName(), traits.getName(), colName);
+						}
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}
