@@ -27,12 +27,14 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.structr.api.util.Iterables;
+import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -58,7 +60,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 	@Override
 	public List<Signature> getSignatures() {
 
-		return Signature.forAllScriptingLanguages("nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]");
+		return Signature.forAllScriptingLanguages("data_1, config_1, data_2, config_2, ..., data_N, config_N");
 	}
 
 	@Override
@@ -72,85 +74,58 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 7);
+			final int parameterCount = sources.length;
 
-			if ( !(sources[0] instanceof Iterable) ) {
+			if (parameterCount < 2) {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-				return "ERROR: First parameter must be a collection! ".concat(usage(ctx.isJavaScriptContext()));
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Expected at least 2 parameters, got "  + parameterCount);
 			}
 
-			final List<GraphObject> nodes           = Iterables.toList((Iterable)sources[0]);
-			boolean includeHeader                   = true;
-			boolean localizeHeader                  = false;
-			String headerLocalizationDomain         = null;
-			Integer maxCellLength                   = 32767;
-			String overflowMode                     = "o";
-			String propertyView                     = null;
-			List<String> properties                 = null;
+			if (parameterCount % 2 != 0) {
 
-			switch (sources.length) {
-				case 7: overflowMode             = sources[6].toString();
-				case 6: maxCellLength            = Math.min(maxCellLength, (Integer)sources[5]);
-				case 5: headerLocalizationDomain = sources[4].toString();
-				case 4: localizeHeader           = (Boolean)sources[3];
-				case 3: includeHeader            = (Boolean)sources[2];
-				case 2: {
-
-					if (sources[1] instanceof String) {
-
-						propertyView = (String)sources[1];
-
-					} else if (sources[1] instanceof List) {
-
-						properties = (List)sources[1];
-
-						if (properties.isEmpty()) {
-
-							logger.info("toExcel(): Unable to create Excel if list of properties is empty - returning empty Excel");
-
-							return "";
-						}
-
-					} else {
-
-						logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
-					}
-				}
-			}
-
-			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
-			if (nodes.isEmpty() && propertyView != null) {
-
-				logger.info("toExcel(): Unable to create Excel if no nodes are given - returning empty Excel");
-
-				return "";
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Expected argument count to be even, got " + parameterCount);
 			}
 
 			try (final Workbook workbook = new XSSFWorkbook()) {
 
-				addSheetToWorkbook(workbook, null, nodes, propertyView, properties, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale(), maxCellLength, overflowMode);
 				final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+				for (int c = 0; c < parameterCount; c += 2) {
+
+					if (sources[c] instanceof Iterable it) {
+
+						final List<GraphObject> nodes = Iterables.toList(it);
+						final ToExcelOptions options = ToExcelOptions.from(getName(), sources, c + 1).validate(getName());
+
+						String propertyView = options.getPropertyView();
+						List<String> properties = options.getProperties();
+
+						addSheetToWorkbook(workbook, options.getSheetName(), nodes, propertyView, properties, options.getIncludeHeader(), options.getLocalizeHeader(), options.getLocalizationDomain(), ctx.getLocale(), options.getMaxCellLength(), options.getOverflowMode());
+
+					} else {
+
+						return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Parameter " + (c+1) + " must be a collection!");
+					}
+				}
 
 				workbook.write(outputStream);
 
 				return outputStream.toString(StandardCharsets.ISO_8859_1);
 
-			} catch (Throwable t) {
+			} catch (final IOException e) {
 
-				logger.warn("toExcel(): Exception occurred", t);
+				logger.warn("{}(): IOException occurred", getName(), e);
 
 				return null;
 			}
 
+		} catch (ArgumentTypeException e) {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, e.getMessage());
+
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-
-			return null;
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, e.getMessage(), e);
 		}
 	}
 
@@ -158,8 +133,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 	public List<Usage> getUsages() {
 
 		return List.of(
-				Usage.structrScript("Usage: ${toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${toExcel(find('Page'), 'ui')}"),
-				Usage.javaScript("Usage: ${{ $.toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]]); }}. Example: ${{ $.toExcel($.find('Page'), 'ui')); }}")
+				Usage.structrScript("Usage: ${toExcel(data_1, config_1, data_2, config_2, ...)}"),
+				Usage.javaScript("Usage: ${{ $.toExcel(data_1, config_1, data_2, config_2, ...); }}")
 		);
 	}
 
@@ -167,61 +142,98 @@ public class ToExcelFunction extends Function<Object, Object> {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("nodes", "Collection of objects (these objects can be database nodes or javascript objects)"),
-				Parameter.mandatory("propertiesOrView", "Name of a view or a collection of property names. If the `nodes` parameter is a collection of javascript objects this needs to be a collection of attribute names. If the `nodes` parameter is a collection of database nodes, a collection of attribute names or a view name can be used."),
-				Parameter.optional("includeHeader", "Switch indicating if a header row should be printed (default: `true`)"),
-				Parameter.optional("localizeHeader", "Switch indicating if the column names in the header should be localized (default: `false`)"),
-				Parameter.optional("headerLocalizationDomain", "lookup domain for localization of header names"),
-				Parameter.optional("maxCellLength", "maximum length after which content cells are truncated"),
-				Parameter.optional("overflowMode",
-						"Controls how content that is longer than maxCellLength is handled (affects content-rows only - the header remains untouched)"
-								+ "<p>`t`: Truncates the content at maxCellLength<br>"
-								+ "`o` (default): Overflows the remaining text after maxCellLength into a cell comment. (This is restricted to 32767 bytes by Excel)</p>"
-								+ "Any other value is used as is as a cell comment. This is useful to display a message like \"The content of this cell has been truncated\".")
+				Parameter.mandatory("data_1", "Collection of objects (these objects can be database nodes or javascript objects)"),
+				Parameter.mandatory("config_1",
+						"""
+								configuration for the previous data parameter\
+								\
+								<ul>\
+									<li> `sheetName`: name of the data sheet. Sheets are named consecutively starting at 'Sheet0', if missing. For Excel compliance, sheet names are trimmed at 31 characters.</li>\
+									<li> `view`: name of a view. For this to work, the matching data collection must be database nodes. (mutually exclusive with `properties` - exactly one must be given)</li>\
+									<li> `properties`: collection of property names. Works with data being database nodes and custom objects. (mutually exclusive with `view` - exactly one must be given)</li>\
+									<li> `includeHeader`: indicates if a header row should be included (default: `true`)</li>\
+									<li> `localizeHeader`: indicates if the column names in the header should be localized (default: `false`)</li>\
+									<li> `localizationDomain`: lookup domain for localization of header names (default ``)</li>\
+									<li> `maxCellLength`: maximum length after which content cells overflow (default and maximum: 32767)</li>\
+									<li> `overflowMode`: Controls how content that is longer than `maxCellLength` is handled (affects content-rows only - the header remains untouched)\
+										<ul>\
+											<li> `t`: Truncates the content</li>\
+											<li> `o` (default): Overflows the remaining text into a cell comment. (This is restricted to 32767 bytes by Excel)</li>\
+											<li> For any other value, the cell is truncated and this value is used as a cell comment (Useful to display a message like "The content of this cell has been truncated").</li>\
+										</ul>\
+									</li>\
+								</ul>\
+								"""
+				),
+				Parameter.optional("data_N", "same as above"),
+				Parameter.optional("config_N", "same as above")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
 
-		return "Creates Excel from given data.";
+		return "Creates Excel from given data and configuration.";
 	}
 
 	@Override
 	public String getLongDescription() {
 
-		return "Returns XLSX string representation of the given collection of objects with the configured header view/columns.";
+		return "Returns XLSX string representation of the given data and configuration.";
 	}
 
 	@Override
 	public List<Example>getExamples() {
 
 		return List.of(
-				Example.structrScript("${setContent(create('File', 'name', 'newDocument.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}", "Excel file with view 'public' of user list."),
+				Example.structrScript("""
+				${
+					setContent(
+						create('File', 'name', 'users.xlsx'),
+						toExcel(
+							find('User'), { view: 'public', sheetName: 'Users' },
+						),
+						'ISO-8859-1'
+					)
+				}\
+				""", "Excel file with view 'public' of user list."),
 				Example.structrScript("""
 				${(
-					setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"'),
+					setResponseHeader('Content-Disposition', 'attachment; filename="users-and-projects.xlsx"'),
 					setResponseHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1', true),
 
-					toExcel(find('User'), 'public')
+					toExcel(
+						find('User'), { view: 'public', sheetName: 'Users' },
+						find('Project'), { properties: ['id', 'type', 'name'], sheetName: 'Pages' }
+					)
 				)}\
-				""", "Downloadable dynamic file containing the list of users"),
+				""", "Downloadable dynamic file containing the list of users and pages"),
 				Example.javaScript("""
 				${{
-					$.setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"');
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-and-projects.xlsx"');
 					$.setResponseHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1', true);
 
-					$.print($.toExcel($.find('User'), 'public'));
+					$.print(
+						$.toExcel(
+							$.find('User'), { view: 'public', sheetName: 'Users' },
+							$.find('Project'), { view: 'public', sheetName: 'Projects' }
+						)
+					);
 				}}\
 				""", "Downloadable dynamic file with view 'public' of user list of users"),
 				Example.javaScript("""
 				${{
-					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-truncated.xlsx"');
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-and-projects.xlsx"');
 					$.setResponseHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1', true);
 
-					$.print($.toExcel($.find('User'), 'excelView', true, false, '', 1000, 't'));
+					$.print(
+						$.toExcel(
+							$.find('User'), { view: 'excelView', sheetName: 'Users', maxCellLength: 1000, overflowMode: 't' },
+							$.find('Project'), { view: 'excelView', sheetName: 'Projects', maxCellLength: 1000, overflowMode: 't' }
+						)
+					);
 				}}\
-				""", "Downloadable dynamic file with view 'excelView' of user list where headers are included but not localized and all cells are truncated after 1000 characters.")
+				""", "Downloadable dynamic file with view 'excelView' of user and project list where all cells are truncated after 1000 characters.")
 		);
 	}
 
@@ -229,20 +241,21 @@ public class ToExcelFunction extends Function<Object, Object> {
 	public List<String> getNotes() {
 
 		return List.of(
-			"The output of this function is a complete excel file, so the complete data must be contained in the `nodes` parameter and can not be appended later on",
-			"If the `nodes` collection is empty and a view option is given, no header row can be printed because the view is identified via the first element",
-			"The `contentType` of the dynamic file needs to have `charset=ISO-8859-1` (e.g. `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1`) or override its contentType in code like done in the examples",
-			"Ensure there is no extraneous whitespace after the dynamic script content, otherwise Excel will report the file as corrupt.",
-			"""
-			Limitations: Structr is creating `EXCEL2007` spreadsheets. The following limitations are taken directly from the [documentation](https://poi.apache.org/apidocs/org/apache/poi/ss/SpreadsheetVersion.html):
-				- Maximum length of text cell contents is 32767
-				- Maximum length of text cell comments is 32767
-				- The total number of available rows is 1M (2^20)
-				- The total number of available columns is 16K (2^14)
-				- The maximum number of arguments to a function is 255
-				- Number of conditional format conditions on a cell is unlimited (actually limited by available memory in Excel)
-				- Number of cell styles is 64000
-			"""
+				"For each `data` parameter, a matching `config` parameter must be present",
+				"If the `data` collection is empty and a `view` option is given, no header row can be printed because the view is identified via the first element",
+				"The output of this function is the string representation of a complete excel file. Additional data can not be appended later on",
+				"The `contentType` of the dynamic file needs to have `charset=ISO-8859-1` (e.g. `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=ISO-8859-1`) or override its contentType in code like done in the examples",
+				"Ensure there is no extraneous whitespace after the dynamic script content, otherwise Excel will report the file as corrupt.",
+				"""
+				Limitations: Structr is creating `EXCEL2007` spreadsheets. The following limitations are taken directly from the [documentation](https://poi.apache.org/apidocs/org/apache/poi/ss/SpreadsheetVersion.html):
+					- Maximum length of text cell contents is 32767
+					- Maximum length of text cell comments is 32767
+					- The total number of available rows is 1M (2^20)
+					- The total number of available columns is 16K (2^14)
+					- The maximum number of arguments to a function is 255
+					- Number of conditional format conditions on a cell is unlimited (actually limited by available memory in Excel)
+					- Number of cell styles is 64000
+				"""
 		);
 	}
 
@@ -376,13 +389,21 @@ public class ToExcelFunction extends Function<Object, Object> {
 				} else if (obj instanceof GraphObject) {
 
 					final GraphObject graphObj = (GraphObject)obj;
+					final Traits traits = graphObj.getTraits();
 
 					for (final String colName : properties) {
 
-						final PropertyKey key = graphObj.getTraits().key(colName);
-						final Object value    = graphObj.getProperty(key);
+						cell         = currentRow.createCell(cellCount++);
+						Object value = "";
 
-						cell                  = currentRow.createCell(cellCount++);
+						if (traits.hasKey(colName)) {
+
+							value = graphObj.getProperty(traits.key(colName));
+
+						} else {
+
+							logger.warn("{}(): Node of type '{}' does not have attribute '{}' - writing empty string.", getName(), traits.getName(), colName);
+						}
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}

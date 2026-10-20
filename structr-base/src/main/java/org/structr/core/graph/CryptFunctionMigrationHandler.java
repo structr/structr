@@ -18,9 +18,16 @@
  */
 package org.structr.core.graph;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.RequestParameters;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.CryptFunction;
 import org.structr.core.property.PropertyKey;
@@ -36,6 +43,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 /**
  * Reports calls to encrypt() and decrypt() that were written before the key derivation scheme became
@@ -64,7 +74,9 @@ public class CryptFunctionMigrationHandler {
 		scan(findings, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY);
 		scan(findings, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY);
 		scan(findings, StructrTraits.MAIL_TEMPLATE,   MailTemplateTraitDefinition.TEXT_PROPERTY);
-		scan(findings, StructrTraits.CONTENT,         "content");
+		scan(findings, StructrTraits.CONTENT,         ContentTraitDefinition.CONTENT_PROPERTY);
+
+		scanDynamicFiles(findings);
 
 		report(findings);
 	}
@@ -112,7 +124,6 @@ public class CryptFunctionMigrationHandler {
 	}
 
 	// ----- private methods -----
-
 	private static void scan(final List<Finding> findings, final String type, final String propertyName) throws FrameworkException {
 
 		final Traits traits = Traits.of(type);
@@ -128,20 +139,61 @@ public class CryptFunctionMigrationHandler {
 
 			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(type).getResultStream()) {
 
-				final String source = node.getProperty(key);
-				if (source != null && !source.isEmpty()) {
-
-					for (final String call : findCalls(source)) {
-
-						if (usesOldSignature(call)) {
-
-							findings.add(new Finding(type, node.getUuid(), node.getProperty(nameKey), propertyName, call));
-						}
-					}
-				}
+				collectFindings(findings, node, propertyName, node.getProperty(key));
 			}
 
 			tx.success();
+		}
+	}
+
+	private static void scanDynamicFiles(final List<Finding> findings) throws FrameworkException {
+
+		final String type = StructrTraits.FILE;
+		final Traits traits = Traits.of(type);
+
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		securityContext.setRequestParameter(RequestParameters.EditMode.getName(), "1");
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(type).and().key(traits.key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), true).getResultStream()) {
+
+				final File file = node.as(File.class);
+
+				collectFindings(findings, node, "content", getFileContent(file));
+			}
+
+			tx.success();
+		}
+	}
+
+	private static void collectFindings(final List<Finding> findings, final NodeInterface node, final String propertyName, final String source) throws FrameworkException {
+
+		if (source != null && !source.isEmpty()) {
+
+			for (final String call : findCalls(source)) {
+
+				if (usesOldSignature(call)) {
+
+					findings.add(new Finding(node.getType(), node.getUuid(), node.getName(), propertyName, call));
+				}
+			}
+		}
+	}
+
+	private static String getFileContent(final File file) {
+
+		try (final InputStream is = file.getInputStream()) {
+
+			return new Scanner(is, StandardCharsets.UTF_8).useDelimiter("\\A").next();
+
+		} catch (IOException ioex) {
+
+			logger.warn("MigrationService: Unable to read file content of '{}', leaving it alone.", file.getPath(), ioex);
+
+			return null;
 		}
 	}
 

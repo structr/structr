@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.ToExcelMigrationHandler;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -30,6 +31,8 @@ import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 public class ExcelTest extends StructrUiTest {
@@ -46,7 +49,7 @@ public class ExcelTest extends StructrUiTest {
 					${
 						setContent(
 							create('File', 'name', 'excel_test.xlsx'),
-							toExcel2(
+							toExcel(
 								find('User'), { view: 'public', sheetName: 'Users Public View' },
 								find('User'), { properties: ['name', 'type', 'id'], sheetName: 'Users custom properties' },
 								merge(
@@ -132,5 +135,72 @@ public class ExcelTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testMigratedCallsProduceWorkbooks() {
+
+		// the migration rewrites text; this is what shows the rewritten text actually works with the new function
+		try (final Tx tx = app.tx()) {
+
+			final Principal admin = createAdminUser().as(Principal.class);
+			final ActionContext actionContext = new ActionContext(SecurityContext.getInstance(admin, AccessMode.Backend));
+
+			final String structrScript = migrate("${setContent(create('File', 'name', 'migrated_structrscript.xlsx'), toExcel(find('User'), ['name', 'id'], true, false, '', 2, 't'), 'ISO-8859-1')}");
+			final String javaScript    = migrate("${{ $.setContent($.create('File', 'name', 'migrated_javascript.xlsx'), $.toExcel($.find('User'), 'public'), 'ISO-8859-1'); }}");
+
+			Scripting.evaluate(actionContext, null, structrScript, "structrScript");
+			Scripting.evaluate(actionContext, null, javaScript, "javaScript");
+
+			final String readExcelFileScript = """
+					${{
+						{
+							let data = $.fromExcel($.find('File', 'name', 'migrated_structrscript.xlsx')[0], 'Sheet0');
+
+							$.assert(data.length === 1, 422, 'StructrScript sheet should contain exactly 1 entry');
+							$.assert(data[0].name === $.me.name.substring(0, 2), 422, 'StructrScript sheet should contain the truncated name');
+							$.assert(data[0].id === $.me.id.substring(0, 2), 422, 'StructrScript sheet should contain the truncated id');
+						}
+
+						{
+							let data = $.fromExcel($.find('File', 'name', 'migrated_javascript.xlsx')[0], 'Sheet0');
+
+							$.assert(data.length === 1, 422, 'JavaScript sheet should contain exactly 1 entry');
+							$.assert(data[0].id === $.me.id, 422, 'JavaScript sheet should contain the current users id');
+							$.assert(data[0].type === $.me.type, 422, 'JavaScript sheet should contain the current users type');
+						}
+
+						'Success';
+					}}
+					""";
+
+			assertEquals("Expected 'Success' message for readExcelFile script", "Success", Scripting.evaluate(actionContext, null, readExcelFileScript, "readExcelFileScript"));
+
+			tx.success();
+
+		} catch(UnlicensedScriptException | FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	// ----- private methods -----
+	private String migrate(final String source) {
+
+		String migrated = source;
+
+		for (final String call : ToExcelMigrationHandler.findCalls(source)) {
+
+			final String rewritten = ToExcelMigrationHandler.rewrite(call);
+
+			assertNotNull("expected " + call + " to be rewritten automatically", rewritten);
+
+			migrated = migrated.replace(call, rewritten);
+		}
+
+		assertFalse("expected the source to change", source.equals(migrated));
+
+		return migrated;
 	}
 }

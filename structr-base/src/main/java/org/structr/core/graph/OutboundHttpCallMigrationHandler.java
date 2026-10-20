@@ -18,15 +18,22 @@
  */
 package org.structr.core.graph;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.RequestParameters;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 
@@ -37,6 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 /**
  * Reports calls to the outbound HTTP functions that still use the pre-7.0 signature.
@@ -108,7 +118,9 @@ public class OutboundHttpCallMigrationHandler {
 		scan(findings, apply, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY);
 		scan(findings, apply, StructrTraits.SCHEMA_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY);
 		scan(findings, apply, StructrTraits.MAIL_TEMPLATE,   MailTemplateTraitDefinition.TEXT_PROPERTY);
-		scan(findings, apply, StructrTraits.CONTENT,         "content");
+		scan(findings, apply, StructrTraits.CONTENT,         ContentTraitDefinition.CONTENT_PROPERTY);
+
+		scanDynamicFiles(findings, apply);
 
 		report(findings, apply);
 	}
@@ -122,8 +134,7 @@ public class OutboundHttpCallMigrationHandler {
 			return;
 		}
 
-		final PropertyKey<String> key     = traits.key(propertyName);
-		final PropertyKey<String> nameKey = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> key = traits.key(propertyName);
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -132,33 +143,7 @@ public class OutboundHttpCallMigrationHandler {
 				final String source = node.getProperty(key);
 				if (source != null && !source.isEmpty()) {
 
-					String migrated = source;
-
-					for (final String call : findCalls(source)) {
-
-						final Finding finding = assess(type, node.getUuid(), node.getProperty(nameKey), propertyName, call);
-						if (finding.verdict() == Verdict.UP_TO_DATE) {
-
-							continue;
-						}
-
-						findings.add(finding);
-
-						if (apply && finding.verdict() == Verdict.AUTOMATIC) {
-
-							final String replacement = rewrite(call);
-							if (replacement != null) {
-
-								migrated = migrated.replace(call, replacement);
-
-							} else {
-
-								// assess said AUTOMATIC and rewrite cannot produce it: the two disagree, which
-								// is a bug in this class rather than something the instance did wrong
-								logger.warn("MigrationService: {} was reported as {} but could not be rewritten, leaving it alone.", call, Verdict.AUTOMATIC);
-							}
-						}
-					}
+					final String migrated = migrateSources(findings, type, propertyName, source, node, apply);
 
 					if (apply && !migrated.equals(source)) {
 
@@ -169,6 +154,101 @@ public class OutboundHttpCallMigrationHandler {
 
 			tx.success();
 		}
+	}
+
+	private static void scanDynamicFiles(final List<Finding> findings, final boolean apply) throws FrameworkException {
+
+		final String type = StructrTraits.FILE;
+		final Traits traits = Traits.of(type);
+
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		securityContext.setRequestParameter(RequestParameters.EditMode.getName(), "1");
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(type).and().key(traits.key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), true).getResultStream()) {
+
+				final File file = node.as(File.class);
+				final String source = getFileContent(file);
+
+				if (source != null && !source.isEmpty()) {
+
+					final String migrated = migrateSources(findings, type, "content", source, file, apply);
+
+					if (apply && !migrated.equals(source)) {
+
+						setFileContent(file, migrated);
+					}
+				}
+			}
+
+			tx.success();
+		}
+	}
+
+	private static String migrateSources(final List<Finding> findings, final String type, final String propertyName, final String source, final NodeInterface node, final boolean apply) {
+
+		String migrated = source;
+
+		for (final String call : findCalls(source)) {
+
+			final Finding finding = assess(type, node.getUuid(), node.getName(), propertyName, call);
+			if (finding.verdict() == Verdict.UP_TO_DATE) {
+
+				continue;
+			}
+
+			findings.add(finding);
+
+			if (apply && finding.verdict() == Verdict.AUTOMATIC) {
+
+				final String replacement = rewrite(call);
+				if (replacement != null) {
+
+					migrated = migrated.replace(call, replacement);
+
+				} else {
+
+					// assess said AUTOMATIC and rewrite cannot produce it: the two disagree, which
+					// is a bug in this class rather than something the instance did wrong
+					logger.warn("MigrationService: {} was reported as {} but could not be rewritten, leaving it alone.", call, Verdict.AUTOMATIC);
+				}
+			}
+		}
+
+		return migrated;
+	}
+
+	private static String getFileContent(final File file) {
+
+		try (final InputStream is = file.getInputStream()) {
+
+			return new Scanner(is, StandardCharsets.UTF_8).useDelimiter("\\A").next();
+
+		} catch (IOException ioex) {
+
+			logger.warn("MigrationService: Unable to read file content of '{}', leaving it alone.", file.getPath(), ioex);
+
+			return null;
+		}
+	}
+
+	private static void setFileContent(final File file, final String content) throws FrameworkException {
+
+		file.setProperty(file.getTraits().key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), false);
+
+		try (final OutputStream fos = file.getOutputStream(true, false)) {
+
+			fos.write(content.getBytes());
+
+		} catch (IOException ioex) {
+
+			logger.warn("MigrationService: Unable to auto-migrate file content of '{}', leaving it alone.", file.getPath(), ioex);
+		}
+
+		file.setProperty(file.getTraits().key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), true);
 	}
 
 	/** Every call to one of the HTTP functions in the given source, from the name to its closing brace. */

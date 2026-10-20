@@ -47,6 +47,7 @@ import org.structr.core.traits.operations.principal.IsValidPassword;
 import org.structr.core.traits.operations.propertycontainer.GetProperty;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
@@ -225,14 +226,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 		thread.start();
 
-		try {
-
-			thread.join();
-
-		} catch (InterruptedException iex) {
-
-			Thread.currentThread().interrupt();
-		}
+		AuthHelper.joinUserWrite(thread, uuid, "Re-hashing the password");
 	}
 
 	@Override
