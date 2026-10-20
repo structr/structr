@@ -84,6 +84,8 @@ let _Config = {
 				_Config.postAction('setMaintenance', { enabled: e.target.dataset.enabled });
 			});
 
+			_Config.letsencrypt.init();
+
 			let configureSuperuserCredentialsFormContainer = document.getElementById('superuser-credentials-form');
 			if (configureSuperuserCredentialsFormContainer) {
 				configureSuperuserCredentialsFormContainer.innerHTML = _Config.templates.configureSuperuserForm;
@@ -399,6 +401,81 @@ let _Config = {
 			input.addEventListener('input', () => {
 				updateDescription();
 			});
+		}
+	},
+	letsencrypt: {
+		init: () => {
+
+			let controls = document.getElementById('letsencrypt-controls');
+			let group    = document.querySelector('[name="letsencrypt.domains"]')?.closest('.config-group');
+
+			if (!controls || !group) {
+				return;
+			}
+
+			group.appendChild(controls);
+			controls.style.display = '';
+
+			let button = document.getElementById('letsencrypt-button');
+			let result = document.getElementById('letsencrypt-result');
+
+			if (button.dataset.unavailable) {
+				_Config.letsencrypt.showResult(false, [button.dataset.unavailable]);
+				return;
+			}
+
+			// the command reads the saved settings, so an unsaved edit anywhere in the form must be saved first
+			let markUnsaved = (e) => {
+
+				if (controls.contains(e.target)) {
+					return;
+				}
+
+				button.disabled = true;
+				_Config.letsencrypt.showResult(false, ['Save the configuration first, the certificate retrieval uses the saved settings.']);
+			};
+
+			let form = document.querySelector('form.config-form');
+			form.addEventListener('input', markUnsaved);
+			form.addEventListener('change', markUnsaved);
+
+			button.addEventListener('click', async () => {
+
+				button.disabled = true;
+				button.textContent = 'Retrieving certificate...';
+				result.textContent = '';
+
+				try {
+
+					let response = await fetch(_Helpers.getPrefixedRootUrl('/structr/config'), {
+						method: 'POST',
+						body: new URLSearchParams({
+							action: 'letsencrypt',
+							server: document.getElementById('letsencrypt-server').value,
+							reload: document.getElementById('letsencrypt-reload').checked
+						})
+					});
+
+					let data = await response.json().catch(() => ({ success: false, errors: [`Unexpected response (HTTP ${response.status}), the session may have expired.`] }));
+
+					_Config.letsencrypt.showResult(data.success === true, data.errors);
+
+				} catch (e) {
+
+					_Config.letsencrypt.showResult(false, [e.message]);
+				}
+
+				button.disabled = false;
+				button.textContent = 'Retrieve certificate';
+			});
+		},
+		showResult: (success, errors = []) => {
+
+			let result = document.getElementById('letsencrypt-result');
+			let lines  = success ? ['Certificate successfully retrieved.'] : (errors?.length ? errors : ['Certificate retrieval failed, see the server log for details.']);
+
+			result.className   = `basis-full whitespace-pre-wrap ${success ? 'text-green' : 'text-red'}`;
+			result.textContent = lines.join('\n');
 		}
 	},
 	databaseConnections: {
