@@ -551,9 +551,9 @@ let _Entities = {
 			};
 
 			if (obj.relType) {
-				Command.getRelationship(obj.id, obj.target, null, entity => handleGraphObject(entity), 'ui');
+				Command.getRelationship(obj.id, obj.target, null, handleGraphObject, 'ui');
 			} else {
-				Command.get(obj.id, null, entity => handleGraphObject(entity), 'ui');
+				Command.get(obj.id, null, handleGraphObject, 'ui');
 			}
 		});
 	},
@@ -2786,10 +2786,14 @@ let _Entities = {
 			},
 			file: async (el, entity) => {
 
-				el.html(_Entities.generalTab.templates.fileOptions({ file: entity }));
+				// File.ui view does not contain checksums and we want to show them.
+				const checksums = ['md5', 'crc32', 'sha1', 'sha512'];
+				const upgradeEntity = await Command.getPromise(entity.id, checksums.concat(Object.keys(entity)).join(','));
 
-				_Entities.generalTab.populateInputFields(el, entity);
-				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
+				el.html(_Entities.generalTab.templates.fileOptions({ file: upgradeEntity }));
+
+				_Entities.generalTab.populateInputFields(el, upgradeEntity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, upgradeEntity);
 
 				_Entities.generalTab.focusInput(el);
 			},
@@ -4003,7 +4007,7 @@ let _Entities = {
 
 							<div class="mb-2 flex items-center">
 								<input type="checkbox" name="trusted" id="trusted">
-								<label for="trusted" title="Set automatically when an admin uploads a file from the admin UI. An untrusted HTML or SVG file is sandboxed or downloaded instead of being displayed, because its content could be somebody else's script. Only an admin can change this.">Trusted content</label>
+								<label for="trusted" data-comment="Set automatically when an admin uploads a file from the admin UI. An untrusted HTML or SVG file is sandboxed or downloaded instead of being displayed, because its content could be somebody else's script. Only an admin can change this.">Trusted content</label>
 							</div>
 
 							<div class="mb-2 flex items-center">
@@ -4013,6 +4017,28 @@ let _Entities = {
 
 							${_Entities.generalTab.templates.includeInFrontendExport(config)}
 						</div>
+
+						<div>
+							<label class="block mb-2" for="checksum-xxhash" class="block" data-comment="The <code>checksum</code> property uses the xxHash algorithm. It is calculated by default and can not be disabled.">xxHash Checksum</label>
+							<input type="text" id="checksum-xxhash" value="" name="checksum" readonly disabled>
+						</div>
+
+						${[
+							{ name: 'MD5', property: 'md5' },
+							{ name: 'CRC32', property: 'crc32' },
+							{ name: 'SHA-1', property: 'sha1' },
+							{ name: 'SHA-512', property: 'sha512' }
+						].map(checksumConfig => `
+							<div>
+								<label class="block mb-2" for="checksum-${checksumConfig.property}" class="block" data-comment="
+									The <code>${checksumConfig.property}</code> checksum property is only calculated if it is configured in the setting <code>application.filesystem.checksums.default</code>
+									or if a parent folder in the path has it configured in the <code>enabledChecksums</code> property.<br><br>
+									The folder property completely overrides the setting from structr.conf and the closest folder where the enabledChecksums property is set, defines the checksums that are calculated.
+									">${checksumConfig.name} Checksum</label>
+								<input type="text" id="checksum-${checksumConfig.property}" value="" name="${checksumConfig.property}" readonly disabled>
+							</div>
+						`).join('')}
+
 					</div>
 				</div>
 			`,
