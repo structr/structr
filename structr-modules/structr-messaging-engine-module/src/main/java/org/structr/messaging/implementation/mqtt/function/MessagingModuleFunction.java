@@ -18,7 +18,10 @@
  */
 package org.structr.messaging.implementation.mqtt.function;
 
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.docs.ontology.FunctionCategory;
+import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.Function;
 
 public abstract class MessagingModuleFunction extends Function<Object, Object> {
@@ -33,5 +36,19 @@ public abstract class MessagingModuleFunction extends Function<Object, Object> {
 	public FunctionCategory getCategory() {
 
 		return FunctionCategory.MQTT;
+	}
+
+	/**
+	 * Returns the MQTT client that a script passed, or null. A script passes the node itself, not the MQTTClient wrapper
+	 * that Java code works with, so the node is converted instead of being checked with instanceof.
+	 */
+	protected MQTTClient toMQTTClient(final Object source) {
+
+		if (source instanceof NodeInterface node && node.is(StructrTraits.MQTT_CLIENT)) {
+
+			return node.as(MQTTClient.class);
+		}
+
+		return null;
 	}
 }
