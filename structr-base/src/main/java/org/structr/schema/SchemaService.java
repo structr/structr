@@ -58,6 +58,7 @@ public class SchemaService implements Service {
 	private static final Semaphore IndexUpdateSemaphore      = new Semaphore(1);
 	private static final AtomicBoolean schemaIsBeingReplaced = new AtomicBoolean(false);
 	private static final Set<String> blacklist               = new LinkedHashSet<>();
+	private static volatile Thread indexUpdaterThread        = null;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -309,6 +310,29 @@ public class SchemaService implements Service {
 		return schemaIsBeingReplaced.get();
 	}
 
+	/**
+	 * Waits until the index update that the last schema reload started has finished, including the population of the
+	 * new indexes for a short time. Queries that run while many indexes come online can fail, see
+	 * IndexUpdater.awaitIndexes() in the Bolt driver, which also bounds the wait.
+	 */
+	public static void awaitIndexUpdate() {
+
+		final Thread thread = indexUpdaterThread;
+		if (thread == null) {
+
+			return;
+		}
+
+		try {
+
+			thread.join();
+
+		} catch (InterruptedException iex) {
+
+			Thread.currentThread().interrupt();
+		}
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
@@ -429,6 +453,8 @@ public class SchemaService implements Service {
 		indexUpdater.setName("indexUpdater");
 		indexUpdater.setDaemon(true);
 		indexUpdater.start();
+
+		indexUpdaterThread = indexUpdater;
 	}
 
 	private static String getIndexingTypeName(final TraitsInstance traitsInstance, final String typeName) {

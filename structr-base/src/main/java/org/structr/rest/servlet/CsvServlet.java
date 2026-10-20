@@ -114,12 +114,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			assertInitialized();
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -267,12 +263,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			final Reader input = request.getReader();
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 

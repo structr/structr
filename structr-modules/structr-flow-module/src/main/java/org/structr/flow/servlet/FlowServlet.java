@@ -82,12 +82,8 @@ public class FlowServlet extends JsonRestServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -180,7 +176,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			} catch (Exception ex) {
 
-				retry = retryAfterOutput(response, ex, ++attempts);
+				retry = retryUnlessCommitted(response, ex, ++attempts);
 			}
 		}
 	}
@@ -242,12 +238,8 @@ public class FlowServlet extends JsonRestServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 

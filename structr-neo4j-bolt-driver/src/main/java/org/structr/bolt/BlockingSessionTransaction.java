@@ -400,6 +400,12 @@ class BlockingSessionTransaction extends SessionTransaction {
 			return new NetworkException(uex.getMessage(), uex);
 		}
 
+		if (ex instanceof DatabaseException dex && SessionTransaction.isTransient(dex)) {
+
+			closed = true;
+			return terminated(dex);
+		}
+
 		if (ex instanceof DatabaseException dex) {
 
 			isRolledBack = true;

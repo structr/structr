@@ -24,9 +24,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.rest.common.StatsCallback;
 
 import java.io.IOException;
@@ -61,6 +67,93 @@ public abstract class AbstractServletBase extends HttpServlet {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Examines the request with the given authenticator in a transaction of its own, and repeats that transaction as
+	 * long as the database terminates it with a transient error. Examining a request can write, e.g. a login with
+	 * credentials in the request headers or a user created by an OAuth callback. A repetition is only possible as long
+	 * as no part of the response has been sent, e.g. no redirect of an external authentication. A repeated OAuth
+	 * callback finds its flow used up and fails, which is the same result as without the repetition.
+	 *
+	 * Called in a transaction, which a servlet does not do, the request is examined in it once and the
+	 * RetryException goes on to the caller, because only the outermost transaction can be repeated.
+	 */
+	public static SecurityContext authenticate(final Authenticator authenticator, final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
+
+		return authenticate(authenticator, request, response, null);
+	}
+
+	/**
+	 * Examines the request like {@link #authenticate(Authenticator, HttpServletRequest, HttpServletResponse)}, with the
+	 * given prefetch hint for the transaction, or none for null.
+	 */
+	public static SecurityContext authenticate(final Authenticator authenticator, final HttpServletRequest request, final HttpServletResponse response, final String prefetchHint) throws FrameworkException {
+
+		if (TransactionCommand.inTransaction()) {
+
+			return authenticator.initializeAndExamineRequest(request, response);
+		}
+
+		SecurityContext securityContext = null;
+		boolean retry                   = true;
+		int attempts                    = 0;
+
+		while (retry) {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				if (prefetchHint != null) {
+
+					tx.prefetchHint(prefetchHint);
+				}
+
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+
+				tx.success();
+
+				retry = false;
+
+			} catch (FrameworkException fex) {
+
+				retry = retryUnlessCommitted(response, fex, ++attempts);
+
+			} catch (RuntimeException rex) {
+
+				retry = retryUnlessCommitted(response, rex, ++attempts);
+			}
+		}
+
+		return securityContext;
+	}
+
+	/**
+	 * Decides whether a transaction of a request that ended with the given exception is repeated, which is only
+	 * possible as long as no part of the response has been sent. The buffered part is discarded before.
+	 */
+	public static <E extends Exception> boolean retryUnlessCommitted(final HttpServletResponse response, final E ex, final int attempts) throws E {
+
+		if (RetryException.find(ex) == null || response.isCommitted()) {
+
+			throw ex;
+		}
+
+		response.resetBuffer();
+
+		return RetryException.retry(ex, attempts);
+	}
+
+	/**
+	 * Throws the RetryException of the given exception, if the database terminated the transaction, so that the caller
+	 * repeats the transaction instead of answering with the error.
+	 */
+	public static void throwIfRetryable(final Exception ex) {
+
+		final RetryException rex = RetryException.find(ex);
+		if (rex != null) {
+
+			throw rex;
 		}
 	}
 

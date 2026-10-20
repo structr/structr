@@ -156,7 +156,38 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		this.stats.recordStatsValue("http", "get", System.currentTimeMillis(), false);
 
-		final long t0                                   = System.currentTimeMillis();
+		// The request is repeated when the database terminates its transaction, as long as no part of the response has
+		// been sent. The scripts of the page run again then, like those of a repeated REST request. An asynchronous
+		// rendering sends the page while it renders, so it is not repeated.
+		final long t0    = System.currentTimeMillis();
+		final int status = response.getStatus();
+		boolean retry    = true;
+		int attempts     = 0;
+
+		while (retry) {
+
+			try {
+
+				response.setStatus(status);
+
+				get(request, response, t0);
+
+				retry = false;
+
+			} catch (RuntimeException rex) {
+
+				if (request.isAsyncStarted()) {
+
+					throw rex;
+				}
+
+				retry = retryUnlessCommitted(response, rex, ++attempts);
+			}
+		}
+	}
+
+	private void get(final HttpServletRequest request, final HttpServletResponse response, final long t0) {
+
 		final Authenticator auth                        = getConfig().getAuthenticator();
 		final Traits pageTraits                         = Traits.of(StructrTraits.PAGE);
 		boolean requestUriContainsUuids                 = false;
@@ -182,7 +213,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				return;
 			}
 
-			// isolate request authentication in a transaction
+			// isolate request authentication in a transaction, not repeated by itself like in the other servlets,
+			// because doGet() repeats the whole request
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				tx.prefetchHint("HTTP GET auth " + path);
@@ -209,6 +241,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 			app = StructrApp.getInstance(securityContext);
+
+			// the page that a synchronous rendering produced, see below
+			StringRenderBuffer output    = null;
+			RenderContext outputContext  = null;
+			String outputName            = null;
 
 			try (final Tx tx = app.tx()) {
 
@@ -571,19 +608,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							// render
 							rootElement.render(renderContext, 0);
 
-							try {
-
-								writeOutputStream(response, buffer, renderContext);
-
-							} catch (IOException ioex) {
-
-								logger.warn("", ioex);
-							}
+							output        = buffer;
+							outputContext = renderContext;
 
 							// an element addressed by uuid, which is what a partial reload asks for, has no name
-							final String statsName = rootElement.getName() != null ? rootElement.getName() : "unknown";
-
-							this.stats.recordStatsValue("html", statsName, System.currentTimeMillis() - t0);
+							outputName    = rootElement.getName() != null ? rootElement.getName() : "unknown";
 						}
 					}
 				}
@@ -592,10 +621,32 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			} catch (FrameworkException fex) {
 
+				throwIfRetryable(fex);
+
 				logger.error("Exception while processing request: {}", fex.getMessage());
 			}
 
+			// written after the commit, so that a transaction that the database terminates can still be repeated, and in
+			// a transaction of its own, because writing can read, e.g. the PDF conversion of PdfServlet
+			if (output != null) {
+
+				try (final Tx tx = app.tx()) {
+
+					writeOutputStream(response, output, outputContext);
+
+					tx.success();
+
+				} catch (IOException ioex) {
+
+					logger.warn("", ioex);
+				}
+
+				this.stats.recordStatsValue("html", outputName, System.currentTimeMillis() - t0);
+			}
+
 		} catch (FrameworkException fex) {
+
+			throwIfRetryable(fex);
 
 			logger.error("Exception while processing request: {}", fex.getMessage());
 			UiAuthenticator.writeFrameworkException(response, fex);
@@ -646,13 +697,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			String path = request.getPathInfo();
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				tx.prefetchHint("HTTP POST auth " + path);
-
-				securityContext = auth.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			securityContext = authenticate(auth, request, response, "HTTP POST auth " + path);
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -898,11 +943,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			assertInitialized();
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				auth.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticate(auth, request, response);
 
 			response.setContentLength(0);
 			response.setHeader("Allow", "GET,HEAD,OPTIONS");

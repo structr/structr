@@ -109,7 +109,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 		final Traits traits      = Traits.of(StructrTraits.USER);
 		final Authenticator auth = getConfig().getAuthenticator();
 
-		SecurityContext securityContext;
+		SecurityContext securityContext = null;
 		String content;
 
 		if (auth == null) {
@@ -133,14 +133,29 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		try {
 
-			boolean hasUser;
+			boolean hasUser = false;
+			boolean retry   = true;
+			int attempts    = 0;
 
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			// isolate request authentication in a transaction, repeated when the database terminates it
+			while (retry) {
 
-				securityContext = auth.initializeAndExamineRequest(request, response);
-				hasUser         = securityContext.getUser(false) != null;
-				tx.success();
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+
+					securityContext = auth.initializeAndExamineRequest(request, response);
+					hasUser         = securityContext.getUser(false) != null;
+					tx.success();
+
+					retry = false;
+
+				} catch (FrameworkException fex) {
+
+					retry = retryUnlessCommitted(response, fex, ++attempts);
+
+				} catch (RuntimeException rex) {
+
+					retry = retryUnlessCommitted(response, rex, ++attempts);
+				}
 			}
 
 			// Ensure access mode is frontend

@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
+import org.structr.api.RetryException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
@@ -45,6 +46,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -246,6 +248,24 @@ public class MigrationService {
 		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, apply -> warnAboutWrongNotionProperties())
 	);
 
+	/**
+	 * Runs a writing step and repeats it as long as the database terminates its transaction with a transient error.
+	 * Repeating a step is safe because every step finds out for itself what is still to migrate, it runs on every start
+	 * after all. A step that is called in a transaction is not repeated here: only the outermost transaction can be
+	 * repeated, so the RetryException goes on to the caller.
+	 */
+	private static void apply(final MigrationStep step) throws FrameworkException {
+
+		if (TransactionCommand.inTransaction()) {
+
+			step.action().run(true);
+
+			return;
+		}
+
+		RetryException.repeat(() -> step.action().run(true));
+	}
+
 	/** Whether the migrations only report what they would do, instead of changing anything. */
 	public static boolean isDryRun() {
 
@@ -276,6 +296,14 @@ public class MigrationService {
 		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
 			final boolean cypher     = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query");
+
+			// the indexes of a fresh database are created and populated while Structr starts, and the queries of the
+			// steps fail when they are compiled during the population; waiting inside a transaction could block the
+			// index update, so a caller in a transaction relies on the repetition below alone
+			if (!TransactionCommand.inTransaction()) {
+
+				SchemaService.awaitIndexUpdate();
+			}
 
 			if (reportOnly) {
 
@@ -352,7 +380,7 @@ public class MigrationService {
 						// Enable debug logging to tell "no output" apart from "the step never ran".
 						logger.debug("MigrationService: {}", step.name());
 
-						step.action().run(!reportOnly);
+						apply(step);
 					}
 				}
 

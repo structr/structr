@@ -24,6 +24,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -172,12 +173,20 @@ public abstract class CsvTestBase {
 
 		if (!first) {
 
-			try (final Tx tx = app.tx()) {
+			try {
 
-				// delete everything
-				Services.getInstance().getDatabaseService().cleanDatabase();
+				// repeated when the database terminates it, e.g. in a deadlock with a background service that the
+				// previous test started, otherwise the next test finds its data
+				RetryException.repeat(() -> {
 
-				tx.success();
+					try (final Tx tx = app.tx()) {
+
+						// delete everything
+						Services.getInstance().getDatabaseService().cleanDatabase();
+
+						tx.success();
+					}
+				});
 
 			} catch (Throwable t) {
 

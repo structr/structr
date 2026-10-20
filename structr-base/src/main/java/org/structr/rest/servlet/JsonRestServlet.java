@@ -112,12 +112,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -254,13 +250,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				final Authenticator authenticator = config.getAuthenticator();
-				authenticator.initializeAndExamineRequest(request, response);
-
-				tx.success();
-			}
+			authenticate(config.getAuthenticator(), request, response);
 
 			// Note: some resources need the type of the current user to resolve the correct handler, so this might return wrong
 			// results, especially in the /me resource where the result might depend on the actual user type that makes the call
@@ -349,12 +339,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final String input = IOUtils.toString(request.getReader());
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app              = StructrApp.getInstance(securityContext);
 			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
@@ -559,12 +545,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final String input = IOUtils.toString(request.getReader());
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app              = StructrApp.getInstance(securityContext);
 			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
@@ -694,12 +676,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final String input = IOUtils.toString(request.getReader());
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			final App app              = StructrApp.getInstance(securityContext);
 			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
@@ -823,23 +801,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 		}
 	}
 
-	/**
-	 * Decides whether a request whose transaction ended with the given exception is repeated. The result of such a
-	 * request is written inside its transaction, so a repetition is only possible as long as no part of the response
-	 * has been sent, and the buffered part is discarded before.
-	 */
-	protected <E extends Exception> boolean retryAfterOutput(final HttpServletResponse response, final E ex, final int attempts) throws E {
-
-		if (RetryException.find(ex) == null || response.isCommitted()) {
-
-			throw ex;
-		}
-
-		response.resetBuffer();
-
-		return RetryException.retry(ex, attempts);
-	}
-
 	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
 
 		final long t0 = System.currentTimeMillis();
@@ -916,11 +877,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				} catch (FrameworkException fex) {
 
-					retry = retryAfterOutput(response, fex, ++attempts);
+					retry = retryUnlessCommitted(response, fex, ++attempts);
 
 				} catch (RuntimeException rex) {
 
-					retry = retryAfterOutput(response, rex, ++attempts);
+					retry = retryUnlessCommitted(response, rex, ++attempts);
 				}
 			}
 

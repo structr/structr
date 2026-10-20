@@ -885,6 +885,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 	public static RuntimeException translateDatabaseException(final DatabaseException dex) {
 
+		if (isTransient(dex)) {
+
+			throw new RetryException(dex);
+		}
+
 		switch (dex.code()) {
 
 			case "Neo.DatabaseError.General.UnknownError":
@@ -901,6 +906,19 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		// wrap exception if no other cause could be found
 		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
+	}
+
+	/**
+	 * Whether the given error is transient although Neo4j does not report it as a TransientException, so that only a
+	 * repetition of the whole transaction can succeed. Cypher gives up compiling a query when the schema changes too often
+	 * while it compiles, e.g. while freshly created indexes are populated, and reports that with the generic code
+	 * Neo.DatabaseError.General.UnknownError, so only the message identifies it.
+	 */
+	static boolean isTransient(final DatabaseException dex) {
+
+		final String message = dex.getMessage();
+
+		return "Neo.DatabaseError.General.UnknownError".equals(dex.code()) && message != null && message.contains("insanely frequent schema changes");
 	}
 
 	/**
