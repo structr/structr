@@ -1819,7 +1819,12 @@ public class MigrationService {
 				final String restQuery                    = (String) propertyContainer.getProperty("restQuery");
 				final String functionQuery                = (String) propertyContainer.getProperty("functionQuery");
 
-				if (StringUtils.isEmpty(functionQuery) && StringUtils.isNotEmpty(restQuery)) {
+				if (StringUtils.isEmpty(restQuery)) {
+
+					// silently remove empty, non-null restQuery
+					propertyContainer.removeProperty("restQuery");
+
+				} else if (StringUtils.isEmpty(functionQuery)) {
 
 					logger.info("MIGRATING rest QUERY in {} {} to functionQuery.", object.getType(), object.getUuid());
 					propertyContainer.setProperty("functionQuery", "{\n\t/* Migrated REST query, please fix! */\n\t/* " + restQuery + " */\n\n\t$.log('Repeater in ', $.this.type, ' with UUID ', $.this.id, ' needs manual migration of restQuery to functionQuery!');\n}");
