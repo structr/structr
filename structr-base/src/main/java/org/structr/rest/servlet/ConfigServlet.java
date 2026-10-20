@@ -626,7 +626,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Services services = Services.getInstance();
 
-		return services.isInitialized() && services.isReady(NodeService.class, "default");
+		return services.isInitialized() && services.isReady(NodeService.class, services.getNameOfActiveService(NodeService.class));
 	}
 
 	private void sendJson(final HttpServletResponse response, final int status, final Map<String, Object> data) throws IOException {
