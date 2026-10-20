@@ -30,6 +30,10 @@ public class RetryException extends RuntimeException {
 
 	public static final int MAX_ATTEMPTS = 10;
 
+	// the pauses before repeating a transaction that a frequently changing schema terminated, see SchemaChangedException
+	private static final long SCHEMA_CHANGE_INITIAL_DELAY_MILLIS = 100;
+	private static final long SCHEMA_CHANGE_MAX_DELAY_MILLIS     = 5000;
+
 	public RetryException(final String message) {
 
 		super(message);
@@ -47,8 +51,7 @@ public class RetryException extends RuntimeException {
 
 	/**
 	 * Decides whether a transaction that failed with the given exception is repeated, and pauses
-	 * a little longer with each attempt so that the transactions involved in a deadlock do not
-	 * collide again. The exception does not have to be a RetryException itself: code that catches
+	 * before the next attempt, see {@link #delay(RetryException, int)}. The exception does not have to be a RetryException itself: code that catches
 	 * a RetryException can turn it into another exception, and the RetryException that closing a
 	 * terminated transaction throws is attached to the exception that ended the transaction as a
 	 * suppressed exception. An exception without a RetryException, or a transient error that is
@@ -71,7 +74,7 @@ public class RetryException extends RuntimeException {
 
 		try {
 
-			Thread.sleep(attempts * 10L);
+			Thread.sleep(delay(find(ex), attempts));
 
 		} catch (InterruptedException iex) {
 
@@ -81,6 +84,28 @@ public class RetryException extends RuntimeException {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Returns the pause in milliseconds before the next attempt. The transactions involved in a
+	 * deadlock collide again unless one of them waits, but only briefly, since the other one is
+	 * through soon, so the pause grows a little with each attempt, 450 ms in total. A schema that
+	 * changes too often keeps changing until the indexes are populated, which takes seconds, so the
+	 * pause doubles with each attempt, from 100 ms up to 5 s, about 21 s in total.
+	 *
+	 * @param rex the RetryException that ended the transaction
+	 * @param attempts the number of attempts made so far, including the one that failed
+	 *
+	 * @return the pause in milliseconds
+	 */
+	static long delay(final RetryException rex, final int attempts) {
+
+		if (rex instanceof SchemaChangedException) {
+
+			return Math.min(SCHEMA_CHANGE_INITIAL_DELAY_MILLIS << Math.min(attempts - 1, 16), SCHEMA_CHANGE_MAX_DELAY_MILLIS);
+		}
+
+		return attempts * 10L;
 	}
 
 	/**

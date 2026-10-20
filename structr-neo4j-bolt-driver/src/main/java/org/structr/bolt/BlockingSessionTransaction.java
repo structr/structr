@@ -400,7 +400,7 @@ class BlockingSessionTransaction extends SessionTransaction {
 			return new NetworkException(uex.getMessage(), uex);
 		}
 
-		if (ex instanceof DatabaseException dex && SessionTransaction.isTransient(dex)) {
+		if (ex instanceof DatabaseException dex && SessionTransaction.isFrequentSchemaChange(dex)) {
 
 			closed = true;
 			return terminated(dex);

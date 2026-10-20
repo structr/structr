@@ -52,6 +52,29 @@ public class RetryExceptionTest {
 	}
 
 	@Test
+	public void testDeadlockIsRepeatedAfterShortPauses() {
+
+		final RetryException rex = new RetryException("deadlock");
+
+		for (int attempts = 1; attempts < RetryException.MAX_ATTEMPTS; attempts++) {
+
+			assertEquals("Wrong pause after attempt " + attempts, attempts * 10L, RetryException.delay(rex, attempts));
+		}
+	}
+
+	@Test
+	public void testSchemaChangeIsRepeatedAfterExponentiallyGrowingPauses() {
+
+		final RetryException rex = new SchemaChangedException("schema changed", null);
+		final long[] expected    = { 100, 200, 400, 800, 1600, 3200, 5000, 5000, 5000 };
+
+		for (int attempts = 1; attempts < RetryException.MAX_ATTEMPTS; attempts++) {
+
+			assertEquals("Wrong pause after attempt " + attempts, expected[attempts - 1], RetryException.delay(rex, attempts));
+		}
+	}
+
+	@Test
 	public void testTransactionThatSucceedsAfterAFailureIsRepeated() {
 
 		final RetryException rex = new RetryException("terminated");
