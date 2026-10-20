@@ -173,7 +173,7 @@ public abstract class IndexUpdater {
 	 * indexes come online at once, e.g. in a fresh database, where the population takes about a second, and the
 	 * migrations at startup would fail. The population of a single index in a large database can take minutes, but it
 	 * changes the schema only once, so the timeout is short and the wait does not delay such a start. What still fails
-	 * is repeated as a transient error, see SessionTransaction.isTransient().
+	 * is repeated as a transient error, see SessionTransaction.isFrequentSchemaChange().
 	 */
 	private void awaitIndexes() {
 

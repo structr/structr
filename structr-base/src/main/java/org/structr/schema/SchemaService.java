@@ -315,9 +315,9 @@ public class SchemaService implements Service {
 	 * Waits until the index update that the last schema reload started has finished, including the population of the
 	 * new indexes for a short time, see IndexUpdater.awaitIndexes() in the Bolt driver. Queries that run while many
 	 * indexes come online can fail. The index update can itself wait up to three minutes for another one, or for a
-	 * schema lock, so the wait is bounded and startup is not held up longer. A query that fails afterwards is repeated
-	 * as a transient error, but only for a fraction of a second, see RetryException.retry(), so an index population
-	 * that outlasts the wait can still make a migration fail.
+	 * schema lock, so the wait is bounded and startup is not held up longer. A query that fails afterwards because the
+	 * schema changes too often is repeated with pauses that double up to 5 s, about 21 s in all, see
+	 * RetryException.delay(), so only an index population that outlasts both can still make a migration fail.
 	 */
 	public static void awaitIndexUpdate() {
 
