@@ -266,6 +266,37 @@ public class MigrationService {
 		RetryException.repeat(() -> step.action().run(true));
 	}
 
+	/**
+	 * Runs a step in a transaction that is rolled back and returns whether it would change the database, repeated like
+	 * a writing step, see apply().
+	 */
+	private static boolean dryRun(final MigrationStep step) throws FrameworkException {
+
+		if (TransactionCommand.inTransaction()) {
+
+			return dryRunOnce(step);
+		}
+
+		return RetryException.repeatAndGet(() -> dryRunOnce(step));
+	}
+
+	private static boolean dryRunOnce(final MigrationStep step) throws FrameworkException {
+
+		try (final Tx dryRun = StructrApp.getInstance().tx()) {
+
+			stepReportedChanges = false;
+
+			step.action().run(false);
+
+			// asked before the rollback, while the queue still holds what the step did. A step that found nothing to
+			// migrate records nothing, and that is what lets an instance with nothing pending start normally instead of
+			// stopping to report no news. A step that writes past the queue reports through stepReportedChanges instead.
+			// Deliberately no dryRun.success(): everything the step did is rolled back.
+
+			return TransactionCommand.currentTransactionHasChanges() || stepReportedChanges;
+		}
+	}
+
 	/** Whether the migrations only report what they would do, instead of changing anything. */
 	public static boolean isDryRun() {
 
@@ -353,24 +384,11 @@ public class MigrationService {
 						// than that step would have committed by itself.
 						logger.info("MigrationService: [dry run] {}", step.name());
 
-						try (final Tx dryRun = StructrApp.getInstance().tx()) {
+						if (dryRun(step)) {
 
-							stepReportedChanges = false;
+							changesPending = true;
 
-							step.action().run(!reportOnly);
-
-							// asked before the rollback, while the queue still holds what the step did. A step
-							// that found nothing to migrate records nothing, and that is what lets an instance
-							// with nothing pending start normally instead of stopping to report no news. A step
-							// that writes past the queue reports through stepReportedChanges instead.
-							if (TransactionCommand.currentTransactionHasChanges() || stepReportedChanges) {
-
-								changesPending = true;
-
-								logger.info("MigrationService: [dry run] {} WOULD CHANGE the database.", step.name());
-							}
-
-							// deliberately no dryRun.success(): everything above is rolled back
+							logger.info("MigrationService: [dry run] {} WOULD CHANGE the database.", step.name());
 						}
 
 					} else {

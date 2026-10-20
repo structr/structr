@@ -20,6 +20,7 @@ package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
 import org.structr.api.RetryException;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -45,6 +46,8 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -61,6 +64,9 @@ import static org.testng.AssertJUnit.fail;
 public class HtmlServletRetryTest extends StructrUiTest {
 
 	private static final String ITEM_TYPE = "RenderRetryItem";
+
+	// not only ASCII, so that a repetition that loses the character encoding of the response shows
+	private static final String OUTPUT    = "rendered äöü";
 
 	// how many of the next commits fail
 	private static final AtomicInteger commitFailures = new AtomicInteger();
@@ -101,7 +107,7 @@ public class HtmlServletRetryTest extends StructrUiTest {
 				.body().asString();
 
 		assertEquals("The terminated attempt was not repeated", 0, commitFailures.get());
-		assertEquals("The page of the repeated attempt was not sent, or the one of the terminated attempt as well", "rendered", body.trim());
+		assertEquals("The page of the repeated attempt was not sent, or the one of the terminated attempt as well", OUTPUT, body.trim());
 		assertEquals("The terminated attempt was committed", 1, countItems());
 	}
 
@@ -128,6 +134,66 @@ public class HtmlServletRetryTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testRepeatedRenderingSendsItsHeadersOnce() {
+
+		createPage("headerPage", true);
+
+		final String origin   = "http://origin.example";
+		final String previous = Settings.AccessControlAcceptedOrigins.getValue();
+
+		try {
+
+			// the authentication adds a Vary header for an accepted origin in every attempt
+			Settings.AccessControlAcceptedOrigins.setValue(origin);
+
+			commitFailures.set(1);
+
+			RestAssured.basePath = htmlUrl;
+
+			final List<String> vary = RestAssured
+				.given()
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD, "Origin", origin)
+				.expect()
+					.statusCode(200)
+				.when()
+					.get("/headerPage")
+					.headers().getValues("Vary");
+
+			// other handlers add their own values, e.g. Accept-Encoding, possibly in the same header
+			final long count = vary.stream().flatMap(value -> Arrays.stream(value.split(","))).filter(value -> value.trim().equals("Origin")).count();
+
+			assertEquals("The terminated attempt was not repeated", 0, commitFailures.get());
+			assertEquals("The response of the repetition carries the headers of the terminated attempt as well", 1, count);
+
+		} finally {
+
+			Settings.AccessControlAcceptedOrigins.setValue(previous);
+		}
+	}
+
+	@Test
+	public void testPostIsNotRepeated() {
+
+		createPage("postPage", true);
+
+		commitFailures.set(2);
+
+		RestAssured.basePath = htmlUrl;
+
+		// the body of a POST request can only be read once, so it fails like before the repetition existed
+		RestAssured
+			.given()
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(500)
+			.when()
+				.post("/postPage");
+
+		assertEquals("A POST request was repeated", 1, commitFailures.get());
+		assertEquals("The terminated attempt was committed", 0, countItems());
+	}
+
+	@Test
 	public void testAsynchronousRenderingIsNotRepeated() {
 
 		createPage("asyncPage", false);
@@ -149,7 +215,7 @@ public class HtmlServletRetryTest extends StructrUiTest {
 
 	// ----- private methods -----
 	/**
-	 * Creates a page that creates an item and prints "rendered", synchronously rendered if it creates raw data.
+	 * Creates a page that creates an item and prints the output, synchronously rendered if it creates raw data.
 	 */
 	private void createPage(final String name, final boolean createsRawData) {
 
@@ -164,7 +230,7 @@ public class HtmlServletRetryTest extends StructrUiTest {
 
 			// a page only accepts an html element, a comment or a template as its child
 			page.appendChild(app.create(StructrTraits.TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_PROPERTY), "${{ $.create('" + ITEM_TYPE + "', { name: 'item' }); $.print('rendered'); }}"),
+				new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_PROPERTY), "${{ $.create('" + ITEM_TYPE + "', { name: 'item' }); $.print('" + OUTPUT + "'); }}"),
 				new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain")
 			).as(Template.class));
 

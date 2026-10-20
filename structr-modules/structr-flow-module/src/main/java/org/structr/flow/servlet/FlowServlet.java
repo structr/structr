@@ -92,7 +92,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			final SecurityContext context = securityContext;
 
-			evaluateWithRetry(response, () -> {
+			evaluateWithRetry(request, response, () -> {
 
 				try (final Tx tx = app.tx()) {
 
@@ -161,24 +161,14 @@ public class FlowServlet extends JsonRestServlet {
 	 * Runs the transaction that evaluates the flow and writes its result, and repeats it when the database terminated
 	 * it to resolve a deadlock, like a REST request.
 	 */
-	private void evaluateWithRetry(final HttpServletResponse response, final RetryException.Attempt<Exception> attempt) throws Exception {
+	private void evaluateWithRetry(final HttpServletRequest request, final HttpServletResponse response, final RetryException.Attempt<Exception> attempt) throws Exception {
 
-		boolean retry = true;
-		int attempts  = 0;
+		repeatUnlessCommitted(request, response, () -> {
 
-		while (retry) {
+			attempt.run();
 
-			try {
-
-				attempt.run();
-
-				retry = false;
-
-			} catch (Exception ex) {
-
-				retry = retryUnlessCommitted(response, ex, ++attempts);
-			}
-		}
+			return null;
+		});
 	}
 
 	@Override
@@ -248,7 +238,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			final SecurityContext context = securityContext;
 
-			evaluateWithRetry(response, () -> {
+			evaluateWithRetry(request, response, () -> {
 
 				try (final Tx tx = app.tx()) {
 

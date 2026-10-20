@@ -59,6 +59,7 @@ public class SchemaService implements Service {
 	private static final AtomicBoolean schemaIsBeingReplaced = new AtomicBoolean(false);
 	private static final Set<String> blacklist               = new LinkedHashSet<>();
 	private static volatile Thread indexUpdaterThread        = null;
+	private static final int AWAIT_INDEX_UPDATE_SECONDS      = 30;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -312,8 +313,11 @@ public class SchemaService implements Service {
 
 	/**
 	 * Waits until the index update that the last schema reload started has finished, including the population of the
-	 * new indexes for a short time. Queries that run while many indexes come online can fail, see
-	 * IndexUpdater.awaitIndexes() in the Bolt driver, which also bounds the wait.
+	 * new indexes for a short time, see IndexUpdater.awaitIndexes() in the Bolt driver. Queries that run while many
+	 * indexes come online can fail. The index update can itself wait up to three minutes for another one, or for a
+	 * schema lock, so the wait is bounded and startup is not held up longer. A query that fails afterwards is repeated
+	 * as a transient error, but only for a fraction of a second, see RetryException.retry(), so an index population
+	 * that outlasts the wait can still make a migration fail.
 	 */
 	public static void awaitIndexUpdate() {
 
@@ -325,11 +329,18 @@ public class SchemaService implements Service {
 
 		try {
 
-			thread.join();
+			thread.join(TimeUnit.SECONDS.toMillis(AWAIT_INDEX_UPDATE_SECONDS));
 
 		} catch (InterruptedException iex) {
 
 			Thread.currentThread().interrupt();
+
+			return;
+		}
+
+		if (thread.isAlive()) {
+
+			logger.info("Index update not finished after {} seconds, continuing.", AWAIT_INDEX_UPDATE_SECONDS);
 		}
 	}
 

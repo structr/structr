@@ -96,11 +96,7 @@ public abstract class AbstractServletBase extends HttpServlet {
 			return authenticator.initializeAndExamineRequest(request, response);
 		}
 
-		SecurityContext securityContext = null;
-		boolean retry                   = true;
-		int attempts                    = 0;
-
-		while (retry) {
+		return repeatUnlessCommitted(request, response, () -> {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -109,39 +105,50 @@ public abstract class AbstractServletBase extends HttpServlet {
 					tx.prefetchHint(prefetchHint);
 				}
 
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				final SecurityContext securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 				tx.success();
 
-				retry = false;
-
-			} catch (FrameworkException fex) {
-
-				retry = retryUnlessCommitted(response, fex, ++attempts);
-
-			} catch (RuntimeException rex) {
-
-				retry = retryUnlessCommitted(response, rex, ++attempts);
+				return securityContext;
 			}
-		}
-
-		return securityContext;
+		});
 	}
 
 	/**
-	 * Decides whether a transaction of a request that ended with the given exception is repeated, which is only
-	 * possible as long as no part of the response has been sent. The buffered part is discarded before.
+	 * Runs the given attempt of a request and repeats it as long as the database terminates its transaction with a
+	 * transient error and no part of the response has been sent, at most {@link RetryException#MAX_ATTEMPTS} times. A
+	 * response that has been handed to an asynchronous context counts as sent, since it is written while the attempt
+	 * that started the context still runs. The attempt must contain the whole transaction, and it must not run inside
+	 * another transaction, since only the outermost one can be repeated.
+	 *
+	 * Before a repetition, the buffered body is discarded and the status is reset to the one before the first attempt.
+	 * The headers stay, so an attempt sets its headers rather than adding them. A reset of the whole response would
+	 * also discard the character encoding, which Jetty does not take from a restored header.
+	 *
+	 * @return the result of the attempt that succeeded
 	 */
-	public static <E extends Exception> boolean retryUnlessCommitted(final HttpServletResponse response, final E ex, final int attempts) throws E {
+	@SuppressWarnings("unchecked")
+	public static <T, E extends Exception> T repeatUnlessCommitted(final HttpServletRequest request, final HttpServletResponse response, final RetryException.Computation<T, E> attempt) throws E {
 
-		if (RetryException.find(ex) == null || response.isCommitted()) {
+		final int initialStatus = response.getStatus();
+		int attempts            = 0;
 
-			throw ex;
+		while (true) {
+
+			try {
+
+				return attempt.run();
+
+			} catch (RuntimeException rex) {
+
+				retryUnlessCommitted(request, response, rex, ++attempts, initialStatus);
+
+			} catch (Exception ex) {
+
+				// the attempt throws no other checked exception than E
+				retryUnlessCommitted(request, response, (E)ex, ++attempts, initialStatus);
+			}
 		}
-
-		response.resetBuffer();
-
-		return RetryException.retry(ex, attempts);
 	}
 
 	/**
@@ -249,5 +256,33 @@ public abstract class AbstractServletBase extends HttpServlet {
 	public static String prefixLocation (final String location) {
 
 		return Settings.ApplicationRootPath.getValue() + ((location.startsWith("/") ? "" : "/") + location);
+	}
+
+	/**
+	 * Decides whether an attempt of a request that ended with the given exception is repeated, which is only possible
+	 * as long as no part of the response has been sent, and discards the buffered body and resets the status before.
+	 * For a loop whose attempt assigns variables that are read after it, everything else uses
+	 * {@link #repeatUnlessCommitted(HttpServletRequest, HttpServletResponse, RetryException.Computation)}.
+	 *
+	 * @param initialStatus the status of the response before the first attempt
+	 *
+	 * @return true if the attempt is to be repeated
+	 *
+	 * @throws E the given exception, if the attempt is not repeated
+	 */
+	public static <E extends Exception> boolean retryUnlessCommitted(final HttpServletRequest request, final HttpServletResponse response, final E ex, final int attempts, final int initialStatus) throws E {
+
+		if (response.isCommitted() || request.isAsyncStarted()) {
+
+			throw ex;
+		}
+
+		// throws the exception if the database did not terminate the transaction, or after the last attempt
+		RetryException.retry(ex, attempts);
+
+		response.resetBuffer();
+		response.setStatus(initialStatus);
+
+		return true;
 	}
 }

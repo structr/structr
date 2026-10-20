@@ -93,28 +93,45 @@ public class RetryException extends RuntimeException {
 	 *
 	 * @throws E the exception the attempt throws
 	 */
-	@SuppressWarnings("unchecked")
 	public static <E extends Exception> void repeat(final Attempt<E> attempt) throws E {
 
-		boolean retry = true;
-		int attempts  = 0;
+		repeatAndGet(() -> {
 
-		while (retry) {
+			attempt.run();
+
+			return null;
+		});
+	}
+
+	/**
+	 * Runs a transaction like {@link #repeat(Attempt)} and returns the result of the attempt that
+	 * succeeded.
+	 *
+	 * @param attempt the transaction to run
+	 *
+	 * @return the result of the attempt
+	 *
+	 * @throws E the exception the attempt throws
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T, E extends Exception> T repeatAndGet(final Computation<T, E> attempt) throws E {
+
+		int attempts = 0;
+
+		while (true) {
 
 			try {
 
-				attempt.run();
-
-				retry = false;
+				return attempt.run();
 
 			} catch (RuntimeException rex) {
 
-				retry = retry(rex, ++attempts);
+				retry(rex, ++attempts);
 
 			} catch (Exception ex) {
 
 				// the attempt throws no other checked exception than E
-				retry = retry((E)ex, ++attempts);
+				retry((E)ex, ++attempts);
 			}
 		}
 	}
@@ -162,5 +179,14 @@ public class RetryException extends RuntimeException {
 	public interface Attempt<E extends Exception> {
 
 		void run() throws E;
+	}
+
+	/**
+	 * An attempt that returns a result, see {@link #repeatAndGet(Computation)}.
+	 */
+	@FunctionalInterface
+	public interface Computation<T, E extends Exception> {
+
+		T run() throws E;
 	}
 }

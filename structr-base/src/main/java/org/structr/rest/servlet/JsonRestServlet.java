@@ -813,8 +813,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 		try {
 
 			// the database can terminate the transaction to resolve a deadlock, so it is repeated like a POST request
-			boolean retry = true;
-			int attempts  = 0;
+			final int initialStatus = response.getStatus();
+			boolean retry           = true;
+			int attempts            = 0;
 
 			while (retry) {
 
@@ -877,11 +878,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				} catch (FrameworkException fex) {
 
-					retry = retryUnlessCommitted(response, fex, ++attempts);
+					retry = retryUnlessCommitted(request, response, fex, ++attempts, initialStatus);
 
 				} catch (RuntimeException rex) {
 
-					retry = retryUnlessCommitted(response, rex, ++attempts);
+					retry = retryUnlessCommitted(request, response, rex, ++attempts, initialStatus);
 				}
 			}
 

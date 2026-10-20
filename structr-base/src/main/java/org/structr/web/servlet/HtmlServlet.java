@@ -29,6 +29,7 @@ import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.util.Iterables;
@@ -159,34 +160,24 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		// The request is repeated when the database terminates its transaction, as long as no part of the response has
 		// been sent. The scripts of the page run again then, like those of a repeated REST request. An asynchronous
 		// rendering sends the page while it renders, so it is not repeated.
-		final long t0    = System.currentTimeMillis();
-		final int status = response.getStatus();
-		boolean retry    = true;
-		int attempts     = 0;
+		final long t0 = System.currentTimeMillis();
 
-		while (retry) {
+		repeatUnlessCommitted(request, response, () -> {
 
-			try {
+			get(request, response, t0, true);
 
-				response.setStatus(status);
-
-				get(request, response, t0);
-
-				retry = false;
-
-			} catch (RuntimeException rex) {
-
-				if (request.isAsyncStarted()) {
-
-					throw rex;
-				}
-
-				retry = retryUnlessCommitted(response, rex, ++attempts);
-			}
-		}
+			return null;
+		});
 	}
 
-	private void get(final HttpServletRequest request, final HttpServletResponse response, final long t0) {
+	/**
+	 * Answers a GET or POST request once. A GET request is repeated as a whole by doGet(), so its transactions hand a
+	 * RetryException on to it. A POST request is not repeated as a whole, see doPost(), so it repeats only its
+	 * authentication and answers a transaction that is terminated later with an error.
+	 *
+	 * @param repeated whether the caller repeats the whole request
+	 */
+	private void get(final HttpServletRequest request, final HttpServletResponse response, final long t0, final boolean repeated) {
 
 		final Authenticator auth                        = getConfig().getAuthenticator();
 		final Traits pageTraits                         = Traits.of(StructrTraits.PAGE);
@@ -213,14 +204,24 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				return;
 			}
 
-			// isolate request authentication in a transaction, not repeated by itself like in the other servlets,
-			// because doGet() repeats the whole request
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			// isolate request authentication in a transaction, repeated by itself only if the whole request is not, which
+			// would multiply the attempts. It reads only the parameters, which can be read again, not the body.
+			try {
 
-				tx.prefetchHint("HTTP GET auth " + path);
+				if (repeated) {
 
-				securityContext = auth.initializeAndExamineRequest(request, response);
-				tx.success();
+					try (final Tx tx = StructrApp.getInstance().tx()) {
+
+						tx.prefetchHint("HTTP GET auth " + path);
+
+						securityContext = auth.initializeAndExamineRequest(request, response);
+						tx.success();
+					}
+
+				} else {
+
+					securityContext = authenticate(auth, request, response, "HTTP GET auth " + path);
+				}
 
 			} catch (AuthenticationException aex) {
 
@@ -621,7 +622,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			} catch (FrameworkException fex) {
 
-				throwIfRetryable(fex);
+				if (repeated) {
+
+					throwIfRetryable(fex);
+				}
 
 				logger.error("Exception while processing request: {}", fex.getMessage());
 			}
@@ -630,15 +634,38 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// a transaction of its own, because writing can read, e.g. the PDF conversion of PdfServlet
 			if (output != null) {
 
+				boolean written = false;
+
 				try (final Tx tx = app.tx()) {
 
 					writeOutputStream(response, output, outputContext);
+
+					written = true;
 
 					tx.success();
 
 				} catch (IOException ioex) {
 
 					logger.warn("", ioex);
+
+				} catch (FrameworkException | RuntimeException ex) {
+
+					// the page and its scripts are committed already, so a terminated transaction must not repeat the request
+					if (RetryException.find(ex) == null) {
+
+						throw ex;
+					}
+
+					if (written) {
+
+						// only closing the transaction failed, the page is complete
+						logger.warn("Page {} was written, but its transaction could not be closed: {}", outputName, ex.getMessage());
+
+					} else {
+
+						logger.error("Unable to write page {} after its transaction was committed: {}", outputName, ex.getMessage());
+						UiAuthenticator.writeInternalServerError(response);
+					}
 				}
 
 				this.stats.recordStatsValue("html", outputName, System.currentTimeMillis() - t0);
@@ -646,7 +673,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		} catch (FrameworkException fex) {
 
-			throwIfRetryable(fex);
+			if (repeated) {
+
+				throwIfRetryable(fex);
+			}
 
 			logger.error("Exception while processing request: {}", fex.getMessage());
 			UiAuthenticator.writeFrameworkException(response, fex);
@@ -678,7 +708,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		this.stats.recordStatsValue("http", "post", System.currentTimeMillis(), false);
 
-		doGet(request, response);
+		// not repeated as a whole like a GET request: the body of a POST request can only be read once, e.g. by a script
+		get(request, response, System.currentTimeMillis(), false);
 	}
 
 	@Override
