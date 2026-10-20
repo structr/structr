@@ -1074,6 +1074,7 @@ let Command = {
 				parent: file.parent,
 				hasParent: file.hasParent,
 				parentId: file.parentId,
+				trusted: true,
 				type: (_Helpers.isImage(file.type) ? 'Image' : (_Helpers.isVideo(file.type)) ? 'VideoFile' : 'File')
 			}
 		};

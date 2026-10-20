@@ -1719,6 +1719,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, FileTraitDefinition.DONT_CACHE_PROPERTY,                file.dontCache());
 			putData(config, FileTraitDefinition.CONTENT_TYPE_PROPERTY,              file.getContentType());
 			putData(config, FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,         file.getCacheForSeconds());
+			putData(config, FileTraitDefinition.TRUSTED_PROPERTY,                   file.isTrusted());
 		}
 
 		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport(false));
@@ -1732,6 +1733,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				putData(config, FolderTraitDefinition.EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, true);
 			}
+
+			putIfNotNull(config, FolderTraitDefinition.ENABLED_CHECKSUMS_PROPERTY, folder.getEnabledChecksums());
 		}
 
 		if (abstractFile.is(StructrTraits.LINKABLE)) {
