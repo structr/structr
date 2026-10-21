@@ -47,11 +47,13 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.property.AbstractFileIsMountedProperty;
 import org.structr.web.property.PathProperty;
 import org.structr.web.traits.wrappers.AbstractFileTraitWrapper;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -125,9 +127,8 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 						if (!outbound && file.isExternal() && prevName != null) {
 
-							// renaming an external file cannot be propagated to the
-							// physical storage without outbound synchronization
-							throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
+							// the storage would keep the old name, and the next scan would bring it back
+							throw new FrameworkException(422, refusalWithoutOutboundSync("rename", file));
 						}
 					}
 
@@ -193,9 +194,12 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 					if (!isCreation) {
 
 						// the previous parent is not recoverable after the relationship
-						// changed (relationship modifications carry no property key), so
-						// the pre-move location must be captured before the setter runs
-						captureLocationBeforeParentChange(graphObject, key);
+						// changed (relationship modifications carry no property key), and a
+						// node deleted later in the same transaction gets no modification
+						// callback, so the pre-move location must be captured before the
+						// setter runs
+						refuseMoveWithoutOutboundSync(graphObject, key, value);
+						captureLocationBeforeMove(graphObject, key);
 					}
 
 					return getSuper().setProperty(graphObject, key, value, isCreation);
@@ -211,10 +215,50 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	// ----- private static methods -----
-	private static void captureLocationBeforeParentChange(final GraphObject graphObject, final PropertyKey key) {
+	/**
+	 * Moving an external node changes where it is in Structr only: without outbound synchronization the
+	 * external storage keeps it where it was, and the next scan would undo or duplicate the move. Like a
+	 * rename, it is refused.
+	 */
+	private static void refuseMoveWithoutOutboundSync(final GraphObject graphObject, final PropertyKey key, final Object value) throws FrameworkException {
 
 		final Traits traits = graphObject.getTraits();
 		if (!key.equals(traits.key(PARENT_PROPERTY)) && !key.equals(traits.key(PARENT_ID_PROPERTY))) {
+
+			return;
+		}
+
+		if (StorageSyncService.isSyncOrigin(graphObject.getSecurityContext())) {
+
+			return;
+		}
+
+		final AbstractFile file = graphObject.as(AbstractFile.class);
+		if (!file.isExternal() || StorageSyncService.isOutboundGoverned(file)) {
+
+			return;
+		}
+
+		final Folder currentParent    = file.getParent();
+		final String currentParentId  = currentParent != null ? currentParent.getUuid() : null;
+		final String newParentId      = value instanceof NodeInterface node ? node.getUuid() : (value instanceof String id ? id : null);
+
+		if (!Objects.equals(currentParentId, newParentId)) {
+
+			throw new FrameworkException(422, refusalWithoutOutboundSync("move", file));
+		}
+	}
+
+	private static String refusalWithoutOutboundSync(final String operation, final AbstractFile file) {
+
+		return "Cannot " + operation + " " + file.getName() + ": its mount does not write changes made in Structr back to the storage. "
+			+ "Set the mount's sync direction to Out or Both to " + operation + " it here, or check that the storage sync service is running.";
+	}
+
+	private static void captureLocationBeforeMove(final GraphObject graphObject, final PropertyKey key) {
+
+		final Traits traits = graphObject.getTraits();
+		if (!key.equals(traits.key(PARENT_PROPERTY)) && !key.equals(traits.key(PARENT_ID_PROPERTY)) && !key.equals(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
 
 			return;
 		}

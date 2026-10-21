@@ -45,6 +45,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
@@ -246,7 +247,8 @@ public class MigrationService {
 		new MigrationStep("migrateRestQueryRepeaters",                  Kind.WRITING, true, apply -> migrateRestQueryRepeaters()),
 		new MigrationStep("migrateActionMappingControlsToProcess",      Kind.WRITING, true, apply -> migrateActionMappingControlsToProcess()),
 		new MigrationStep("migrateVisibilityMappingForToProcess",       Kind.WRITING, true, apply -> migrateVisibilityMappingForToProcess()),
-		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, apply -> warnAboutWrongNotionProperties())
+		new MigrationStep("warnAboutWrongNotionProperties",             Kind.REPORTING, false, apply -> warnAboutWrongNotionProperties()),
+		new MigrationStep("warnAboutMountsWithoutSyncService",          Kind.REPORTING, false, apply -> warnAboutMountsWithoutSyncService())
 	);
 
 	/** Whether the migrations only report what they would do, instead of changing anything. */
@@ -1736,6 +1738,53 @@ public class MigrationService {
 
 			tx.success();
 		}
+	}
+
+	/**
+	 * Mounted folders are synchronized only by the StorageSyncService, which is part of the default service
+	 * list. A configured.services line written while it was not - every list saved under 6.x, where mounting
+	 * was opt-in - keeps it switched off, and nothing else would tell the user why their mounts stand still.
+	 */
+	private static void warnAboutMountsWithoutSyncService() throws FrameworkException {
+
+		final int unsynchronized = countMountsWithoutSyncService();
+		if (unsynchronized > 0) {
+
+			logger.warn("{} mounted file(s) or folder(s) will not be synchronized, because StorageSyncService is not listed in {} (currently: {}). Add it to that setting to synchronize them.",
+				unsynchronized, Settings.Services.getKey(), Settings.Services.getValue());
+		}
+	}
+
+	/**
+	 * @return the number of files and folders that carry a storage configuration, if the StorageSyncService
+	 * is not configured to run, and 0 otherwise
+	 */
+	public static int countMountsWithoutSyncService() throws FrameworkException {
+
+		if (Services.getInstance().isConfigured(StorageSyncService.class)) {
+
+			return 0;
+		}
+
+		final PropertyKey<Iterable<NodeInterface>> configuredKey = Traits.of(StructrTraits.STORAGE_CONFIGURATION).key(StorageConfigurationTraitDefinition.FOLDERS_PROPERTY);
+		final App app                                            = StructrApp.getInstance();
+		int count                                                = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			// counted from the configuration side: a query for the relationship on the files matches nothing
+			for (final NodeInterface configuration : app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION).getAsList()) {
+
+				for (final NodeInterface ignored : configuration.getProperty(configuredKey)) {
+
+					count++;
+				}
+			}
+
+			tx.success();
+		}
+
+		return count;
 	}
 
 	private static void warnAboutWrongNotionProperties() throws FrameworkException {

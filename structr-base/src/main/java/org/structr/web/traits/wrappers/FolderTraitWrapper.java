@@ -109,9 +109,9 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 
 		for (Folder child : getFolders()) {
 
-			allChildren.add(child);
-
 			allChildren.addAll(child.getAllChildNodes());
+
+			allChildren.add(child);
 		}
 
 		return allChildren;

@@ -19,12 +19,15 @@
 package org.structr.test.web.advanced;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.web.entity.AbstractFile;
@@ -215,5 +218,180 @@ public class DeploymentStorageConfigurationTest extends DeploymentTestBase {
 				try { deleteExportAt(exportPath); } catch (IOException ignore) {}
 			}
 		}
+	}
+
+	@Test
+	public void testMountedFolderContentsAreNotExportedWhileTheSyncServiceIsNotRunning() {
+
+		final Services services = Services.getInstance();
+
+		Path mountTarget = null;
+		Path exportPath  = null;
+
+		try {
+
+			// an instance whose saved service list does not include the storage sync service
+			services.shutdownService("StorageSyncService.default");
+
+			assertNull("The storage sync service should not be running", StructrApp.getInstance().getService(StorageSyncService.class));
+
+			mountTarget = Files.createTempDirectory("structr-deployment-mount-test");
+
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration storageConfig = StorageProviderFactory.createConfig("contents-config", LocalFSStorageProvider.class, Map.of("mountTarget", mountTarget.toString()));
+
+				final NodeInterface folder = app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                      "contentsMount"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY),      storageConfig)
+				);
+
+				// what an earlier run of the sync service would have imported
+				app.create(StructrTraits.FILE,
+					new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                      "inside.txt"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true),
+					new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),                     folder)
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			exportPath = doExport();
+
+			final String filesJson = Files.readString(exportPath.resolve("files.json"));
+
+			assertTrue("The mount folder itself should be exported",                       filesJson.contains("/contentsMount"));
+			assertFalse("The contents of a mounted folder belong to its storage, not to the export", filesJson.contains("/contentsMount/inside.txt"));
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+
+		} finally {
+
+			try {
+
+				services.startService("StorageSyncService.default");
+
+			} catch (Exception ex) {
+
+				ex.printStackTrace();
+				fail("Unexpected exception while restarting the service: " + ex.getMessage());
+			}
+
+			try {
+
+				if (exportPath != null) {
+
+					deleteExportAt(exportPath);
+				}
+
+				if (mountTarget != null) {
+
+					deleteExportAt(mountTarget);
+				}
+
+			} catch (IOException ignore) {}
+		}
+	}
+
+	@Test
+	public void testMountIsLiveAgainAfterADeploymentImport() {
+
+		Path mountTarget = null;
+		String folderUuid = null;
+
+		try {
+
+			mountTarget = Files.createTempDirectory("structr-deployment-live-mount-test");
+
+			Files.writeString(mountTarget.resolve("external.txt"), "lives in the mount");
+
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration storageConfig = StorageProviderFactory.createConfig("live-config", LocalFSStorageProvider.class, Map.of("mountTarget", mountTarget.toString()));
+
+				folderUuid = app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                      "liveMount"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY),      storageConfig)
+				).getUuid();
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			// export -> clean database -> import
+			doImportExportRoundtrip(true);
+
+			final String uuid = folderUuid;
+
+			waitUntil("The imported mount should be attached again", () -> {
+
+				final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+
+				return service != null && service.isSynchronized(uuid);
+			});
+
+			waitUntil("The imported mount should be scanned again", () -> {
+
+				try (final Tx tx = app.tx()) {
+
+					final boolean found = app.nodeQuery(StructrTraits.FILE).name("external.txt").getFirst() != null;
+
+					tx.success();
+
+					return found;
+
+				} catch (FrameworkException fex) {
+
+					return false;
+				}
+			});
+
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
+			fail("Unexpected exception.");
+
+		} finally {
+
+			try {
+
+				if (mountTarget != null) {
+
+					deleteExportAt(mountTarget);
+				}
+
+			} catch (IOException ignore) {}
+		}
+	}
+
+	private void waitUntil(final String message, final java.util.function.BooleanSupplier condition) {
+
+		final long deadline = System.currentTimeMillis() + 15000;
+
+		while (System.currentTimeMillis() < deadline) {
+
+			if (condition.getAsBoolean()) {
+
+				return;
+			}
+
+			try { Thread.sleep(200); } catch (InterruptedException ignore) {}
+		}
+
+		fail(message);
 	}
 }

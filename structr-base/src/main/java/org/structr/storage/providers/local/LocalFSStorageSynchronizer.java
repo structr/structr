@@ -65,7 +65,9 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 	public LocalFSStorageSynchronizer(final SyncTarget target, final Path mountRoot) {
 
 		this.target    = target;
-		this.mountRoot = mountRoot;
+
+		// every path resolved below the root is normalized before it is checked against the root
+		this.mountRoot = mountRoot.toAbsolutePath().normalize();
 	}
 
 	@Override
@@ -450,20 +452,44 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 				return false;
 			}
 
-			final boolean hasNext = iterator.hasNext();
-			if (!hasNext) {
+			try {
 
-				exhausted = true;
-				stream.close();
+				final boolean hasNext = iterator.hasNext();
+				if (!hasNext) {
+
+					close();
+				}
+
+				return hasNext;
+
+			} catch (RuntimeException ex) {
+
+				// a walk that fails part way holds the directories it was in open
+				close();
+
+				throw ex;
 			}
-
-			return hasNext;
 		}
 
 		@Override
 		public ExternalEntry next() {
 
-			return iterator.next();
+			try {
+
+				return iterator.next();
+
+			} catch (RuntimeException ex) {
+
+				close();
+
+				throw ex;
+			}
+		}
+
+		private void close() {
+
+			exhausted = true;
+			stream.close();
 		}
 	}
 }

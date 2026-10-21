@@ -40,6 +40,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 /**
@@ -88,23 +89,30 @@ public class ExternalFileSyncHandler {
 	 */
 	public NodeInterface handleDiscovered(final ExternalEntry entry, final long scanTime) throws FrameworkException {
 
+		final long createdBefore = stats.created;
 		final NodeInterface node = resolve(entry, true);
 		if (node == null) {
 
 			return null;
 		}
 
-		if (node.is(StructrTraits.FILE) && !hasChanged(node.as(File.class), entry)) {
+		final boolean created = stats.created > createdBefore;
 
-			// unchanged: only stamp lastSeenMounted for reconciliation
+		if (!created && (!node.is(StructrTraits.FILE) || !hasChanged(node.as(File.class), entry))) {
+
+			// unchanged, and a folder has nothing to compare: only stamp lastSeenMounted for reconciliation
 			node.setProperty(lastSeenMountedKey(), scanTime);
 			clearVanishedMark(node);
 			stats.unchanged++;
 
 		} else {
 
-			updateNode(node, scanTime);
-			stats.updated++;
+			updateNode(node, entry, scanTime);
+
+			if (!created) {
+
+				stats.updated++;
+			}
 		}
 
 		return node;
@@ -119,7 +127,7 @@ public class ExternalFileSyncHandler {
 		final NodeInterface node = resolve(entry, true);
 		if (node != null) {
 
-			updateNode(node, System.currentTimeMillis());
+			updateNode(node, entry, System.currentTimeMillis());
 			stats.updated++;
 		}
 
@@ -176,7 +184,7 @@ public class ExternalFileSyncHandler {
 
 			if (moveTo(node, to)) {
 
-				updateNode(node, System.currentTimeMillis());
+				updateNode(node, to, System.currentTimeMillis());
 				stats.updated++;
 			}
 
@@ -334,6 +342,14 @@ public class ExternalFileSyncHandler {
 		NodeInterface node = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(nameKey, entry.name()).key(parentKey, parentFolder).getFirst();
 		if (node != null) {
 
+			if (node.as(AbstractFile.class).getStorageConfiguration() != null) {
+
+				logger.debug("Ignoring entry {} of sync target {}: it is nested sync root {}, which is governed by a different storage configuration", entry.relativePath(), target.syncRootPath(), node.getUuid());
+				stats.ignored++;
+
+				return null;
+			}
+
 			// identity verification: never rebind a node whose physical identity
 			// differs from the entry's. A native-key entry only reaches this point
 			// when no node carries its storageKey (resolve() checks that first), so
@@ -469,7 +485,7 @@ public class ExternalFileSyncHandler {
 	 * Ported from the legacy FileSyncWatchEventListener: fulltext indexing
 	 * and full metadata refresh for files, lastSeenMounted for folders.
 	 */
-	private void updateNode(final NodeInterface node, final long timestamp) throws FrameworkException {
+	private void updateNode(final NodeInterface node, final ExternalEntry entry, final long timestamp) throws FrameworkException {
 
 		clearVanishedMark(node);
 
@@ -486,6 +502,13 @@ public class ExternalFileSyncHandler {
 			}
 
 			FileHelper.updateMetadata(node.as(File.class), new PropertyMap(lastSeenMountedKey(), timestamp), true);
+
+			// the storage's modification time, which the next scan compares with: updateMetadata records the
+			// node's own instead, which never matches, so every file would read as changed on every scan
+			if (entry.lastModified() != null) {
+
+				node.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY), entry.lastModified());
+			}
 
 		} else if (node.is(StructrTraits.ABSTRACT_FILE)) {
 
@@ -518,7 +541,9 @@ public class ExternalFileSyncHandler {
 			return true;
 		}
 
-		final Long nodeSize = file.getSize();
+		// what the node recorded at its last update: File.getSize() would ask the storage instead, which
+		// is a read per file and scan, and is not what the entry has to be compared with
+		final Long nodeSize = file.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY));
 		final Long nodeDate = file.getFileModificationDate();
 
 		return nodeSize == null || nodeDate == null || !entry.size().equals(nodeSize) || !entry.lastModified().equals(nodeDate);

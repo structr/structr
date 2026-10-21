@@ -85,19 +85,9 @@ import static org.testng.AssertJUnit.*;
  * DirectoryWatchServiceTest and extended with sync-specific cases
  * (stale-node pruning, nested mounts, uuid-addressed entries).
  */
-public class StorageSyncServiceTest extends StructrUiTest {
+public class StorageSyncServiceTest extends SyncTestBase {
 
 	private static final Logger logger = LoggerFactory.getLogger(StorageSyncServiceTest.class.getName());
-
-	@Parameters("testDatabaseConnection")
-	@BeforeClass(alwaysRun = true)
-	@Override
-	public void setup(@Optional String testDatabaseConnection) {
-
-		Settings.Services.setValue("NodeService SchemaService HttpService StorageSyncService");
-
-		super.setup(testDatabaseConnection);
-	}
 
 	@Test
 	public void testServiceNameAlias() {
@@ -146,8 +136,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		// wait for StorageSyncService to start and scan
-		try { Thread.sleep(5000); } catch (InterruptedException ex) {}
+		awaitScanAfter("mounted1", 0L);
 
 		// verify mount point
 		try (final Tx tx = app.tx()) {
@@ -179,7 +168,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testNestedMountedFolder() {
+	public void testMountedFolderBelowPlainFolders() {
 
 		final String dirName = "mountServiceTest2";
 		final Path base      = Paths.get(basePath);
@@ -225,8 +214,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		// wait for StorageSyncService to start and scan
-		try { Thread.sleep(5000); } catch (InterruptedException ex) {}
+		awaitScanAfter("mounted2", 0L);
 
 		// verify mount point
 		try (final Tx tx = app.tx()) {
@@ -305,8 +293,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				fail("Unexpected exception.");
 			}
 
-			// wait some time
-			try { Thread.sleep(5000); } catch (Throwable t) {}
+			awaitScanAfter("mounted3", 0L);
 
 			// check that all files and folders exist
 			try (final Tx tx = app.tx()) {
@@ -331,8 +318,23 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			// test external changes to files
 			writeFile(file2, "test2 - AFTER change");
 
-			// wait some time
-			try { Thread.sleep(4000); } catch (InterruptedException ignore) {}
+			final java.io.File changed = file2;
+
+			waitFor("The external change should have been imported", () -> {
+
+				try (final Tx tx = app.tx()) {
+
+					final Long imported = app.nodeQuery(StructrTraits.FILE).name("test2.txt").getFirst().as(File.class).getChecksum();
+
+					tx.success();
+
+					return FileHelper.getChecksum(changed).equals(imported);
+
+				} catch (Throwable t) {
+
+					return false;
+				}
+			});
 
 			// check that external changes are present in the file
 			try (final Tx tx = app.tx()) {
@@ -343,22 +345,6 @@ public class StorageSyncServiceTest extends StructrUiTest {
 
 				assertEquals("Invalid checksum of externally modified file", FileHelper.getChecksum(file2), check2.getChecksum());
 				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-
-				fail("Unexpected exception.");
-			}
-
-			// unmount folder
-			try (final Tx tx = app.tx()) {
-
-				logger.info("Unmounting directory..");
-
-				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).key(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3").getFirst();
-
-				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY), null);
 
 				tx.success();
 
@@ -427,8 +413,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				fail("Unexpected exception.");
 			}
 
-			// wait some time
-			try { Thread.sleep(5000); } catch (Throwable t) {}
+			awaitScanAfter("mounted3", 0L);
 
 			// check that all files and folders exist
 			try (final Tx tx = app.tx()) {
@@ -453,8 +438,10 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			// test external changes to files
 			writeFile(file2, "test2 - AFTER change");
 
-			// wait some time
-			try { Thread.sleep(1000); } catch (InterruptedException ignore) {}
+			// watching is off and no rescan is scheduled, so a correct service produces nothing to wait for: give a
+			// faulty watcher the debounce window and some margin to show itself, then let the service settle
+			try { Thread.sleep(3000); } catch (InterruptedException ignore) {}
+			awaitIdle();
 
 			// check that external changes are NOT recorded
 			try (final Tx tx = app.tx()) {
@@ -463,24 +450,8 @@ public class StorageSyncServiceTest extends StructrUiTest {
 
 				final File check2 = app.nodeQuery(StructrTraits.FILE).name("test2.txt").getFirst().as(File.class);
 
-				assertFalse("Invalid checksum of externally modified file", FileHelper.getMD5Checksum(file2).equals(check2.getMd5()));
+				assertFalse("A change on disk must not be imported while watching is off and no rescan is scheduled", FileHelper.getChecksum(file2).equals(check2.getChecksum()));
 				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-
-				fail("Unexpected exception.");
-			}
-
-			// unmount folder
-			try (final Tx tx = app.tx()) {
-
-				logger.info("Unmounting directory..");
-
-				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).key(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3").getFirst();
-
-				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY), null);
 
 				tx.success();
 
@@ -496,6 +467,46 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		} finally {
 
 			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testWatchPicksUpADirectoryThatArrivesWithContentsAndWhatIsAddedToItLater() {
+
+		Path root    = null;
+		Path staging = null;
+
+		try {
+
+			root    = Files.createTempDirectory("structr-watch-tree-test");
+			staging = Files.createTempDirectory("structr-watch-tree-staging");
+
+			mount("watchTreeMount", root, "watchTree", true, null, null);
+
+			waitFor("The mount should be watched", () -> getNodeAtPath("/watchTree") != null);
+			awaitIdle();
+
+			// a whole tree appears at once: its contents exist before the new directory is watched
+			Files.createDirectories(staging.resolve("d/e"));
+			writeFile(staging.resolve("d/e/f.txt").toFile(), "nested");
+
+			Files.move(staging.resolve("d"), root.resolve("d"));
+
+			waitForNodeAtPath(StructrTraits.FILE, "/watchTree/d/e/f.txt");
+
+			// and the new directories are watched from then on
+			writeFile(root.resolve("d/e/g.txt").toFile(), "added later");
+
+			waitForNodeAtPath(StructrTraits.FILE, "/watchTree/d/e/g.txt");
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+			cleanupDirectory(staging);
 		}
 	}
 
@@ -531,8 +542,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				fail("Unexpected exception.");
 			}
 
-			// wait for the initial scan
-			try { Thread.sleep(5000); } catch (InterruptedException ignore) {}
+			awaitScanAfter("mounted4", 0L);
 
 			try (final Tx tx = app.tx()) {
 
@@ -547,10 +557,10 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			}
 
 			// delete one file externally - without live watching, only a rescan can detect this
+			final long deletedAt = System.currentTimeMillis();
 			Files.delete(root.resolve("prune.txt"));
 
-			// wait for the next rescan
-			try { Thread.sleep(6000); } catch (InterruptedException ignore) {}
+			awaitScanAfter("mounted4", deletedAt);
 
 			try (final Tx tx = app.tx()) {
 
@@ -607,10 +617,10 @@ public class StorageSyncServiceTest extends StructrUiTest {
 
 			waitForNodeAtPath(StructrTraits.FILE, "/mounted10/vanish.txt");
 
+			final long before = handledEvents();
 			Files.delete(root.resolve("vanish.txt"));
 
-			// well past the service's event debounce window, so a deletion would have happened by now
-			try { Thread.sleep(6000); } catch (InterruptedException ignore) {}
+			awaitHandledEventsBeyond(before);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1183,6 +1193,119 @@ public class StorageSyncServiceTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testDeletingAMountRootDetachesItWhileItIsBeingScanned() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-delete-root-test");
+
+			// enough entries that the frequent rescans are still running when the root is deleted
+			for (int i = 0; i < 300; i++) {
+
+				writeFile(root.resolve("file" + i + ".txt").toFile(), "content " + i);
+			}
+
+			mount("deleteRootMount", root, "mounted20", false, 1, null);
+
+			waitForNodeAtPath(StructrTraits.FILE, "/mounted20/file299.txt");
+
+			String rootUuid = null;
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface mountRoot = app.nodeQuery(StructrTraits.FOLDER).name("mounted20").getFirst();
+
+				rootUuid = mountRoot.getUuid();
+
+				app.delete(mountRoot);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			awaitIdle();
+
+			final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+
+			// a scan that finished after the deletion must not have attached the deleted root again
+			assertFalse("A deleted mount root should no longer be synchronized", service.isSynchronized(rootUuid));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testRestartedServiceAttachesExistingMounts() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-restart-test");
+
+			writeFile(root.resolve("present.txt").toFile(), "here before the restart");
+
+			mount("restartMount", root, "mounted21", false, null, null);
+
+			waitForNodeAtPath(StructrTraits.FILE, "/mounted21/present.txt");
+
+			String rootUuid = null;
+
+			try (final Tx tx = app.tx()) {
+
+				rootUuid = app.nodeQuery(StructrTraits.FOLDER).name("mounted21").getFirst().getUuid();
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fail("Unexpected exception.");
+			}
+
+			awaitIdle();
+
+			// the way the config servlet restarts a single service
+			final Services services = Services.getInstance();
+
+			try {
+
+				services.shutdownService("StorageSyncService.default");
+				services.startService("StorageSyncService.default");
+
+			} catch (Exception ex) {
+
+				ex.printStackTrace();
+				fail("Unexpected exception while restarting the service: " + ex.getMessage());
+			}
+
+			final StorageSyncService restarted = StructrApp.getInstance().getService(StorageSyncService.class);
+
+			assertNotNull("The storage sync service should be running again", restarted);
+			assertTrue("A restarted service should attach the mounts that already exist", restarted.isSynchronized(rootUuid));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
 	public void testNestedMountBoundary() {
 
 		Path outerDir = null;
@@ -1225,8 +1348,10 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				fail("Unexpected exception.");
 			}
 
-			// wait for the initial scans and at least one pruning rescan of the outer mount
-			try { Thread.sleep(8000); } catch (InterruptedException ignore) {}
+			// the initial scans of both mounts, then a complete rescan of the outer one that started afterwards
+			awaitScanAfter("outer", 0L);
+			awaitScanAfter("inner", 0L);
+			awaitScanAfter("outer", System.currentTimeMillis());
 
 			try (final Tx tx = app.tx()) {
 
@@ -1594,7 +1719,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			.when()
 				.post("/Image");
 
-		try { Thread.sleep(5000); } catch (Throwable t) {}
+		awaitIdle();
 
 		try (final Tx tx = app.tx()) {
 
@@ -1788,6 +1913,66 @@ public class StorageSyncServiceTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testOutboundWorksForAMountTargetThatIsNotNormalized() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-outbound-unnormalized-test");
+
+			Files.createDirectory(root.resolve("sub"));
+
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("outboundUnnormalized", LocalFSStorageProvider.class,
+					Map.of("mountTarget", root + "/sub/..", StorageSyncService.DIRECTION_KEY, "both"));
+
+				mountFolder("unnormalized", mount, false, null);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			waitForNodeAtPath(StructrTraits.FOLDER, "/unnormalized/sub");
+
+			try (final Tx tx = app.tx()) {
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "made"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/unnormalized"))
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			final Path rootPath = root;
+			waitFor("A folder created in Structr should materialize", () -> Files.isDirectory(rootPath.resolve("made")));
+
+			setNodeProperty(getNodeAtPath("/unnormalized/made"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "renamed");
+
+			waitFor("A folder renamed in Structr should be renamed on disk", () -> Files.isDirectory(rootPath.resolve("renamed")) && !Files.exists(rootPath.resolve("made")));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
 	public void testInboundOnlyDirectionKeepsRenameGuard() {
 
 		Path root = null;
@@ -1827,11 +2012,10 @@ public class StorageSyncServiceTest extends StructrUiTest {
 
 				fail("Renaming an external node without outbound sync should be rejected");
 
-			} catch (FrameworkException fex) {
+			} catch (FrameworkException expected) {
 
-				fail("Unexpected exception type.");
-
-			} catch (UnsupportedOperationException expected) {
+				assertEquals("A refused rename should be a client error", 422, expected.getStatus());
+				assertTrue("A refused rename should name the cause", expected.getMessage().contains("sync direction"));
 			}
 
 			// and the physical file is untouched
@@ -1891,8 +2075,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 				fail("Unexpected exception.");
 			}
 
-			// wait past scan interval + debounce: the external file must NOT be imported
-			try { Thread.sleep(5000); } catch (InterruptedException ignore) {}
+			awaitIdle();
 
 			try (final Tx tx = app.tx()) {
 
@@ -1974,8 +2157,10 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			final Path rootPath = root;
 			waitFor("Physical file should have been renamed", () -> Files.exists(rootPath.resolve("echoRenamed.txt")) && !Files.exists(rootPath.resolve("echo.txt")));
 
-			// wait past the inbound debounce window so all echo events are processed
-			try { Thread.sleep(6000); } catch (InterruptedException ignore) {}
+			// the service cannot report an operating-system event it has not been handed yet: the short pause
+			// covers the delivery, awaitIdle() the debounce window and the handling
+			try { Thread.sleep(500); } catch (InterruptedException ignore) {}
+			awaitIdle();
 
 			try (final Tx tx = app.tx()) {
 
@@ -2133,7 +2318,7 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		try { Thread.sleep(1500); } catch (InterruptedException ignore) {}
+		awaitIdle();
 
 		assertTrue("Rolled-back transactions must not produce outbound events", RecordingStorageProvider.RECORDED_EVENTS.isEmpty());
 
@@ -2263,262 +2448,4 @@ public class StorageSyncServiceTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
-	private NodeInterface getNodeAtPath(final String path) {
-
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface node = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getFirst();
-
-			tx.success();
-
-			return node;
-
-		} catch (FrameworkException fex) {
-
-			fail("Unexpected exception.");
-
-			return null;
-		}
-	}
-
-	private void waitForNodeAtPath(final String type, final String path) {
-
-		waitFor("Node at " + path + " should have been created", () -> {
-
-			try (final Tx tx = app.tx()) {
-
-				final NodeInterface node = app.nodeQuery(type).key(Traits.of(type).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getFirst();
-
-				tx.success();
-
-				return node != null;
-
-			} catch (FrameworkException fex) {
-
-				return false;
-			}
-		});
-	}
-
-	private void setNodeProperty(final NodeInterface node, final String keyName, final Object value) {
-
-		try (final Tx tx = app.tx()) {
-
-			node.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(keyName), value);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-	}
-
-	private void mount(final String configurationName, final Path target, final String folderName, final boolean watchContents, final Integer scanInterval, final VanishPolicy policy) {
-
-		try (final Tx tx = app.tx()) {
-
-			final Map<String, String> entries = (policy == null)
-				? Map.of("mountTarget", target.toString())
-				: Map.of("mountTarget", target.toString(), VanishPolicy.POLICY_KEY, policy.value());
-
-			final StorageConfiguration configuration = StorageProviderFactory.createConfig(configurationName, LocalFSStorageProvider.class, entries);
-			final Traits folderTraits                = Traits.of(StructrTraits.FOLDER);
-
-			app.create(StructrTraits.FOLDER,
-				new NodeAttribute<>(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folderName),
-				new NodeAttribute<>(folderTraits.key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), watchContents),
-				new NodeAttribute<>(folderTraits.key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), scanInterval),
-				new NodeAttribute<>(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), configuration)
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-	}
-
-	/**
-	 * Waits until the named mount root records a complete scan that started after the given time.
-	 * The timestamp is written only after a scan that enumerated everything, so this is the signal
-	 * that reconciliation has run.
-	 */
-	private void awaitScanAfter(final String folderName, final long timestamp) {
-
-		waitFor("Mount " + folderName + " should have completed a scan", () -> {
-
-			try (final Tx tx = app.tx()) {
-
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(folderName).getFirst();
-				final Long lastScanned     = folder != null ? folder.getProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY)) : null;
-
-				tx.success();
-
-				return lastScanned != null && lastScanned > timestamp;
-
-			} catch (FrameworkException fex) {
-
-				return false;
-			}
-		});
-	}
-
-	private Object getFileProperty(final String name, final String key) {
-
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface node = app.nodeQuery(StructrTraits.FILE).name(name).getFirst();
-			final Object value       = node != null ? node.getProperty(Traits.of(StructrTraits.FILE).key(key)) : null;
-
-			tx.success();
-
-			return value;
-
-		} catch (FrameworkException fex) {
-
-			fail("Unexpected exception.");
-
-			return null;
-		}
-	}
-
-	private boolean isExternallyDeleted(final String name) {
-
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface node = app.nodeQuery(StructrTraits.FILE).name(name).getFirst();
-
-			tx.success();
-
-			return node != null && node.as(AbstractFile.class).isExternallyDeleted();
-
-		} catch (FrameworkException fex) {
-
-			return false;
-		}
-	}
-
-	private void waitFor(final String message, final BooleanSupplier condition) {
-
-		final long deadline = System.currentTimeMillis() + 10000;
-
-		while (System.currentTimeMillis() < deadline) {
-
-			if (condition.getAsBoolean()) {
-
-				return;
-			}
-
-			try { Thread.sleep(200); } catch (InterruptedException ignore) {}
-		}
-
-		fail(message);
-	}
-
-	private void createTestFile(final Path path, final String content) throws IOException {
-
-		try (final FileWriter writer = new FileWriter(path.toFile())) {
-
-			writer.append(content);
-			writer.flush();
-		}
-	}
-
-	private String getContent(final File file) {
-
-		try (final InputStream is = file.getInputStream()) {
-
-			return IOUtils.toString(is, "utf-8");
-
-		} catch (IOException ioex) {
-
-			ioex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		return null;
-	}
-
-	private void writeFile(final java.io.File file, final String content) throws IOException {
-
-		try (final FileOutputStream os = new FileOutputStream(file)) {
-
-			os.write(content.getBytes("utf-8"));
-			os.flush();
-		}
-	}
-
-	private String readFile(final File file) throws IOException {
-
-		try (final InputStream is = file.getInputStream()) {
-
-			final String content = IOUtils.toString(is, "utf-8");
-
-			return content;
-		}
-	}
-
-	private void cleanupDirectory(final Path root) {
-
-		if (root == null) {
-
-			return;
-		}
-
-		try {
-
-			Files.walkFileTree(root, new FileVisitor<Path>() {
-
-				@Override
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-
-					try {
-
-						Files.delete(file);
-
-					} catch (Throwable t) {
-
-						t.printStackTrace();
-					}
-
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-
-					try {
-
-						Files.delete(dir);
-
-					} catch (Throwable t) {
-
-						t.printStackTrace();
-					}
-
-					return FileVisitResult.CONTINUE;
-				}
-			});
-
-		} catch (Throwable ex) {
-
-			ex.printStackTrace();
-		}
-	}
 }
