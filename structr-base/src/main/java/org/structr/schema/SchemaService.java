@@ -352,6 +352,26 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
+	/**
+	 * Adds a property to the fulltext index it belongs to. Properties of a type that name the same
+	 * fulltext index (see {@link PropertyKey#fulltextIndexed(String)}) share one index.
+	 */
+	private static void addFulltextIndexConfig(final Map<String, NewIndexConfig> schemaIndexConfig, final String typeName, final PropertyKey key, final boolean isNodeIndex) {
+
+		final String indexName  = key.fulltextIndexName();
+		final String identifier = typeName + "_" + indexName + "_fulltext";
+		final NewIndexConfig existing = schemaIndexConfig.get(identifier);
+
+		if (existing != null) {
+
+			existing.addPropertyKey(key.dbName());
+
+		} else {
+
+			schemaIndexConfig.put(identifier, new NewIndexConfig(typeName, indexName, key.dbName(), isNodeIndex, false, true));
+		}
+	}
+
 	private static void updateIndexConfiguration(final TraitsInstance traitsInstance, final Map<String, Map<String, PropertyKey>> removedTypes) {
 
 		if (Services.overrideIndexManagement()) {
@@ -413,10 +433,7 @@ public class SchemaService implements Service {
 
 								if (key.isFulltextIndexed()) {
 
-									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), false, false, true);
-									final String identifier     = typeName + "_" + key.dbName() + "_fulltext";
-
-									schemaIndexConfig.put(identifier, config);
+									addFulltextIndexConfig(schemaIndexConfig, typeName, key, false);
 								}
 							}
 
@@ -436,12 +453,7 @@ public class SchemaService implements Service {
 
 								if (key.isFulltextIndexed()) {
 
-									final boolean isFulltextIndex = true;
-									final boolean isTextIndex     = false;
-									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, isTextIndex, isFulltextIndex);
-									final String identifier     = typeName + "_" + key.dbName() + "_fulltext";
-
-									schemaIndexConfig.put(identifier, config);
+									addFulltextIndexConfig(schemaIndexConfig, typeName, key, true);
 								}
 							}
 						}

@@ -58,6 +58,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 	public static final String OPTION_OCR_LANGUAGES    = "ocrLanguages";
 	public static final String OPTION_MAX_CHARACTERS   = "maxCharacters";
 	public static final String OPTION_INCLUDE_EMBEDDED = "includeEmbedded";
+	public static final String OPTION_INCLUDE_IMAGES   = "includeImages";
 	public static final String OPTION_MAX_DEPTH        = "maxDepth";
 
 	public static final String OPTION_SPLITTER             = "splitter";
@@ -69,7 +70,7 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 	public static final String OPTION_TOKEN_ENCODING       = "tokenEncoding";
 
 	/** Options that apply to extraction, i.e. only when the input is a file. */
-	public static final Set<String> EXTRACTION_OPTIONS = Set.of(OPTION_OCR, OPTION_OCR_LANGUAGES, OPTION_MAX_CHARACTERS, OPTION_INCLUDE_EMBEDDED);
+	public static final Set<String> EXTRACTION_OPTIONS = Set.of(OPTION_OCR, OPTION_OCR_LANGUAGES, OPTION_MAX_CHARACTERS, OPTION_INCLUDE_EMBEDDED, OPTION_INCLUDE_IMAGES);
 
 	/** Options that apply to splitting. */
 	public static final Set<String> SPLIT_OPTIONS = Set.of(OPTION_SPLITTER, OPTION_CHUNK_SIZE, OPTION_CHUNK_OVERLAP, OPTION_SIZE_UNIT, OPTION_SEPARATORS, OPTION_INCLUDE_HEADING_PATH, OPTION_TOKEN_ENCODING);
@@ -163,6 +164,11 @@ public abstract class ContentExtractionFunction extends Function<Object, Object>
 		if (options.containsKey(OPTION_INCLUDE_EMBEDDED)) {
 
 			result.setIncludeEmbedded(booleanOption(options, OPTION_INCLUDE_EMBEDDED, false));
+		}
+
+		if (options.containsKey(OPTION_INCLUDE_IMAGES)) {
+
+			result.setIncludeImages(booleanOption(options, OPTION_INCLUDE_IMAGES, false));
 		}
 
 		if (options.containsKey(OPTION_MAX_DEPTH)) {

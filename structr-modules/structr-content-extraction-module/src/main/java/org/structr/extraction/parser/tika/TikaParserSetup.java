@@ -27,6 +27,7 @@ import org.apache.tika.extractor.EmbeddedDocumentExtractor;
 import org.apache.tika.extractor.ParsingEmbeddedDocumentExtractor;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
+import org.apache.tika.metadata.TikaPagedText;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.CompositeParser;
 import org.apache.tika.parser.ParseContext;
@@ -42,9 +43,15 @@ import org.structr.extraction.ContentExtractionSettings;
 import org.structr.extraction.api.document.OcrInfo;
 import org.structr.extraction.api.options.ExtractionOptions;
 import org.structr.extraction.api.options.OcrMode;
+import org.structr.extraction.parser.XhtmlStructureHandler;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,6 +60,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 
 /**
  * The Tika setup of the module.
@@ -303,16 +311,20 @@ public final class TikaParserSetup {
 		 *                     (switched off for images and PDFs alike)
 		 * @param embedded     whether embedded documents (attachments, archive entries, embedded office
 		 *                     documents) are parsed; inline content such as an e-mail body always is
+		 * @param pageCharacters the number of characters on the current page of the innermost document so far,
+		 *                     to leave out inline images of PDF pages that OCR reads as a whole; may be null
 		 */
-		public ParseContext createContext(final ExtractionOptions options, final String ocrLanguages, final boolean embedded) {
+		public ParseContext createContext(final ExtractionOptions options, final String ocrLanguages, final boolean embedded, final IntSupplier pageCharacters) {
 
 			final ParseContext context         = new ParseContext();
 			final TesseractOCRConfig ocrConfig = new TesseractOCRConfig();
 			final PDFParserConfig pdfConfig    = new PDFParserConfig();
 			final boolean ocr                  = ocrLanguages != null;
+			final boolean images               = ocr && options.isIncludeImages();
 
 			ocrConfig.setSkipOcr(!ocr);
-			pdfConfig.setExtractInlineImages(false);
+			pdfConfig.setExtractInlineImages(images);
+			pdfConfig.setExtractUniqueInlineImagesOnly(true);
 
 			if (ocr) {
 
@@ -336,32 +348,140 @@ public final class TikaParserSetup {
 			// PDF parser finds no OCR parser.
 			context.set(Parser.class, parser);
 
-			if (!embedded) {
-
-				context.set(EmbeddedDocumentExtractor.class, new InlineContentOnly(context));
-			}
+			context.set(EmbeddedDocumentExtractor.class, new EmbeddedDocuments(context, embedded, images, detector, pdfConfig, pageCharacters));
 
 			return context;
 		}
 	}
 
 	/**
-	 * Parses inline content, such as the body parts of an e-mail, which Tika also hands over as embedded
-	 * resources, and skips everything else.
+	 * Decides which embedded resources are parsed: all of them, or, if embedded documents are not
+	 * extracted, only inline content such as the body parts of an e-mail, which Tika also hands over as
+	 * embedded resources.
+	 *
+	 * Images inside a document (inline images of a PDF, pictures in office documents, inline images of an
+	 * e-mail) only have text if OCR reads them, so they are parsed only if images are included, and not if
+	 * they are tiny (icons, bullets), or on a PDF page that OCR reads as a whole anyway, where their text
+	 * would appear twice. An image that is a document of its own (an attachment, an archive entry) counts
+	 * as an embedded document.
+	 *
+	 * Every embedded resource that is parsed is wrapped in an element that carries its name, see
+	 * {@link XhtmlStructureHandler#EMBEDDED_DOCUMENT_CLASS}. Tika's own wrapper is not used: parsers ask
+	 * for it only sometimes (not for e-mail attachments or images of a PDF), and it puts the name into
+	 * the text as a heading.
 	 */
-	private static final class InlineContentOnly extends ParsingEmbeddedDocumentExtractor {
+	private static final class EmbeddedDocuments extends ParsingEmbeddedDocumentExtractor {
 
-		InlineContentOnly(final ParseContext context) {
+		private static final String XHTML         = "http://www.w3.org/1999/xhtml";
+		private static final int MIN_IMAGE_SIDE   = 16;
+		private static final int MIN_IMAGE_PIXELS = 64 * 64;
+
+		private final boolean embedded;
+		private final boolean images;
+		private final Detector detector;
+		private final PDFParserConfig pdfConfig;
+		private final IntSupplier pageCharacters;
+
+		EmbeddedDocuments(final ParseContext context, final boolean embedded, final boolean images, final Detector detector, final PDFParserConfig pdfConfig, final IntSupplier pageCharacters) {
 
 			super(context);
+
+			this.embedded       = embedded;
+			this.images         = images;
+			this.detector       = detector;
+			this.pdfConfig      = pdfConfig;
+			this.pageCharacters = pageCharacters;
 		}
 
 		@Override
 		public boolean shouldParseEmbedded(final Metadata metadata) {
 
-			final String type = metadata.get(TikaCoreProperties.EMBEDDED_RESOURCE_TYPE);
+			final boolean inline = TikaCoreProperties.EmbeddedResourceType.INLINE.toString().equals(metadata.get(TikaCoreProperties.EMBEDDED_RESOURCE_TYPE));
 
-			return TikaCoreProperties.EmbeddedResourceType.INLINE.toString().equals(type) && super.shouldParseEmbedded(metadata);
+			if (!embedded && !inline) {
+
+				return false;
+			}
+
+			if (inline && isImage(metadata) && (!images || isTiny(metadata) || isReadByPageOcr(metadata))) {
+
+				return false;
+			}
+
+			return super.shouldParseEmbedded(metadata);
+		}
+
+		@Override
+		public void parseEmbedded(final InputStream stream, final ContentHandler handler, final Metadata metadata, final boolean outputHtml) throws SAXException, IOException {
+
+			final AttributesImpl attributes = new AttributesImpl();
+			final String name               = metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY);
+
+			attributes.addAttribute("", "class", "class", "CDATA", XhtmlStructureHandler.EMBEDDED_DOCUMENT_CLASS);
+
+			if (name != null && !name.isBlank()) {
+
+				attributes.addAttribute("", XhtmlStructureHandler.EMBEDDED_NAME_ATTRIBUTE, XhtmlStructureHandler.EMBEDDED_NAME_ATTRIBUTE, "CDATA", name);
+			}
+
+			handler.startElement(XHTML, "div", "div", attributes);
+
+			try {
+
+				super.parseEmbedded(stream, handler, metadata, false);
+
+			} finally {
+
+				handler.endElement(XHTML, "div", "div");
+			}
+		}
+
+		private boolean isImage(final Metadata metadata) {
+
+			String type = metadata.get(Metadata.CONTENT_TYPE);
+
+			if (type == null) {
+
+				try {
+
+					// detection by name only, the stream is not available here
+					type = detector.detect(null, metadata).toString();
+
+				} catch (final IOException ex) {
+
+					return false;
+				}
+			}
+
+			return type.startsWith("image/");
+		}
+
+		private static boolean isTiny(final Metadata metadata) {
+
+			final Integer width  = metadata.getInt(Metadata.IMAGE_WIDTH);
+			final Integer height = metadata.getInt(Metadata.IMAGE_LENGTH);
+
+			return width != null && height != null && (width < MIN_IMAGE_SIDE || height < MIN_IMAGE_SIDE || width * height < MIN_IMAGE_PIXELS);
+		}
+
+		/**
+		 * Whether the image is on a PDF page that OCR reads as a whole: every page with OCR mode always,
+		 * otherwise a page without (enough) text of its own. The PDF parser hands over the images of a page
+		 * after its text and before it decides about OCR, so the text of the page is known at this point.
+		 */
+		private boolean isReadByPageOcr(final Metadata metadata) {
+
+			if (metadata.get(TikaPagedText.PAGE_NUMBER) == null || pageCharacters == null) {
+
+				return false;
+			}
+
+			return switch (pdfConfig.getOcrStrategy()) {
+
+				case OCR_AND_TEXT_EXTRACTION, OCR_ONLY -> true;
+				case AUTO                              -> pageCharacters.getAsInt() <= pdfConfig.getOcrStrategyAuto().getTotalCharsPerPage();
+				default                                -> false;
+			};
 		}
 	}
 }

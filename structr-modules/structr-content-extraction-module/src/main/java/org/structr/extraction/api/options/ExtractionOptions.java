@@ -35,6 +35,7 @@ public final class ExtractionOptions {
 	private int ocrDpi               = 300;
 	private int maxCharacters        = 10_000_000;
 	private boolean includeEmbedded  = false;
+	private boolean includeImages    = false;
 	private int maxEmbeddedDepth     = 10;
 
 	/**
@@ -51,6 +52,7 @@ public final class ExtractionOptions {
 		options.ocrDpi            = ContentExtractionSettings.OcrDpi.getValue();
 		options.maxCharacters     = ContentExtractionSettings.MaxCharacters.getValue();
 		options.includeEmbedded   = ContentExtractionSettings.IncludeEmbedded.getValue();
+		options.includeImages     = ContentExtractionSettings.IncludeImages.getValue();
 
 		return options;
 	}
@@ -135,6 +137,22 @@ public final class ExtractionOptions {
 	public ExtractionOptions setIncludeEmbedded(final boolean includeEmbedded) {
 
 		this.includeEmbedded = includeEmbedded;
+
+		return this;
+	}
+
+	/**
+	 * Whether images inside documents (inline images of PDFs, pictures in office documents and e-mails)
+	 * are read with OCR. Only applies if OCR runs.
+	 */
+	public boolean isIncludeImages() {
+
+		return includeImages;
+	}
+
+	public ExtractionOptions setIncludeImages(final boolean includeImages) {
+
+		this.includeImages = includeImages;
 
 		return this;
 	}

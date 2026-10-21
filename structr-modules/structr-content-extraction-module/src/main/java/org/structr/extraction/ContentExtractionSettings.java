@@ -53,6 +53,9 @@ public final class ContentExtractionSettings {
 	public static final Setting<Boolean> IncludeEmbedded = new BooleanSetting(Settings.applicationGroup, CATEGORY, "contentextraction.extraction.includeembedded", false,
 		"Whether the contents of embedded documents (archive entries, mail attachments, embedded office documents) are extracted as well.");
 
+	public static final Setting<Boolean> IncludeImages = new BooleanSetting(Settings.applicationGroup, CATEGORY, "contentextraction.extraction.includeimages", false,
+		"Whether images inside documents (inline images of PDFs, pictures in office documents and e-mails) are read with OCR. Only applies if OCR is available. Images on PDF pages that OCR reads as a whole, and tiny images, are left out. Images that are attachments or archive entries are embedded documents, see contentextraction.extraction.includeembedded.");
+
 	// ----- splitting -----
 	public static final Setting<String> Splitter = new ChoiceSetting(Settings.applicationGroup, CATEGORY, "contentextraction.split.splitter", "structure",
 		Settings.getStringsAsSet("recursive", "structure", "sentence", "token", "page"),

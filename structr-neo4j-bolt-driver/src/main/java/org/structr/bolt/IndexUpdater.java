@@ -66,8 +66,9 @@ public abstract class IndexUpdater {
 			final int existingIndexCount = existingIndexes.size();
 
 			// 2. classify: determine which indexes to create and which to drop
-			//    - existing index with matching type: keep (remove from drop candidates)
-			//    - existing index with wrong type: drop old + create new
+			//    - existing index with matching type and properties: keep (remove from drop candidates)
+			//    - existing index with wrong type or properties (e.g. a property was added to a
+			//      fulltext index that covers several properties): drop old + create new
 			//    - no existing index: create new
 			final List<NewIndexConfig> toCreate = new ArrayList<>();
 
@@ -77,14 +78,14 @@ public abstract class IndexUpdater {
 				if (existingIndexes.containsKey(identifier)) {
 
 					final ExistingIndexInfo existing = existingIndexes.get(identifier);
-					if (getExpectedIndexType(newIndexConfig).equals(existing.getType())) {
+					if (getExpectedIndexType(newIndexConfig).equals(existing.getType()) && hasSameProperties(existing, newIndexConfig)) {
 
-						// same type: nothing to do, remove from drop candidates
+						// same type and properties: nothing to do, remove from drop candidates
 						existingIndexes.remove(identifier);
 
 					} else {
 
-						// type mismatch: leave in drop candidates and schedule for re-creation
+						// mismatch: leave in drop candidates and schedule for re-creation
 						toCreate.add(newIndexConfig);
 					}
 
@@ -123,7 +124,35 @@ public abstract class IndexUpdater {
 		return isFinished.get();
 	}
 
+	// ----- protected methods -----
+	/**
+	 * The properties of an index as the database reports them, or null if it does not.
+	 */
+	protected static List<String> properties(final Object value) {
+
+		if (value instanceof List<?> list) {
+
+			return list.stream().map(String::valueOf).toList();
+		}
+
+		return null;
+	}
+
+	/**
+	 * The properties of a fulltext index as a list for a create statement, e.g. "n.`a`, n.`b`".
+	 */
+	protected static String fulltextProperties(final NewIndexConfig config) {
+
+		return String.join(", ", config.getPropertyKeys().stream().map(key -> "n.`" + key + "`").toList());
+	}
+
 	// ----- private methods -----
+	private static boolean hasSameProperties(final ExistingIndexInfo existing, final NewIndexConfig config) {
+
+		// unknown properties count as a match, so an index is never re-created only because they are not reported
+		return existing.getProperties() == null || existing.getProperties().equals(config.getPropertyKeys());
+	}
+
 	private Map<String, ExistingIndexInfo> getExistingIndexes() {
 
 		final Map<String, ExistingIndexInfo> existingIndexes = new LinkedHashMap<>();

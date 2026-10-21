@@ -46,7 +46,8 @@ let _ContentExtraction = {
 		{ name: 'ocr',                label: 'OCR Mode',             kind: 'select',  comment: 'auto: images, and PDF pages without text. always: every image and page. off: no OCR.' },
 		{ name: 'ocrLanguages',       label: 'OCR Languages',        kind: 'text',    comment: 'Tesseract languages joined with +, e.g. eng+deu.' },
 		{ name: 'maxCharacters',      label: 'Max. Characters',      kind: 'number',  comment: 'Maximum number of characters extracted per document.' },
-		{ name: 'includeEmbedded',    label: 'Include Embedded',     kind: 'boolean', comment: 'Whether attachments, archive entries and embedded documents are extracted as well.' }
+		{ name: 'includeEmbedded',    label: 'Include Embedded',     kind: 'boolean', comment: 'Whether attachments, archive entries and embedded documents are extracted as well.' },
+		{ name: 'includeImages',      label: 'Include Images',       kind: 'boolean', comment: 'Whether images inside documents (inline images of PDFs, pictures in office documents and e-mails) are read with OCR.' }
 	],
 
 	init: () => {

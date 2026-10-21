@@ -85,7 +85,8 @@ public class ContentExtractionConfigurationTraitDefinition extends AbstractNodeT
 		ContentOptionsResolver.OCR,
 		ContentOptionsResolver.OCR_LANGUAGES,
 		ContentOptionsResolver.MAX_CHARACTERS,
-		ContentOptionsResolver.INCLUDE_EMBEDDED
+		ContentOptionsResolver.INCLUDE_EMBEDDED,
+		ContentOptionsResolver.INCLUDE_IMAGES
 	);
 
 	public static final Set<String> SPLITTERS       = Set.of("recursive", "structure", "sentence", "token", "page");
@@ -160,8 +161,9 @@ public class ContentExtractionConfigurationTraitDefinition extends AbstractNodeT
 		final Property<String> ocrLanguages          = new StringProperty(ContentOptionsResolver.OCR_LANGUAGES).description("Tesseract languages joined with +; empty uses contentextraction.ocr.languages.");
 		final Property<Integer> maxCharacters        = new IntProperty(ContentOptionsResolver.MAX_CHARACTERS).description("Maximum characters per document; empty uses contentextraction.extraction.maxcharacters.");
 		final Property<Boolean> includeEmbedded      = new NullableBooleanProperty(ContentOptionsResolver.INCLUDE_EMBEDDED).description("Whether embedded documents are extracted; empty uses contentextraction.extraction.includeembedded.");
+		final Property<Boolean> includeImages        = new NullableBooleanProperty(ContentOptionsResolver.INCLUDE_IMAGES).description("Whether images inside documents are read with OCR; empty uses contentextraction.extraction.includeimages.");
 
-		return newSet(target, enabled, splitter, chunkSize, chunkOverlap, sizeUnit, separators, includeHeadingPath, tokenEncoding, ocr, ocrLanguages, maxCharacters, includeEmbedded);
+		return newSet(target, enabled, splitter, chunkSize, chunkOverlap, sizeUnit, separators, includeHeadingPath, tokenEncoding, ocr, ocrLanguages, maxCharacters, includeEmbedded, includeImages);
 	}
 
 	@Override

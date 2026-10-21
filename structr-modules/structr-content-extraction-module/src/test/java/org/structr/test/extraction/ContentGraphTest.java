@@ -45,6 +45,7 @@ import org.structr.extraction.ContentExtractionTraits;
 import org.structr.extraction.api.ContentExtraction;
 import org.structr.extraction.api.ContentExtractionListener;
 import org.structr.extraction.api.chunk.Chunk;
+import org.structr.extraction.api.chunk.ChunkContext;
 import org.structr.extraction.api.options.EffectiveContentOptions;
 import org.structr.extraction.api.search.ContentSearchMode;
 import org.structr.extraction.api.search.ContentSearchOptions;
@@ -123,6 +124,63 @@ public class ContentGraphTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testArchiveEntriesAreStoredWithTheirPath() throws Exception {
+
+		final String fileId = createFile("/docs", "archive.zip", Fixtures.zip());
+		final Object result = evaluate("${{ $.documents.processContent($.find('File', '" + fileId + "'), { wait: true, ocr: 'off', includeEmbedded: true })[0].status; }}");
+
+		assertEquals("done", result);
+
+		try (final Tx tx = app.tx()) {
+
+			final List<ExtractedContentNode> chunks = ContentExtraction.getExtractedContent(file(fileId));
+
+			assertEquals(List.of("readme.txt", "docs/guide.txt", "inner.zip/nested.txt"), chunks.stream().map(ExtractedContentNode::getEmbeddedPath).toList());
+
+			// the context of a chunk stays in its archive entry
+			final ChunkContext context = ContentExtraction.getContext(chunks.get(1), 1, 1);
+
+			assertEquals(1, context.nodes().size());
+			assertEquals("docs/guide.txt", context.embeddedPath());
+			assertEquals("Text of the second entry.", context.text());
+
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testSearchFindsArchiveEntriesByName() throws Exception {
+
+		createFulltextIndex();
+
+		final String fileId = createFile("/docs", "archive.zip", Fixtures.zip());
+
+		evaluate("${{ $.documents.processContent($.find('File', '" + fileId + "'), { wait: true, ocr: 'off', includeEmbedded: true }); }}");
+
+		// "guide" is only in the name of the entry, not in its text
+		final Object result = evaluate("""
+			${{
+			    let hits = $.documents.searchExtractedContent('guide', { mode: 'simple' });
+
+			    [ hits.length, hits[0].embeddedPath, hits[0].text ].join('|');
+			}}
+			""");
+
+		assertEquals("1|docs/guide.txt|Text of the second entry.", result);
+
+		try (final Tx tx = app.tx()) {
+
+			final List<FileSearchHit> hits = ContentExtraction.searchFiles(securityContext, "guide", new ContentSearchOptions(10, 0.0, null, null, 0, ContentSearchMode.SIMPLE), 5, 40);
+
+			assertEquals(1, hits.size());
+			assertEquals("archive.zip", hits.getFirst().file().getName());
+			assertEquals("The name of the entry is the snippet", "guide", hits.getFirst().snippets().getFirst().match());
+
+			tx.success();
+		}
+	}
+
+	@Test
 	public void testUnchangedFilesAreSkippedUnlessForced() throws Exception {
 
 		final String fileId = createFile("/docs", "guide.html", Fixtures.html());
@@ -163,6 +221,37 @@ public class ContentGraphTest extends StructrUiTest {
 
 		assertEquals("done", evaluate(process));
 		assertTrue("Smaller chunks, more of them", chunkCount(fileId) > 4);
+	}
+
+	@Test
+	public void testIncludeImagesIsAnOption() throws Exception {
+
+		final String fileId = createFile("/reports", "report.pdf", Fixtures.pdfWithImage());
+
+		try (final Tx tx = app.tx()) {
+
+			final EffectiveContentOptions defaults = ContentExtraction.resolveOptions(file(fileId), Map.of());
+			final EffectiveContentOptions call     = ContentExtraction.resolveOptions(file(fileId), Map.of("includeImages", true));
+
+			assertFalse(defaults.extraction().isIncludeImages());
+			assertEquals("setting", defaults.values().get("includeImages").source());
+			assertTrue(call.extraction().isIncludeImages());
+			assertFalse("Images change what is extracted, so the file is processed again", defaults.hash().equals(call.hash()));
+
+			tx.success();
+		}
+
+		configure("/reports", Map.of("includeImages", true));
+
+		try (final Tx tx = app.tx()) {
+
+			final EffectiveContentOptions options = ContentExtraction.resolveOptions(file(fileId), Map.of());
+
+			assertTrue(options.extraction().isIncludeImages());
+			assertEquals("config:/reports", options.values().get("includeImages").source());
+
+			tx.success();
+		}
 	}
 
 	@Test
@@ -1013,7 +1102,7 @@ public class ContentGraphTest extends StructrUiTest {
 		// Structr's index management is off in tests, so the fulltext index is created here
 		try (final Tx tx = app.tx()) {
 
-			app.query("CREATE FULLTEXT INDEX " + ContentExtractionTraits.TEXT_FULLTEXT_INDEX + " IF NOT EXISTS FOR (n:ExtractedContentNode) ON EACH [n.text]", Map.of());
+			app.query("CREATE FULLTEXT INDEX " + ContentExtractionTraits.CONTENT_FULLTEXT_INDEX + " IF NOT EXISTS FOR (n:ExtractedContentNode) ON EACH [n.embeddedPath, n.text]", Map.of());
 			tx.success();
 		}
 

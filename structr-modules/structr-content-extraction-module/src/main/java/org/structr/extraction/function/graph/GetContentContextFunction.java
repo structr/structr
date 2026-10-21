@@ -78,8 +78,8 @@ public class GetContentContextFunction extends ContentExtractionFunction {
 
 		return """
 			Returns an object with `text` (the chunk and its neighbours as one continuous text, with overlapping parts included once), `nodes` \
-			(the chunks in reading order), `file`, `pageStart`, `pageEnd` and `headingPath`. Useful for giving a language model more context \
-			than a single search hit.""";
+			(the chunks in reading order), `file`, `pageStart`, `pageEnd`, `headingPath` and `embeddedPath`. Neighbours are taken from the same \
+			embedded document (archive entry, attachment) only. Useful for giving a language model more context than a single search hit.""";
 	}
 
 	@Override

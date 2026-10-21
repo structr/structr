@@ -126,7 +126,7 @@ public final class TikaDocumentExtractor {
 			final Metadata metadata         = newMetadata(fileName);
 			final ExtractionOptions options = ExtractionOptions.fromSettings().setOcrMode(OcrMode.OFF);
 
-			setup.parser().parse(stream, new DefaultHandler(), metadata, setup.createContext(options, null, false));
+			setup.parser().parse(stream, new DefaultHandler(), metadata, setup.createContext(options, null, false, null));
 
 			return toDocumentMetadata(metadata, DetectedLanguage.UNKNOWN, new ParseOutcome(0, false, null, false));
 
@@ -158,7 +158,7 @@ public final class TikaDocumentExtractor {
 			final RecursiveParserWrapper wrapper      = new RecursiveParserWrapper(setup.parser());
 			final List<EmbeddedDocument> result       = new ArrayList<>();
 
-			wrapper.parse(stream, handler, metadata, setup.createContext(options, ocr.languages(), true));
+			wrapper.parse(stream, handler, metadata, setup.createContext(options, ocr.languages(), true, null));
 
 			// the first entry of the metadata list is the container itself
 			for (final Metadata embedded : handler.getMetadataList().stream().skip(1).toList()) {
@@ -208,7 +208,7 @@ public final class TikaDocumentExtractor {
 				final BodyContentHandler body       = new BodyContentHandler(-1);
 				final MarkdownBlockParser markdown  = new MarkdownBlockParser(options.getMaxCharacters());
 
-				setup.parser().parse(stream, body, metadata, setup.createContext(options, null, false));
+				setup.parser().parse(stream, body, metadata, setup.createContext(options, null, false, null));
 
 				rawBlocks = markdown.parse(body.toString());
 				links     = List.of();
@@ -219,7 +219,7 @@ public final class TikaDocumentExtractor {
 
 				final XhtmlStructureHandler handler = new XhtmlStructureHandler(options.getMaxCharacters());
 
-				setup.parser().parse(stream, handler, metadata, setup.createContext(options, ocr.languages(), options.isIncludeEmbedded()));
+				setup.parser().parse(stream, handler, metadata, setup.createContext(options, ocr.languages(), options.isIncludeEmbedded(), handler::getCurrentPageCharacters));
 
 				rawBlocks = handler.getBlocks();
 				links     = handler.getLinks();

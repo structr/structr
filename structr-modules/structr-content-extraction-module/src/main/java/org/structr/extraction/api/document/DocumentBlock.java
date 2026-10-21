@@ -31,10 +31,12 @@ import java.util.Map;
  * @param page        1-based page (or slide) number, or null if the format has no pages
  * @param headingPath titles of the enclosing sections, outermost first; a heading includes itself
  * @param rows        the cells of a table, row by row; empty for all other block types
+ * @param embeddedPath names of the embedded documents (archive entries, attachments) the block is in,
+ *                    outermost first, joined with "/"; null if the block is not in an embedded document
  * @param startOffset start of the block in {@link ExtractedDocument#getText()}
  * @param endOffset   end (exclusive) of the block in {@link ExtractedDocument#getText()}
  */
-public record DocumentBlock(DocumentBlockType type, int level, String text, Integer page, List<String> headingPath, List<List<String>> rows, int startOffset, int endOffset) {
+public record DocumentBlock(DocumentBlockType type, int level, String text, Integer page, List<String> headingPath, List<List<String>> rows, String embeddedPath, int startOffset, int endOffset) {
 
 	public DocumentBlock {
 
@@ -51,6 +53,7 @@ public record DocumentBlock(DocumentBlockType type, int level, String text, Inte
 		map.put("text",        text);
 		map.put("page",        page);
 		map.put("headingPath", headingPath);
+		map.put("embeddedPath", embeddedPath);
 		map.put("startOffset", startOffset);
 		map.put("endOffset",   endOffset);
 

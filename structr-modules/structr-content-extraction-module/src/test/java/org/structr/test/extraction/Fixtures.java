@@ -251,6 +251,34 @@ public final class Fixtures {
 		}
 	}
 
+	/**
+	 * A PDF page with a line of real text and an image of text below it, as in a report with a figure.
+	 */
+	public static byte[] pdfWithImage() throws IOException {
+
+		try (final PDDocument document = new PDDocument(); final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+			final PDPage page           = new PDPage();
+			final PDImageXObject image  = LosslessFactory.createFromImage(document, textImage(OCR_WORD + " FIGURE"));
+
+			document.addPage(page);
+
+			try (final PDPageContentStream content = new PDPageContentStream(document, page)) {
+
+				content.beginText();
+				content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 14);
+				content.newLineAtOffset(72, 700);
+				content.showText("The figure below shows the result of the quarter.");
+				content.endText();
+				content.drawImage(image, 50, 500, 500, 80);
+			}
+
+			document.save(out);
+
+			return out.toByteArray();
+		}
+	}
+
 	public static byte[] png() throws IOException {
 
 		try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -311,7 +339,7 @@ public final class Fixtures {
 	}
 
 	/**
-	 * A ZIP archive with a text file and a nested ZIP containing another text file.
+	 * A ZIP archive with a text file, a text file in a directory, and a nested ZIP containing another text file.
 	 */
 	public static byte[] zip() throws IOException {
 
@@ -321,6 +349,10 @@ public final class Fixtures {
 
 			zip.putNextEntry(new ZipEntry("readme.txt"));
 			zip.write("Text of the readme entry.".getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+
+			zip.putNextEntry(new ZipEntry("docs/guide.txt"));
+			zip.write("Text of the second entry.".getBytes(StandardCharsets.UTF_8));
 			zip.closeEntry();
 
 			zip.putNextEntry(new ZipEntry("inner.zip"));

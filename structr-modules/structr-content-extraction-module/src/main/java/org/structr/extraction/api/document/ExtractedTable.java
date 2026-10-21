@@ -28,9 +28,10 @@ import java.util.Map;
  * @param index       0-based position among the tables of the document
  * @param page        1-based page number, or null if the format has no pages
  * @param headingPath titles of the sections enclosing the table, outermost first
+ * @param embeddedPath names of the embedded documents the table is in, joined with "/", or null
  * @param rows        the cell texts, row by row
  */
-public record ExtractedTable(int index, Integer page, List<String> headingPath, List<List<String>> rows) {
+public record ExtractedTable(int index, Integer page, List<String> headingPath, String embeddedPath, List<List<String>> rows) {
 
 	public Map<String, Object> toMap() {
 
@@ -39,6 +40,7 @@ public record ExtractedTable(int index, Integer page, List<String> headingPath, 
 		map.put("index",       index);
 		map.put("page",        page);
 		map.put("headingPath", headingPath);
+		map.put("embeddedPath", embeddedPath);
 		map.put("rows",        rows);
 
 		return map;

@@ -115,6 +115,12 @@ public class ExtractedContentNodeTraitWrapper extends AbstractNodeTraitWrapper i
 	}
 
 	@Override
+	public String getEmbeddedPath() {
+
+		return wrappedObject.getProperty(traits.key(EMBEDDED_PATH_PROPERTY));
+	}
+
+	@Override
 	public String getLanguage() {
 
 		return wrappedObject.getProperty(traits.key(LANGUAGE_PROPERTY));

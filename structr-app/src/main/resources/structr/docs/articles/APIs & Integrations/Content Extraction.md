@@ -64,14 +64,14 @@ By default, the query uses Lucene syntax, so phrases, `AND`, `OR` and wildcards 
 
 ### Searching With Cypher
 
-If you write Cypher, you can query the extracted text directly with `$.cypher()`, for example to combine the content search with your own data model. Every chunk is an `ExtractedContentNode` with its text in the `text` property. It is connected to its file by a `HAS_EXTRACTED_CONTENT` relationship, and the text is indexed in the full-text index `ExtractedContentNode_text_fulltext`.
+If you write Cypher, you can query the extracted text directly with `$.cypher()`, for example to combine the content search with your own data model. Every chunk is an `ExtractedContentNode` with its text in the `text` property. It is connected to its file by a `HAS_EXTRACTED_CONTENT` relationship. The text is indexed in the full-text index `ExtractedContentNode_content_fulltext`, together with the `embeddedPath` property, so a chunk is also found by the name of the archive entry or attachment it comes from.
 
 The following query finds the ten chunks that match best, together with their file:
 
 ```javascript
 {
     let hits = $.cypher(`
-        CALL db.index.fulltext.queryNodes('ExtractedContentNode_text_fulltext', $query) YIELD node, score
+        CALL db.index.fulltext.queryNodes('ExtractedContentNode_content_fulltext', $query) YIELD node, score
         MATCH (file:File)-[:HAS_EXTRACTED_CONTENT]->(node)
         WITH file, node, score
         ORDER BY score DESC
@@ -90,7 +90,7 @@ The following query finds the ten chunks that match best, together with their fi
 To get one result per file instead of one per chunk, group the chunks by their file:
 
 ```cypher
-CALL db.index.fulltext.queryNodes('ExtractedContentNode_text_fulltext', $query) YIELD node, score
+CALL db.index.fulltext.queryNodes('ExtractedContentNode_content_fulltext', $query) YIELD node, score
 MATCH (file:File)-[:HAS_EXTRACTED_CONTENT]->(node)
 WITH file, max(score) AS score, count(node) AS matches
 ORDER BY score DESC
@@ -98,7 +98,13 @@ LIMIT 10
 RETURN { file: file, matches: matches, score: score }
 ```
 
-The query uses Lucene syntax, like `searchExtractedContent()`: phrases in quotes, `AND`, `OR`, wildcards such as `remind*`, and fuzzy terms such as `reminder~`. Each chunk node also has `position`, `pageStart`, `pageEnd` and `headingPath`, which tell you where in the document the text is.
+The query uses Lucene syntax, like `searchExtractedContent()`: phrases in quotes, `AND`, `OR`, wildcards such as `remind*`, and fuzzy terms such as `reminder~`. Each chunk node also has `position`, `pageStart`, `pageEnd` and `headingPath`, which tell you where in the document the text is. To search only one property of the index, put its name in front of the term, for example `text:invoice` or `embeddedPath:invoice*`.
+
+### Archives, Attachments and Images
+
+With the option **Include Embedded**, the entries of archives (ZIP and others), the attachments of e-mails and documents embedded in office files are extracted as well. Each chunk then has an `embeddedPath`: the path of the entry inside the archive, such as `docs/guide.txt`, with nested archives joined by `/`, as in `inner.zip/docs/guide.txt`. Chunks of the file itself have no embedded path. A chunk never contains text of two entries, and page numbers and section headings start over in every entry.
+
+With the option **Include Images**, images inside documents are read with OCR, too: the images of a PDF page, pictures in office documents and inline images of e-mails. Tiny images such as icons are left out, and so are the images of PDF pages that OCR reads as a whole anyway, like scanned pages, so their text does not appear twice. An image that is an attachment or an archive entry of its own is a document, which **Include Embedded** covers. Reading images takes time, so the option is off by default.
 
 > **Important:** Return nodes, not their properties. Structr checks permissions for every node a Cypher query returns and leaves out files and chunks the current user cannot read, so `hit.file` is empty for them. Plain values such as `node.text` are returned without this check, so returning them directly would show the text of files the user is not allowed to read.
 

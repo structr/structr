@@ -157,7 +157,7 @@ public class ProcessContentFunction extends ContentExtractionFunction {
 				an object with any of: `force` (process unchanged files too), `recursive` (include subfolders, default true), `wait` (run now and \
 				return results instead of a job id), `queue` (job queue name), and the options of `documents.splitContent()` and `documents.extractContent()`: \
 				`splitter`, `chunkSize`, `chunkOverlap`, `sizeUnit`, `separators`, `includeHeadingPath`, `tokenEncoding`, `ocr`, `ocrLanguages`, \
-				`maxCharacters`, `includeEmbedded`"""));
+				`maxCharacters`, `includeEmbedded`, `includeImages`"""));
 	}
 
 	@Override

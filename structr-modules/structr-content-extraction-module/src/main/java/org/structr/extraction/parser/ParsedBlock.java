@@ -24,5 +24,5 @@ import java.util.List;
 /**
  * A block as collected from the parser, before rendering assigns its text offsets.
  */
-public record ParsedBlock(DocumentBlockType type, int level, String text, Integer page, List<String> headingPath, List<List<String>> rows) {
+public record ParsedBlock(DocumentBlockType type, int level, String text, Integer page, List<String> headingPath, List<List<String>> rows, String embeddedPath) {
 }

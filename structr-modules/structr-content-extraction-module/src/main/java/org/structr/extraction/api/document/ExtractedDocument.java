@@ -86,7 +86,7 @@ public final class ExtractedDocument {
 
 			if (block.type() == DocumentBlockType.TABLE) {
 
-				tables.add(new ExtractedTable(tables.size(), block.page(), block.headingPath(), block.rows()));
+				tables.add(new ExtractedTable(tables.size(), block.page(), block.headingPath(), block.embeddedPath(), block.rows()));
 			}
 		}
 

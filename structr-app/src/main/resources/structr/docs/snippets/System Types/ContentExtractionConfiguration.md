@@ -1,6 +1,6 @@
 # ContentExtractionConfiguration
 
-Configures automatic content extraction for one folder and its subfolders, or for one file. Key properties include `target` for the folder or file, `enabled` to switch extraction on or off, and the extraction and split options such as `splitter`, `chunkSize`, `chunkOverlap` and `ocr`.
+Configures automatic content extraction for one folder and its subfolders, or for one file. Key properties include `target` for the folder or file, `enabled` to switch extraction on or off, and the extraction and split options such as `splitter`, `chunkSize`, `chunkOverlap`, `ocr`, `includeEmbedded` and `includeImages`.
 
 ## Details
 

@@ -46,6 +46,7 @@ public record ContentSearchHit(ExtractedContentNode node, double score, File fil
 		map.put("pageStart",   node.getPageStart());
 		map.put("pageEnd",     node.getPageEnd());
 		map.put("headingPath", node.getHeadingPath());
+		map.put("embeddedPath", node.getEmbeddedPath());
 
 		if (context != null) {
 

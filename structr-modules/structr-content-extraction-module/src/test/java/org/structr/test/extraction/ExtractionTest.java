@@ -248,6 +248,40 @@ public class ExtractionTest {
 		assertNull("No text without includeText", shallow.getFirst().text());
 	}
 
+	// ----- embedded path -----
+	@Test
+	public void testEmbeddedPathOfArchiveEntries() throws Exception {
+
+		final ExtractedDocument document = extract(Fixtures.zip(), "archive.zip", options().setIncludeEmbedded(true));
+		final List<DocumentBlock> blocks = document.getBlocks();
+
+		assertEquals("readme.txt", find(blocks, DocumentBlockType.PARAGRAPH, "Text of the readme entry.").embeddedPath());
+		assertEquals("The path inside the archive is kept", "docs/guide.txt", find(blocks, DocumentBlockType.PARAGRAPH, "Text of the second entry.").embeddedPath());
+		assertEquals("Nested archives are joined with /", "inner.zip/nested.txt", find(blocks, DocumentBlockType.PARAGRAPH, "Text inside the nested archive.").embeddedPath());
+
+		assertFalse("Entry names are no headings: " + blocks, blocks.stream().anyMatch(b -> b.type() == DocumentBlockType.HEADING));
+		assertFalse("Entry names are not in the text: " + document.getText(), document.getText().contains("readme.txt"));
+		assertTrue(blocks.stream().allMatch(b -> b.headingPath().isEmpty()));
+	}
+
+	@Test
+	public void testEmbeddedPathOfAttachments() throws Exception {
+
+		final List<DocumentBlock> blocks = extract(Fixtures.eml(), "order.eml", options().setIncludeEmbedded(true)).getBlocks();
+
+		assertNull("The body of the e-mail is no attachment", find(blocks, DocumentBlockType.PARAGRAPH, "Thank you for your order.").embeddedPath());
+		assertEquals("delivery.txt", find(blocks, DocumentBlockType.PARAGRAPH, "Attached delivery note for order 4711.").embeddedPath());
+	}
+
+	@Test
+	public void testNoEmbeddedPathOutsideEmbeddedDocuments() throws Exception {
+
+		final ExtractedDocument document = extract(Fixtures.html(), "guide.html", options());
+
+		assertTrue(document.getBlocks().stream().allMatch(b -> b.embeddedPath() == null));
+		assertTrue(document.getTables().stream().allMatch(t -> t.embeddedPath() == null));
+	}
+
 	@Test
 	public void testMetadataOnly() throws Exception {
 
@@ -344,6 +378,37 @@ public class ExtractionTest {
 	}
 
 	@Test
+	public void testIncludeImagesReadsInlineImagesOfPdf() throws Exception {
+
+		requireTesseract();
+
+		final ExtractedDocument without = extract(Fixtures.pdfWithImage(), "report.pdf", options().setOcrMode(OcrMode.AUTO));
+		final ExtractedDocument with    = extract(Fixtures.pdfWithImage(), "report.pdf", options().setOcrMode(OcrMode.AUTO).setIncludeImages(true));
+
+		assertFalse("Images are not read by default: " + without.getText(), without.getText().contains(Fixtures.OCR_WORD));
+		assertEquals("The text of the image is read once: " + with.getText(), 1, occurrences(with.getText(), Fixtures.OCR_WORD));
+
+		final DocumentBlock image = with.getBlocks().stream().filter(b -> b.text().contains(Fixtures.OCR_WORD)).findFirst().orElseThrow();
+
+		assertEquals("The image keeps the page it is on", Integer.valueOf(1), image.page());
+		assertNotNull("The image is an embedded document", image.embeddedPath());
+		assertNull(find(with.getBlocks(), DocumentBlockType.PARAGRAPH, "The figure below shows the result of the quarter.").embeddedPath());
+	}
+
+	@Test
+	public void testIncludeImagesDoesNotRepeatPageOcr() throws Exception {
+
+		requireTesseract();
+
+		// the page of a scan is OCR'd as a whole, its image must not be read a second time
+		final ExtractedDocument scan   = extract(Fixtures.scannedPdf(), "scan.pdf", options().setOcrMode(OcrMode.AUTO).setIncludeImages(true));
+		final ExtractedDocument always = extract(Fixtures.pdfWithImage(), "report.pdf", options().setOcrMode(OcrMode.ALWAYS).setIncludeImages(true));
+
+		assertEquals("Scanned page: " + scan.getText(), 1, occurrences(scan.getText(), Fixtures.OCR_WORD));
+		assertEquals("OCR mode always: " + always.getText(), 1, occurrences(always.getText(), Fixtures.OCR_WORD));
+	}
+
+	@Test
 	public void testMissingTesseractDegradesGracefully() throws Exception {
 
 		final String previous = ContentExtractionSettings.TesseractPath.getValue();
@@ -379,6 +444,11 @@ public class ExtractionTest {
 	private static String ocrDiagnostics(final ExtractedDocument document) throws Exception {
 
 		return "skipped: " + document.getMetadata().ocrSkippedReason() + ", parsed by: " + document.getMetadata().raw().get("X-TIKA:Parsed-By") + ", ocr: " + ContentExtraction.getOcrInfo();
+	}
+
+	private static int occurrences(final String text, final String word) {
+
+		return text.split(word, -1).length - 1;
 	}
 
 	private static void requireTesseract() throws Exception {

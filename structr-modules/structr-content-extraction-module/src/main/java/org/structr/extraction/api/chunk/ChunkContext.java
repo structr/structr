@@ -34,8 +34,9 @@ import java.util.Map;
  * @param pageStart   first page, or null
  * @param pageEnd     last page, or null
  * @param headingPath the section path of the first chunk
+ * @param embeddedPath the embedded document (archive entry, attachment) the chunks are in, or null
  */
-public record ChunkContext(String text, List<ExtractedContentNode> nodes, File file, Integer pageStart, Integer pageEnd, List<String> headingPath) {
+public record ChunkContext(String text, List<ExtractedContentNode> nodes, File file, Integer pageStart, Integer pageEnd, List<String> headingPath, String embeddedPath) {
 
 	public ChunkContext {
 
@@ -53,6 +54,7 @@ public record ChunkContext(String text, List<ExtractedContentNode> nodes, File f
 		map.put("pageStart",   pageStart);
 		map.put("pageEnd",     pageEnd);
 		map.put("headingPath", headingPath);
+		map.put("embeddedPath", embeddedPath);
 
 		return map;
 	}

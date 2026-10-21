@@ -62,9 +62,10 @@ public final class ContentOptionsResolver {
 	public static final String OCR_LANGUAGES        = "ocrLanguages";
 	public static final String MAX_CHARACTERS       = "maxCharacters";
 	public static final String INCLUDE_EMBEDDED     = "includeEmbedded";
+	public static final String INCLUDE_IMAGES       = "includeImages";
 
 	/** The options that can be overridden per call. */
-	public static final Set<String> OPTIONS = Set.of(SPLITTER, CHUNK_SIZE, CHUNK_OVERLAP, SIZE_UNIT, SEPARATORS, INCLUDE_HEADING_PATH, TOKEN_ENCODING, OCR, OCR_LANGUAGES, MAX_CHARACTERS, INCLUDE_EMBEDDED);
+	public static final Set<String> OPTIONS = Set.of(SPLITTER, CHUNK_SIZE, CHUNK_OVERLAP, SIZE_UNIT, SEPARATORS, INCLUDE_HEADING_PATH, TOKEN_ENCODING, OCR, OCR_LANGUAGES, MAX_CHARACTERS, INCLUDE_EMBEDDED, INCLUDE_IMAGES);
 
 	private static final String CALL    = "call";
 	private static final String SETTING = "setting";
@@ -153,6 +154,7 @@ public final class ContentOptionsResolver {
 		defaults.put(OCR_LANGUAGES,        extraction.getOcrLanguages());
 		defaults.put(MAX_CHARACTERS,       extraction.getMaxCharacters());
 		defaults.put(INCLUDE_EMBEDDED,     extraction.isIncludeEmbedded());
+		defaults.put(INCLUDE_IMAGES,       extraction.isIncludeImages());
 
 		return defaults;
 	}
@@ -187,6 +189,7 @@ public final class ContentOptionsResolver {
 		extraction.setOcrLanguages(string(values, OCR_LANGUAGES));
 		extraction.setMaxCharacters(integer(values, MAX_CHARACTERS, 1));
 		extraction.setIncludeEmbedded(bool(values, INCLUDE_EMBEDDED));
+		extraction.setIncludeImages(bool(values, INCLUDE_IMAGES));
 	}
 
 	/**

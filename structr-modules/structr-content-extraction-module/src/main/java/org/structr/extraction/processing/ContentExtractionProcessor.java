@@ -349,6 +349,7 @@ public final class ContentExtractionProcessor {
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.PAGE_START_PROPERTY), chunk.pageStart());
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.PAGE_END_PROPERTY), chunk.pageEnd());
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.HEADING_PATH_PROPERTY), chunk.headingPath().toArray(String[]::new));
+			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.EMBEDDED_PATH_PROPERTY), chunk.embeddedPath());
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.LANGUAGE_PROPERTY), language);
 			properties.put(chunkTraits.key(ExtractedContentNodeTraitDefinition.CONTENT_HASH_PROPERTY), chunk.contentHash());
 

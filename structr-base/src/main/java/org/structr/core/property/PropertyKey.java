@@ -115,6 +115,18 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	Property<T> fulltextIndexed();
 
 	/**
+	 * Use this method to mark an indexed property to be indexed
+	 * in a fulltext index that it shares with the other properties
+	 * of the same type that name the same index. A query on that
+	 * index searches all of its properties.
+	 *
+	 * @param indexName the name of the shared index, unique per type
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	Property<T> fulltextIndexed(final String indexName);
+
+	/**
 	 * Returns the desired type name that will be used in the error message if a
 	 * wrong type was provided.
 	 * @return typeName
@@ -299,6 +311,15 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return isIndexedWhenEmpty
 	 */
 	boolean isFulltextIndexed();
+
+	/**
+	 * The name of the fulltext index this property is part of, which is
+	 * the database name of the property unless it shares an index with
+	 * other properties, see {@link #fulltextIndexed(String)}.
+	 *
+	 * @return the name of the fulltext index, or null if the property is not fulltext indexed
+	 */
+	String fulltextIndexName();
 
 	/**
 	 * Indicates whether this property represents a collection or a single

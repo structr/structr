@@ -58,7 +58,7 @@ public class DocumentTextRenderer {
 			text.append(plain);
 			markdown.append(md);
 
-			blocks.add(new DocumentBlock(raw.type(), raw.level(), plain, raw.page(), raw.headingPath(), raw.rows(), start, text.length()));
+			blocks.add(new DocumentBlock(raw.type(), raw.level(), plain, raw.page(), raw.headingPath(), raw.rows(), raw.embeddedPath(), start, text.length()));
 
 			previous = raw.type();
 		}

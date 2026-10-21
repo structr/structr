@@ -66,11 +66,12 @@ final class ChunkFactory {
 			final int index            = blockIndexAt(trimmed.start());
 			final DocumentBlock first          = index < blocks.size() ? blocks.get(index) : null;
 			final List<String> path    = first != null ? first.headingPath() : List.of();
+			final String embeddedPath  = first != null ? first.embeddedPath() : null;
 			final String content       = text.substring(trimmed.start(), trimmed.end());
-			final String chunkText     = includeHeadingPath ? withSectionPath(content, path, first, trimmed) : content;
+			final String chunkText     = includeHeadingPath ? withSectionPath(content, embeddedPath, path, first, trimmed) : content;
 			final Integer[] pages      = pages(trimmed, index);
 
-			chunks.add(new Chunk(chunks.size(), chunkText, trimmed.start(), trimmed.end(), chunkText.length(), tokens.count(chunkText), pages[0], pages[1], path, sha256(chunkText)));
+			chunks.add(new Chunk(chunks.size(), chunkText, trimmed.start(), trimmed.end(), chunkText.length(), tokens.count(chunkText), pages[0], pages[1], path, embeddedPath, sha256(chunkText)));
 		}
 
 		return chunks;
@@ -140,16 +141,26 @@ final class ChunkFactory {
 	}
 
 	/**
-	 * Prefixes the chunk with the path of its section. If the chunk starts with the section's own heading,
-	 * that heading is already in the text and is left out of the prefix.
+	 * Prefixes the chunk with the path of its section, preceded by the embedded document (archive entry,
+	 * attachment) it is in. If the chunk starts with the section's own heading, that heading is already in
+	 * the text and is left out of the prefix.
 	 */
-	private static String withSectionPath(final String content, final List<String> path, final DocumentBlock first, final TextSpan span) {
+	private static String withSectionPath(final String content, final String embeddedPath, final List<String> path, final DocumentBlock first, final TextSpan span) {
 
-		List<String> prefix = path;
+		final List<String> prefix = new ArrayList<>();
+
+		if (embeddedPath != null) {
+
+			prefix.add(embeddedPath);
+		}
 
 		if (first != null && first.type() == DocumentBlockType.HEADING && first.startOffset() >= span.start() && !path.isEmpty()) {
 
-			prefix = path.subList(0, path.size() - 1);
+			prefix.addAll(path.subList(0, path.size() - 1));
+
+		} else {
+
+			prefix.addAll(path);
 		}
 
 		if (prefix.isEmpty()) {

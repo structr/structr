@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -37,8 +38,18 @@ import java.util.regex.Pattern;
  * Tika's XHTML is uniform across formats, but not every format uses every element: plain text and OCR
  * output arrive as one paragraph or as loose text, so text is additionally split into paragraphs at
  * blank lines.
+ *
+ * Embedded documents (archive entries, attachments, embedded objects and images) arrive wrapped in a
+ * {@code <div class="embedded-document" data-name="...">}, see {@code TikaParserSetup}. Their names make
+ * up the embedded path of the blocks inside, and headings and pages start over in every embedded document.
  */
 public class XhtmlStructureHandler extends DefaultHandler {
+
+	/** Class of the element that wraps an embedded document. */
+	public static final String EMBEDDED_DOCUMENT_CLASS = "embedded-document";
+
+	/** Attribute of that element with the name of the embedded document, if it has one. */
+	public static final String EMBEDDED_NAME_ATTRIBUTE = "data-name";
 
 	private static final Pattern BLANK_LINES = Pattern.compile("\\n\\s*\\n");
 	private static final Pattern WHITESPACE  = Pattern.compile("\\s+");
@@ -68,6 +79,12 @@ public class XhtmlStructureHandler extends DefaultHandler {
 	private String linkHref               = null;
 	private StringBuilder linkText        = null;
 
+	// embedded documents: the ones the parser is in, innermost last, and for each open div whether it
+	// opened one
+	private final LinkedList<Entry> entries = new LinkedList<>();
+	private final LinkedList<Boolean> divs  = new LinkedList<>();
+	private int pageCharacters              = 0;
+
 	public XhtmlStructureHandler(final int maxCharacters) {
 
 		this.maxCharacters = maxCharacters;
@@ -94,6 +111,15 @@ public class XhtmlStructureHandler extends DefaultHandler {
 	public boolean isTruncated() {
 
 		return truncated;
+	}
+
+	/**
+	 * Number of non-whitespace characters on the current page (or slide) of the innermost document so far,
+	 * not counting the content of documents embedded in it.
+	 */
+	public int getCurrentPageCharacters() {
+
+		return pageCharacters;
 	}
 
 	@Override
@@ -142,9 +168,18 @@ public class XhtmlStructureHandler extends DefaultHandler {
 				flush();
 
 				final String cssClass = attributes.getValue("class");
-				if (cssClass != null && (cssClass.equals("page") || cssClass.equals("slide-content"))) {
+				final boolean entry   = EMBEDDED_DOCUMENT_CLASS.equals(cssClass);
+
+				divs.addLast(entry);
+
+				if (entry) {
+
+					startEntry(attributes.getValue(EMBEDDED_NAME_ATTRIBUTE));
+
+				} else if (cssClass != null && (cssClass.equals("page") || cssClass.equals("slide-content"))) {
 
 					pageCount++;
+					pageCharacters = 0;
 				}
 			}
 
@@ -247,7 +282,17 @@ public class XhtmlStructureHandler extends DefaultHandler {
 
 		switch (name) {
 
-			case "h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "pre", "div" -> flush();
+			case "h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "pre" -> flush();
+
+			case "div" -> {
+
+				flush();
+
+				if (!divs.isEmpty() && divs.removeLast()) {
+
+					endEntry();
+				}
+			}
 
 			case "ul", "ol" -> {
 
@@ -275,7 +320,7 @@ public class XhtmlStructureHandler extends DefaultHandler {
 
 				if (tableRows != null && !tableRows.isEmpty()) {
 
-					blocks.add(new ParsedBlock(DocumentBlockType.TABLE, 0, null, currentPage(), headingPath(), tableRows));
+					blocks.add(new ParsedBlock(DocumentBlockType.TABLE, 0, null, currentPage(), headingPath(), tableRows, embeddedPath()));
 				}
 
 				tableRows  = null;
@@ -292,7 +337,12 @@ public class XhtmlStructureHandler extends DefaultHandler {
 	@Override
 	public void characters(final char[] ch, final int start, final int length) {
 
-		if (skipDepth > 0 || truncated) {
+		if (skipDepth > 0) {
+
+			return;
+		}
+
+		if (truncated) {
 
 			return;
 		}
@@ -313,6 +363,8 @@ public class XhtmlStructureHandler extends DefaultHandler {
 		collectedCharacters += accepted;
 
 		final String text = new String(ch, start, accepted);
+
+		pageCharacters += (int) text.chars().filter(c -> !Character.isWhitespace(c)).count();
 
 		if (linkText != null) {
 
@@ -379,7 +431,7 @@ public class XhtmlStructureHandler extends DefaultHandler {
 
 		if (type == DocumentBlockType.CODE) {
 
-			blocks.add(new ParsedBlock(DocumentBlockType.CODE, 0, text.strip(), currentPage(), headingPath(), List.of()));
+			blocks.add(new ParsedBlock(DocumentBlockType.CODE, 0, text.strip(), currentPage(), headingPath(), List.of(), embeddedPath()));
 
 			return;
 		}
@@ -395,7 +447,7 @@ public class XhtmlStructureHandler extends DefaultHandler {
 
 			headings.addLast(new Heading(level, title));
 
-			blocks.add(new ParsedBlock(DocumentBlockType.HEADING, level, title, currentPage(), headingPath(), List.of()));
+			blocks.add(new ParsedBlock(DocumentBlockType.HEADING, level, title, currentPage(), headingPath(), List.of(), embeddedPath()));
 
 			return;
 		}
@@ -407,19 +459,60 @@ public class XhtmlStructureHandler extends DefaultHandler {
 			final String normalized = normalize(part);
 			if (!normalized.isEmpty()) {
 
-				blocks.add(new ParsedBlock(effectiveType, level, normalized, currentPage(), headingPath(), List.of()));
+				blocks.add(new ParsedBlock(effectiveType, level, normalized, currentPage(), headingPath(), List.of(), embeddedPath()));
 			}
 		}
 	}
 
+	/**
+	 * The page of the innermost document, or for an embedded document without pages (e.g. an image), the
+	 * page of the document it is embedded in.
+	 */
 	private Integer currentPage() {
 
-		return pageCount > 0 ? pageCount : null;
+		if (pageCount > 0) {
+
+			return pageCount;
+		}
+
+		return entries.isEmpty() ? null : entries.getLast().page;
 	}
 
 	private List<String> headingPath() {
 
 		return headings.stream().map(Heading::title).toList();
+	}
+
+	/**
+	 * The names of the embedded documents the parser is in, outermost first, joined with "/"; null outside
+	 * of embedded documents. Embedded documents without a name (e.g. the body of an e-mail) are left out.
+	 */
+	private String embeddedPath() {
+
+		final List<String> names = entries.stream().map(Entry::name).filter(Objects::nonNull).toList();
+
+		return names.isEmpty() ? null : String.join("/", names);
+	}
+
+	private void startEntry(final String name) {
+
+		entries.addLast(new Entry(name != null && !name.isBlank() ? name.strip() : null, new ArrayList<>(headings), pageCount, pageCharacters, currentPage()));
+
+		headings.clear();
+
+		pageCount      = 0;
+		pageCharacters = 0;
+	}
+
+	private void endEntry() {
+
+		final Entry entry = entries.removeLast();
+
+		headings.clear();
+		headings.addAll(entry.headings);
+
+		pageCount      = entry.pageCount;
+		pageCharacters = entry.pageCharacters;
 	}
 
 	private static String normalize(final String text) {
@@ -435,5 +528,12 @@ public class XhtmlStructureHandler extends DefaultHandler {
 	}
 
 	private record Heading(int level, String title) {
+	}
+
+	/**
+	 * An embedded document the parser is in: its name (null if it has none), and the state of the
+	 * enclosing document to restore when it ends.
+	 */
+	private record Entry(String name, List<Heading> headings, int pageCount, int pageCharacters, Integer page) {
 	}
 }

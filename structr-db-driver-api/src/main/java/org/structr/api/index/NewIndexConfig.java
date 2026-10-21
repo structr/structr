@@ -18,9 +18,13 @@
  */
 package org.structr.api.index;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NewIndexConfig {
 
-	private final String propertyKey;
+	private final List<String> propertyKeys = new ArrayList<>();
+	private final String indexName;
 	private final String type;
 	private final boolean isNodeIndex;
 	private final boolean isTextIndex;
@@ -28,11 +32,35 @@ public class NewIndexConfig {
 
 	public NewIndexConfig(final String type, final String propertyKey, final boolean isNodeIndex, final boolean isTextIndex, final boolean isFulltextIndex) {
 
+		this(type, propertyKey, propertyKey, isNodeIndex, isTextIndex, isFulltextIndex);
+	}
+
+	/**
+	 * @param indexName the name part of the index identifier; a fulltext index can cover more than one
+	 *                  property, which are then added with {@link #addPropertyKey(String)}
+	 */
+	public NewIndexConfig(final String type, final String indexName, final String propertyKey, final boolean isNodeIndex, final boolean isTextIndex, final boolean isFulltextIndex) {
+
 		this.isNodeIndex     = isNodeIndex;
 		this.isTextIndex     = isTextIndex;
 		this.isFulltextIndex = isFulltextIndex;
-		this.propertyKey     = propertyKey;
+		this.indexName       = indexName;
 		this.type            = type;
+
+		this.propertyKeys.add(propertyKey);
+	}
+
+	/**
+	 * Adds a property to a fulltext index. The properties are kept sorted, so the index is the same
+	 * regardless of the order in which they are added.
+	 */
+	public void addPropertyKey(final String propertyKey) {
+
+		if (!propertyKeys.contains(propertyKey)) {
+
+			propertyKeys.add(propertyKey);
+			propertyKeys.sort(null);
+		}
 	}
 
 	public boolean isFulltextIndex() {
@@ -50,9 +78,25 @@ public class NewIndexConfig {
 		return type;
 	}
 
+	public String getIndexName() {
+
+		return indexName;
+	}
+
+	/**
+	 * The (first) property of the index; range and text indexes have exactly one.
+	 */
 	public String getPropertyKey() {
 
-		return propertyKey;
+		return propertyKeys.getFirst();
+	}
+
+	/**
+	 * The properties of the index, sorted.
+	 */
+	public List<String> getPropertyKeys() {
+
+		return List.copyOf(propertyKeys);
 	}
 
 	public String getIndexDescriptionForStatement() {

@@ -63,6 +63,7 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 	public static final String PAGE_START_PROPERTY      = "pageStart";
 	public static final String PAGE_END_PROPERTY        = "pageEnd";
 	public static final String HEADING_PATH_PROPERTY    = "headingPath";
+	public static final String EMBEDDED_PATH_PROPERTY   = "embeddedPath";
 	public static final String LANGUAGE_PROPERTY        = "language";
 	public static final String CONTENT_HASH_PROPERTY    = "contentHash";
 	public static final String EMBEDDING_PROPERTY       = "embedding";
@@ -107,7 +108,9 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 		final Property<NodeInterface> file     = new StartNode(traitsInstance, FILE_PROPERTY, ContentExtractionTraits.FILE_HAS_EXTRACTED_CONTENT);
 		final Property<NodeInterface> next     = new EndNode(traitsInstance, NEXT_PROPERTY, ContentExtractionTraits.EXTRACTED_CONTENT_NEXT);
 		final Property<NodeInterface> previous = new StartNode(traitsInstance, PREVIOUS_PROPERTY, ContentExtractionTraits.EXTRACTED_CONTENT_NEXT);
-		final Property<String> text            = new StringProperty(TEXT_PROPERTY).fulltextIndexed();
+		// text and embedded path share one fulltext index, so a search finds a chunk by the name of the
+		// archive entry or attachment it is in, too
+		final Property<String> text            = new StringProperty(TEXT_PROPERTY).fulltextIndexed(ContentExtractionTraits.CONTENT_FULLTEXT_INDEX_NAME);
 		final Property<Integer> position       = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> startOffset    = new IntProperty(START_OFFSET_PROPERTY);
 		final Property<Integer> endOffset      = new IntProperty(END_OFFSET_PROPERTY);
@@ -116,6 +119,7 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 		final Property<Integer> pageStart      = new IntProperty(PAGE_START_PROPERTY);
 		final Property<Integer> pageEnd        = new IntProperty(PAGE_END_PROPERTY);
 		final Property<String[]> headingPath   = new ArrayProperty<>(HEADING_PATH_PROPERTY, String.class);
+		final Property<String> embeddedPath    = new StringProperty(EMBEDDED_PATH_PROPERTY).indexed().fulltextIndexed(ContentExtractionTraits.CONTENT_FULLTEXT_INDEX_NAME);
 		final Property<String> language        = new StringProperty(LANGUAGE_PROPERTY);
 		final Property<String> contentHash     = new StringProperty(CONTENT_HASH_PROPERTY).indexed();
 
@@ -123,16 +127,16 @@ public class ExtractedContentNodeTraitDefinition extends AbstractNodeTraitDefini
 		final Property<Double[]> embedding     = new ArrayProperty<>(EMBEDDING_PROPERTY, Double.class).disableSerialization(true);
 		final Property<String> embeddingModel  = new StringProperty(EMBEDDING_MODEL_PROPERTY);
 
-		return newSet(file, next, previous, text, position, startOffset, endOffset, charCount, tokenCount, pageStart, pageEnd, headingPath, language, contentHash, embedding, embeddingModel);
+		return newSet(file, next, previous, text, position, startOffset, endOffset, charCount, tokenCount, pageStart, pageEnd, headingPath, embeddedPath, language, contentHash, embedding, embeddingModel);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(TEXT_PROPERTY, POSITION_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, FILE_PROPERTY),
+			PropertyView.Public, newSet(TEXT_PROPERTY, POSITION_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, EMBEDDED_PATH_PROPERTY, FILE_PROPERTY),
 			PropertyView.Ui, newSet(FILE_PROPERTY, NEXT_PROPERTY, PREVIOUS_PROPERTY, TEXT_PROPERTY, POSITION_PROPERTY, START_OFFSET_PROPERTY, END_OFFSET_PROPERTY, CHAR_COUNT_PROPERTY,
-				TOKEN_COUNT_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, LANGUAGE_PROPERTY, CONTENT_HASH_PROPERTY, EMBEDDING_MODEL_PROPERTY)
+				TOKEN_COUNT_PROPERTY, PAGE_START_PROPERTY, PAGE_END_PROPERTY, HEADING_PATH_PROPERTY, EMBEDDED_PATH_PROPERTY, LANGUAGE_PROPERTY, CONTENT_HASH_PROPERTY, EMBEDDING_MODEL_PROPERTY)
 		);
 	}
 

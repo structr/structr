@@ -86,23 +86,19 @@ public final class TokenCounter {
 	 */
 	public List<TextSpan> windows(final String text, final int size, final int overlap) {
 
+		return windows(text, new TextSpan(0, text.length()), size, overlap);
+	}
+
+	/**
+	 * Windows of {@code size} tokens over a part of the text, as character spans of the whole text.
+	 */
+	public List<TextSpan> windows(final String text, final TextSpan span, final int size, final int overlap) {
+
 		final List<TextSpan> windows = new ArrayList<>();
-		final int[] boundaries   = boundaries(text);
-		final int tokenCount     = boundaries.length - 1;
-		final int step           = size - overlap;
 
-		for (int first = 0; first < tokenCount; first += step) {
+		for (final TextSpan window : windowsOf(text.substring(span.start(), span.end()), size, overlap)) {
 
-			final int last = Math.min(first + size, tokenCount);
-			if (boundaries[last] > boundaries[first]) {
-
-				windows.add(new TextSpan(boundaries[first], boundaries[last]));
-			}
-
-			if (last == tokenCount) {
-
-				break;
-			}
+			windows.add(new TextSpan(span.start() + window.start(), span.start() + window.end()));
 		}
 
 		return windows;
@@ -126,6 +122,30 @@ public final class TokenCounter {
 	}
 
 	// ----- private methods -----
+	private List<TextSpan> windowsOf(final String text, final int size, final int overlap) {
+
+		final List<TextSpan> windows = new ArrayList<>();
+		final int[] boundaries   = boundaries(text);
+		final int tokenCount     = boundaries.length - 1;
+		final int step           = size - overlap;
+
+		for (int first = 0; first < tokenCount; first += step) {
+
+			final int last = Math.min(first + size, tokenCount);
+			if (boundaries[last] > boundaries[first]) {
+
+				windows.add(new TextSpan(boundaries[first], boundaries[last]));
+			}
+
+			if (last == tokenCount) {
+
+				break;
+			}
+		}
+
+		return windows;
+	}
+
 	private int[] byteOffsets(final String text) {
 
 		final IntArrayList tokens = encoding.encodeOrdinary(text);

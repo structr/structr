@@ -200,7 +200,7 @@ public class MarkdownBlockParser {
 
 		final List<String> path = headings.stream().map(Heading::title).toList();
 
-		blocks.add(new ParsedBlock(type, level, text, null, path, rows));
+		blocks.add(new ParsedBlock(type, level, text, null, path, rows, null));
 	}
 
 	private static List<String> cells(final String line) {

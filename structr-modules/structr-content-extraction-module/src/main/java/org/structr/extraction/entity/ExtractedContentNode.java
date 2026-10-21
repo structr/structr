@@ -46,6 +46,7 @@ public interface ExtractedContentNode extends NodeInterface {
 	Integer getPageStart();
 	Integer getPageEnd();
 	List<String> getHeadingPath();
+	String getEmbeddedPath();
 	String getLanguage();
 	String getContentHash();
 

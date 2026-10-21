@@ -32,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Entry point for splitting documents and texts into chunks.
@@ -90,19 +91,54 @@ public final class ContentChunker {
 		final int size              = options.getChunkSize();
 		final int overlap           = options.getChunkOverlap();
 		final RecursiveTextSplitter recursive = new RecursiveTextSplitter(measure, size, overlap, separators(options), locale);
-		final TextSpan all              = new TextSpan(0, text.length());
 		final ChunkFactory factory  = new ChunkFactory(text, blocks, tokens, options.isIncludeHeadingPath());
-		final List<TextSpan> spans = switch (options.getSplitter()) {
+		final List<TextSpan> spans  = new ArrayList<>();
 
-			case RECURSIVE -> recursive.split(all);
+		// a chunk never spans two embedded documents (archive entries, attachments), so each is split on its own
+		for (final Segment segment : segments(text, blocks)) {
 
-			case SENTENCE  -> new RecursiveTextSplitter(measure, size, overlap, RecursiveTextSplitter.SENTENCES, locale).split(all);
-			case TOKEN     -> tokens.windows(text, size, overlap);
-			case PAGE      -> pages(blocks, all, recursive);
-			case STRUCTURE -> blocks.isEmpty() ? recursive.split(all) : new DocumentStructureSplitter(measure, recursive, size, overlap).split(blocks);
-		};
+			final TextSpan all = segment.span();
+
+			spans.addAll(switch (options.getSplitter()) {
+
+				case RECURSIVE -> recursive.split(all);
+
+				case SENTENCE  -> new RecursiveTextSplitter(measure, size, overlap, RecursiveTextSplitter.SENTENCES, locale).split(all);
+				case TOKEN     -> tokens.windows(text, all, size, overlap);
+				case PAGE      -> pages(segment.blocks(), all, recursive);
+				case STRUCTURE -> segment.blocks().isEmpty() ? recursive.split(all) : new DocumentStructureSplitter(measure, recursive, size, overlap).split(segment.blocks());
+			});
+		}
 
 		return factory.create(spans);
+	}
+
+	/**
+	 * The parts of a document that are split separately: the runs of consecutive blocks in the same
+	 * embedded document. A document without embedded documents is one part, the whole text.
+	 */
+	private static List<Segment> segments(final String text, final List<DocumentBlock> blocks) {
+
+		if (blocks.stream().allMatch(block -> block.embeddedPath() == null)) {
+
+			return List.of(new Segment(new TextSpan(0, text.length()), blocks));
+		}
+
+		final List<Segment> segments = new ArrayList<>();
+		int first                    = 0;
+
+		for (int i = 1; i <= blocks.size(); i++) {
+
+			if (i == blocks.size() || !Objects.equals(blocks.get(i).embeddedPath(), blocks.get(first).embeddedPath())) {
+
+				final List<DocumentBlock> run = blocks.subList(first, i);
+
+				segments.add(new Segment(new TextSpan(run.getFirst().startOffset(), run.getLast().endOffset()), run));
+				first = i;
+			}
+		}
+
+		return segments;
 	}
 
 	private static List<RecursiveTextSplitter.Separator> separators(final SplitOptions options) {
@@ -144,5 +180,8 @@ public final class ContentChunker {
 	private static DocumentTextRenderer renderMarkdown(final String text) {
 
 		return new DocumentTextRenderer(new MarkdownBlockParser(Integer.MAX_VALUE).parse(text));
+	}
+
+	private record Segment(TextSpan span, List<DocumentBlock> blocks) {
 	}
 }

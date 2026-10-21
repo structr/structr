@@ -92,7 +92,8 @@ public final class ContentChunkReader {
 	}
 
 	/**
-	 * A chunk with up to {@code before} chunks before and {@code after} chunks after it.
+	 * A chunk with up to {@code before} chunks before and {@code after} chunks after it. Neighbours from
+	 * another embedded document (archive entry, attachment) are not its context and are left out.
 	 */
 	public static ChunkContext context(final ExtractedContentNode node, final int before, final int after) {
 
@@ -100,16 +101,17 @@ public final class ContentChunkReader {
 
 		nodes.add(node);
 
+		final String embeddedPath    = node.getEmbeddedPath();
 		ExtractedContentNode current = node.getPrevious();
 
-		for (int i = 0; i < before && current != null; i++, current = current.getPrevious()) {
+		for (int i = 0; i < before && current != null && Objects.equals(embeddedPath, current.getEmbeddedPath()); i++, current = current.getPrevious()) {
 
 			nodes.addFirst(current);
 		}
 
 		current = node.getNext();
 
-		for (int i = 0; i < after && current != null; i++, current = current.getNext()) {
+		for (int i = 0; i < after && current != null && Objects.equals(embeddedPath, current.getEmbeddedPath()); i++, current = current.getNext()) {
 
 			nodes.addLast(current);
 		}
@@ -117,7 +119,7 @@ public final class ContentChunkReader {
 		final Integer pageStart = nodes.stream().map(ExtractedContentNode::getPageStart).filter(Objects::nonNull).min(Integer::compare).orElse(null);
 		final Integer pageEnd   = nodes.stream().map(ExtractedContentNode::getPageEnd).filter(Objects::nonNull).max(Integer::compare).orElse(null);
 
-		return new ChunkContext(mergedText(nodes), nodes, node.getFile(), pageStart, pageEnd, nodes.getFirst().getHeadingPath());
+		return new ChunkContext(mergedText(nodes), nodes, node.getFile(), pageStart, pageEnd, nodes.getFirst().getHeadingPath(), embeddedPath);
 	}
 
 	// ----- private methods -----

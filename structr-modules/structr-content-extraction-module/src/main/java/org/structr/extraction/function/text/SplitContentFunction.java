@@ -101,7 +101,7 @@ public class SplitContentFunction extends ContentExtractionFunction {
 
 		return """
 			Splits a text, or the extracted content of a File, into chunks and returns them as a list of objects with `position`, `text`, `startOffset`, \
-			`endOffset`, `charCount`, `tokenCount`, `pageStart`, `pageEnd`, `headingPath` and `contentHash`. Nothing is stored; the function is meant \
+			`endOffset`, `charCount`, `tokenCount`, `pageStart`, `pageEnd`, `headingPath`, `embeddedPath` and `contentHash`. Nothing is stored; the function is meant \
 			for trying out split settings and for custom pipelines.
 
 			ContentChunker:
@@ -123,7 +123,7 @@ public class SplitContentFunction extends ContentExtractionFunction {
 			Parameter.optional("options", """
 				an object with any of: `splitter`, `chunkSize`, `chunkOverlap`, `sizeUnit` (`tokens` or `characters`), `separators` (a list of texts, \
 				for the recursive splitter), `includeHeadingPath` (start each chunk with the path of its section), `tokenEncoding` (`cl100k_base`, \
-				`o200k_base`, ...). For a File also the options of `documents.extractContent()`: `ocr`, `ocrLanguages`, `maxCharacters`, `includeEmbedded`. \
+				`o200k_base`, ...). For a File also the options of `documents.extractContent()`: `ocr`, `ocrLanguages`, `maxCharacters`, `includeEmbedded`, `includeImages`. \
 				Defaults come from the `contentextraction.split.*` settings."""));
 	}
 

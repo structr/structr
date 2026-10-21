@@ -61,6 +61,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	protected boolean indexedPassively          = false;
 	protected boolean indexedWhenEmpty          = false;
 	protected boolean fulltextIndexed           = false;
+	protected String fulltextIndexName          = null;
 	protected boolean compound                  = false;
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
@@ -242,6 +243,15 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 		return this;
 
+	}
+
+	@Override
+	public Property<T> fulltextIndexed(final String indexName) {
+
+		this.fulltextIndexed   = true;
+		this.fulltextIndexName = indexName;
+
+		return this;
 	}
 
 	public Property<T> hint(final String hint) {
@@ -622,6 +632,17 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	public boolean isFulltextIndexed() {
 
 		return fulltextIndexed;
+	}
+
+	@Override
+	public String fulltextIndexName() {
+
+		if (!fulltextIndexed) {
+
+			return null;
+		}
+
+		return fulltextIndexName != null ? fulltextIndexName : dbName();
 	}
 
 	@Override

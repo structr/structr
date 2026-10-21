@@ -34,9 +34,11 @@ import java.util.Map;
  * @param pageStart   first page the chunk is on, or null if the source has no pages
  * @param pageEnd     last page the chunk is on, or null if the source has no pages
  * @param headingPath titles of the sections the chunk belongs to, outermost first
+ * @param embeddedPath names of the embedded documents (archive entries, attachments) the chunk is in,
+ *                    outermost first, joined with "/"; null if the chunk is not in an embedded document
  * @param contentHash SHA-256 of {@code text}, hex encoded; equal hashes mean equal chunk text
  */
-public record Chunk(int position, String text, int startOffset, int endOffset, int charCount, int tokenCount, Integer pageStart, Integer pageEnd, List<String> headingPath, String contentHash) {
+public record Chunk(int position, String text, int startOffset, int endOffset, int charCount, int tokenCount, Integer pageStart, Integer pageEnd, List<String> headingPath, String embeddedPath, String contentHash) {
 
 	public Chunk {
 
@@ -56,6 +58,7 @@ public record Chunk(int position, String text, int startOffset, int endOffset, i
 		map.put("pageStart",   pageStart);
 		map.put("pageEnd",     pageEnd);
 		map.put("headingPath", headingPath);
+		map.put("embeddedPath", embeddedPath);
 		map.put("contentHash", contentHash);
 
 		return map;

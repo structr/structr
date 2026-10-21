@@ -39,8 +39,11 @@ public final class ContentExtractionTraits {
 	/** ExtractedContentNode -[:NEXT_EXTRACTED_CONTENT]-> ExtractedContentNode, in reading order */
 	public static final String EXTRACTED_CONTENT_NEXT = "ExtractedContentNodeNEXT_EXTRACTED_CONTENTExtractedContentNode";
 
-	/** Name of the fulltext index Structr creates for ExtractedContentNode.text. */
-	public static final String TEXT_FULLTEXT_INDEX = "ExtractedContentNode_text_fulltext";
+	/** Name part of the fulltext index that ExtractedContentNode.text and .embeddedPath share. */
+	public static final String CONTENT_FULLTEXT_INDEX_NAME = "content";
+
+	/** Name of the fulltext index Structr creates for ExtractedContentNode.text and .embeddedPath. */
+	public static final String CONTENT_FULLTEXT_INDEX = "ExtractedContentNode_" + CONTENT_FULLTEXT_INDEX_NAME + "_fulltext";
 
 	private ContentExtractionTraits() {
 	}

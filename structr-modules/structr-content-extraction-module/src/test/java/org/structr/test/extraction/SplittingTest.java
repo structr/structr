@@ -237,6 +237,31 @@ public class SplittingTest {
 		assertEquals(Integer.valueOf(2), chunks.getFirst().pageEnd());
 	}
 
+	// ----- embedded documents -----
+	@Test
+	public void testChunksNeverSpanEmbeddedDocuments() throws Exception {
+
+		final ExtractedDocument document = ContentExtraction.extract(new ByteArrayInputStream(Fixtures.zip()), "archive.zip", new ExtractionOptions().setOcrMode(OcrMode.OFF).setIncludeEmbedded(true));
+		final List<String> paths         = List.of("readme.txt", "docs/guide.txt", "inner.zip/nested.txt");
+
+		for (final SplitterType splitter : SplitterType.values()) {
+
+			final List<Chunk> chunks = ContentExtraction.split(document, tokens(splitter, 1000, 0));
+
+			assertEquals(splitter + ": one chunk per entry: " + chunks.stream().map(Chunk::text).toList(), paths, chunks.stream().map(Chunk::embeddedPath).toList());
+			assertChunksPointIntoText(document.getText(), chunks);
+		}
+	}
+
+	@Test
+	public void testIncludeHeadingPathStartsWithEmbeddedPath() throws Exception {
+
+		final ExtractedDocument document = ContentExtraction.extract(new ByteArrayInputStream(Fixtures.zip()), "archive.zip", new ExtractionOptions().setOcrMode(OcrMode.OFF).setIncludeEmbedded(true));
+		final List<Chunk> chunks         = ContentExtraction.split(document, tokens(SplitterType.STRUCTURE, 1000, 0).setIncludeHeadingPath(true));
+
+		assertEquals("docs/guide.txt\n\nText of the second entry.", chunks.get(1).text());
+	}
+
 	// ----- general -----
 	@Test
 	public void testContentHash() {

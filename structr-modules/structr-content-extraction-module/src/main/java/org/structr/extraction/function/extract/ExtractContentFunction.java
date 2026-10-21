@@ -39,7 +39,7 @@ public class ExtractContentFunction extends ContentExtractionFunction {
 
 	public static final String OPTION_INCLUDE_BLOCKS = "includeBlocks";
 
-	private static final Set<String> ACCEPTED = Set.of(OPTION_OCR, OPTION_OCR_LANGUAGES, OPTION_MAX_CHARACTERS, OPTION_INCLUDE_EMBEDDED, OPTION_INCLUDE_BLOCKS);
+	private static final Set<String> ACCEPTED = Set.of(OPTION_OCR, OPTION_OCR_LANGUAGES, OPTION_MAX_CHARACTERS, OPTION_INCLUDE_EMBEDDED, OPTION_INCLUDE_IMAGES, OPTION_INCLUDE_BLOCKS);
 
 	@Override
 	public String getName() {
@@ -91,7 +91,8 @@ public class ExtractContentFunction extends ContentExtractionFunction {
 			Extracts the content of a file (PDF, Office and OpenDocument formats, HTML, Markdown, plain text, e-mail and many more) and returns an object with \
 			`text` (plain text), `markdown` (the document as Markdown, with headings, lists and tables), `metadata`, `language` and `pageCount`. \
 			With the option `includeBlocks`, the result also contains `blocks`: the structural units of the document (headings, paragraphs, list items, tables, \
-			code blocks, quotes) with their page, the path of section headings they belong to, and their position in `text`.
+			code blocks, quotes) with their page, the path of section headings they belong to, the embedded document (archive entry, attachment) \
+			they are in, and their position in `text`.
 
 			If Tesseract is installed, images and scanned PDF pages are read with OCR (see the setting `contentextraction.ocr.mode`). The function does not \
 			change the file or create any objects.""";
@@ -104,7 +105,8 @@ public class ExtractContentFunction extends ContentExtractionFunction {
 			Parameter.optional("options", """
 				an object with any of: `ocr` (`auto`, `always` or `off`, defaults to the setting `contentextraction.ocr.mode`), `ocrLanguages` (Tesseract \
 				languages joined with `+`, e.g. `eng+deu`), `maxCharacters` (text beyond is dropped), `includeEmbedded` (also extract attachments and \
-				archive entries) and `includeBlocks` (add the block list to the result)""")
+				archive entries), `includeImages` (also read images inside the document with OCR) and `includeBlocks` (add the block \
+				list to the result)""")
 		);
 	}
 

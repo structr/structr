@@ -95,8 +95,9 @@ public class SearchExtractedContentFunction extends ContentExtractionFunction {
 
 		return """
 			Searches the text of all `ExtractedContentNode`s through the fulltext index and returns the best hits as objects with `node`, `score`, \
-			`text`, `file`, `position`, `pageStart`, `pageEnd`, `headingPath`, and with `contextChunks` also `context`, the hit together with its \
-			neighbouring chunks. By default the query uses Lucene syntax: words, "quoted phrases", AND/OR, wildcards. With `mode: 'simple'` \
+			`text`, `file`, `position`, `pageStart`, `pageEnd`, `headingPath`, `embeddedPath` (the archive entry or attachment the chunk is in), \
+			and with `contextChunks` also `context`, the hit together with its neighbouring chunks in the same embedded document. The index \
+			covers `embeddedPath` as well, so a chunk is also found by the name of the archive entry or attachment it is in. By default the query uses Lucene syntax: words, "quoted phrases", AND/OR, wildcards. With `mode: 'simple'` \
 			it is read like the input of a search box instead: every word must occur, as a prefix or with small typos, ignoring case.
 
 			Only chunks of files the current user can read are found. Keyword search complements the vector search of the AI module, which \

@@ -18,17 +18,29 @@
  */
 package org.structr.api.index;
 
+import java.util.List;
+
 public class ExistingIndexInfo {
 
 	private final String identifier;
 	private final String state;
 	private final String type;
+	private final List<String> properties;
 
 	public ExistingIndexInfo(final String identifier, final String state, final String type) {
+
+		this(identifier, state, type, null);
+	}
+
+	/**
+	 * @param properties the indexed properties, or null if the database does not report them
+	 */
+	public ExistingIndexInfo(final String identifier, final String state, final String type, final List<String> properties) {
 
 		this.identifier = identifier;
 		this.state      = state;
 		this.type       = type;
+		this.properties = properties != null ? properties.stream().sorted().toList() : null;
 	}
 
 	public String getIdentifier() {
@@ -44,5 +56,13 @@ public class ExistingIndexInfo {
 	public String getType() {
 
 		return type;
+	}
+
+	/**
+	 * The indexed properties, sorted, or null if unknown.
+	 */
+	public List<String> getProperties() {
+
+		return properties;
 	}
 }

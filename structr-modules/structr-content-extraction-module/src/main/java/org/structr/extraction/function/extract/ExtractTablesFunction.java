@@ -84,8 +84,8 @@ public class ExtractTablesFunction extends ContentExtractionFunction {
 	public String getLongDescription() {
 
 		return """
-			Returns the tables of a file as a list of objects with `index`, `page`, `headingPath` (the section headings the table appears under) and \
-			`rows`, a list of rows that are lists of cell texts. Works for formats with real tables, such as DOCX, XLSX, ODT, ODS, PPTX and HTML; \
+			Returns the tables of a file as a list of objects with `index`, `page`, `headingPath` (the section headings the table appears under), \
+			`embeddedPath` (the archive entry or attachment the table is in, if any) and `rows`, a list of rows that are lists of cell texts. Works for formats with real tables, such as DOCX, XLSX, ODT, ODS, PPTX and HTML; \
 			each spreadsheet sheet is one table. PDF does not store tables as such, so tables in PDFs appear as text only.""";
 	}
 

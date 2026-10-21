@@ -106,14 +106,29 @@ public final class ContentKeywordSearch {
 
 			final ExtractedContentNode chunk = hit.chunk();
 			final String text                = chunk.getText();
+			final String embeddedPath        = chunk.getEmbeddedPath();
 			final FileHits fileHits          = files.computeIfAbsent(hit.file().getUuid(), uuid -> new FileHits(hit.file(), hit.score(), new HashSet<>(), new ArrayList<>()));
 
+			// the index covers the name of the embedded document (archive entry, attachment) as well
 			fileHits.matchedTerms().addAll(query.matchedTerms(text));
+
+			if (embeddedPath != null) {
+
+				fileHits.matchedTerms().addAll(query.matchedTerms(embeddedPath));
+			}
 
 			final int missing = maxSnippets - fileHits.snippets().size();
 			if (missing > 0) {
 
-				fileHits.snippets().addAll(SearchSnippets.find(text, query, chunk.getPageStart(), contextChars, missing));
+				final List<SearchSnippet> snippets = SearchSnippets.find(text, query, chunk.getPageStart(), contextChars, missing);
+
+				// a chunk found only by the name of its embedded document shows that name
+				if (snippets.isEmpty() && embeddedPath != null) {
+
+					snippets.addAll(SearchSnippets.find(embeddedPath, query, chunk.getPageStart(), contextChars, 1));
+				}
+
+				fileHits.snippets().addAll(snippets);
 			}
 		}
 
@@ -150,7 +165,7 @@ public final class ContentKeywordSearch {
 	private static List<ChunkHit> chunkHits(final SecurityContext securityContext, final String luceneQuery, final ContentSearchOptions options, final int fetch) throws FrameworkException {
 
 		final int pageSize                     = Math.min(MAX_FETCH, Math.max(fetch, 50));
-		final Map<NodeInterface, Double> found = StructrApp.getInstance(securityContext).getNodesFromFulltextIndex(ContentExtractionTraits.TEXT_FULLTEXT_INDEX, luceneQuery, 1, pageSize);
+		final Map<NodeInterface, Double> found = StructrApp.getInstance(securityContext).getNodesFromFulltextIndex(ContentExtractionTraits.CONTENT_FULLTEXT_INDEX, luceneQuery, 1, pageSize);
 		final String folderPrefix              = options.folder() != null ? options.folder().getPath() + "/" : null;
 		final List<ChunkHit> hits              = new ArrayList<>();
 
