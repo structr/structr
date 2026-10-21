@@ -471,3 +471,11 @@ div#xml-configurations button {
 	background-size: 20px 20px;
 }
 /* end dragndrop classes in files */
+/* a node whose counterpart vanished from the mounted storage: kept, but read-only */
+.node.externally-deleted .name_ {
+	text-decoration: line-through;
+}
+
+.node.externally-deleted {
+	opacity: 0.6;
+}

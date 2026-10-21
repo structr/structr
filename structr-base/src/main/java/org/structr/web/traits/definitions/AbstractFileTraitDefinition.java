@@ -68,6 +68,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String NAME_PROPERTY                       = "name";
 	public static final String LAST_SEEN_MOUNTED_PROPERTY          = "lastSeenMounted";
 	public static final String IS_MOUNTED_PROPERTY                 = "isMounted";
+	public static final String IS_EXTERNALLY_DELETED_PROPERTY      = "isExternallyDeleted";
 	public static final String PATH_PROPERTY                       = "path";
 	public static final String STORAGE_KEY_PROPERTY                = "storageKey";
 
@@ -106,6 +107,17 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 					// StorageSyncService) need no propagation - the physical side has
 					// already changed and the node merely follows
 					if (!StorageSyncService.isSyncOrigin(securityContext)) {
+
+						// a node whose external counterpart has vanished is read-only: there is no
+						// physical side left to write the change through to. The two ways out are
+						// the entry reappearing, which clears the mark, and deleting the node,
+						// which stays allowed because this guard does not cover deletion.
+						if (file.isExternallyDeleted()) {
+
+							// identified by uuid: within a rename or a move the path already shows the
+							// attempted change rather than the node that refuses it
+							throw new FrameworkException(422, "Cannot modify " + file.getType() + " " + file.getUuid() + ", the external file or folder it represents no longer exists.");
+						}
 
 						final GraphObjectMap beforeProps = modificationQueue.getModifications(file).get(new GenericProperty<>("before"));
 						final String prevName            = beforeProps != null ? beforeProps.getProperty(new GenericProperty<>("name")) : null;
@@ -233,6 +245,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull().indexed(); // fixme: not dynamic, but does it have any consequences?
 		final Property<Long> lastSeenMountedProperty               = new LongProperty(LAST_SEEN_MOUNTED_PROPERTY);
 		final Property<Boolean> isMountedProperty                  = new AbstractFileIsMountedProperty();
+		final Property<Boolean> isExternallyDeletedProperty        = new BooleanProperty(IS_EXTERNALLY_DELETED_PROPERTY).indexed().description("set when the external counterpart of this node has disappeared and the mount is configured to keep the node read-only; cleared again when it reappears");
 		final Property<String> pathProperty                        = new PathProperty(PATH_PROPERTY).typeHint("String").indexed().description("full path of this file or folder (read-only)");
 		final Property<String> storageKeyProperty                  = new StringProperty(STORAGE_KEY_PROPERTY).indexed().description("provider-specific physical key of an externally created object bound to this node (absent for Structr-origin files)");
 
@@ -246,6 +259,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 			nameProperty,
 			lastSeenMountedProperty,
 			isMountedProperty,
+			isExternallyDeletedProperty,
 			pathProperty,
 			storageKeyProperty
 		);
@@ -257,13 +271,13 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					IS_MOUNTED_PROPERTY, IS_EXTERNAL_PROPERTY, LAST_SEEN_MOUNTED_PROPERTY, PATH_PROPERTY, PARENT_ID_PROPERTY, INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
+					IS_MOUNTED_PROPERTY, IS_EXTERNAL_PROPERTY, IS_EXTERNALLY_DELETED_PROPERTY, LAST_SEEN_MOUNTED_PROPERTY, PATH_PROPERTY, PARENT_ID_PROPERTY, INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
 					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					IS_MOUNTED_PROPERTY, IS_EXTERNAL_PROPERTY, LAST_SEEN_MOUNTED_PROPERTY, PATH_PROPERTY, PARENT_ID_PROPERTY, INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
+					IS_MOUNTED_PROPERTY, IS_EXTERNAL_PROPERTY, IS_EXTERNALLY_DELETED_PROPERTY, LAST_SEEN_MOUNTED_PROPERTY, PATH_PROPERTY, PARENT_ID_PROPERTY, INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
 					PARENT_PROPERTY, HAS_PARENT_PROPERTY, STORAGE_CONFIGURATION_PROPERTY, STORAGE_KEY_PROPERTY
 			)
 		);

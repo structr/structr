@@ -45,7 +45,9 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -231,6 +233,7 @@ public class MigrationService {
 		new MigrationStep("migratePrincipalToPrincipalInterface",       Kind.WRITING, false, MigrationService::migratePrincipalToPrincipalInterface),
 		new MigrationStep("migrateDataSourceLabels",                    Kind.WRITING, false, MigrationService::migrateDataSourceLabels),
 		new MigrationStep("migrateFolderMountTarget",                   Kind.WRITING, false, apply -> migrateFolderMountTarget()),
+		new MigrationStep("migrateDeleteStaleToVanishPolicy",           Kind.WRITING, false, apply -> migrateDeleteStaleToVanishPolicy()),
 		new MigrationStep("migrateEventActionMapping",                  Kind.WRITING, false, apply -> migrateEventActionMapping()),
 		new MigrationStep("migrateActionMappingTargetsToRelationships", Kind.WRITING, false, apply -> migrateActionMappingTargetsToRelationships()),
 		new MigrationStep("cleanStaleActionMappingTargets",             Kind.WRITING, false, apply -> cleanStaleActionMappingTargets()),
@@ -1979,6 +1982,91 @@ public class MigrationService {
 
 			tx.success();
 		}
+	}
+
+	/**
+	 * The name the boolean predecessor of {@link VanishPolicy} was stored under. It exists only
+	 * here, because this is the last code that has any reason to know it.
+	 */
+	private static final String LEGACY_DELETE_STALE_KEY = "sync.deleteStale";
+
+	/**
+	 * Rewrites the storage configuration entry "sync.deleteStale" into the three-valued
+	 * "sync.onVanished". An enabled flag becomes "delete"; a disabled one is removed outright,
+	 * because an absent entry already means "ignore" and keeping it would only preserve a name
+	 * nothing reads.
+	 */
+	private static void migrateDeleteStaleToVanishPolicy() throws FrameworkException {
+
+		final Traits entryTraits                         = Traits.of(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
+		final PropertyKey<String> nameKey                = entryTraits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> valueKey               = entryTraits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY);
+		final PropertyKey<NodeInterface> configurationKey = entryTraits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY);
+		final App app                                    = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> entries = app.nodeQuery(StructrTraits.STORAGE_CONFIGURATION_ENTRY).key(nameKey, LEGACY_DELETE_STALE_KEY).getAsList();
+
+			if (!entries.isEmpty()) {
+
+				logger.info("Migrating {} storage configuration entries from {} to {}.", entries.size(), LEGACY_DELETE_STALE_KEY, VanishPolicy.POLICY_KEY);
+			}
+
+			for (final NodeInterface entry : entries) {
+
+				// a policy already set on the same configuration is the explicit statement and wins;
+				// renaming the flag next to it would leave two entries of that name, and whichever one
+				// the configuration map happened to keep would decide the behaviour
+				if (hasEntryNamed(entry.getProperty(configurationKey), VanishPolicy.POLICY_KEY, nameKey)) {
+
+					app.delete(entry);
+
+					continue;
+				}
+
+				// the entry value is an encrypted property, so an instance without the global
+				// secret cannot be read here; leaving the entry alone keeps the old name in
+				// place rather than silently turning a configured "delete" into the default
+				final String value = entry.getProperty(valueKey);
+				if (value == null) {
+
+					logger.warn("Unable to read the value of a {} entry, leaving it unmigrated.", LEGACY_DELETE_STALE_KEY);
+
+					continue;
+				}
+
+				if (Boolean.parseBoolean(value)) {
+
+					entry.setProperty(nameKey,  VanishPolicy.POLICY_KEY);
+					entry.setProperty(valueKey, VanishPolicy.DELETE.value());
+
+				} else {
+
+					app.delete(entry);
+				}
+			}
+
+			tx.success();
+		}
+	}
+
+	private static boolean hasEntryNamed(final NodeInterface configuration, final String name, final PropertyKey<String> nameKey) {
+
+		if (configuration == null) {
+
+			return false;
+		}
+
+		for (final NodeInterface entry : configuration.as(StorageConfiguration.class).getEntries()) {
+
+			if (name.equals(entry.getProperty(nameKey))) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static void migrateFolderMountTarget() throws FrameworkException {

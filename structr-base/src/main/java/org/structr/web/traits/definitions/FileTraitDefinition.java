@@ -173,8 +173,13 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 						// replace with SU context
 						graphObject.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-						// update metadata and parent as superuser
-						FileHelper.updateMetadata(thisFile, false);
+						// update metadata and parent as superuser. Not for changes from the sync layer: it
+						// refreshes metadata itself where content changed, and reading the content of a
+						// file that has just vanished externally is exactly what must not happen
+						if (!StorageSyncService.isSyncOrigin(securityContext)) {
+
+							FileHelper.updateMetadata(thisFile, false);
+						}
 
 						// restore previous security context
 						graphObject.setSecurityContext(previousSecurityContext);

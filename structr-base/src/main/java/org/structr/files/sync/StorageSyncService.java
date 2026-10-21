@@ -69,8 +69,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 	// one bad file or one unreachable backend without taking the thread (and with it every other
 	// sync target) down; all three log before they continue.
 
-	public static final String DELETE_STALE_KEY = "sync.deleteStale";
-	public static final String DIRECTION_KEY    = SyncDirection.DIRECTION_KEY;
+	public static final String DIRECTION_KEY = SyncDirection.DIRECTION_KEY;
+	public static final String POLICY_KEY    = VanishPolicy.POLICY_KEY;
 
 	/**
 	 * SecurityContext attribute marking graph modifications that originate
@@ -86,6 +86,9 @@ public class StorageSyncService extends Thread implements RunnableService {
 	private static final Logger logger = LoggerFactory.getLogger(StorageSyncService.class);
 
 	private final Map<String, ActiveSync> targets      = new LinkedHashMap<>();
+
+	// the target each sync root's persisted scan time belongs to, guarded by the targets lock
+	private final Map<String, SyncTarget> scannedTargets = new HashMap<>();
 	private final Map<String, PendingEvent> eventQueue = new LinkedHashMap<>();
 	private final List<PendingOutbound> outboundQueue  = new LinkedList<>();
 	private final Set<Thread> scanThreads              = ConcurrentHashMap.newKeySet();
@@ -410,6 +413,11 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (service != null) {
 
 			service.detach(uuid);
+
+			synchronized (service.targets) {
+
+				service.scannedTargets.remove(uuid);
+			}
 		}
 	}
 
@@ -504,8 +512,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final boolean watchContents  = isFolder && Boolean.TRUE.equals(abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY)));
 		final Integer scanInterval   = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY)) : null;
 		final Long lastScanned       = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY)) : null;
-		final boolean deleteStale    = Boolean.parseBoolean(syncTarget.configuration().get(DELETE_STALE_KEY));
-		final SyncDirection direction = SyncDirection.fromConfiguration(syncTarget.configuration());
+		final VanishPolicy vanishPolicy = VanishPolicy.fromConfiguration(syncTarget.configuration());
+		final SyncDirection direction   = SyncDirection.fromConfiguration(syncTarget.configuration());
 
 		synchronized (targets) {
 
@@ -546,7 +554,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			logger.info("Synchronizing {} via {}..", path, synchronizer.getClass().getSimpleName());
 
-			final ActiveSync sync = new ActiveSync(syncTarget, synchronizer, scanInterval, watchContents, deleteStale, direction);
+			final ActiveSync sync = new ActiveSync(syncTarget, synchronizer, scanInterval, watchContents, vanishPolicy, direction);
 
 			targets.put(uuid, sync);
 
@@ -571,13 +579,21 @@ public class StorageSyncService extends Thread implements RunnableService {
 			}
 
 			// upon creation, set the last scanned date correctly to prevent early scanning
+			// the persisted scan time records when this root was scanned, not what from: once the
+			// configuration points it at different storage, an earlier scan says nothing about the
+			// new location. Known only for targets attached in this run, so a restart still trusts
+			// the persisted time. Intermediate states of a multi-step edit attach no synchronizer
+			// and therefore leave the remembered target alone.
+			final SyncTarget previouslyScanned = scannedTargets.put(uuid, syncTarget);
+			final boolean retargeted           = previouslyScanned != null && !previouslyScanned.equals(syncTarget);
+
 			final boolean wasNeverScanned = (lastScanned == null);
 			if (!wasNeverScanned) {
 
 				sync.lastScanned = lastScanned;
 			}
 
-			if (wasNeverScanned || sync.shouldScan()) {
+			if (wasNeverScanned || retargeted || sync.shouldScan()) {
 
 				sync.lastScanned = System.currentTimeMillis();
 
@@ -930,7 +946,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		try (final Tx tx = StructrApp.getInstance(createSyncContext()).tx()) {
 
-			final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(sync.target);
+			final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(sync.target, sync.vanishPolicy);
 			final ExternalChangeEvent event       = item.event;
 
 			switch (event.type()) {
@@ -1200,19 +1216,19 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final SyncTarget target;
 		final StorageSynchronizer synchronizer;
 		final boolean watchContents;
-		final boolean deleteStale;
+		final VanishPolicy vanishPolicy;
 		final SyncDirection direction;
 
 		volatile boolean fullScanRequested = false;
 		private long scanInterval          = 0L;
 		long lastScanned                   = 0L;
 
-		ActiveSync(final SyncTarget target, final StorageSynchronizer synchronizer, final Integer scanInterval, final boolean watchContents, final boolean deleteStale, final SyncDirection direction) {
+		ActiveSync(final SyncTarget target, final StorageSynchronizer synchronizer, final Integer scanInterval, final boolean watchContents, final VanishPolicy vanishPolicy, final SyncDirection direction) {
 
 			this.target        = target;
 			this.synchronizer  = synchronizer;
 			this.watchContents = watchContents;
-			this.deleteStale   = deleteStale;
+			this.vanishPolicy  = vanishPolicy;
 			this.direction     = direction;
 			this.lastScanned   = System.currentTimeMillis();
 

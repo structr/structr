@@ -33,7 +33,7 @@ import java.util.Map;
  *        created before this setting existed.
  * OUT  - Structr-side structural changes (create/move/rename/delete) are
  *        propagated to the external storage; no watching or scanning.
- *        Note that inbound-only features like "sync.deleteStale" pruning
+ *        Note that inbound-only features like "sync.onVanished" reconciliation
  *        never run for outbound-only configurations.
  * BOTH - full two-way synchronization.
  */

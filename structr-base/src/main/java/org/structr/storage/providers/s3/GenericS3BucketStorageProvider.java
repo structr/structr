@@ -200,6 +200,9 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 	@Override
 	public OutputStream getOutputStream(final boolean append) {
 
+		// outside the try below, which would turn the refusal into a null stream
+		refuseWriteIfExternallyDeleted();
+
 		setKeyFromAbstractFile();
 
 		try {
@@ -239,6 +242,11 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 			}
 
 			final boolean write = options.contains(StandardOpenOption.WRITE) || options.contains(StandardOpenOption.CREATE) || options.contains(StandardOpenOption.CREATE_NEW);
+
+			if (write) {
+
+				refuseWriteIfExternallyDeleted();
+			}
 
 			logger.debug("Opening {} seekable channel for S3 object: {}", write ? "writable" : "readable", key);
 

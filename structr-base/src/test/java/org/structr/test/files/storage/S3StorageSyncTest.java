@@ -30,6 +30,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.files.sync.StorageSyncService;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.sync.VanishPolicy;
 import org.structr.storage.providers.s3.GenericS3BucketStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.AbstractFile;
@@ -95,7 +96,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, uuid, content.getBytes(), Map.of("path", "/s3mounted/sub/external.txt"));
 
-		mountBucket("s3mounted", bucket, "in", true);
+		mountBucket("s3mounted", bucket, "in", VanishPolicy.DELETE);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3mounted/sub/external.txt");
 
@@ -144,7 +145,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, uuid, "orphan".getBytes(), Map.of());
 
-		mountBucket("s3ext", bucket, "in", false);
+		mountBucket("s3ext", bucket, "in", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3ext/docs/report.pdf");
 
@@ -179,7 +180,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testDeleteStalePruning() {
+	public void testDeletePolicyPruning() {
 
 		final String bucket = uniqueBucket();
 
@@ -189,7 +190,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, uuid, "to be pruned".getBytes(), Map.of("path", "/s3pruned/pruneme.txt"));
 
-		mountBucket("s3pruned", bucket, "in", true);
+		mountBucket("s3pruned", bucket, "in", VanishPolicy.DELETE);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3pruned/pruneme.txt");
 
@@ -220,7 +221,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3outdelete", bucket, "both", false);
+		mountBucket("s3outdelete", bucket, "both", null);
 
 		final String content = "delete me";
 		String fileUuid      = null;
@@ -274,7 +275,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3outrename", bucket, "both", false);
+		mountBucket("s3outrename", bucket, "both", null);
 
 		final String content = "renamed content";
 		String fileUuid      = null;
@@ -323,7 +324,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3rollback", bucket, "both", false);
+		mountBucket("s3rollback", bucket, "both", null);
 
 		String fileUuid = null;
 
@@ -382,7 +383,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "short".getBytes(), Map.of());
 
-		mountBucket("s3extchange", bucket, "in", false);
+		mountBucket("s3extchange", bucket, "in", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extchange/docs/report.pdf");
 
@@ -419,7 +420,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "prune me".getBytes(), Map.of());
 
-		mountBucket("s3extprune", bucket, "in", true);
+		mountBucket("s3extprune", bucket, "in", VanishPolicy.DELETE);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extprune/docs/report.pdf");
 
@@ -437,7 +438,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "delete me".getBytes(), Map.of());
 
-		mountBucket("s3extdelete", bucket, "both", false);
+		mountBucket("s3extdelete", bucket, "both", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extdelete/docs/report.pdf");
 
@@ -465,7 +466,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "renamed content".getBytes(), Map.of());
 
-		mountBucket("s3extrename", bucket, "both", false);
+		mountBucket("s3extrename", bucket, "both", null);
 
 		waitForNodeAtPath(StructrTraits.FILE, "/s3extrename/docs/report.pdf");
 
@@ -494,7 +495,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		RustFsTestSupport.createBucket(bucket);
 
-		mountBucket("s3conflict", bucket, "in", false);
+		mountBucket("s3conflict", bucket, "in", null);
 
 		// a Structr-origin file materializes an object at its uuid key
 		final String content = "structr origin";
@@ -563,7 +564,7 @@ public class S3StorageSyncTest extends StructrUiTest {
 	 * Creates a StorageConfiguration for the given bucket and a folder using
 	 * it, with a short rescan interval for inbound directions.
 	 */
-	private void mountBucket(final String folderName, final String bucket, final String direction, final boolean deleteStale) {
+	private void mountBucket(final String folderName, final String bucket, final String direction, final VanishPolicy vanishPolicy) {
 
 		try (final Tx tx = app.tx()) {
 
@@ -571,9 +572,9 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 			entries.put(StorageSyncService.DIRECTION_KEY, direction);
 
-			if (deleteStale) {
+			if (vanishPolicy != null) {
 
-				entries.put(StorageSyncService.DELETE_STALE_KEY, "true");
+				entries.put(VanishPolicy.POLICY_KEY, vanishPolicy.value());
 			}
 
 			final StorageConfiguration config = StorageProviderFactory.createConfig("s3-" + folderName + "-" + bucket, GenericS3BucketStorageProvider.class, entries);

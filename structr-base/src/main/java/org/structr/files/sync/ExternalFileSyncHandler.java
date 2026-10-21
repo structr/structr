@@ -34,6 +34,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.sync.ExternalEntry;
 import org.structr.storage.sync.SyncTarget;
+import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -60,6 +61,7 @@ public class ExternalFileSyncHandler {
 	private static final Logger logger = LoggerFactory.getLogger(ExternalFileSyncHandler.class);
 
 	private final SyncTarget target;
+	private final VanishPolicy vanishPolicy;
 	private final Stats stats = new Stats();
 
 	// all graph access happens with a sync-originated superuser context, so
@@ -67,9 +69,10 @@ public class ExternalFileSyncHandler {
 	// ones (see StorageSyncService.SYNC_ORIGIN_ATTRIBUTE)
 	private final App app = StructrApp.getInstance(StorageSyncService.createSyncContext());
 
-	public ExternalFileSyncHandler(final SyncTarget target) {
+	public ExternalFileSyncHandler(final SyncTarget target, final VanishPolicy vanishPolicy) {
 
-		this.target = target;
+		this.target       = target;
+		this.vanishPolicy = vanishPolicy;
 	}
 
 	public Stats getStats() {
@@ -95,6 +98,7 @@ public class ExternalFileSyncHandler {
 
 			// unchanged: only stamp lastSeenMounted for reconciliation
 			node.setProperty(lastSeenMountedKey(), scanTime);
+			clearVanishedMark(node);
 			stats.unchanged++;
 
 		} else {
@@ -123,10 +127,18 @@ public class ExternalFileSyncHandler {
 	}
 
 	/**
-	 * Push side: DELETED. Resolves by UUID first, else by path, and deletes
-	 * the node if present. The sync root itself is never deleted.
+	 * Push side: DELETED. Resolves by UUID first, else by path, and applies
+	 * the target's VanishPolicy to the node if present. The sync root itself
+	 * is never deleted or marked.
 	 */
 	public void handleDeleted(final ExternalEntry entryReference) throws FrameworkException {
+
+		if (!vanishPolicy.reconciles()) {
+
+			stats.ignored++;
+
+			return;
+		}
 
 		final NodeInterface node = resolve(entryReference, false);
 		if (node != null) {
@@ -138,8 +150,16 @@ public class ExternalFileSyncHandler {
 				return;
 			}
 
-			app.delete(node);
-			stats.deleted++;
+			if (VanishPolicy.READONLY.equals(vanishPolicy)) {
+
+				node.as(AbstractFile.class).setExternallyDeleted(true);
+				stats.marked++;
+
+			} else {
+
+				app.delete(node);
+				stats.deleted++;
+			}
 		}
 	}
 
@@ -451,6 +471,8 @@ public class ExternalFileSyncHandler {
 	 */
 	private void updateNode(final NodeInterface node, final long timestamp) throws FrameworkException {
 
+		clearVanishedMark(node);
+
 		if (node.is(StructrTraits.FILE)) {
 
 			final NodeInterface syncRoot = getSyncRoot();
@@ -468,6 +490,22 @@ public class ExternalFileSyncHandler {
 		} else if (node.is(StructrTraits.ABSTRACT_FILE)) {
 
 			node.setProperty(lastSeenMountedKey(), timestamp);
+		}
+	}
+
+	/**
+	 * Clears the externally-deleted mark of a node that the external storage
+	 * reports again: an entry that is enumerated or changed is, by that fact,
+	 * no longer gone. Without this a READONLY mount would mark a node once
+	 * and never release it.
+	 */
+	private void clearVanishedMark(final NodeInterface node) throws FrameworkException {
+
+		final AbstractFile file = node.as(AbstractFile.class);
+
+		if (file.isExternallyDeleted()) {
+
+			file.setExternallyDeleted(false);
 		}
 	}
 
@@ -543,18 +581,20 @@ public class ExternalFileSyncHandler {
 		private long updated   = 0;
 		private long unchanged = 0;
 		private long deleted   = 0;
+		private long marked    = 0;
 		private long ignored   = 0;
 
 		public long getCreated()   { return created; }
 		public long getUpdated()   { return updated; }
 		public long getUnchanged() { return unchanged; }
 		public long getDeleted()   { return deleted; }
+		public long getMarked()    { return marked; }
 		public long getIgnored()   { return ignored; }
 
 		@Override
 		public String toString() {
 
-			return "created " + created + ", updated " + updated + ", unchanged " + unchanged + ", deleted " + deleted + ", ignored " + ignored;
+			return "created " + created + ", updated " + updated + ", unchanged " + unchanged + ", deleted " + deleted + ", marked " + marked + ", ignored " + ignored;
 		}
 	}
 }
