@@ -24,6 +24,18 @@ import org.slf4j.MDC;
 
 public class PrefixingThrowableConverter extends ThrowableProxyConverter {
 
+	private String mdcKey = null;
+
+	@Override
+	public void start() {
+
+		// the only option is the MDC key, the parent class would read it as the stack trace depth and report an error
+		mdcKey = getFirstOption();
+		setOptionList(null);
+
+		super.start();
+	}
+
 	@Override
 	public String convert(ILoggingEvent event) {
 
@@ -33,9 +45,7 @@ public class PrefixingThrowableConverter extends ThrowableProxyConverter {
 			return "";
 		}
 
-		final String mdcKey              = getFirstOption();
-		final String scratchPadLogString = MDC.get(mdcKey);
-
+		final String scratchPadLogString = mdcKey != null ? MDC.get(mdcKey) : null;
 		if (scratchPadLogString == null) {
 
 			return stack;

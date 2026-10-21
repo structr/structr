@@ -178,7 +178,6 @@ public class PrefetchingCorrectnessTest extends StructrUiTest {
 		request(hint, this::readProjectTasks);
 
 		final Map<String, List<String>> prefetched = request(hint, out -> {
-
 			final PropertyKey project = Traits.of("Task").key("project");
 
 			// move a task to another project, delete one and create one
@@ -456,7 +455,6 @@ public class PrefetchingCorrectnessTest extends StructrUiTest {
 					try {
 
 						final Map<String, List<String>> result = request(hint, readsEverything ? this::readEverything : this::readProjectTasksAndManagers);
-
 						if (readsEverything && !expected.equals(result)) {
 
 							errors.add("Different result in request " + j);

@@ -147,7 +147,6 @@ public class UpdateCommand extends AbstractCommand {
 						for (final String uuid : batch) {
 
 							final NodeInterface nodeObj = app.getNodeById(uuid);
-
 							if (nodeObj != null) {
 
 								nodeObj.setProperties(nodeObj.getSecurityContext(), properties);

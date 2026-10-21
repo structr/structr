@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.traits.TraitsManager;
@@ -171,10 +172,15 @@ public class Actions {
 
 	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
+		return callWithSecurityContext(key, securityContext, NamedArguments.fromMap(parameters));
+	}
+
+	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Arguments arguments) throws FrameworkException, UnlicensedScriptException {
+
 		final AbstractMethod method = Methods.resolveMethod(null, key);
 		if (method != null) {
 
-			return method.execute(new ActionContext(securityContext), null, NamedArguments.fromMap(parameters));
+			return method.execute(new ActionContext(securityContext), null, arguments);
 
 		} else {
 

@@ -25,6 +25,13 @@ public interface MQTTInfo {
 	String getMainBrokerURL();
 	String[] getFallbackBrokerURLs();
 	int getQos();
+
+	/**
+	 * Whether the broker discards the session of this client when it connects. A persistent session (false) keeps the
+	 * subscriptions and the messages with QoS 1 or 2 that arrive while the client is disconnected or that it has not
+	 * acknowledged yet, so that the broker delivers them after a reconnect or a restart of Structr.
+	 */
+	boolean getCleanSession();
 	String getUuid();
 	String getUsername();
 	String getPassword();

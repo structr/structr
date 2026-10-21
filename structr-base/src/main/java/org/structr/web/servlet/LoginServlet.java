@@ -108,12 +108,8 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 			response.setContentType("text/html; charset=utf-8");
 
 			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = config.getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			if (securityContext != null) {
 

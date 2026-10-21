@@ -37,6 +37,7 @@ public class TimedIterable<T> implements Iterable<T> {
 	}
 
 	public QueryTimer getTimer() {
+
 		return timer;
 	}
 

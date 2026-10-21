@@ -125,7 +125,6 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 
-
 		return List.of(
 			Example.javaScript("""
 			{

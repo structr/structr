@@ -13,11 +13,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-api-builder-module</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>

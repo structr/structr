@@ -76,10 +76,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.systemInfo([key]) }}"),
-			Usage.structrScript("Usage: ${systemInfo([key])}")
-		);
+		return List.of(Usage.javaScript("Usage: ${{ $.systemInfo([key]) }}"), Usage.structrScript("Usage: ${systemInfo([key])}"));
 	}
 
 	@Override

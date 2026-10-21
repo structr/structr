@@ -52,20 +52,17 @@ public final class Minifier {
 
 	public enum Kind {
 
-		JavaScript("application/javascript"),
-		Css("text/css"),
-		Html("text/html"),
-		Svg("image/svg+xml"),
-		Xml("application/xml"),
-		Json("application/json");
+		JavaScript("application/javascript"), Css("text/css"), Html("text/html"), Svg("image/svg+xml"), Xml("application/xml"), Json("application/json");
 
 		private final String contentType;
 
 		Kind(final String contentType) {
+
 			this.contentType = contentType;
 		}
 
 		public String getContentType() {
+
 			return contentType;
 		}
 	}
@@ -217,7 +214,6 @@ public final class Minifier {
 			} else if (child instanceof Element element) {
 
 				final String tag = element.normalName();
-
 				if ("script".equals(tag) && !element.hasAttr("src")) {
 
 					minifyInlineScript(element);

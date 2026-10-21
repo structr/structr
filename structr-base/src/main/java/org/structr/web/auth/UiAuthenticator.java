@@ -278,7 +278,12 @@ public class UiAuthenticator implements Authenticator {
 			} else {
 
 				response.setHeader("Access-Control-Allow-Origin",  origin);
-				response.addHeader("Vary", "Origin");
+
+				// added only once, the request can be examined again when the database terminates its transaction
+				if (response.getHeaders("Vary").stream().flatMap(value -> Arrays.stream(value.split(","))).noneMatch(value -> value.trim().equalsIgnoreCase("Origin"))) {
+
+					response.addHeader("Vary", "Origin");
+				}
 			}
 
 			if (maxAge != null) {
@@ -389,7 +394,7 @@ public class UiAuthenticator implements Authenticator {
 			RuntimeEventLog.resourceAccess("No permission", eventLogMap);
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-				"type",           "RESOURCE_ACCESS",
+				"type",               "RESOURCE_ACCESS",
 				"message",            errorMessage,
 				"uri",                escapedURI,
 				"signature",          rawResourceSignature,
@@ -516,14 +521,15 @@ public class UiAuthenticator implements Authenticator {
 		RuntimeEventLog.resourceAccess("No matching permission", eventLogMap);
 
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-			"type",  "RESOURCE_ACCESS",
-			"message",   errorMessage,
-			"uri",       escapedURI,
-			"signature", rawResourceSignature,
-			"method",    method,
-			"validUser", validUser,
-			"userid",    (validUser ? user.getUuid() : ""),
-			"username",  escapedUsername
+			"type",               "RESOURCE_ACCESS",
+			"message",            errorMessage,
+			"uri",                escapedURI,
+			"signature",          rawResourceSignature,
+			"method",             method,
+			"validUser",          validUser,
+			"isServicePrincipal", isServicePrincipal,
+			"userid",             (validUser ? user.getUuid() : ""),
+			"username",           escapedUsername
 		));
 
 		throw new UnauthorizedException("Access denied");

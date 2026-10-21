@@ -204,7 +204,6 @@ public class ExportParser {
 
 			// anchored at the root of the archive, so a type called "nodes" somewhere else is not mistaken for it
 			final String relative = path.startsWith("data/") ? path.substring("data/".length()) : path;
-
 			if (relative.startsWith("nodes/")) {
 
 				array(path, Kind.RECORD, byId(), null);

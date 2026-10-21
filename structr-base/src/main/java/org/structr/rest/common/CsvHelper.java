@@ -178,8 +178,13 @@ public class CsvHelper {
 
 		final CSVParser arrayParser              = new CSVParserBuilder().withSeparator(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS).withQuoteChar(DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS).build();
 		final ArrayList<String> extractedStrings = new ArrayList();
+		final String contents                    = stripArrayBracketsFromString(value, propertyName);
 
-		extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(stripArrayBracketsFromString(value, propertyName))));
+		// an empty cell or "[]" is an empty array, not an array with one empty element
+		if (!contents.isEmpty()) {
+
+			extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(contents)));
+		}
 
 		return extractedStrings;
 	}
@@ -275,7 +280,7 @@ public class CsvHelper {
 						targetKey = propertyMapping.get(key);
 					}
 
-					if (traits.contains(targetKey) && traits.key(targetKey).isCollection()) {
+					if (traits.hasKey(targetKey) && traits.key(targetKey).isCollection()) {
 
 						// if the current property is a collection, split it into its parts
 						jsonInput.add(key, extractArrayContentsFromArray(fields[i], key));

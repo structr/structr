@@ -81,7 +81,6 @@ final class BrowserEventPayload {
 		for (int i = 0; i < attributeName.length(); i++) {
 
 			final char c = attributeName.charAt(i);
-
 			if (c == '-' && i + 1 < attributeName.length() && attributeName.charAt(i + 1) >= 'a' && attributeName.charAt(i + 1) <= 'z') {
 
 				key.append(Character.toUpperCase(attributeName.charAt(++i)));

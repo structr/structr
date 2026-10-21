@@ -128,7 +128,6 @@ public class DeployDataCommand extends DeployCommand {
 	private void removeRecordsNotInArchive(final SecurityContext context, final String typeName, final Set<String> inArchive) throws FrameworkException {
 
 		final Traits traits = Traits.exists(typeName) ? Traits.of(typeName) : null;
-
 		if (traits == null || traits.contains(StructrTraits.PRINCIPAL)) {
 
 			return;
@@ -156,7 +155,6 @@ public class DeployDataCommand extends DeployCommand {
 			try (final Tx tx = app.tx()) {
 
 				final NodeInterface node = app.getNodeById(id);
-
 				if (node != null) {
 
 					app.delete(node);
@@ -264,7 +262,6 @@ public class DeployDataCommand extends DeployCommand {
 			for (final String typeName : new TreeSet<>(Traits.getAllTypes())) {
 
 				final Traits traits = Traits.of(typeName);
-
 				if (traits == null || !traits.isNodeType() || traits.isAbstract() || traits.isServiceClass() || traits.isInterface()) {
 
 					continue;
@@ -1368,7 +1365,6 @@ public class DeployDataCommand extends DeployCommand {
 			for (final Map<String, Object> entry : data) {
 
 				final String archivedId = (String) entry.get("id");
-
 				if (archivedId != null) {
 
 					inArchive.add(archivedId);

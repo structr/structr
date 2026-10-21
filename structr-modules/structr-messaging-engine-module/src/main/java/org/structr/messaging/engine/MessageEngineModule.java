@@ -46,6 +46,8 @@ import org.structr.messaging.implementation.mqtt.function.MQTTSubscribeTopicFunc
 import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFunction;
 import org.structr.messaging.implementation.pulsar.PulsarClient;
 import org.structr.messaging.traits.definitions.*;
+import org.structr.messaging.traits.wrappers.KafkaClientTraitWrapper;
+import org.structr.messaging.traits.wrappers.PulsarClientTraitWrapper;
 import org.structr.module.StructrModule;
 
 import java.io.*;
@@ -62,9 +64,12 @@ public class MessageEngineModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		// start the MQTT subscription worker at boot (registered explicitly since the JPMS migration
-		// removed the class-path scan that used to force-load MQTTContext and fire its static block)
+		// start the MQTT subscription worker and the Kafka and Pulsar consumers at boot (registered explicitly
+		// since the JPMS migration removed the class-path scan that used to force-load MQTTContext and fire its
+		// static block; Kafka relied on such a block too, Pulsar had none)
 		MQTTContext.registerInitializationCallback();
+		KafkaClientTraitWrapper.registerInitializationCallback();
+		PulsarClientTraitWrapper.registerInitializationCallback();
 
 		StructrTraits.registerTrait(new MessageClientHASMessageSubscriber());
 		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
@@ -142,10 +147,18 @@ public class MessageEngineModule implements StructrModule {
 
 			for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MESSAGE_CLIENT).type(StructrTraits.MESSAGE_CLIENT).sort(nameKey).getAsList()) {
 
+				// the query includes the MQTT, Kafka and Pulsar clients, which are exported below, and once is enough:
+				// importing them twice would create each client twice and process every message twice
+				if (!StructrTraits.MESSAGE_CLIENT.equals(clientNode.getType())) {
+
+					continue;
+				}
+
 				final MessageClient client      = clientNode.as(MessageClient.class);
 				final Map<String, Object> entry = new TreeMap<>();
 
 				entry.put(GraphObjectTraitDefinition.TYPE_PROPERTY,   client.getType());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,     client.getUuid());
 				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, client.getName());
 
 				List<String> subIds = new ArrayList<>();
@@ -167,6 +180,7 @@ public class MessageEngineModule implements StructrModule {
 				final Map<String, Object> entry = new TreeMap<>();
 
 				entry.put(GraphObjectTraitDefinition.TYPE_PROPERTY, client.getType());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY, client.getUuid());
 				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, client.getName());
 
 				entry.put(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY, client.getMainBrokerURL());
@@ -174,6 +188,7 @@ public class MessageEngineModule implements StructrModule {
 				entry.put(MQTTClientTraitDefinition.USERNAME_PROPERTY, client.getUsername());
 				entry.put(MQTTClientTraitDefinition.PASSWORD_PROPERTY, client.getPassword());
 				entry.put(MQTTClientTraitDefinition.QOS_PROPERTY, client.getQos());
+				entry.put(MQTTClientTraitDefinition.CLEAN_SESSION_PROPERTY, client.getCleanSession());
 				entry.put(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY, client.getIsEnabled());
 
 				List<String> subIds = new ArrayList<>();
@@ -195,6 +210,7 @@ public class MessageEngineModule implements StructrModule {
 				final Map<String, Object> entry = new TreeMap<>();
 
 				entry.put(GraphObjectTraitDefinition.TYPE_PROPERTY, client.getType());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY, client.getUuid());
 				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, client.getName());
 
 				entry.put(KafkaClientTraitDefinition.SERVERS_PROPERTY, client.getServers());
@@ -220,6 +236,7 @@ public class MessageEngineModule implements StructrModule {
 				final Map<String, Object> entry = new TreeMap<>();
 
 				entry.put(GraphObjectTraitDefinition.TYPE_PROPERTY, client.getType());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY, client.getUuid());
 				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, client.getName());
 
 				entry.put(PulsarClientTraitDefinition.SERVERS_PROPERTY, client.getServers());
@@ -311,22 +328,22 @@ public class MessageEngineModule implements StructrModule {
 							case StructrTraits.MESSAGE_CLIENT:
 								map = PropertyMap.inputTypeToJavaType(context, StructrTraits.MESSAGE_CLIENT, entry);
 								client = app.create(StructrTraits.MESSAGE_CLIENT, map).as(MessageClient.class);
-								client.setSubscribers(getSubscribersByIds(subIds));
+								client.setSubscribers(getSubscribersByIds(app, subIds));
 								break;
 							case StructrTraits.KAFKA_CLIENT:
 								map = PropertyMap.inputTypeToJavaType(context, StructrTraits.KAFKA_CLIENT, entry);
 								client = app.create(StructrTraits.KAFKA_CLIENT, map).as(MessageClient.class);
-								client.setSubscribers(getSubscribersByIds(subIds));
+								client.setSubscribers(getSubscribersByIds(app, subIds));
 								break;
 							case StructrTraits.PULSAR_CLIENT:
 								map = PropertyMap.inputTypeToJavaType(context, StructrTraits.PULSAR_CLIENT, entry);
 								client = app.create(StructrTraits.PULSAR_CLIENT, map).as(MessageClient.class);
-								client.setSubscribers(getSubscribersByIds(subIds));
+								client.setSubscribers(getSubscribersByIds(app, subIds));
 								break;
 							case StructrTraits.MQTT_CLIENT:
 								map = PropertyMap.inputTypeToJavaType(context, StructrTraits.MQTT_CLIENT, entry);
 								client = app.create(StructrTraits.MQTT_CLIENT, map).as(MessageClient.class);
-								client.setSubscribers(getSubscribersByIds(subIds));
+								client.setSubscribers(getSubscribersByIds(app, subIds));
 								break;
 							case StructrTraits.MESSAGE_SUBSCRIBER:
 								map = PropertyMap.inputTypeToJavaType(context, StructrTraits.MESSAGE_SUBSCRIBER, entry);
@@ -347,29 +364,28 @@ public class MessageEngineModule implements StructrModule {
 
 	}
 
-	private List<MessageSubscriber> getSubscribersByIds(List<String> ids) {
+	/**
+	 * Resolves the subscribers of an imported client. Runs in the transaction of the import, after the subscribers are
+	 * created, because the export file lists them before the clients.
+	 */
+	private List<MessageSubscriber> getSubscribersByIds(final App app, final List<String> ids) throws FrameworkException {
 
 		final List<MessageSubscriber> result = new ArrayList<>();
 
-		if (ids != null && ids.size() > 0) {
+		if (ids != null) {
 
-			final App app = StructrApp.getInstance();
+			for (final String id : ids) {
 
-			try (Tx tx = app.tx()) {
+				final NodeInterface node = app.getNodeById(StructrTraits.MESSAGE_SUBSCRIBER, id);
+				if (node != null) {
 
-				for (final String id : ids) {
+					result.add(node.as(MessageSubscriber.class));
 
-					MessageSubscriber sub = (MessageSubscriber) app.getNodeById(StructrTraits.MESSAGE_SUBSCRIBER, id);
-					result.add(sub);
+				} else {
+
+					logger.warn("MessageEngineModule: subscriber {} of an imported client does not exist, ignoring it", id);
 				}
-
-				tx.success();
-
-			} catch (FrameworkException ex) {
-
-				logger.error("MessageEngineModule: getSubscribersById error while getting subs by id: " + ex.getMessage());
 			}
-
 		}
 
 		return result;

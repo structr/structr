@@ -30,6 +30,10 @@ public class RetryException extends RuntimeException {
 
 	public static final int MAX_ATTEMPTS = 10;
 
+	// the pauses before repeating a transaction that a frequently changing schema terminated, see SchemaChangedException
+	private static final long SCHEMA_CHANGE_INITIAL_DELAY_MILLIS = 100;
+	private static final long SCHEMA_CHANGE_MAX_DELAY_MILLIS     = 5000;
+
 	public RetryException(final String message) {
 
 		super(message);
@@ -47,8 +51,7 @@ public class RetryException extends RuntimeException {
 
 	/**
 	 * Decides whether a transaction that failed with the given exception is repeated, and pauses
-	 * a little longer with each attempt so that the transactions involved in a deadlock do not
-	 * collide again. The exception does not have to be a RetryException itself: code that catches
+	 * before the next attempt, see {@link #delay(RetryException, int)}. The exception does not have to be a RetryException itself: code that catches
 	 * a RetryException can turn it into another exception, and the RetryException that closing a
 	 * terminated transaction throws is attached to the exception that ended the transaction as a
 	 * suppressed exception. An exception without a RetryException, or a transient error that is
@@ -71,7 +74,7 @@ public class RetryException extends RuntimeException {
 
 		try {
 
-			Thread.sleep(attempts * 10L);
+			Thread.sleep(delay(find(ex), attempts));
 
 		} catch (InterruptedException iex) {
 
@@ -84,6 +87,28 @@ public class RetryException extends RuntimeException {
 	}
 
 	/**
+	 * Returns the pause in milliseconds before the next attempt. The transactions involved in a
+	 * deadlock collide again unless one of them waits, but only briefly, since the other one is
+	 * through soon, so the pause grows a little with each attempt, 450 ms in total. A schema that
+	 * changes too often keeps changing until the indexes are populated, which takes seconds, so the
+	 * pause doubles with each attempt, from 100 ms up to 5 s, about 21 s in total.
+	 *
+	 * @param rex the RetryException that ended the transaction
+	 * @param attempts the number of attempts made so far, including the one that failed
+	 *
+	 * @return the pause in milliseconds
+	 */
+	static long delay(final RetryException rex, final int attempts) {
+
+		if (rex instanceof SchemaChangedException) {
+
+			return Math.min(SCHEMA_CHANGE_INITIAL_DELAY_MILLIS << Math.min(attempts - 1, 16), SCHEMA_CHANGE_MAX_DELAY_MILLIS);
+		}
+
+		return attempts * 10L;
+	}
+
+	/**
 	 * Runs a transaction and repeats it as long as the database terminates it with a transient
 	 * error, at most {@link #MAX_ATTEMPTS} times. The attempt must contain the whole transaction,
 	 * because a transaction that the database terminated cannot be continued, and it must not run
@@ -93,28 +118,45 @@ public class RetryException extends RuntimeException {
 	 *
 	 * @throws E the exception the attempt throws
 	 */
-	@SuppressWarnings("unchecked")
 	public static <E extends Exception> void repeat(final Attempt<E> attempt) throws E {
 
-		boolean retry = true;
-		int attempts  = 0;
+		repeatAndGet(() -> {
 
-		while (retry) {
+			attempt.run();
+
+			return null;
+		});
+	}
+
+	/**
+	 * Runs a transaction like {@link #repeat(Attempt)} and returns the result of the attempt that
+	 * succeeded.
+	 *
+	 * @param attempt the transaction to run
+	 *
+	 * @return the result of the attempt
+	 *
+	 * @throws E the exception the attempt throws
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T, E extends Exception> T repeatAndGet(final Computation<T, E> attempt) throws E {
+
+		int attempts = 0;
+
+		while (true) {
 
 			try {
 
-				attempt.run();
-
-				retry = false;
+				return attempt.run();
 
 			} catch (RuntimeException rex) {
 
-				retry = retry(rex, ++attempts);
+				retry(rex, ++attempts);
 
 			} catch (Exception ex) {
 
 				// the attempt throws no other checked exception than E
-				retry = retry((E)ex, ++attempts);
+				retry((E)ex, ++attempts);
 			}
 		}
 	}
@@ -162,5 +204,14 @@ public class RetryException extends RuntimeException {
 	public interface Attempt<E extends Exception> {
 
 		void run() throws E;
+	}
+
+	/**
+	 * An attempt that returns a result, see {@link #repeatAndGet(Computation)}.
+	 */
+	@FunctionalInterface
+	public interface Computation<T, E extends Exception> {
+
+		T run() throws E;
 	}
 }

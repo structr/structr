@@ -34,6 +34,8 @@ public abstract class IndexUpdater {
 
 	private static final Logger logger = LoggerFactory.getLogger(IndexUpdater.class);
 
+	private static final int AWAIT_INDEXES_TIMEOUT_SECONDS = 10;
+
 	private final boolean supportsRelationshipIndexes;
 	private final AtomicBoolean isFinished;
 	private final BoltDatabaseService db;
@@ -105,6 +107,11 @@ public abstract class IndexUpdater {
 				logger.info("Dropped {} indexes", droppedIndexCount);
 			}
 
+			if (newIndexCount > 0) {
+
+				awaitIndexes();
+			}
+
 		} finally {
 
 			isFinished.set(true);
@@ -158,6 +165,33 @@ public abstract class IndexUpdater {
 		}
 
 		return newIndexCount;
+	}
+
+	/**
+	 * Waits briefly until the new indexes are populated. Every index that comes online changes the schema, and Cypher
+	 * gives up compiling a query when that happens too often while it compiles. That is the case when many empty
+	 * indexes come online at once, e.g. in a fresh database, where the population takes about a second, and the
+	 * migrations at startup would fail. The population of a single index in a large database can take minutes, but it
+	 * changes the schema only once, so the timeout is short and the wait does not delay such a start. What still fails
+	 * is repeated as a transient error, see SessionTransaction.isFrequentSchemaChange().
+	 */
+	private void awaitIndexes() {
+
+		final long t0 = System.currentTimeMillis();
+
+		try (final Transaction tx = db.beginTx()) {
+
+			db.execute("CALL db.awaitIndexes(" + AWAIT_INDEXES_TIMEOUT_SECONDS + ")");
+
+			tx.success();
+
+			logger.info("Indexes populated after {} ms", System.currentTimeMillis() - t0);
+
+		} catch (RuntimeException rex) {
+
+			// expected for a large database, the population goes on in the background
+			logger.info("Indexes not populated after {} ms, continuing: {}", System.currentTimeMillis() - t0, rex.getMessage());
+		}
 	}
 
 	private int dropIndexes(final Map<String, ExistingIndexInfo> existingIndexes) {

@@ -22,22 +22,21 @@ import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.pkg.OdfPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyMapping;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -61,13 +60,11 @@ import java.util.Set;
  */
 public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String RESULT_DOCUMENT_PROPERTY         = "resultDocument";
-	public static final String DOCUMENT_TEMPLATE_PROPERTY       = "documentTemplate";
-	public static final String TRANSFORMATION_PROVIDER_PROPERTY = "transformationProvider";
+	public static final String RESULT_DOCUMENT_PROPERTY   = "resultDocument";
+	public static final String DOCUMENT_TEMPLATE_PROPERTY = "documentTemplate";
+	public static final String PROPERTY_MAPPING_PROPERTY  = "propertyMapping";
 
-	//General ODF specific constants and field specifiers
-	//Images
-
+	// image frames in ODF documents
 	private static final String ODF_IMAGE_PARENT_NAME                 = "draw:frame";
 	private static final String ODF_IMAGE_ATTRIBUTE_PARENT_IMAGE_NAME = "draw:name";
 	private static final String ODF_IMAGE_ATTRIBUTE_FILE_PATH         = "xlink:href";
@@ -102,7 +99,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 					final Map<String, Object> map = arguments.toMap();
 					final String uuid             = (String)map.get("uuid");
 
-					exportImage(entity.as(ODFExporter.class), uuid);
+					exportImage(actionContext, entity.as(ODFExporter.class), uuid);
 
 					return null;
 				}
@@ -113,11 +110,11 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final PropertyKey<NodeInterface> resultDocumentProperty         = new EndNode(traitsInstance, RESULT_DOCUMENT_PROPERTY, StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
-		final PropertyKey<NodeInterface> documentTemplateProperty       = new EndNode(traitsInstance, DOCUMENT_TEMPLATE_PROPERTY, StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
-		final PropertyKey<NodeInterface> transformationProviderProperty = new EndNode(traitsInstance, TRANSFORMATION_PROVIDER_PROPERTY, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
+		final PropertyKey<NodeInterface> resultDocumentProperty   = new EndNode(traitsInstance, RESULT_DOCUMENT_PROPERTY, StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
+		final PropertyKey<NodeInterface> documentTemplateProperty = new EndNode(traitsInstance, DOCUMENT_TEMPLATE_PROPERTY, StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
+		final PropertyKey<String> propertyMappingProperty         = new StringProperty(PROPERTY_MAPPING_PROPERTY);
 
-		return newSet(resultDocumentProperty, documentTemplateProperty, transformationProviderProperty);
+		return newSet(resultDocumentProperty, documentTemplateProperty, propertyMappingProperty);
 	}
 
 	@Override
@@ -129,11 +126,11 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
 					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
 					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
-					TRANSFORMATION_PROVIDER_PROPERTY, DOCUMENT_TEMPLATE_PROPERTY, RESULT_DOCUMENT_PROPERTY
+					PROPERTY_MAPPING_PROPERTY, DOCUMENT_TEMPLATE_PROPERTY, RESULT_DOCUMENT_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, TRANSFORMATION_PROVIDER_PROPERTY, DOCUMENT_TEMPLATE_PROPERTY, RESULT_DOCUMENT_PROPERTY
+					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, PROPERTY_MAPPING_PROPERTY, DOCUMENT_TEMPLATE_PROPERTY, RESULT_DOCUMENT_PROPERTY
 			)
 		);
 	}
@@ -148,6 +145,30 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	public Relation getRelation() {
 
 		return null;
+	}
+
+	/**
+	 * Returns the values of the node with the given UUID, mapped by the property mapping of the
+	 * given exporter. The node is loaded with the security context of the caller, so an export
+	 * cannot read more than the caller can.
+	 */
+	public static Map<String, Object> getMappedValues(final ActionContext actionContext, final ODFExporter entity, final String uuid) throws FrameworkException {
+
+		final PropertyMapping mapping = entity.getPropertyMapping();
+		if (mapping == null) {
+
+			throw new FrameworkException(422, "Cannot export attributes, property mapping of " + entity.getName() + " is not set.");
+		}
+
+		final NodeInterface source = StructrApp.getInstance(actionContext.getSecurityContext()).getNodeById(StructrTraits.NODE_INTERFACE, uuid);
+		if (source == null) {
+
+			throw new FrameworkException(404, "Cannot export attributes, node with UUID " + uuid + " not found.");
+		}
+
+		// the mapping sets the constant "input", which must not leak into the caller's context
+
+		return mapping.transformOutput(new ActionContext(actionContext), source);
 	}
 
 	public void createDocumentFromTemplate(final ActionContext actionContext, final ODFExporter entity) throws FrameworkException {
@@ -186,16 +207,22 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	public void exportImage(final ODFExporter entity, final String uuid) {
+	public void exportImage(final ActionContext actionContext, final ODFExporter entity, final String uuid) throws FrameworkException {
 
 		final File output = entity.getResultDocument();
 
+		// loaded with the security context of the caller, so an export cannot read more than the caller can
+		final NodeInterface node = StructrApp.getInstance(actionContext.getSecurityContext()).getNodeById(StructrTraits.IMAGE, uuid);
+		if (node == null) {
+
+			throw new FrameworkException(404, "Cannot export image, image with UUID " + uuid + " not found.");
+		}
+
 		try {
 
-			final App app              = StructrApp.getInstance();
-			final Image result         = app.nodeQuery(StructrTraits.IMAGE).key(Traits.of(StructrTraits.IMAGE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getFirst().as(Image.class);
-			final String imageName     = result.getName();
-			final String contentType   = result.getContentType();
+			final Image image        = node.as(Image.class);
+			final String imageName   = image.getName();
+			final String contentType = image.getContentType();
 			String templateImagePath = null;
 			OdfDocument doc = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 			NodeList nodes = doc.getContentRoot().getElementsByTagName(ODF_IMAGE_PARENT_NAME);
@@ -225,8 +252,8 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 			}
 
-			pkg.insert(StorageProviderFactory.getStorageProvider(result).getInputStream(), ODF_IMAGE_DIRECTORY + imageName, contentType);
-			pkg.save(StorageProviderFactory.getStorageProvider(result).getOutputStream());
+			pkg.insert(StorageProviderFactory.getStorageProvider(image).getInputStream(), ODF_IMAGE_DIRECTORY + imageName, contentType);
+			pkg.save(StorageProviderFactory.getStorageProvider(output).getOutputStream());
 			pkg.close();
 			doc.close();
 

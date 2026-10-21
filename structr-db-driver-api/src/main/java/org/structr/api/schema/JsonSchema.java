@@ -92,6 +92,7 @@ public interface JsonSchema {
 	String KEY_RETURN_RAW_RESULT        = "returnRawResult";
 	String KEY_HTTP_VERB                = "httpVerb";
 	String KEY_WRAP_JS_IN_MAIN          = "wrapJsInMain";
+	String KEY_ALLOW_UNKNOWN_PARAMETERS = "allowUnknownParameters";
 	String KEY_DO_EXPORT                = "doExport";
 	String KEY_PARAMETERS               = "parameters";
 	String KEY_PARAMETER_TYPE           = "parameterType";
