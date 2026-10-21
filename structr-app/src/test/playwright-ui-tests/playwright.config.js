@@ -39,6 +39,9 @@ export default defineConfig({
 
     workers: process.env.CI ? 1 : undefined,
 
+    // one line per test with name, result and duration; the default on CI is one dot per test
+    reporter: 'list',
+
     // Each test is given 10 minutes to run.
     timeout: 600_000,
 

@@ -560,7 +560,6 @@
 													<DATABASE_PASSWORD>admin123</DATABASE_PASSWORD>
 													<SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
 													<SETUP_TOKEN>ui-test-setup-token</SETUP_TOKEN>
-													<DEBUG>pw:api</DEBUG>
 												</env>
 												<volumes>
 													<bind>
