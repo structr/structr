@@ -131,7 +131,6 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 					   over REST, to be attached later - was never unlinked and stays. Views on static types have
 					   no schemaNode by design, hence the last condition. */
 					final boolean unlinked = removedRemote != null && removedRemote.containsKey(SCHEMA_NODE_PROPERTY);
-
 					if (unlinked && schemaView.getProperty(schemaNodeKey) == null && StringUtils.isBlank(schemaView.getStaticSchemaNodeName())) {
 
 						StructrApp.getInstance(securityContext).delete(schemaView);

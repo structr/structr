@@ -391,7 +391,6 @@ public abstract class MemoryEntity implements PropertyContainer<Long> {
 		}
 	}
 
-
 	// ----- nested classes -----
 	private static class EntityLock extends ReentrantLock {
 

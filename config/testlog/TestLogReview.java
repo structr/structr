@@ -1129,7 +1129,7 @@ public class TestLogReview {
 			System.out.printf(Locale.ROOT, "  distinct         %d error(s), %d warning(s), %d logged exception(s)%n", errors.size(), warnings.size(), loggedTraces.size());
 
 			// A log with no application lines at all is almost never an empty log. Writing this tool
-			// produced the proof: one invalid character in the test logback.xml turned off ALL test
+			// produced the proof: one invalid character in logback-test.xml turned off ALL test
 			// logging, the suite still passed, and the report looked immaculate -- nothing logged, nothing
 			// wrong. Silence must not read as a clean run.
 			if (appLines == 0 && lineCount > 0) {

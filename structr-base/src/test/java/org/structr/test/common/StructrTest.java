@@ -23,6 +23,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
@@ -83,16 +84,24 @@ public class StructrTest {
 
 		if (!first) {
 
-			try (final Tx tx = app.tx()) {
+			try {
 
-				final DatabaseService db = Services.getInstance().getDatabaseService();
+				// repeated when the database terminates it, e.g. in a deadlock with a background service that the
+				// previous test started, otherwise the next test finds its data
+				RetryException.repeat(() -> {
 
-				// delete everything
-				db.cleanDatabase();
+					try (final Tx tx = app.tx()) {
 
-				FlushCachesCommand.flushAll();
+						final DatabaseService db = Services.getInstance().getDatabaseService();
 
-				tx.success();
+						// delete everything
+						db.cleanDatabase();
+
+						FlushCachesCommand.flushAll();
+
+						tx.success();
+					}
+				});
 
 			} catch (Throwable t) {
 

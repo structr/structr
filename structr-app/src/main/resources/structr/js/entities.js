@@ -3997,7 +3997,6 @@ let _Entities = {
 						</div>
 
 						<div>
-
 							<label class="block mb-2">Options</label>
 
 							<div class="mb-2 flex items-center">
@@ -4050,14 +4049,20 @@ let _Entities = {
 						${_Entities.generalTab.templates.nameTile(config)}
 
 						<div>
-
 							<label class="block mb-2">Options</label>
 
 							${_Entities.generalTab.templates.includeInFrontendExport(config)}
-
 							${_Entities.generalTab.templates.excludeSubtreeFromFrontendExport(config)}
-
 						</div>
+
+						<div>
+							<label class="block mb-2" for="folder-enabledChecksums" class="block" data-comment="
+								Defines the checksums that are calculated automatically for file descendants and overrides the setting <code>application.filesystem.checksums.default</code>.
+								Can itself be overriden by deeper folders.<br><br>Possible values are <code>md5,crc32,sha1,sha512</code>
+								">Enabled Checksum</label>
+							<input type="text" id="folder-enabledChecksums" value="" name="enabledChecksums">
+						</div>
+
 					</div>
 				</div>
 			`,

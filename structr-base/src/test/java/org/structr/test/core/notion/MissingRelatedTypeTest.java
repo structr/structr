@@ -77,6 +77,7 @@ public class MissingRelatedTypeTest extends StructrTest {
 	public void testSchemaReloadWarnsAboutRelationshipWithoutTargetType() {
 
 		if (!supportsCypher()) {
+
 			return;
 		}
 
@@ -108,6 +109,7 @@ public class MissingRelatedTypeTest extends StructrTest {
 	public void testAssignmentWithoutRelatedTypeIsReportedAsSchemaProblem() {
 
 		if (!supportsCypher()) {
+
 			return;
 		}
 
@@ -229,12 +231,9 @@ public class MissingRelatedTypeTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final DatabaseService<?> graphDb  = app.command(GraphDatabaseCommand.class).execute();
-			final NativeQuery<Iterable> query = graphDb.query(
-				"MATCH (r:SchemaRelationshipNode:" + randomTenantId + " { relationshipType: 'ASSIGNED_TO' }) "
+			final NativeQuery<Iterable> query = graphDb.query("MATCH (r:SchemaRelationshipNode:" + randomTenantId + " { relationshipType: 'ASSIGNED_TO' }) "
 				+ "OPTIONAL MATCH (r)-[e:IS_RELATED_TO]->(:SchemaNode) "
-				+ "DELETE e REMOVE r.targetType RETURN DISTINCT r",
-				Iterable.class
-			);
+				+ "DELETE e REMOVE r.targetType RETURN DISTINCT r", Iterable.class);
 
 			final int count = Iterables.count(graphDb.execute(query));
 

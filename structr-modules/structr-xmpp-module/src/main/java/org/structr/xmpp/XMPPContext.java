@@ -556,7 +556,6 @@ public class XMPPContext {
 					try {
 
 						final MultiUserChat chat = manager.getMultiUserChat(JidCreate.entityBareFrom(room.getKey()));
-
 						if (chat.isJoined()) {
 
 							try {

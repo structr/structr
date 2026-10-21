@@ -46,7 +46,7 @@ import static org.testng.AssertJUnit.fail;
 public class RenderDataTest extends DOMTest {
 
 	@Test
-	public void testRenderListFromRestQuery() {
+	public void testRenderListFromFunctionQuery() {
 
 		String name = null;
 

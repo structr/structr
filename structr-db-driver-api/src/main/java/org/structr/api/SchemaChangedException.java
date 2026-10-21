@@ -16,23 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
-
-import org.structr.api.util.ResultStream;
-import org.structr.common.error.FrameworkException;
-import org.structr.schema.action.ActionContext;
-
-import java.util.Map;
+package org.structr.api;
 
 /**
- *
+ * Signals that the database gave up a query because its schema changed too often while the query was compiled, e.g.
+ * while many new indexes come online. Unlike a deadlock, which is resolved as soon as the other transaction is through,
+ * this lasts until the indexes are populated, which takes seconds, so a repetition waits longer, see
+ * {@link RetryException#retry(Exception, int)}.
  */
-public interface ResultTransformer {
+public class SchemaChangedException extends RetryException {
 
-	String getSourceType();
+	public SchemaChangedException(final Throwable cause) {
 
-	ResultStream transformOutput(final ActionContext actionContext, final String sourceType, final ResultStream result) throws FrameworkException;
-	void transformInput(final ActionContext actionContext, final String type, final Map<String, Object> propertySet) throws FrameworkException;
+		super(cause);
+	}
 
-	boolean isPrimitiveArray();
+	public SchemaChangedException(final String message, final Throwable cause) {
+
+		super(message, cause);
+	}
 }

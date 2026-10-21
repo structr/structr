@@ -76,7 +76,6 @@ public class ScriptJob extends ScheduledJob {
 	private SecurityContext getJobSecurityContext() {
 
 		final SecurityContext userContext = (user != null) ? user.getSecurityContext() : null;
-
 		if (userContext != null) {
 
 			return userContext;

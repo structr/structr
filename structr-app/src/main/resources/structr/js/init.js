@@ -1492,14 +1492,25 @@ let Structr = {
 
 				if ((showForAuthUsers && !isForPublicUser) || (showForPublicUsers && isForPublicUser)) {
 
-					let builder = new WarningMessage().title(`REST Access denied`).text(data.message).requiresConfirmation();
+					let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
+					let flags     = _ResourceAccessPermissions.mask[maskIndex] || 0;
+					let builder = new WarningMessage().title(`REST Access denied`).text(data.message).requiresConfirmation().uniqueClass(data.signature + '_' + maskIndex + '_' + (data.userid ?? '')).incrementsUniqueCount();
 
-					let createPermission = (permissionData) => {
+					let createPermission = async (permissionData) => {
 
-						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
-						let flags     = _ResourceAccessPermissions.mask[maskIndex] || 0;
+						let lookupConfig = Object.assign({ signature: data.signature, flags: flags }, structuredClone(permissionData));
 
-						_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, permissionData);
+						// remove "allowed" from grantee config because EntityAndPropertiesContainer via WS QUERY does not support this (and only "read" makes sense)
+						for (let grantee of lookupConfig.grantees) {
+							delete grantee.allowed;
+						}
+
+						let existingResourceAccess = await Command.queryPromise('ResourceAccess', 100, 1, 'name', 'asc', lookupConfig, console.log, false, null, 'id');
+
+						let noExistingPermissions = (existingResourceAccess.length === 0);
+						if (noExistingPermissions) {
+							_ResourceAccessPermissions.createResourceAccessPermission(data.signature, flags, null, permissionData);
+						}
 
 						let resourceAccessKey = 'resource-access';
 

@@ -176,8 +176,8 @@ final class PrefetchStatistics {
 	private static HintStatistics get(final String rawHint) {
 
 		final String hint = rawHint != null ? rawHint : NO_HINT;
-
 		HintStatistics stats = hints.get(hint);
+
 		if (stats == null && hints.size() < MAX_HINTS) {
 
 			stats = hints.computeIfAbsent(hint, k -> new HintStatistics());

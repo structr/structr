@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
+import org.structr.api.RetryException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
@@ -47,6 +48,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.files.sync.StorageSyncService;
+import org.structr.schema.SchemaService;
 import org.structr.storage.sync.SyncSettings;
 import org.structr.storage.sync.VanishPolicy;
 import org.structr.web.entity.AbstractFile;
@@ -91,11 +93,7 @@ public class MigrationService {
 	);
 
 	// actions that were missing from EventActionMappingActions, so migrateCustomEventAction turned them into a method call of that name
-	private static final Set<String> EventActionMappingActionsMigratedToMethod = Set.of(
-		"none",
-		"prev-page",
-		"next-page"
-	);
+	private static final Set<String> EventActionMappingActionsMigratedToMethod = Set.of("none", "prev-page", "next-page");
 
 	private static final Set<String> FQCNBlacklist = Set.of(
 		"org.structr.web.property.ContentPathProperty",
@@ -255,6 +253,55 @@ public class MigrationService {
 		new MigrationStep("warnAboutMountsWithoutSyncService",          Kind.REPORTING, false, apply -> warnAboutMountsWithoutSyncService())
 	);
 
+	/**
+	 * Runs a writing step and repeats it as long as the database terminates its transaction with a transient error.
+	 * Repeating a step is safe because every step finds out for itself what is still to migrate, it runs on every start
+	 * after all. A step that is called in a transaction is not repeated here: only the outermost transaction can be
+	 * repeated, so the RetryException goes on to the caller.
+	 */
+	private static void apply(final MigrationStep step) throws FrameworkException {
+
+		if (TransactionCommand.inTransaction()) {
+
+			step.action().run(true);
+
+			return;
+		}
+
+		RetryException.repeat(() -> step.action().run(true));
+	}
+
+	/**
+	 * Runs a step in a transaction that is rolled back and returns whether it would change the database, repeated like
+	 * a writing step, see apply().
+	 */
+	private static boolean dryRun(final MigrationStep step) throws FrameworkException {
+
+		if (TransactionCommand.inTransaction()) {
+
+			return dryRunOnce(step);
+		}
+
+		return RetryException.repeatAndGet(() -> dryRunOnce(step));
+	}
+
+	private static boolean dryRunOnce(final MigrationStep step) throws FrameworkException {
+
+		try (final Tx dryRun = StructrApp.getInstance().tx()) {
+
+			stepReportedChanges = false;
+
+			step.action().run(false);
+
+			// asked before the rollback, while the queue still holds what the step did. A step that found nothing to
+			// migrate records nothing, and that is what lets an instance with nothing pending start normally instead of
+			// stopping to report no news. A step that writes past the queue reports through stepReportedChanges instead.
+			// Deliberately no dryRun.success(): everything the step did is rolled back.
+
+			return TransactionCommand.currentTransactionHasChanges() || stepReportedChanges;
+		}
+	}
+
 	/** Whether the migrations only report what they would do, instead of changing anything. */
 	public static boolean isDryRun() {
 
@@ -285,6 +332,14 @@ public class MigrationService {
 		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
 			final boolean cypher     = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query");
+
+			// the indexes of a fresh database are created and populated while Structr starts, and the queries of the
+			// steps fail when they are compiled during the population; waiting inside a transaction could block the
+			// index update, so a caller in a transaction relies on the repetition below alone
+			if (!TransactionCommand.inTransaction()) {
+
+				SchemaService.awaitIndexUpdate();
+			}
 
 			if (reportOnly) {
 
@@ -334,24 +389,11 @@ public class MigrationService {
 						// than that step would have committed by itself.
 						logger.info("MigrationService: [dry run] {}", step.name());
 
-						try (final Tx dryRun = StructrApp.getInstance().tx()) {
+						if (dryRun(step)) {
 
-							stepReportedChanges = false;
+							changesPending = true;
 
-							step.action().run(!reportOnly);
-
-							// asked before the rollback, while the queue still holds what the step did. A step
-							// that found nothing to migrate records nothing, and that is what lets an instance
-							// with nothing pending start normally instead of stopping to report no news. A step
-							// that writes past the queue reports through stepReportedChanges instead.
-							if (TransactionCommand.currentTransactionHasChanges() || stepReportedChanges) {
-
-								changesPending = true;
-
-								logger.info("MigrationService: [dry run] {} WOULD CHANGE the database.", step.name());
-							}
-
-							// deliberately no dryRun.success(): everything above is rolled back
+							logger.info("MigrationService: [dry run] {} WOULD CHANGE the database.", step.name());
 						}
 
 					} else {
@@ -361,7 +403,7 @@ public class MigrationService {
 						// Enable debug logging to tell "no output" apart from "the step never ran".
 						logger.debug("MigrationService: {}", step.name());
 
-						step.action().run(!reportOnly);
+						apply(step);
 					}
 				}
 
@@ -1829,7 +1871,12 @@ public class MigrationService {
 				final String restQuery                    = (String) propertyContainer.getProperty("restQuery");
 				final String functionQuery                = (String) propertyContainer.getProperty("functionQuery");
 
-				if (StringUtils.isEmpty(functionQuery) && StringUtils.isNotEmpty(restQuery)) {
+				if (StringUtils.isEmpty(restQuery)) {
+
+					// silently remove empty, non-null restQuery
+					propertyContainer.removeProperty("restQuery");
+
+				} else if (StringUtils.isEmpty(functionQuery)) {
 
 					logger.info("MIGRATING rest QUERY in {} {} to functionQuery.", object.getType(), object.getUuid());
 					propertyContainer.setProperty("functionQuery", "{\n\t/* Migrated REST query, please fix! */\n\t/* " + restQuery + " */\n\n\t$.log('Repeater in ', $.this.type, ' with UUID ', $.this.id, ' needs manual migration of restQuery to functionQuery!');\n}");

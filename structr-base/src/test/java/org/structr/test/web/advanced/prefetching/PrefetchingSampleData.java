@@ -368,8 +368,8 @@ final class PrefetchingSampleData {
 
 			final Page page   = Page.createSimplePage(securityContext, PAGE_NAME);
 			final DOMNode div = page.getElementsByTagName("div").get(0);
-
 			final DOMElement customers = repeater(page, div, functionQuery, dataKey, "find('Customer', sort('name'))", "customer");
+
 			customers.appendChild(page.createTextNode("${customer.name}"));
 
 			final DOMElement projects = repeater(page, customers, functionQuery, dataKey, "customer.projects", "project");

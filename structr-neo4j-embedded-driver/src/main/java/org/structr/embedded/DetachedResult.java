@@ -151,7 +151,6 @@ class DetachedResult implements Iterable<Map<String, Object>> {
 		if (value instanceof NodeReference(final String id)) {
 
 			final EmbeddedTransaction tx = db.getCurrentTransaction();
-
 			if (!tx.nodeExists(id)) {
 
 				throw new NotFoundException("Node with ID " + id + " not found.");
@@ -163,7 +162,6 @@ class DetachedResult implements Iterable<Map<String, Object>> {
 		if (value instanceof RelationshipReference(final String id)) {
 
 			final EmbeddedTransaction tx = db.getCurrentTransaction();
-
 			if (!tx.relationshipExists(id)) {
 
 				throw new NotFoundException("Relationship with ID " + id + " not found.");

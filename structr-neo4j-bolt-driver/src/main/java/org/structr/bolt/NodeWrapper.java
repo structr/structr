@@ -277,6 +277,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 				// No type: this node can be at either end, so neither the source nor the target type is known to be its
 				// type, and a pattern prefetched for one of them says nothing about this node. Each lookup is counted with
 				// its own direction, so that what is learned from it is the query it actually runs.
+
 				return Iterables.flatten(
 					List.of(
 						getRelationshipsFromCache(key1, null, true, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1, relationshipType, Direction.OUTGOING)),
@@ -359,7 +360,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	public void acquireWriteLock() {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
-
 		if (tx.lockedNodes.add(id)) {
 
 			final Map<String, Object> map = new HashMap<>();

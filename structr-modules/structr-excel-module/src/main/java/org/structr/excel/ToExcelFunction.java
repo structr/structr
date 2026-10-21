@@ -75,7 +75,6 @@ public class ToExcelFunction extends Function<Object, Object> {
 		try {
 
 			final int parameterCount = sources.length;
-
 			if (parameterCount < 2) {
 
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Expected at least 2 parameters, got "  + parameterCount);
@@ -96,7 +95,6 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 						final List<GraphObject> nodes = Iterables.toList(it);
 						final ToExcelOptions options = ToExcelOptions.from(getName(), sources, c + 1).validate(getName());
-
 						String propertyView = options.getPropertyView();
 						List<String> properties = options.getProperties();
 
@@ -141,9 +139,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 	@Override
 	public List<Parameter> getParameters() {
 
-		return List.of(
-				Parameter.mandatory("data_1", "Collection of objects (these objects can be database nodes or javascript objects)"),
-				Parameter.mandatory("config_1",
+		return List.of(Parameter.mandatory("data_1", "Collection of objects (these objects can be database nodes or javascript objects)"), Parameter.mandatory("config_1",
 						"""
 								configuration for the previous data parameter\
 								\
@@ -164,10 +160,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 									</li>\
 								</ul>\
 								"""
-				),
-				Parameter.optional("data_N", "same as above"),
-				Parameter.optional("config_N", "same as above")
-		);
+				), Parameter.optional("data_N", "same as above"), Parameter.optional("config_N", "same as above"));
 	}
 
 	@Override
@@ -285,6 +278,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 				if (list.isEmpty()) {
 
 					// empty lists are not an error case. even though we can not print the header names when a view name is given
+
 					return;
 				}
 

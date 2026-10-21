@@ -96,11 +96,13 @@ public class ExchangeBoundRequest extends HttpServletRequestWrapper {
 	public static HttpServletRequest bind(final HttpServletRequest request) {
 
 		if (request == null || request instanceof ExchangeBoundRequest) {
+
 			return request;
 		}
 
 		final ServletApiRequest apiRequest = findApiRequest(request);
 		if (apiRequest == null) {
+
 			return request;
 		}
 
@@ -108,6 +110,7 @@ public class ExchangeBoundRequest extends HttpServletRequestWrapper {
 		if (coreRequest == null) {
 
 			// the exchange has already completed, so there is nothing left to take a snapshot of
+
 			return request;
 		}
 
@@ -118,16 +121,19 @@ public class ExchangeBoundRequest extends HttpServletRequestWrapper {
 		} catch (RuntimeException ex) {
 
 			logger.warn("Unable to take a snapshot of request {}, using it unbound: {}", request.getRequestURI(), ex.getMessage());
+
 			return request;
 		}
 	}
 
 	/** True while the exchange this request was created for has not completed. */
 	public boolean isExchangeActive() {
+
 		return apiRequest.getRequest() == coreRequest;
 	}
 
 	private HttpServletRequest current() {
+
 		return isExchangeActive() ? live : snapshot;
 	}
 
@@ -138,6 +144,7 @@ public class ExchangeBoundRequest extends HttpServletRequestWrapper {
 		while (current != null) {
 
 			if (current instanceof ServletApiRequest apiRequest) {
+
 				return apiRequest;
 			}
 
@@ -157,373 +164,447 @@ public class ExchangeBoundRequest extends HttpServletRequestWrapper {
 	// ----- ServletRequest -----
 	@Override
 	public Object getAttribute(final String name) {
+
 		return current().getAttribute(name);
 	}
 
 	@Override
 	public Enumeration<String> getAttributeNames() {
+
 		return current().getAttributeNames();
 	}
 
 	@Override
 	public String getCharacterEncoding() {
+
 		return current().getCharacterEncoding();
 	}
 
 	@Override
 	public void setCharacterEncoding(final String env) throws UnsupportedEncodingException {
+
 		current().setCharacterEncoding(env);
 	}
 
 	@Override
 	public int getContentLength() {
+
 		return current().getContentLength();
 	}
 
 	@Override
 	public long getContentLengthLong() {
+
 		return current().getContentLengthLong();
 	}
 
 	@Override
 	public String getContentType() {
+
 		return current().getContentType();
 	}
 
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
+
 		return current().getInputStream();
 	}
 
 	@Override
 	public String getParameter(final String name) {
+
 		return current().getParameter(name);
 	}
 
 	@Override
 	public Enumeration<String> getParameterNames() {
+
 		return current().getParameterNames();
 	}
 
 	@Override
 	public String[] getParameterValues(final String name) {
+
 		return current().getParameterValues(name);
 	}
 
 	@Override
 	public Map<String, String[]> getParameterMap() {
+
 		return current().getParameterMap();
 	}
 
 	@Override
 	public String getProtocol() {
+
 		return current().getProtocol();
 	}
 
 	@Override
 	public String getScheme() {
+
 		return current().getScheme();
 	}
 
 	@Override
 	public String getServerName() {
+
 		return current().getServerName();
 	}
 
 	@Override
 	public int getServerPort() {
+
 		return current().getServerPort();
 	}
 
 	@Override
 	public BufferedReader getReader() throws IOException {
+
 		return current().getReader();
 	}
 
 	@Override
 	public String getRemoteAddr() {
+
 		return current().getRemoteAddr();
 	}
 
 	@Override
 	public String getRemoteHost() {
+
 		return current().getRemoteHost();
 	}
 
 	@Override
 	public void setAttribute(final String name, final Object o) {
+
 		current().setAttribute(name, o);
 	}
 
 	@Override
 	public void removeAttribute(final String name) {
+
 		current().removeAttribute(name);
 	}
 
 	@Override
 	public Locale getLocale() {
+
 		return current().getLocale();
 	}
 
 	@Override
 	public Enumeration<Locale> getLocales() {
+
 		return current().getLocales();
 	}
 
 	@Override
 	public boolean isSecure() {
+
 		return current().isSecure();
 	}
 
 	@Override
 	public RequestDispatcher getRequestDispatcher(final String path) {
+
 		return current().getRequestDispatcher(path);
 	}
 
 	@Override
 	public int getRemotePort() {
+
 		return current().getRemotePort();
 	}
 
 	@Override
 	public String getLocalName() {
+
 		return current().getLocalName();
 	}
 
 	@Override
 	public String getLocalAddr() {
+
 		return current().getLocalAddr();
 	}
 
 	@Override
 	public int getLocalPort() {
+
 		return current().getLocalPort();
 	}
 
 	@Override
 	public ServletContext getServletContext() {
+
 		return current().getServletContext();
 	}
 
 	@Override
 	public AsyncContext startAsync() throws IllegalStateException {
+
 		return current().startAsync();
 	}
 
 	@Override
 	public AsyncContext startAsync(final ServletRequest servletRequest, final ServletResponse servletResponse) throws IllegalStateException {
+
 		return current().startAsync(servletRequest, servletResponse);
 	}
 
 	@Override
 	public boolean isAsyncStarted() {
+
 		return current().isAsyncStarted();
 	}
 
 	@Override
 	public boolean isAsyncSupported() {
+
 		return current().isAsyncSupported();
 	}
 
 	@Override
 	public AsyncContext getAsyncContext() {
+
 		return current().getAsyncContext();
 	}
 
 	@Override
 	public DispatcherType getDispatcherType() {
+
 		return current().getDispatcherType();
 	}
 
 	@Override
 	public String getRequestId() {
+
 		return current().getRequestId();
 	}
 
 	@Override
 	public String getProtocolRequestId() {
+
 		return current().getProtocolRequestId();
 	}
 
 	@Override
 	public ServletConnection getServletConnection() {
+
 		return current().getServletConnection();
 	}
 
 	// ----- HttpServletRequest -----
 	@Override
 	public String getAuthType() {
+
 		return current().getAuthType();
 	}
 
 	@Override
 	public Cookie[] getCookies() {
+
 		return current().getCookies();
 	}
 
 	@Override
 	public long getDateHeader(final String name) {
+
 		return current().getDateHeader(name);
 	}
 
 	@Override
 	public String getHeader(final String name) {
+
 		return current().getHeader(name);
 	}
 
 	@Override
 	public Enumeration<String> getHeaders(final String name) {
+
 		return current().getHeaders(name);
 	}
 
 	@Override
 	public Enumeration<String> getHeaderNames() {
+
 		return current().getHeaderNames();
 	}
 
 	@Override
 	public int getIntHeader(final String name) {
+
 		return current().getIntHeader(name);
 	}
 
 	@Override
 	public HttpServletMapping getHttpServletMapping() {
+
 		return current().getHttpServletMapping();
 	}
 
 	@Override
 	public String getMethod() {
+
 		return current().getMethod();
 	}
 
 	@Override
 	public String getPathInfo() {
+
 		return current().getPathInfo();
 	}
 
 	@Override
 	public String getPathTranslated() {
+
 		return current().getPathTranslated();
 	}
 
 	@Override
 	public String getContextPath() {
+
 		return current().getContextPath();
 	}
 
 	@Override
 	public String getQueryString() {
+
 		return current().getQueryString();
 	}
 
 	@Override
 	public String getRemoteUser() {
+
 		return current().getRemoteUser();
 	}
 
 	@Override
 	public boolean isUserInRole(final String role) {
+
 		return current().isUserInRole(role);
 	}
 
 	@Override
 	public Principal getUserPrincipal() {
+
 		return current().getUserPrincipal();
 	}
 
 	@Override
 	public String getRequestedSessionId() {
+
 		return current().getRequestedSessionId();
 	}
 
 	@Override
 	public String getRequestURI() {
+
 		return current().getRequestURI();
 	}
 
 	@Override
 	public StringBuffer getRequestURL() {
+
 		return current().getRequestURL();
 	}
 
 	@Override
 	public String getServletPath() {
+
 		return current().getServletPath();
 	}
 
 	@Override
 	public HttpSession getSession(final boolean create) {
+
 		return current().getSession(create);
 	}
 
 	@Override
 	public HttpSession getSession() {
+
 		return current().getSession();
 	}
 
 	@Override
 	public String changeSessionId() {
+
 		return current().changeSessionId();
 	}
 
 	@Override
 	public boolean isRequestedSessionIdValid() {
+
 		return current().isRequestedSessionIdValid();
 	}
 
 	@Override
 	public boolean isRequestedSessionIdFromCookie() {
+
 		return current().isRequestedSessionIdFromCookie();
 	}
 
 	@Override
 	public boolean isRequestedSessionIdFromURL() {
+
 		return current().isRequestedSessionIdFromURL();
 	}
 
 	@Override
 	public boolean authenticate(final HttpServletResponse response) throws IOException, ServletException {
+
 		return current().authenticate(response);
 	}
 
 	@Override
 	public void login(final String username, final String password) throws ServletException {
+
 		current().login(username, password);
 	}
 
 	@Override
 	public void logout() throws ServletException {
+
 		current().logout();
 	}
 
 	@Override
 	public Collection<Part> getParts() throws IOException, ServletException {
+
 		return current().getParts();
 	}
 
 	@Override
 	public Part getPart(final String name) throws IOException, ServletException {
+
 		return current().getPart(name);
 	}
 
 	@Override
 	public <T extends HttpUpgradeHandler> T upgrade(final Class<T> handlerClass) throws IOException, ServletException {
+
 		return current().upgrade(handlerClass);
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
 	public jakarta.servlet.http.PushBuilder newPushBuilder() {
+
 		return current().newPushBuilder();
 	}
 
 	@Override
 	public Map<String, String> getTrailerFields() {
+
 		return current().getTrailerFields();
 	}
 
 	@Override
 	public boolean isTrailerFieldsReady() {
+
 		return current().isTrailerFieldsReady();
 	}
 }

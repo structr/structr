@@ -111,7 +111,6 @@ public class MailContentHandlerTest {
 					try {
 
 						final Class<?> type = Class.forName(handler, false, getClass().getClassLoader());
-
 						if (!DataContentHandler.class.isAssignableFrom(type)) {
 
 							unusable.add(handler + " from " + file + " is not a javax.activation.DataContentHandler");

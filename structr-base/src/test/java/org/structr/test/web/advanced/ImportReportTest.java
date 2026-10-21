@@ -69,8 +69,7 @@ public class ImportReportTest extends DeploymentTestBase {
 			export(tmp);
 
 			// a script that throws on its last line: everything it did is rolled back with the transaction
-			Files.writeString(tmp.resolve("pre-deploy.conf"),
-				"{\n    $.log('pre-deploy ran');\n    throw new Error('deliberate failure');\n}", StandardCharsets.UTF_8);
+			Files.writeString(tmp.resolve("pre-deploy.conf"), "{\n    $.log('pre-deploy ran');\n    throw new Error('deliberate failure');\n}", StandardCharsets.UTF_8);
 
 			final DeployCommand command = app.command(DeployCommand.class);
 			final Map<String, Object> params = new HashMap<>();
@@ -82,8 +81,7 @@ public class ImportReportTest extends DeploymentTestBase {
 
 			final Object result = command.getCommandResult();
 
-			assertTrue("The import has to answer with a report, not with the empty list that means 'nothing to say'",
-				result instanceof Map);
+			assertTrue("The import has to answer with a report, not with the empty list that means 'nothing to say'", result instanceof Map);
 
 			final Map<String, Object> report = (Map<String, Object>) result;
 
@@ -111,8 +109,7 @@ public class ImportReportTest extends DeploymentTestBase {
 			assertEquals("a script whose transaction rolled back did not apply", Boolean.FALSE, script.get("applied"));
 			assertNotNull("the reason the script failed travels with it", script.get("error"));
 
-			assertTrue("the error should name the failure rather than merely say that one happened: " + script.get("error"),
-				script.get("error").toString().contains("deliberate failure"));
+			assertTrue("the error should name the failure rather than merely say that one happened: " + script.get("error"), script.get("error").toString().contains("deliberate failure"));
 
 			// the file rolls back as a whole, so the line is what turns "it failed" into "fix this line"
 			final Map<String, Object> at = (Map<String, Object>) script.get("at");
@@ -161,14 +158,12 @@ public class ImportReportTest extends DeploymentTestBase {
 
 			assertEquals("a clean import still answers", Boolean.TRUE, report.get("ok"));
 
-			assertTrue("nothing was dropped, so the map is empty rather than absent",
-				((Map<String, Object>) report.get("missingPrincipals")).isEmpty());
+			assertTrue("nothing was dropped, so the map is empty rather than absent", ((Map<String, Object>) report.get("missingPrincipals")).isEmpty());
 
 			// the export writes a post-deploy.conf, and a script that ran without throwing says applied
 			for (final Map<String, Object> script : (List<Map<String, Object>>) report.get("configScripts")) {
 
-				assertEquals("a script that did not throw should be reported as applied: " + script,
-					Boolean.TRUE, script.get("applied"));
+				assertEquals("a script that did not throw should be reported as applied: " + script, Boolean.TRUE, script.get("applied"));
 
 				assertEquals("a script that did not throw carries no error: " + script, null, script.get("error"));
 			}

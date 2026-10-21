@@ -50,7 +50,7 @@ public class CSVModule implements StructrModule {
 	@Override
 	public Set<String> getDependencies() {
 
-		return Set.of("ui", "api-builder");
+		return Set.of("ui");
 	}
 
 	@Override

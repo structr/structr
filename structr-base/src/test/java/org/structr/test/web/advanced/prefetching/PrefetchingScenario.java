@@ -84,10 +84,7 @@ record PrefetchingScenario(String name, String description, String user, boolean
 			ADMIN, true, n -> get("/" + PrefetchingSampleData.PAGE_NAME)
 		));
 
-		scenarios.add(new PrefetchingScenario("page-nested-repeaters-member",
-			"The same page for the non-admin user.",
-			MEMBER, true, n -> get("/" + PrefetchingSampleData.PAGE_NAME)
-		));
+		scenarios.add(new PrefetchingScenario("page-nested-repeaters-member", "The same page for the non-admin user.", MEMBER, true, n -> get("/" + PrefetchingSampleData.PAGE_NAME)));
 
 		scenarios.add(new PrefetchingScenario("method-project-summary",
 			"Schema method: a report over the tasks of a project, each project in turn.",

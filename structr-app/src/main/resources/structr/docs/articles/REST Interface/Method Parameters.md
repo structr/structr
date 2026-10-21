@@ -184,6 +184,20 @@ If a value cannot be converted (e.g. passing `"abc"` for an Integer parameter), 
 
 Without declared parameters, all values pass through as-is. JSON numbers arrive as numbers, strings as strings, objects as maps.
 
+### Unknown Parameters
+
+Once a method declares parameters, it accepts only these parameters. A call that passes any other parameter fails with a `422 Unprocessable Entity` error, and Structr does not execute the method. This applies to REST calls and to calls from scripts, for example `$.this.myMethod({ orderId: 'ORD-1', note: 'x' })` on a method that only declares `orderId` or `call('myFunction', ...)`. The error message names the unknown parameters and the declared ones.
+
+Event Action Mappings are handled differently. Besides the mapped parameters, the frontend also sends the data attributes of the triggering element and, for a form, all of its fields, so the request can contain values you did not intend to pass. Structr drops the values the method does not declare and runs the method, and it writes a warning to the server log, so that a misspelled parameter mapping still shows up.
+
+Callbacks that Structr calls itself, such as `onDownload` or `onOAuthLogin`, are not affected. Structr passes them a fixed set of values, and a callback that declares only some of them still runs. The same applies when you evaluate a method as a property, for example `${this.myMethod}`, which passes the arguments of the current call on to the method.
+
+Structr rejects these calls instead of ignoring the extra values because a parameter that is silently dropped looks like a working call but never reaches your code. A typo in a parameter name would otherwise go unnoticed.
+
+If a method has to accept additional values, for example because different clients send different optional fields, enable **Allow unknown parameters** in the API tab of the method. Structr then still converts the declared parameters, and passes all other parameters on unconverted, so you can read them with `$.args` or `$.retrieve()`. The flag applies to named parameters only. A positional argument, for example an additional path segment of a GET request, has no name under which your code could read it, so it always needs a declared parameter.
+
+Query string parameters are not method parameters. You can read them with `$.request` in any method, regardless of its declared parameters.
+
 ## store() vs. Method Parameters
 
 The `$.store()` / `$.retrieve()` mechanism and method parameters are separate. When you call `$.retrieve('key')`, Structr first checks whether `key` is a method parameter. Only if no parameter with that name exists does it fall back to values stored with `$.store()`.

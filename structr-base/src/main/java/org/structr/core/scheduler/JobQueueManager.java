@@ -83,7 +83,6 @@ public class JobQueueManager {
 	public void pauseRunningJob(final Long jobId) {
 
 		final ScheduledJob job = jobsById.get(jobId);
-
 		if (job != null) {
 
 			job.pauseJob();
@@ -93,7 +92,6 @@ public class JobQueueManager {
 	public void resumePausedJob(final Long jobId) {
 
 		final ScheduledJob job = jobsById.get(jobId);
-
 		if (job != null) {
 
 			job.resumeJob();
@@ -103,7 +101,6 @@ public class JobQueueManager {
 	public void abortActiveJob(final Long jobId) {
 
 		final ScheduledJob job = jobsById.get(jobId);
-
 		if (job != null) {
 
 			job.abortJob();
@@ -113,7 +110,6 @@ public class JobQueueManager {
 	public void cancelQueuedJob(final Long jobId) {
 
 		final ScheduledJob job = jobsById.get(jobId);
-
 		if (job != null && queue(job.getQueueName()).cancelQueued(job)) {
 
 			jobsById.remove(jobId);

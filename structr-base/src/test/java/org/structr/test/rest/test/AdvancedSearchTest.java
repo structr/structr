@@ -1351,7 +1351,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				assertEquals("When searching case-sensitive (ignoreCase = false), we expect 0 results", 0, results.size());
 
-
 				results = SearchNodesCommand.executeSearch("Initial body text", List.of(DatabaseService.GLOBAL_SEARCH_CONTEXT_DOM), true);
 
 				assertEquals("When searching case-insensitive (ignoreCase = true), we expect 1 result",1, results.size());

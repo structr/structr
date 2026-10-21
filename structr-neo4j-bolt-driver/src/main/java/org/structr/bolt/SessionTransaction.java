@@ -336,7 +336,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 	 */
 	protected RetryException terminated(final Throwable tex) {
 
-		final RetryException rex = new RetryException(tex);
+		final RetryException rex = isFrequentSchemaChange(tex) ? new SchemaChangedException(tex) : new RetryException(tex);
 
 		if (terminated == null) {
 
@@ -354,7 +354,15 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		if (terminated != null) {
 
-			throw new RetryException("The database terminated the transaction before it was closed", terminated.getCause());
+			final String message = "The database terminated the transaction before it was closed";
+
+			// the type decides how long the caller waits before the repetition, see RetryException.delay()
+			if (terminated instanceof SchemaChangedException) {
+
+				throw new SchemaChangedException(message, terminated.getCause());
+			}
+
+			throw new RetryException(message, terminated.getCause());
 		}
 	}
 
@@ -555,7 +563,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 			for (final Segment s : p) {
 
 				final org.neo4j.driver.types.Relationship relationship = s.relationship();
-
 				if (relsSeen.add(relationship.id())) {
 
 					getNodeWrapper(s.start()).storeRelationship(getRelationshipWrapper(relationship), true);
@@ -885,6 +892,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 	public static RuntimeException translateDatabaseException(final DatabaseException dex) {
 
+		if (isFrequentSchemaChange(dex)) {
+
+			throw new SchemaChangedException(dex);
+		}
+
 		switch (dex.code()) {
 
 			case "Neo.DatabaseError.General.UnknownError":
@@ -901,6 +913,24 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 		// wrap exception if no other cause could be found
 		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
+	}
+
+	/**
+	 * Whether the given error is transient although Neo4j does not report it as a TransientException, so that only a
+	 * repetition of the whole transaction can succeed. Cypher gives up compiling a query when the schema changes too often
+	 * while it compiles, e.g. while freshly created indexes are populated, and reports that with the generic code
+	 * Neo.DatabaseError.General.UnknownError, so only the message identifies it.
+	 */
+	static boolean isFrequentSchemaChange(final Throwable t) {
+
+		if (!(t instanceof DatabaseException dex)) {
+
+			return false;
+		}
+
+		final String message = dex.getMessage();
+
+		return "Neo.DatabaseError.General.UnknownError".equals(dex.code()) && message != null && message.contains("insanely frequent schema changes");
 	}
 
 	/**
@@ -994,7 +1024,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 		// the set is shared by all transactions with this hint and is iterated in prefetchHint() while other
 		// requests learn or combine patterns, so it must allow concurrent modification (ticket 1420)
 		final Set<PrefetchInfo> infos = prefetchInfos.computeIfAbsent(prefetchHint, k -> new CopyOnWriteArraySet<>());
-
 		if (infos.contains(info)) {
 
 			return;
