@@ -19,6 +19,8 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.ee10.servlet.ServletApiRequest;
 import org.eclipse.jetty.ee10.servlet.ServletChannel;
@@ -98,7 +100,7 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 				// the browser's session cookie identifies the connection, so the page never has to read it (HttpOnly)
 				if (isOriginTrustedForSessionCookie(request)) {
 
-					webSocket.setHandshakeSessionId(apiRequest.getRequestedSessionId());
+					webSocket.setHandshakeSessionId(getSessionCookie(apiRequest));
 				}
 			}
 
@@ -171,6 +173,32 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 
 			return false;
 		}
+	}
+
+	/** The upgrade handler runs before the SessionHandler, so the requested session id is not resolved yet: read the cookie itself. */
+	private String getSessionCookie(final HttpServletRequest request) {
+
+		final String requested = request.getRequestedSessionId();
+		if (requested != null) {
+
+			return requested;
+		}
+
+		final String name       = StringUtils.defaultIfBlank(request.getServletContext().getSessionCookieConfig().getName(), "JSESSIONID");
+		final Cookie[] cookies = request.getCookies();
+
+		if (cookies != null) {
+
+			for (final Cookie cookie : cookies) {
+
+				if (name.equals(cookie.getName()) && StringUtils.isNotBlank(cookie.getValue())) {
+
+					return cookie.getValue();
+				}
+			}
+		}
+
+		return null;
 	}
 
 	private List<String> getAcceptedOrigins() {
