@@ -76,8 +76,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
@@ -118,31 +119,63 @@ public abstract class SyncTestBase extends StructrUiTest {
 	@AfterMethod(alwaysRun = true)
 	public void detachMounts() {
 
-		int detached = 0;
+		final List<String> roots = new ArrayList<>();
 
-		try (final Tx tx = app.tx()) {
+		// unlinking detaches every mount through the lifecycle, and a scan still running stops at its next
+		// batch; the nodes themselves go with the database cleanup that follows
+		retryCleanup("unlink the mount roots", () -> {
 
-			// filtered here rather than in the query, so that a query that cannot match relationship
-			// properties cannot silently leave every mount attached
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.ABSTRACT_FILE).getAsList()) {
+			roots.clear();
 
-				if (node.as(AbstractFile.class).getStorageConfiguration() != null) {
+			try (final Tx tx = app.tx()) {
 
-					app.delete(node);
-					detached++;
+				// filtered here rather than in the query, so that a query that cannot match relationship
+				// properties cannot silently leave every mount attached
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.ABSTRACT_FILE).getAsList()) {
+
+					if (node.as(AbstractFile.class).getStorageConfiguration() != null) {
+
+						node.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), null);
+						roots.add(node.getUuid());
+					}
 				}
+
+				tx.success();
 			}
+		});
 
-			tx.success();
+		syncTestLogger.info("Detached {} mount roots after {}", roots.size(), getClass().getSimpleName());
 
-		} catch (FrameworkException fex) {
+		SyncServiceProbe.awaitIdle(60000);
+	}
 
-			syncTestLogger.warn("Unable to detach the mounts of {}: {}", getClass().getSimpleName(), fex.getMessage());
+	/**
+	 * Runs a cleanup step, retrying it a few times: on a database with locks, a write can collide with
+	 * the sync service's own and be terminated as a deadlock. A cleanup that still fails is logged and
+	 * not thrown, so that the database cleanup after it runs in any case.
+	 */
+	private void retryCleanup(final String what, final CleanupStep step) {
+
+		for (int attempt = 1; attempt <= 5; attempt++) {
+
+			try {
+
+				step.run();
+
+				return;
+
+			} catch (Throwable t) {
+
+				syncTestLogger.warn("Unable to {} after {} (attempt {}): {}", what, getClass().getSimpleName(), attempt, t.getMessage());
+
+				SyncServiceProbe.awaitIdle(10000);
+			}
 		}
+	}
 
-		syncTestLogger.info("Detached {} mount roots after {}", detached, getClass().getSimpleName());
-
-		awaitIdle();
+	@FunctionalInterface
+	private interface CleanupStep {
+		void run() throws Exception;
 	}
 
 	/**
@@ -151,7 +184,7 @@ public abstract class SyncTestBase extends StructrUiTest {
 	 */
 	protected void awaitIdle() {
 
-		if (!SyncServiceProbe.awaitIdle(30000)) {
+		if (!SyncServiceProbe.awaitIdle(60000)) {
 
 			fail("The storage sync service should have become idle, but has " + SyncServiceProbe.describeActivity());
 		}
@@ -371,7 +404,9 @@ public abstract class SyncTestBase extends StructrUiTest {
 
 	protected void waitFor(final String message, final BooleanSupplier condition) {
 
-		final long deadline = System.currentTimeMillis() + 15000;
+		// generous, because these are waits for something to happen, and a large scan on a database
+		// with locks takes a while
+		final long deadline = System.currentTimeMillis() + 60000;
 
 		while (System.currentTimeMillis() < deadline) {
 

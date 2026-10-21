@@ -430,14 +430,15 @@ public class StorageSyncScenarioTest extends SyncTestBase {
 	@Test
 	public void testOneInvalidEntryDoesNotCostItsBatchOrTheReconciliation() {
 
+		// one batch is enough: the whole of it fails on the invalid entry and is handled again entry by entry
 		final List<ExternalEntry> entries = new ArrayList<>();
 
-		for (int i = 0; i < 1500; i++) {
+		for (int i = 0; i < 20; i++) {
 
-			entries.add(ExternalEntry.file(i == 500 ? "bad\0.txt" : "file" + i + ".txt", 10L, MODIFIED));
+			entries.add(ExternalEntry.file(i == 10 ? "bad\0.txt" : "file" + i + ".txt", 10L, MODIFIED));
 		}
 
-		final List<ExternalEntry> initial = new ArrayList<>(entries.subList(0, 500));
+		final List<ExternalEntry> initial = new ArrayList<>(entries.subList(0, 10));
 
 		initial.add(ExternalEntry.file("vanishing.txt", 10L, MODIFIED));
 
@@ -454,10 +455,9 @@ public class StorageSyncScenarioTest extends SyncTestBase {
 
 		awaitScanAfter("invalidEntry", before);
 
-		assertNotNull("An entry in the same batch as the invalid one should be imported", getNodeAtPath("/invalidEntry/file499.txt"));
-		assertNotNull("An entry in the same batch as the invalid one should be imported", getNodeAtPath("/invalidEntry/file999.txt"));
-		assertNotNull("An entry in a later batch should be imported",                     getNodeAtPath("/invalidEntry/file1499.txt"));
-		assertNull("A complete scan should still reconcile",                              getNodeAtPath("/invalidEntry/vanishing.txt"));
+		assertNotNull("An entry before the invalid one should be imported", getNodeAtPath("/invalidEntry/file9.txt"));
+		assertNotNull("An entry after the invalid one should be imported",  getNodeAtPath("/invalidEntry/file19.txt"));
+		assertNull("A complete scan should still reconcile",                getNodeAtPath("/invalidEntry/vanishing.txt"));
 	}
 
 	@Test

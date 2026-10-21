@@ -184,6 +184,13 @@ class ScanJob implements Runnable {
 					return false;
 				}
 
+				if (!isStillAttached()) {
+
+					logger.info("Stopping the scan of {}: the mount was detached", target.syncRootPath());
+
+					return false;
+				}
+
 				if (!syncRootExists()) {
 
 					logger.info("Stopping the scan of {}: its sync root no longer exists", target.syncRootPath());
@@ -236,6 +243,15 @@ class ScanJob implements Runnable {
 		}
 
 		return false;
+	}
+
+	/**
+	 * @return false once the mount this scan belongs to was detached or attached anew, for example after
+	 * its configuration changed: what is left of this scan would then write on behalf of a mount that no
+	 * longer exists in this form
+	 */
+	private boolean isStillAttached() {
+		return service.getActiveSync(target.syncRootUuid()) == sync;
 	}
 
 	private boolean syncRootExists() {
@@ -318,7 +334,7 @@ class ScanJob implements Runnable {
 
 		while (it.hasNext()) {
 
-			if (!service.isReady()) {
+			if (!service.isReady() || !isStillAttached()) {
 
 				return -1;
 			}
