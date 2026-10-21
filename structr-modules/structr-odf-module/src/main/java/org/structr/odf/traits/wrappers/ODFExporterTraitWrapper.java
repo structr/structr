@@ -18,14 +18,23 @@
  */
 package org.structr.odf.traits.wrappers;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.PropertyMapping;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.odf.entity.ODFExporter;
 import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
-import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for ODF exporter
@@ -64,14 +73,69 @@ public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements
 		wrappedObject.setProperty(traits.key(ODFExporterTraitDefinition.RESULT_DOCUMENT_PROPERTY), resultDocument);
 	}
 
-	public VirtualType getTransformationProvider() {
+	/**
+	 * Parses the JSON mapping of this exporter. Its keys are the targets (cell addresses or
+	 * field names), each value is either the name of the source property or an object with
+	 * the keys "source" and/or "output", the latter being a script that receives the
+	 * exported object as "input".
+	 */
+	public PropertyMapping getPropertyMapping() throws FrameworkException {
 
-		final NodeInterface node = getProperty(traits.key(ODFExporterTraitDefinition.TRANSFORMATION_PROVIDER_PROPERTY));
-		if (node != null) {
+		final String json = wrappedObject.getProperty(traits.key(ODFExporterTraitDefinition.PROPERTY_MAPPING_PROPERTY));
+		if (StringUtils.isBlank(json)) {
 
-			return node.as(VirtualType.class);
+			return null;
 		}
 
-		return null;
+		final List<PropertyMapping.Entry> entries = new LinkedList<>();
+
+		try {
+
+			for (final Map.Entry<String, JsonElement> entry : JsonParser.parseString(json).getAsJsonObject().entrySet()) {
+
+				final String target       = entry.getKey();
+				final JsonElement element = entry.getValue();
+
+				if (element.isJsonObject()) {
+
+					final JsonObject object = element.getAsJsonObject();
+
+					entries.add(new PropertyMapping.Entry(getString(object, "source", target), target, null, getString(object, "output", target)));
+
+				} else {
+
+					entries.add(new PropertyMapping.Entry(asString(element, target), target, null, null));
+				}
+			}
+
+		} catch (JsonParseException | IllegalStateException | UnsupportedOperationException ex) {
+
+			throw new FrameworkException(422, "Invalid property mapping for " + getName() + ": " + ex.getMessage());
+		}
+
+		return new PropertyMapping(entries);
+	}
+
+	// ----- private methods -----
+	private String getString(final JsonObject object, final String key, final String target) {
+
+		final JsonElement element = object.get(key);
+		if (element == null || element.isJsonNull()) {
+
+			return null;
+		}
+
+		return asString(element, target);
+	}
+
+	// only accepts strings, Gson would silently convert numbers and single-element arrays
+	private String asString(final JsonElement element, final String target) {
+
+		if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
+
+			return element.getAsString();
+		}
+
+		throw new IllegalStateException("Expected a string for target '" + target + "', got " + element);
 	}
 }

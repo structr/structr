@@ -74,6 +74,7 @@ public class AuthHelper {
 
 	// Per-user lock objects for atomic failed login counter updates
 	private static final ConcurrentHashMap<String, Object> userLocks = new ConcurrentHashMap<>();
+	private static final long USER_WRITE_TIMEOUT_MS                  = 10_000L;
 
 	/**
 	 * Find a {@link Principal} for the given credential
@@ -577,14 +578,7 @@ public class AuthHelper {
 
 			t.start();
 
-			try {
-
-				t.join();
-
-			} catch (InterruptedException iex) {
-
-				Thread.currentThread().interrupt();
-			}
+			joinUserWrite(t, uuid, "Incrementing the failed login attempts counter");
 		}
 	}
 
@@ -731,22 +725,43 @@ public class AuthHelper {
 
 			t.start();
 
-			try {
-
-				t.join();
-
-			} catch (InterruptedException iex) {
-
-				Thread.currentThread().interrupt();
-			}
+			joinUserWrite(t, uuid, "Registering a failed two-factor attempt");
 		}
 
 		return tokenInvalidated.get();
 	}
 
+	/** Waits for a write on a user node in its own transaction, but not forever: the caller's transaction may hold that node's lock. */
+	public static void joinUserWrite(final Thread thread, final String uuid, final String what) {
+
+		try {
+
+			thread.join(USER_WRITE_TIMEOUT_MS);
+
+			if (thread.isAlive()) {
+
+				logger.warn("{} for user {} is still waiting for the user node after {} ms, probably locked by the calling transaction; it is applied once that transaction ends.", what, uuid, USER_WRITE_TIMEOUT_MS);
+			}
+
+		} catch (InterruptedException iex) {
+
+			Thread.currentThread().interrupt();
+		}
+	}
+
 	public static void resetFailedLoginAttemptsCounter (final Principal principal) {
 
-		final String uuid = principal.getUuid();
+		final String uuid           = principal.getUuid();
+		final Integer failedAttempts = principal.getPasswordAttempts();
+
+		// nothing to reset: the usual login writes nothing, so it cannot wait for a lock its own transaction holds
+		if (failedAttempts == null || failedAttempts == 0) {
+
+			userLocks.remove(uuid);
+
+			return;
+		}
+
 		final Object lock = userLocks.computeIfAbsent(uuid, k -> new Object());
 
 		synchronized (lock) {
@@ -780,14 +795,7 @@ public class AuthHelper {
 
 			t.start();
 
-			try {
-
-				t.join();
-
-			} catch (InterruptedException iex) {
-
-				Thread.currentThread().interrupt();
-			}
+			joinUserWrite(t, uuid, "Resetting the failed login attempts counter");
 		}
 
 		// Remove lock entry on successful login to prevent unbounded map growth
@@ -868,7 +876,6 @@ public class AuthHelper {
 	public static boolean isTwoFactorRequiredForUser(final Principal principal) {
 
 		final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
-
 		final boolean twoFactorForced   = (twoFactorLevel == 2);
 		final boolean twoFactorOptional = (twoFactorLevel == 1);
 

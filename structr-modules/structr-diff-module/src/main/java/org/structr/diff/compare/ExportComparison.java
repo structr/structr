@@ -89,7 +89,6 @@ public final class ExportComparison {
 			final List<Entity> a     = parsedLeft.entities();
 			final List<Entity> b     = parsedRight.entities();
 			final List<Delta> deltas = new Matcher(a, b).getDeltas();
-
 			final Map<String, Object> congruence = Congruence.of(a, b, parsedLeft.structrVersion(), parsedRight.structrVersion(), taken(left), taken(right));
 			final Map<String, Object> report     = DiffReport.of(left.getName(), right.getName(), a, b, deltas, congruence);
 

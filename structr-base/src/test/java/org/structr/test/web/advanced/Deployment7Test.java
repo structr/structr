@@ -25,21 +25,24 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 import org.structr.web.traits.definitions.SiteTraitDefinition;
 import org.testng.annotations.Test;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -262,7 +265,6 @@ public class Deployment7Test extends DeploymentTestBase {
 			final PropertyKey<Iterable<NodeInterface>> linkingPagesKey = Traits.of(StructrTraits.PAGE).key("linkingPages");
 			final PropertyKey<Iterable<NodeInterface>> linkingFilesFromPagesKey = Traits.of(StructrTraits.PAGE).key("linkedFiles");
 			final PropertyKey<Iterable<NodeInterface>> linkingPagesFromFileKey = Traits.of(StructrTraits.FILE).key("linkingPages");
-
 			final NodeInterface page1 = app.nodeQuery(StructrTraits.PAGE).name("test01").getFirst();
 			final NodeInterface page2 = app.nodeQuery(StructrTraits.PAGE).name("test02").getFirst();
 			final NodeInterface file  = app.nodeQuery(StructrTraits.FILE).name("myfile.txt").getFirst();
@@ -291,6 +293,105 @@ public class Deployment7Test extends DeploymentTestBase {
 			assertEquals(file.getUuid(), linkedFiles2.getFirst().getUuid());
 
 			assertEquals(2, linkedPagesFromFile.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test75FileIsTrustedFlagSurvivesDeployment() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface templateFile = FileHelper.createFile(securityContext, """
+				blah blah
+				""".getBytes(), "text/plain", StructrTraits.FILE, "myfile.txt", true);
+
+			templateFile.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
+			templateFile.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.TRUSTED_PROPERTY), true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+
+		} catch (IOException e) {
+
+			fail("Unexpected IOException.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			// assert that the link is still there after the deployment roundtrip
+			final File file  = app.nodeQuery(StructrTraits.FILE).name("myfile.txt").getFirst().as(File.class);
+
+			assertNotNull(file);
+
+			assertTrue("File was configured as trusted, should still be trusted after deployment roundtrip", file.isTrusted());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test76FolderEnabledChecksumsSurvivesDeployment() {
+
+		Long checksumCrc32 = null;
+		String checksumSha1 = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = FileHelper.createFolderPath(securityContext, "/myFolder").as(Folder.class);
+			folder.setProperty(folder.getTraits().key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
+			folder.setProperty(folder.getTraits().key(FolderTraitDefinition.ENABLED_CHECKSUMS_PROPERTY), "crc32,sha1");
+
+			final File file = FileHelper.createFile(securityContext, new ByteArrayInputStream("""
+				blah blah
+				""".getBytes()), "text/plain", StructrTraits.FILE, "myfile.txt", folder).as(File.class);
+
+			checksumCrc32 = file.getProperty(file.getTraits().key(FileTraitDefinition.CRC32_PROPERTY));
+			checksumSha1 = file.getProperty(file.getTraits().key(FileTraitDefinition.SHA1_PROPERTY));
+
+			assertNotNull(checksumCrc32);
+			assertNotNull(checksumSha1);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+
+		} catch (IOException e) {
+
+			fail("Unexpected IOException.");
+		}
+
+		// test
+		compare(calculateHash(), true, true);
+
+		try (final Tx tx = app.tx()) {
+
+			// assert that the link is still there after the deployment roundtrip
+			final File file  = app.nodeQuery(StructrTraits.FILE).name("myfile.txt").getFirst().as(File.class);
+
+			assertNotNull(file);
+
+			assertEquals("crc32 should be identical after deployment roundtrip", checksumCrc32, file.getProperty(file.getTraits().key(FileTraitDefinition.CRC32_PROPERTY)));
+			assertEquals("sha1 should be identical after deployment roundtrip", checksumSha1, file.getProperty(file.getTraits().key(FileTraitDefinition.SHA1_PROPERTY)));
 
 			tx.success();
 

@@ -19,6 +19,7 @@
 package org.structr.xmpp.handler;
 
 import org.jivesoftware.smack.packet.Presence;
+import org.structr.xmpp.XMPPClient;
 import org.structr.xmpp.XMPPContext.StructrXMPPConnection;
 
 /**
@@ -30,6 +31,6 @@ public class PresenceTypeHandler implements TypeHandler<Presence> {
 	@Override
 	public void handle(final StructrXMPPConnection connection, final Presence presence) {
 
-		// not implemented yet..
+		XMPPClient.onPresence(connection, presence);
 	}
 }

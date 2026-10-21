@@ -486,7 +486,8 @@ let _Graph = {
 					throw 'not ok';
 				}
 			}).then(data => {
-				_Graph.processQueryResults(data.result);
+				let nodeData = (Array.isArray(data.result)) ? data.result : [data.result];
+				_Graph.processQueryResults(nodeData);
 				// _Graph.saveQuery(query, 'rest');
 			}).catch(e => {
 				_Helpers.blinkRed($('.search[name="rest"]'));

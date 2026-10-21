@@ -305,9 +305,7 @@ abstract class PrefetchingSuiteBase extends StructrUiTest {
 
 			final long allocated0 = allocatedBytes();
 			final long t0         = System.nanoTime();
-
 			final HttpResponse<String> response = http.send(request(scenario, n), HttpResponse.BodyHandlers.ofString());
-
 			final double millis   = (System.nanoTime() - t0) / 1_000_000.0;
 			final long allocated  = allocatedBytes() - allocated0;
 

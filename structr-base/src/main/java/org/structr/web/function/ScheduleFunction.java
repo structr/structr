@@ -58,7 +58,6 @@ public class ScheduleFunction extends UiAdvancedFunction {
 			final ScheduleOptions options         = ScheduleOptions.fromAnyOf(sources, 3, 1, 2).validate();
 			final boolean hasTitle                = sources.length >= 2 && !ScheduleOptions.isOptionsAt(sources, 1);
 			final boolean hasOnFinish             = sources.length >= 3 && !ScheduleOptions.isOptionsAt(sources, 2);
-
 			final String jobName                  = hasTitle ? sources[1].toString() : "Untitled script job";
 			final Object jobFinishedScript        = hasOnFinish ? sources[2] : null;
 			final SecurityContext securityContext = ctx.getSecurityContext();

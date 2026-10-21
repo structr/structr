@@ -19,7 +19,6 @@
 module structr.odf.module {
 
     requires structr.base;
-    requires structr.api.builder.module;
     requires odfdom.java;
 
     provides org.structr.module.StructrModule with

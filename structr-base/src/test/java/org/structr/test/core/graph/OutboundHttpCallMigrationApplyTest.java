@@ -18,7 +18,15 @@
  */
 package org.structr.test.core.graph;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
+import org.structr.common.RequestParameters;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.OutboundHttpCallMigrationHandler;
@@ -26,9 +34,13 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.common.StructrTest;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -70,6 +82,46 @@ public class OutboundHttpCallMigrationApplyTest extends StructrTest {
 		migrate(true);
 
 		final String migrated = textOf(id);
+
+		assertTrue("the octet-stream call must gain binaryResponse: " + migrated, migrated.contains("$.GET(url, 'application/octet-stream', { binaryResponse: true })"));
+
+		assertTrue("the text/html call must gain a selector: " + migrated, migrated.contains("$.GET(downloadUrl, 'text/html', { selector: 'title' })"));
+
+		assertTrue("the charset must be folded into the content type: " + migrated, migrated.contains("$.POST(url, body, 'application/json; charset=UTF-8')"));
+
+		// the call whose charset is an expression was reported MANUAL, so it must be left as it was
+		assertTrue("a MANUAL finding must not be rewritten: " + migrated, migrated.contains("$.POST(url, body, 'application/json', charset)"));
+	}
+
+	@Test
+	public void testApplyRewritesInDynamicFiles() {
+
+		String id = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface templateFile = FileHelper.createFile(securityContext, OLD_SOURCE.getBytes(), "text/plain", StructrTraits.FILE, "myfile.txt", true);
+
+			templateFile.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), true);
+
+			id = templateFile.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// the dry run first: it must change nothing at all
+		migrate(false);
+
+		assertEquals("a dry run must leave the source untouched", OLD_SOURCE, textOfDynamicFile(id));
+
+		migrate(true);
+
+		final String migrated = textOfDynamicFile(id);
 
 		assertTrue("the octet-stream call must gain binaryResponse: " + migrated, migrated.contains("$.GET(url, 'application/octet-stream', { binaryResponse: true })"));
 
@@ -162,6 +214,39 @@ public class OutboundHttpCallMigrationApplyTest extends StructrTest {
 
 			fex.printStackTrace();
 			fail("Unexpected exception while reading the mail template.");
+		}
+
+		return null;
+	}
+
+	private String textOfDynamicFile(final String id) {
+
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		securityContext.setRequestParameter(RequestParameters.EditMode.getName(), "1");
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final File file = app.getNodeById(StructrTraits.FILE, id).as(File.class);
+
+			try (final InputStream is = file.getInputStream()) {
+
+				return new Scanner(is, StandardCharsets.UTF_8).useDelimiter("\\A").next();
+
+			} catch (IOException ioex) {
+
+				return null;
+
+			} finally {
+
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while reading the file content.");
 		}
 
 		return null;

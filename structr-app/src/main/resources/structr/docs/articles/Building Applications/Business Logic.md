@@ -379,6 +379,18 @@ Or use `$.assert()` for simple condition checks:
 }
 ```
 
+The condition must be the boolean `true` for the request to continue; any other value aborts it, including a node, a list, a number and a string. Compare explicitly:
+
+```javascript
+{
+    // wrong: $.me is a node, not a boolean, so this aborts for every signed-in user
+    $.assert($.me, 401, 'Please sign in.');
+
+    // right
+    $.assert($.me != null, 401, 'Please sign in.');
+}
+```
+
 ### Catching Errors
 
 To handle errors without aborting the transaction:

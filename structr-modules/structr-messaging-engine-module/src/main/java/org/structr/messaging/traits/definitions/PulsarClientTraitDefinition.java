@@ -41,12 +41,14 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.messaging.engine.AfterCommit;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.messaging.traits.wrappers.PulsarClientTraitWrapper;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.action.ActionContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,26 +125,31 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 						return new RestMethodResult(400, "PulsarClient " + client.getUuid() + " has no servers specified");
 					}
 
-					try (PulsarClient pulsarClient = PulsarClient.builder()
-						.serviceUrl(String.join(",", client.getServers()))
-						.build()) {
+					final String serviceUrl = String.join(",", client.getServers());
 
-						try (Producer<byte[]> producer = pulsarClient.newProducer()
-							.topic(topic)
-							.messageRoutingMode(MessageRoutingMode.SinglePartition)
-							.create()) {
+					// sent once the sending transaction has committed, so that a repeated transaction does not send twice
+					// and a rolled back one not at all
+					AfterCommit.run(() -> {
 
-							producer.send(message.getBytes());
+						try (PulsarClient pulsarClient = PulsarClient.builder()
+							.serviceUrl(serviceUrl)
+							.build()) {
 
-							return new RestMethodResult(200);
+							try (Producer<byte[]> producer = pulsarClient.newProducer()
+								.topic(topic)
+								.messageRoutingMode(MessageRoutingMode.SinglePartition)
+								.create()) {
+
+								producer.send(message.getBytes(StandardCharsets.UTF_8));
+							}
+
+						} catch (PulsarClientException ex) {
+
+							LoggerFactory.getLogger(PulsarClientTraitDefinition.class).error("Exception in PulsarClient.sendMessage.", ex);
 						}
+					});
 
-					} catch (PulsarClientException ex) {
-
-						LoggerFactory.getLogger(PulsarClientTraitDefinition.class).error("Exception in PulsarClient.sendMessage.", ex);
-
-						return new RestMethodResult(500);
-					}
+					return new RestMethodResult(200);
 				}
 
 				@Override

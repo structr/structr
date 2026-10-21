@@ -172,8 +172,8 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 					.build();
 
 			final GraphObjectMap modifications = modificationQueue.getModifications(graphObject);
-
 			final Map<String, Object> parameters = new LinkedHashMap<>();
+
 			parameters.put(KEYWORD_MODIFICATIONS, modifications);
 
 			securityContext.getContextStore().setConstant(KEYWORD_MODIFICATIONS, modifications);

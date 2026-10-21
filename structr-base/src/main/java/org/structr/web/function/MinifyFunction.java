@@ -99,6 +99,7 @@ public class MinifyFunction extends UiAdvancedFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
+
 			return null;
 
 		} catch (ArgumentCountException pe) {
@@ -167,7 +168,6 @@ public class MinifyFunction extends UiAdvancedFunction {
 	private File resolveSource(final SecurityContext securityContext, final Object value) throws FrameworkException {
 
 		final NodeInterface node = value instanceof NodeInterface n ? n : FileHelper.getFileByAbsolutePath(securityContext, value.toString());
-
 		if (node == null || !node.is(StructrTraits.FILE)) {
 
 			throw new FrameworkException(422, "Unable to minify " + value + ": not a file");

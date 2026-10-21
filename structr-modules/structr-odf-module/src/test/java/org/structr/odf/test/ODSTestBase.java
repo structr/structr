@@ -24,7 +24,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.TraitsManager;
 import org.structr.odf.entity.relationship.ODFExporterEXPORTS_TOFile;
-import org.structr.odf.entity.relationship.ODFExporterGETS_TRANSFORMATION_FROMVirtualType;
 import org.structr.odf.entity.relationship.ODFExporterUSES_TEMPLATEFile;
 import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODSExporterTraitDefinition;
@@ -39,12 +38,10 @@ public class ODSTestBase extends StructrUiTest {
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new ODFExporterEXPORTS_TOFile());
-		StructrTraits.registerTrait(new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());
 		StructrTraits.registerTrait(new ODFExporterUSES_TEMPLATEFile());
 
-		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE,                       StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
-		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
-		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE,                    StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE,    StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE, StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
 
 		StructrTraits.registerTrait(new ODFExporterTraitDefinition());
 		StructrTraits.registerTrait(new ODSExporterTraitDefinition());

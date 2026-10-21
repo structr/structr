@@ -38,9 +38,9 @@ public class SchemaResourceTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 
-				.body("result", hasSize(23))
-				.body("result_count", equalTo(23))
-				.body("result[20].format", equalTo("available, away, chat, dnd, xa"))
+				.body("result", hasSize(22))
+				.body("result_count", equalTo(22))
+				.body("result.find { it.jsonName == 'presenceMode' }.format", equalTo("available, away, chat, dnd, xa"))
 
 			.when()
 				.get("/_schema/XMPPClient/all");

@@ -100,12 +100,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 			// isolate request authentication in a transaction
 			// Ensure CORS settings apply by letting the authenticator examine the request.
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				authenticator = getConfig().getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
-			}
+			authenticator   = getConfig().getAuthenticator();
+			securityContext = authenticate(authenticator, request, response);
 
 			// isolate resource authentication
 			final App app = StructrApp.getInstance(securityContext);
