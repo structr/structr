@@ -2722,6 +2722,7 @@ public class ScriptingTest extends StructrTest {
 	public void testFindNewlyCreatedObjectByOwner () {
 
 		String userObjects        = "[";
+		String secondObject       = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -2773,7 +2774,7 @@ public class ScriptingTest extends StructrTest {
 			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
-			userObjects += ", " + Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
+			secondObject = Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
 
 			tx.success();
 
@@ -2789,7 +2790,8 @@ public class ScriptingTest extends StructrTest {
 			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
-			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
+			// newest first, because 'desc' after a sort key is the descending order
+			assertEquals("User should be able to find newly created object!", "[" + secondObject + ", " + userObjects.substring(1) + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
 
 			tx.success();
 
