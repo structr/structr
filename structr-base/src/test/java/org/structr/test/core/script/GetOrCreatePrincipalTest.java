@@ -73,8 +73,7 @@ public class GetOrCreatePrincipalTest extends StructrTest {
 
 			assertEquals("the refusal should be a 422", 422, expected.getStatus());
 
-			assertTrue("the message should name what already exists: " + expected.getMessage(),
-				expected.getMessage().contains("team"));
+			assertTrue("the message should name what already exists: " + expected.getMessage(), expected.getMessage().contains("team"));
 		}
 	}
 
@@ -100,8 +99,7 @@ public class GetOrCreatePrincipalTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// the ordinary case the function exists for: the query finds it, so the guard never runs
-			final Object result = Scripting.evaluate(new ActionContext(securityContext), null,
-				"${{ $.getOrCreate('Group', { name: 'editors' }).id; }}", "test");
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.getOrCreate('Group', { name: 'editors' }).id; }}", "test");
 
 			assertEquals("an existing principal of the same type must still be returned", existingId, result);
 
@@ -119,8 +117,7 @@ public class GetOrCreatePrincipalTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Object result = Scripting.evaluate(new ActionContext(securityContext), null,
-				"${{ $.getOrCreate('Group', { name: 'nobody-else-has-this-name' }).id; }}", "test");
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.getOrCreate('Group', { name: 'nobody-else-has-this-name' }).id; }}", "test");
 
 			assertNotNull("a principal whose name is free must still be created", result);
 
@@ -151,8 +148,7 @@ public class GetOrCreatePrincipalTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// the ambiguity only matters between principals, so nothing else is second-guessed
-			final Object result = Scripting.evaluate(new ActionContext(securityContext), null,
-				"${{ $.getOrCreate('MailTemplate', { name: 'shared-name' }).id; }}", "test");
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.getOrCreate('MailTemplate', { name: 'shared-name' }).id; }}", "test");
 
 			assertNotNull("a non-principal type sharing a name with a group must still be created", result);
 

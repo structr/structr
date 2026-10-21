@@ -967,6 +967,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		if (propertySet != null) {
 
 			// handlers may remove entries, e.g. PATCH removes the id, so a repeated transaction needs a fresh copy
+
 			return new LinkedHashMap<>(propertySet.getAttributes());
 		}
 

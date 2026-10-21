@@ -323,7 +323,6 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 
 						String[] topicFragments = msg.getTopicName().split("/");
 						String topic = topicFragments[topicFragments.length - 1];
-
 						final org.structr.messaging.implementation.pulsar.PulsarClient client = thisClient;
 
 						client.forwardReceivedMessage(new ActionContext(client.getSecurityContext()), topic, new String(msg.getData(), StandardCharsets.UTF_8));

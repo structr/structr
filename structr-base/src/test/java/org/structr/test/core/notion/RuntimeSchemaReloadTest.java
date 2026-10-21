@@ -85,6 +85,7 @@ public class RuntimeSchemaReloadTest extends StructrTest {
 	public void testAssignmentAfterAddingMethodsWithPrefetchingAndAbstractNodeLabels() {
 
 		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+
 			return;
 		}
 

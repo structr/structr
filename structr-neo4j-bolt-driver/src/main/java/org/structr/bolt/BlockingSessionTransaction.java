@@ -309,6 +309,7 @@ class BlockingSessionTransaction extends SessionTransaction {
 			final Result result    = tx.run(query.getStatement(), query.getParameters());
 
 			// a result can be read only once, like the iterable that ReactiveSessionTransaction returns
+
 			return timed(timer, () -> new TranslatingIterator(result));
 
 		} catch (RuntimeException ex) {
@@ -387,6 +388,7 @@ class BlockingSessionTransaction extends SessionTransaction {
 		if (ex instanceof TransientException tex) {
 
 			closed = true;
+
 			return terminated(tex);
 		}
 
@@ -403,18 +405,21 @@ class BlockingSessionTransaction extends SessionTransaction {
 		if (ex instanceof DatabaseException dex && SessionTransaction.isFrequentSchemaChange(dex)) {
 
 			closed = true;
+
 			return terminated(dex);
 		}
 
 		if (ex instanceof DatabaseException dex) {
 
 			isRolledBack = true;
+
 			return SessionTransaction.translateDatabaseException(dex);
 		}
 
 		if (ex instanceof ClientException cex) {
 
 			isRolledBack = true;
+
 			return SessionTransaction.translateClientException(cex);
 		}
 

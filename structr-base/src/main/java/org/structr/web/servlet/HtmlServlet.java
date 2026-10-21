@@ -1816,19 +1816,23 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		switch (mode) {
 
 			case "inline":
+
 				return false;
 
 			case "attachment":
+
 				return true;
 
 			case "sandbox":
 				break;
 
 			default:
+
 				if ("production".equals(Settings.InstanceStage.getValue(""))) {
 
 					return true;
 				}
+
 				break;
 		}
 
@@ -1861,6 +1865,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		} catch (IllegalArgumentException iae) {
 
 			// a referrer we cannot parse is not one we can accept
+
 			return false;
 		}
 	}

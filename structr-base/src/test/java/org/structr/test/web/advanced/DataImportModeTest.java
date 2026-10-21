@@ -308,8 +308,7 @@ public class DataImportModeTest extends StructrUiTest {
 			assertEquals("with the number of records it holds", 2L, ((Number) mine.get("count")).longValue());
 
 			// a type nobody created anything of is not worth exporting and is left out
-			assertTrue("a type without records should not be listed: " + types,
-				types.stream().allMatch(t -> ((Number) t.get("count")).longValue() > 0));
+			assertTrue("a type without records should not be listed: " + types, types.stream().allMatch(t -> ((Number) t.get("count")).longValue() > 0));
 
 		} catch (final Throwable t) {
 
@@ -349,11 +348,9 @@ public class DataImportModeTest extends StructrUiTest {
 			// the import completes; what was missing was any statement that it touched user records at all
 			assertEquals("the import itself should still succeed", 200, cmd.getCommandStatusCode());
 
-			assertTrue("the archive carries User records, and the import has to say so: " + DeployCommand.embeddedUserTypes,
-				DeployCommand.embeddedUserTypes.contains("User"));
+			assertTrue("the archive carries User records, and the import has to say so: " + DeployCommand.embeddedUserTypes, DeployCommand.embeddedUserTypes.contains("User"));
 
-			assertFalse("a type that is not a user type must not be reported as one",
-				DeployCommand.embeddedUserTypes.contains(TYPE));
+			assertFalse("a type that is not a user type must not be reported as one", DeployCommand.embeddedUserTypes.contains(TYPE));
 
 		} catch (final Throwable t) {
 

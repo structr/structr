@@ -77,7 +77,6 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 	public void testCreateWithAbstractNodeCreatesTheTypeFromTheTypeParameter() {
 
 		final String buttonUuid = setupCreateButton();
-
 		final String createdType = postEvent(buttonUuid, Map.of("type", "Item", "name", "Dynamic item"), 200)
 			.jsonPath().getString("result.type");
 
@@ -120,10 +119,7 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 
 			relationshipButtonUuid = btn.getUuid();
 
-			createMapping(btn, Map.of(
-				ActionMappingTraitDefinition.ACTION_PROPERTY,    "create",
-				ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE
-			));
+			createMapping(btn, Map.of(ActionMappingTraitDefinition.ACTION_PROPERTY,    "create", ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE));
 
 			tx.success();
 
@@ -192,6 +188,49 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 			.jsonPath().getMap("result");
 
 		assertEquals("A static method must see only the mapped parameters in $.arguments, like an instance method", Map.of("note", "from the page"), arguments);
+	}
+
+	@Test
+	public void testUnknownParametersOfAMethodWithDefinedParametersAreDropped() {
+
+		String buttonUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Item");
+
+			type.addMethod("summarize", "{ return $.arguments; }").setIsStatic(true).addParameter("note", "String");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			final Page page      = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page.getElementsByTagName("div").get(0);
+			final DOMElement btn = createElement(page, div, "button", "call-static");
+
+			buttonUuid = btn.getUuid();
+
+			createMapping(btn, Map.of(
+				ActionMappingTraitDefinition.ACTION_PROPERTY,        "method",
+				ActionMappingTraitDefinition.METHOD_PROPERTY,        "summarize",
+				ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, "Item"
+			));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// frontend.js also sends data attributes that have nothing to do with the action, here one of Bootstrap
+		final Map<String, Object> arguments = postEvent(buttonUuid, Map.of("note", "from the page", "bsToggle", "modal"), 200)
+			.jsonPath().getMap("result");
+
+		assertEquals("An event action mapping must drop the values a method with defined parameters does not define, not reject the call", Map.of("note", "from the page"), arguments);
 	}
 
 	// ----- sign-out -----
@@ -311,10 +350,7 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 
 			buttonUuid = btn.getUuid();
 
-			createMapping(btn, Map.of(
-				ActionMappingTraitDefinition.ACTION_PROPERTY,    "create",
-				ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, "Item"
-			));
+			createMapping(btn, Map.of(ActionMappingTraitDefinition.ACTION_PROPERTY,    "create", ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, "Item"));
 
 			tx.success();
 
@@ -551,8 +587,7 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 		assertEquals("An element that is only a failure hide target must render data-structr-id", failureHideUuid,
 			doc.getElementById("failure-hide").attr(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY));
 
-		assertFalse("An element without any action mapping relation renders no data-structr-id",
-			doc.getElementById("unrelated").hasAttr(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY));
+		assertFalse("An element without any action mapping relation renders no data-structr-id", doc.getElementById("unrelated").hasAttr(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY));
 	}
 
 	@Test
@@ -757,10 +792,7 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 
 			buttonUuid = btn.getUuid();
 
-			createMapping(btn, Map.of(
-				ActionMappingTraitDefinition.ACTION_PROPERTY,    "create",
-				ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, "AbstractNode"
-			));
+			createMapping(btn, Map.of(ActionMappingTraitDefinition.ACTION_PROPERTY,    "create", ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, "AbstractNode"));
 
 			tx.success();
 
@@ -787,7 +819,6 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 			final DOMNode div      = page.getElementsByTagName("div").get(0);
 			final DOMElement save  = createElement(page, div, "button", "save");
 			final DOMElement other = createElement(page, div, "button", "other");
-
 			final Traits traits     = Traits.of(StructrTraits.ACTION_MAPPING);
 			final NodeInterface eam = createMapping(save, Map.of(
 				ActionMappingTraitDefinition.ACTION_PROPERTY,            "create",
@@ -806,10 +837,7 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 				new NodeAttribute<>(parameterTraits.key(ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY), "kept")
 			);
 
-			createMapping(other, Map.of(
-				ActionMappingTraitDefinition.ACTION_PROPERTY,    "create",
-				ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, "Item"
-			));
+			createMapping(other, Map.of(ActionMappingTraitDefinition.ACTION_PROPERTY,    "create", ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, "Item"));
 
 			tx.success();
 
@@ -928,10 +956,7 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 
 				final DOMElement btn = createElement(page, div, "button", entry.getKey());
 
-				createMapping(btn, Map.of(
-					ActionMappingTraitDefinition.ACTION_PROPERTY, "method",
-					ActionMappingTraitDefinition.METHOD_PROPERTY, entry.getValue()
-				));
+				createMapping(btn, Map.of(ActionMappingTraitDefinition.ACTION_PROPERTY, "method", ActionMappingTraitDefinition.METHOD_PROPERTY, entry.getValue()));
 
 				ids.put(entry.getKey(), btn.getUuid());
 			}
@@ -982,10 +1007,7 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 				final NodeInterface item = app.create("Item", "Item " + name);
 				final DOMElement btn     = createElement(page, div, "button", "update-" + name.toLowerCase());
 
-				createMapping(btn, Map.of(
-					ActionMappingTraitDefinition.ACTION_PROPERTY,        "update",
-					ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, item.getUuid()
-				));
+				createMapping(btn, Map.of(ActionMappingTraitDefinition.ACTION_PROPERTY,        "update", ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, item.getUuid()));
 
 				ids.put("item" + name,   item.getUuid());
 				ids.put("button" + name, btn.getUuid());
@@ -1091,7 +1113,6 @@ public class EventActionMappingServerSideTest extends DeploymentTestBase {
 	private Set<String> requestKeys(final Map<String, String> attrs) {
 
 		final String keys = attrs.get("data-structr-request-keys");
-
 		if (keys == null) {
 
 			return Set.of();

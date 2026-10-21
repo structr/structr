@@ -167,6 +167,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		// the mapping sets the constant "input", which must not leak into the caller's context
+
 		return mapping.transformOutput(new ActionContext(actionContext), source);
 	}
 

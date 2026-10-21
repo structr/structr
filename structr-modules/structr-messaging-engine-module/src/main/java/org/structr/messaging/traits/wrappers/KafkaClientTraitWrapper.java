@@ -321,6 +321,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 				}
 
 				// the group id is null for a client without one, then the consumer uses a group of its own
+
 				return !Objects.equals(currentGroupId, cId);
 
 			} catch (FrameworkException ex) {

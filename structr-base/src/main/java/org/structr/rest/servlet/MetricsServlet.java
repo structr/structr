@@ -43,7 +43,6 @@ public class MetricsServlet extends AbstractDataServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(MetricsServlet.class);
 
-
 	public MetricsServlet() {
 
 		servlet = new io.prometheus.client.servlet.jakarta.exporter.MetricsServlet();

@@ -112,7 +112,6 @@ public class ServerLogResource extends ExactMatchEndpoint {
 				try {
 
 					final Path path = Path.of(logFile);
-
 					if (ServerLogReader.isCompressed(path)) {
 
 						if (since != null) {

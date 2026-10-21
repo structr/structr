@@ -92,10 +92,7 @@ public class PropertyMappingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyMapping mapping = new PropertyMapping(List.of(
-				new PropertyMapping.Entry("name", "Item name", "error('must not be called')", null)
-			));
-
+			final PropertyMapping mapping = new PropertyMapping(List.of(new PropertyMapping.Entry("name", "Item name", "error('must not be called')", null)));
 			final Map<String, Object> input = new LinkedHashMap<>();
 
 			mapping.transformInput(new ActionContext(securityContext), input);

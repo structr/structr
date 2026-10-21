@@ -528,6 +528,7 @@ public class MQTTTest extends MessagingTestBase {
 		final Traits clientTraits     = Traits.of(StructrTraits.MQTT_CLIENT);
 		final Traits subscriberTraits = Traits.of(StructrTraits.MESSAGE_SUBSCRIBER);
 		final MqttClient publisher    = connectTestClient();
+
 		final String subscriberId;
 		final String clientId;
 
@@ -609,6 +610,7 @@ public class MQTTTest extends MessagingTestBase {
 
 		final Traits clientTraits     = Traits.of(StructrTraits.MQTT_CLIENT);
 		final Traits subscriberTraits = Traits.of(StructrTraits.MESSAGE_SUBSCRIBER);
+
 		final ClientSetup setup;
 
 		try (final Tx tx = app.tx()) {

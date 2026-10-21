@@ -71,6 +71,7 @@ public final class HttpStatsSnapshot {
 			if (savedInterval != interval) {
 
 				logger.info("Not restoring HTTP access statistics from {}, they were recorded at an aggregation interval of {} ms and the current one is {} ms", file, savedInterval, interval);
+
 				return;
 			}
 

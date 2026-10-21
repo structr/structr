@@ -62,6 +62,7 @@ public interface SchemaMethod extends NodeInterface {
 	boolean isStaticMethod();
 	boolean isPrivateMethod();
 	boolean returnRawResult();
+	boolean allowUnknownParameters();
 
 	String getHttpVerb();
 

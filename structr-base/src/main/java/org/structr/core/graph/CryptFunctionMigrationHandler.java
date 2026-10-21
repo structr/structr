@@ -150,8 +150,8 @@ public class CryptFunctionMigrationHandler {
 
 		final String type = StructrTraits.FILE;
 		final Traits traits = Traits.of(type);
-
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
 		securityContext.setRequestParameter(RequestParameters.EditMode.getName(), "1");
 
 		final App app = StructrApp.getInstance(securityContext);

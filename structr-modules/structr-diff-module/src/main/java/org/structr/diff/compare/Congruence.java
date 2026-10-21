@@ -231,6 +231,7 @@ public class Congruence {
 		both.retainAll(b);
 
 		// the smaller side on purpose, not the union: uuids do not collide, so a contained export is one lineage, and Jaccard would read a grown app as a different one
+
 		return (double) both.size() / Math.min(a.size(), b.size());
 	}
 

@@ -144,10 +144,7 @@ public class ODFExportTest extends ODSTestBase {
 			final File template      = createTemplate("template.odt", createTextTemplate("title", "list", "empty", "untouched"));
 			final NodeInterface node = createExporter(StructrTraits.ODT_EXPORTER, template);
 
-			setPropertyMapping(node,
-				new String[] { "name", "title", null },
-				new String[] { null,   "list",  "split('x,y,z')" },
-				new String[] { null,   "empty", "null" }
+			setPropertyMapping(node, new String[] { "name", "title", null }, new String[] { null,   "list",  "split('x,y,z')" }, new String[] { null,   "empty", "null" }
 			);
 
 			exporterId = node.getUuid();

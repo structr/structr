@@ -87,11 +87,7 @@ public class MigrationService {
 	);
 
 	// actions that were missing from EventActionMappingActions, so migrateCustomEventAction turned them into a method call of that name
-	private static final Set<String> EventActionMappingActionsMigratedToMethod = Set.of(
-		"none",
-		"prev-page",
-		"next-page"
-	);
+	private static final Set<String> EventActionMappingActionsMigratedToMethod = Set.of("none", "prev-page", "next-page");
 
 	private static final Set<String> FQCNBlacklist = Set.of(
 		"org.structr.web.property.ContentPathProperty",

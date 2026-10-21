@@ -112,7 +112,6 @@ public class PrefetchingCostModelTest extends StructrUiTest {
 
 					final int lookups = (int) Math.round(size * share);
 					final String hint = "Prefetching cost model: " + size + " items, " + lookups + " lookups";
-
 					final double[] with    = new double[SAMPLES];
 					final double[] without = new double[SAMPLES];
 
@@ -291,7 +290,6 @@ public class PrefetchingCostModelTest extends StructrUiTest {
 			if (hint.equals(entry.get("hint"))) {
 
 				final List<Map<String, Object>> patterns = (List<Map<String, Object>>) entry.get("patterns");
-
 				if (!patterns.isEmpty()) {
 
 					return patterns.get(0);

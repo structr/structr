@@ -145,7 +145,6 @@ public class ExcelTest extends StructrUiTest {
 
 			final Principal admin = createAdminUser().as(Principal.class);
 			final ActionContext actionContext = new ActionContext(SecurityContext.getInstance(admin, AccessMode.Backend));
-
 			final String structrScript = migrate("${setContent(create('File', 'name', 'migrated_structrscript.xlsx'), toExcel(find('User'), ['name', 'id'], true, false, '', 2, 't'), 'ISO-8859-1')}");
 			final String javaScript    = migrate("${{ $.setContent($.create('File', 'name', 'migrated_javascript.xlsx'), $.toExcel($.find('User'), 'public'), 'ISO-8859-1'); }}");
 

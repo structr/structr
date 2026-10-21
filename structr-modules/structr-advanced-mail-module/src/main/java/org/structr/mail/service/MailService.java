@@ -127,6 +127,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 
 			final Thread thread = new Thread(runnable, "MailFetch-" + threadNumber.incrementAndGet());
 			thread.setDaemon(true);
+
 			return thread;
 		});
 	}
@@ -252,6 +253,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 	public String getName() {
 
 		// what Thread.getName() answered while the service was still a thread
+
 		return "MailService";
 	}
 
@@ -753,7 +755,6 @@ public class MailService implements RunnableService, MailServiceInterface {
 		void advance(final String folder, final long uidValidity, final long uid) {
 
 			final Folder f = folders.computeIfAbsent(folder, k -> new Folder());
-
 			if (f.uidValidity != uidValidity) {
 
 				f.uidValidity = uidValidity;
@@ -825,6 +826,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 				logger.debug("Fetching mailbox [{}] on {}, folders {}", mailboxUuid, host, Arrays.toString(config.folders()));
 
 				store = connectToStore(config);
+
 				if (store != null && store.isConnected()) {
 
 					connected = true;
@@ -946,6 +948,7 @@ public class MailService implements RunnableService, MailServiceInterface {
 				final String name     = folder.getFullName();
 				final UIDFolder uids  = folder instanceof UIDFolder u ? u : null;
 				final long validity   = uids != null ? uids.getUIDValidity() : -1;
+
 				final List<Message> batch;
 
 				if (uids != null && state.lastUid(name, validity) >= 0) {
@@ -977,7 +980,6 @@ public class MailService implements RunnableService, MailServiceInterface {
 					try (final Tx tx = StructrApp.getInstance().tx()) {
 
 						final Mailbox mailbox = loadMailbox();
-
 						if (importMessage(StructrApp.getInstance(), gson, mailbox, message)) {
 
 							created++;
@@ -1090,7 +1092,6 @@ public class MailService implements RunnableService, MailServiceInterface {
 		}
 
 		private boolean importMessage(final App app, final Gson gson, final Mailbox mailbox, final Message message) throws Exception {
-
 
 			final PropertyMap pm  = new PropertyMap();
 			final String from = message.getFrom() != null ? Arrays.stream(message.getFrom()).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.isEmpty() ? b : a + "," + b) : "";

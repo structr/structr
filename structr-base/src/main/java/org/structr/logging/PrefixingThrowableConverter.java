@@ -46,7 +46,6 @@ public class PrefixingThrowableConverter extends ThrowableProxyConverter {
 		}
 
 		final String scratchPadLogString = mdcKey != null ? MDC.get(mdcKey) : null;
-
 		if (scratchPadLogString == null) {
 
 			return stack;

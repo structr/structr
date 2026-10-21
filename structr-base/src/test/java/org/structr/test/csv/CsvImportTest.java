@@ -806,12 +806,9 @@ public class CsvImportTest extends CsvTestBase {
 		transforms.put("comment",  "{ $.get('input') + '-js'; }");
 		transforms.put("unmapped", "'set by transform'");
 
-		importCsv(
-			"id;Item name;comment;unmapped\n" +
+		importCsv("id;Item name;comment;unmapped\n" +
 			"1;one;first;x\n" +
-			"2;two;;y",
-			params
-		);
+			"2;two;;y", params);
 
 		try (final Tx tx = app.tx()) {
 
@@ -879,14 +876,11 @@ public class CsvImportTest extends CsvTestBase {
 		mappings.put("originId", "id");
 		mappings.put("tags",     "Tag list");
 
-		importCsv(
-			"id;Tag list\n" +
+		importCsv("id;Tag list\n" +
 			"1;[a,b,c]\n" +
 			"2;[d]\n" +
 			"3;[]\n" +
-			"4;",
-			params
-		);
+			"4;", params);
 
 		try (final Tx tx = app.tx()) {
 
@@ -946,13 +940,10 @@ public class CsvImportTest extends CsvTestBase {
 		mappings.put("originId", "id");
 		mappings.put("name",     "name");
 
-		importCsv(
-			"id;name\n" +
+		importCsv("id;name\n" +
 			"1;one\n" +
 			"1;one\n" +
-			"2;two",
-			params
-		);
+			"2;two", params);
 
 		try (final Tx tx = app.tx()) {
 
@@ -1027,11 +1018,8 @@ public class CsvImportTest extends CsvTestBase {
 
 		transforms.put("role", "upper(input)");
 
-		importCsv(
-			"from;to;role\n" +
-			projectId + ";" + taskId + ";lead",
-			params
-		);
+		importCsv("from;to;role\n" +
+			projectId + ";" + taskId + ";lead", params);
 
 		try (final Tx tx = app.tx()) {
 
