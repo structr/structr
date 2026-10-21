@@ -31,4 +31,13 @@ public interface XMPPInfo {
 	public int getPort();
 
 	public String getUuid();
+
+	/**
+	 * The presence mode that the client announces after it has logged in, the name of a Presence.Mode, or null for
+	 * available.
+	 */
+	public default String getPresenceMode() {
+
+		return null;
+	}
 }

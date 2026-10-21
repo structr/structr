@@ -18,6 +18,7 @@
  */
 package org.structr.messaging.traits.definitions;
 
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -39,6 +40,7 @@ import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.messaging.engine.AfterCommit;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.implementation.mqtt.MQTTClientConnection;
 import org.structr.messaging.implementation.mqtt.MQTTContext;
@@ -60,6 +62,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_CONNECTED_PROPERTY         = "isConnected";
 	public static final String USERNAME_PROPERTY             = "username";
 	public static final String PASSWORD_PROPERTY             = "password";
+	public static final String CLEAN_SESSION_PROPERTY        = "cleanSession";
 
 	public MQTTClientTraitDefinition() {
 
@@ -111,12 +114,17 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 					final MQTTClient client = graphObject.as(MQTTClient.class);
 					final Traits traits     = client.getTraits();
 
-					if (modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.FALLBACK_BROKER_URLS_PROPERTY))) {
+					// the connection options are fixed when the connection is created, so a change needs a new connection
+					final boolean connectionChanged = modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY))
+						|| modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.FALLBACK_BROKER_URLS_PROPERTY))
+						|| modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.CLEAN_SESSION_PROPERTY));
+
+					if (connectionChanged) {
 
 						MQTTContext.disconnect(client);
 					}
 
-					if (modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.FALLBACK_BROKER_URLS_PROPERTY))) {
+					if (connectionChanged || modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY))) {
 
 						MQTTClientConnection connection = MQTTContext.getClientForId(client.getUuid());
 						boolean enabled = client.getIsEnabled();
@@ -194,7 +202,21 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 						final MQTTClientConnection connection = MQTTContext.getClientForId(client.getUuid());
 						if (connection != null && connection.isConnected()) {
 
-							connection.sendMessage(topic, message);
+							final int qos = client.as(MQTTClient.class).getQos();
+
+							// published once the sending transaction has committed, so that a repeated transaction does not
+							// publish twice and a rolled back one not at all
+							AfterCommit.run(() -> {
+
+								try {
+
+									connection.sendMessage(topic, message, qos);
+
+								} catch (FrameworkException ex) {
+
+									LoggerFactory.getLogger(MQTTClientTraitDefinition.class).error("Unable to publish MQTT message on topic {} after the commit: {}", topic, ex.getMessage());
+								}
+							});
 
 						} else {
 
@@ -254,8 +276,9 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isConnectedProperty         = new BooleanProperty(IS_CONNECTED_PROPERTY).readOnly();
 		final Property<String> usernameProperty             = new StringProperty(USERNAME_PROPERTY);
 		final Property<String> passwordProperty             = new StringProperty(PASSWORD_PROPERTY);
+		final Property<Boolean> cleanSessionProperty        = new BooleanProperty(CLEAN_SESSION_PROPERTY).defaultValue(false);
 
-		return newSet(mainBrokerURLProperty, fallbackBrokerURLsProperty, qosProperty, isEnabledProperty, isConnectedProperty, usernameProperty, passwordProperty);
+		return newSet(mainBrokerURLProperty, fallbackBrokerURLsProperty, qosProperty, isEnabledProperty, isConnectedProperty, usernameProperty, passwordProperty, cleanSessionProperty);
 	}
 
 	/**
@@ -269,11 +292,11 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY
+					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, CLEAN_SESSION_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, USERNAME_PROPERTY, PASSWORD_PROPERTY
+					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, CLEAN_SESSION_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, USERNAME_PROPERTY, PASSWORD_PROPERTY
 			)
 		);
 	}

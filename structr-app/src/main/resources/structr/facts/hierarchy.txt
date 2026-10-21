@@ -80,6 +80,7 @@ Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/JDBC
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/MongoDB.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/FTP.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Message Brokers.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/XMPP.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Server-Sent Events.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Host Script Execution.md"
 Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/RSS Feeds.md"

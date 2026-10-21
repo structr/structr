@@ -476,6 +476,15 @@ public class SecurityContext {
 		return getRequestParameter(name) != null;
 	}
 
+	public void setRequestParameter(final String name, final String value) {
+
+		// this is only allowed and used for superusers to allow fetching file content of dynamic files when there is no request available
+		if (isSuperUser()) {
+
+			requestParameters.put(name, List.of(value));
+		}
+	}
+
 	public String getRequestParameter(final String name) {
 
 		final List<String> values = requestParameters.get(name);

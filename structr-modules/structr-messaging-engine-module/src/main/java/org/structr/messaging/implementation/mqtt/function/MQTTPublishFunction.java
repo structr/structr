@@ -49,12 +49,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 
 		if (sources != null && sources.length == 3 && sources[0] != null && sources[1] != null && sources[2] != null) {
 
-			MQTTClient client = null;
-
-			if(sources[0] instanceof MQTTClient){
-
-				client = (MQTTClient)sources[0];
-			}
+			final MQTTClient client = toMQTTClient(sources[0]);
 
 			if(client == null){
 

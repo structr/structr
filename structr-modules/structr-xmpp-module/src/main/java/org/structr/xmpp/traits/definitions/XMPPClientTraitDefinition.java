@@ -19,6 +19,7 @@
 package org.structr.xmpp.traits.definitions;
 
 import org.jivesoftware.smack.packet.Presence.Mode;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -29,10 +30,11 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -56,16 +58,15 @@ import java.util.Set;
  */
 public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String PENDING_REQUESTS_PROPERTY = "pendingRequests";
-	public static final String XMPP_HANDLE_PROPERTY      = "xmppHandle";
-	public static final String XMPP_USERNAME_PROPERTY    = "xmppUsername";
-	public static final String XMPP_PASSWORD_PROPERTY    = "xmppPassword";
-	public static final String XMPP_SERVICE_PROPERTY     = "xmppService";
-	public static final String XMPP_HOST_PROPERTY        = "xmppHost";
-	public static final String XMPP_PORT_PROPERTY        = "xmppPort";
-	public static final String PRESENCE_MODE_PROPERTY    = "presenceMode";
-	public static final String IS_ENABLED_PROPERTY       = "isEnabled";
-	public static final String IS_CONNECTED_PROPERTY     = "isConnected";
+	public static final String XMPP_HANDLE_PROPERTY   = "xmppHandle";
+	public static final String XMPP_USERNAME_PROPERTY = "xmppUsername";
+	public static final String XMPP_PASSWORD_PROPERTY = "xmppPassword";
+	public static final String XMPP_SERVICE_PROPERTY  = "xmppService";
+	public static final String XMPP_HOST_PROPERTY     = "xmppHost";
+	public static final String XMPP_PORT_PROPERTY     = "xmppPort";
+	public static final String PRESENCE_MODE_PROPERTY = "presenceMode";
+	public static final String IS_ENABLED_PROPERTY    = "isEnabled";
+	public static final String IS_CONNECTED_PROPERTY  = "isConnected";
 
 	public XMPPClientTraitDefinition() {
 
@@ -86,6 +87,8 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 					if (client.getIsEnabled()) {
 
 						XMPPContext.connect(client);
+
+						client.setIsConnected(XMPPContext.isConnected(client.getUuid()));
 					}
 				}
 			},
@@ -95,36 +98,53 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					final XMPPClient client         = graphObject.as(XMPPClient.class);
+					final Traits traits             = client.getTraits();
+					final boolean enabled           = client.getIsEnabled();
 					XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-					boolean enabled                 = client.getIsEnabled();
 
-					if (!enabled) {
+					// Only enabling and disabling change the connection. The connection records its state on the client
+					// when it is lost or restored, and that change must not open a second connection next to the
+					// reconnection that is under way, or stop the reconnection.
+					if (modificationQueue.isPropertyModified(client, traits.key(IS_ENABLED_PROPERTY))) {
+
+						if (!enabled) {
+
+							// also while the connection is lost, to stop the reconnection
+							if (connection != null) {
+
+								connection.disconnect();
+							}
+
+							client.setIsConnected(false);
+
+						} else {
+
+							if (connection == null || !connection.isConnected()) {
+
+								XMPPContext.connect(client);
+							}
+
+							connection = XMPPContext.getClientForId(client.getUuid());
+
+							if (connection != null) {
+
+								if (connection.isConnected()) {
+
+									client.setIsConnected(true);
+									connection.setPresence(XMPPContext.getPresenceMode(client.getPresenceMode()));
+
+								} else {
+
+									client.setIsConnected(false);
+								}
+							}
+						}
+
+					} else if (enabled && modificationQueue.isPropertyModified(client, traits.key(PRESENCE_MODE_PROPERTY))) {
 
 						if (connection != null && connection.isConnected()) {
 
-							connection.disconnect();
-						}
-
-					} else {
-
-						if (connection == null || !connection.isConnected()) {
-
-							XMPPContext.connect(client);
-						}
-
-						connection = XMPPContext.getClientForId(client.getUuid());
-
-						if (connection != null) {
-
-							if (connection.isConnected()) {
-
-								client.setIsConnected(true);
-								connection.setPresence(Mode.valueOf(client.getPresenceMode()));
-
-							} else {
-
-								client.setIsConnected(false);
-							}
+							connection.setPresence(XMPPContext.getPresenceMode(client.getPresenceMode()));
 						}
 					}
 				}
@@ -167,25 +187,11 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final XMPPClient client = entity.as(XMPPClient.class);
-					if (client.getIsEnabled()) {
+					final Map<String, Object> data = arguments.toMap();
+					final String recipient         = (String)data.get("recipient");
+					final String message           = (String)data.get("message");
 
-						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-						if (connection.isConnected()) {
-
-							final Map<String, Object> data = arguments.toMap();
-							final String recipient         = (String)data.get("recipient");
-							final String message           = (String)data.get("message");
-
-							connection.sendMessage(recipient, message);
-
-						} else {
-
-							throw new FrameworkException(422, "Not connected.");
-						}
-					}
-
-					return new RestMethodResult(200);
+					return sendAfterCommit(entity, connection -> connection.sendMessage(recipient, message));
 				}
 			},
 
@@ -194,25 +200,9 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final XMPPClient client = entity.as(XMPPClient.class);
-					if (client.getIsEnabled()) {
+					final String recipient = (String)arguments.toMap().get("recipient");
 
-						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-						if (connection.isConnected()) {
-
-							final Map<String, Object> data = arguments.toMap();
-							final String recipient         = (String)data.get("recipient");
-							final String message           = (String)data.get("message");
-
-							connection.subscribe(recipient);
-
-						} else {
-
-							throw new FrameworkException(422, "Not connected.");
-						}
-					}
-
-					return new RestMethodResult(200);
+					return sendAfterCommit(entity, connection -> connection.subscribe(recipient));
 				}
 			},
 
@@ -221,24 +211,9 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final XMPPClient client = entity.as(XMPPClient.class);
-					if (client.getIsEnabled()) {
+					final String recipient = (String)arguments.toMap().get("recipient");
 
-						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-						if (connection.isConnected()) {
-
-							final Map<String, Object> data = arguments.toMap();
-							final String recipient         = (String)data.get("recipient");
-
-							connection.unsubscribe(recipient);
-
-						} else {
-
-							throw new FrameworkException(422, "Not connected.");
-						}
-					}
-
-					return new RestMethodResult(200);
+					return sendAfterCommit(entity, connection -> connection.unsubscribe(recipient));
 				}
 			},
 
@@ -247,24 +222,9 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final XMPPClient client = entity.as(XMPPClient.class);
-					if (client.getIsEnabled()) {
+					final String recipient = (String)arguments.toMap().get("recipient");
 
-						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-						if (connection.isConnected()) {
-
-							final Map<String, Object> data = arguments.toMap();
-							final String recipient         = (String)data.get("recipient");
-
-							connection.confirmSubscription(recipient);
-
-						} else {
-
-							throw new FrameworkException(422, "Not connected.");
-						}
-					}
-
-					return new RestMethodResult(200);
+					return sendAfterCommit(entity, connection -> connection.confirmSubscription(recipient));
 				}
 			},
 
@@ -273,24 +233,9 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final XMPPClient client = entity.as(XMPPClient.class);
-					if (client.getIsEnabled()) {
+					final String recipient = (String)arguments.toMap().get("recipient");
 
-						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-						if (connection.isConnected()) {
-
-							final Map<String, Object> data = arguments.toMap();
-							final String recipient         = (String)data.get("recipient");
-
-							connection.denySubscription(recipient);
-
-						} else {
-
-							throw new FrameworkException(422, "Not connected.");
-						}
-					}
-
-					return new RestMethodResult(200);
+					return sendAfterCommit(entity, connection -> connection.denySubscription(recipient));
 				}
 			},
 
@@ -299,11 +244,13 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
+					// not deferred like the stanzas above, because joining waits for the answer of the server and reports
+					// its errors to the caller
 					final XMPPClient client = entity.as(XMPPClient.class);
 					if (client.getIsEnabled()) {
 
 						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-						if (connection.isConnected()) {
+						if (connection != null && connection.isConnected()) {
 
 							final Map<String, Object> data = arguments.toMap();
 							final String chatRoom          = (String)data.get("chatRoom");
@@ -327,47 +274,101 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final XMPPClient client = entity.as(XMPPClient.class);
-					if (client.getIsEnabled()) {
+					final Map<String, Object> data = arguments.toMap();
+					final String chatRoom          = (String)data.get("chatRoom");
+					final String message           = (String)data.get("message");
+					final String password          = (String)data.get("password");
 
-						final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
-						if (connection.isConnected()) {
-
-							final Map<String, Object> data = arguments.toMap();
-							final String chatRoom          = (String)data.get("chatRoom");
-							final String message           = (String)data.get("message");
-							final String password          = (String)data.get("password");
-
-							connection.sendChatMessage(chatRoom, message, password);
-
-						} else {
-
-							throw new FrameworkException(422, "Not connected.");
-						}
-					}
-
-					return new RestMethodResult(200);
+					return sendAfterCommit(entity, connection -> connection.sendChatMessage(chatRoom, message, password));
 				}
 			}
 		);
 	}
 
+	/**
+	 * Sends a stanza once the transaction that sends it has committed, so that a repeated transaction does not send it
+	 * twice and a rolled back one not at all. A client that is not connected is reported to the caller right away, a
+	 * failure while sending only in the log, since the transaction has committed by then.
+	 */
+	private static RestMethodResult sendAfterCommit(final GraphObject entity, final StanzaSender sender) throws FrameworkException {
+
+		final XMPPClient client = entity.as(XMPPClient.class);
+		if (client.getIsEnabled()) {
+
+			final XMPPClientConnection connection = XMPPContext.getClientForId(client.getUuid());
+			if (connection != null && connection.isConnected()) {
+
+				afterCommit(() -> {
+
+					try {
+
+						sender.send(connection);
+
+					} catch (FrameworkException fex) {
+
+						LoggerFactory.getLogger(XMPPClientTraitDefinition.class).error("Unable to send XMPP stanza after the commit: {}", fex.getMessage());
+					}
+				});
+
+			} else {
+
+				throw new FrameworkException(422, "Not connected.");
+			}
+		}
+
+		return new RestMethodResult(200);
+	}
+
+	/**
+	 * Runs the given work once the transaction of the current thread has committed, and not at all if it is rolled back.
+	 * Outside of a transaction, the work runs right away, because there is no commit to wait for. Errors of the work are
+	 * only logged: the transaction cannot be rolled back anymore, and an exception would keep the procedures queued after
+	 * it from running.
+	 */
+	private static void afterCommit(final Runnable work) {
+
+		final Runnable guarded = () -> {
+
+			try {
+
+				work.run();
+
+			} catch (RuntimeException rex) {
+
+				LoggerFactory.getLogger(XMPPClientTraitDefinition.class).error("Unable to send XMPP stanza after the commit", rex);
+			}
+		};
+
+		if (TransactionCommand.inTransaction()) {
+
+			TransactionCommand.queuePostCommitProcedure(guarded);
+
+		} else {
+
+			guarded.run();
+		}
+	}
+
+	@FunctionalInterface
+	private interface StanzaSender {
+
+		void send(final XMPPClientConnection connection) throws FrameworkException;
+	}
+
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> pendingRequestsProperty = new EndNodes(traitsInstance, PENDING_REQUESTS_PROPERTY, StructrTraits.XMPP_CLIENT_REQUEST);
-		final Property<String> xmppHandleProperty                       = new FunctionProperty(XMPP_HANDLE_PROPERTY).readFunction("concat(this.xmppUsername, '@', this.xmppHost)").typeHint("String").indexed();
-		final Property<String> xmppUsernameProperty                     = new StringProperty(XMPP_USERNAME_PROPERTY).indexed();
-		final Property<String> xmppPasswordProperty                     = new StringProperty(XMPP_PASSWORD_PROPERTY);
-		final Property<String> xmppServiceProperty                      = new StringProperty(XMPP_SERVICE_PROPERTY);
-		final Property<String> xmppHostProperty                         = new StringProperty(XMPP_HOST_PROPERTY);
-		final Property<Integer> xmppPortProperty                        = new IntProperty(XMPP_PORT_PROPERTY);
-		final Property<String> presenceModeProperty                     = new EnumProperty(PRESENCE_MODE_PROPERTY, Mode.class);
-		final Property<Boolean> isEnabledProperty                       = new BooleanProperty(IS_ENABLED_PROPERTY);
-		final Property<Boolean> isConnectedProperty                     = new BooleanProperty(IS_CONNECTED_PROPERTY);
+		final Property<String> xmppHandleProperty   = new FunctionProperty(XMPP_HANDLE_PROPERTY).readFunction("concat(this.xmppUsername, '@', this.xmppHost)").typeHint("String").indexed();
+		final Property<String> xmppUsernameProperty = new StringProperty(XMPP_USERNAME_PROPERTY).indexed();
+		final Property<String> xmppPasswordProperty = new StringProperty(XMPP_PASSWORD_PROPERTY);
+		final Property<String> xmppServiceProperty  = new StringProperty(XMPP_SERVICE_PROPERTY);
+		final Property<String> xmppHostProperty     = new StringProperty(XMPP_HOST_PROPERTY);
+		final Property<Integer> xmppPortProperty    = new IntProperty(XMPP_PORT_PROPERTY);
+		final Property<String> presenceModeProperty = new EnumProperty(PRESENCE_MODE_PROPERTY, Mode.class);
+		final Property<Boolean> isEnabledProperty   = new BooleanProperty(IS_ENABLED_PROPERTY);
+		final Property<Boolean> isConnectedProperty = new BooleanProperty(IS_CONNECTED_PROPERTY);
 
 		return newSet(
-			pendingRequestsProperty,
 			xmppHandleProperty,
 			xmppUsernameProperty,
 			xmppPasswordProperty,
@@ -387,12 +388,12 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public,
 			newSet(
 				XMPP_HANDLE_PROPERTY, XMPP_USERNAME_PROPERTY, XMPP_PASSWORD_PROPERTY, XMPP_SERVICE_PROPERTY, XMPP_HOST_PROPERTY, XMPP_PORT_PROPERTY,
-				PRESENCE_MODE_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, PENDING_REQUESTS_PROPERTY
+				PRESENCE_MODE_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
 				XMPP_HANDLE_PROPERTY, XMPP_USERNAME_PROPERTY, XMPP_PASSWORD_PROPERTY, XMPP_SERVICE_PROPERTY, XMPP_HOST_PROPERTY, XMPP_PORT_PROPERTY,
-				PRESENCE_MODE_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, PENDING_REQUESTS_PROPERTY
+				PRESENCE_MODE_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY
 			)
 		);
 	}

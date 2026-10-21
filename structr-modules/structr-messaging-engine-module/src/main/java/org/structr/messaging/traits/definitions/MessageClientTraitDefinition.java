@@ -20,6 +20,7 @@ package org.structr.messaging.traits.definitions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -67,8 +68,8 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final String topic   = (String) arguments.get(0);
-					final String message = (String) arguments.get(1);
+					final String topic   = (String) argument(arguments, "topic", 0);
+					final String message = (String) argument(arguments, "message", 1);
 
 					return entity.as(MessageClient.class).sendMessage(actionContext, topic, message);
 				}
@@ -86,7 +87,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final String topic = (String) arguments.get(0);
+					final String topic = (String) argument(arguments, "topic", 0);
 
 					return entity.as(MessageClient.class).subscribeTopic(actionContext, topic);
 				}
@@ -104,7 +105,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final String topic   = (String) arguments.get(0);
+					final String topic   = (String) argument(arguments, "topic", 0);
 
 					return entity.as(MessageClient.class).unsubscribeTopic(actionContext, topic);
 				}
@@ -117,6 +118,17 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 			}
 		);
+	}
+
+	/**
+	 * Returns an argument of sendMessage, subscribeTopic or unsubscribeTopic. A script passes the arguments as an object,
+	 * so by name and in any order, Java code may pass them by position.
+	 */
+	private static Object argument(final Arguments arguments, final String name, final int index) {
+
+		final boolean named = arguments.getAll().stream().anyMatch(argument -> argument.getName() != null);
+
+		return named ? arguments.get(name) : arguments.get(index);
 	}
 
 	@Override
@@ -158,6 +170,12 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 										}
 
 									} catch (FrameworkException e) {
+
+										// the database terminated the transaction, so the other subscribers cannot continue in it
+										if (RetryException.find(e) != null) {
+
+											throw new RetryException(e);
+										}
 
 										final Logger logger = LoggerFactory.getLogger(MessageClientTraitWrapper.class);
 										logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());

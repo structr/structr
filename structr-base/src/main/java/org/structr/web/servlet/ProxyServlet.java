@@ -133,13 +133,15 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		try {
 
-			boolean hasUser;
-
 			// isolate request authentication in a transaction
+			securityContext = authenticate(auth, request, response);
+
+			// not getCachedUser(): the security context of the superuser returns its user without caching it
+			final boolean hasUser;
+
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				securityContext = auth.initializeAndExamineRequest(request, response);
-				hasUser         = securityContext.getUser(false) != null;
+				hasUser = securityContext.getUser(false) != null;
 				tx.success();
 			}
 

@@ -623,7 +623,7 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testRestQueryRepeater() {
+	public void testFunctionQueryRepeater() {
 
 		String uuid = null;
 
@@ -668,7 +668,7 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testRestQueryWithRemoteAttributeRepeater() {
+	public void testFunctionQueryWithRemoteAttributeRepeater() {
 
 		String uuid = null;
 
@@ -683,7 +683,7 @@ public class UiScriptingTest extends StructrUiTest {
 			div.getUuid();
 
 			// setup scripting repeater to repeat over (non-existing) children of second div
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "first(find('Div', '" + div2.getUuid() + "')).children");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Div', '" + div2.getUuid() + "').children");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "test");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "foo${test}");
 

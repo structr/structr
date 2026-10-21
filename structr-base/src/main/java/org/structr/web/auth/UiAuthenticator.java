@@ -278,7 +278,12 @@ public class UiAuthenticator implements Authenticator {
 			} else {
 
 				response.setHeader("Access-Control-Allow-Origin",  origin);
-				response.addHeader("Vary", "Origin");
+
+				// added only once, the request can be examined again when the database terminates its transaction
+				if (response.getHeaders("Vary").stream().flatMap(value -> Arrays.stream(value.split(","))).noneMatch(value -> value.trim().equalsIgnoreCase("Origin"))) {
+
+					response.addHeader("Vary", "Origin");
+				}
 			}
 
 			if (maxAge != null) {
